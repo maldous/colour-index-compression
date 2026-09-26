@@ -4,8 +4,8 @@
 The same CIX configuration is applied to every file. No filename, extension, corpus name,
 or file category is passed into the encoder.
 
-This benchmark intentionally follows the Canterbury Corpus reporting conventions:
-- Canterbury: aggregate is meaningful.
+Reporting follows the Canterbury Corpus conventions:
+- Canterbury: fixed aggregate is meaningful.
 - Calgary: fixed aggregate is meaningful.
 - Artificial: report members individually; no aggregate claim.
 - Large: report fixed members individually; no overall average claim.
@@ -23,6 +23,16 @@ import time
 import urllib.request
 from dataclasses import asdict, dataclass
 from pathlib import Path
+
+try:
+    import brotli
+except ImportError:
+    brotli = None
+
+try:
+    import zstandard as zstd
+except ImportError:
+    zstd = None
 
 from cix.cli import config_for_level
 from cix.multinomial import StreamEncoder, decompress
@@ -47,6 +57,8 @@ class Result:
     gzip: int
     bzip2: int
     xz: int
+    brotli: int | None
+    zstd: int | None
     cix_seconds: float
     models: list[str]
 
@@ -79,6 +91,15 @@ def compress_one(corpus: str, path: Path, level: int) -> Result:
     if restored != data:
         raise RuntimeError(f"round-trip mismatch for {corpus}/{path.name}")
 
+    brotli_size = (
+        len(brotli.compress(data, quality=11))
+        if brotli is not None else None
+    )
+    zstd_size = (
+        len(zstd.ZstdCompressor(level=19).compress(data))
+        if zstd is not None else None
+    )
+
     return Result(
         corpus=corpus,
         file=path.name,
@@ -87,6 +108,8 @@ def compress_one(corpus: str, path: Path, level: int) -> Result:
         gzip=len(gzip.compress(data, 9)),
         bzip2=len(bz2.compress(data, 9)),
         xz=len(lzma.compress(data, preset=9)),
+        brotli=brotli_size,
+        zstd=zstd_size,
         cix_seconds=elapsed,
         models=list(encoder.block_descriptions),
     )
@@ -108,15 +131,25 @@ def render(results: list[Result]) -> str:
         lines += [
             f"## {corpus}",
             "",
-            "| file | CIX | gzip-9 | bzip2-9 | xz-9 | CIX seconds |",
-            "|---|---:|---:|---:|---:|---:|",
+            "| file | CIX | gzip-9 | bzip2-9 | xz-9 | Brotli-11 | zstd-19 | CIX seconds |",
+            "|---|---:|---:|---:|---:|---:|---:|---:|",
         ]
+
         for r in subset:
+            brotli_cell = (
+                f"{ratio(r.brotli,r.original):.2f}%"
+                if r.brotli is not None else "—"
+            )
+            zstd_cell = (
+                f"{ratio(r.zstd,r.original):.2f}%"
+                if r.zstd is not None else "—"
+            )
             lines.append(
                 f"| {r.file} | {ratio(r.cix,r.original):.2f}% | "
                 f"{ratio(r.gzip,r.original):.2f}% | "
                 f"{ratio(r.bzip2,r.original):.2f}% | "
-                f"{ratio(r.xz,r.original):.2f}% | {r.cix_seconds:.2f} |"
+                f"{ratio(r.xz,r.original):.2f}% | "
+                f"{brotli_cell} | {zstd_cell} | {r.cix_seconds:.2f} |"
             )
 
         if corpus in AGGREGATE_CORPORA:
@@ -128,11 +161,22 @@ def render(results: list[Result]) -> str:
                 f"- Aggregate bzip2-9: {ratio(sum(r.bzip2 for r in subset),original):.2f}%",
                 f"- Aggregate xz-9: {ratio(sum(r.xz for r in subset),original):.2f}%",
             ]
+            if all(r.brotli is not None for r in subset):
+                lines.append(
+                    f"- Aggregate Brotli-11: "
+                    f"{ratio(sum(r.brotli for r in subset if r.brotli is not None),original):.2f}%"
+                )
+            if all(r.zstd is not None for r in subset):
+                lines.append(
+                    f"- Aggregate zstd-19: "
+                    f"{ratio(sum(r.zstd for r in subset if r.zstd is not None),original):.2f}%"
+                )
         else:
             lines += [
                 "",
                 "- No aggregate is claimed for this corpus; member results are reported individually.",
             ]
+
         lines.append("")
 
     return "\n".join(lines)
