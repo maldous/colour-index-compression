@@ -27,6 +27,7 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
             enable_chains=False,
             enable_record=False,
             enable_periodic=False,
+            enable_ppm=False,
             enable_adaptive=False,
             enable_persistent_adaptive=False,
             context_beam=1,
@@ -48,6 +49,8 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
             context_beam=2,
             transform_beam=3,
             adaptive_beam=1,
+            enable_ppm=True,
+            ppm_order=3,
             context_models=(
                 ContextModel(1, 8),
                 ContextModel(2, 8),
@@ -70,6 +73,8 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
             context_beam=4,
             transform_beam=6,
             adaptive_beam=3,
+            enable_ppm=True,
+            ppm_order=4,
         )
 
     return StreamConfig(
@@ -86,6 +91,8 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
         context_beam=6,
         transform_beam=10,
         adaptive_beam=5,
+        enable_ppm=True,
+        ppm_order=5,
         context_models=(
             ContextModel(1, 6),
             ContextModel(1, 8),
@@ -134,6 +141,7 @@ def _compress_parser() -> argparse.ArgumentParser:
     parser.add_argument("--record-beam", type=int)
     parser.add_argument("--periodic-beam", type=int)
     parser.add_argument("--content-mask-bits", type=int)
+    parser.add_argument("--ppm-order", type=int, choices=range(0, 9))
     parser.add_argument("--no-lz", action="store_true")
     parser.add_argument("--no-bwt", action="store_true")
     parser.add_argument("--no-chains", action="store_true")
@@ -147,6 +155,7 @@ def _compress_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-persistent-adaptive", action="store_true")
     parser.add_argument("--no-sparse", action="store_true")
     parser.add_argument("--no-runs", action="store_true")
+    parser.add_argument("--no-ppm", action="store_true")
     return parser
 
 
@@ -181,6 +190,8 @@ def main_compress(argv: list[str] | None = None) -> int:
         config.periodic_beam = args.periodic_beam
     if args.content_mask_bits:
         config.content_mask_bits = args.content_mask_bits
+    if args.ppm_order is not None:
+        config.ppm_order = args.ppm_order
 
     if config.structured_block_target < config.max_block:
         config.structured_block_target = config.max_block
@@ -198,6 +209,7 @@ def main_compress(argv: list[str] | None = None) -> int:
     config.enable_persistent_adaptive = not args.no_persistent_adaptive
     config.enable_sparse = not args.no_sparse
     config.enable_runs = not args.no_runs
+    config.enable_ppm = not args.no_ppm
 
     for file_name in args.files:
         destination = args.output if len(args.files) == 1 else None
