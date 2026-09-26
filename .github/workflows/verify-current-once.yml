@@ -9,18 +9,16 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -e '.[dev,fast-bwt]' pytest-timeout
-      - name: Unit round-trip tests
-        run: |
-          timeout 60s pytest -q tests/test_portfolio.py::test_lz_substreams_round_trip_and_exploit_repetition tests/test_portfolio.py::test_lz_uses_previous_stream_history -vv
+      - name: Full bounded unit round-trip suite
+        run: pytest -q --timeout=45 --timeout-method=thread
       - name: Generated portfolio smoke benchmark
-        run: echo 'portfolio deferred until LZ verification passes'
+        run: python benchmarks/portfolio_smoke.py
 
-
-# verification revision 7
+# verification revision 8
