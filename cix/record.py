@@ -20,7 +20,7 @@ from .multinomial import (
 )
 
 RECORD_VERSION=1
-WIDTHS=(2,3,4,8,12,16,24,32,48,64,96,128,216,256,384,512,768,1024)
+BASE_WIDTHS=(2,3,4,8,12,16,24,32,48,64,96,128,192,216,256,384,432,512,768,1024,1536,2048)
 
 def _estimate_lane(lane:bytes)->float:
     n=len(lane)
@@ -35,8 +35,47 @@ def _estimate_lane(lane:bytes)->float:
 def _estimate(data:bytes,width:int)->float:
     return sum(_estimate_lane(data[lane::width]) for lane in range(width))
 
+def _divisors(value:int)->set[int]:
+    out=set()
+    root=int(math.isqrt(value))
+    for d in range(2,root+1):
+        if value%d==0:
+            out.add(d)
+            out.add(value//d)
+    return out
+
+def discover_record_widths(data:bytes,max_width:int=2048)->list[int]:
+    """Discover likely periods from repeated 4-byte shingles.
+
+    The search is format agnostic: repeated local byte patterns vote for the distance
+    at which they recur. Strong distances and their divisors are then considered as
+    deterministic record widths alongside a small universal prior set.
+    """
+    limit=min(max_width,max(0,len(data)//16))
+    if limit<2:
+        return []
+
+    candidates={w for w in BASE_WIDTHS if w<=limit}
+    previous={}
+    votes=Counter()
+    sample=data[:min(len(data),65536)]
+    for pos in range(0,max(0,len(sample)-4),4):
+        token=sample[pos:pos+4]
+        last=previous.get(token)
+        if last is not None:
+            distance=pos-last
+            if 2<=distance<=limit:
+                votes[distance]+=1
+        previous[token]=pos
+
+    for distance,_ in votes.most_common(16):
+        candidates.add(distance)
+        candidates.update(d for d in _divisors(distance) if d<=limit)
+
+    return sorted(candidates)
+
 def profile_record_widths(data:bytes)->list[tuple[float,int]]:
-    widths=[w for w in WIDTHS if w<=len(data)//16]
+    widths=discover_record_widths(data)
     return sorted((_estimate(data,w),w) for w in widths)
 
 def best_record_estimate(data:bytes)->float:
