@@ -41,15 +41,14 @@ def main():
 
     for name, data in sources.items():
         encoder = StreamEncoder(config)
-        encoder.feed(data)
-        cix = encoder.finish()
+        cix = encoder.feed(data) + encoder.finish()
         print(
             name,
             f"CIX={pct(len(cix),len(data)):.2f}%",
             f"zlib={pct(len(zlib.compress(data,9)),len(data)):.2f}%",
             f"bz2={pct(len(bz2.compress(data,9)),len(data)):.2f}%",
             f"xz={pct(len(lzma.compress(data,preset=9)),len(data)):.2f}%",
-            "modes=" + ",".join(block.description for block in encoder.blocks),
+            "modes=" + ",".join(encoder.block_descriptions),
         )
 
 
