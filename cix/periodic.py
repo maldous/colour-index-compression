@@ -18,16 +18,18 @@ from .multinomial import (
     vencode,
 )
 from .record import discover_record_widths
+from .substreams import decode_bytes, encode_bytes
 from .runs import decode_run_block, encode_run_block
 from .sparse import decode_sparse_block, encode_sparse_block
 
-PERIODIC_VERSION=1
+PERIODIC_VERSION=2
 OP_XOR=0
 OP_SUB=1
 INNER_MULTINOMIAL=0
 INNER_SPARSE=1
 INNER_RUNS=2
 INNER_BITPLANE=3
+INNER_LOCAL=4
 
 
 def _xor_lag(data:bytes,lag:int)->bytes:
@@ -75,6 +77,8 @@ def encode_periodic_block(data:bytes,beam:int=3)->tuple[bytes,str]:
         inners=[]
         plain=encode_type_class_known_n(residual)
         inners.append((INNER_MULTINOMIAL,plain,"multinomial"))
+        local=encode_bytes(residual)
+        inners.append((INNER_LOCAL,local,"local-multinomial"))
 
         counts=Counter(residual)
         if counts and max(counts.values())*4>=len(residual):
@@ -104,8 +108,9 @@ def encode_periodic_block(data:bytes,beam:int=3)->tuple[bytes,str]:
     return min(candidates,key=lambda x:len(x[0]))
 
 def decode_periodic_block(blob:bytes,*,source_length:int)->bytes:
-    if len(blob)<3 or blob[0]!=PERIODIC_VERSION:
+    if len(blob)<3 or blob[0] not in (1,PERIODIC_VERSION):
         raise ValueError("unknown periodic block version")
+    version=blob[0]
     op=blob[1];inner=blob[2];lag,pos=vdecode(blob,3);payload=blob[pos:]
     if not 0<lag<source_length: raise ValueError("invalid periodic lag")
 
@@ -118,6 +123,8 @@ def decode_periodic_block(blob:bytes,*,source_length:int)->bytes:
         residual=decode_run_block(payload,source_length=source_length)
     elif inner==INNER_BITPLANE:
         residual=decode_bitplanes(payload,source_length=source_length)
+    elif inner==INNER_LOCAL and version>=2:
+        residual=decode_bytes(payload,source_length)
     else:
         raise ValueError("unknown periodic inner mode")
 
