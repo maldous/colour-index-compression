@@ -69,6 +69,7 @@ class BitReader:
 BYTE_STREAM_STATIC = 0
 BYTE_STREAM_CHUNKED = 1
 BYTE_STREAM_ADAPTIVE = 2
+BYTE_STREAM_CONTEXT = 3
 
 
 def encode_bytes(values: bytes) -> bytes:
@@ -100,6 +101,19 @@ def encode_bytes(values: bytes) -> bytes:
 
             payload = encode_adaptive(values, order=0, bucket_bits=8)
             candidates.append(bytes((BYTE_STREAM_ADAPTIVE,)) + payload)
+
+            # Substreams can have their own causal structure even when the source
+            # block used a completely different top-level model.
+            context_orders = (1, 2) if len(values) >= 2048 else (1,)
+            for order in context_orders:
+                payload = encode_adaptive(
+                    values,
+                    order=order,
+                    bucket_bits=8 if order == 1 else 10,
+                )
+                candidates.append(
+                    bytes((BYTE_STREAM_CONTEXT, order)) + payload
+                )
         except Exception:
             pass
 
@@ -138,6 +152,16 @@ def decode_bytes(blob: bytes, count: int) -> bytes:
         values = decode_adaptive(blob[1:], source_length=count)
         if len(values) != count:
             raise ValueError("adaptive byte-substream length mismatch")
+        return values
+
+    if mode == BYTE_STREAM_CONTEXT:
+        if len(blob) < 2 or blob[1] not in (1, 2):
+            raise ValueError("invalid context byte-substream order")
+        from .adaptive import decode_adaptive
+
+        values = decode_adaptive(blob[2:], source_length=count)
+        if len(values) != count:
+            raise ValueError("context byte-substream length mismatch")
         return values
 
     raise ValueError("unknown byte-substream mode")
