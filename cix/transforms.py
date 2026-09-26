@@ -58,12 +58,7 @@ SPECS = (
     TransformSpec(29, "word32le-delta2zz-shuffle", 4, "little", "delta2zz", True),
     TransformSpec(30, "word64le-delta2zz-shuffle", 8, "little", "delta2zz", True),
     TransformSpec(31, "word64be-delta2zz-shuffle", 8, "big", "delta2zz", True),
-    TransformSpec(32, "x86-e8e9", 1, "little", "e8e9", False),
     TransformSpec(33, "matchxor4", 1, "little", "matchxor", False),
-    TransformSpec(34, "sparc-pc", 4, "big", "sparcpc", False),
-    TransformSpec(35, "sparc-pc-shuffle", 4, "big", "sparcpc", True),
-    TransformSpec(36, "byte-xor-216", 216, "little", "xor", False),
-    TransformSpec(37, "byte-xor-432", 432, "little", "xor", False),
 )
 
 SPEC_BY_ID = {spec.id: spec for spec in SPECS}
@@ -81,66 +76,6 @@ def _zigzag(value: int) -> int:
 
 def _unzigzag(value: int) -> int:
     return (value >> 1) if not (value & 1) else -((value >> 1) + 1)
-
-
-def _e8e9(data: bytes, inverse: bool = False) -> bytes:
-    out = bytearray(data)
-    pos = 0
-    limit = len(out) - 4
-    while pos < limit:
-        opcode = out[pos]
-        if opcode in (0xE8, 0xE9):
-            value = int.from_bytes(out[pos + 1 : pos + 5], "little")
-            if inverse:
-                value = (value - pos) & 0xFFFFFFFF
-            else:
-                value = (value + pos) & 0xFFFFFFFF
-            out[pos + 1 : pos + 5] = value.to_bytes(4, "little")
-            pos += 5
-        else:
-            pos += 1
-    return bytes(out)
-
-
-def _sparc_pc(data: bytes, inverse: bool = False, shuffle: bool = False) -> bytes:
-    """Normalize SPARC PC-relative CALL/branch fields by instruction word index.
-
-    Format 1 CALL carries disp30. Format 2 Bicc/FBfcc/CBccc carry disp22.
-    Adding the current instruction word index maps equal branch targets toward
-    equal encoded fields. Subtracting the same index restores every original bit.
-    """
-    usable = (len(data) // 4) * 4
-    out = bytearray(data[:usable])
-
-    for offset in range(0, usable, 4):
-        word = int.from_bytes(out[offset : offset + 4], "big")
-        op = (word >> 30) & 0x3
-        word_index = offset // 4
-
-        if op == 1:  # CALL, disp30
-            mask = (1 << 30) - 1
-            disp = word & mask
-            normalized = (
-                (disp - word_index) if inverse else (disp + word_index)
-            ) & mask
-            word = (word & ~mask) | normalized
-
-        elif op == 0:
-            op2 = (word >> 22) & 0x7
-            if op2 in (2, 6, 7):  # Bicc, FBfcc, CBccc: disp22
-                mask = (1 << 22) - 1
-                disp = word & mask
-                normalized = (
-                    (disp - word_index) if inverse else (disp + word_index)
-                ) & mask
-                word = (word & ~mask) | normalized
-
-        out[offset : offset + 4] = word.to_bytes(4, "big")
-
-    raw = bytes(out) + data[usable:]
-    if shuffle:
-        return _shuffle(raw, 4)
-    return raw
 
 
 def _matchxor_encode(data: bytes, key_len: int = 4) -> bytes:
@@ -217,14 +152,8 @@ def _unshuffle(raw: bytes, width: int) -> bytes:
 def apply_transform(data: bytes, spec: TransformSpec) -> bytes:
     width = spec.width
 
-    if spec.operation == "e8e9":
-        return _e8e9(data)
-
     if spec.operation == "matchxor":
         return _matchxor_encode(data)
-
-    if spec.operation == "sparcpc":
-        return _sparc_pc(data, shuffle=spec.shuffle)
 
     if spec.name.startswith("byte-"):
         lag = int(spec.name.rsplit("-", 1)[1])
@@ -291,15 +220,8 @@ def apply_transform(data: bytes, spec: TransformSpec) -> bytes:
 def invert_transform(data: bytes, spec: TransformSpec) -> bytes:
     width = spec.width
 
-    if spec.operation == "e8e9":
-        return _e8e9(data, inverse=True)
-
     if spec.operation == "matchxor":
         return _matchxor_decode(data)
-
-    if spec.operation == "sparcpc":
-        raw = _unshuffle(data, 4) if spec.shuffle else data
-        return _sparc_pc(raw, inverse=True, shuffle=False)
 
     raw = _unshuffle(data, width) if spec.shuffle else data
 
