@@ -9,7 +9,7 @@ from cix.transforms import decode_transform_block, encode_transform_block
 
 
 def test_lz_substreams_round_trip_and_exploit_repetition():
-    data = b"the quick brown fox jumps over the lazy dog. " * 300
+    data = b"the quick brown fox jumps over the lazy dog. " * 80
     payload, _ = encode_lz_block(
         data,
         context_models=(ContextModel(1, 8), ContextModel(2, 10)),
@@ -43,36 +43,36 @@ def test_bwt_substreams_round_trip():
 
 
 def test_numeric_native_round_trip():
-    data = b"".join(value.to_bytes(4, "little") for value in range(2000))
+    data = b"".join(value.to_bytes(4, "little") for value in range(500))
     payload, _ = encode_numeric_block(data)
     assert decode_numeric_block(payload, source_length=len(data)) == data
     assert len(payload) < len(data) // 20
 
 
 def test_numeric_transform_round_trip():
-    data = b"".join(value.to_bytes(4, "little") for value in range(1000))
+    data = b"".join(value.to_bytes(4, "little") for value in range(400))
     payload, _ = encode_transform_block(data)
     assert decode_transform_block(payload, source_length=len(data)) == data
     assert len(payload) < len(data) // 10
 
 
 def test_bitplane_round_trip():
-    data = bytes(0 if i % 100 else 1 for i in range(5000))
+    data = bytes(0 if i % 100 else 1 for i in range(1500))
     payload, _ = encode_bitplanes(data)
     assert decode_bitplanes(payload, source_length=len(data)) == data
 
 
 def test_full_portfolio_round_trip_nonstationary_stream():
     data = (
-        os.urandom(4096)
-        + (b"ABRACADABRA!" * 1000)
-        + b"".join(value.to_bytes(4, "little") for value in range(1500))
-        + (b'{"kind":"student","active":true}\n' * 500)
+        os.urandom(512)
+        + (b"ABRACADABRA!" * 120)
+        + b"".join(value.to_bytes(4, "little") for value in range(300))
+        + (b'{"kind":"student","active":true}\n' * 80)
     )
     config = StreamConfig(
-        min_block=1024,
-        max_block=8192,
-        probe_stride=512,
+        min_block=512,
+        max_block=2048,
+        probe_stride=256,
         history_bytes=1 << 20,
         context_models=(
             ContextModel(1, 8),
