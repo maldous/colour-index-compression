@@ -5,6 +5,8 @@ from __future__ import annotations
 from .bitplanes import decode_bitplanes, encode_bitplanes
 from .bwt import decode_bwt_block, encode_bwt_block
 from .lz import decode_lz_block, encode_lz_block
+from .runs import decode_run_block, encode_run_block
+from .sparse import decode_sparse_block, encode_sparse_block
 from .multinomial import (
     ContextModel,
     decode_context_type_classes,
@@ -25,10 +27,12 @@ INNER_CONTEXT = 2
 INNER_LZ = 3
 INNER_BWT = 4
 INNER_BITPLANE = 5
+INNER_SPARSE = 6
+INNER_RUNS = 7
 
 # High-value transforms worth chaining with a second model. Direct transform mode still
 # tries the full transform portfolio independently.
-CHAIN_SPEC_IDS = (12, 13, 16, 20, 21, 29, 30, 31, 32, 33)
+CHAIN_SPEC_IDS = (12, 13, 16, 20, 21, 29, 30, 31, 32, 33, 34, 35, 36, 37)
 
 
 def encode_chain_block(
@@ -109,6 +113,38 @@ def encode_chain_block(
             except Exception:
                 pass
 
+        if len(transformed) >= 2:
+            counts = [0] * 256
+            for byte in transformed:
+                counts[byte] += 1
+            if max(counts) * 4 >= len(transformed):
+                try:
+                    payload, description = encode_sparse_block(transformed)
+                    candidates.append(
+                        (
+                            bytes((CHAIN_VERSION, spec.id, INNER_SPARSE)) + payload,
+                            f"{spec.name}->{description}",
+                        )
+                    )
+                except Exception:
+                    pass
+
+            run_count = 1 + sum(
+                left != right
+                for left, right in zip(transformed, transformed[1:])
+            )
+            if run_count * 3 <= len(transformed) * 2:
+                try:
+                    payload, description = encode_run_block(transformed)
+                    candidates.append(
+                        (
+                            bytes((CHAIN_VERSION, spec.id, INNER_RUNS)) + payload,
+                            f"{spec.name}->{description}",
+                        )
+                    )
+                except Exception:
+                    pass
+
     if not candidates:
         raise ValueError("no chain candidates")
     return min(candidates, key=lambda item: len(item[0]))
@@ -153,6 +189,18 @@ def decode_chain_block(blob: bytes, *, source_length: int) -> bytes:
 
     elif inner_mode == INNER_BITPLANE:
         transformed = decode_bitplanes(
+            payload,
+            source_length=source_length,
+        )
+
+    elif inner_mode == INNER_SPARSE:
+        transformed = decode_sparse_block(
+            payload,
+            source_length=source_length,
+        )
+
+    elif inner_mode == INNER_RUNS:
+        transformed = decode_run_block(
             payload,
             source_length=source_length,
         )
