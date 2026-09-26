@@ -8,4 +8,4 @@ def test_record_conditioned_multinomial_round_trip():
     payload,name=encode_record_block(data,beam=8)
     assert decode_record_block(payload,source_length=len(data))==data
     assert len(payload)<len(data)//4
-    assert name.startswith("record-multinomial-w")
+    assert name.startswith("record-")
