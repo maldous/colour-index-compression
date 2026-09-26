@@ -22,29 +22,29 @@ def build_sources():
     rng = random.Random(1)
     biased = bytes(
         0 if rng.random() < 0.90 else rng.randrange(1, 8)
-        for _ in range(20000)
+        for _ in range(8000)
     )
-    repeating = b"the quick brown fox jumps over the lazy dog. " * 500
-    jsonish = b"".join(
+    repeating = b"periodic-sequence-0123456789|" * 250
+    structured_ascii = b"".join(
         (
             f'{{"id":{i},"name":"student-{i % 137}",'
             f'"active":{str(i % 7 != 0).lower()},"score":{(i * 17) % 101}}}\n'
         ).encode()
         for i in range(500)
     )
-    counter = b"".join(i.to_bytes(4, "little") for i in range(5000))
+    counter = b"".join(i.to_bytes(4, "little") for i in range(2000))
     mixed = (
         os.urandom(5000)
         + b"A" * 5000
         + repeating[:7000]
         + counter[:8000]
-        + jsonish[:10000]
+        + structured_ascii[:5000]
     )
     return {
         "random": os.urandom(20000),
         "biased": biased,
         "repeating": repeating,
-        "jsonish": jsonish,
+        "structured_ascii": structured_ascii,
         "counter32": counter,
         "mixed": mixed,
     }
@@ -55,7 +55,14 @@ def main():
         min_block=1024,
         max_block=8192,
         probe_stride=512,
-        history_bytes=1 << 20,
+        history_bytes=1 << 18,
+        lz_window_bytes=1 << 18,
+        lz_chain=8,
+        context_beam=2,
+        transform_beam=2,
+        adaptive_beam=1,
+        enable_chains=False,
+        enable_persistent_adaptive=False,
         context_models=(
             ContextModel(1, 6),
             ContextModel(1, 8),
