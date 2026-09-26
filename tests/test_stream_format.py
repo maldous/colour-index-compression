@@ -71,7 +71,7 @@ def test_stream_decoder_handles_single_byte_packets():
         enable_sparse=False,
         enable_runs=False,
         enable_adaptive=False,
-        enable_stateful=False,
+        enable_persistent_adaptive=False,
         context_models=(ContextModel(1, 8), ContextModel(2, 8)),
     )
 
