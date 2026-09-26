@@ -1,0 +1,36 @@
+name: Universal cross-corpus benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      corpora:
+        description: "Space-separated corpus names"
+        required: false
+        default: "canterbury calgary artificial"
+      level:
+        description: "CIX compression level 1-9"
+        required: false
+        default: "6"
+
+jobs:
+  universal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[fast-bwt]'
+      - name: Run universal suite
+        shell: bash
+        run: python benchmarks/universal_suite.py --level "${{ inputs.level }}" --corpora ${{ inputs.corpora }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: universal-results
+          path: |
+            universal-results.md
+            universal-results.json
+            universal-progress.json
+          if-no-files-found: ignore
