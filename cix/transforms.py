@@ -43,9 +43,102 @@ SPECS = (
     TransformSpec(16, "word64be-delta2-shuffle", 8, "big", "delta2", True),
     TransformSpec(17, "word32le-xor-shuffle", 4, "little", "xor", True),
     TransformSpec(18, "word64le-xor-shuffle", 8, "little", "xor", True),
+    TransformSpec(19, "byte-xor-8", 8, "little", "xor", False),
+    TransformSpec(20, "byte-xor-12", 12, "little", "xor", False),
+    TransformSpec(21, "byte-xor-16", 16, "little", "xor", False),
+    TransformSpec(22, "byte-xor-24", 24, "little", "xor", False),
+    TransformSpec(23, "byte-xor-32", 32, "little", "xor", False),
+    TransformSpec(24, "byte-xor-64", 64, "little", "xor", False),
+    TransformSpec(25, "byte-sub-2", 2, "little", "delta", False),
+    TransformSpec(26, "byte-sub-4", 4, "little", "delta", False),
+    TransformSpec(27, "byte-sub-8", 8, "little", "delta", False),
+    TransformSpec(28, "byte-sub-16", 16, "little", "delta", False),
+    TransformSpec(29, "word32le-delta2zz-shuffle", 4, "little", "delta2zz", True),
+    TransformSpec(30, "word64le-delta2zz-shuffle", 8, "little", "delta2zz", True),
+    TransformSpec(31, "word64be-delta2zz-shuffle", 8, "big", "delta2zz", True),
+    TransformSpec(32, "x86-e8e9", 1, "little", "e8e9", False),
+    TransformSpec(33, "matchxor4", 1, "little", "matchxor", False),
 )
 
 SPEC_BY_ID = {spec.id: spec for spec in SPECS}
+
+
+def _signed(value: int, bits: int) -> int:
+    half = 1 << (bits - 1)
+    modulus = 1 << bits
+    return value if value < half else value - modulus
+
+
+def _zigzag(value: int) -> int:
+    return (value << 1) if value >= 0 else ((-value << 1) - 1)
+
+
+def _unzigzag(value: int) -> int:
+    return (value >> 1) if not (value & 1) else -((value >> 1) + 1)
+
+
+def _e8e9(data: bytes, inverse: bool = False) -> bytes:
+    out = bytearray(data)
+    pos = 0
+    limit = len(out) - 4
+    while pos < limit:
+        opcode = out[pos]
+        if opcode in (0xE8, 0xE9):
+            value = int.from_bytes(out[pos + 1 : pos + 5], "little")
+            if inverse:
+                value = (value - pos) & 0xFFFFFFFF
+            else:
+                value = (value + pos) & 0xFFFFFFFF
+            out[pos + 1 : pos + 5] = value.to_bytes(4, "little")
+            pos += 5
+        else:
+            pos += 1
+    return bytes(out)
+
+
+def _matchxor_encode(data: bytes, key_len: int = 4) -> bytes:
+    table: dict[bytes, int] = {}
+    active: int | None = None
+    out = bytearray()
+
+    for pos, byte in enumerate(data):
+        source = None
+        if active is not None and active < pos:
+            source = active
+        elif pos >= key_len:
+            source = table.get(data[pos - key_len : pos])
+
+        prediction = data[source] if source is not None else 0
+        out.append(byte ^ prediction)
+
+        if pos >= key_len:
+            table[data[pos - key_len : pos]] = pos
+        active = source + 1 if source is not None and prediction == byte else None
+
+    return bytes(out)
+
+
+def _matchxor_decode(residual: bytes, key_len: int = 4) -> bytes:
+    table: dict[bytes, int] = {}
+    active: int | None = None
+    out = bytearray()
+
+    for pos, value in enumerate(residual):
+        source = None
+        if active is not None and active < pos:
+            source = active
+        elif pos >= key_len:
+            source = table.get(bytes(out[pos - key_len : pos]))
+
+        prediction = out[source] if source is not None else 0
+        byte = value ^ prediction
+        out.append(byte)
+
+        if pos >= key_len:
+            table[bytes(out[pos - key_len : pos]] = pos
+        active = source + 1 if source is not None and prediction == byte else None
+
+    return bytes(out)
 
 
 def _words(data: bytes, width: int, endian: str) -> tuple[list[int], bytes]:
@@ -76,6 +169,12 @@ def _unshuffle(raw: bytes, width: int) -> bytes:
 
 def apply_transform(data: bytes, spec: TransformSpec) -> bytes:
     width = spec.width
+
+    if spec.operation == "e8e9":
+        return _e8e9(data)
+
+    if spec.operation == "matchxor":
+        return _matchxor_encode(data)
 
     if spec.name.startswith("byte-"):
         lag = int(spec.name.rsplit("-", 1)[1])
@@ -119,6 +218,18 @@ def apply_transform(data: bytes, spec: TransformSpec) -> bytes:
                 transformed.append((delta - previous_delta) % mod)
                 previous_delta = delta
 
+    elif spec.operation == "delta2zz":
+        bits = 8 * width
+        mask = mod - 1
+        if len(values) > 1:
+            previous_delta = _signed((values[1] - values[0]) & mask, bits)
+            transformed.append(_zigzag(previous_delta))
+            for index in range(2, len(values)):
+                delta = _signed((values[index] - values[index - 1]) & mask, bits)
+                delta_delta = _signed((delta - previous_delta) & mask, bits)
+                transformed.append(_zigzag(delta_delta))
+                previous_delta = delta
+
     else:
         raise ValueError("unknown transform operation")
 
@@ -129,6 +240,13 @@ def apply_transform(data: bytes, spec: TransformSpec) -> bytes:
 
 def invert_transform(data: bytes, spec: TransformSpec) -> bytes:
     width = spec.width
+
+    if spec.operation == "e8e9":
+        return _e8e9(data, inverse=True)
+
+    if spec.operation == "matchxor":
+        return _matchxor_decode(data)
+
     raw = _unshuffle(data, width) if spec.shuffle else data
 
     if spec.name.startswith("byte-"):
@@ -164,6 +282,17 @@ def invert_transform(data: bytes, spec: TransformSpec) -> bytes:
             restored.append((restored[-1] + previous_delta) % mod)
             for delta_delta in values[2:]:
                 previous_delta = (previous_delta + delta_delta) % mod
+                restored.append((restored[-1] + previous_delta) % mod)
+
+    elif spec.operation == "delta2zz":
+        bits = 8 * width
+        mask = mod - 1
+        if len(values) > 1:
+            previous_delta = _unzigzag(values[1])
+            restored.append((restored[-1] + previous_delta) % mod)
+            for encoded_delta_delta in values[2:]:
+                delta_delta = _unzigzag(encoded_delta_delta)
+                previous_delta = _signed((previous_delta + delta_delta) & mask, bits)
                 restored.append((restored[-1] + previous_delta) % mod)
 
     else:
