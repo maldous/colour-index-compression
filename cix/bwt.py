@@ -8,9 +8,9 @@ from .multinomial import (
     vdecode,
     vencode,
 )
-from .substreams import decode_bytes, decode_uints, encode_bytes, encode_uints
+from .substreams import BitReader, BitWriter, decode_bytes, decode_uints, encode_bytes, encode_uints
 
-BWT_VERSION = 4
+BWT_VERSION = 5
 
 
 def _bwt_transform_python(data: bytes) -> tuple[int, bytes]:
@@ -201,11 +201,8 @@ def _decode_binary_tags(blob: bytes, count: int) -> bytes:
     raise ValueError("unknown BWT tag stream mode")
 
 
-def encode_bwt_block(data: bytes) -> tuple[bytes, str]:
-    primary, transformed = bwt_transform(data)
-    mtf = mtf_encode(transformed)
+def _encode_bwt_v4(primary: int, mtf: bytes) -> bytes:
     tags, nonzero, runs = _split_zero_runs(mtf)
-
     tag_blob = _encode_binary_tags(tags)
 
     nonzero_candidates = [
@@ -215,7 +212,7 @@ def encode_bwt_block(data: bytes) -> tuple[bytes, str]:
     nonzero_blob = min(nonzero_candidates, key=len)
     run_blob = encode_uints(runs)
 
-    out = bytearray((BWT_VERSION,))
+    out = bytearray((4,))
     out += vencode(primary)
     out += vencode(len(tags))
     out += vencode(len(nonzero))
@@ -223,17 +220,140 @@ def encode_bwt_block(data: bytes) -> tuple[bytes, str]:
     for stream in (tag_blob, nonzero_blob, run_blob):
         out += vencode(len(stream))
         out += stream
+    return bytes(out)
 
-    return bytes(out), "bwt-mtf-runs"
+
+def _runa_runb_tokens(mtf: bytes) -> tuple[bytes, list[int]]:
+    tokens = bytearray()
+    side_bits: list[int] = []
+    pos = 0
+
+    while pos < len(mtf):
+        if mtf[pos] == 0:
+            stop = pos + 1
+            while stop < len(mtf) and mtf[stop] == 0:
+                stop += 1
+
+            # bzip2-style RUNA/RUNB: encode run_length-1 in a bijective
+            # binary alphabet whose symbols are 0 and 1.
+            value = stop - pos - 1
+            while True:
+                tokens.append(0 if (value & 1) == 0 else 1)
+                if value < 2:
+                    break
+                value = (value - 2) // 2
+            pos = stop
+            continue
+
+        rank = mtf[pos]
+        if rank <= 253:
+            tokens.append(rank + 1)  # token alphabet 2..254
+        else:
+            tokens.append(255)
+            side_bits.append(rank - 254)  # exactly one bit: rank 254/255
+        pos += 1
+
+    return bytes(tokens), side_bits
+
+
+def _runa_runb_decode(tokens: bytes, side_bits: list[int]) -> bytes:
+    out = bytearray()
+    pos = 0
+    side_pos = 0
+
+    while pos < len(tokens):
+        token = tokens[pos]
+
+        if token <= 1:
+            value = -1
+            weight = 1
+            while pos < len(tokens) and tokens[pos] <= 1:
+                if tokens[pos] == 0:
+                    value += weight
+                else:
+                    value += 2 * weight
+                weight <<= 1
+                pos += 1
+            out.extend(b"\x00" * (value + 1))
+            continue
+
+        if token < 255:
+            out.append(token - 1)
+        else:
+            if side_pos >= len(side_bits):
+                raise ValueError("BWT RUNA/RUNB side stream exhausted")
+            out.append(254 + side_bits[side_pos])
+            side_pos += 1
+        pos += 1
+
+    if side_pos != len(side_bits):
+        raise ValueError("unused BWT RUNA/RUNB side bits")
+    return bytes(out)
+
+
+def _encode_bwt_v5(primary: int, mtf: bytes) -> bytes:
+    tokens, side_bits = _runa_runb_tokens(mtf)
+    token_blob = encode_bytes(tokens)
+
+    writer = BitWriter()
+    for bit in side_bits:
+        writer.bit(bit)
+    side_blob = writer.finish()
+
+    out = bytearray((BWT_VERSION,))
+    out += vencode(primary)
+    out += vencode(len(tokens))
+    out += vencode(len(side_bits))
+    out += vencode(len(token_blob))
+    out += token_blob
+    out += side_blob
+    return bytes(out)
+
+
+def encode_bwt_block(data: bytes) -> tuple[bytes, str]:
+    primary, transformed = bwt_transform(data)
+    mtf = mtf_encode(transformed)
+
+    old = _encode_bwt_v4(primary, mtf)
+    runa_runb = _encode_bwt_v5(primary, mtf)
+
+    if len(runa_runb) < len(old):
+        return runa_runb, "bwt-mtf-runa-runb"
+    return old, "bwt-mtf-runs"
 
 
 def decode_bwt_block(blob: bytes, *, source_length: int) -> bytes:
-    if not blob or blob[0] not in (1, 2, 3, BWT_VERSION):
+    if not blob or blob[0] not in (1, 2, 3, 4, BWT_VERSION):
         raise ValueError("unknown BWT block version")
 
     version = blob[0]
     pos = 1
     primary, pos = vdecode(blob, pos)
+
+    if version == 5:
+        token_count, pos = vdecode(blob, pos)
+        side_count, pos = vdecode(blob, pos)
+        token_len, pos = vdecode(blob, pos)
+        token_end = pos + token_len
+        if token_end > len(blob):
+            raise ValueError("truncated BWT RUNA/RUNB token stream")
+
+        tokens = decode_bytes(blob[pos:token_end], token_count)
+        pos = token_end
+
+        side_bytes = (side_count + 7) // 8
+        if pos + side_bytes != len(blob):
+            raise ValueError("BWT RUNA/RUNB side length mismatch")
+        reader = BitReader(blob[pos:])
+        side_bits = [reader.bit() for _ in range(side_count)]
+
+        mtf = _runa_runb_decode(tokens, side_bits)
+        if len(mtf) != source_length:
+            raise ValueError("BWT RUNA/RUNB transformed length mismatch")
+        restored = bwt_inverse(primary, mtf_decode(mtf))
+        if len(restored) != source_length:
+            raise ValueError("BWT source length mismatch")
+        return restored
     tag_count, pos = vdecode(blob, pos)
     nonzero_count, pos = vdecode(blob, pos)
     run_count, pos = vdecode(blob, pos)
