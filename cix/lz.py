@@ -54,6 +54,7 @@ def parse_lz(
     window: int = 1 << 20,
     chain: int = 32,
     key_len: int = 4,
+    lazy: bool = False,
 ) -> LZParse:
     if key_len < 3:
         raise ValueError("key_len must be at least 3")
@@ -81,32 +82,67 @@ def parse_lz(
     lengths = []
     distances = []
 
-    position = history_len
-    while position < end:
+    def find_match(at: int) -> tuple[int, int]:
+        if at + key_len > end:
+            return 0, 0
+        key = base[at : at + key_len]
         best_length = 0
         best_distance = 0
+        best_score = -1
 
-        if position + key_len <= end:
-            key = base[position : position + key_len]
-            for candidate in reversed(table.get(key, ())[-chain:]):
-                distance = position - candidate
-                if not 0 < distance <= window:
-                    continue
+        for candidate in reversed(table.get(key, ())[-chain:]):
+            distance = at - candidate
+            if not 0 < distance <= window:
+                continue
 
-                limit = min(max_match, end - position)
-                match_length = key_len
-                while (
-                    match_length < limit
-                    and base[position - distance + match_length]
-                    == base[position + match_length]
-                ):
-                    match_length += 1
+            limit = min(max_match, end - at)
+            match_length = key_len
+            while (
+                match_length < limit
+                and base[at - distance + match_length]
+                == base[at + match_length]
+            ):
+                match_length += 1
 
-                if match_length > best_length:
-                    best_length = match_length
-                    best_distance = distance
-                    if best_length == limit:
-                        break
+            if match_length < min_match:
+                continue
+
+            # Approximate token gain. A slightly shorter nearby match can be
+            # cheaper than a distant longest match once distance classes are coded.
+            score = (
+                match_length * 8
+                - distance.bit_length()
+                - match_length.bit_length()
+                - 3
+            )
+            if score > best_score or (
+                score == best_score and match_length > best_length
+            ):
+                best_score = score
+                best_length = match_length
+                best_distance = distance
+
+        return best_length, best_distance
+
+    position = history_len
+    while position < end:
+        best_length, best_distance = find_match(position)
+
+        if best_length >= min_match and lazy and position + 1 < end:
+            if position + key_len <= end:
+                key = base[position : position + key_len]
+                entries = table[key]
+                entries.append(position)
+                if len(entries) > chain:
+                    del entries[0]
+
+            next_length, _ = find_match(position + 1)
+            if next_length > best_length + 1:
+                tags.append(0)
+                literals.append(base[position])
+                literal_positions.append(position - history_len)
+                position += 1
+                continue
 
         if best_length >= min_match:
             tags.append(1)
@@ -248,23 +284,14 @@ def _decode_literals(blob: bytes, count: int) -> LiteralDecoder:
     raise ValueError(f"unknown literal mode {mode}")
 
 
-def encode_lz_block(
+def _encode_parse(
+    parse: LZParse,
     data: bytes,
-    *,
-    prefix_history: bytes = b"",
-    context_models: tuple[ContextModel, ...] = (),
-    window: int = 1 << 20,
-    chain: int = 32,
-    min_match: int = DEFAULT_MIN_MATCH,
+    prefix_history: bytes,
+    context_models: tuple[ContextModel, ...],
+    min_match: int,
+    description_suffix: str,
 ) -> tuple[bytes, str]:
-    parse = parse_lz(
-        data,
-        prefix_history=prefix_history,
-        min_match=min_match,
-        window=window,
-        chain=chain,
-    )
-
     tags = encode_type_class_known_n(parse.tags)
     literals, literal_name = _encode_literals(
         parse, data, prefix_history, context_models
@@ -281,10 +308,47 @@ def encode_lz_block(
         out += vencode(len(stream))
         out += stream
 
-    return (
-        bytes(out),
-        f"lz-{literal_name}-m{min_match}-w{window}-c{chain}",
-    )
+    return bytes(out), f"lz-{literal_name}-{description_suffix}"
+
+
+def encode_lz_block(
+    data: bytes,
+    *,
+    prefix_history: bytes = b"",
+    context_models: tuple[ContextModel, ...] = (),
+    window: int = 1 << 20,
+    chain: int = 32,
+    min_match: int = DEFAULT_MIN_MATCH,
+) -> tuple[bytes, str]:
+    variants = [(min_match, False)]
+
+    if chain >= 24 and len(data) >= 128:
+        variants.append((min_match, True))
+        variants.append((max(min_match + 1, 5), True))
+
+    candidates = []
+    for candidate_min, lazy in variants:
+        parse = parse_lz(
+            data,
+            prefix_history=prefix_history,
+            min_match=candidate_min,
+            window=window,
+            chain=chain,
+            lazy=lazy,
+        )
+        candidates.append(
+            _encode_parse(
+                parse,
+                data,
+                prefix_history,
+                context_models,
+                candidate_min,
+                f"m{candidate_min}-w{window}-c{chain}"
+                + ("-lazy" if lazy else ""),
+            )
+        )
+
+    return min(candidates, key=lambda item: len(item[0]))
 
 
 def decode_lz_block(
