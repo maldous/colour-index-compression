@@ -33,8 +33,19 @@ def _estimate_lane(lane:bytes)->float:
     bits+=(math.lgamma(n+1)-sum(math.lgamma(c+1) for c in counts.values()))/math.log(2.0)
     return bits/8.0
 
+def _estimate_lane_local(lane:bytes)->float:
+    best=_estimate_lane(lane)
+    for chunk_size in (128,256,512,1024):
+        if len(lane)<chunk_size*2:
+            continue
+        cost=2.0
+        for start in range(0,len(lane),chunk_size):
+            cost+=_estimate_lane(lane[start:start+chunk_size])
+        best=min(best,cost)
+    return best
+
 def _estimate(data:bytes,width:int)->float:
-    return sum(_estimate_lane(data[lane::width]) for lane in range(width))
+    return sum(_estimate_lane_local(data[lane::width]) for lane in range(width))
 
 def _divisors(value:int)->set[int]:
     out=set()
