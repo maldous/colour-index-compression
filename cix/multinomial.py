@@ -615,6 +615,9 @@ class StreamEncoder:
             raise ValueError("max_block must be >= min_block")
         if self.config.probe_stride <= 0:
             raise ValueError("probe_stride must be positive")
+        max_order = max((m.order for m in self.config.context_models), default=0)
+        if self.config.history_bytes < max_order:
+            raise ValueError("history_bytes must cover the largest context order")
         self._next_check = min(self.config.max_block, self.config.min_block * 2)
 
     def _header(self) -> bytes:
