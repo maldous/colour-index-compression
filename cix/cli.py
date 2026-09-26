@@ -64,6 +64,7 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
         history_bytes=4 << 20,
         lz_window_bytes=4 << 20,
         lz_chain=96,
+        enable_chains=True,
         context_models=(
             ContextModel(1, 6),
             ContextModel(1, 8),
@@ -109,6 +110,7 @@ def _compress_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-chains", action="store_true")
     parser.add_argument("--no-bitplanes", action="store_true")
     parser.add_argument("--no-transforms", action="store_true")
+    parser.add_argument("--no-numeric", action="store_true")
     return parser
 
 
@@ -133,6 +135,7 @@ def main_compress(argv: list[str] | None = None) -> int:
     config.enable_chains = not args.no_chains
     config.enable_bitplanes = not args.no_bitplanes
     config.enable_transforms = not args.no_transforms
+    config.enable_numeric = not args.no_numeric
 
     for file_name in args.files:
         destination = args.output if len(args.files) == 1 else None
