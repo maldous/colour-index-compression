@@ -713,6 +713,7 @@ class StreamConfig:
     structured_block_target: int = 65536
     enable_ppm: bool = True
     ppm_order: int = 4
+    ppm_beam: int = 1
     enable_expert_mix: bool = True
     expert_orders: tuple[int, ...] = (0, 1, 2, 4)
 
@@ -738,6 +739,7 @@ class StreamConfig:
             structured_block_target=65536,
             enable_ppm=True,
             ppm_order=6,
+            ppm_beam=2,
             enable_expert_mix=True,
             expert_orders=(0, 1, 2, 3, 4, 6),
             chunk_mode="hybrid",
@@ -999,21 +1001,40 @@ def encode_best_block(
         and _looks_bwt_worthy(block)
     ):
         try:
-            from .ppm import encode_ppm
+            from .ppm import encode_ppm, estimate_ppm_bits
 
-            payload = encode_ppm(
-                block,
-                max_order=config.ppm_order,
-                prefix_history=prefix_history,
+            order_candidates = sorted(
+                {
+                    max(0, config.ppm_order - 2),
+                    max(0, config.ppm_order - 1),
+                    config.ppm_order,
+                }
             )
-            candidates.append(
-                EncodedBlock(
-                    MODE_PPM,
-                    len(block),
-                    payload,
-                    f"ppm-o{config.ppm_order}",
+            profiled_ppm = sorted(
+                (
+                    estimate_ppm_bits(
+                        block,
+                        max_order=order,
+                        prefix_history=prefix_history,
+                    ),
+                    order,
                 )
+                for order in order_candidates
             )
+            for _, order in profiled_ppm[: max(1, config.ppm_beam)]:
+                payload = encode_ppm(
+                    block,
+                    max_order=order,
+                    prefix_history=prefix_history,
+                )
+                candidates.append(
+                    EncodedBlock(
+                        MODE_PPM,
+                        len(block),
+                        payload,
+                        f"ppm-o{order}",
+                    )
+                )
         except Exception:
             pass
 
