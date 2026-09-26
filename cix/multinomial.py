@@ -30,7 +30,7 @@ import zlib
 from dataclasses import dataclass, field
 from typing import Iterable
 
-MAGIC = b"CIXM3"
+MAGIC = b"CIXM4"
 MODE_RAW = 0
 MODE_MULTINOMIAL = 1
 MODE_CONTEXT = 2
@@ -245,6 +245,173 @@ def permutation_unrank(rank: int, counts: list[int]) -> bytes:
     return bytes(out)
 
 
+TYPECLASS_RANK = 0
+TYPECLASS_RANGE = 1
+TYPECLASS_RANGE_THRESHOLD = 2048
+
+_ARITH_PREC = 32
+_ARITH_MAX = (1 << _ARITH_PREC) - 1
+_ARITH_HALF = 1 << (_ARITH_PREC - 1)
+_ARITH_Q1 = 1 << (_ARITH_PREC - 2)
+_ARITH_Q3 = 3 * _ARITH_Q1
+
+
+class _ArithmeticBitWriter:
+    def __init__(self) -> None:
+        self.buffer = bytearray()
+        self.current = 0
+        self.used = 0
+        self.bit_length = 0
+
+    def write(self, bit: int) -> None:
+        self.current = (self.current << 1) | (1 if bit else 0)
+        self.used += 1
+        self.bit_length += 1
+        if self.used == 8:
+            self.buffer.append(self.current)
+            self.current = 0
+            self.used = 0
+
+    def finish(self) -> tuple[bytes, int]:
+        if self.used:
+            self.buffer.append(self.current << (8 - self.used))
+        return bytes(self.buffer), self.bit_length
+
+
+class _ArithmeticBitReader:
+    def __init__(self, data: bytes, bit_length: int) -> None:
+        self.data = data
+        self.bit_length = bit_length
+        self.pos = 0
+
+    def read(self) -> int:
+        if self.pos >= self.bit_length:
+            self.pos += 1
+            return 0
+        bit = (self.data[self.pos >> 3] >> (7 - (self.pos & 7))) & 1
+        self.pos += 1
+        return bit
+
+
+class _ArithmeticEncoder:
+    def __init__(self) -> None:
+        self.low = 0
+        self.high = _ARITH_MAX
+        self.pending = 0
+        self.writer = _ArithmeticBitWriter()
+
+    def _emit(self, bit: int) -> None:
+        self.writer.write(bit)
+        while self.pending:
+            self.writer.write(bit ^ 1)
+            self.pending -= 1
+
+    def encode(self, low_count: int, high_count: int, total: int) -> None:
+        interval = self.high - self.low + 1
+        self.high = self.low + (interval * high_count // total) - 1
+        self.low = self.low + (interval * low_count // total)
+
+        while True:
+            if self.high < _ARITH_HALF:
+                self._emit(0)
+            elif self.low >= _ARITH_HALF:
+                self._emit(1)
+                self.low -= _ARITH_HALF
+                self.high -= _ARITH_HALF
+            elif self.low >= _ARITH_Q1 and self.high < _ARITH_Q3:
+                self.pending += 1
+                self.low -= _ARITH_Q1
+                self.high -= _ARITH_Q1
+            else:
+                break
+            self.low <<= 1
+            self.high = (self.high << 1) + 1
+
+    def finish(self) -> tuple[bytes, int]:
+        self.pending += 1
+        self._emit(0 if self.low < _ARITH_Q1 else 1)
+        return self.writer.finish()
+
+
+class _ArithmeticDecoder:
+    def __init__(self, data: bytes, bit_length: int) -> None:
+        self.reader = _ArithmeticBitReader(data, bit_length)
+        self.low = 0
+        self.high = _ARITH_MAX
+        self.value = 0
+        for _ in range(_ARITH_PREC):
+            self.value = (self.value << 1) | self.reader.read()
+
+    def target(self, total: int) -> int:
+        interval = self.high - self.low + 1
+        return ((self.value - self.low + 1) * total - 1) // interval
+
+    def update(self, low_count: int, high_count: int, total: int) -> None:
+        interval = self.high - self.low + 1
+        self.high = self.low + (interval * high_count // total) - 1
+        self.low = self.low + (interval * low_count // total)
+
+        while True:
+            if self.high < _ARITH_HALF:
+                pass
+            elif self.low >= _ARITH_HALF:
+                self.low -= _ARITH_HALF
+                self.high -= _ARITH_HALF
+                self.value -= _ARITH_HALF
+            elif self.low >= _ARITH_Q1 and self.high < _ARITH_Q3:
+                self.low -= _ARITH_Q1
+                self.high -= _ARITH_Q1
+                self.value -= _ARITH_Q1
+            else:
+                break
+            self.low <<= 1
+            self.high = (self.high << 1) + 1
+            self.value = (self.value << 1) | self.reader.read()
+
+
+def _range_encode_type_sequence(data: bytes, counts: list[int]) -> tuple[bytes, int]:
+    mutable = counts[:]
+    fenwick = Fenwick(mutable)
+    remaining = len(data)
+    encoder = _ArithmeticEncoder()
+
+    for symbol in data:
+        low = fenwick.prefix(symbol)
+        high = low + mutable[symbol]
+        encoder.encode(low, high, remaining)
+        mutable[symbol] -= 1
+        fenwick.add(symbol, -1)
+        remaining -= 1
+
+    return encoder.finish()
+
+
+def _range_decode_type_sequence(
+    payload: bytes,
+    bit_length: int,
+    counts: list[int],
+) -> bytes:
+    mutable = counts[:]
+    fenwick = Fenwick(mutable)
+    remaining = sum(counts)
+    decoder = _ArithmeticDecoder(payload, bit_length)
+    out = bytearray()
+
+    while remaining:
+        target = decoder.target(remaining)
+        symbol = fenwick.select(target)
+        low = fenwick.prefix(symbol)
+        high = low + mutable[symbol]
+        decoder.update(low, high, remaining)
+
+        out.append(symbol)
+        mutable[symbol] -= 1
+        fenwick.add(symbol, -1)
+        remaining -= 1
+
+    return bytes(out)
+
+
 def encode_type_class(data: bytes) -> bytes:
     return vencode(len(data)) + encode_type_class_known_n(data)
 
@@ -280,7 +447,16 @@ def encode_type_class_known_n(data: bytes) -> bytes:
 
     cardinality = multinomial_cardinality(counts)
     sequence_width = (cardinality - 1).bit_length()
-    out += _fixed_bytes(permutation_rank(data, counts), sequence_width)
+
+    if n >= TYPECLASS_RANGE_THRESHOLD and cardinality > 1:
+        payload, bit_length = _range_encode_type_sequence(data, counts)
+        out.append(TYPECLASS_RANGE)
+        out += vencode(bit_length)
+        out += payload
+    else:
+        out.append(TYPECLASS_RANK)
+        out += _fixed_bytes(permutation_rank(data, counts), sequence_width)
+
     return bytes(out)
 
 
@@ -313,11 +489,31 @@ def decode_type_class_known_n(data: bytes, pos: int, n: int) -> tuple[bytes, int
 
     cardinality = multinomial_cardinality(counts)
     sequence_width = (cardinality - 1).bit_length()
-    sequence_rank, pos = _read_fixed(data, pos, sequence_width)
-    if sequence_rank >= cardinality:
-        raise ValueError("invalid sequence rank")
 
-    return permutation_unrank(sequence_rank, counts), pos
+    if pos >= len(data):
+        raise ValueError("missing type-class sequence mode")
+    sequence_mode = data[pos]
+    pos += 1
+
+    if sequence_mode == TYPECLASS_RANK:
+        sequence_rank, pos = _read_fixed(data, pos, sequence_width)
+        if sequence_rank >= cardinality:
+            raise ValueError("invalid sequence rank")
+        result = permutation_unrank(sequence_rank, counts)
+
+    elif sequence_mode == TYPECLASS_RANGE:
+        bit_length, pos = vdecode(data, pos)
+        byte_length = (bit_length + 7) // 8
+        end = pos + byte_length
+        if end > len(data):
+            raise ValueError("truncated type-class range stream")
+        result = _range_decode_type_sequence(data[pos:end], bit_length, counts)
+        pos = end
+
+    else:
+        raise ValueError("unknown type-class sequence mode")
+
+    return result, pos
 
 
 def _context_bucket(tail: bytes | bytearray, order: int, bucket_bits: int) -> int:
