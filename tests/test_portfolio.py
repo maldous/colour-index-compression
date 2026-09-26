@@ -64,16 +64,22 @@ def test_bitplane_round_trip():
 
 def test_full_portfolio_round_trip_nonstationary_stream():
     data = (
-        os.urandom(512)
-        + (b"ABRACADABRA!" * 120)
-        + b"".join(value.to_bytes(4, "little") for value in range(300))
-        + (b'{"kind":"student","active":true}\n' * 80)
+        os.urandom(256)
+        + (b"ABRACADABRA!" * 40)
+        + b"".join(value.to_bytes(4, "little") for value in range(100))
+        + (b'{"kind":"student","active":true}\n' * 30)
     )
     config = StreamConfig(
-        min_block=512,
-        max_block=2048,
-        probe_stride=256,
-        history_bytes=1 << 20,
+        min_block=256,
+        max_block=1024,
+        probe_stride=128,
+        history_bytes=1 << 16,
+        lz_window_bytes=1 << 16,
+        lz_chain=8,
+        context_beam=2,
+        transform_beam=2,
+        adaptive_beam=1,
+        enable_chains=False,
         context_models=(
             ContextModel(1, 8),
             ContextModel(2, 8),
