@@ -851,11 +851,14 @@ def encode_best_block(
 
     profiled_contexts = sorted(
         (
-            _context_model_estimate(block, model, prefix_history),
-            model,
-        )
-        for model in config.context_models
-    , key=lambda item: (item[0], item[1].order, item[1].bucket_bits))
+            (
+                _context_model_estimate(block, model, prefix_history),
+                model,
+            )
+            for model in config.context_models
+        ),
+        key=lambda item: (item[0], item[1].order, item[1].bucket_bits),
+    )
     for _, model in profiled_contexts[: config.context_beam]:
         payload = encode_context_type_classes(
             block,
