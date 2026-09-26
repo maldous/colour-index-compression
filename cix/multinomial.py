@@ -45,6 +45,7 @@ MODE_REFERENCE = 9
 MODE_ADAPTIVE = 10
 MODE_SPARSE = 11
 MODE_RUNS = 12
+MODE_PERSISTENT_ADAPTIVE = 13
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -700,6 +701,7 @@ class StreamConfig:
     adaptive_beam: int = 3
     enable_sparse: bool = True
     enable_runs: bool = True
+    enable_persistent_adaptive: bool = True
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -1131,6 +1133,7 @@ class StreamEncoder:
     _dedup: dict[bytes, list[tuple[int, bytes]]] = field(
         default_factory=dict, init=False
     )
+    _persistent_states: list = field(default_factory=list, init=False)
 
     def __post_init__(self) -> None:
         if self.config.min_block <= 0:
@@ -1151,7 +1154,9 @@ class StreamEncoder:
         if not 4 <= self.config.content_mask_bits <= 24:
             raise ValueError("content_mask_bits outside supported range")
         if not 0 <= self.config.dedup_blocks <= MAX_DEDUP_BLOCKS:
-            raise ValueError("dedup_blocks outside CIXM4 supported range")
+            raise ValueError("dedup_blocks outside CIXM5 supported range")
+        from .stateful import make_persistent_states
+        self._persistent_states = make_persistent_states()
         self._next_check = min(self.config.max_block, self.config.min_block * 2)
 
     def _header(self) -> bytes:
@@ -1228,14 +1233,36 @@ class StreamEncoder:
                     )
                     break
 
+        prefix_history = bytes(self._history)
+
         if encoded is None:
             encoded = encode_best_block(
                 block,
-                prefix_history=bytes(self._history),
+                prefix_history=prefix_history,
                 config=self.config,
             )
 
+            if self.config.enable_persistent_adaptive:
+                for model_id, state in enumerate(self._persistent_states):
+                    try:
+                        payload = bytes((model_id,)) + state.encode(
+                            block, prefix_history
+                        )
+                        candidate = EncodedBlock(
+                            MODE_PERSISTENT_ADAPTIVE,
+                            len(block),
+                            payload,
+                            f"persistent-adaptive-o{state.order}-b{state.bucket_bits}",
+                        )
+                        if len(candidate.framed) < len(encoded.framed):
+                            encoded = candidate
+                    except Exception:
+                        pass
+
         self._descriptions.append(encoded.description)
+
+        for state in self._persistent_states:
+            state.observe(block, prefix_history)
 
         entries = self._dedup.setdefault(digest, [])
         entries.append((self._block_index, block))
@@ -1279,6 +1306,11 @@ class StreamDecoder:
     _started: bool = field(default=False, init=False)
     _finished: bool = field(default=False, init=False)
     _recent_blocks: list[bytes] = field(default_factory=list, init=False)
+    _persistent_states: list = field(default_factory=list, init=False)
+
+    def __post_init__(self) -> None:
+        from .stateful import make_persistent_states
+        self._persistent_states = make_persistent_states()
 
     def feed(self, data: bytes) -> bytes:
         if self._finished and data:
@@ -1447,11 +1479,27 @@ class StreamDecoder:
                     source_length=source_length,
                 )
 
+            elif mode == MODE_PERSISTENT_ADAPTIVE:
+                if not payload:
+                    raise ValueError("missing persistent adaptive model ID")
+                model_id = payload[0]
+                if model_id >= len(self._persistent_states):
+                    raise ValueError("unknown persistent adaptive model ID")
+                block = self._persistent_states[model_id].decode(
+                    payload[1:],
+                    source_length,
+                    bytes(self._history),
+                )
+
             else:
                 raise ValueError(f"unknown CIX block mode {mode}")
 
             if len(block) != source_length:
                 raise ValueError("block source length mismatch")
+
+            prefix_history = bytes(self._history)
+            for state in self._persistent_states:
+                state.observe(block, prefix_history)
 
             out += block
             self._decoded_length += len(block)
