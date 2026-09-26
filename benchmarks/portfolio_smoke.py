@@ -33,15 +33,17 @@ def build_sources():
         for i in range(500)
     )
     counter = b"".join(i.to_bytes(4, "little") for i in range(2000))
+    random_bytes = bytes(rng.randrange(256) for _ in range(8000))
+    mixed_random = bytes(rng.randrange(256) for _ in range(5000))
     mixed = (
-        os.urandom(5000)
+        mixed_random
         + b"A" * 5000
         + repeating[:7000]
         + counter[:8000]
         + structured_ascii[:5000]
     )
     return {
-        "random": os.urandom(20000),
+        "random": random_bytes,
         "biased": biased,
         "repeating": repeating,
         "structured_ascii": structured_ascii,
