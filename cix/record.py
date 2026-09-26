@@ -4,8 +4,8 @@ For candidate record width w, bytes at offsets i mod w form deterministic lanes.
 Each lane is encoded as its own 256-symbol type class. No per-byte selector is stored;
 given n and w, the decoder knows exactly which lane supplies every output position.
 
-This is the positional analogue of context-conditioned multinomial CIX and is useful for
-spreadsheets, binary records, telemetry, executables, and raster rows.
+This is the positional analogue of context-conditioned multinomial CIX. Candidate widths
+are inferred from byte repetition and are never selected from file or format knowledge.
 """
 from __future__ import annotations
 
