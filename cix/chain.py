@@ -32,7 +32,7 @@ INNER_RUNS = 7
 
 # High-value transforms worth chaining with a second model. Direct transform mode still
 # tries the full transform portfolio independently.
-CHAIN_SPEC_IDS = (12, 13, 16, 20, 21, 29, 30, 31, 32, 33, 34, 35, 36, 37)
+CHAIN_SPEC_IDS = (12, 13, 16, 20, 21, 29, 30, 31, 33)
 
 
 def encode_chain_block(
