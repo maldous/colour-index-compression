@@ -452,6 +452,8 @@ def _encode_literals(
     source: bytes,
     prefix_history: bytes,
     context_models: tuple[ContextModel, ...],
+    *,
+    allow_fixed_mix: bool = False,
 ) -> tuple[bytes, str]:
     plain = bytes((0,)) + encode_type_class_known_n(parse.literals)
     local = bytes((2,)) + encode_bytes(parse.literals)
@@ -493,6 +495,39 @@ def _encode_literals(
                 f"literal-context-o{model.order}-b{model.bucket_bits}",
             )
         )
+
+    if len(parse.literals) >= 64:
+        try:
+            from .ppm import encode_ppm, estimate_ppm_bits
+
+            profiled = sorted(
+                (
+                    estimate_ppm_bits(parse.literals, max_order=order),
+                    order,
+                )
+                for order in (1, 2, 3, 4)
+            )
+            estimate, order = profiled[0]
+            current_best = min(len(payload) for payload, _ in candidates)
+            if estimate / 8.0 <= current_best * 1.08 + 16:
+                payload = bytes((3,)) + encode_ppm(
+                    parse.literals,
+                    max_order=order,
+                )
+                candidates.append(
+                    (payload, f"literal-ppm-o{order}")
+                )
+        except Exception:
+            pass
+
+    if allow_fixed_mix and 64 <= len(parse.literals) <= 16384:
+        try:
+            from .fixedmix import encode_fixed_mix
+
+            payload = bytes((4,)) + encode_fixed_mix(parse.literals)
+            candidates.append((payload, "literal-fixed-mix"))
+        except Exception:
+            pass
 
     return min(candidates, key=lambda item: len(item[0]))
 
@@ -564,6 +599,22 @@ def _decode_literals(blob: bytes, count: int) -> LiteralDecoder:
     if mode == 2:
         return LiteralDecoder(mode=0, plain=decode_bytes(blob[1:], count))
 
+    if mode == 3:
+        from .ppm import decode_ppm
+
+        return LiteralDecoder(
+            mode=0,
+            plain=decode_ppm(blob[1:], source_length=count),
+        )
+
+    if mode == 4:
+        from .fixedmix import decode_fixed_mix
+
+        return LiteralDecoder(
+            mode=0,
+            plain=decode_fixed_mix(blob[1:], source_length=count),
+        )
+
     raise ValueError(f"unknown literal mode {mode}")
 
 
@@ -574,10 +625,16 @@ def _encode_parse(
     context_models: tuple[ContextModel, ...],
     min_match: int,
     description_suffix: str,
+    *,
+    allow_fixed_mix: bool = False,
 ) -> tuple[bytes, str]:
     tags = _encode_tags(parse.tags)
     literals, literal_name = _encode_literals(
-        parse, data, prefix_history, context_models
+        parse,
+        data,
+        prefix_history,
+        context_models,
+        allow_fixed_mix=allow_fixed_mix,
     )
     lengths = encode_uints(parse.lengths)
     distances = encode_distances_best(parse.distances)
@@ -647,6 +704,7 @@ def encode_lz_block(
                 f"m{candidate_min}-w{window}-c{chain}"
                 + ("-lazy" if lazy else "")
                 + parser_suffix,
+                allow_fixed_mix=chain >= 48,
             )
         )
 
@@ -670,6 +728,7 @@ def encode_lz_block(
                 context_models,
                 min_match,
                 f"m{min_match}-w{window}-c{chain}-optimal-sa",
+                allow_fixed_mix=True,
             )
         )
 
