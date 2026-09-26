@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -e '.[fast-bwt]'
+      - run: pip install -e '.[fast-bwt]' brotli zstandard
       - name: Run universal suite
         shell: bash
         run: python benchmarks/universal_suite.py --level "${{ inputs.level }}" --corpora ${{ inputs.corpora }}
