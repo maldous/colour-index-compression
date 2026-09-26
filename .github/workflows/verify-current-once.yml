@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pytest pydivsufsort
+      - run: pip install -e '.[dev,fast-bwt]'
       - name: Unit round-trip tests
         run: pytest -q
       - name: Generated portfolio smoke benchmark
