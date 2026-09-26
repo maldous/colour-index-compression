@@ -38,6 +38,7 @@ MODE_LZ = 3
 MODE_BWT = 4
 MODE_TRANSFORM = 5
 MODE_BITPLANE = 6
+MODE_CHAIN = 7
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 
@@ -480,6 +481,9 @@ class StreamConfig:
     enable_bwt: bool = True
     enable_transforms: bool = True
     enable_bitplanes: bool = True
+    enable_chains: bool = True
+    chunk_mode: str = "hybrid"
+    content_mask_bits: int = 13
     lz_window_bytes: int = 1 << 20
     lz_chain: int = 32
     bwt_max_block: int = 65536
@@ -494,6 +498,8 @@ class StreamConfig:
             history_bytes=MAX_HISTORY_BYTES,
             lz_window_bytes=MAX_HISTORY_BYTES,
             lz_chain=96,
+            chunk_mode="hybrid",
+            content_mask_bits=14,
             context_models=(
                 ContextModel(1, 6),
                 ContextModel(1, 8),
@@ -607,6 +613,20 @@ def encode_best_block(
         except Exception:
             pass
 
+    if config.enable_chains and len(block) >= 32:
+        try:
+            from .chain import encode_chain_block
+
+            payload, description = encode_chain_block(
+                block,
+                context_models=config.context_models,
+            )
+            candidates.append(
+                EncodedBlock(MODE_CHAIN, len(block), payload, description)
+            )
+        except Exception:
+            pass
+
     best = min(candidates, key=lambda candidate: len(candidate.framed))
     raw_size = len(candidates[0].framed)
     if raw_size - len(best.framed) < config.min_savings_bytes:
@@ -675,6 +695,33 @@ def _best_split(buffer: bytes, config: StreamConfig) -> int | None:
     return best_cut
 
 
+def _gear_value(byte: int) -> int:
+    # SplitMix64-derived fixed gear value: deterministic without storing a table.
+    x = (byte + 0x9E3779B97F4A7C15) & 0xFFFFFFFFFFFFFFFF
+    x = ((x ^ (x >> 30)) * 0xBF58476D1CE4E5B9) & 0xFFFFFFFFFFFFFFFF
+    x = ((x ^ (x >> 27)) * 0x94D049BB133111EB) & 0xFFFFFFFFFFFFFFFF
+    return (x ^ (x >> 31)) & 0xFFFFFFFFFFFFFFFF
+
+
+_GEAR = tuple(_gear_value(byte) for byte in range(256))
+
+
+def _content_boundary(buffer: bytes, config: StreamConfig) -> int | None:
+    if config.chunk_mode not in ("content", "hybrid"):
+        return None
+    if len(buffer) < config.min_block:
+        return None
+
+    mask = (1 << config.content_mask_bits) - 1
+    value = 0
+    stop = min(len(buffer), config.max_block)
+    for index, byte in enumerate(buffer[:stop], start=1):
+        value = ((value << 1) + _GEAR[byte]) & 0xFFFFFFFFFFFFFFFF
+        if index >= config.min_block and (value & mask) == 0:
+            return index
+    return None
+
+
 @dataclass
 class StreamEncoder:
     """Incremental encoder.
@@ -707,6 +754,10 @@ class StreamEncoder:
             raise ValueError("history_bytes outside CIXM3 supported range")
         if not 0 < self.config.lz_window_bytes <= MAX_HISTORY_BYTES:
             raise ValueError("lz_window_bytes outside CIXM3 supported range")
+        if self.config.chunk_mode not in ("adaptive", "content", "hybrid", "fixed"):
+            raise ValueError("unknown chunk_mode")
+        if not 4 <= self.config.content_mask_bits <= 24:
+            raise ValueError("content_mask_bits outside supported range")
         self._next_check = min(self.config.max_block, self.config.min_block * 2)
 
     def _header(self) -> bytes:
@@ -729,7 +780,15 @@ class StreamEncoder:
 
         while len(self._buffer) >= self._next_check:
             probe = bytes(self._buffer[: self._next_check])
-            cut = _best_split(probe, self.config)
+            entropy_cut = (
+                _best_split(probe, self.config)
+                if self.config.chunk_mode in ("adaptive", "hybrid")
+                else None
+            )
+            content_cut = _content_boundary(probe, self.config)
+
+            cuts = [cut for cut in (entropy_cut, content_cut) if cut is not None]
+            cut = min(cuts) if cuts else None
 
             if cut is not None:
                 emitted += self._emit(cut)
@@ -897,6 +956,14 @@ class StreamDecoder:
                 from .bitplanes import decode_bitplanes
 
                 block = decode_bitplanes(
+                    payload,
+                    source_length=source_length,
+                )
+
+            elif mode == MODE_CHAIN:
+                from .chain import decode_chain_block
+
+                block = decode_chain_block(
                     payload,
                     source_length=source_length,
                 )
