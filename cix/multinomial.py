@@ -30,10 +30,11 @@ import zlib
 from dataclasses import dataclass, field
 from typing import Iterable
 
-MAGIC = b"CIXM2"
+MAGIC = b"CIXM3"
 MODE_RAW = 0
 MODE_MULTINOMIAL = 1
 MODE_CONTEXT = 2
+MODE_END = 255
 
 
 def vencode(x: int) -> bytes:
@@ -481,13 +482,12 @@ class EncodedBlock:
 
     @property
     def framed(self) -> bytes:
-        if self.mode == MODE_RAW:
-            return bytes((MODE_RAW,)) + vencode(self.source_length) + self.payload
-        if self.mode == MODE_MULTINOMIAL:
-            return bytes((MODE_MULTINOMIAL,)) + self.payload
-        if self.mode == MODE_CONTEXT:
-            return bytes((MODE_CONTEXT,)) + vencode(self.source_length) + self.payload
-        raise ValueError("unknown mode")
+        return (
+            bytes((self.mode,))
+            + vencode(self.source_length)
+            + vencode(len(self.payload))
+            + self.payload
+        )
 
 
 def encode_best_block(
@@ -501,7 +501,7 @@ def encode_best_block(
         EncodedBlock(
             MODE_MULTINOMIAL,
             len(block),
-            encode_type_class(block),
+            encode_type_class_known_n(block),
             "multinomial-256",
         ),
     ]
@@ -579,7 +579,7 @@ def _best_split(buffer: bytes, config: StreamConfig) -> int | None:
 
         left = _approx_typeclass_bytes_from_counts(left_counts, i)
         right = _approx_typeclass_bytes_from_counts(right_counts, n - i)
-        split_cost = left + right + 4.0
+        split_cost = left + right + 6.0
         gain_bits = (whole - split_cost) * 8.0
         if gain_bits > best_gain_bits:
             best_gain_bits = gain_bits
@@ -592,123 +592,223 @@ def _best_split(buffer: bytes, config: StreamConfig) -> int | None:
 
 @dataclass
 class StreamEncoder:
+    """Incremental encoder.
+
+    feed() returns bytes that are immediately safe to write to a socket/file.
+    No final source length or block count is required up front. finish() emits
+    the last buffered block followed by the end footer (length + CRC32).
+    """
     config: StreamConfig = field(default_factory=StreamConfig)
     _buffer: bytearray = field(default_factory=bytearray, init=False)
     _history: bytearray = field(default_factory=bytearray, init=False)
-    _blocks: list[EncodedBlock] = field(default_factory=list, init=False)
     _source_length: int = field(default=0, init=False)
     _crc: int = field(default=0, init=False)
+    _started: bool = field(default=False, init=False)
+    _finished: bool = field(default=False, init=False)
+    _descriptions: list[str] = field(default_factory=list, init=False)
+    _next_check: int = field(default=0, init=False)
 
-    def feed(self, data: bytes) -> None:
+    def __post_init__(self) -> None:
+        if self.config.min_block <= 0:
+            raise ValueError("min_block must be positive")
+        if self.config.max_block < self.config.min_block:
+            raise ValueError("max_block must be >= min_block")
+        if self.config.probe_stride <= 0:
+            raise ValueError("probe_stride must be positive")
+        self._next_check = min(self.config.max_block, self.config.min_block * 2)
+
+    def _header(self) -> bytes:
+        if self._started:
+            return b""
+        self._started = True
+        return MAGIC
+
+    def feed(self, data: bytes) -> bytes:
+        if self._finished:
+            raise ValueError("encoder already finished")
+
+        emitted = bytearray(self._header())
         if not data:
-            return
+            return bytes(emitted)
 
         self._source_length += len(data)
         self._crc = zlib.crc32(data, self._crc)
         self._buffer.extend(data)
 
-        while True:
-            cut = None
-            if len(self._buffer) >= self.config.min_block * 2:
-                cut = _best_split(bytes(self._buffer), self.config)
+        while len(self._buffer) >= self._next_check:
+            probe = bytes(self._buffer[: self._next_check])
+            cut = _best_split(probe, self.config)
 
-            if cut is None and len(self._buffer) >= self.config.max_block:
-                cut = self.config.max_block
+            if cut is not None:
+                emitted += self._emit(cut)
+                self._next_check = min(
+                    self.config.max_block, self.config.min_block * 2
+                )
+                continue
 
-            if cut is None:
-                break
+            if self._next_check >= self.config.max_block:
+                emitted += self._emit(self.config.max_block)
+                self._next_check = min(
+                    self.config.max_block, self.config.min_block * 2
+                )
+                continue
 
-            self._emit(cut)
+            self._next_check = min(
+                self.config.max_block,
+                self._next_check + self.config.probe_stride,
+            )
 
-    def _emit(self, count: int) -> None:
+        return bytes(emitted)
+
+    def _emit(self, count: int) -> bytes:
         block = bytes(self._buffer[:count])
         del self._buffer[:count]
 
-        history = bytes(self._history)
-        encoded = encode_best_block(block, prefix_history=history, config=self.config)
-        self._blocks.append(encoded)
+        encoded = encode_best_block(
+            block,
+            prefix_history=bytes(self._history),
+            config=self.config,
+        )
+        self._descriptions.append(encoded.description)
 
         self._history.extend(block)
         if len(self._history) > self.config.history_bytes:
             del self._history[:-self.config.history_bytes]
 
-    def finish(self) -> bytes:
-        if self._buffer:
-            self._emit(len(self._buffer))
+        return encoded.framed
 
-        out = bytearray(MAGIC)
-        out += vencode(self._source_length)
-        out += vencode(len(self._blocks))
-        for block in self._blocks:
-            out += block.framed
-        out += struct.pack("<I", self._crc & 0xFFFFFFFF)
-        return bytes(out)
+    def finish(self) -> bytes:
+        if self._finished:
+            return b""
+
+        emitted = bytearray(self._header())
+        if self._buffer:
+            emitted += self._emit(len(self._buffer))
+
+        emitted.append(MODE_END)
+        emitted += vencode(self._source_length)
+        emitted += struct.pack("<I", self._crc & 0xFFFFFFFF)
+        self._finished = True
+        return bytes(emitted)
 
     @property
-    def blocks(self) -> tuple[EncodedBlock, ...]:
-        return tuple(self._blocks)
+    def block_descriptions(self) -> tuple[str, ...]:
+        return tuple(self._descriptions)
+
+
+@dataclass
+class StreamDecoder:
+    history_bytes: int = 16
+    _buffer: bytearray = field(default_factory=bytearray, init=False)
+    _history: bytearray = field(default_factory=bytearray, init=False)
+    _decoded_length: int = field(default=0, init=False)
+    _crc: int = field(default=0, init=False)
+    _started: bool = field(default=False, init=False)
+    _finished: bool = field(default=False, init=False)
+
+    def feed(self, data: bytes) -> bytes:
+        if self._finished and data:
+            raise ValueError("data after CIX end footer")
+        self._buffer.extend(data)
+        out = bytearray()
+
+        if not self._started:
+            if len(self._buffer) < len(MAGIC):
+                return b""
+            if bytes(self._buffer[: len(MAGIC)]) != MAGIC:
+                raise ValueError("not a CIX multinomial stream")
+            del self._buffer[: len(MAGIC)]
+            self._started = True
+
+        while self._buffer and not self._finished:
+            mode = self._buffer[0]
+
+            if mode == MODE_END:
+                try:
+                    total, p = vdecode(bytes(self._buffer), 1)
+                except ValueError as exc:
+                    if "truncated" in str(exc):
+                        break
+                    raise
+                if len(self._buffer) < p + 4:
+                    break
+                expected_crc = struct.unpack_from("<I", self._buffer, p)[0]
+                if total != self._decoded_length:
+                    raise ValueError("decoded length mismatch")
+                if expected_crc != (self._crc & 0xFFFFFFFF):
+                    raise ValueError("CIX checksum mismatch")
+                del self._buffer[: p + 4]
+                self._finished = True
+                break
+
+            try:
+                source_length, p = vdecode(bytes(self._buffer), 1)
+                payload_length, p = vdecode(bytes(self._buffer), p)
+            except ValueError as exc:
+                if "truncated" in str(exc):
+                    break
+                raise
+
+            frame_end = p + payload_length
+            if len(self._buffer) < frame_end:
+                break
+
+            payload = bytes(self._buffer[p:frame_end])
+            del self._buffer[:frame_end]
+
+            if mode == MODE_RAW:
+                if payload_length != source_length:
+                    raise ValueError("raw payload length mismatch")
+                block = payload
+
+            elif mode == MODE_MULTINOMIAL:
+                block, consumed = decode_type_class_known_n(payload, 0, source_length)
+                if consumed != len(payload):
+                    raise ValueError("unused multinomial payload bytes")
+
+            elif mode == MODE_CONTEXT:
+                block, consumed = decode_context_type_classes(
+                    payload,
+                    0,
+                    source_length,
+                    prefix_history=bytes(self._history),
+                )
+                if consumed != len(payload):
+                    raise ValueError("unused context payload bytes")
+
+            else:
+                raise ValueError(f"unknown CIX block mode {mode}")
+
+            if len(block) != source_length:
+                raise ValueError("block source length mismatch")
+
+            out += block
+            self._decoded_length += len(block)
+            self._crc = zlib.crc32(block, self._crc)
+            self._history.extend(block)
+            if len(self._history) > self.history_bytes:
+                del self._history[:-self.history_bytes]
+
+        return bytes(out)
+
+    def finish(self) -> None:
+        if not self._finished:
+            raise ValueError("CIX stream ended without footer")
+        if self._buffer:
+            raise ValueError("trailing bytes after CIX stream")
+
+    @property
+    def finished(self) -> bool:
+        return self._finished
 
 
 def compress(data: bytes, config: StreamConfig | None = None) -> bytes:
     encoder = StreamEncoder(config or StreamConfig())
-    encoder.feed(data)
-    return encoder.finish()
+    return encoder.feed(data) + encoder.finish()
 
 
 def decompress(blob: bytes, *, history_bytes: int = 16) -> bytes:
-    if not blob.startswith(MAGIC):
-        raise ValueError("not a CIX multinomial stream")
-
-    pos = len(MAGIC)
-    original_length, pos = vdecode(blob, pos)
-    block_count, pos = vdecode(blob, pos)
-
-    out = bytearray()
-    history = bytearray()
-
-    for _ in range(block_count):
-        if pos >= len(blob):
-            raise ValueError("truncated CIX block")
-        mode = blob[pos]
-        pos += 1
-
-        if mode == MODE_RAW:
-            n, pos = vdecode(blob, pos)
-            end = pos + n
-            if end > len(blob):
-                raise ValueError("truncated raw block")
-            block = blob[pos:end]
-            pos = end
-
-        elif mode == MODE_MULTINOMIAL:
-            block, pos = decode_type_class(blob, pos)
-
-        elif mode == MODE_CONTEXT:
-            n, pos = vdecode(blob, pos)
-            block, pos = decode_context_type_classes(
-                blob,
-                pos,
-                n,
-                prefix_history=bytes(history),
-            )
-
-        else:
-            raise ValueError(f"unknown CIX block mode {mode}")
-
-        out += block
-        history.extend(block)
-        if len(history) > history_bytes:
-            del history[:-history_bytes]
-
-    if len(out) != original_length:
-        raise ValueError("decoded length mismatch")
-
-    if pos + 4 != len(blob):
-        raise ValueError("unexpected bytes before/after CIX checksum")
-
-    expected_crc = struct.unpack_from("<I", blob, pos)[0]
-    actual_crc = zlib.crc32(out) & 0xFFFFFFFF
-    if actual_crc != expected_crc:
-        raise ValueError("CIX checksum mismatch")
-
-    return bytes(out)
+    decoder = StreamDecoder(history_bytes=history_bytes)
+    out = decoder.feed(blob)
+    decoder.finish()
+    return out
