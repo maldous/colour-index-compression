@@ -13,6 +13,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import math
+
 from .adaptive import _Model
 from .multinomial import (
     Fenwick,
@@ -62,6 +64,27 @@ class PersistentAdaptiveState:
         model = _Model(counts, Fenwick(counts), sum(counts))
         working[bucket] = model
         return model
+
+    def estimate_bits(self, data: bytes, prefix_history: bytes) -> float:
+        """Estimate candidate log loss using the same private working updates."""
+        working: dict[int, _Model] = {}
+        tail = bytearray(prefix_history[-self.order:] if self.order else b"")
+        bits = 0.0
+
+        for symbol in data:
+            bucket = _bucket(tail, self.order, self.bucket_bits)
+            model = self._working_model(bucket, working)
+            low, high, total = model.interval(symbol)
+            frequency = high - low
+            bits += math.log2(total) - math.log2(frequency)
+            model.update(symbol)
+
+            if self.order:
+                tail.append(symbol)
+                if len(tail) > self.order:
+                    del tail[:-self.order]
+
+        return bits
 
     def encode(self, data: bytes, prefix_history: bytes) -> bytes:
         working: dict[int, _Model] = {}
