@@ -2,7 +2,15 @@
 
 Experimental lossless compression research based on:
 
-- majority/minority ("colour") representation of fixed-width bit blocks
+**Current canonical direction:** direct 256-symbol multinomial CIX on `main`.
+For a block with byte counts `n_0 ... n_255`, sequence order is represented inside the
+exact type class `n! / (n_0! n_1! ... n_255!)`. Context-conditioned variants partition
+the stream into deterministic context buckets and multinomial-code each bucket directly.
+
+
+- direct 256-symbol multinomial/type-class coding
+- context-conditioned multinomial coding
+- majority/minority ("colour") representation of fixed-width bit blocks as a binary special case
 - combinatorial/enumerative ranking of minority-bit positions
 - mixed-radix pooling across blocks
 - adaptive reversible pre-transforms
@@ -19,6 +27,7 @@ Experimental lossless compression research based on:
 - Numeric delta + shuffle helps structured integer streams but needs stronger integer models.
 - BWT/MTF/zero-run style preconditioning materially improves text.
 - Adaptive per-region transform selection is the most promising general architecture.
+- CIXM3 is open-ended and streamable: blocks are emitted before the final source size is known, and an end footer carries final length/checksum.
 - Recursion should be retained only as an optional candidate and accepted only when exact encoded size improves.
 
 ## Candidate architecture
