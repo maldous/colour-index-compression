@@ -1,0 +1,19 @@
+name: LZ parse strategy probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/lz-parse-probe.yml"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[fast-bwt]'
+      - run: python benchmarks/lz_parse_probe.py
