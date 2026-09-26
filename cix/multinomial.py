@@ -48,6 +48,7 @@ MODE_RUNS = 12
 MODE_PERSISTENT_ADAPTIVE = 13
 MODE_RECORD = 14
 MODE_PERIODIC = 15
+MODE_PPM = 16
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -709,6 +710,8 @@ class StreamConfig:
     enable_periodic: bool = True
     periodic_beam: int = 3
     structured_block_target: int = 65536
+    enable_ppm: bool = True
+    ppm_order: int = 4
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -730,6 +733,8 @@ class StreamConfig:
             enable_periodic=True,
             periodic_beam=8,
             structured_block_target=65536,
+            enable_ppm=True,
+            ppm_order=6,
             chunk_mode="hybrid",
             content_mask_bits=14,
             context_models=(
@@ -979,6 +984,30 @@ def encode_best_block(
             payload, description = encode_bwt_block(block)
             candidates.append(
                 EncodedBlock(MODE_BWT, len(block), payload, description)
+            )
+        except Exception:
+            pass
+
+    if (
+        config.enable_ppm
+        and len(block) >= 512
+        and _looks_bwt_worthy(block)
+    ):
+        try:
+            from .ppm import encode_ppm
+
+            payload = encode_ppm(
+                block,
+                max_order=config.ppm_order,
+                prefix_history=prefix_history,
+            )
+            candidates.append(
+                EncodedBlock(
+                    MODE_PPM,
+                    len(block),
+                    payload,
+                    f"ppm-o{config.ppm_order}",
+                )
             )
         except Exception:
             pass
@@ -1574,6 +1603,15 @@ class StreamDecoder:
                 block = decode_periodic_block(
                     payload,
                     source_length=source_length,
+                )
+
+            elif mode == MODE_PPM:
+                from .ppm import decode_ppm
+
+                block = decode_ppm(
+                    payload,
+                    source_length=source_length,
+                    prefix_history=bytes(self._history),
                 )
 
             else:
