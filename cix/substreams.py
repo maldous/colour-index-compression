@@ -66,6 +66,83 @@ class BitReader:
         return value
 
 
+BYTE_STREAM_STATIC = 0
+BYTE_STREAM_CHUNKED = 1
+BYTE_STREAM_ADAPTIVE = 2
+
+
+def encode_bytes(values: bytes) -> bytes:
+    """Encode a byte substream with the cheapest universal local model."""
+    if not values:
+        return bytes((BYTE_STREAM_STATIC,)) + encode_type_class_known_n(b"")
+
+    candidates = [
+        bytes((BYTE_STREAM_STATIC,)) + encode_type_class_known_n(values)
+    ]
+
+    # Deterministic local multinomial windows capture nonstationarity without
+    # transmitting per-window lengths: count and chunk size imply every boundary.
+    for chunk_size in (128, 256, 512, 1024, 2048, 4096):
+        if len(values) < chunk_size * 2:
+            continue
+        out = bytearray((BYTE_STREAM_CHUNKED,))
+        out += vencode(chunk_size)
+        for start in range(0, len(values), chunk_size):
+            chunk = values[start : start + chunk_size]
+            out += encode_type_class_known_n(chunk)
+        candidates.append(bytes(out))
+
+    # Adaptive order-0 arithmetic is a useful competitor when the distribution
+    # evolves smoothly instead of changing in sharp windows.
+    if len(values) >= 256:
+        try:
+            from .adaptive import encode_adaptive
+
+            payload = encode_adaptive(values, order=0, bucket_bits=8)
+            candidates.append(bytes((BYTE_STREAM_ADAPTIVE,)) + payload)
+        except Exception:
+            pass
+
+    return min(candidates, key=len)
+
+
+def decode_bytes(blob: bytes, count: int) -> bytes:
+    if not blob:
+        raise ValueError("empty byte substream")
+    mode = blob[0]
+
+    if mode == BYTE_STREAM_STATIC:
+        values, used = decode_type_class_known_n(blob, 1, count)
+        if used != len(blob):
+            raise ValueError("unused static byte-substream bytes")
+        return values
+
+    if mode == BYTE_STREAM_CHUNKED:
+        chunk_size, pos = vdecode(blob, 1)
+        if chunk_size <= 0:
+            raise ValueError("invalid byte-substream chunk size")
+        out = bytearray()
+        remaining = count
+        while remaining:
+            n = min(chunk_size, remaining)
+            chunk, pos = decode_type_class_known_n(blob, pos, n)
+            out += chunk
+            remaining -= n
+        if pos != len(blob):
+            raise ValueError("unused chunked byte-substream bytes")
+        return bytes(out)
+
+    if mode == BYTE_STREAM_ADAPTIVE:
+        from .adaptive import decode_adaptive
+
+        values = decode_adaptive(blob[1:], source_length=count)
+        if len(values) != count:
+            raise ValueError("adaptive byte-substream length mismatch")
+        return values
+
+    raise ValueError("unknown byte-substream mode")
+
+
 UINT_VARINT = 0
 UINT_RICE = 1
 UINT_LOGCLASS = 2
