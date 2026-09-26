@@ -77,17 +77,18 @@ def _unshuffle(raw: bytes, width: int) -> bytes:
 def apply_transform(data: bytes, spec: TransformSpec) -> bytes:
     width = spec.width
 
-    if width == 1 and spec.name.startswith("byte-"):
-        if len(data) <= width:
+    if spec.name.startswith("byte-"):
+        lag = int(spec.name.rsplit("-", 1)[1])
+        if len(data) <= lag:
             return data
         if spec.operation == "xor":
-            return data[:width] + bytes(
-                data[i] ^ data[i - width] for i in range(width, len(data))
+            return data[:lag] + bytes(
+                data[i] ^ data[i - lag] for i in range(lag, len(data))
             )
         if spec.operation == "delta":
-            return data[:width] + bytes(
-                (data[i] - data[i - width]) & 255
-                for i in range(width, len(data))
+            return data[:lag] + bytes(
+                (data[i] - data[i - lag]) & 255
+                for i in range(lag, len(data))
             )
 
     values, tail = _words(data, width, spec.endian)
@@ -130,15 +131,16 @@ def invert_transform(data: bytes, spec: TransformSpec) -> bytes:
     width = spec.width
     raw = _unshuffle(data, width) if spec.shuffle else data
 
-    if width == 1 and spec.name.startswith("byte-"):
+    if spec.name.startswith("byte-"):
+        lag = int(spec.name.rsplit("-", 1)[1])
         out = bytearray(raw)
         if spec.operation == "xor":
-            for i in range(width, len(out)):
-                out[i] ^= out[i - width]
+            for i in range(lag, len(out)):
+                out[i] ^= out[i - lag]
             return bytes(out)
         if spec.operation == "delta":
-            for i in range(width, len(out)):
-                out[i] = (out[i] + out[i - width]) & 255
+            for i in range(lag, len(out)):
+                out[i] = (out[i] + out[i - lag]) & 255
             return bytes(out)
 
     values, tail = _words(raw, width, spec.endian)
