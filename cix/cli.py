@@ -111,6 +111,7 @@ def _compress_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-bitplanes", action="store_true")
     parser.add_argument("--no-transforms", action="store_true")
     parser.add_argument("--no-numeric", action="store_true")
+    parser.add_argument("--no-dedup", action="store_true")
     return parser
 
 
@@ -136,6 +137,7 @@ def main_compress(argv: list[str] | None = None) -> int:
     config.enable_bitplanes = not args.no_bitplanes
     config.enable_transforms = not args.no_transforms
     config.enable_numeric = not args.no_numeric
+    config.enable_dedup = not args.no_dedup
 
     for file_name in args.files:
         destination = args.output if len(args.files) == 1 else None
