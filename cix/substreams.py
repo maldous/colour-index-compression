@@ -85,7 +85,22 @@ def encode_uints(values: list[int]) -> bytes:
         raw += vencode(value)
     candidates.append(bytes(raw))
 
+    best_len = len(candidates[0])
     for k in range(17):
+        # Rice has q unary one-bits, one stop bit, and k low bits per value.
+        # Cost it first so absurd q values under a bad numeric interpretation never
+        # allocate or iterate over a catastrophically large unary stream.
+        payload_limit_bits = max(0, (best_len - 2) * 8)
+        bit_cost = 0
+        viable = True
+        for value in values:
+            bit_cost += (value >> k) + 1 + k
+            if bit_cost >= payload_limit_bits:
+                viable = False
+                break
+        if not viable:
+            continue
+
         writer = BitWriter()
         for value in values:
             quotient = value >> k
@@ -94,7 +109,9 @@ def encode_uints(values: list[int]) -> bytes:
             writer.bit(0)
             if k:
                 writer.bits(value & ((1 << k) - 1), k)
-        candidates.append(bytes((UINT_RICE, k)) + writer.finish())
+        candidate = bytes((UINT_RICE, k)) + writer.finish()
+        candidates.append(candidate)
+        best_len = min(best_len, len(candidate))
 
     classes = []
     lows = []
