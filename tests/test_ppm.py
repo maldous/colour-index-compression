@@ -1,6 +1,6 @@
 import os
 
-from cix.ppm import decode_ppm,encode_ppm
+from cix.ppm import decode_ppm, encode_ppm, estimate_ppm_bits
 
 
 def test_ppm_round_trip_repetitive_and_random():
@@ -18,3 +18,10 @@ def test_ppm_compresses_repeated_language_like_data():
     data=(b"compression models learn recurring contexts and recurring words. "*150)
     payload=encode_ppm(data,max_order=4)
     assert len(payload)<len(data)//3
+
+
+def test_ppm_estimator_prefers_predictive_context():
+    data = bytes(range(64)) * 80
+    order0 = estimate_ppm_bits(data, max_order=0)
+    order1 = estimate_ppm_bits(data, max_order=1)
+    assert order1 < order0
