@@ -49,6 +49,7 @@ MODE_PERSISTENT_ADAPTIVE = 13
 MODE_RECORD = 14
 MODE_PERIODIC = 15
 MODE_PPM = 16
+MODE_EXPERT_MIX = 17
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -712,6 +713,8 @@ class StreamConfig:
     structured_block_target: int = 65536
     enable_ppm: bool = True
     ppm_order: int = 4
+    enable_expert_mix: bool = True
+    expert_orders: tuple[int, ...] = (0, 1, 2, 4)
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -735,6 +738,8 @@ class StreamConfig:
             structured_block_target=65536,
             enable_ppm=True,
             ppm_order=6,
+            enable_expert_mix=True,
+            expert_orders=(0, 1, 2, 3, 4, 6),
             chunk_mode="hybrid",
             content_mask_bits=14,
             context_models=(
@@ -1007,6 +1012,30 @@ def encode_best_block(
                     len(block),
                     payload,
                     f"ppm-o{config.ppm_order}",
+                )
+            )
+        except Exception:
+            pass
+
+    if (
+        config.enable_expert_mix
+        and len(block) >= 512
+        and _looks_bwt_worthy(block)
+    ):
+        try:
+            from .expertmix import encode_expert_mix
+
+            payload = encode_expert_mix(
+                block,
+                orders=config.expert_orders,
+                prefix_history=prefix_history,
+            )
+            candidates.append(
+                EncodedBlock(
+                    MODE_EXPERT_MIX,
+                    len(block),
+                    payload,
+                    "context-expert-" + "-".join(map(str, config.expert_orders)),
                 )
             )
         except Exception:
@@ -1609,6 +1638,15 @@ class StreamDecoder:
                 from .ppm import decode_ppm
 
                 block = decode_ppm(
+                    payload,
+                    source_length=source_length,
+                    prefix_history=bytes(self._history),
+                )
+
+            elif mode == MODE_EXPERT_MIX:
+                from .expertmix import decode_expert_mix
+
+                block = decode_expert_mix(
                     payload,
                     source_length=source_length,
                     prefix_history=bytes(self._history),
