@@ -1,0 +1,25 @@
+name: Context mixing reference
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "benchmarks/contextmix_reference.py"
+      - ".github/workflows/contextmix-benchmark.yml"
+  workflow_dispatch:
+
+jobs:
+  contextmix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install zpaq
+      - run: python benchmarks/contextmix_reference.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contextmix-results
+          path: contextmix-results.md
