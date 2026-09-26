@@ -58,13 +58,25 @@ def _typeclass_estimate(data:bytes)->float:
     bits+=(math.lgamma(n+1)-sum(math.lgamma(c+1) for c in counts.values()))/math.log(2.0)
     return bits/8.0
 
+def _local_estimate(data:bytes)->float:
+    best=_typeclass_estimate(data)
+    for chunk_size in (128,256,512,1024,2048):
+        if len(data)<chunk_size*2:
+            continue
+        cost=2.0+sum(
+            _typeclass_estimate(data[start:start+chunk_size])
+            for start in range(0,len(data),chunk_size)
+        )
+        best=min(best,cost)
+    return best
+
 def profile_periods(data:bytes,limit:int=12)->list[tuple[float,int,int,bytes]]:
     profiled=[]
     for lag in discover_record_widths(data):
         if lag*2>len(data): continue
         for op in (OP_XOR,OP_SUB):
             residual=_xor_lag(data,lag) if op==OP_XOR else _sub_lag(data,lag)
-            profiled.append((_typeclass_estimate(residual),lag,op,residual))
+            profiled.append((_local_estimate(residual),lag,op,residual))
     return sorted(profiled,key=lambda x:(x[0],x[1],x[2]))[:limit]
 
 def best_periodic_estimate(data:bytes)->float:
