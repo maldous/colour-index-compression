@@ -43,6 +43,8 @@ MODE_CHAIN = 7
 MODE_NUMERIC = 8
 MODE_REFERENCE = 9
 MODE_ADAPTIVE = 10
+MODE_SPARSE = 11
+MODE_RUNS = 12
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -696,6 +698,8 @@ class StreamConfig:
     dedup_blocks: int = 1024
     enable_adaptive: bool = True
     adaptive_beam: int = 3
+    enable_sparse: bool = True
+    enable_runs: bool = True
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -897,6 +901,35 @@ def encode_best_block(
                 )
         except Exception:
             pass
+
+    if config.enable_sparse and len(block) >= 2:
+        counts = _counts(block)
+        dominant_count = max(counts)
+        if dominant_count * 4 >= len(block):
+            try:
+                from .sparse import encode_sparse_block
+
+                payload, description = encode_sparse_block(block)
+                candidates.append(
+                    EncodedBlock(MODE_SPARSE, len(block), payload, description)
+                )
+            except Exception:
+                pass
+
+    if config.enable_runs and len(block) >= 2:
+        run_count = 1 + sum(
+            left != right for left, right in zip(block, block[1:])
+        )
+        if run_count * 3 <= len(block) * 2:
+            try:
+                from .runs import encode_run_block
+
+                payload, description = encode_run_block(block)
+                candidates.append(
+                    EncodedBlock(MODE_RUNS, len(block), payload, description)
+                )
+            except Exception:
+                pass
 
     if config.enable_lz and len(block) >= 16:
         try:
@@ -1396,6 +1429,22 @@ class StreamDecoder:
                     payload,
                     source_length=source_length,
                     prefix_history=bytes(self._history),
+                )
+
+            elif mode == MODE_SPARSE:
+                from .sparse import decode_sparse_block
+
+                block = decode_sparse_block(
+                    payload,
+                    source_length=source_length,
+                )
+
+            elif mode == MODE_RUNS:
+                from .runs import decode_run_block
+
+                block = decode_run_block(
+                    payload,
+                    source_length=source_length,
                 )
 
             else:
