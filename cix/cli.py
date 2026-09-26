@@ -95,6 +95,7 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
         adaptive_beam=5,
         enable_ppm=True,
         ppm_order=5,
+        ppm_beam=2,
         enable_expert_mix=True,
         expert_orders=(0, 1, 2, 3, 4),
         context_models=(
@@ -146,6 +147,7 @@ def _compress_parser() -> argparse.ArgumentParser:
     parser.add_argument("--periodic-beam", type=int)
     parser.add_argument("--content-mask-bits", type=int)
     parser.add_argument("--ppm-order", type=int, choices=range(0, 9))
+    parser.add_argument("--ppm-beam", type=int)
     parser.add_argument("--no-lz", action="store_true")
     parser.add_argument("--no-bwt", action="store_true")
     parser.add_argument("--no-chains", action="store_true")
@@ -197,6 +199,8 @@ def main_compress(argv: list[str] | None = None) -> int:
         config.content_mask_bits = args.content_mask_bits
     if args.ppm_order is not None:
         config.ppm_order = args.ppm_order
+    if args.ppm_beam is not None:
+        config.ppm_beam = max(1, args.ppm_beam)
 
     if config.structured_block_target < config.max_block:
         config.structured_block_target = config.max_block
