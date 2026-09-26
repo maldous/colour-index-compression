@@ -42,6 +42,7 @@ MODE_BITPLANE = 6
 MODE_CHAIN = 7
 MODE_NUMERIC = 8
 MODE_REFERENCE = 9
+MODE_ADAPTIVE = 10
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -693,6 +694,8 @@ class StreamConfig:
     chain_beam: int = 4
     enable_dedup: bool = True
     dedup_blocks: int = 1024
+    enable_adaptive: bool = True
+    adaptive_beam: int = 3
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -708,6 +711,7 @@ class StreamConfig:
             context_beam=6,
             transform_beam=10,
             chain_beam=6,
+            adaptive_beam=6,
             chunk_mode="hybrid",
             content_mask_bits=14,
             context_models=(
@@ -861,6 +865,38 @@ def encode_best_block(
                 f"context-multinomial-o{model.order}-b{model.bucket_bits}",
             )
         )
+
+    if config.enable_adaptive:
+        try:
+            from .adaptive import encode_adaptive
+
+            payload = encode_adaptive(block, order=0, bucket_bits=8)
+            candidates.append(
+                EncodedBlock(
+                    MODE_ADAPTIVE,
+                    len(block),
+                    payload,
+                    "adaptive-multinomial-o0",
+                )
+            )
+
+            for _, model in profiled_contexts[: config.adaptive_beam]:
+                payload = encode_adaptive(
+                    block,
+                    order=model.order,
+                    bucket_bits=model.bucket_bits,
+                    prefix_history=prefix_history,
+                )
+                candidates.append(
+                    EncodedBlock(
+                        MODE_ADAPTIVE,
+                        len(block),
+                        payload,
+                        f"adaptive-multinomial-o{model.order}-b{model.bucket_bits}",
+                    )
+                )
+        except Exception:
+            pass
 
     if config.enable_lz and len(block) >= 16:
         try:
@@ -1352,6 +1388,15 @@ class StreamDecoder:
                 block = self._recent_blocks[-distance]
                 if len(block) != source_length:
                     raise ValueError("block-reference length mismatch")
+
+            elif mode == MODE_ADAPTIVE:
+                from .adaptive import decode_adaptive
+
+                block = decode_adaptive(
+                    payload,
+                    source_length=source_length,
+                    prefix_history=bytes(self._history),
+                )
 
             else:
                 raise ValueError(f"unknown CIX block mode {mode}")
