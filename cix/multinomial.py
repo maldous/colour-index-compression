@@ -708,6 +708,7 @@ class StreamConfig:
     record_beam: int = 2
     enable_periodic: bool = True
     periodic_beam: int = 3
+    structured_block_target: int = 65536
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -728,6 +729,7 @@ class StreamConfig:
             record_beam=6,
             enable_periodic=True,
             periodic_beam=8,
+            structured_block_target=65536,
             chunk_mode="hybrid",
             content_mask_bits=14,
             context_models=(
@@ -1201,6 +1203,8 @@ class StreamEncoder:
             raise ValueError("unknown chunk_mode")
         if not 4 <= self.config.content_mask_bits <= 24:
             raise ValueError("content_mask_bits outside supported range")
+        if not self.config.max_block <= self.config.structured_block_target <= (1 << 20):
+            raise ValueError("structured_block_target outside supported range")
         if not 0 <= self.config.dedup_blocks <= MAX_DEDUP_BLOCKS:
             raise ValueError("dedup_blocks outside CIXM5 supported range")
         from .stateful import make_persistent_states
@@ -1227,12 +1231,29 @@ class StreamEncoder:
 
         while len(self._buffer) >= self._next_check:
             probe = bytes(self._buffer[: self._next_check])
+            structured = _looks_bwt_worthy(probe)
+            effective_max = (
+                self.config.structured_block_target
+                if structured
+                else self.config.max_block
+            )
+
+            # Strong byte-level repetition/run structure benefits from a longer
+            # model horizon. Holding the block open is format agnostic: the same
+            # shingle/run statistic is used for every byte stream.
             entropy_cut = (
                 _best_split(probe, self.config)
-                if self.config.chunk_mode in ("adaptive", "hybrid")
+                if (
+                    not structured
+                    and self.config.chunk_mode in ("adaptive", "hybrid")
+                )
                 else None
             )
-            content_cut = _content_boundary(probe, self.config)
+            content_cut = (
+                _content_boundary(probe, self.config)
+                if not structured
+                else None
+            )
 
             cuts = [cut for cut in (entropy_cut, content_cut) if cut is not None]
             cut = min(cuts) if cuts else None
@@ -1244,15 +1265,15 @@ class StreamEncoder:
                 )
                 continue
 
-            if self._next_check >= self.config.max_block:
-                emitted += self._emit(self.config.max_block)
+            if self._next_check >= effective_max:
+                emitted += self._emit(effective_max)
                 self._next_check = min(
                     self.config.max_block, self.config.min_block * 2
                 )
                 continue
 
             self._next_check = min(
-                self.config.max_block,
+                effective_max,
                 self._next_check + self.config.probe_stride,
             )
 
