@@ -35,10 +35,17 @@ def _estimate_lane(lane:bytes)->float:
 def _estimate(data:bytes,width:int)->float:
     return sum(_estimate_lane(data[lane::width]) for lane in range(width))
 
-def encode_record_block(data:bytes,beam:int=4)->tuple[bytes,str]:
+def profile_record_widths(data:bytes)->list[tuple[float,int]]:
     widths=[w for w in WIDTHS if w<=len(data)//16]
-    if not widths:raise ValueError("block too short for record model")
-    profiled=sorted((_estimate(data,w),w) for w in widths)[:beam]
+    return sorted((_estimate(data,w),w) for w in widths)
+
+def best_record_estimate(data:bytes)->float:
+    profiled=profile_record_widths(data)
+    return profiled[0][0] if profiled else float("inf")
+
+def encode_record_block(data:bytes,beam:int=2)->tuple[bytes,str]:
+    profiled=profile_record_widths(data)[:beam]
+    if not profiled:raise ValueError("block too short for record model")
     candidates=[]
     for _,width in profiled:
         out=bytearray((RECORD_VERSION,));out+=vencode(width)
