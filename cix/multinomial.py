@@ -24,6 +24,7 @@ changes, and every block independently chooses raw, plain-multinomial, or a cont
 
 from __future__ import annotations
 
+import hashlib
 import math
 import struct
 import zlib
@@ -40,8 +41,10 @@ MODE_TRANSFORM = 5
 MODE_BITPLANE = 6
 MODE_CHAIN = 7
 MODE_NUMERIC = 8
+MODE_REFERENCE = 9
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
+MAX_DEDUP_BLOCKS = 4096
 
 
 def vencode(x: int) -> bytes:
@@ -688,6 +691,8 @@ class StreamConfig:
     context_beam: int = 4
     transform_beam: int = 6
     chain_beam: int = 4
+    enable_dedup: bool = True
+    dedup_blocks: int = 1024
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -1053,6 +1058,10 @@ class StreamEncoder:
     _finished: bool = field(default=False, init=False)
     _descriptions: list[str] = field(default_factory=list, init=False)
     _next_check: int = field(default=0, init=False)
+    _block_index: int = field(default=0, init=False)
+    _dedup: dict[bytes, list[tuple[int, bytes]]] = field(
+        default_factory=dict, init=False
+    )
 
     def __post_init__(self) -> None:
         if self.config.min_block <= 0:
@@ -1072,6 +1081,8 @@ class StreamEncoder:
             raise ValueError("unknown chunk_mode")
         if not 4 <= self.config.content_mask_bits <= 24:
             raise ValueError("content_mask_bits outside supported range")
+        if not 0 <= self.config.dedup_blocks <= MAX_DEDUP_BLOCKS:
+            raise ValueError("dedup_blocks outside CIXM4 supported range")
         self._next_check = min(self.config.max_block, self.config.min_block * 2)
 
     def _header(self) -> bytes:
@@ -1129,12 +1140,40 @@ class StreamEncoder:
         block = bytes(self._buffer[:count])
         del self._buffer[:count]
 
-        encoded = encode_best_block(
-            block,
-            prefix_history=bytes(self._history),
-            config=self.config,
-        )
+        encoded = None
+        digest = hashlib.blake2b(block, digest_size=8).digest()
+
+        if self.config.enable_dedup and self.config.dedup_blocks:
+            minimum_index = self._block_index - self.config.dedup_blocks
+            entries = self._dedup.get(digest, [])
+            for previous_index, previous_block in reversed(entries):
+                if previous_index < minimum_index:
+                    break
+                if previous_block == block:
+                    distance = self._block_index - previous_index
+                    encoded = EncodedBlock(
+                        MODE_REFERENCE,
+                        len(block),
+                        vencode(distance),
+                        f"dedup-block-distance-{distance}",
+                    )
+                    break
+
+        if encoded is None:
+            encoded = encode_best_block(
+                block,
+                prefix_history=bytes(self._history),
+                config=self.config,
+            )
+
         self._descriptions.append(encoded.description)
+
+        entries = self._dedup.setdefault(digest, [])
+        entries.append((self._block_index, block))
+        minimum_index = self._block_index - self.config.dedup_blocks
+        while entries and entries[0][0] < minimum_index:
+            del entries[0]
+        self._block_index += 1
 
         self._history.extend(block)
         if len(self._history) > self.config.history_bytes:
@@ -1170,6 +1209,7 @@ class StreamDecoder:
     _crc: int = field(default=0, init=False)
     _started: bool = field(default=False, init=False)
     _finished: bool = field(default=False, init=False)
+    _recent_blocks: list[bytes] = field(default_factory=list, init=False)
 
     def feed(self, data: bytes) -> bytes:
         if self._finished and data:
@@ -1290,6 +1330,16 @@ class StreamDecoder:
                     source_length=source_length,
                 )
 
+            elif mode == MODE_REFERENCE:
+                distance, consumed = vdecode(payload, 0)
+                if consumed != len(payload):
+                    raise ValueError("unused block-reference bytes")
+                if not 0 < distance <= len(self._recent_blocks):
+                    raise ValueError("block reference outside retained history")
+                block = self._recent_blocks[-distance]
+                if len(block) != source_length:
+                    raise ValueError("block-reference length mismatch")
+
             else:
                 raise ValueError(f"unknown CIX block mode {mode}")
 
@@ -1302,6 +1352,10 @@ class StreamDecoder:
             self._history.extend(block)
             if len(self._history) > self.history_bytes:
                 del self._history[:-self.history_bytes]
+
+            self._recent_blocks.append(block)
+            if len(self._recent_blocks) > MAX_DEDUP_BLOCKS:
+                del self._recent_blocks[0]
 
         return bytes(out)
 
