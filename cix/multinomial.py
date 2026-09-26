@@ -706,6 +706,9 @@ class StreamConfig:
     enable_persistent_adaptive: bool = True
     enable_tokens: bool = True
     enable_raster: bool = True
+    text_block_target: int = 65536
+    text_adaptive: bool = False
+    text_persistent_adaptive: bool = False
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -718,6 +721,9 @@ class StreamConfig:
             lz_window_bytes=MAX_HISTORY_BYTES,
             lz_chain=96,
             enable_chains=True,
+            text_block_target=65536,
+            text_adaptive=True,
+            text_persistent_adaptive=True,
             context_beam=6,
             transform_beam=10,
             chain_beam=6,
@@ -858,6 +864,7 @@ def encode_best_block(
     prefix_history: bytes,
     config: StreamConfig,
 ) -> EncodedBlock:
+    textual = _looks_textual(block)
     candidates: list[EncodedBlock] = [
         EncodedBlock(MODE_RAW, len(block), block, "raw"),
         EncodedBlock(
@@ -878,7 +885,8 @@ def encode_best_block(
         ),
         key=lambda item: (item[0], item[1].order, item[1].bucket_bits),
     )
-    for _, model in profiled_contexts[: config.context_beam]:
+    context_beam = min(config.context_beam, 2) if textual else config.context_beam
+    for _, model in profiled_contexts[: context_beam]:
         payload = encode_context_type_classes(
             block,
             order=model.order,
@@ -894,7 +902,7 @@ def encode_best_block(
             )
         )
 
-    if config.enable_adaptive:
+    if config.enable_adaptive and (not textual or config.text_adaptive):
         try:
             from .adaptive import encode_adaptive
 
@@ -998,7 +1006,7 @@ def encode_best_block(
         except Exception:
             pass
 
-    if config.enable_raster and len(block) >= 1024:
+    if config.enable_raster and not textual and len(block) >= 1024:
         try:
             from .raster import encode_raster_block
 
@@ -1009,7 +1017,7 @@ def encode_best_block(
         except Exception:
             pass
 
-    if config.enable_transforms and len(block) >= 4:
+    if config.enable_transforms and not textual and len(block) >= 4:
         try:
             from .transforms import encode_transform_block
 
@@ -1022,7 +1030,7 @@ def encode_best_block(
         except Exception:
             pass
 
-    if config.enable_numeric and len(block) >= 6:
+    if config.enable_numeric and not textual and len(block) >= 6:
         try:
             from .numeric import encode_numeric_block
 
@@ -1033,7 +1041,7 @@ def encode_best_block(
         except Exception:
             pass
 
-    if config.enable_bitplanes and len(block) >= 2:
+    if config.enable_bitplanes and not textual and len(block) >= 2:
         try:
             raw_size = len(candidates[0].framed)
             if _bitplane_estimate(block) < raw_size:
@@ -1197,6 +1205,8 @@ class StreamEncoder:
             raise ValueError("unknown chunk_mode")
         if not 4 <= self.config.content_mask_bits <= 24:
             raise ValueError("content_mask_bits outside supported range")
+        if not self.config.max_block <= self.config.text_block_target <= (1 << 20):
+            raise ValueError("text_block_target outside supported range")
         if not 0 <= self.config.dedup_blocks <= MAX_DEDUP_BLOCKS:
             raise ValueError("dedup_blocks outside CIXM5 supported range")
         from .stateful import make_persistent_states
@@ -1223,12 +1233,29 @@ class StreamEncoder:
 
         while len(self._buffer) >= self._next_check:
             probe = bytes(self._buffer[: self._next_check])
+            textual_probe = _looks_textual(probe)
+            effective_max = (
+                self.config.text_block_target
+                if textual_probe
+                else self.config.max_block
+            )
+
+            # Text benefits from a longer homogeneous horizon. Re-evaluate its
+            # classification at each probe, but do not prematurely split a text
+            # block merely because byte frequencies drift within prose/source.
             entropy_cut = (
                 _best_split(probe, self.config)
-                if self.config.chunk_mode in ("adaptive", "hybrid")
+                if (
+                    not textual_probe
+                    and self.config.chunk_mode in ("adaptive", "hybrid")
+                )
                 else None
             )
-            content_cut = _content_boundary(probe, self.config)
+            content_cut = (
+                _content_boundary(probe, self.config)
+                if not textual_probe
+                else None
+            )
 
             cuts = [cut for cut in (entropy_cut, content_cut) if cut is not None]
             cut = min(cuts) if cuts else None
@@ -1240,15 +1267,15 @@ class StreamEncoder:
                 )
                 continue
 
-            if self._next_check >= self.config.max_block:
-                emitted += self._emit(self.config.max_block)
+            if self._next_check >= effective_max:
+                emitted += self._emit(effective_max)
                 self._next_check = min(
                     self.config.max_block, self.config.min_block * 2
                 )
                 continue
 
             self._next_check = min(
-                self.config.max_block,
+                effective_max,
                 self._next_check + self.config.probe_stride,
             )
 
@@ -1286,7 +1313,13 @@ class StreamEncoder:
                 config=self.config,
             )
 
-            if self.config.enable_persistent_adaptive:
+            if (
+                self.config.enable_persistent_adaptive
+                and (
+                    not _looks_textual(block)
+                    or self.config.text_persistent_adaptive
+                )
+            ):
                 for model_id, state in enumerate(self._persistent_states):
                     try:
                         payload = bytes((model_id,)) + state.encode(
