@@ -34,7 +34,12 @@ MAGIC = b"CIXM3"
 MODE_RAW = 0
 MODE_MULTINOMIAL = 1
 MODE_CONTEXT = 2
+MODE_LZ = 3
+MODE_BWT = 4
+MODE_TRANSFORM = 5
+MODE_BITPLANE = 6
 MODE_END = 255
+MAX_HISTORY_BYTES = 16 << 20
 
 
 def vencode(x: int) -> bytes:
@@ -470,7 +475,37 @@ class StreamConfig:
         ContextModel(4, 12),
         ContextModel(6, 12),
     )
-    history_bytes: int = 16
+    history_bytes: int = 1 << 20
+    enable_lz: bool = True
+    enable_bwt: bool = True
+    enable_transforms: bool = True
+    enable_bitplanes: bool = True
+    lz_window_bytes: int = 1 << 20
+    lz_chain: int = 32
+    bwt_max_block: int = 65536
+
+    @classmethod
+    def extreme(cls) -> "StreamConfig":
+        return cls(
+            min_block=4096,
+            max_block=32768,
+            probe_stride=1024,
+            split_gain_bits=64.0,
+            history_bytes=MAX_HISTORY_BYTES,
+            lz_window_bytes=MAX_HISTORY_BYTES,
+            lz_chain=96,
+            context_models=(
+                ContextModel(1, 6),
+                ContextModel(1, 8),
+                ContextModel(2, 8),
+                ContextModel(2, 10),
+                ContextModel(3, 10),
+                ContextModel(4, 10),
+                ContextModel(4, 12),
+                ContextModel(6, 12),
+                ContextModel(8, 12),
+            ),
+        )
 
 
 @dataclass
@@ -521,6 +556,56 @@ def encode_best_block(
                 f"context-multinomial-o{model.order}-b{model.bucket_bits}",
             )
         )
+
+    if config.enable_lz and len(block) >= 16:
+        try:
+            from .lz import encode_lz_block
+
+            payload, description = encode_lz_block(
+                block,
+                prefix_history=prefix_history,
+                context_models=config.context_models,
+                window=min(config.lz_window_bytes, MAX_HISTORY_BYTES),
+                chain=config.lz_chain,
+            )
+            candidates.append(
+                EncodedBlock(MODE_LZ, len(block), payload, description)
+            )
+        except Exception:
+            pass
+
+    if config.enable_bwt and 32 <= len(block) <= config.bwt_max_block:
+        try:
+            from .bwt import encode_bwt_block
+
+            payload, description = encode_bwt_block(block)
+            candidates.append(
+                EncodedBlock(MODE_BWT, len(block), payload, description)
+            )
+        except Exception:
+            pass
+
+    if config.enable_transforms and len(block) >= 4:
+        try:
+            from .transforms import encode_transform_block
+
+            payload, description = encode_transform_block(block)
+            candidates.append(
+                EncodedBlock(MODE_TRANSFORM, len(block), payload, description)
+            )
+        except Exception:
+            pass
+
+    if config.enable_bitplanes and len(block) >= 2:
+        try:
+            from .bitplanes import encode_bitplanes
+
+            payload, description = encode_bitplanes(block)
+            candidates.append(
+                EncodedBlock(MODE_BITPLANE, len(block), payload, description)
+            )
+        except Exception:
+            pass
 
     best = min(candidates, key=lambda candidate: len(candidate.framed))
     raw_size = len(candidates[0].framed)
@@ -618,6 +703,10 @@ class StreamEncoder:
         max_order = max((m.order for m in self.config.context_models), default=0)
         if self.config.history_bytes < max_order:
             raise ValueError("history_bytes must cover the largest context order")
+        if not 0 < self.config.history_bytes <= MAX_HISTORY_BYTES:
+            raise ValueError("history_bytes outside CIXM3 supported range")
+        if not 0 < self.config.lz_window_bytes <= MAX_HISTORY_BYTES:
+            raise ValueError("lz_window_bytes outside CIXM3 supported range")
         self._next_check = min(self.config.max_block, self.config.min_block * 2)
 
     def _header(self) -> bytes:
@@ -701,7 +790,7 @@ class StreamEncoder:
 
 @dataclass
 class StreamDecoder:
-    history_bytes: int = 16
+    history_bytes: int = MAX_HISTORY_BYTES
     _buffer: bytearray = field(default_factory=bytearray, init=False)
     _history: bytearray = field(default_factory=bytearray, init=False)
     _decoded_length: int = field(default=0, init=False)
@@ -779,6 +868,39 @@ class StreamDecoder:
                 if consumed != len(payload):
                     raise ValueError("unused context payload bytes")
 
+            elif mode == MODE_LZ:
+                from .lz import decode_lz_block
+
+                block = decode_lz_block(
+                    payload,
+                    source_length=source_length,
+                    prefix_history=bytes(self._history),
+                )
+
+            elif mode == MODE_BWT:
+                from .bwt import decode_bwt_block
+
+                block = decode_bwt_block(
+                    payload,
+                    source_length=source_length,
+                )
+
+            elif mode == MODE_TRANSFORM:
+                from .transforms import decode_transform_block
+
+                block = decode_transform_block(
+                    payload,
+                    source_length=source_length,
+                )
+
+            elif mode == MODE_BITPLANE:
+                from .bitplanes import decode_bitplanes
+
+                block = decode_bitplanes(
+                    payload,
+                    source_length=source_length,
+                )
+
             else:
                 raise ValueError(f"unknown CIX block mode {mode}")
 
@@ -810,7 +932,7 @@ def compress(data: bytes, config: StreamConfig | None = None) -> bytes:
     return encoder.feed(data) + encoder.finish()
 
 
-def decompress(blob: bytes, *, history_bytes: int = 16) -> bytes:
+def decompress(blob: bytes, *, history_bytes: int = MAX_HISTORY_BYTES) -> bytes:
     decoder = StreamDecoder(history_bytes=history_bytes)
     out = decoder.feed(blob)
     decoder.finish()
