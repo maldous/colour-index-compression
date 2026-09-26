@@ -481,12 +481,15 @@ class StreamConfig:
     enable_bwt: bool = True
     enable_transforms: bool = True
     enable_bitplanes: bool = True
-    enable_chains: bool = True
+    enable_chains: bool = False
     chunk_mode: str = "hybrid"
     content_mask_bits: int = 13
     lz_window_bytes: int = 1 << 20
     lz_chain: int = 32
     bwt_max_block: int = 65536
+    context_beam: int = 4
+    transform_beam: int = 6
+    chain_beam: int = 4
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -498,6 +501,10 @@ class StreamConfig:
             history_bytes=MAX_HISTORY_BYTES,
             lz_window_bytes=MAX_HISTORY_BYTES,
             lz_chain=96,
+            enable_chains=True,
+            context_beam=6,
+            transform_beam=10,
+            chain_beam=6,
             chunk_mode="hybrid",
             content_mask_bits=14,
             context_models=(
@@ -531,6 +538,88 @@ class EncodedBlock:
         )
 
 
+def _context_model_estimate(
+    data: bytes,
+    model: ContextModel,
+    prefix_history: bytes,
+) -> float:
+    bucket_count = 1 << model.bucket_bits
+    bucket_counts: dict[int, list[int]] = {}
+    lengths: dict[int, int] = {}
+    tail = bytearray(prefix_history[-model.order:])
+
+    for symbol in data:
+        bucket = _context_bucket(tail, model.order, model.bucket_bits)
+        counts = bucket_counts.get(bucket)
+        if counts is None:
+            counts = [0] * 256
+            bucket_counts[bucket] = counts
+            lengths[bucket] = 0
+        counts[symbol] += 1
+        lengths[bucket] += 1
+
+        tail.append(symbol)
+        if len(tail) > model.order:
+            del tail[:-model.order]
+
+    ids = sorted(bucket_counts)
+    q = len(ids)
+    n = len(data)
+    size = 3.0
+
+    if q and q < bucket_count:
+        size += math.log2(math.comb(bucket_count, q)) / 8.0
+    if q > 1:
+        size += math.log2(math.comb(n - 1, q - 1)) / 8.0
+
+    for bucket in ids:
+        size += _approx_typeclass_bytes_from_counts(
+            bucket_counts[bucket], lengths[bucket]
+        )
+    return size
+
+
+def _looks_bwt_worthy(data: bytes) -> bool:
+    if len(data) < 64:
+        return False
+
+    sample = data[: min(len(data), 8192)]
+    ascii_like = sum(
+        byte in (9, 10, 13) or 32 <= byte <= 126 for byte in sample
+    ) / len(sample)
+    if ascii_like >= 0.65:
+        return True
+
+    if len(set(sample)) <= 64:
+        return True
+
+    seen = set()
+    repeats = 0
+    total = 0
+    for pos in range(0, max(0, len(sample) - 4), 4):
+        token = sample[pos : pos + 4]
+        total += 1
+        if token in seen:
+            repeats += 1
+        else:
+            seen.add(token)
+    return total > 0 and repeats / total >= 0.08
+
+
+def _bitplane_estimate(data: bytes) -> float:
+    n = len(data)
+    if not n:
+        return 1.0
+    bits = 8.0
+    for shift in range(8):
+        ones = sum((byte >> shift) & 1 for byte in data)
+        minority = min(ones, n - ones)
+        bits += 8.0 * len(vencode(minority))
+        if minority:
+            bits += math.log2(math.comb(n, minority))
+    return bits / 8.0
+
+
 def encode_best_block(
     block: bytes,
     *,
@@ -547,7 +636,14 @@ def encode_best_block(
         ),
     ]
 
-    for model in config.context_models:
+    profiled_contexts = sorted(
+        (
+            _context_model_estimate(block, model, prefix_history),
+            model,
+        )
+        for model in config.context_models
+    )
+    for _, model in profiled_contexts[: config.context_beam]:
         payload = encode_context_type_classes(
             block,
             order=model.order,
@@ -580,7 +676,11 @@ def encode_best_block(
         except Exception:
             pass
 
-    if config.enable_bwt and 32 <= len(block) <= config.bwt_max_block:
+    if (
+        config.enable_bwt
+        and 32 <= len(block) <= config.bwt_max_block
+        and _looks_bwt_worthy(block)
+    ):
         try:
             from .bwt import encode_bwt_block
 
@@ -595,7 +695,9 @@ def encode_best_block(
         try:
             from .transforms import encode_transform_block
 
-            payload, description = encode_transform_block(block)
+            payload, description = encode_transform_block(
+                block, beam=config.transform_beam
+            )
             candidates.append(
                 EncodedBlock(MODE_TRANSFORM, len(block), payload, description)
             )
@@ -604,12 +706,14 @@ def encode_best_block(
 
     if config.enable_bitplanes and len(block) >= 2:
         try:
-            from .bitplanes import encode_bitplanes
+            raw_size = len(candidates[0].framed)
+            if _bitplane_estimate(block) < raw_size:
+                from .bitplanes import encode_bitplanes
 
-            payload, description = encode_bitplanes(block)
-            candidates.append(
-                EncodedBlock(MODE_BITPLANE, len(block), payload, description)
-            )
+                payload, description = encode_bitplanes(block)
+                candidates.append(
+                    EncodedBlock(MODE_BITPLANE, len(block), payload, description)
+                )
         except Exception:
             pass
 
@@ -620,6 +724,7 @@ def encode_best_block(
             payload, description = encode_chain_block(
                 block,
                 context_models=config.context_models,
+                beam=config.chain_beam,
             )
             candidates.append(
                 EncodedBlock(MODE_CHAIN, len(block), payload, description)
