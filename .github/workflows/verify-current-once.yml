@@ -17,9 +17,9 @@ jobs:
           python-version: "3.12"
       - run: pip install -e '.[dev,fast-bwt]'
       - name: Unit round-trip tests
-        run: timeout 30s pytest -q tests/test_portfolio.py::test_bwt_substreams_round_trip -vv
+        run: timeout 60s pytest -q tests/test_portfolio.py::test_bwt_substreams_round_trip tests/test_portfolio.py::test_numeric_native_round_trip -vv
       - name: Generated portfolio smoke benchmark
         run: echo 'portfolio deferred until unit suite is green'
 
 
-# verification revision 9
+# verification revision 10
