@@ -81,7 +81,9 @@ def _decode_node(n:int,depth:int,decoder:_ArithmeticDecoder,prefix:int=0)->bytes
     if not 0<=ones<=n:raise ValueError("wavelet child count")
     decoder.update(ones,ones+1,total)
 
-    zero=n-ones;one=ones;remaining=n;bits=[]
+    original_ones=ones
+    original_zeros=n-ones
+    zero=original_zeros;one=original_ones;remaining=n;bits=[]
     for _ in range(n):
         if zero==0:
             bit=1
@@ -99,9 +101,8 @@ def _decode_node(n:int,depth:int,decoder:_ArithmeticDecoder,prefix:int=0)->bytes
                 bit=1;decoder.update(zero,remaining,remaining);one-=1
         remaining-=1;bits.append(bit)
 
-    zcount=n-ones
-    zero_values=_decode_node(zcount,depth+1,decoder,prefix<<1) if zcount else b""
-    one_values=_decode_node(ones,depth+1,decoder,(prefix<<1)|1) if ones else b""
+    zero_values=_decode_node(original_zeros,depth+1,decoder,prefix<<1) if original_zeros else b""
+    one_values=_decode_node(original_ones,depth+1,decoder,(prefix<<1)|1) if original_ones else b""
     zi=oi=0;out=bytearray()
     for bit in bits:
         if bit:
