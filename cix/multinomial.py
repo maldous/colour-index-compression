@@ -47,6 +47,7 @@ MODE_SPARSE = 11
 MODE_RUNS = 12
 MODE_PERSISTENT_ADAPTIVE = 13
 MODE_RECORD = 14
+MODE_PERIODIC = 15
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -705,6 +706,8 @@ class StreamConfig:
     enable_persistent_adaptive: bool = True
     enable_record: bool = True
     record_beam: int = 2
+    enable_periodic: bool = True
+    periodic_beam: int = 3
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -723,6 +726,8 @@ class StreamConfig:
             adaptive_beam=6,
             enable_record=True,
             record_beam=6,
+            enable_periodic=True,
+            periodic_beam=8,
             chunk_mode="hybrid",
             content_mask_bits=14,
             context_models=(
@@ -1012,6 +1017,22 @@ def encode_best_block(
                 )
                 candidates.append(
                     EncodedBlock(MODE_RECORD, len(block), payload, description)
+                )
+        except Exception:
+            pass
+
+    if config.enable_periodic and len(block) >= 256:
+        try:
+            from .periodic import best_periodic_estimate, encode_periodic_block
+
+            estimate = best_periodic_estimate(block)
+            current_best = min(len(candidate.framed) for candidate in candidates)
+            if estimate + 8.0 < current_best:
+                payload, description = encode_periodic_block(
+                    block, beam=config.periodic_beam
+                )
+                candidates.append(
+                    EncodedBlock(MODE_PERIODIC, len(block), payload, description)
                 )
         except Exception:
             pass
@@ -1522,6 +1543,14 @@ class StreamDecoder:
                 from .record import decode_record_block
 
                 block = decode_record_block(
+                    payload,
+                    source_length=source_length,
+                )
+
+            elif mode == MODE_PERIODIC:
+                from .periodic import decode_periodic_block
+
+                block = decode_periodic_block(
                     payload,
                     source_length=source_length,
                 )
