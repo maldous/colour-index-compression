@@ -50,6 +50,7 @@ MODE_RECORD = 14
 MODE_PERIODIC = 15
 MODE_PPM = 16
 MODE_EXPERT_MIX = 17
+MODE_WAVELET = 18
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -716,6 +717,7 @@ class StreamConfig:
     ppm_beam: int = 1
     enable_expert_mix: bool = True
     expert_orders: tuple[int, ...] = (0, 1, 2, 4)
+    enable_wavelet: bool = True
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -874,6 +876,25 @@ def encode_best_block(
             "multinomial-256",
         ),
     ]
+
+    if config.enable_wavelet and len(block) >= 2:
+        try:
+            from .wavelet import encode_wavelet, estimate_wavelet_bits
+
+            direct_size = len(candidates[1].framed)
+            estimate_bytes = estimate_wavelet_bits(block) / 8.0
+            if estimate_bytes <= direct_size * 1.03 + 8:
+                payload = encode_wavelet(block)
+                candidates.append(
+                    EncodedBlock(
+                        MODE_WAVELET,
+                        len(block),
+                        payload,
+                        "hierarchical-colour-index",
+                    )
+                )
+        except Exception:
+            pass
 
     profiled_contexts = sorted(
         (
@@ -1688,6 +1709,11 @@ class StreamDecoder:
                     source_length=source_length,
                     prefix_history=bytes(self._history),
                 )
+
+            elif mode == MODE_WAVELET:
+                from .wavelet import decode_wavelet
+
+                block = decode_wavelet(payload, source_length=source_length)
 
             else:
                 raise ValueError(f"unknown CIX block mode {mode}")
