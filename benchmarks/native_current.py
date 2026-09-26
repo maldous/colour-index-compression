@@ -33,16 +33,17 @@ def benchmark_config():
     # standard gate. --extreme remains a separate research mode.
     return StreamConfig(
         min_block=4096,
-        max_block=16384,
+        max_block=8192,
         probe_stride=1024,
         split_gain_bits=96.0,
         history_bytes=1 << 20,
         lz_window_bytes=1 << 20,
-        lz_chain=32,
-        context_beam=3,
-        transform_beam=4,
-        adaptive_beam=2,
+        lz_chain=16,
+        context_beam=2,
+        transform_beam=2,
+        adaptive_beam=1,
         enable_chains=False,
+        enable_persistent_adaptive=False,
         context_models=(
             ContextModel(1, 8),
             ContextModel(2, 8),
@@ -112,6 +113,22 @@ def main():
             f"xz={ratio(xz,len(data)):.2f}%",
             f"{elapsed:.2f}s",
             flush=True,
+        )
+
+        partial = [
+            "# Progressive native CIX Canterbury baseline",
+            "",
+            f"Completed {len(rows)}/{len(EXPECTED)} members.",
+            "",
+        ]
+        for row in rows:
+            r_name, r_original, _, _, r_xz, r_cix, r_elapsed, _ = row
+            partial.append(
+                f"- {r_name}: CIX {ratio(r_cix,r_original):.2f}% "
+                f"vs xz {ratio(r_xz,r_original):.2f}% ({r_elapsed:.2f}s)"
+            )
+        Path("native-current-progress.md").write_text(
+            "\n".join(partial) + "\n"
         )
 
     out = [
