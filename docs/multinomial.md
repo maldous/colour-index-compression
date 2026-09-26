@@ -46,6 +46,7 @@ only global byte entropy.
 The format is block-streamable and does not require a fixed model for the whole asset.
 
 - input may arrive through repeated `feed()` calls
+- `feed()` can immediately emit complete compressed frames; the final asset size is not required up front
 - the encoder buffers only a bounded region
 - candidate boundaries are reconsidered as statistics change
 - block boundaries move when splitting materially reduces description length
@@ -57,6 +58,8 @@ The format is block-streamable and does not require a fixed model for the whole 
 - random/incompressible regions fall back to raw
 - model-selection parameters do not need to be repeated globally; each block is
   self-describing
+- an explicit end footer carries final byte count + CRC32; no block count or original length is required in the header
+- `StreamDecoder.feed()` can emit restored bytes incrementally as complete frames arrive
 - CRC32 verifies exact reconstruction
 
 The compression search is therefore dynamic in both dimensions:
