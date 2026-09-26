@@ -31,7 +31,7 @@ import zlib
 from dataclasses import dataclass, field
 from typing import Iterable
 
-MAGIC = b"CIXM4"
+MAGIC = b"CIXM5"
 MODE_RAW = 0
 MODE_MULTINOMIAL = 1
 MODE_CONTEXT = 2
@@ -1089,7 +1089,7 @@ class StreamEncoder:
         if self._started:
             return b""
         self._started = True
-        return MAGIC
+        return MAGIC + vencode(self.config.history_bytes)
 
     def feed(self, data: bytes) -> bytes:
         if self._finished:
@@ -1202,7 +1202,7 @@ class StreamEncoder:
 
 @dataclass
 class StreamDecoder:
-    history_bytes: int = MAX_HISTORY_BYTES
+    history_bytes: int | None = None
     _buffer: bytearray = field(default_factory=bytearray, init=False)
     _history: bytearray = field(default_factory=bytearray, init=False)
     _decoded_length: int = field(default=0, init=False)
@@ -1222,7 +1222,20 @@ class StreamDecoder:
                 return b""
             if bytes(self._buffer[: len(MAGIC)]) != MAGIC:
                 raise ValueError("not a CIX multinomial stream")
-            del self._buffer[: len(MAGIC)]
+            try:
+                encoded_history, header_end = vdecode(
+                    bytes(self._buffer), len(MAGIC)
+                )
+            except ValueError as exc:
+                if "truncated" in str(exc):
+                    return b""
+                raise
+            if not 0 < encoded_history <= MAX_HISTORY_BYTES:
+                raise ValueError("invalid CIX history window")
+            if self.history_bytes is not None and self.history_bytes != encoded_history:
+                raise ValueError("decoder history override does not match stream")
+            self.history_bytes = encoded_history
+            del self._buffer[:header_end]
             self._started = True
 
         while self._buffer and not self._finished:
@@ -1350,6 +1363,7 @@ class StreamDecoder:
             self._decoded_length += len(block)
             self._crc = zlib.crc32(block, self._crc)
             self._history.extend(block)
+            assert self.history_bytes is not None
             if len(self._history) > self.history_bytes:
                 del self._history[:-self.history_bytes]
 
@@ -1375,7 +1389,7 @@ def compress(data: bytes, config: StreamConfig | None = None) -> bytes:
     return encoder.feed(data) + encoder.finish()
 
 
-def decompress(blob: bytes, *, history_bytes: int = MAX_HISTORY_BYTES) -> bytes:
+def decompress(blob: bytes, *, history_bytes: int | None = None) -> bytes:
     decoder = StreamDecoder(history_bytes=history_bytes)
     out = decoder.feed(blob)
     decoder.finish()
