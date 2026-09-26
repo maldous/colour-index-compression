@@ -18,8 +18,9 @@ from .multinomial import (
     vdecode,
     vencode,
 )
+from .substreams import decode_bytes, encode_bytes
 
-RECORD_VERSION=1
+RECORD_VERSION=2
 BASE_WIDTHS=(2,3,4,5,6,8,10,12,16,24,32,48,64,96,128,192,256,384,512,768,1024,1536,2048)
 
 def _estimate_lane(lane:bytes)->float:
@@ -87,22 +88,41 @@ def encode_record_block(data:bytes,beam:int=2)->tuple[bytes,str]:
     if not profiled:raise ValueError("block too short for record model")
     candidates=[]
     for _,width in profiled:
-        out=bytearray((RECORD_VERSION,));out+=vencode(width)
+        # Legacy/static lane type classes remain a candidate because they have
+        # virtually no per-lane framing overhead.
+        static=bytearray((1,));static+=vencode(width)
         for lane in range(width):
             stream=data[lane::width]
-            out+=encode_type_class_known_n(stream)
-        candidates.append((bytes(out),f"record-multinomial-w{width}"))
+            static+=encode_type_class_known_n(stream)
+        candidates.append((bytes(static),f"record-multinomial-w{width}"))
+
+        # Local lane streams can adapt independently across record positions.
+        local=bytearray((RECORD_VERSION,));local+=vencode(width)
+        for lane in range(width):
+            stream=data[lane::width]
+            encoded=encode_bytes(stream)
+            local+=vencode(len(encoded))
+            local+=encoded
+        candidates.append((bytes(local),f"record-local-w{width}"))
     return min(candidates,key=lambda x:len(x[0]))
 
 def decode_record_block(blob:bytes,*,source_length:int)->bytes:
-    if not blob or blob[0]!=RECORD_VERSION:
+    if not blob or blob[0] not in (1,RECORD_VERSION):
         raise ValueError("unknown record block version")
+    version=blob[0]
     width,pos=vdecode(blob,1)
     if not 1<=width<=source_length:raise ValueError("invalid record width")
     lanes=[]
     for lane in range(width):
         count=(source_length-lane+width-1)//width if lane<source_length else 0
-        stream,pos=decode_type_class_known_n(blob,pos,count)
+        if version==1:
+            stream,pos=decode_type_class_known_n(blob,pos,count)
+        else:
+            encoded_length,pos=vdecode(blob,pos)
+            end=pos+encoded_length
+            if end>len(blob):raise ValueError("truncated local record lane")
+            stream=decode_bytes(blob[pos:end],count)
+            pos=end
         lanes.append(stream)
     if pos!=len(blob):raise ValueError("trailing record bytes")
     cursors=[0]*width;out=bytearray(source_length)
