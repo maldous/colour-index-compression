@@ -15,11 +15,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -e '.[dev,fast-bwt]'
+      - run: pip install -e '.[dev,fast-bwt]' pytest-timeout
       - name: Unit round-trip tests
         run: timeout 120s pytest -q -vv
       - name: Generated portfolio smoke benchmark
         run: echo 'portfolio deferred until unit suite is green'
 
 
-# verification revision 12
+# verification revision 5
