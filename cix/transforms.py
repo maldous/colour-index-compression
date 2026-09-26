@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+from collections import Counter
 from dataclasses import dataclass
 
 from .multinomial import (
@@ -304,19 +306,42 @@ def invert_transform(data: bytes, spec: TransformSpec) -> bytes:
     )
 
 
-def encode_transform_block(data: bytes) -> tuple[bytes, str]:
-    candidates = []
+def _typeclass_estimate(data: bytes) -> float:
+    n = len(data)
+    if not n:
+        return 1.0
+    counts = Counter(data)
+    m = len(counts)
+    bits = 8.0
+    if m < 256:
+        bits += math.log2(math.comb(256, m))
+    if m > 1:
+        bits += math.log2(math.comb(n - 1, m - 1))
+    bits += (
+        math.lgamma(n + 1)
+        - sum(math.lgamma(count + 1) for count in counts.values())
+    ) / math.log(2.0)
+    return bits / 8.0
+
+
+def encode_transform_block(data: bytes, beam: int = 6) -> tuple[bytes, str]:
+    profiled = []
 
     for spec in SPECS:
-        if len(data) < spec.width * 2:
+        if len(data) < max(2, spec.width * 2):
             continue
         transformed = apply_transform(data, spec)
+        profiled.append((_typeclass_estimate(transformed), spec, transformed))
+
+    if not profiled:
+        raise ValueError("no transform candidates")
+
+    candidates = []
+    for _, spec, transformed in sorted(profiled, key=lambda item: item[0])[:beam]:
         payload = bytes((TRANSFORM_VERSION, spec.id))
         payload += encode_type_class_known_n(transformed)
         candidates.append((payload, spec.name))
 
-    if not candidates:
-        raise ValueError("no transform candidates")
     return min(candidates, key=lambda item: len(item[0]))
 
 
