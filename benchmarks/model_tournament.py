@@ -31,11 +31,14 @@ except ImportError:
     zstd = None
 
 from cix.adaptive import decode_adaptive, encode_adaptive
+from cix.ctw import decode_ctw, encode_ctw
 from cix.cli import config_for_level
 from cix.expertmix import decode_expert_mix, encode_expert_mix
 from cix.mixer import decode_mixer, encode_mixer
+from cix.mixerv2 import decode as decode_mixerv2, encode as encode_mixerv2
 from cix.multinomial import StreamConfig, StreamEncoder, decompress
 from cix.ppm import decode_ppm, encode_ppm
+from cix.wavelet import decode_wavelet, encode_wavelet
 
 
 CANTERBURY = {
@@ -220,6 +223,21 @@ def predictor_probe(name: str, data: bytes) -> dict[str, int]:
     if decode_mixer(payload, source_length=len(data)) != data:
         raise RuntimeError("mixer probe round-trip failed")
     probes["bit-mixer"] = len(payload)
+
+    payload = encode_mixerv2(data)
+    if decode_mixerv2(payload, source_length=len(data)) != data:
+        raise RuntimeError("mixer-v2 probe round-trip failed")
+    probes["fixed-share-mixer-v2"] = len(payload)
+
+    payload = encode_ctw(data, depth=12)
+    if decode_ctw(payload, source_length=len(data)) != data:
+        raise RuntimeError("CTW probe round-trip failed")
+    probes["ctw-d12"] = len(payload)
+
+    payload = encode_wavelet(data)
+    if decode_wavelet(payload, source_length=len(data)) != data:
+        raise RuntimeError("wavelet probe round-trip failed")
+    probes["wavelet-cix"] = len(payload)
 
     return probes
 
