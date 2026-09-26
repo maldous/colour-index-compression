@@ -1,0 +1,51 @@
+# Colour/Index Compression Research
+
+Experimental lossless compression research based on:
+
+- majority/minority ("colour") representation of fixed-width bit blocks
+- combinatorial/enumerative ranking of minority-bit positions
+- mixed-radix pooling across blocks
+- adaptive reversible pre-transforms
+- entropy-coded metadata
+- raw fallback for incompressible regions
+- optional recursion as a measured configuration candidate, never assumed
+
+## Current findings
+
+- Random 50/50 data correctly remains effectively incompressible.
+- Biased Bernoulli and Markov sources can approach their Shannon entropy rates.
+- Predictor selection is more valuable than unconditional recursive compression.
+- Lag/XOR predictors perform strongly on repeated and correlated data.
+- Numeric delta + shuffle helps structured integer streams but needs stronger integer models.
+- BWT/MTF/zero-run style preconditioning materially improves text.
+- Adaptive per-region transform selection is the most promising general architecture.
+- Recursion should be retained only as an optional candidate and accepted only when exact encoded size improves.
+
+## Candidate architecture
+
+1. Segment input into fixed/adaptive/content-defined regions.
+2. Cheaply profile entropy, runs, periodicity, lag correlation, numeric stride and repetition.
+3. Generate a transform shortlist.
+4. Evaluate reversible transform chains.
+5. Encode residuals with the combinatorial/enumerative backend.
+6. Entropy-code metadata and transform selectors.
+7. Choose exact smallest representation, including all framing overhead.
+8. Store original extension, length, codec version and checksum once in the file footer.
+9. Fall back to raw data whenever compression does not pay.
+
+## Planned CLI
+
+- `cix file` — automatic compression
+- `uncix file.cix` — exact restoration
+- effort levels similar to gzip: `-1` through `-9`, plus `--extreme`
+- expert flags for research/tuning
+- `--recursion=off|auto|N`
+- `--chunk=fixed|adaptive|content`
+- `--block=auto|15,31,63,127,255`
+- `--transforms=auto|...`
+- `--memory=...`
+- `--threads=...`
+
+## Research rule
+
+No claimed gain counts unless the resulting representation is fully reversible and its complete physical size includes selectors, framing, footer, checksums and all required metadata.
