@@ -3,6 +3,7 @@ import os
 from cix.bitplanes import decode_bitplanes, encode_bitplanes
 from cix.bwt import decode_bwt_block, encode_bwt_block
 from cix.lz import decode_lz_block, encode_lz_block
+from cix.numeric import decode_numeric_block, encode_numeric_block
 from cix.multinomial import ContextModel, StreamConfig, compress, decompress
 from cix.transforms import decode_transform_block, encode_transform_block
 
@@ -39,6 +40,13 @@ def test_bwt_substreams_round_trip():
     ) * 200
     payload, _ = encode_bwt_block(data)
     assert decode_bwt_block(payload, source_length=len(data)) == data
+
+
+def test_numeric_native_round_trip():
+    data = b"".join(value.to_bytes(4, "little") for value in range(2000))
+    payload, _ = encode_numeric_block(data)
+    assert decode_numeric_block(payload, source_length=len(data)) == data
+    assert len(payload) < len(data) // 20
 
 
 def test_numeric_transform_round_trip():
@@ -85,3 +93,5 @@ def test_extreme_preset_is_within_format_limits():
     assert config.enable_bwt
     assert config.enable_transforms
     assert config.enable_bitplanes
+    assert config.enable_numeric
+    assert config.enable_chains
