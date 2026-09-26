@@ -10,7 +10,7 @@ from .multinomial import (
 )
 from .substreams import BitReader, BitWriter, decode_bytes, decode_uints, encode_bytes, encode_uints
 
-BWT_VERSION = 5
+BWT_VERSION = 6
 
 
 def _bwt_transform_python(data: bytes) -> tuple[int, bytes]:
@@ -291,16 +291,19 @@ def _runa_runb_decode(tokens: bytes, side_bits: list[int]) -> bytes:
     return bytes(out)
 
 
-def _encode_bwt_v5(primary: int, mtf: bytes) -> bytes:
-    tokens, side_bits = _runa_runb_tokens(mtf)
-    token_blob = encode_bytes(tokens)
-
+def _pack_runa_runb(
+    version: int,
+    primary: int,
+    tokens: bytes,
+    side_bits: list[int],
+    token_blob: bytes,
+) -> bytes:
     writer = BitWriter()
     for bit in side_bits:
         writer.bit(bit)
     side_blob = writer.finish()
 
-    out = bytearray((BWT_VERSION,))
+    out = bytearray((version,))
     out += vencode(primary)
     out += vencode(len(tokens))
     out += vencode(len(side_bits))
@@ -310,27 +313,74 @@ def _encode_bwt_v5(primary: int, mtf: bytes) -> bytes:
     return bytes(out)
 
 
+def _encode_bwt_v5(primary: int, mtf: bytes) -> bytes:
+    tokens, side_bits = _runa_runb_tokens(mtf)
+    return _pack_runa_runb(
+        5, primary, tokens, side_bits, encode_bytes(tokens)
+    )
+
+
+def _encode_bwt_v6(primary: int, mtf: bytes) -> bytes | None:
+    """RUNA/RUNB with an optional PPM-coded token stream.
+
+    PPM is only materialized when a cheap estimate says it is plausibly better
+    than the existing generic byte-substream coder.
+    """
+    tokens, side_bits = _runa_runb_tokens(mtf)
+    if len(tokens) < 32:
+        return None
+
+    from .ppm import encode_ppm, estimate_ppm_bits
+
+    local = encode_bytes(tokens)
+    profiled = sorted(
+        (
+            estimate_ppm_bits(tokens, max_order=order),
+            order,
+        )
+        for order in (1, 2, 3, 4)
+    )
+    estimate_bits, order = profiled[0]
+    if estimate_bits / 8.0 > len(local) * 1.03 + 16:
+        return None
+
+    ppm = encode_ppm(tokens, max_order=order)
+    if len(ppm) >= len(local):
+        return None
+
+    token_blob = bytes((1,)) + ppm
+    return _pack_runa_runb(
+        BWT_VERSION, primary, tokens, side_bits, token_blob
+    )
+
+
 def encode_bwt_block(data: bytes) -> tuple[bytes, str]:
     primary, transformed = bwt_transform(data)
     mtf = mtf_encode(transformed)
 
-    old = _encode_bwt_v4(primary, mtf)
-    runa_runb = _encode_bwt_v5(primary, mtf)
+    candidates = [
+        (_encode_bwt_v4(primary, mtf), "bwt-mtf-runs"),
+        (_encode_bwt_v5(primary, mtf), "bwt-mtf-runa-runb"),
+    ]
 
-    if len(runa_runb) < len(old):
-        return runa_runb, "bwt-mtf-runa-runb"
-    return old, "bwt-mtf-runs"
+    ppm_variant = _encode_bwt_v6(primary, mtf)
+    if ppm_variant is not None:
+        candidates.append(
+            (ppm_variant, "bwt-mtf-runa-runb-ppm")
+        )
+
+    return min(candidates, key=lambda item: len(item[0]))
 
 
 def decode_bwt_block(blob: bytes, *, source_length: int) -> bytes:
-    if not blob or blob[0] not in (1, 2, 3, 4, BWT_VERSION):
+    if not blob or blob[0] not in (1, 2, 3, 4, 5, BWT_VERSION):
         raise ValueError("unknown BWT block version")
 
     version = blob[0]
     pos = 1
     primary, pos = vdecode(blob, pos)
 
-    if version == 5:
+    if version in (5, 6):
         token_count, pos = vdecode(blob, pos)
         side_count, pos = vdecode(blob, pos)
         token_len, pos = vdecode(blob, pos)
@@ -338,7 +388,23 @@ def decode_bwt_block(blob: bytes, *, source_length: int) -> bytes:
         if token_end > len(blob):
             raise ValueError("truncated BWT RUNA/RUNB token stream")
 
-        tokens = decode_bytes(blob[pos:token_end], token_count)
+        if version == 5:
+            tokens = decode_bytes(blob[pos:token_end], token_count)
+        else:
+            token_stream = blob[pos:token_end]
+            if not token_stream:
+                raise ValueError("missing BWT token coding mode")
+            if token_stream[0] == 0:
+                tokens = decode_bytes(token_stream[1:], token_count)
+            elif token_stream[0] == 1:
+                from .ppm import decode_ppm
+
+                tokens = decode_ppm(
+                    token_stream[1:],
+                    source_length=token_count,
+                )
+            else:
+                raise ValueError("unknown BWT token coding mode")
         pos = token_end
 
         side_bytes = (side_count + 7) // 8
