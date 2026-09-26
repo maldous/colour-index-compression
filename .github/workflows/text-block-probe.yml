@@ -1,0 +1,26 @@
+name: CIX text block probe
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/text-block-probe.yml"
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        file: [alice29.txt, asyoulik.txt, cp.html, lcet10.txt, plrabn12.txt]
+        block: [32768, 65536, 131072]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e '.[fast-bwt]'
+      - run: python benchmarks/text_block_probe.py "${{ matrix.file }}" "${{ matrix.block }}"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: textprobe-${{ strategy.job-index }}
+          path: textprobe-*.json
