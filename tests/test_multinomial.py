@@ -5,6 +5,7 @@ from cix.multinomial import (
     ContextModel,
     StreamConfig,
     StreamEncoder,
+    StreamDecoder,
     compress,
     decode_context_type_classes,
     decode_type_class,
@@ -60,17 +61,27 @@ def test_stream_round_trip_is_feed_size_independent():
             ContextModel(4, 10),
         ),
     )
-    outputs = []
+
+    encoded_outputs = []
     for feed_size in (1, 17, 1024, len(data)):
         encoder = StreamEncoder(config)
+        chunks = []
         for start in range(0, len(data), feed_size):
-            encoder.feed(data[start : start + feed_size])
-        blob = encoder.finish()
-        assert decompress(blob) == data
-        outputs.append(blob)
+            chunks.append(encoder.feed(data[start : start + feed_size]))
+        chunks.append(encoder.finish())
+        blob = b"".join(chunks)
+        encoded_outputs.append(blob)
 
-    # Segmentation decisions are based on accumulated content, not caller packet sizes.
-    assert len({blob for blob in outputs}) == 1
+        for decode_size in (1, 31, 1000, len(blob)):
+            decoder = StreamDecoder()
+            restored = []
+            for offset in range(0, len(blob), decode_size):
+                restored.append(decoder.feed(blob[offset : offset + decode_size]))
+            decoder.finish()
+            assert b"".join(restored) == data
+
+    # Decisions occur at logical byte positions, not transport packet boundaries.
+    assert len(set(encoded_outputs)) == 1
 
 
 def test_random_data_falls_back_near_raw():
