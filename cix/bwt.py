@@ -8,9 +8,9 @@ from .multinomial import (
     vdecode,
     vencode,
 )
-from .substreams import decode_uints, encode_uints
+from .substreams import decode_bytes, decode_uints, encode_bytes, encode_uints
 
-BWT_VERSION = 1
+BWT_VERSION = 2
 
 
 def _bwt_transform_python(data: bytes) -> tuple[int, bytes]:
@@ -162,8 +162,8 @@ def encode_bwt_block(data: bytes) -> tuple[bytes, str]:
     mtf = mtf_encode(transformed)
     tags, nonzero, runs = _split_zero_runs(mtf)
 
-    tag_blob = encode_type_class_known_n(tags)
-    nonzero_blob = encode_type_class_known_n(nonzero)
+    tag_blob = encode_bytes(tags)
+    nonzero_blob = encode_bytes(nonzero)
     run_blob = encode_uints(runs)
 
     out = bytearray((BWT_VERSION,))
@@ -179,9 +179,10 @@ def encode_bwt_block(data: bytes) -> tuple[bytes, str]:
 
 
 def decode_bwt_block(blob: bytes, *, source_length: int) -> bytes:
-    if not blob or blob[0] != BWT_VERSION:
+    if not blob or blob[0] not in (1, BWT_VERSION):
         raise ValueError("unknown BWT block version")
 
+    version = blob[0]
     pos = 1
     primary, pos = vdecode(blob, pos)
     tag_count, pos = vdecode(blob, pos)
@@ -199,12 +200,16 @@ def decode_bwt_block(blob: bytes, *, source_length: int) -> bytes:
     if pos != len(blob):
         raise ValueError("trailing BWT bytes")
 
-    tags, used = decode_type_class_known_n(streams[0], 0, tag_count)
-    if used != len(streams[0]):
-        raise ValueError("unused BWT tag bytes")
-    nonzero, used = decode_type_class_known_n(streams[1], 0, nonzero_count)
-    if used != len(streams[1]):
-        raise ValueError("unused BWT nonzero bytes")
+    if version == 1:
+        tags, used = decode_type_class_known_n(streams[0], 0, tag_count)
+        if used != len(streams[0]):
+            raise ValueError("unused BWT tag bytes")
+        nonzero, used = decode_type_class_known_n(streams[1], 0, nonzero_count)
+        if used != len(streams[1]):
+            raise ValueError("unused BWT nonzero bytes")
+    else:
+        tags = decode_bytes(streams[0], tag_count)
+        nonzero = decode_bytes(streams[1], nonzero_count)
     runs = decode_uints(streams[2], run_count)
 
     mtf = _join_zero_runs(tags, nonzero, runs)
