@@ -17,14 +17,18 @@ from .multinomial import (
 )
 from .substreams import (
     decode_bucketed_type_classes,
+    decode_bytes,
     decode_distances,
+    decode_distances_best,
     decode_uints,
     encode_bucketed_type_classes,
+    encode_bytes,
     encode_distances,
+    encode_distances_best,
     encode_uints,
 )
 
-LZ_VERSION = 2
+LZ_VERSION = 3
 SA_HISTORY_LIMIT = 1 << 17
 DEFAULT_MIN_MATCH = 4
 DEFAULT_MAX_MATCH = 65535
@@ -303,8 +307,9 @@ def parse_lz_suffix(
 
 def _encode_tags(tags: bytes) -> bytes:
     plain = bytes((0,)) + encode_type_class_known_n(tags)
+    local = bytes((2,)) + encode_bytes(tags)
     if not tags:
-        return plain
+        return min((plain, local), key=len)
 
     runs = []
     current = tags[0]
@@ -320,7 +325,7 @@ def _encode_tags(tags: bytes) -> bytes:
 
     run_blob = encode_uints(runs)
     encoded_runs = bytes((1, tags[0])) + vencode(len(runs)) + run_blob
-    return min((plain, encoded_runs), key=len)
+    return min((plain, local, encoded_runs), key=len)
 
 
 def _decode_tags(blob: bytes, count: int) -> bytes:
@@ -345,6 +350,8 @@ def _decode_tags(blob: bytes, count: int) -> bytes:
         if len(out) != count:
             raise ValueError("LZ run tags length mismatch")
         return bytes(out)
+    if mode == 2:
+        return decode_bytes(blob[1:], count)
     raise ValueError("unknown LZ tag mode")
 
 
@@ -355,7 +362,11 @@ def _encode_literals(
     context_models: tuple[ContextModel, ...],
 ) -> tuple[bytes, str]:
     plain = bytes((0,)) + encode_type_class_known_n(parse.literals)
-    candidates = [(plain, "literal-multinomial")]
+    local = bytes((2,)) + encode_bytes(parse.literals)
+    candidates = [
+        (plain, "literal-multinomial"),
+        (local, "literal-local-multinomial"),
+    ]
 
     profiled = []
     for model in context_models:
@@ -458,6 +469,9 @@ def _decode_literals(blob: bytes, count: int) -> LiteralDecoder:
             bucket_bits=bucket_bits,
         )
 
+    if mode == 2:
+        return LiteralDecoder(mode=0, plain=decode_bytes(blob[1:], count))
+
     raise ValueError(f"unknown literal mode {mode}")
 
 
@@ -474,7 +488,7 @@ def _encode_parse(
         parse, data, prefix_history, context_models
     )
     lengths = encode_uints(parse.lengths)
-    distances = encode_distances(parse.distances)
+    distances = encode_distances_best(parse.distances)
 
     out = bytearray((LZ_VERSION, min_match))
     out += vencode(len(parse.tags))
@@ -583,7 +597,11 @@ def decode_lz_block(
 
     literals = _decode_literals(streams[1], literal_count)
     lengths = decode_uints(streams[2], match_count)
-    distances = decode_distances(streams[3], match_count)
+    distances = (
+        decode_distances_best(streams[3], match_count)
+        if version >= 3
+        else decode_distances(streams[3], match_count)
+    )
 
     produced = bytearray()
     literal_used = 0
