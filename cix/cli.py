@@ -25,6 +25,12 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
             lz_chain=8,
             enable_bwt=False,
             enable_chains=False,
+            enable_record=False,
+            enable_periodic=False,
+            enable_adaptive=False,
+            enable_persistent_adaptive=False,
+            context_beam=1,
+            transform_beam=1,
             context_models=(ContextModel(1, 8), ContextModel(2, 8)),
         )
 
@@ -37,6 +43,11 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
             lz_window_bytes=1 << 20,
             lz_chain=24,
             enable_chains=False,
+            record_beam=1,
+            periodic_beam=1,
+            context_beam=2,
+            transform_beam=3,
+            adaptive_beam=1,
             context_models=(
                 ContextModel(1, 8),
                 ContextModel(2, 8),
@@ -54,6 +65,11 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
             history_bytes=1 << 20,
             lz_window_bytes=1 << 20,
             lz_chain=48,
+            record_beam=2,
+            periodic_beam=3,
+            context_beam=4,
+            transform_beam=6,
+            adaptive_beam=3,
         )
 
     return StreamConfig(
@@ -65,6 +81,11 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
         lz_window_bytes=4 << 20,
         lz_chain=96,
         enable_chains=True,
+        record_beam=4,
+        periodic_beam=6,
+        context_beam=6,
+        transform_beam=10,
+        adaptive_beam=5,
         context_models=(
             ContextModel(1, 6),
             ContextModel(1, 8),
@@ -105,6 +126,14 @@ def _compress_parser() -> argparse.ArgumentParser:
     parser.add_argument("--min-block", type=int)
     parser.add_argument("--max-block", type=int)
     parser.add_argument("--history", type=int)
+    parser.add_argument("--structured-block", type=int)
+    parser.add_argument("--lz-window", type=int)
+    parser.add_argument("--lz-chain", type=int)
+    parser.add_argument("--context-beam", type=int)
+    parser.add_argument("--transform-beam", type=int)
+    parser.add_argument("--record-beam", type=int)
+    parser.add_argument("--periodic-beam", type=int)
+    parser.add_argument("--content-mask-bits", type=int)
     parser.add_argument("--no-lz", action="store_true")
     parser.add_argument("--no-bwt", action="store_true")
     parser.add_argument("--no-chains", action="store_true")
@@ -112,6 +141,12 @@ def _compress_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-transforms", action="store_true")
     parser.add_argument("--no-numeric", action="store_true")
     parser.add_argument("--no-dedup", action="store_true")
+    parser.add_argument("--no-record", action="store_true")
+    parser.add_argument("--no-periodic", action="store_true")
+    parser.add_argument("--no-adaptive", action="store_true")
+    parser.add_argument("--no-persistent-adaptive", action="store_true")
+    parser.add_argument("--no-sparse", action="store_true")
+    parser.add_argument("--no-runs", action="store_true")
     return parser
 
 
@@ -130,6 +165,25 @@ def main_compress(argv: list[str] | None = None) -> int:
     if args.history:
         config.history_bytes = args.history
         config.lz_window_bytes = min(config.lz_window_bytes, args.history)
+    if args.structured_block:
+        config.structured_block_target = args.structured_block
+    if args.lz_window:
+        config.lz_window_bytes = args.lz_window
+    if args.lz_chain:
+        config.lz_chain = args.lz_chain
+    if args.context_beam:
+        config.context_beam = args.context_beam
+    if args.transform_beam:
+        config.transform_beam = args.transform_beam
+    if args.record_beam:
+        config.record_beam = args.record_beam
+    if args.periodic_beam:
+        config.periodic_beam = args.periodic_beam
+    if args.content_mask_bits:
+        config.content_mask_bits = args.content_mask_bits
+
+    if config.structured_block_target < config.max_block:
+        config.structured_block_target = config.max_block
 
     config.enable_lz = not args.no_lz
     config.enable_bwt = not args.no_bwt
@@ -138,6 +192,12 @@ def main_compress(argv: list[str] | None = None) -> int:
     config.enable_transforms = not args.no_transforms
     config.enable_numeric = not args.no_numeric
     config.enable_dedup = not args.no_dedup
+    config.enable_record = not args.no_record
+    config.enable_periodic = not args.no_periodic
+    config.enable_adaptive = not args.no_adaptive
+    config.enable_persistent_adaptive = not args.no_persistent_adaptive
+    config.enable_sparse = not args.no_sparse
+    config.enable_runs = not args.no_runs
 
     for file_name in args.files:
         destination = args.output if len(args.files) == 1 else None
