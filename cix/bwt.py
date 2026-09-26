@@ -14,36 +14,28 @@ BWT_VERSION = 1
 
 
 def _bwt_transform_python(data: bytes) -> tuple[int, bytes]:
+    """Pure-Python libdivsufsort-compatible BWT fallback.
+
+    libdivsufsort uses a slightly different physical convention from the usual cyclic
+    BWT: the final source byte is emitted first and the primary index is 1-based.
+    """
     n = len(data)
     if n == 0:
         return 0, b""
 
-    suffixes = list(range(n))
-    rank = list(data)
-    work = [0] * n
-    step = 1
+    # Slow fallback used only when pydivsufsort is unavailable.
+    suffix_array = sorted(range(n), key=lambda index: data[index:])
+    transformed = bytearray((data[-1],))
+    primary = None
+    for rank, source_index in enumerate(suffix_array):
+        if source_index == 0:
+            primary = rank + 1
+        else:
+            transformed.append(data[source_index - 1])
 
-    while step < n:
-        suffixes.sort(key=lambda i: (rank[i], rank[(i + step) % n]))
-        classes = 0
-        work[suffixes[0]] = 0
-        previous = (rank[suffixes[0]], rank[(suffixes[0] + step) % n])
-
-        for index in suffixes[1:]:
-            current = (rank[index], rank[(index + step) % n])
-            if current != previous:
-                classes += 1
-                previous = current
-            work[index] = classes
-
-        rank, work = work, rank
-        if classes == n - 1:
-            break
-        step <<= 1
-
-    primary = suffixes.index(0)
-    transformed = bytes(data[(index - 1) % n] for index in suffixes)
-    return primary, transformed
+    if primary is None or len(transformed) != n:
+        raise AssertionError("invalid fallback BWT")
+    return primary, bytes(transformed)
 
 
 def bwt_transform(data: bytes) -> tuple[int, bytes]:
@@ -58,35 +50,31 @@ def bwt_transform(data: bytes) -> tuple[int, bytes]:
 
 
 def bwt_inverse(primary: int, transformed: bytes) -> bytes:
+    """Inverse libdivsufsort's BWT convention.
+
+    This mirrors pydivsufsort's reference iBWT implementation and therefore decodes
+    payloads identically whether or not the optional accelerator is installed.
+    """
     n = len(transformed)
     if n == 0:
+        if primary not in (0, 1):
+            raise ValueError("invalid empty BWT primary index")
         return b""
-    if not 0 <= primary < n:
+    if not 1 <= primary <= n:
         raise ValueError("invalid BWT primary index")
 
-    counts = [0] * 256
-    occurrence = []
-    for byte in transformed:
-        occurrence.append(counts[byte])
-        counts[byte] += 1
+    last = [(byte, index) for index, byte in enumerate(transformed)]
+    inverse_last = {
+        item: index + (index >= primary)
+        for index, item in enumerate(last)
+    }
+    first = sorted(last)
 
-    starts = [0] * 256
-    total = 0
-    for symbol, count in enumerate(counts):
-        starts[symbol] = total
-        total += count
-
-    lf = [
-        starts[byte] + occurrence_index
-        for byte, occurrence_index in zip(transformed, occurrence)
-    ]
-
-    out = bytearray(n)
-    row = primary
-    for index in range(n - 1, -1, -1):
-        byte = transformed[row]
-        out[index] = byte
-        row = lf[row]
+    current = first[primary - 1]
+    out = bytearray()
+    for _ in range(n):
+        out.append(current[0])
+        current = first[inverse_last[current] - 1]
 
     return bytes(out)
 
