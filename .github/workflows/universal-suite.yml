@@ -1,36 +1,95 @@
 name: Universal cross-corpus benchmark
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/universal-suite.yml"
   workflow_dispatch:
-    inputs:
-      corpora:
-        description: "Space-separated corpus names"
-        required: false
-        default: "canterbury calgary artificial"
-      level:
-        description: "CIX compression level 1-9"
-        required: false
-        default: "6"
 
 jobs:
-  universal:
+  discover:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - id: matrix
+        name: Discover fixed corpus members
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os, tarfile, tempfile, urllib.request
+
+          corpora = {
+              "canterbury": "https://corpus.canterbury.ac.nz/resources/cantrbry.tar.gz",
+              "calgary": "https://corpus.canterbury.ac.nz/resources/calgary.tar.gz",
+              "artificial": "https://corpus.canterbury.ac.nz/resources/artificl.tar.gz",
+          }
+
+          include = []
+          with tempfile.TemporaryDirectory() as root:
+              for corpus, url in corpora.items():
+                  archive = os.path.join(root, corpus + ".tar.gz")
+                  urllib.request.urlretrieve(url, archive)
+                  with tarfile.open(archive, "r:gz") as tf:
+                      names = sorted(
+                          os.path.basename(member.name)
+                          for member in tf.getmembers()
+                          if member.isfile()
+                      )
+                  include.extend(
+                      {"corpus": corpus, "member": name}
+                      for name in names
+                  )
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write("matrix=" + json.dumps({"include": include}) + "\n")
+          print(json.dumps({"include": include}, indent=2))
+          PY
+
+  member:
+    needs: discover
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -e '.[fast-bwt]' brotli zstandard
-      - name: Run universal suite
-        shell: bash
-        run: python benchmarks/universal_suite.py --level "${{ inputs.level }}" --corpora ${{ inputs.corpora }}
+      - name: Benchmark member
+        run: >-
+          python benchmarks/universal_member.py
+          --corpus "${{ matrix.corpus }}"
+          --member "${{ matrix.member }}"
+          --level 6
       - uses: actions/upload-artifact@v4
         if: always()
+        with:
+          name: universal-member-${{ strategy.job-index }}
+          path: universal-members/*.json
+          if-no-files-found: ignore
+
+  aggregate:
+    needs: [discover, member]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: universal-member-*
+          path: universal-members
+          merge-multiple: true
+      - name: Aggregate completed members
+        run: python benchmarks/universal_aggregate.py --input universal-members
+      - uses: actions/upload-artifact@v4
         with:
           name: universal-results
           path: |
             universal-results.md
-            universal-results.json
-            universal-progress.json
-          if-no-files-found: ignore
+            universal-summary.json
