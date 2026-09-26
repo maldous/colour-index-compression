@@ -7,7 +7,9 @@ from dataclasses import dataclass
 
 from .multinomial import (
     ContextModel,
+    _approx_typeclass_bytes_from_counts,
     _context_bucket,
+    _counts,
     decode_type_class_known_n,
     encode_type_class_known_n,
     vdecode,
@@ -22,7 +24,8 @@ from .substreams import (
     encode_uints,
 )
 
-LZ_VERSION = 1
+LZ_VERSION = 2
+SA_HISTORY_LIMIT = 1 << 17
 DEFAULT_MIN_MATCH = 4
 DEFAULT_MAX_MATCH = 65535
 
@@ -181,6 +184,170 @@ def parse_lz(
     )
 
 
+def _suffix_lpf_state(
+    data: bytes,
+    prefix_history: bytes,
+    window: int,
+):
+    """Compute LPF once in native code when pydivsufsort is available."""
+    try:
+        from pydivsufsort import longest_previous_factor  # type: ignore
+    except Exception:
+        return None
+
+    history_limit = min(window, SA_HISTORY_LIMIT)
+    history = prefix_history[-history_limit:]
+    base = history + data
+    try:
+        lpf = longest_previous_factor(base)
+    except Exception:
+        return None
+    return base, len(history), lpf
+
+
+def _suffix_source(
+    base: bytes,
+    position: int,
+    length: int,
+    window: int,
+    key_len: int,
+    max_candidates: int = 32,
+) -> int | None:
+    search_start = max(0, position - window)
+    target = base[position : position + length]
+
+    # Preserve valid overlapping LZ matches with tiny periods.
+    for distance in range(1, min(key_len, position - search_start + 1)):
+        candidate = position - distance
+        if base[candidate : candidate + length] == target:
+            return candidate
+
+    if position + key_len > len(base):
+        return None
+    key = base[position : position + key_len]
+    search_end = position
+    for _ in range(max_candidates):
+        candidate = base.rfind(key, search_start, search_end)
+        if candidate < 0:
+            break
+        if base[candidate : candidate + length] == target:
+            return candidate
+        search_end = candidate
+    return None
+
+
+def parse_lz_suffix(
+    data: bytes,
+    *,
+    state,
+    min_match: int,
+    max_match: int,
+    window: int,
+    key_len: int = 4,
+    lazy: bool = False,
+) -> LZParse:
+    base, history_len, lpf = state
+    end = len(base)
+    tags = bytearray()
+    literals = bytearray()
+    literal_positions = []
+    lengths = []
+    distances = []
+
+    position = history_len
+    while position < end:
+        best_length = min(int(lpf[position]), max_match, end - position)
+
+        if best_length >= min_match and lazy and position + 1 < end:
+            next_length = min(
+                int(lpf[position + 1]),
+                max_match,
+                end - position - 1,
+            )
+            if next_length > best_length + 1:
+                tags.append(0)
+                literals.append(base[position])
+                literal_positions.append(position - history_len)
+                position += 1
+                continue
+
+        source = None
+        if best_length >= min_match:
+            source = _suffix_source(
+                base,
+                position,
+                best_length,
+                window,
+                key_len,
+            )
+
+        if source is not None:
+            tags.append(1)
+            lengths.append(best_length - min_match)
+            distances.append(position - source)
+            position += best_length
+        else:
+            tags.append(0)
+            literals.append(base[position])
+            literal_positions.append(position - history_len)
+            position += 1
+
+    return LZParse(
+        bytes(tags),
+        bytes(literals),
+        literal_positions,
+        lengths,
+        distances,
+    )
+
+
+def _encode_tags(tags: bytes) -> bytes:
+    plain = bytes((0,)) + encode_type_class_known_n(tags)
+    if not tags:
+        return plain
+
+    runs = []
+    current = tags[0]
+    length = 1
+    for tag in tags[1:]:
+        if tag == current:
+            length += 1
+        else:
+            runs.append(length - 1)
+            current = tag
+            length = 1
+    runs.append(length - 1)
+
+    run_blob = encode_uints(runs)
+    encoded_runs = bytes((1, tags[0])) + vencode(len(runs)) + run_blob
+    return min((plain, encoded_runs), key=len)
+
+
+def _decode_tags(blob: bytes, count: int) -> bytes:
+    if not blob:
+        raise ValueError("empty LZ tag stream")
+    mode = blob[0]
+    if mode == 0:
+        tags, used = decode_type_class_known_n(blob, 1, count)
+        if used != len(blob):
+            raise ValueError("unused LZ tag bytes")
+        return tags
+    if mode == 1:
+        if len(blob) < 2 or blob[1] not in (0, 1):
+            raise ValueError("invalid LZ run tag stream")
+        run_count, pos = vdecode(blob, 2)
+        runs = decode_uints(blob[pos:], run_count)
+        out = bytearray()
+        tag = blob[1]
+        for encoded_length in runs:
+            out.extend(bytes((tag,)) * (encoded_length + 1))
+            tag ^= 1
+        if len(out) != count:
+            raise ValueError("LZ run tags length mismatch")
+        return bytes(out)
+    raise ValueError("unknown LZ tag mode")
+
+
 def _encode_literals(
     parse: LZParse,
     source: bytes,
@@ -190,6 +357,7 @@ def _encode_literals(
     plain = bytes((0,)) + encode_type_class_known_n(parse.literals)
     candidates = [(plain, "literal-multinomial")]
 
+    profiled = []
     for model in context_models:
         bucket_count = 1 << model.bucket_bits
         buckets: dict[int, bytearray] = {}
@@ -199,11 +367,20 @@ def _encode_literals(
             bucket = _context_bucket(tail, model.order, model.bucket_bits)
             buckets.setdefault(bucket, bytearray()).append(literal)
 
+        # Cheap MDL estimate: exact per-bucket type-class cost plus a conservative
+        # allowance for sparse bucket IDs/lengths. Only the best two are materialized.
+        estimate = 3.0 + len(buckets) * 2.0
+        for values in buckets.values():
+            raw = bytes(values)
+            estimate += _approx_typeclass_bytes_from_counts(_counts(raw), len(raw))
+        profiled.append((estimate, model.order, model.bucket_bits, model, buckets))
+
+    for _, _, _, model, buckets in sorted(profiled)[:2]:
         payload = (
             bytes((1, model.order, model.bucket_bits))
             + encode_bucketed_type_classes(
                 buckets,
-                bucket_count=bucket_count,
+                bucket_count=1 << model.bucket_bits,
                 total_items=len(parse.literals),
             )
         )
@@ -292,7 +469,7 @@ def _encode_parse(
     min_match: int,
     description_suffix: str,
 ) -> tuple[bytes, str]:
-    tags = encode_type_class_known_n(parse.tags)
+    tags = _encode_tags(parse.tags)
     literals, literal_name = _encode_literals(
         parse, data, prefix_history, context_models
     )
@@ -327,15 +504,33 @@ def encode_lz_block(
         variants.append((max(min_match + 1, 5), True))
 
     candidates = []
+    suffix_state = (
+        _suffix_lpf_state(data, prefix_history, window)
+        if len(data) >= 1024
+        else None
+    )
     for candidate_min, lazy in variants:
-        parse = parse_lz(
-            data,
-            prefix_history=prefix_history,
-            min_match=candidate_min,
-            window=window,
-            chain=chain,
-            lazy=lazy,
-        )
+        if suffix_state is not None:
+            parse = parse_lz_suffix(
+                data,
+                state=suffix_state,
+                min_match=candidate_min,
+                max_match=DEFAULT_MAX_MATCH,
+                window=min(window, SA_HISTORY_LIMIT),
+                lazy=lazy,
+            )
+            parser_suffix = "-sa"
+        else:
+            parse = parse_lz(
+                data,
+                prefix_history=prefix_history,
+                min_match=candidate_min,
+                window=window,
+                chain=chain,
+                lazy=lazy,
+            )
+            parser_suffix = ""
+
         candidates.append(
             _encode_parse(
                 parse,
@@ -344,7 +539,8 @@ def encode_lz_block(
                 context_models,
                 candidate_min,
                 f"m{candidate_min}-w{window}-c{chain}"
-                + ("-lazy" if lazy else ""),
+                + ("-lazy" if lazy else "")
+                + parser_suffix,
             )
         )
 
@@ -357,9 +553,10 @@ def decode_lz_block(
     source_length: int,
     prefix_history: bytes = b"",
 ) -> bytes:
-    if len(blob) < 2 or blob[0] != LZ_VERSION:
+    if len(blob) < 2 or blob[0] not in (1, LZ_VERSION):
         raise ValueError("unknown LZ block version")
 
+    version = blob[0]
     min_match = blob[1]
     pos = 2
     token_count, pos = vdecode(blob, pos)
@@ -377,9 +574,12 @@ def decode_lz_block(
     if pos != len(blob):
         raise ValueError("trailing LZ block bytes")
 
-    tags, consumed = decode_type_class_known_n(streams[0], 0, token_count)
-    if consumed != len(streams[0]):
-        raise ValueError("unused LZ tag bytes")
+    if version == 1:
+        tags, consumed = decode_type_class_known_n(streams[0], 0, token_count)
+        if consumed != len(streams[0]):
+            raise ValueError("unused LZ tag bytes")
+    else:
+        tags = _decode_tags(streams[0], token_count)
 
     literals = _decode_literals(streams[1], literal_count)
     lengths = decode_uints(streams[2], match_count)
