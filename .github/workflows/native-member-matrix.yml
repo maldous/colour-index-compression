@@ -1,0 +1,56 @@
+name: Native Canterbury member matrix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/native-member-matrix.yml"
+
+jobs:
+  member:
+    strategy:
+      fail-fast: false
+      matrix:
+        file:
+          - alice29.txt
+          - asyoulik.txt
+          - cp.html
+          - fields.c
+          - grammar.lsp
+          - kennedy.xls
+          - lcet10.txt
+          - plrabn12.txt
+          - ptt5
+          - sum
+          - xargs.1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[fast-bwt]'
+      - run: python benchmarks/native_member.py "${{ matrix.file }}"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: member-${{ strategy.job-index }}
+          path: member-*.json
+
+  aggregate:
+    if: always()
+    needs: member
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: member-*
+          path: member-results
+          merge-multiple: true
+      - run: python benchmarks/aggregate_members.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-matrix-results
+          path: native-matrix-results.md
