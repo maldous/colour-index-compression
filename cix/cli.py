@@ -28,6 +28,7 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
             enable_record=False,
             enable_periodic=False,
             enable_ppm=False,
+            enable_expert_mix=False,
             enable_adaptive=False,
             enable_persistent_adaptive=False,
             context_beam=1,
@@ -51,6 +52,7 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
             adaptive_beam=1,
             enable_ppm=True,
             ppm_order=3,
+            enable_expert_mix=False,
             context_models=(
                 ContextModel(1, 8),
                 ContextModel(2, 8),
@@ -93,6 +95,8 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
         adaptive_beam=5,
         enable_ppm=True,
         ppm_order=5,
+        enable_expert_mix=True,
+        expert_orders=(0, 1, 2, 3, 4),
         context_models=(
             ContextModel(1, 6),
             ContextModel(1, 8),
@@ -156,6 +160,7 @@ def _compress_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-sparse", action="store_true")
     parser.add_argument("--no-runs", action="store_true")
     parser.add_argument("--no-ppm", action="store_true")
+    parser.add_argument("--no-expert-mix", action="store_true")
     return parser
 
 
@@ -210,6 +215,7 @@ def main_compress(argv: list[str] | None = None) -> int:
     config.enable_sparse = not args.no_sparse
     config.enable_runs = not args.no_runs
     config.enable_ppm = not args.no_ppm
+    config.enable_expert_mix = not args.no_expert_mix
 
     for file_name in args.files:
         destination = args.output if len(args.files) == 1 else None
