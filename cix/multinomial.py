@@ -1299,12 +1299,12 @@ class StreamEncoder:
             # Strong byte-level repetition/run structure benefits from a longer
             # model horizon. Holding the block open is format agnostic: the same
             # shingle/run statistic is used for every byte stream.
+            # A longer horizon may help stationary repeated structure, but it
+            # must never disable change-point detection. Streaming data can switch
+            # regimes at any time, so an MDL-profitable entropy split always wins.
             entropy_cut = (
                 _best_split(probe, self.config)
-                if (
-                    not structured
-                    and self.config.chunk_mode in ("adaptive", "hybrid")
-                )
+                if self.config.chunk_mode in ("adaptive", "hybrid")
                 else None
             )
             content_cut = (
