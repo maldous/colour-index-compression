@@ -1,16 +1,19 @@
 """Native Prediction-by-Partial-Matching model for CIX.
 
-Format-agnostic causal PPM with exclusion and selectable escape estimators. The encoder
-may physically try several generic escape laws and store the winning law in the block;
-the decoder needs no semantic information or trained model.
+Format-agnostic causal PPM with exclusion, selectable escape estimators, and deterministic
+recent-history warmup. Encoder and decoder already share previously decoded bytes, so v3
+uses a bounded suffix of that history to train context statistics before coding each
+block. This preserves streaming while avoiding destructive model resets at block edges.
 """
 from __future__ import annotations
 
 import math
 from .multinomial import _ArithmeticDecoder, _ArithmeticEncoder, vdecode, vencode
 
-PPM_VERSION = 2
+PPM_VERSION = 3
 CONTEXT_LIMIT = 16384
+PPM_HISTORY_MAX = 65536
+PPM_HISTORY_MIN = 4096
 
 ESCAPE_ONE = 0
 ESCAPE_DISTINCT = 1
@@ -57,6 +60,65 @@ def _escape_mass(
     raise ValueError("unknown PPM escape method")
 
 
+def _observe_symbol(
+    tables: dict[bytes, dict[int, int]],
+    history: bytearray,
+    symbol: int,
+    max_order: int,
+) -> None:
+    highest = min(max_order, len(history))
+    for order in range(highest, -1, -1):
+        context = _ctx(history, order)
+        counts = tables.setdefault(context, {})
+        counts[symbol] = counts.get(symbol, 0) + 1
+        _rescale(counts)
+
+    if max_order:
+        history.append(symbol)
+        if len(history) > max_order:
+            del history[:-max_order]
+
+
+def _prime_from_history(
+    prefix_history: bytes,
+    block_length: int,
+    max_order: int,
+) -> tuple[dict[bytes, dict[int, int]], bytearray]:
+    """Train a fresh block model from a deterministic recent-history suffix.
+
+    The horizon scales with block size but is bounded. The few bytes immediately
+    preceding the training suffix seed the first training contexts without themselves
+    contributing counts.
+    """
+    tables: dict[bytes, dict[int, int]] = {}
+    history = bytearray()
+    if not prefix_history:
+        return tables, history
+
+    training_length = min(
+        len(prefix_history),
+        PPM_HISTORY_MAX,
+        max(PPM_HISTORY_MIN, block_length * 2),
+    )
+    start = len(prefix_history) - training_length
+
+    if max_order and start:
+        history.extend(prefix_history[max(0, start - max_order) : start])
+
+    for symbol in prefix_history[start:]:
+        _observe_symbol(tables, history, symbol, max_order)
+
+    return tables, history
+
+
+def _fresh_legacy_state(
+    prefix_history: bytes,
+    max_order: int,
+) -> tuple[dict[bytes, dict[int, int]], bytearray]:
+    """PPM v2 behaviour retained for old payload decoding."""
+    return {}, bytearray(prefix_history[-max_order:] if max_order else b"")
+
+
 def estimate_ppm_bits(
     data: bytes,
     *,
@@ -71,8 +133,12 @@ def estimate_ppm_bits(
         raise ValueError("invalid PPM escape method")
 
     sample = data[:sample_limit]
-    tables: dict[bytes, dict[int, int]] = {}
-    history = bytearray(prefix_history[-max_order:] if max_order else b"")
+    if not sample:
+        return 0.0
+
+    tables, history = _prime_from_history(
+        prefix_history, len(data), max_order
+    )
     bits = 0.0
 
     for symbol in sample:
@@ -103,20 +169,8 @@ def estimate_ppm_bits(
         if not coded:
             bits += math.log2(max(1, 256 - len(excluded)))
 
-        highest = min(max_order, len(history))
-        for order in range(highest, -1, -1):
-            context = _ctx(history, order)
-            counts = tables.setdefault(context, {})
-            counts[symbol] = counts.get(symbol, 0) + 1
-            _rescale(counts)
+        _observe_symbol(tables, history, symbol, max_order)
 
-        if max_order:
-            history.append(symbol)
-            if len(history) > max_order:
-                del history[:-max_order]
-
-    if not sample:
-        return 0.0
     return bits * (len(data) / len(sample))
 
 
@@ -127,8 +181,9 @@ def _encode_ppm_method(
     prefix_history: bytes,
     escape_method: int,
 ) -> bytes:
-    tables: dict[bytes, dict[int, int]] = {}
-    history = bytearray(prefix_history[-max_order:] if max_order else b"")
+    tables, history = _prime_from_history(
+        prefix_history, len(data), max_order
+    )
     encoder = _ArithmeticEncoder()
 
     for symbol in data:
@@ -168,17 +223,7 @@ def _encode_ppm_method(
             rank = remaining.index(symbol)
             encoder.encode(rank, rank + 1, len(remaining))
 
-        highest = min(max_order, len(history))
-        for order in range(highest, -1, -1):
-            context = _ctx(history, order)
-            counts = tables.setdefault(context, {})
-            counts[symbol] = counts.get(symbol, 0) + 1
-            _rescale(counts)
-
-        if max_order:
-            history.append(symbol)
-            if len(history) > max_order:
-                del history[:-max_order]
+        _observe_symbol(tables, history, symbol, max_order)
 
     payload, bit_length = encoder.finish()
     return (
@@ -228,8 +273,10 @@ def decode_ppm(
     source_length: int,
     prefix_history: bytes = b"",
 ) -> bytes:
-    if len(blob) < 3 or blob[0] != PPM_VERSION:
+    if len(blob) < 3 or blob[0] not in (2, PPM_VERSION):
         raise ValueError("unknown PPM version")
+
+    version = blob[0]
     max_order = blob[1]
     escape_method = blob[2]
     if not 0 <= max_order <= 8:
@@ -243,8 +290,13 @@ def decode_ppm(
         raise ValueError("PPM payload length mismatch")
 
     decoder = _ArithmeticDecoder(blob[pos:], bit_length)
-    tables: dict[bytes, dict[int, int]] = {}
-    history = bytearray(prefix_history[-max_order:] if max_order else b"")
+    if version == 2:
+        tables, history = _fresh_legacy_state(prefix_history, max_order)
+    else:
+        tables, history = _prime_from_history(
+            prefix_history, source_length, max_order
+        )
+
     out = bytearray()
 
     for _ in range(source_length):
@@ -290,17 +342,6 @@ def decode_ppm(
             decoder.update(target, target + 1, len(remaining))
 
         out.append(symbol)
-
-        highest = min(max_order, len(history))
-        for order in range(highest, -1, -1):
-            context = _ctx(history, order)
-            counts = tables.setdefault(context, {})
-            counts[symbol] = counts.get(symbol, 0) + 1
-            _rescale(counts)
-
-        if max_order:
-            history.append(symbol)
-            if len(history) > max_order:
-                del history[:-max_order]
+        _observe_symbol(tables, history, symbol, max_order)
 
     return bytes(out)
