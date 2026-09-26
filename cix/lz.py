@@ -305,6 +305,98 @@ def parse_lz_suffix(
     )
 
 
+def parse_lz_optimal_suffix(
+    data: bytes,
+    *,
+    state,
+    min_match: int,
+    max_match: int,
+    window: int,
+    key_len: int = 4,
+) -> LZParse:
+    """Bounded dynamic-programming LZ parse over suffix-array match lengths.
+
+    The objective is deliberately generic: estimated literal/tag/length/distance
+    description cost. The resulting parse still has to win after exact physical
+    CIX substream encoding, so a poor estimate cannot worsen final output size.
+    """
+    base, history_len, lpf = state
+    n = len(data)
+    inf = 1 << 60
+    cost = [0] * (n + 1)
+    choice: list[tuple[int, int] | None] = [None] * n
+
+    useful_lengths = (8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024)
+
+    for i in range(n - 1, -1, -1):
+        # One tag decision plus an approximately byte-like literal.
+        best_cost = 9 + cost[i + 1]
+        best_choice: tuple[int, int] | None = None
+
+        position = history_len + i
+        longest = min(int(lpf[position]), max_match, n - i)
+        if longest >= min_match:
+            source = _suffix_source(
+                base,
+                position,
+                longest,
+                window,
+                key_len,
+                max_candidates=8,
+            )
+            if source is not None:
+                distance = position - source
+                lengths = {min_match, longest}
+                lengths.update(
+                    length for length in useful_lengths
+                    if min_match <= length <= longest
+                )
+
+                for length in lengths:
+                    # Approximate universal-code cost for tag + length class +
+                    # distance class. Exact substream coding is evaluated later.
+                    length_code = (length - min_match + 1).bit_length()
+                    distance_code = distance.bit_length()
+                    token_cost = 1 + 2 * length_code + 2 * distance_code
+                    candidate_cost = token_cost + cost[i + length]
+                    if candidate_cost < best_cost:
+                        best_cost = candidate_cost
+                        best_choice = (length, distance)
+
+        cost[i] = best_cost
+        choice[i] = best_choice
+
+    tags = bytearray()
+    literals = bytearray()
+    literal_positions = []
+    lengths = []
+    distances = []
+
+    i = 0
+    while i < n:
+        selected = choice[i]
+        if selected is None:
+            tags.append(0)
+            literals.append(data[i])
+            literal_positions.append(i)
+            i += 1
+            continue
+
+        length, distance = selected
+        tags.append(1)
+        lengths.append(length - min_match)
+        distances.append(distance)
+        i += length
+
+    return LZParse(
+        bytes(tags),
+        bytes(literals),
+        literal_positions,
+        lengths,
+        distances,
+    )
+
+
 def _encode_tags(tags: bytes) -> bytes:
     plain = bytes((0,)) + encode_type_class_known_n(tags)
     local = bytes((2,)) + encode_bytes(tags)
@@ -555,6 +647,29 @@ def encode_lz_block(
                 f"m{candidate_min}-w{window}-c{chain}"
                 + ("-lazy" if lazy else "")
                 + parser_suffix,
+            )
+        )
+
+    if (
+        suffix_state is not None
+        and chain >= 48
+        and len(data) <= 32768
+    ):
+        optimal = parse_lz_optimal_suffix(
+            data,
+            state=suffix_state,
+            min_match=min_match,
+            max_match=DEFAULT_MAX_MATCH,
+            window=min(window, SA_HISTORY_LIMIT),
+        )
+        candidates.append(
+            _encode_parse(
+                optimal,
+                data,
+                prefix_history,
+                context_models,
+                min_match,
+                f"m{min_match}-w{window}-c{chain}-optimal-sa",
             )
         )
 
