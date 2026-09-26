@@ -2,6 +2,7 @@ from pathlib import Path
 
 from cix.multinomial import StreamConfig
 from cix.transforms import SPECS
+from cix.record import BASE_WIDTHS
 
 
 FORBIDDEN_CONFIG_FIELDS = {
@@ -45,3 +46,10 @@ def test_no_removed_semantic_modules_remain():
     root = Path(__file__).resolve().parents[1] / "cix"
     assert not (root / "tokens.py").exists()
     assert not (root / "raster.py").exists()
+
+
+def test_record_width_priors_are_generic():
+    # Benchmark/media-specific scanline constants must be discovered from bytes,
+    # never embedded in the canonical candidate list.
+    assert 216 not in BASE_WIDTHS
+    assert 432 not in BASE_WIDTHS
