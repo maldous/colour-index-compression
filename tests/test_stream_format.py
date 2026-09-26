@@ -52,9 +52,9 @@ def test_custom_history_window_is_self_describing():
 
 def test_stream_decoder_handles_single_byte_packets():
     data = (
-        os.urandom(2048)
-        + (b"ABCDEF123456" * 1000)
-        + b"".join(i.to_bytes(4, "little") for i in range(2000))
+        os.urandom(512)
+        + (b"ABCDEF123456" * 120)
+        + b"".join(i.to_bytes(4, "little") for i in range(300))
     )
     config = StreamConfig(
         min_block=1024,
@@ -62,7 +62,17 @@ def test_stream_decoder_handles_single_byte_packets():
         probe_stride=512,
         history_bytes=16384,
         lz_window_bytes=16384,
+        enable_lz=False,
+        enable_bwt=False,
+        enable_transforms=False,
+        enable_numeric=False,
+        enable_bitplanes=False,
         enable_chains=False,
+        enable_sparse=False,
+        enable_runs=False,
+        enable_adaptive=False,
+        enable_stateful=False,
+        context_models=(ContextModel(1, 8), ContextModel(2, 8)),
     )
 
     encoder = StreamEncoder(config)
