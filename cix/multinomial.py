@@ -47,6 +47,7 @@ MODE_SPARSE = 11
 MODE_RUNS = 12
 MODE_PERSISTENT_ADAPTIVE = 13
 MODE_TOKENS = 14
+MODE_RASTER = 15
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -704,6 +705,7 @@ class StreamConfig:
     enable_runs: bool = True
     enable_persistent_adaptive: bool = True
     enable_tokens: bool = True
+    enable_raster: bool = True
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -992,6 +994,17 @@ def encode_best_block(
             payload, description = encode_token_block(block)
             candidates.append(
                 EncodedBlock(MODE_TOKENS, len(block), payload, description)
+            )
+        except Exception:
+            pass
+
+    if config.enable_raster and len(block) >= 1024:
+        try:
+            from .raster import encode_raster_block
+
+            payload, description = encode_raster_block(block)
+            candidates.append(
+                EncodedBlock(MODE_RASTER, len(block), payload, description)
             )
         except Exception:
             pass
@@ -1526,6 +1539,14 @@ class StreamDecoder:
                 from .tokens import decode_token_block
 
                 block = decode_token_block(
+                    payload,
+                    source_length=source_length,
+                )
+
+            elif mode == MODE_RASTER:
+                from .raster import decode_raster_block
+
+                block = decode_raster_block(
                     payload,
                     source_length=source_length,
                 )
