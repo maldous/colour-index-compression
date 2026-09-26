@@ -20,7 +20,7 @@ from .multinomial import (
 )
 
 RECORD_VERSION=1
-BASE_WIDTHS=(2,3,4,8,12,16,24,32,48,64,96,128,192,216,256,384,432,512,768,1024,1536,2048)
+BASE_WIDTHS=(2,3,4,5,6,8,10,12,16,24,32,48,64,96,128,192,256,384,512,768,1024,1536,2048)
 
 def _estimate_lane(lane:bytes)->float:
     n=len(lane)
