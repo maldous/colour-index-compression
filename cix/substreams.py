@@ -70,6 +70,7 @@ BYTE_STREAM_STATIC = 0
 BYTE_STREAM_CHUNKED = 1
 BYTE_STREAM_ADAPTIVE = 2
 BYTE_STREAM_CONTEXT = 3
+BYTE_STREAM_WAVELET = 4
 
 
 def _conditional_bits(values: bytes, order: int) -> float:
@@ -127,6 +128,21 @@ def encode_bytes(values: bytes) -> bytes:
             chunk = values[start : start + chunk_size]
             out += encode_type_class_known_n(chunk)
         candidates.append(bytes(out))
+
+    # Hierarchical Colour-Index recursively factors a multinomial alphabet into
+    # binary C(n,k) decisions. Materialize it only when the histogram estimate is
+    # close enough that it can plausibly beat the current physical winner.
+    if len(values) >= 64:
+        try:
+            from .wavelet import encode_wavelet, estimate_wavelet_bits
+
+            best_len = min(len(candidate) for candidate in candidates)
+            if estimate_wavelet_bits(values) / 8.0 <= best_len * 1.03 + 8:
+                candidates.append(
+                    bytes((BYTE_STREAM_WAVELET,)) + encode_wavelet(values)
+                )
+        except Exception:
+            pass
 
     # Adaptive order-0 arithmetic is a useful competitor when the distribution
     # evolves smoothly instead of changing in sharp windows.
@@ -201,6 +217,14 @@ def decode_bytes(blob: bytes, count: int) -> bytes:
         values = decode_adaptive(blob[2:], source_length=count)
         if len(values) != count:
             raise ValueError("context byte-substream length mismatch")
+        return values
+
+    if mode == BYTE_STREAM_WAVELET:
+        from .wavelet import decode_wavelet
+
+        values = decode_wavelet(blob[1:], source_length=count)
+        if len(values) != count:
+            raise ValueError("wavelet byte-substream length mismatch")
         return values
 
     raise ValueError("unknown byte-substream mode")
