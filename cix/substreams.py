@@ -146,6 +146,7 @@ def decode_bytes(blob: bytes, count: int) -> bytes:
 UINT_VARINT = 0
 UINT_RICE = 1
 UINT_LOGCLASS = 2
+UINT_LOGCLASS_LOCAL = 3
 
 
 def encode_uints(values: list[int]) -> bytes:
@@ -214,6 +215,14 @@ def encode_uints(values: list[int]) -> bytes:
             + writer.finish()
         )
 
+        local_class_blob = encode_bytes(bytes(classes))
+        candidates.append(
+            bytes((UINT_LOGCLASS_LOCAL,))
+            + vencode(len(local_class_blob))
+            + local_class_blob
+            + writer.finish()
+        )
+
     return min(candidates, key=len)
 
 
@@ -250,14 +259,17 @@ def decode_uints(blob: bytes, count: int) -> list[int]:
             out.append((quotient << k) | low)
         return out
 
-    if mode == UINT_LOGCLASS:
+    if mode in (UINT_LOGCLASS, UINT_LOGCLASS_LOCAL):
         class_len, pos = vdecode(blob, pos)
         end = pos + class_len
         if end > len(blob):
             raise ValueError("truncated integer class stream")
-        classes, consumed = decode_type_class_known_n(blob[pos:end], 0, count)
-        if consumed != class_len:
-            raise ValueError("unused integer class bytes")
+        if mode == UINT_LOGCLASS:
+            classes, consumed = decode_type_class_known_n(blob[pos:end], 0, count)
+            if consumed != class_len:
+                raise ValueError("unused integer class bytes")
+        else:
+            classes = decode_bytes(blob[pos:end], count)
         reader = BitReader(blob[end:])
         out = []
         for width in classes:
@@ -336,6 +348,92 @@ def decode_distances(blob: bytes, count: int, cache_size: int = 4) -> list[int]:
             distance = (1 << width) + low
             cache.insert(0, distance)
             del cache[cache_size:]
+        out.append(distance)
+
+    return out
+
+
+def encode_distances_best(distances: list[int]) -> bytes:
+    """Choose distance-cache size and local symbol model jointly."""
+    if not distances:
+        return bytes((0,))
+
+    candidates = []
+    for cache_size in (0, 1, 2, 4, 8, 16):
+        cache: list[int] = []
+        symbols = []
+        lows = []
+        widths = []
+
+        for distance in distances:
+            if distance <= 0:
+                raise ValueError("distances must be positive")
+            if distance in cache:
+                index = cache.index(distance)
+                symbols.append(index)
+                lows.append(0)
+                widths.append(0)
+                cache.pop(index)
+                cache.insert(0, distance)
+            else:
+                width = distance.bit_length() - 1
+                symbol = cache_size + width
+                if symbol > 255:
+                    raise ValueError("distance class too large")
+                symbols.append(symbol)
+                lows.append(distance - (1 << width))
+                widths.append(width)
+                if cache_size:
+                    cache.insert(0, distance)
+                    del cache[cache_size:]
+
+        symbol_blob = encode_bytes(bytes(symbols))
+        writer = BitWriter()
+        for low, width in zip(lows, widths):
+            if width:
+                writer.bits(low, width)
+
+        candidate = (
+            bytes((cache_size,))
+            + vencode(len(symbol_blob))
+            + symbol_blob
+            + writer.finish()
+        )
+        candidates.append(candidate)
+
+    return min(candidates, key=len)
+
+
+def decode_distances_best(blob: bytes, count: int) -> list[int]:
+    if count == 0:
+        return []
+    if not blob:
+        raise ValueError("empty adaptive distance stream")
+
+    cache_size = blob[0]
+    symbol_len, pos = vdecode(blob, 1)
+    end = pos + symbol_len
+    if end > len(blob):
+        raise ValueError("truncated adaptive distance classes")
+
+    symbols = decode_bytes(blob[pos:end], count)
+    reader = BitReader(blob[end:])
+    cache: list[int] = []
+    out = []
+
+    for symbol in symbols:
+        if symbol < cache_size:
+            if symbol >= len(cache):
+                raise ValueError("invalid adaptive distance cache reference")
+            distance = cache.pop(symbol)
+            cache.insert(0, distance)
+        else:
+            width = symbol - cache_size
+            low = reader.bits(width) if width else 0
+            distance = (1 << width) + low
+            if cache_size:
+                cache.insert(0, distance)
+                del cache[cache_size:]
         out.append(distance)
 
     return out
