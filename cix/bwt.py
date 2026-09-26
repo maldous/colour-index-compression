@@ -10,7 +10,7 @@ from .multinomial import (
 )
 from .substreams import decode_bytes, decode_uints, encode_bytes, encode_uints
 
-BWT_VERSION = 3
+BWT_VERSION = 4
 
 
 def _bwt_transform_python(data: bytes) -> tuple[int, bytes]:
@@ -157,12 +157,56 @@ def _join_zero_runs(tags: bytes, nonzero: bytes, runs: list[int]) -> bytes:
     return bytes(out)
 
 
+def _encode_binary_tags(tags: bytes) -> bytes:
+    local = bytes((0,)) + encode_bytes(tags)
+    if not tags:
+        return local
+
+    runs = []
+    current = tags[0]
+    length = 1
+    for tag in tags[1:]:
+        if tag == current:
+            length += 1
+        else:
+            runs.append(length - 1)
+            current = tag
+            length = 1
+    runs.append(length - 1)
+
+    run_blob = encode_uints(runs)
+    encoded_runs = bytes((1, tags[0])) + vencode(len(runs)) + run_blob
+    return min((local, encoded_runs), key=len)
+
+
+def _decode_binary_tags(blob: bytes, count: int) -> bytes:
+    if not blob:
+        raise ValueError("empty BWT tag stream")
+    mode = blob[0]
+    if mode == 0:
+        return decode_bytes(blob[1:], count)
+    if mode == 1:
+        if len(blob) < 2 or blob[1] not in (0, 1):
+            raise ValueError("invalid BWT run-tag stream")
+        run_count, pos = vdecode(blob, 2)
+        runs = decode_uints(blob[pos:], run_count)
+        out = bytearray()
+        tag = blob[1]
+        for encoded_length in runs:
+            out.extend(bytes((tag,)) * (encoded_length + 1))
+            tag ^= 1
+        if len(out) != count:
+            raise ValueError("BWT run-tag length mismatch")
+        return bytes(out)
+    raise ValueError("unknown BWT tag stream mode")
+
+
 def encode_bwt_block(data: bytes) -> tuple[bytes, str]:
     primary, transformed = bwt_transform(data)
     mtf = mtf_encode(transformed)
     tags, nonzero, runs = _split_zero_runs(mtf)
 
-    tag_blob = encode_bytes(tags)
+    tag_blob = _encode_binary_tags(tags)
 
     nonzero_candidates = [
         bytes((0,)) + encode_bytes(nonzero),
@@ -184,7 +228,7 @@ def encode_bwt_block(data: bytes) -> tuple[bytes, str]:
 
 
 def decode_bwt_block(blob: bytes, *, source_length: int) -> bytes:
-    if not blob or blob[0] not in (1, 2, BWT_VERSION):
+    if not blob or blob[0] not in (1, 2, 3, BWT_VERSION):
         raise ValueError("unknown BWT block version")
 
     version = blob[0]
@@ -213,7 +257,11 @@ def decode_bwt_block(blob: bytes, *, source_length: int) -> bytes:
         if used != len(streams[1]):
             raise ValueError("unused BWT nonzero bytes")
     else:
-        tags = decode_bytes(streams[0], tag_count)
+        tags = (
+            _decode_binary_tags(streams[0], tag_count)
+            if version >= 4
+            else decode_bytes(streams[0], tag_count)
+        )
         if version == 2:
             nonzero = decode_bytes(streams[1], nonzero_count)
         else:
