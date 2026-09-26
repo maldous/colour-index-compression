@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 
 from .adaptive import _Model
 from .multinomial import (
+    Fenwick,
     _ArithmeticDecoder,
     _ArithmeticEncoder,
     _context_bucket,
@@ -58,7 +59,7 @@ class PersistentAdaptiveState:
         else:
             counts = base[:]
 
-        model = _Model(counts, __import__("cix.multinomial", fromlist=["Fenwick"]).Fenwick(counts), sum(counts))
+        model = _Model(counts, Fenwick(counts), sum(counts))
         working[bucket] = model
         return model
 
