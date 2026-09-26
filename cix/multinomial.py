@@ -51,6 +51,7 @@ MODE_PERIODIC = 15
 MODE_PPM = 16
 MODE_EXPERT_MIX = 17
 MODE_WAVELET = 18
+MODE_FIXED_MIX = 19
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -718,6 +719,8 @@ class StreamConfig:
     enable_expert_mix: bool = True
     expert_orders: tuple[int, ...] = (0, 1, 2, 4)
     enable_wavelet: bool = True
+    enable_fixed_mix: bool = False
+    fixed_mix_max_block: int = 32768
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -744,6 +747,8 @@ class StreamConfig:
             ppm_beam=2,
             enable_expert_mix=True,
             expert_orders=(0, 1, 2, 3, 4, 6),
+            enable_fixed_mix=True,
+            fixed_mix_max_block=32768,
             chunk_mode="hybrid",
             content_mask_bits=14,
             context_models=(
@@ -1093,6 +1098,29 @@ def encode_best_block(
                         "context-expert-" + "-".join(map(str, config.expert_orders)),
                     )
                 )
+        except Exception:
+            pass
+
+    if (
+        config.enable_fixed_mix
+        and 512 <= len(block) <= config.fixed_mix_max_block
+        and _looks_bwt_worthy(block)
+    ):
+        try:
+            from .fixedmix import encode_fixed_mix
+
+            payload = encode_fixed_mix(
+                block,
+                prefix_history=prefix_history,
+            )
+            candidates.append(
+                EncodedBlock(
+                    MODE_FIXED_MIX,
+                    len(block),
+                    payload,
+                    "fixed-point-context-mixer",
+                )
+            )
         except Exception:
             pass
 
@@ -1714,6 +1742,15 @@ class StreamDecoder:
                 from .wavelet import decode_wavelet
 
                 block = decode_wavelet(payload, source_length=source_length)
+
+            elif mode == MODE_FIXED_MIX:
+                from .fixedmix import decode_fixed_mix
+
+                block = decode_fixed_mix(
+                    payload,
+                    source_length=source_length,
+                    prefix_history=bytes(self._history),
+                )
 
             else:
                 raise ValueError(f"unknown CIX block mode {mode}")
