@@ -9,6 +9,7 @@ type-class cardinalities equals the multinomial sequence cardinality, while empt
 branches cost nothing below the point where they disappear.
 """
 from __future__ import annotations
+import math
 from .multinomial import _ArithmeticEncoder,_ArithmeticDecoder,vencode,vdecode
 
 VERSION=1
@@ -42,6 +43,28 @@ def _encode_node(values:bytes,depth:int,encoder:_ArithmeticEncoder)->None:
         ones_values=bytes(v for v,b in zip(values,bits) if b)
         _encode_node(zeros,depth+1,encoder)
         _encode_node(ones_values,depth+1,encoder)
+
+
+def estimate_wavelet_bits(data: bytes) -> float:
+    """Cheap histogram-only estimate of hierarchical CIX length."""
+    counts=[0]*256
+    for value in data:
+        counts[value]+=1
+
+    def node(lo:int,hi:int,depth:int)->float:
+        n=sum(counts[lo:hi])
+        if n==0 or depth==8:
+            return 0.0
+        mid=(lo+hi)//2
+        ones=sum(counts[mid:hi])
+        bits=math.log2(n+1)
+        if 0<ones<n:
+            bits+=math.log2(math.comb(n,ones))
+        bits+=node(lo,mid,depth+1)
+        bits+=node(mid,hi,depth+1)
+        return bits
+
+    return node(0,256,0)+24.0
 
 def encode_wavelet(data:bytes)->bytes:
     enc=_ArithmeticEncoder()
