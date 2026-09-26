@@ -135,7 +135,7 @@ def _matchxor_decode(residual: bytes, key_len: int = 4) -> bytes:
         out.append(byte)
 
         if pos >= key_len:
-            table[bytes(out[pos - key_len : pos]] = pos
+            table[bytes(out[pos - key_len : pos])] = pos
         active = source + 1 if source is not None and prediction == byte else None
 
     return bytes(out)
