@@ -1,0 +1,17 @@
+name: PPM order sweep
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ppm-order-sweep.yml"
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - run: python benchmarks/ppm_order_probe.py
