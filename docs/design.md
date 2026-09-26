@@ -1,134 +1,150 @@
-# CIX expert-search design
+# CIX universal compression design
 
 ## Goal
 
-Beat the xz-9 aggregate ratio on the canonical Canterbury corpus while keeping every
-selected representation lossless, self-describing, round-trip verified, and fully
-accounted for.
+Build a general-purpose lossless compressor in the class of gzip, bzip2 and xz, with a
+single format-agnostic encoder that performs strongly across heterogeneous inputs.
 
-There are two scoreboards:
+No lossless compressor can be strictly smaller than every other compressor on every
+possible input. CIX therefore targets broad, reproducible dominance across standard
+general-purpose corpora while retaining raw fallback on incompressible data.
 
-1. **CIX Expert** — may select mature model families as interchangeable backends.
-2. **CIX Native** — only original/native CIX transforms and entropy coding.
+## Non-negotiable universality constraint
 
-XZ/LZMA is comparison-only and may not be selected by either scoreboard.
+The encoder may not make decisions based on semantic or external knowledge of the input.
 
-## Search hierarchy
+Forbidden selection signals:
 
-### Segmentation
+- filename, extension, MIME type or path
+- known file-format signatures
+- language/source-code recognition
+- media dimensions or format fields
+- CPU instruction-set interpretation
+- corpus member identity
+- benchmark-specific offsets, row widths, periods or constants
 
-- whole file
-- fixed chunks
-- adaptive entropy-change chunks
-- content-defined chunks (Gear/Rabin)
-- hierarchical chunks with model inheritance
+Allowed selection signals are functions of the byte sequence itself:
 
-### Predictors and transforms
+- byte and bit distributions
+- conditional distributions
+- run statistics
+- repeated substrings and match distances
+- generic autocorrelation / lag correlation
+- local entropy change
+- reversible byte/word algebra under generic candidate widths
+- exact candidate output size
+- bounded CPU and memory budgets
 
-- identity/raw
-- bit XOR lag
-- byte XOR lag
-- byte subtraction lag
-- delta / delta-of-delta
+The same candidate generator and MDL selector must be used for every input.
+
+## Core representation
+
+For a block of length `n` with byte counts `n_i`, the exact type-class cardinality is:
+
+`n! / product(n_i!)`
+
+CIX encodes:
+
+1. active alphabet
+2. symbol-count composition
+3. exact sequence position within the multinomial type class
+
+Context-conditioned CIX applies the same representation independently to deterministic
+byte-context buckets.
+
+## Generic model portfolio
+
+### Repetition
+
+- LZ match extraction
+- literal, match-length and distance substreams
+- exact-block deduplication
+- generic match prediction
+
+### Ordering / locality
+
+- BWT
+- move-to-front
+- zero/run streams
+- byte contexts of multiple orders
+- adaptive and persistent contexts
+
+### Algebraic residuals
+
+Candidate widths/endian choices are generic competitors, never format diagnoses:
+
+- byte/word XOR
+- subtraction/delta
+- delta-of-delta
 - ZigZag residual mapping
-- frame-of-reference / patched FOR
-- byte shuffle / bit-plane transpose
-- periodic/stride predictors
-- zero-run / general run coding
-- sparse gap coding
-- Elias-Fano candidate for sparse positions
-- Golomb/Rice integer residual coding
-- BWT + MTF + RLE
-- LZ match extraction / optimal parsing
-- token/dictionary transform for text/JSON/source
-- record-column transpose
-- executable branch/address normalization
-- floating-point XOR and exponent/mantissa separation
+- byte shuffle / transpose
+- bit-plane decomposition
 
-### Statistical models
+### Sparse / run structure
 
-- order-0 empirical
-- KT/Bayesian smoothing
-- PPM/backoff contexts
-- CTW-style variable-order contexts
-- match prediction
-- run prediction
-- context mixing / mixture of experts
-- model inheritance between chunks
+- dominant-symbol exception positions
+- gap coding
+- Rice/Golomb integer streams
+- combinatorial bit planes
+- run-symbol and run-length streams
 
-### Coding backends
+### Search
 
-Native:
-- binary combinatorial/enumerative ranking
-- multinomial enumerative coding
-- mixed-radix pooling
-- rANS/range coding for model/selector streams
-- Rice/Golomb/universal integer codes
+- fixed, entropy-change and content-defined chunking
+- beam-limited transform chains
+- raw fallback
+- Minimum Description Length over the complete physical representation
 
-Expert/reference:
-- Brotli
-- PPMd
-- Zstandard
-- bzip2/BWT family
-- ZPAQ/context mixing
+## Streaming model
 
-Comparison only:
-- xz/LZMA
-
-## Recursive mode
-
-Recursion is an optional search edge, not a default stage.
-
-A recursive candidate is retained only if:
-
-- complete physical size decreases after all chain metadata;
-- round-trip reconstruction is verified;
-- it beats the best non-recursive candidate.
-
-More promising than whole-stream recursion is **substream recursion**: separately
-re-model transform IDs, match lengths, match distances, minority counts, ranks, run
-lengths, and exception streams.
-
-## Optimizer
-
-Use Minimum Description Length as the universal objective:
-
-    total_bits =
-        container
-      + transform_description
-      + transform_parameters
-      + model_description
-      + selectors
-      + coded_payload
-      + checksum
-
-Search strategy:
-
-1. cheap profiling (entropy, runs, lag correlation, periodicity, stride, match density);
-2. shortlist transform/model families;
-3. beam search through reversible transform chains;
-4. exact physical coding of finalists;
-5. choose the smallest verified representation;
-6. raw fallback if no candidate pays.
+CIX is open-ended and incrementally decodable. Models and chunk boundaries may adapt
+over time, but adaptation must derive only from bytes already observed and deterministic
+codec state.
 
 ## Compression effort
 
-- -1: raw + very cheap predictors; small search
-- -3: common lag/delta models
-- -6: adaptive chunks, dictionaries, PPM/BWT candidates
-- -9: broad model/block/chunk search
-- --extreme: context mixing, large dictionaries, beam search, optional recursion
+- `-1`: raw + cheap generic models
+- `-3`: common contexts, runs, LZ and simple residuals
+- `-6`: broader adaptive chunk/model portfolio
+- `-9`: larger history and deeper generic search
+- `--extreme`: maximum bounded generic search
+
+Higher levels may spend more time, but they do not enable format-specific logic.
 
 ## Benchmark policy
 
-Every result must include all framing and model metadata required to decode.
+A change is not accepted merely because it improves Canterbury.
 
-Modelled entropy estimates are reported separately from physical byte streams.
-A modelled estimate cannot be used to claim a production compression ratio.
+Required general-purpose gates:
 
-Primary gate: canonical 11-file Canterbury aggregate.
-Secondary gates: Calgary, Canterbury Large, Silesia, enwik8/enwik9, mixed real-world
-file sets, already-compressed media, numeric/time-series datasets, source trees.
+- Canterbury: fixed 11-file aggregate
+- Calgary: fixed 14-file aggregate
+- Canterbury Artificial: report every member individually, especially random input
+- Canterbury Large: report each fixed member individually rather than an overall average
+- Silesia
+- enwik8 / enwik9 when runtime permits
+- generated incompressible, biased, Markov, repetitive, numeric and mixed-regime streams
 
-The codec must also report compression/decompression speed, peak memory, and exact
-round-trip hashes.
+The Canterbury project itself describes Canterbury as the main comparison corpus,
+Calgary as an older fixed corpus, Artificial as pathological/outlier testing, and Large
+as individual large-file tests rather than an aggregate. CIX follows those distinctions.
+
+For every benchmark:
+
+- physical bytes only
+- exact round-trip verification
+- complete framing/model metadata included
+- compression and decompression time
+- peak memory where measurable
+- no trained/shared dictionary unavailable to the decoder
+- identical encoder policy across all files
+
+Reference compressors include gzip/DEFLATE, bzip2/BWT, xz/LZMA, Brotli, Zstandard,
+PPMd and context-mixing research compressors where available.
+
+## Research objective
+
+The research target is not “win one corpus.” It is to discover a generic model-selection
+and multinomial representation architecture whose aggregate performance approaches or
+exceeds the strongest general-purpose compressors across diverse data without semantic
+special cases.
