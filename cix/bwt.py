@@ -10,7 +10,7 @@ from .multinomial import (
 )
 from .substreams import decode_bytes, decode_uints, encode_bytes, encode_uints
 
-BWT_VERSION = 2
+BWT_VERSION = 3
 
 
 def _bwt_transform_python(data: bytes) -> tuple[int, bytes]:
@@ -163,7 +163,12 @@ def encode_bwt_block(data: bytes) -> tuple[bytes, str]:
     tags, nonzero, runs = _split_zero_runs(mtf)
 
     tag_blob = encode_bytes(tags)
-    nonzero_blob = encode_bytes(nonzero)
+
+    nonzero_candidates = [
+        bytes((0,)) + encode_bytes(nonzero),
+        bytes((1,)) + encode_uints([value - 1 for value in nonzero]),
+    ]
+    nonzero_blob = min(nonzero_candidates, key=len)
     run_blob = encode_uints(runs)
 
     out = bytearray((BWT_VERSION,))
@@ -179,7 +184,7 @@ def encode_bwt_block(data: bytes) -> tuple[bytes, str]:
 
 
 def decode_bwt_block(blob: bytes, *, source_length: int) -> bytes:
-    if not blob or blob[0] not in (1, BWT_VERSION):
+    if not blob or blob[0] not in (1, 2, BWT_VERSION):
         raise ValueError("unknown BWT block version")
 
     version = blob[0]
@@ -209,7 +214,20 @@ def decode_bwt_block(blob: bytes, *, source_length: int) -> bytes:
             raise ValueError("unused BWT nonzero bytes")
     else:
         tags = decode_bytes(streams[0], tag_count)
-        nonzero = decode_bytes(streams[1], nonzero_count)
+        if version == 2:
+            nonzero = decode_bytes(streams[1], nonzero_count)
+        else:
+            if not streams[1]:
+                raise ValueError("missing BWT nonzero stream mode")
+            if streams[1][0] == 0:
+                nonzero = decode_bytes(streams[1][1:], nonzero_count)
+            elif streams[1][0] == 1:
+                values = decode_uints(streams[1][1:], nonzero_count)
+                if any(value > 254 for value in values):
+                    raise ValueError("BWT MTF rank outside byte range")
+                nonzero = bytes(value + 1 for value in values)
+            else:
+                raise ValueError("unknown BWT nonzero stream mode")
     runs = decode_uints(streams[2], run_count)
 
     mtf = _join_zero_runs(tags, nonzero, runs)
