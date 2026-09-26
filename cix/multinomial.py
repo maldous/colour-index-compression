@@ -1,0 +1,714 @@
+"""CIX multinomial codec.
+
+A physical, lossless research codec built around multinomial enumerative coding.
+
+Core block identity:
+
+    |T(c)| = n! / product_i(n_i!)
+
+where n_i is the count of byte value i in a block.
+
+A block stores:
+- which byte symbols are active, itself as a combination rank;
+- the positive composition (n_i), itself as a stars-and-bars combination rank;
+- the exact permutation rank of the byte sequence inside that type class.
+
+Context mode generalises the same idea. Positions are deterministically routed into
+context buckets. Every bucket is encoded as its own multinomial type class. The decoder
+reconstructs the original sequence by consuming the next symbol from the bucket selected
+by the already-decoded context.
+
+The stream layer is adaptive: block boundaries can move when the observed distribution
+changes, and every block independently chooses raw, plain-multinomial, or a context model.
+"""
+
+from __future__ import annotations
+
+import math
+import struct
+import zlib
+from dataclasses import dataclass, field
+from typing import Iterable
+
+MAGIC = b"CIXM2"
+MODE_RAW = 0
+MODE_MULTINOMIAL = 1
+MODE_CONTEXT = 2
+
+
+def vencode(x: int) -> bytes:
+    if x < 0:
+        raise ValueError("negative varint")
+    out = bytearray()
+    while True:
+        b = x & 0x7F
+        x >>= 7
+        if x:
+            out.append(b | 0x80)
+        else:
+            out.append(b)
+            return bytes(out)
+
+
+def vdecode(data: bytes, pos: int = 0) -> tuple[int, int]:
+    x = 0
+    shift = 0
+    while True:
+        if pos >= len(data):
+            raise ValueError("truncated varint")
+        b = data[pos]
+        pos += 1
+        x |= (b & 0x7F) << shift
+        if not (b & 0x80):
+            return x, pos
+        shift += 7
+        if shift > 70:
+            raise ValueError("varint too large")
+
+
+def _fixed_bytes(x: int, width_bits: int) -> bytes:
+    if width_bits <= 0:
+        return b""
+    return x.to_bytes((width_bits + 7) // 8, "big")
+
+
+def _read_fixed(data: bytes, pos: int, width_bits: int) -> tuple[int, int]:
+    size = (width_bits + 7) // 8
+    if pos + size > len(data):
+        raise ValueError("truncated fixed-width integer")
+    if not size:
+        return 0, pos
+    return int.from_bytes(data[pos : pos + size], "big"), pos + size
+
+
+def combination_rank_colex(positions: Iterable[int]) -> int:
+    return sum(math.comb(p, i + 1) for i, p in enumerate(positions))
+
+
+def combination_unrank_colex(rank: int, k: int, universe: int) -> list[int]:
+    if k == 0:
+        return []
+    if k < 0 or k > universe:
+        raise ValueError("invalid combination")
+    limit = math.comb(universe, k)
+    if rank < 0 or rank >= limit:
+        raise ValueError("combination rank outside range")
+
+    result = []
+    x = universe - 1
+    for i in range(k, 0, -1):
+        while math.comb(x, i) > rank:
+            x -= 1
+        result.append(x)
+        rank -= math.comb(x, i)
+        x -= 1
+    result.sort()
+    return result
+
+
+def _composition_rank(parts: list[int]) -> int:
+    if not parts or any(x <= 0 for x in parts):
+        raise ValueError("composition parts must be positive")
+    if len(parts) == 1:
+        return 0
+    cuts = []
+    total = 0
+    for p in parts[:-1]:
+        total += p
+        cuts.append(total - 1)
+    return combination_rank_colex(cuts)
+
+
+def _composition_unrank(rank: int, total: int, part_count: int) -> list[int]:
+    if part_count <= 0:
+        if total == 0:
+            return []
+        raise ValueError("invalid composition")
+    if part_count == 1:
+        return [total]
+    cuts = [x + 1 for x in combination_unrank_colex(rank, part_count - 1, total - 1)]
+    parts = []
+    previous = 0
+    for cut in cuts:
+        parts.append(cut - previous)
+        previous = cut
+    parts.append(total - previous)
+    return parts
+
+
+class Fenwick:
+    def __init__(self, counts: list[int]):
+        self.n = len(counts)
+        self.tree = [0] * (self.n + 1)
+        for i, value in enumerate(counts):
+            if value:
+                self.add(i, value)
+
+    def add(self, i: int, delta: int) -> None:
+        i += 1
+        while i <= self.n:
+            self.tree[i] += delta
+            i += i & -i
+
+    def prefix(self, i: int) -> int:
+        s = 0
+        while i:
+            s += self.tree[i]
+            i -= i & -i
+        return s
+
+    def select(self, order: int) -> int:
+        idx = 0
+        bit = 1 << (self.n.bit_length() - 1)
+        while bit:
+            nxt = idx + bit
+            if nxt <= self.n and self.tree[nxt] <= order:
+                order -= self.tree[nxt]
+                idx = nxt
+            bit >>= 1
+        if idx >= self.n:
+            raise ValueError("Fenwick select outside range")
+        return idx
+
+
+def _counts(data: bytes) -> list[int]:
+    counts = [0] * 256
+    for b in data:
+        counts[b] += 1
+    return counts
+
+
+def multinomial_cardinality(counts: list[int]) -> int:
+    """Exact n! / product(n_i!) without constructing all factorials."""
+    remaining = sum(counts)
+    total = 1
+    for c in counts:
+        if c:
+            total *= math.comb(remaining, c)
+            remaining -= c
+    return total
+
+
+def permutation_rank(data: bytes, counts: list[int]) -> int:
+    """Lexicographic rank inside the multiset permutation/type class."""
+    remaining = len(data)
+    cardinality = multinomial_cardinality(counts)
+    mutable = counts[:]
+    fenwick = Fenwick(mutable)
+    rank = 0
+
+    for symbol in data:
+        cumulative = fenwick.prefix(symbol)
+        if cumulative:
+            rank += (cardinality * cumulative) // remaining
+
+        symbol_count = mutable[symbol]
+        cardinality = (cardinality * symbol_count) // remaining
+        mutable[symbol] -= 1
+        fenwick.add(symbol, -1)
+        remaining -= 1
+
+    return rank
+
+
+def permutation_unrank(rank: int, counts: list[int]) -> bytes:
+    remaining = sum(counts)
+    cardinality = multinomial_cardinality(counts)
+    if rank < 0 or rank >= cardinality:
+        raise ValueError("permutation rank outside type class")
+
+    mutable = counts[:]
+    fenwick = Fenwick(mutable)
+    out = bytearray()
+
+    while remaining:
+        target_order = (rank * remaining) // cardinality
+        symbol = fenwick.select(target_order)
+        cumulative = fenwick.prefix(symbol)
+
+        rank -= (cardinality * cumulative) // remaining
+        symbol_count = mutable[symbol]
+        cardinality = (cardinality * symbol_count) // remaining
+
+        mutable[symbol] -= 1
+        fenwick.add(symbol, -1)
+        remaining -= 1
+        out.append(symbol)
+
+    return bytes(out)
+
+
+def encode_type_class(data: bytes) -> bytes:
+    return vencode(len(data)) + encode_type_class_known_n(data)
+
+
+def decode_type_class(data: bytes, pos: int = 0) -> tuple[bytes, int]:
+    n, pos = vdecode(data, pos)
+    return decode_type_class_known_n(data, pos, n)
+
+
+def encode_type_class_known_n(data: bytes) -> bytes:
+    n = len(data)
+    counts = _counts(data)
+    active = [symbol for symbol, count in enumerate(counts) if count]
+    m = len(active)
+
+    out = bytearray(vencode(m))
+    if n == 0:
+        if m:
+            raise AssertionError("empty block has active symbols")
+        return bytes(out)
+
+    if not (1 <= m <= min(256, n)):
+        raise AssertionError("invalid active alphabet size")
+
+    if m < 256:
+        set_width = (math.comb(256, m) - 1).bit_length()
+        out += _fixed_bytes(combination_rank_colex(active), set_width)
+
+    parts = [counts[s] for s in active]
+    if m > 1:
+        histogram_width = (math.comb(n - 1, m - 1) - 1).bit_length()
+        out += _fixed_bytes(_composition_rank(parts), histogram_width)
+
+    cardinality = multinomial_cardinality(counts)
+    sequence_width = (cardinality - 1).bit_length()
+    out += _fixed_bytes(permutation_rank(data, counts), sequence_width)
+    return bytes(out)
+
+
+def decode_type_class_known_n(data: bytes, pos: int, n: int) -> tuple[bytes, int]:
+    m, pos = vdecode(data, pos)
+    if n == 0:
+        if m != 0:
+            raise ValueError("active symbols in empty type class")
+        return b"", pos
+    if not (1 <= m <= min(256, n)):
+        raise ValueError("invalid active alphabet size")
+
+    if m == 256:
+        active = list(range(256))
+    else:
+        set_width = (math.comb(256, m) - 1).bit_length()
+        set_rank, pos = _read_fixed(data, pos, set_width)
+        active = combination_unrank_colex(set_rank, m, 256)
+
+    if m == 1:
+        parts = [n]
+    else:
+        histogram_width = (math.comb(n - 1, m - 1) - 1).bit_length()
+        histogram_rank, pos = _read_fixed(data, pos, histogram_width)
+        parts = _composition_unrank(histogram_rank, n, m)
+
+    counts = [0] * 256
+    for symbol, count in zip(active, parts):
+        counts[symbol] = count
+
+    cardinality = multinomial_cardinality(counts)
+    sequence_width = (cardinality - 1).bit_length()
+    sequence_rank, pos = _read_fixed(data, pos, sequence_width)
+    if sequence_rank >= cardinality:
+        raise ValueError("invalid sequence rank")
+
+    return permutation_unrank(sequence_rank, counts), pos
+
+
+def _context_bucket(tail: bytes | bytearray, order: int, bucket_bits: int) -> int:
+    if order <= 0:
+        return 0
+
+    ctx = tail[-order:]
+    if order == 1 and bucket_bits >= 8:
+        return ctx[-1] if ctx else 0
+
+    h = 1469598103934665603
+    for b in ctx:
+        h ^= b
+        h = (h * 1099511628211) & 0xFFFFFFFFFFFFFFFF
+    return h & ((1 << bucket_bits) - 1)
+
+
+def encode_context_type_classes(
+    data: bytes,
+    *,
+    order: int,
+    bucket_bits: int,
+    prefix_history: bytes = b"",
+) -> bytes:
+    if not (1 <= order <= 16):
+        raise ValueError("context order outside supported range")
+    if not (1 <= bucket_bits <= 16):
+        raise ValueError("bucket bits outside supported range")
+
+    bucket_count = 1 << bucket_bits
+    buckets: dict[int, bytearray] = {}
+    tail = bytearray(prefix_history[-order:])
+
+    for symbol in data:
+        bucket = _context_bucket(tail, order, bucket_bits)
+        buckets.setdefault(bucket, bytearray()).append(symbol)
+        tail.append(symbol)
+        if len(tail) > order:
+            del tail[:-order]
+
+    ids = sorted(buckets)
+    q = len(ids)
+    n = len(data)
+
+    out = bytearray((order, bucket_bits))
+    out += vencode(q)
+
+    if q and q < bucket_count:
+        bucket_set_width = (math.comb(bucket_count, q) - 1).bit_length()
+        out += _fixed_bytes(combination_rank_colex(ids), bucket_set_width)
+
+    lengths = [len(buckets[bucket]) for bucket in ids]
+    if q > 1:
+        length_width = (math.comb(n - 1, q - 1) - 1).bit_length()
+        out += _fixed_bytes(_composition_rank(lengths), length_width)
+
+    for bucket in ids:
+        out += encode_type_class_known_n(bytes(buckets[bucket]))
+
+    return bytes(out)
+
+
+def decode_context_type_classes(
+    data: bytes,
+    pos: int,
+    n: int,
+    *,
+    prefix_history: bytes = b"",
+) -> tuple[bytes, int]:
+    if pos + 2 > len(data):
+        raise ValueError("truncated context model")
+
+    order = data[pos]
+    bucket_bits = data[pos + 1]
+    pos += 2
+
+    if not (1 <= order <= 16 and 1 <= bucket_bits <= 16):
+        raise ValueError("invalid context parameters")
+
+    bucket_count = 1 << bucket_bits
+    q, pos = vdecode(data, pos)
+    if q > min(bucket_count, n):
+        raise ValueError("invalid active bucket count")
+
+    if q == 0:
+        if n:
+            raise ValueError("non-empty block has no buckets")
+        return b"", pos
+
+    if q == bucket_count:
+        ids = list(range(bucket_count))
+    else:
+        bucket_set_width = (math.comb(bucket_count, q) - 1).bit_length()
+        bucket_set_rank, pos = _read_fixed(data, pos, bucket_set_width)
+        ids = combination_unrank_colex(bucket_set_rank, q, bucket_count)
+
+    if q == 1:
+        lengths = [n]
+    else:
+        length_width = (math.comb(n - 1, q - 1) - 1).bit_length()
+        length_rank, pos = _read_fixed(data, pos, length_width)
+        lengths = _composition_unrank(length_rank, n, q)
+
+    streams: dict[int, bytes] = {}
+    for bucket, length in zip(ids, lengths):
+        stream, pos = decode_type_class_known_n(data, pos, length)
+        streams[bucket] = stream
+
+    cursors = {bucket: 0 for bucket in streams}
+    tail = bytearray(prefix_history[-order:])
+    out = bytearray()
+
+    for _ in range(n):
+        bucket = _context_bucket(tail, order, bucket_bits)
+        stream = streams.get(bucket)
+        if stream is None:
+            raise ValueError("decoder selected absent context bucket")
+        cursor = cursors[bucket]
+        if cursor >= len(stream):
+            raise ValueError("context stream exhausted early")
+
+        symbol = stream[cursor]
+        cursors[bucket] = cursor + 1
+        out.append(symbol)
+
+        tail.append(symbol)
+        if len(tail) > order:
+            del tail[:-order]
+
+    if any(cursors[b] != len(streams[b]) for b in streams):
+        raise ValueError("unused symbols in context streams")
+
+    return bytes(out), pos
+
+
+@dataclass(frozen=True)
+class ContextModel:
+    order: int
+    bucket_bits: int
+
+
+@dataclass
+class StreamConfig:
+    min_block: int = 2048
+    max_block: int = 16384
+    probe_stride: int = 1024
+    split_gain_bits: float = 128.0
+    min_savings_bytes: int = 1
+    context_models: tuple[ContextModel, ...] = (
+        ContextModel(1, 6),
+        ContextModel(1, 8),
+        ContextModel(2, 8),
+        ContextModel(2, 10),
+        ContextModel(3, 10),
+        ContextModel(4, 10),
+        ContextModel(4, 12),
+        ContextModel(6, 12),
+    )
+    history_bytes: int = 16
+
+
+@dataclass
+class EncodedBlock:
+    mode: int
+    source_length: int
+    payload: bytes
+    description: str
+
+    @property
+    def framed(self) -> bytes:
+        if self.mode == MODE_RAW:
+            return bytes((MODE_RAW,)) + vencode(self.source_length) + self.payload
+        if self.mode == MODE_MULTINOMIAL:
+            return bytes((MODE_MULTINOMIAL,)) + self.payload
+        if self.mode == MODE_CONTEXT:
+            return bytes((MODE_CONTEXT,)) + vencode(self.source_length) + self.payload
+        raise ValueError("unknown mode")
+
+
+def encode_best_block(
+    block: bytes,
+    *,
+    prefix_history: bytes,
+    config: StreamConfig,
+) -> EncodedBlock:
+    candidates: list[EncodedBlock] = [
+        EncodedBlock(MODE_RAW, len(block), block, "raw"),
+        EncodedBlock(
+            MODE_MULTINOMIAL,
+            len(block),
+            encode_type_class(block),
+            "multinomial-256",
+        ),
+    ]
+
+    for model in config.context_models:
+        payload = encode_context_type_classes(
+            block,
+            order=model.order,
+            bucket_bits=model.bucket_bits,
+            prefix_history=prefix_history,
+        )
+        candidates.append(
+            EncodedBlock(
+                MODE_CONTEXT,
+                len(block),
+                payload,
+                f"context-multinomial-o{model.order}-b{model.bucket_bits}",
+            )
+        )
+
+    best = min(candidates, key=lambda candidate: len(candidate.framed))
+    raw_size = len(candidates[0].framed)
+    if raw_size - len(best.framed) < config.min_savings_bytes:
+        return candidates[0]
+    return best
+
+
+def _varint_size(x: int) -> int:
+    return len(vencode(x))
+
+
+def _approx_typeclass_bytes_from_counts(counts: list[int], n: int) -> float:
+    if n == 0:
+        return 1.0
+
+    active = [c for c in counts if c]
+    m = len(active)
+    size = _varint_size(m)
+
+    if m < 256:
+        size += (math.log2(math.comb(256, m)) + 7.0) / 8.0
+    if m > 1:
+        size += (math.log2(math.comb(n - 1, m - 1)) + 7.0) / 8.0
+
+    log_cardinality = (
+        math.lgamma(n + 1)
+        - sum(math.lgamma(c + 1) for c in active)
+    ) / math.log(2.0)
+    size += (max(0.0, log_cardinality) + 7.0) / 8.0
+    return size
+
+
+def _best_split(buffer: bytes, config: StreamConfig) -> int | None:
+    n = len(buffer)
+    if n < config.min_block * 2:
+        return None
+
+    total_counts = _counts(buffer)
+    whole = _approx_typeclass_bytes_from_counts(total_counts, n)
+
+    left_counts = [0] * 256
+    right_counts = total_counts[:]
+    best_gain_bits = config.split_gain_bits
+    best_cut: int | None = None
+
+    next_probe = config.min_block
+    for i, symbol in enumerate(buffer, start=1):
+        left_counts[symbol] += 1
+        right_counts[symbol] -= 1
+
+        if i != next_probe:
+            continue
+        if n - i < config.min_block:
+            break
+
+        left = _approx_typeclass_bytes_from_counts(left_counts, i)
+        right = _approx_typeclass_bytes_from_counts(right_counts, n - i)
+        split_cost = left + right + 4.0
+        gain_bits = (whole - split_cost) * 8.0
+        if gain_bits > best_gain_bits:
+            best_gain_bits = gain_bits
+            best_cut = i
+
+        next_probe += config.probe_stride
+
+    return best_cut
+
+
+@dataclass
+class StreamEncoder:
+    config: StreamConfig = field(default_factory=StreamConfig)
+    _buffer: bytearray = field(default_factory=bytearray, init=False)
+    _history: bytearray = field(default_factory=bytearray, init=False)
+    _blocks: list[EncodedBlock] = field(default_factory=list, init=False)
+    _source_length: int = field(default=0, init=False)
+    _crc: int = field(default=0, init=False)
+
+    def feed(self, data: bytes) -> None:
+        if not data:
+            return
+
+        self._source_length += len(data)
+        self._crc = zlib.crc32(data, self._crc)
+        self._buffer.extend(data)
+
+        while True:
+            cut = None
+            if len(self._buffer) >= self.config.min_block * 2:
+                cut = _best_split(bytes(self._buffer), self.config)
+
+            if cut is None and len(self._buffer) >= self.config.max_block:
+                cut = self.config.max_block
+
+            if cut is None:
+                break
+
+            self._emit(cut)
+
+    def _emit(self, count: int) -> None:
+        block = bytes(self._buffer[:count])
+        del self._buffer[:count]
+
+        history = bytes(self._history)
+        encoded = encode_best_block(block, prefix_history=history, config=self.config)
+        self._blocks.append(encoded)
+
+        self._history.extend(block)
+        if len(self._history) > self.config.history_bytes:
+            del self._history[:-self.config.history_bytes]
+
+    def finish(self) -> bytes:
+        if self._buffer:
+            self._emit(len(self._buffer))
+
+        out = bytearray(MAGIC)
+        out += vencode(self._source_length)
+        out += vencode(len(self._blocks))
+        for block in self._blocks:
+            out += block.framed
+        out += struct.pack("<I", self._crc & 0xFFFFFFFF)
+        return bytes(out)
+
+    @property
+    def blocks(self) -> tuple[EncodedBlock, ...]:
+        return tuple(self._blocks)
+
+
+def compress(data: bytes, config: StreamConfig | None = None) -> bytes:
+    encoder = StreamEncoder(config or StreamConfig())
+    encoder.feed(data)
+    return encoder.finish()
+
+
+def decompress(blob: bytes, *, history_bytes: int = 16) -> bytes:
+    if not blob.startswith(MAGIC):
+        raise ValueError("not a CIX multinomial stream")
+
+    pos = len(MAGIC)
+    original_length, pos = vdecode(blob, pos)
+    block_count, pos = vdecode(blob, pos)
+
+    out = bytearray()
+    history = bytearray()
+
+    for _ in range(block_count):
+        if pos >= len(blob):
+            raise ValueError("truncated CIX block")
+        mode = blob[pos]
+        pos += 1
+
+        if mode == MODE_RAW:
+            n, pos = vdecode(blob, pos)
+            end = pos + n
+            if end > len(blob):
+                raise ValueError("truncated raw block")
+            block = blob[pos:end]
+            pos = end
+
+        elif mode == MODE_MULTINOMIAL:
+            block, pos = decode_type_class(blob, pos)
+
+        elif mode == MODE_CONTEXT:
+            n, pos = vdecode(blob, pos)
+            block, pos = decode_context_type_classes(
+                blob,
+                pos,
+                n,
+                prefix_history=bytes(history),
+            )
+
+        else:
+            raise ValueError(f"unknown CIX block mode {mode}")
+
+        out += block
+        history.extend(block)
+        if len(history) > history_bytes:
+            del history[:-history_bytes]
+
+    if len(out) != original_length:
+        raise ValueError("decoded length mismatch")
+
+    if pos + 4 != len(blob):
+        raise ValueError("unexpected bytes before/after CIX checksum")
+
+    expected_crc = struct.unpack_from("<I", blob, pos)[0]
+    actual_crc = zlib.crc32(out) & 0xFFFFFFFF
+    if actual_crc != expected_crc:
+        raise ValueError("CIX checksum mismatch")
+
+    return bytes(out)
