@@ -46,6 +46,7 @@ MODE_ADAPTIVE = 10
 MODE_SPARSE = 11
 MODE_RUNS = 12
 MODE_PERSISTENT_ADAPTIVE = 13
+MODE_TOKENS = 14
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -702,6 +703,7 @@ class StreamConfig:
     enable_sparse: bool = True
     enable_runs: bool = True
     enable_persistent_adaptive: bool = True
+    enable_tokens: bool = True
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -790,6 +792,21 @@ def _context_model_estimate(
             bucket_counts[bucket], lengths[bucket]
         )
     return size
+
+
+def _looks_textual(data: bytes) -> bool:
+    if len(data) < 64:
+        return False
+    sample = data[: min(len(data), 8192)]
+    ascii_like = sum(
+        byte in (9, 10, 13) or 32 <= byte <= 126 for byte in sample
+    ) / len(sample)
+    wordish = sum(
+        48 <= byte <= 57 or 65 <= byte <= 90 or 97 <= byte <= 122
+        or byte in (9, 10, 13, 32, 95)
+        for byte in sample
+    ) / len(sample)
+    return ascii_like >= 0.85 and wordish >= 0.65
 
 
 def _looks_bwt_worthy(data: bytes) -> bool:
@@ -964,6 +981,17 @@ def encode_best_block(
             payload, description = encode_bwt_block(block)
             candidates.append(
                 EncodedBlock(MODE_BWT, len(block), payload, description)
+            )
+        except Exception:
+            pass
+
+    if config.enable_tokens and _looks_textual(block):
+        try:
+            from .tokens import encode_token_block
+
+            payload, description = encode_token_block(block)
+            candidates.append(
+                EncodedBlock(MODE_TOKENS, len(block), payload, description)
             )
         except Exception:
             pass
@@ -1492,6 +1520,14 @@ class StreamDecoder:
                     payload[1:],
                     source_length,
                     bytes(self._history),
+                )
+
+            elif mode == MODE_TOKENS:
+                from .tokens import decode_token_block
+
+                block = decode_token_block(
+                    payload,
+                    source_length=source_length,
                 )
 
             else:
