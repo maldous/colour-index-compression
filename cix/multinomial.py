@@ -46,6 +46,7 @@ MODE_ADAPTIVE = 10
 MODE_SPARSE = 11
 MODE_RUNS = 12
 MODE_PERSISTENT_ADAPTIVE = 13
+MODE_RECORD = 14
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -702,6 +703,8 @@ class StreamConfig:
     enable_sparse: bool = True
     enable_runs: bool = True
     enable_persistent_adaptive: bool = True
+    enable_record: bool = True
+    record_beam: int = 2
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -718,6 +721,8 @@ class StreamConfig:
             transform_beam=10,
             chain_beam=6,
             adaptive_beam=6,
+            enable_record=True,
+            record_beam=6,
             chunk_mode="hybrid",
             content_mask_bits=14,
             context_models=(
@@ -992,6 +997,22 @@ def encode_best_block(
             candidates.append(
                 EncodedBlock(MODE_NUMERIC, len(block), payload, description)
             )
+        except Exception:
+            pass
+
+    if config.enable_record and len(block) >= 256:
+        try:
+            from .record import best_record_estimate, encode_record_block
+
+            estimate = best_record_estimate(block)
+            current_best = min(len(candidate.framed) for candidate in candidates)
+            if estimate + 8.0 < current_best:
+                payload, description = encode_record_block(
+                    block, beam=config.record_beam
+                )
+                candidates.append(
+                    EncodedBlock(MODE_RECORD, len(block), payload, description)
+                )
         except Exception:
             pass
 
@@ -1495,6 +1516,14 @@ class StreamDecoder:
                     payload[1:],
                     source_length,
                     bytes(self._history),
+                )
+
+            elif mode == MODE_RECORD:
+                from .record import decode_record_block
+
+                block = decode_record_block(
+                    payload,
+                    source_length=source_length,
                 )
 
             else:
