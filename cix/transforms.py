@@ -62,6 +62,8 @@ SPECS = (
     TransformSpec(33, "matchxor4", 1, "little", "matchxor", False),
     TransformSpec(34, "sparc-pc", 4, "big", "sparcpc", False),
     TransformSpec(35, "sparc-pc-shuffle", 4, "big", "sparcpc", True),
+    TransformSpec(36, "byte-xor-216", 216, "little", "xor", False),
+    TransformSpec(37, "byte-xor-432", 432, "little", "xor", False),
 )
 
 SPEC_BY_ID = {spec.id: spec for spec in SPECS}
