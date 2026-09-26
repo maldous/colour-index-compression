@@ -16,10 +16,10 @@ def main():
     p=next(p for p in dest.rglob(a.member) if p.is_file()); data=p.read_bytes()
     cfg=StreamConfig(
       min_block=min(8192,a.max_block//4),max_block=a.max_block,probe_stride=2048,
-      split_gain_bits=128.0,history_bytes=1<<20,lz_window_bytes=1<<20,lz_chain=32,
+      split_gain_bits=128.0,chunk_mode="fixed",history_bytes=1<<20,lz_window_bytes=1<<20,lz_chain=32,
       context_beam=2,transform_beam=2,adaptive_beam=1,
       enable_numeric=False,enable_bitplanes=False,enable_chains=False,enable_sparse=False,
-      enable_runs=False,enable_adaptive=False,enable_persistent_adaptive=False,
+      enable_runs=False,enable_adaptive=False,enable_persistent_adaptive=False,enable_tokens=False,
       context_models=(ContextModel(1,8),ContextModel(2,10),ContextModel(4,10)),
     )
     t=time.perf_counter();enc=StreamEncoder(cfg);blob=enc.feed(data)+enc.finish();seconds=time.perf_counter()-t
