@@ -25,3 +25,29 @@ def test_ppm_estimator_prefers_predictive_context():
     order0 = estimate_ppm_bits(data, max_order=0)
     order1 = estimate_ppm_bits(data, max_order=1)
     assert order1 < order0
+
+
+def test_ppm_recent_history_warmup_round_trip_and_gain():
+    prefix=(b"shared recurring context sequence|"*300)
+    data=(b"shared recurring context sequence|"*120)
+    cold=encode_ppm(data,max_order=4)
+    warm=encode_ppm(data,max_order=4,prefix_history=prefix)
+    assert decode_ppm(
+        warm,
+        source_length=len(data),
+        prefix_history=prefix,
+    )==data
+    assert len(warm)<len(cold)
+
+
+def test_ppm_warmup_is_deterministic_from_decoder_history():
+    prefix=bytes(range(64))*100
+    data=bytes(range(64))*30
+    first=encode_ppm(data,max_order=3,prefix_history=prefix)
+    second=encode_ppm(data,max_order=3,prefix_history=prefix)
+    assert first==second
+    assert decode_ppm(
+        first,
+        source_length=len(data),
+        prefix_history=prefix,
+    )==data
