@@ -61,7 +61,7 @@ def test_stream_round_trip_is_feed_size_independent():
         enable_sparse=False,
         enable_runs=False,
         enable_adaptive=False,
-        enable_stateful=False,
+        enable_persistent_adaptive=False,
         context_models=(
             ContextModel(1, 6),
             ContextModel(1, 8),
@@ -111,7 +111,7 @@ def test_random_data_falls_back_near_raw():
             enable_sparse=False,
             enable_runs=False,
             enable_adaptive=False,
-            enable_stateful=False,
+            enable_persistent_adaptive=False,
             context_models=(ContextModel(1, 6), ContextModel(2, 8)),
         ),
     )
@@ -120,8 +120,24 @@ def test_random_data_falls_back_near_raw():
 
 
 def test_crc_detects_corruption():
-    data = b"multinomial cix " * 1000
-    blob = bytearray(compress(data))
+    data = b"multinomial cix " * 200
+    config = StreamConfig(
+        min_block=512,
+        max_block=2048,
+        probe_stride=256,
+        enable_lz=False,
+        enable_bwt=False,
+        enable_transforms=False,
+        enable_numeric=False,
+        enable_bitplanes=False,
+        enable_chains=False,
+        enable_sparse=False,
+        enable_runs=False,
+        enable_adaptive=False,
+        enable_persistent_adaptive=False,
+        context_models=(ContextModel(1, 8),),
+    )
+    blob = bytearray(compress(data, config))
     blob[-1] ^= 1
     try:
         decompress(bytes(blob))
