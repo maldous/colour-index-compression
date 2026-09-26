@@ -18,6 +18,17 @@ def test_lz_substreams_round_trip_and_exploit_repetition():
     assert len(payload) < len(data) // 20
 
 
+
+def test_lz_optimal_candidate_round_trip():
+    unit = b"0123456789abcdef--generic-pattern--"
+    data = (unit * 90) + (unit[:17] * 20) + (unit * 40)
+    payload, _ = encode_lz_block(
+        data,
+        context_models=(ContextModel(1, 8),),
+        chain=48,
+    )
+    assert decode_lz_block(payload, source_length=len(data)) == data
+
 def test_lz_uses_previous_stream_history():
     prefix = b"shared-dictionary-sequence:" * 100
     data = prefix[-1000:] * 4
