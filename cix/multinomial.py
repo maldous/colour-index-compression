@@ -46,8 +46,6 @@ MODE_ADAPTIVE = 10
 MODE_SPARSE = 11
 MODE_RUNS = 12
 MODE_PERSISTENT_ADAPTIVE = 13
-MODE_TOKENS = 14
-MODE_RASTER = 15
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -704,11 +702,6 @@ class StreamConfig:
     enable_sparse: bool = True
     enable_runs: bool = True
     enable_persistent_adaptive: bool = True
-    enable_tokens: bool = True
-    enable_raster: bool = True
-    text_block_target: int = 65536
-    text_adaptive: bool = False
-    text_persistent_adaptive: bool = False
 
     @classmethod
     def extreme(cls) -> "StreamConfig":
@@ -721,9 +714,6 @@ class StreamConfig:
             lz_window_bytes=MAX_HISTORY_BYTES,
             lz_chain=96,
             enable_chains=True,
-            text_block_target=65536,
-            text_adaptive=True,
-            text_persistent_adaptive=True,
             context_beam=6,
             transform_beam=10,
             chain_beam=6,
@@ -802,46 +792,33 @@ def _context_model_estimate(
     return size
 
 
-def _looks_textual(data: bytes) -> bool:
-    if len(data) < 64:
-        return False
-    sample = data[: min(len(data), 8192)]
-    ascii_like = sum(
-        byte in (9, 10, 13) or 32 <= byte <= 126 for byte in sample
-    ) / len(sample)
-    wordish = sum(
-        48 <= byte <= 57 or 65 <= byte <= 90 or 97 <= byte <= 122
-        or byte in (9, 10, 13, 32, 95)
-        for byte in sample
-    ) / len(sample)
-    return ascii_like >= 0.85 and wordish >= 0.65
-
-
 def _looks_bwt_worthy(data: bytes) -> bool:
+    """Format-agnostic BWT prefilter based only on byte structure."""
     if len(data) < 64:
         return False
 
     sample = data[: min(len(data), 8192)]
-    ascii_like = sum(
-        byte in (9, 10, 13) or 32 <= byte <= 126 for byte in sample
-    ) / len(sample)
-    if ascii_like >= 0.65:
-        return True
-
     if len(set(sample)) <= 64:
         return True
 
     seen = set()
     repeats = 0
     total = 0
-    for pos in range(0, max(0, len(sample) - 4), 4):
+    # Use overlapping byte shingles; no text/format assumptions.
+    for pos in range(0, max(0, len(sample) - 4)):
         token = sample[pos : pos + 4]
         total += 1
         if token in seen:
             repeats += 1
         else:
             seen.add(token)
-    return total > 0 and repeats / total >= 0.08
+
+    run_changes = 1 + sum(
+        left != right for left, right in zip(sample, sample[1:])
+    )
+    run_density = run_changes / max(1, len(sample))
+    repeat_density = repeats / max(1, total)
+    return repeat_density >= 0.025 or run_density <= 0.55
 
 
 def _bitplane_estimate(data: bytes) -> float:
@@ -864,7 +841,6 @@ def encode_best_block(
     prefix_history: bytes,
     config: StreamConfig,
 ) -> EncodedBlock:
-    textual = _looks_textual(block)
     candidates: list[EncodedBlock] = [
         EncodedBlock(MODE_RAW, len(block), block, "raw"),
         EncodedBlock(
@@ -885,7 +861,7 @@ def encode_best_block(
         ),
         key=lambda item: (item[0], item[1].order, item[1].bucket_bits),
     )
-    context_beam = min(config.context_beam, 2) if textual else config.context_beam
+    context_beam = config.context_beam
     for _, model in profiled_contexts[: context_beam]:
         payload = encode_context_type_classes(
             block,
@@ -902,7 +878,7 @@ def encode_best_block(
             )
         )
 
-    if config.enable_adaptive and (not textual or config.text_adaptive):
+    if config.enable_adaptive:
         try:
             from .adaptive import encode_adaptive
 
@@ -995,29 +971,7 @@ def encode_best_block(
         except Exception:
             pass
 
-    if config.enable_tokens and _looks_textual(block):
-        try:
-            from .tokens import encode_token_block
-
-            payload, description = encode_token_block(block)
-            candidates.append(
-                EncodedBlock(MODE_TOKENS, len(block), payload, description)
-            )
-        except Exception:
-            pass
-
-    if config.enable_raster and not textual and len(block) >= 1024:
-        try:
-            from .raster import encode_raster_block
-
-            payload, description = encode_raster_block(block)
-            candidates.append(
-                EncodedBlock(MODE_RASTER, len(block), payload, description)
-            )
-        except Exception:
-            pass
-
-    if config.enable_transforms and not textual and len(block) >= 4:
+    if config.enable_transforms and len(block) >= 4:
         try:
             from .transforms import encode_transform_block
 
@@ -1030,7 +984,7 @@ def encode_best_block(
         except Exception:
             pass
 
-    if config.enable_numeric and not textual and len(block) >= 6:
+    if config.enable_numeric and len(block) >= 6:
         try:
             from .numeric import encode_numeric_block
 
@@ -1041,7 +995,7 @@ def encode_best_block(
         except Exception:
             pass
 
-    if config.enable_bitplanes and not textual and len(block) >= 2:
+    if config.enable_bitplanes and len(block) >= 2:
         try:
             raw_size = len(candidates[0].framed)
             if _bitplane_estimate(block) < raw_size:
@@ -1205,8 +1159,6 @@ class StreamEncoder:
             raise ValueError("unknown chunk_mode")
         if not 4 <= self.config.content_mask_bits <= 24:
             raise ValueError("content_mask_bits outside supported range")
-        if not self.config.max_block <= self.config.text_block_target <= (1 << 20):
-            raise ValueError("text_block_target outside supported range")
         if not 0 <= self.config.dedup_blocks <= MAX_DEDUP_BLOCKS:
             raise ValueError("dedup_blocks outside CIXM5 supported range")
         from .stateful import make_persistent_states
@@ -1233,29 +1185,12 @@ class StreamEncoder:
 
         while len(self._buffer) >= self._next_check:
             probe = bytes(self._buffer[: self._next_check])
-            textual_probe = _looks_textual(probe)
-            effective_max = (
-                self.config.text_block_target
-                if textual_probe
-                else self.config.max_block
-            )
-
-            # Text benefits from a longer homogeneous horizon. Re-evaluate its
-            # classification at each probe, but do not prematurely split a text
-            # block merely because byte frequencies drift within prose/source.
             entropy_cut = (
                 _best_split(probe, self.config)
-                if (
-                    not textual_probe
-                    and self.config.chunk_mode in ("adaptive", "hybrid")
-                )
+                if self.config.chunk_mode in ("adaptive", "hybrid")
                 else None
             )
-            content_cut = (
-                _content_boundary(probe, self.config)
-                if not textual_probe
-                else None
-            )
+            content_cut = _content_boundary(probe, self.config)
 
             cuts = [cut for cut in (entropy_cut, content_cut) if cut is not None]
             cut = min(cuts) if cuts else None
@@ -1267,15 +1202,15 @@ class StreamEncoder:
                 )
                 continue
 
-            if self._next_check >= effective_max:
-                emitted += self._emit(effective_max)
+            if self._next_check >= self.config.max_block:
+                emitted += self._emit(self.config.max_block)
                 self._next_check = min(
                     self.config.max_block, self.config.min_block * 2
                 )
                 continue
 
             self._next_check = min(
-                effective_max,
+                self.config.max_block,
                 self._next_check + self.config.probe_stride,
             )
 
@@ -1313,13 +1248,7 @@ class StreamEncoder:
                 config=self.config,
             )
 
-            if (
-                self.config.enable_persistent_adaptive
-                and (
-                    not _looks_textual(block)
-                    or self.config.text_persistent_adaptive
-                )
-            ):
+            if self.config.enable_persistent_adaptive:
                 for model_id, state in enumerate(self._persistent_states):
                     try:
                         payload = bytes((model_id,)) + state.encode(
@@ -1566,22 +1495,6 @@ class StreamDecoder:
                     payload[1:],
                     source_length,
                     bytes(self._history),
-                )
-
-            elif mode == MODE_TOKENS:
-                from .tokens import decode_token_block
-
-                block = decode_token_block(
-                    payload,
-                    source_length=source_length,
-                )
-
-            elif mode == MODE_RASTER:
-                from .raster import decode_raster_block
-
-                block = decode_raster_block(
-                    payload,
-                    source_length=source_length,
                 )
 
             else:
