@@ -9,6 +9,8 @@ No trained table is transmitted; encoder and decoder update identical context co
 """
 from __future__ import annotations
 
+import math
+
 from collections import defaultdict
 
 from .multinomial import _ArithmeticDecoder, _ArithmeticEncoder, vdecode, vencode
@@ -32,6 +34,71 @@ def _eligible(counts:dict[int,int]|None,excluded:set[int])->list[int]:
     if not counts:
         return []
     return [s for s in sorted(counts) if s not in excluded]
+
+
+def estimate_ppm_bits(
+    data: bytes,
+    *,
+    max_order: int,
+    prefix_history: bytes = b"",
+    sample_limit: int = 4096,
+) -> float:
+    """Estimate PPM description length without emitting an arithmetic stream."""
+    if not 0 <= max_order <= 8:
+        raise ValueError("PPM order outside supported range")
+
+    sample = data[:sample_limit]
+    tables: dict[bytes, dict[int, int]] = {}
+    history = bytearray(prefix_history[-max_order:] if max_order else b"")
+    bits = 0.0
+
+    for symbol in sample:
+        excluded: set[int] = set()
+        coded = False
+        highest = min(max_order, len(history))
+
+        for order in range(highest, -1, -1):
+            context = _ctx(history, order)
+            counts = tables.get(context)
+            symbols = _eligible(counts, excluded)
+            if not symbols:
+                continue
+
+            assert counts is not None
+            mass = sum(counts[s] for s in symbols)
+            escape = max(1, len(symbols))
+            total = mass + escape
+
+            if symbol in counts and symbol not in excluded:
+                bits += math.log2(total) - math.log2(counts[symbol])
+                coded = True
+                break
+
+            bits += math.log2(total) - math.log2(escape)
+            excluded.update(symbols)
+
+        if not coded:
+            remaining = 256 - len(excluded)
+            bits += math.log2(max(1, remaining))
+
+        highest = min(max_order, len(history))
+        for order in range(highest, -1, -1):
+            context = _ctx(history, order)
+            counts = tables.get(context)
+            if counts is None:
+                counts = {}
+                tables[context] = counts
+            counts[symbol] = counts.get(symbol, 0) + 1
+            _rescale(counts)
+
+        if max_order:
+            history.append(symbol)
+            if len(history) > max_order:
+                del history[:-max_order]
+
+    if not sample:
+        return 0.0
+    return bits * (len(data) / len(sample))
 
 
 def encode_ppm(
