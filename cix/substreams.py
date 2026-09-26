@@ -72,6 +72,41 @@ BYTE_STREAM_ADAPTIVE = 2
 BYTE_STREAM_CONTEXT = 3
 
 
+def _conditional_bits(values: bytes, order: int) -> float:
+    if not values:
+        return 0.0
+    if order <= 0:
+        counts = [0] * 256
+        for value in values:
+            counts[value] += 1
+        n = len(values)
+        return n * math.log2(n) - sum(
+            count * math.log2(count) for count in counts if count
+        )
+
+    contexts: dict[bytes, list[int]] = {}
+    history = bytearray()
+    for value in values:
+        context = bytes(history[-order:])
+        counts = contexts.get(context)
+        if counts is None:
+            counts = [0] * 256
+            contexts[context] = counts
+        counts[value] += 1
+        history.append(value)
+        if len(history) > order:
+            del history[:-order]
+
+    bits = 0.0
+    for counts in contexts.values():
+        n = sum(counts)
+        if n:
+            bits += n * math.log2(n) - sum(
+                count * math.log2(count) for count in counts if count
+            )
+    return bits
+
+
 def encode_bytes(values: bytes) -> bytes:
     """Encode a byte substream with the cheapest universal local model."""
     if not values:
@@ -106,6 +141,10 @@ def encode_bytes(values: bytes) -> bytes:
             # block used a completely different top-level model.
             context_orders = (1, 2) if len(values) >= 2048 else (1,)
             for order in context_orders:
+                best_len = min(len(candidate) for candidate in candidates)
+                estimate = _conditional_bits(values, order)
+                if estimate / 8.0 > best_len * 1.10 + 16:
+                    continue
                 payload = encode_adaptive(
                     values,
                     order=order,
