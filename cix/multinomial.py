@@ -1133,8 +1133,8 @@ def encode_best_block(
 
     if config.enable_bitplanes and len(block) >= 2:
         try:
-            raw_size = len(candidates[0].framed)
-            if _bitplane_estimate(block) < raw_size:
+            current_best = min(len(candidate.framed) for candidate in candidates)
+            if _bitplane_estimate(block) <= current_best * 1.05 + 16:
                 from .bitplanes import encode_bitplanes
 
                 payload, description = encode_bitplanes(block)
@@ -1406,6 +1406,9 @@ class StreamEncoder:
             if self.config.enable_persistent_adaptive:
                 for model_id, state in enumerate(self._persistent_states):
                     try:
+                        estimate = state.estimate_bits(block, prefix_history)
+                        if estimate / 8.0 > len(encoded.framed) * 1.08 + 32:
+                            continue
                         payload = bytes((model_id,)) + state.encode(
                             block, prefix_history
                         )
