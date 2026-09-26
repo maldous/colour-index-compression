@@ -1263,7 +1263,7 @@ class StreamEncoder:
             structured = _looks_bwt_worthy(probe)
             effective_max = (
                 self.config.structured_block_target
-                if structured
+                if structured and self.config.chunk_mode != "fixed"
                 else self.config.max_block
             )
 
