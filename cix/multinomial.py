@@ -39,6 +39,7 @@ MODE_BWT = 4
 MODE_TRANSFORM = 5
 MODE_BITPLANE = 6
 MODE_CHAIN = 7
+MODE_NUMERIC = 8
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 
@@ -678,6 +679,7 @@ class StreamConfig:
     enable_transforms: bool = True
     enable_bitplanes: bool = True
     enable_chains: bool = False
+    enable_numeric: bool = True
     chunk_mode: str = "hybrid"
     content_mask_bits: int = 13
     lz_window_bytes: int = 1 << 20
@@ -896,6 +898,17 @@ def encode_best_block(
             )
             candidates.append(
                 EncodedBlock(MODE_TRANSFORM, len(block), payload, description)
+            )
+        except Exception:
+            pass
+
+    if config.enable_numeric and len(block) >= 6:
+        try:
+            from .numeric import encode_numeric_block
+
+            payload, description = encode_numeric_block(block)
+            candidates.append(
+                EncodedBlock(MODE_NUMERIC, len(block), payload, description)
             )
         except Exception:
             pass
@@ -1265,6 +1278,14 @@ class StreamDecoder:
                 from .chain import decode_chain_block
 
                 block = decode_chain_block(
+                    payload,
+                    source_length=source_length,
+                )
+
+            elif mode == MODE_NUMERIC:
+                from .numeric import decode_numeric_block
+
+                block = decode_numeric_block(
                     payload,
                     source_length=source_length,
                 )
