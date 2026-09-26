@@ -69,6 +69,58 @@ def _update_loss(
     return loss * DECAY + instantaneous
 
 
+def estimate_expert_bits(
+    data: bytes,
+    *,
+    orders: tuple[int, ...] = (0, 1, 2, 4),
+    prefix_history: bytes = b"",
+    sample_limit: int = 4096,
+) -> float:
+    """Estimate switching-expert log loss without emitting a bitstream."""
+    orders = tuple(sorted(set(orders)))
+    if not orders or orders[0] != 0 or any(not 0 <= order <= 8 for order in orders):
+        raise ValueError("expert orders must include 0 and lie in 0..8")
+
+    sample = data[:sample_limit]
+    max_order = max(orders)
+    history = bytearray(prefix_history[-max_order:] if max_order else b"")
+    tables: list[dict[bytes, dict[int, int]]] = [dict() for _ in orders]
+    losses = [0.0] * len(orders)
+    bits = 0.0
+
+    for symbol in sample:
+        contexts = [_context(history, order) for order in orders]
+        counts_list = [
+            tables[index].get(context)
+            for index, context in enumerate(contexts)
+        ]
+        selected = min(range(len(orders)), key=lambda index: (losses[index], index))
+        counts = counts_list[selected]
+        observed = counts.get(symbol, 0) if counts else 0
+        total = (sum(counts.values()) if counts else 0) + 256
+        bits += math.log2(total) - math.log2(observed + 1)
+
+        for index, model_counts in enumerate(counts_list):
+            losses[index] = _update_loss(losses[index], model_counts, symbol)
+
+        for index, context in enumerate(contexts):
+            model_counts = tables[index].get(context)
+            if model_counts is None:
+                model_counts = {}
+                tables[index][context] = model_counts
+            model_counts[symbol] = model_counts.get(symbol, 0) + 1
+            _rescale(model_counts)
+
+        if max_order:
+            history.append(symbol)
+            if len(history) > max_order:
+                del history[:-max_order]
+
+    if not sample:
+        return 0.0
+    return bits * (len(data) / len(sample))
+
+
 def encode_expert_mix(
     data: bytes,
     *,
