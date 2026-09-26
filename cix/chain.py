@@ -12,7 +12,12 @@ from .multinomial import (
     encode_context_type_classes,
     encode_type_class_known_n,
 )
-from .transforms import SPEC_BY_ID, apply_transform, invert_transform
+from .transforms import (
+    SPEC_BY_ID,
+    _typeclass_estimate,
+    apply_transform,
+    invert_transform,
+)
 
 CHAIN_VERSION = 1
 INNER_MULTINOMIAL = 1
@@ -30,12 +35,17 @@ def encode_chain_block(
     data: bytes,
     *,
     context_models: tuple[ContextModel, ...] = (),
+    beam: int = 4,
 ) -> tuple[bytes, str]:
     candidates: list[tuple[bytes, str]] = []
+    profiled = []
 
     for spec_id in CHAIN_SPEC_IDS:
         spec = SPEC_BY_ID[spec_id]
         transformed = apply_transform(data, spec)
+        profiled.append((_typeclass_estimate(transformed), spec, transformed))
+
+    for _, spec, transformed in sorted(profiled, key=lambda item: item[0])[:beam]:
 
         plain = encode_type_class_known_n(transformed)
         candidates.append(
@@ -45,7 +55,7 @@ def encode_chain_block(
             )
         )
 
-        for model in context_models[:5]:
+        for model in context_models[:3]:
             payload = encode_context_type_classes(
                 transformed,
                 order=model.order,
