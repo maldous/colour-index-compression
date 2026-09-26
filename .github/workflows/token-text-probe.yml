@@ -1,0 +1,25 @@
+name: CIX token text probe
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/token-text-probe.yml"
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        file: [alice29.txt, asyoulik.txt, cp.html, fields.c, lcet10.txt, plrabn12.txt, xargs.1]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e '.[fast-bwt]'
+      - run: python benchmarks/token_text_probe.py "${{ matrix.file }}"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: tokenprobe-${{ strategy.job-index }}
+          path: tokenprobe-*.json
