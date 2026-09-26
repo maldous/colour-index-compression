@@ -1021,7 +1021,13 @@ def encode_best_block(
                 )
                 for order in order_candidates
             )
-            for _, order in profiled_ppm[: max(1, config.ppm_beam)]:
+            current_best = min(len(candidate.framed) for candidate in candidates)
+            plausible_ppm = [
+                (bits, order)
+                for bits, order in profiled_ppm
+                if bits / 8.0 <= current_best * 1.08 + 32
+            ]
+            for _, order in plausible_ppm[: max(1, config.ppm_beam)]:
                 payload = encode_ppm(
                     block,
                     max_order=order,
@@ -1044,21 +1050,28 @@ def encode_best_block(
         and _looks_bwt_worthy(block)
     ):
         try:
-            from .expertmix import encode_expert_mix
+            from .expertmix import encode_expert_mix, estimate_expert_bits
 
-            payload = encode_expert_mix(
+            current_best = min(len(candidate.framed) for candidate in candidates)
+            estimate = estimate_expert_bits(
                 block,
                 orders=config.expert_orders,
                 prefix_history=prefix_history,
             )
-            candidates.append(
-                EncodedBlock(
-                    MODE_EXPERT_MIX,
-                    len(block),
-                    payload,
-                    "context-expert-" + "-".join(map(str, config.expert_orders)),
+            if estimate / 8.0 <= current_best * 1.08 + 32:
+                payload = encode_expert_mix(
+                    block,
+                    orders=config.expert_orders,
+                    prefix_history=prefix_history,
                 )
-            )
+                candidates.append(
+                    EncodedBlock(
+                        MODE_EXPERT_MIX,
+                        len(block),
+                        payload,
+                        "context-expert-" + "-".join(map(str, config.expert_orders)),
+                    )
+                )
         except Exception:
             pass
 
