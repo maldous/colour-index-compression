@@ -10,7 +10,9 @@ from __future__ import annotations
 import math
 from .multinomial import _ArithmeticDecoder, _ArithmeticEncoder, vdecode, vencode
 
-PPM_VERSION = 3
+PPM_VERSION = 4
+PPM_STANDARD_VERSION = 3
+PPM_UPDATE_EXCLUSION_VERSION = 4
 CONTEXT_LIMIT = 16384
 PPM_HISTORY_MAX = 65536
 PPM_HISTORY_MIN = 4096
@@ -65,9 +67,12 @@ def _observe_symbol(
     history: bytearray,
     symbol: int,
     max_order: int,
+    *,
+    min_order: int = 0,
 ) -> None:
     highest = min(max_order, len(history))
-    for order in range(highest, -1, -1):
+    min_order = max(0, min(min_order, highest))
+    for order in range(highest, min_order - 1, -1):
         context = _ctx(history, order)
         counts = tables.setdefault(context, {})
         counts[symbol] = counts.get(symbol, 0) + 1
@@ -79,10 +84,31 @@ def _observe_symbol(
             del history[:-max_order]
 
 
+def _update_floor(
+    tables: dict[bytes, dict[int, int]],
+    history: bytearray,
+    symbol: int,
+    max_order: int,
+) -> int:
+    """Lowest order to update under PPM update exclusion.
+
+    If the symbol is predicted by order k, orders below k are not updated.
+    A novel symbol (order -1 fallback) updates all available contexts.
+    """
+    highest = min(max_order, len(history))
+    for order in range(highest, -1, -1):
+        counts = tables.get(_ctx(history, order))
+        if counts and symbol in counts:
+            return order
+    return 0
+
+
 def _prime_from_history(
     prefix_history: bytes,
     block_length: int,
     max_order: int,
+    *,
+    update_exclusion: bool = False,
 ) -> tuple[dict[bytes, dict[int, int]], bytearray]:
     """Train a fresh block model from a deterministic recent-history suffix.
 
@@ -106,7 +132,18 @@ def _prime_from_history(
         history.extend(prefix_history[max(0, start - max_order) : start])
 
     for symbol in prefix_history[start:]:
-        _observe_symbol(tables, history, symbol, max_order)
+        floor = (
+            _update_floor(tables, history, symbol, max_order)
+            if update_exclusion
+            else 0
+        )
+        _observe_symbol(
+            tables,
+            history,
+            symbol,
+            max_order,
+            min_order=floor,
+        )
 
     return tables, history
 
@@ -126,6 +163,7 @@ def estimate_ppm_bits(
     prefix_history: bytes = b"",
     sample_limit: int = 4096,
     escape_method: int = ESCAPE_DISTINCT,
+    update_exclusion: bool = False,
 ) -> float:
     if not 0 <= max_order <= 8:
         raise ValueError("PPM order outside supported range")
@@ -137,13 +175,17 @@ def estimate_ppm_bits(
         return 0.0
 
     tables, history = _prime_from_history(
-        prefix_history, len(data), max_order
+        prefix_history,
+        len(data),
+        max_order,
+        update_exclusion=update_exclusion,
     )
     bits = 0.0
 
     for symbol in sample:
         excluded: set[int] = set()
         coded = False
+        matched_order = 0
         highest = min(max_order, len(history))
 
         for order in range(highest, -1, -1):
@@ -161,6 +203,7 @@ def estimate_ppm_bits(
             if symbol in counts and symbol not in excluded:
                 bits += math.log2(total) - math.log2(counts[symbol])
                 coded = True
+                matched_order = order
                 break
 
             bits += math.log2(total) - math.log2(escape)
@@ -169,7 +212,13 @@ def estimate_ppm_bits(
         if not coded:
             bits += math.log2(max(1, 256 - len(excluded)))
 
-        _observe_symbol(tables, history, symbol, max_order)
+        _observe_symbol(
+            tables,
+            history,
+            symbol,
+            max_order,
+            min_order=matched_order if update_exclusion else 0,
+        )
 
     return bits * (len(data) / len(sample))
 
@@ -180,15 +229,20 @@ def _encode_ppm_method(
     max_order: int,
     prefix_history: bytes,
     escape_method: int,
+    update_exclusion: bool,
 ) -> bytes:
     tables, history = _prime_from_history(
-        prefix_history, len(data), max_order
+        prefix_history,
+        len(data),
+        max_order,
+        update_exclusion=update_exclusion,
     )
     encoder = _ArithmeticEncoder()
 
     for symbol in data:
         excluded: set[int] = set()
         coded = False
+        matched_order = 0
         highest = min(max_order, len(history))
 
         for order in range(highest, -1, -1):
@@ -210,6 +264,7 @@ def _encode_ppm_method(
                     if candidate == symbol:
                         encoder.encode(low, high, total)
                         coded = True
+                        matched_order = order
                         break
                     low = high
                 if coded:
@@ -223,11 +278,22 @@ def _encode_ppm_method(
             rank = remaining.index(symbol)
             encoder.encode(rank, rank + 1, len(remaining))
 
-        _observe_symbol(tables, history, symbol, max_order)
+        _observe_symbol(
+            tables,
+            history,
+            symbol,
+            max_order,
+            min_order=matched_order if update_exclusion else 0,
+        )
 
     payload, bit_length = encoder.finish()
+    version = (
+        PPM_UPDATE_EXCLUSION_VERSION
+        if update_exclusion
+        else PPM_STANDARD_VERSION
+    )
     return (
-        bytes((PPM_VERSION, max_order, escape_method))
+        bytes((version, max_order, escape_method))
         + vencode(bit_length)
         + payload
     )
@@ -239,20 +305,25 @@ def encode_ppm(
     max_order: int = 4,
     prefix_history: bytes = b"",
     escape_method: int | None = None,
+    update_exclusion: bool | None = False,
 ) -> bytes:
     if not 0 <= max_order <= 8:
         raise ValueError("PPM order outside supported range")
-    if escape_method is not None:
-        if escape_method not in ESCAPE_METHODS:
-            raise ValueError("invalid PPM escape method")
-        return _encode_ppm_method(
-            data,
-            max_order=max_order,
-            prefix_history=prefix_history,
-            escape_method=escape_method,
-        )
+    if escape_method is not None and escape_method not in ESCAPE_METHODS:
+        raise ValueError("invalid PPM escape method")
 
-    # Exact MDL selection: try all generic escape laws and retain physical minimum.
+    variants = (
+        (False, True)
+        if update_exclusion is None
+        else (update_exclusion,)
+    )
+    methods = (
+        (escape_method,)
+        if escape_method is not None
+        else ESCAPE_METHODS
+    )
+
+    # Exact MDL selection across the requested generic PPM variants.
     return min(
         (
             _encode_ppm_method(
@@ -260,8 +331,10 @@ def encode_ppm(
                 max_order=max_order,
                 prefix_history=prefix_history,
                 escape_method=method,
+                update_exclusion=variant,
             )
-            for method in ESCAPE_METHODS
+            for variant in variants
+            for method in methods
         ),
         key=len,
     )
@@ -273,7 +346,11 @@ def decode_ppm(
     source_length: int,
     prefix_history: bytes = b"",
 ) -> bytes:
-    if len(blob) < 3 or blob[0] not in (2, PPM_VERSION):
+    if len(blob) < 3 or blob[0] not in (
+        2,
+        PPM_STANDARD_VERSION,
+        PPM_UPDATE_EXCLUSION_VERSION,
+    ):
         raise ValueError("unknown PPM version")
 
     version = blob[0]
@@ -290,11 +367,15 @@ def decode_ppm(
         raise ValueError("PPM payload length mismatch")
 
     decoder = _ArithmeticDecoder(blob[pos:], bit_length)
+    update_exclusion = version == PPM_UPDATE_EXCLUSION_VERSION
     if version == 2:
         tables, history = _fresh_legacy_state(prefix_history, max_order)
     else:
         tables, history = _prime_from_history(
-            prefix_history, source_length, max_order
+            prefix_history,
+            source_length,
+            max_order,
+            update_exclusion=update_exclusion,
         )
 
     out = bytearray()
@@ -302,6 +383,7 @@ def decode_ppm(
     for _ in range(source_length):
         excluded: set[int] = set()
         symbol = None
+        matched_order = 0
         highest = min(max_order, len(history))
 
         for order in range(highest, -1, -1):
@@ -324,6 +406,7 @@ def decode_ppm(
                     if target < high:
                         decoder.update(low, high, total)
                         symbol = candidate
+                        matched_order = order
                         break
                     low = high
                 if symbol is None:
@@ -342,6 +425,12 @@ def decode_ppm(
             decoder.update(target, target + 1, len(remaining))
 
         out.append(symbol)
-        _observe_symbol(tables, history, symbol, max_order)
+        _observe_symbol(
+            tables,
+            history,
+            symbol,
+            max_order,
+            min_order=matched_order if update_exclusion else 0,
+        )
 
     return bytes(out)
