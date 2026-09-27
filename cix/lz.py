@@ -666,12 +666,13 @@ def encode_lz_block(
         variants.append((min_match, True))
         variants.append((max(min_match + 1, 5), True))
 
-    candidates = []
     suffix_state = (
         _suffix_lpf_state(data, prefix_history, window)
         if len(data) >= 1024
         else None
     )
+
+    parse_candidates: list[tuple[LZParse, int, str]] = []
     for candidate_min, lazy in variants:
         if suffix_state is not None:
             parse = parse_lz_suffix(
@@ -694,18 +695,13 @@ def encode_lz_block(
             )
             parser_suffix = ""
 
-        candidates.append(
-            _encode_parse(
-                parse,
-                data,
-                prefix_history,
-                context_models,
-                candidate_min,
-                f"m{candidate_min}-w{window}-c{chain}"
-                + ("-lazy" if lazy else "")
-                + parser_suffix,
-                allow_fixed_mix=chain >= 48,
-            )
+        description_suffix = (
+            f"m{candidate_min}-w{window}-c{chain}"
+            + ("-lazy" if lazy else "")
+            + parser_suffix
+        )
+        parse_candidates.append(
+            (parse, candidate_min, description_suffix)
         )
 
     if (
@@ -720,17 +716,58 @@ def encode_lz_block(
             max_match=DEFAULT_MAX_MATCH,
             window=min(window, SA_HISTORY_LIMIT),
         )
-        candidates.append(
-            _encode_parse(
+        parse_candidates.append(
+            (
                 optimal,
-                data,
-                prefix_history,
-                context_models,
                 min_match,
                 f"m{min_match}-w{window}-c{chain}-optimal-sa",
-                allow_fixed_mix=True,
             )
         )
+
+    # First rank every parse using the cheaper exact substream portfolio.
+    # Fixed-point mixing is deliberately deferred: materializing it for every
+    # parse multiplied high-effort CPU with little benefit.
+    ranked = []
+    for parse, candidate_min, description_suffix in parse_candidates:
+        encoded = _encode_parse(
+            parse,
+            data,
+            prefix_history,
+            context_models,
+            candidate_min,
+            description_suffix,
+            allow_fixed_mix=False,
+        )
+        ranked.append(
+            (
+                len(encoded[0]),
+                encoded,
+                parse,
+                candidate_min,
+                description_suffix,
+            )
+        )
+
+    candidates = [item[1] for item in ranked]
+
+    # At high effort, let the mixer refine only the two most promising parses.
+    # The final decision still uses exact physical bytes, so this cannot force a
+    # worse representation.
+    if chain >= 48:
+        for _, _, parse, candidate_min, description_suffix in sorted(
+            ranked, key=lambda item: item[0]
+        )[:2]:
+            candidates.append(
+                _encode_parse(
+                    parse,
+                    data,
+                    prefix_history,
+                    context_models,
+                    candidate_min,
+                    description_suffix,
+                    allow_fixed_mix=True,
+                )
+            )
 
     return min(candidates, key=lambda item: len(item[0]))
 
