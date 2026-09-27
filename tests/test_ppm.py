@@ -1,6 +1,6 @@
 import os
 
-from cix.ppm import decode_ppm, encode_ppm, estimate_ppm_bits
+from cix.ppm import ESCAPE_LEARNED, decode_ppm, encode_ppm, estimate_ppm_bits
 
 
 def test_ppm_round_trip_repetitive_and_random():
@@ -51,3 +51,17 @@ def test_ppm_warmup_is_deterministic_from_decoder_history():
         source_length=len(data),
         prefix_history=prefix,
     )==data
+
+
+def test_ppm_learned_escape_round_trip():
+    data = (
+        b"alpha=17|beta=23|gamma=41\n"
+        b"alpha=18|beta=23|gamma=43\n"
+        b"alpha=19|beta=29|gamma=47\n"
+    ) * 80
+    payload = encode_ppm(
+        data,
+        max_order=4,
+        escape_method=ESCAPE_LEARNED,
+    )
+    assert decode_ppm(payload, source_length=len(data)) == data

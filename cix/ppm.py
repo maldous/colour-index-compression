@@ -10,7 +10,7 @@ from __future__ import annotations
 import math
 from .multinomial import _ArithmeticDecoder, _ArithmeticEncoder, vdecode, vencode
 
-PPM_VERSION = 3
+PPM_VERSION = 4
 CONTEXT_LIMIT = 16384
 PPM_HISTORY_MAX = 65536
 PPM_HISTORY_MIN = 4096
@@ -19,11 +19,13 @@ ESCAPE_ONE = 0
 ESCAPE_DISTINCT = 1
 ESCAPE_HALF_DISTINCT = 2
 ESCAPE_SINGLETONS = 3
+ESCAPE_LEARNED = 4
 ESCAPE_METHODS = (
     ESCAPE_ONE,
     ESCAPE_DISTINCT,
     ESCAPE_HALF_DISTINCT,
     ESCAPE_SINGLETONS,
+    ESCAPE_LEARNED,
 )
 
 
@@ -48,6 +50,9 @@ def _escape_mass(
     counts: dict[int, int],
     symbols: list[int],
     method: int,
+    *,
+    escapes: int = 0,
+    hits: int = 0,
 ) -> int:
     if method == ESCAPE_ONE:
         return 1
@@ -57,7 +62,26 @@ def _escape_mass(
         return max(1, (len(symbols) + 1) // 2)
     if method == ESCAPE_SINGLETONS:
         return max(1, sum(1 for symbol in symbols if counts[symbol] == 1))
+    if method == ESCAPE_LEARNED:
+        mass = sum(counts[symbol] for symbol in symbols)
+        numerator = mass * (escapes + 1)
+        denominator = hits + 2
+        learned = (numerator + denominator // 2) // denominator
+        return max(1, min(2 * len(symbols), learned))
     raise ValueError("unknown PPM escape method")
+
+
+def _update_reliability(
+    reliability: dict[bytes, list[int]],
+    context: bytes,
+    *,
+    escaped: bool,
+) -> None:
+    state = reliability.setdefault(context, [0, 0])
+    state[0 if escaped else 1] += 1
+    if state[0] + state[1] > CONTEXT_LIMIT:
+        state[0] = (state[0] + 1) // 2
+        state[1] = (state[1] + 1) // 2
 
 
 def _observe_symbol(
@@ -139,6 +163,7 @@ def estimate_ppm_bits(
     tables, history = _prime_from_history(
         prefix_history, len(data), max_order
     )
+    reliability: dict[bytes, list[int]] = {}
     bits = 0.0
 
     for symbol in sample:
@@ -155,15 +180,22 @@ def estimate_ppm_bits(
 
             assert counts is not None
             mass = sum(counts[s] for s in symbols)
-            escape = _escape_mass(counts, symbols, escape_method)
+            escapes, hits = reliability.get(context, (0, 0))
+            escape = _escape_mass(
+                counts, symbols, escape_method, escapes=escapes, hits=hits
+            )
             total = mass + escape
 
             if symbol in counts and symbol not in excluded:
                 bits += math.log2(total) - math.log2(counts[symbol])
+                if escape_method == ESCAPE_LEARNED:
+                    _update_reliability(reliability, context, escaped=False)
                 coded = True
                 break
 
             bits += math.log2(total) - math.log2(escape)
+            if escape_method == ESCAPE_LEARNED:
+                _update_reliability(reliability, context, escaped=True)
             excluded.update(symbols)
 
         if not coded:
@@ -184,6 +216,7 @@ def _encode_ppm_method(
     tables, history = _prime_from_history(
         prefix_history, len(data), max_order
     )
+    reliability: dict[bytes, list[int]] = {}
     encoder = _ArithmeticEncoder()
 
     for symbol in data:
@@ -200,7 +233,10 @@ def _encode_ppm_method(
 
             assert counts is not None
             mass = sum(counts[s] for s in symbols)
-            escape = _escape_mass(counts, symbols, escape_method)
+            escapes, hits = reliability.get(context, (0, 0))
+            escape = _escape_mass(
+                counts, symbols, escape_method, escapes=escapes, hits=hits
+            )
             total = mass + escape
 
             if symbol in counts and symbol not in excluded:
@@ -213,9 +249,13 @@ def _encode_ppm_method(
                         break
                     low = high
                 if coded:
+                    if escape_method == ESCAPE_LEARNED:
+                        _update_reliability(reliability, context, escaped=False)
                     break
             else:
                 encoder.encode(mass, total, total)
+                if escape_method == ESCAPE_LEARNED:
+                    _update_reliability(reliability, context, escaped=True)
                 excluded.update(symbols)
 
         if not coded:
@@ -273,7 +313,7 @@ def decode_ppm(
     source_length: int,
     prefix_history: bytes = b"",
 ) -> bytes:
-    if len(blob) < 3 or blob[0] not in (2, PPM_VERSION):
+    if len(blob) < 3 or blob[0] not in (2, 3, PPM_VERSION):
         raise ValueError("unknown PPM version")
 
     version = blob[0]
@@ -283,6 +323,8 @@ def decode_ppm(
         raise ValueError("invalid PPM order")
     if escape_method not in ESCAPE_METHODS:
         raise ValueError("invalid PPM escape method")
+    if escape_method == ESCAPE_LEARNED and version < 4:
+        raise ValueError("learned PPM escape requires version 4")
 
     bit_length, pos = vdecode(blob, 3)
     byte_length = (bit_length + 7) // 8
@@ -298,6 +340,7 @@ def decode_ppm(
         )
 
     out = bytearray()
+    reliability: dict[bytes, list[int]] = {}
 
     for _ in range(source_length):
         excluded: set[int] = set()
@@ -313,7 +356,10 @@ def decode_ppm(
 
             assert counts is not None
             mass = sum(counts[s] for s in symbols)
-            escape = _escape_mass(counts, symbols, escape_method)
+            escapes, hits = reliability.get(context, (0, 0))
+            escape = _escape_mass(
+                counts, symbols, escape_method, escapes=escapes, hits=hits
+            )
             total = mass + escape
             target = decoder.target(total)
 
@@ -328,9 +374,13 @@ def decode_ppm(
                     low = high
                 if symbol is None:
                     raise ValueError("PPM symbol interval not found")
+                if escape_method == ESCAPE_LEARNED:
+                    _update_reliability(reliability, context, escaped=False)
                 break
 
             decoder.update(mass, total, total)
+            if escape_method == ESCAPE_LEARNED:
+                _update_reliability(reliability, context, escaped=True)
             excluded.update(symbols)
 
         if symbol is None:
