@@ -1,11 +1,11 @@
 name: Current universal real probe
 on:
   push:
-    branches: [main, cix-ppmd-discount]
+    branches: [main, cix-ppmd-verify]
     paths:
       - "cix/**"
       - "tests/**"
-      - "benchmarks/current_real_probe.py"
+      - "benchmarks/**"
       - ".github/workflows/current-real-probe.yml"
       - "pyproject.toml"
   workflow_dispatch:
@@ -21,3 +21,4 @@ jobs:
       - run: pip install -e '.[fast-bwt]' brotli zstandard pytest
       - run: python -m pytest -q
       - run: python benchmarks/ppm_discount_tournament.py
+      - run: python benchmarks/current_real_probe.py
