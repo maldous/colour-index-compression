@@ -80,7 +80,7 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
         )
 
     return StreamConfig(
-        min_block=4096,
+        min_block=2048,
         max_block=32768,
         probe_stride=1024,
         split_gain_bits=64.0,
