@@ -666,6 +666,16 @@ def encode_lz_block(
         variants.append((min_match, True))
         variants.append((max(min_match + 1, 5), True))
 
+    # At maximum effort, explicitly test the sparse-long-match regime. Once
+    # literals have strong PPM/mixer coding, many traditional 4-byte matches
+    # cost more metadata than the bytes they replace. Powers-of-two-style
+    # thresholds plus 48 cover the broad physical minima found by the generic
+    # tournament without any format knowledge.
+    if chain >= 96 and len(data) >= 1024:
+        for candidate_min in (8, 16, 32, 48, 64):
+            if all(existing[0] != candidate_min for existing in variants):
+                variants.append((candidate_min, True))
+
     suffix_state = (
         _suffix_lpf_state(data, prefix_history, window)
         if len(data) >= 1024
@@ -704,25 +714,9 @@ def encode_lz_block(
             (parse, candidate_min, description_suffix)
         )
 
-    if (
-        suffix_state is not None
-        and chain >= 48
-        and len(data) <= 32768
-    ):
-        optimal = parse_lz_optimal_suffix(
-            data,
-            state=suffix_state,
-            min_match=min_match,
-            max_match=DEFAULT_MAX_MATCH,
-            window=min(window, SA_HISTORY_LIMIT),
-        )
-        parse_candidates.append(
-            (
-                optimal,
-                min_match,
-                f"m{min_match}-w{window}-c{chain}-optimal-sa",
-            )
-        )
+    # The earlier DP "optimal" parse is intentionally not promoted here.
+    # Physical tournaments showed its proxy cost was consistently worse than
+    # simple lazy parses once literal substreams gained PPM/mixer models.
 
     # First rank every parse using the cheaper exact substream portfolio.
     # Fixed-point mixing is deliberately deferred: materializing it for every
