@@ -1,0 +1,72 @@
+name: Silesia leaderboard benchmark
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/silesia-leaderboard.yml"
+  workflow_dispatch:
+
+jobs:
+  member:
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        member:
+          - dickens
+          - mozilla
+          - mr
+          - nci
+          - ooffice
+          - osdb
+          - reymont
+          - samba
+          - sao
+          - webster
+          - x-ray
+          - xml
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[fast-bwt]' brotli zstandard
+      - name: Benchmark Silesia member
+        run: >-
+          python benchmarks/universal_member.py
+          --corpus silesia
+          --member "${{ matrix.member }}"
+          --level 9
+          --out silesia-members
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: silesia-${{ matrix.member }}
+          path: silesia-members/*.json
+          if-no-files-found: ignore
+
+  aggregate:
+    needs: member
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: silesia-*
+          path: silesia-members
+          merge-multiple: true
+      - name: Aggregate Silesia
+        run: >-
+          python benchmarks/universal_aggregate.py
+          --input silesia-members
+          --output silesia-results.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: silesia-results
+          path: |
+            silesia-results.md
+            universal-summary.json
