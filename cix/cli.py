@@ -77,6 +77,8 @@ def config_for_level(level: int, extreme: bool = False) -> StreamConfig:
             adaptive_beam=3,
             enable_ppm=True,
             ppm_order=4,
+            ppm_beam=9,
+            ppm_orders=(0, 1, 2, 3, 4, 5, 6, 7, 8),
         )
 
     return StreamConfig(
