@@ -1,0 +1,19 @@
+name: PPM update-exclusion probe
+on:
+  push:
+    branches: [main]
+    paths:
+      - "benchmarks/ppm_update_exclusion_probe.py"
+      - ".github/workflows/ppm-update-exclusion-probe.yml"
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e . brotli zstandard
+      - run: python benchmarks/ppm_update_exclusion_probe.py
