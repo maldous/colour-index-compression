@@ -1,6 +1,6 @@
 import os
 
-from cix.ppm import decode_ppm, encode_ppm, estimate_ppm_bits
+from cix.ppm import COUNT_PPMD, COUNT_RAW, decode_ppm, encode_ppm, estimate_ppm_bits
 
 
 def test_ppm_round_trip_repetitive_and_random():
@@ -87,4 +87,42 @@ def test_ppm_variant_portfolio_selects_physical_minimum():
     update_excluded = encode_ppm(data, max_order=4, update_exclusion=True)
     portfolio = encode_ppm(data, max_order=4, update_exclusion=None)
     assert len(portfolio) == min(len(standard), len(update_excluded))
+    assert decode_ppm(portfolio, source_length=len(data)) == data
+
+
+def test_ppmd_discounted_count_round_trip_with_and_without_history():
+    cases = (
+        (b"", b"discounted prediction contexts repeat repeat repeat|" * 80),
+        (
+            b"shared inherited context sequence|" * 180,
+            b"shared inherited context sequence|" * 70,
+        ),
+        (bytes(range(64)) * 60, bytes(range(64)) * 20),
+    )
+    for prefix, data in cases:
+        for update_exclusion in (False, True):
+            payload = encode_ppm(
+                data,
+                max_order=4,
+                prefix_history=prefix,
+                update_exclusion=update_exclusion,
+                count_model=COUNT_PPMD,
+            )
+            assert payload[0] == 5
+            assert decode_ppm(
+                payload,
+                source_length=len(data),
+                prefix_history=prefix,
+            ) == data
+
+
+def test_ppm_discounted_count_portfolio_selects_physical_minimum():
+    data = (
+        b"adaptive probability discounting should compete by exact physical bytes. "
+        * 100
+    )
+    raw = encode_ppm(data, max_order=4, count_model=COUNT_RAW)
+    discounted = encode_ppm(data, max_order=4, count_model=COUNT_PPMD)
+    portfolio = encode_ppm(data, max_order=4)
+    assert len(portfolio) == min(len(raw), len(discounted))
     assert decode_ppm(portfolio, source_length=len(data)) == data

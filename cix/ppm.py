@@ -13,6 +13,10 @@ from .multinomial import _ArithmeticDecoder, _ArithmeticEncoder, vdecode, vencod
 PPM_VERSION = 4
 PPM_STANDARD_VERSION = 3
 PPM_UPDATE_EXCLUSION_VERSION = 4
+PPM_DISCOUNTED_VERSION = 5
+COUNT_RAW = 0
+COUNT_PPMD = 1
+COUNT_MODELS = (COUNT_RAW, COUNT_PPMD)
 CONTEXT_LIMIT = 16384
 PPM_HISTORY_MAX = 65536
 PPM_HISTORY_MIN = 4096
@@ -46,11 +50,23 @@ def _eligible(counts: dict[int, int] | None, excluded: set[int]) -> list[int]:
     return [symbol for symbol in sorted(counts) if symbol not in excluded]
 
 
+def _symbol_weight(count: int, count_model: int) -> int:
+    if count_model == COUNT_RAW:
+        return count
+    if count_model == COUNT_PPMD:
+        return max(1, 2 * count - 1)
+    raise ValueError("unknown PPM count model")
+
+
 def _escape_mass(
     counts: dict[int, int],
     symbols: list[int],
     method: int,
+    *,
+    count_model: int = COUNT_RAW,
 ) -> int:
+    if count_model == COUNT_PPMD:
+        return max(1, len(symbols))
     if method == ESCAPE_ONE:
         return 1
     if method == ESCAPE_DISTINCT:
@@ -164,11 +180,16 @@ def estimate_ppm_bits(
     sample_limit: int = 4096,
     escape_method: int = ESCAPE_DISTINCT,
     update_exclusion: bool = False,
+    count_model: int = COUNT_RAW,
 ) -> float:
     if not 0 <= max_order <= 8:
         raise ValueError("PPM order outside supported range")
     if escape_method not in ESCAPE_METHODS:
         raise ValueError("invalid PPM escape method")
+    if count_model not in COUNT_MODELS:
+        raise ValueError("invalid PPM count model")
+    if count_model == COUNT_PPMD and escape_method != ESCAPE_DISTINCT:
+        raise ValueError("PPMD count model requires distinct escape mass")
 
     sample = data[:sample_limit]
     if not sample:
@@ -196,12 +217,12 @@ def estimate_ppm_bits(
                 continue
 
             assert counts is not None
-            mass = sum(counts[s] for s in symbols)
-            escape = _escape_mass(counts, symbols, escape_method)
+            mass = sum(_symbol_weight(counts[s], count_model) for s in symbols)
+            escape = _escape_mass(counts, symbols, escape_method, count_model=count_model)
             total = mass + escape
 
             if symbol in counts and symbol not in excluded:
-                bits += math.log2(total) - math.log2(counts[symbol])
+                bits += math.log2(total) - math.log2(_symbol_weight(counts[symbol], count_model))
                 coded = True
                 matched_order = order
                 break
@@ -230,6 +251,7 @@ def _encode_ppm_method(
     prefix_history: bytes,
     escape_method: int,
     update_exclusion: bool,
+    count_model: int,
 ) -> bytes:
     tables, history = _prime_from_history(
         prefix_history,
@@ -253,14 +275,14 @@ def _encode_ppm_method(
                 continue
 
             assert counts is not None
-            mass = sum(counts[s] for s in symbols)
-            escape = _escape_mass(counts, symbols, escape_method)
+            mass = sum(_symbol_weight(counts[s], count_model) for s in symbols)
+            escape = _escape_mass(counts, symbols, escape_method, count_model=count_model)
             total = mass + escape
 
             if symbol in counts and symbol not in excluded:
                 low = 0
                 for candidate in symbols:
-                    high = low + counts[candidate]
+                    high = low + _symbol_weight(counts[candidate], count_model)
                     if candidate == symbol:
                         encoder.encode(low, high, total)
                         coded = True
@@ -287,16 +309,13 @@ def _encode_ppm_method(
         )
 
     payload, bit_length = encoder.finish()
-    version = (
-        PPM_UPDATE_EXCLUSION_VERSION
-        if update_exclusion
-        else PPM_STANDARD_VERSION
-    )
-    return (
-        bytes((version, max_order, escape_method))
-        + vencode(bit_length)
-        + payload
-    )
+    if count_model == COUNT_RAW:
+        version = PPM_UPDATE_EXCLUSION_VERSION if update_exclusion else PPM_STANDARD_VERSION
+        header = bytes((version, max_order, escape_method))
+    else:
+        flags = (1 if update_exclusion else 0) | (count_model << 1)
+        header = bytes((PPM_DISCOUNTED_VERSION, max_order, escape_method, flags))
+    return header + vencode(bit_length) + payload
 
 
 def encode_ppm(
@@ -306,38 +325,38 @@ def encode_ppm(
     prefix_history: bytes = b"",
     escape_method: int | None = None,
     update_exclusion: bool | None = None,
+    count_model: int | None = None,
 ) -> bytes:
     if not 0 <= max_order <= 8:
         raise ValueError("PPM order outside supported range")
     if escape_method is not None and escape_method not in ESCAPE_METHODS:
         raise ValueError("invalid PPM escape method")
+    if count_model is not None and count_model not in COUNT_MODELS:
+        raise ValueError("invalid PPM count model")
 
-    variants = (
-        (False, True)
-        if update_exclusion is None
-        else (update_exclusion,)
-    )
-    methods = (
-        (escape_method,)
-        if escape_method is not None
-        else ESCAPE_METHODS
-    )
-
-    # Exact MDL selection across the requested generic PPM variants.
-    return min(
-        (
-            _encode_ppm_method(
-                data,
-                max_order=max_order,
-                prefix_history=prefix_history,
-                escape_method=method,
-                update_exclusion=variant,
-            )
-            for variant in variants
-            for method in methods
-        ),
-        key=len,
-    )
+    update_variants = (False, True) if update_exclusion is None else (update_exclusion,)
+    count_variants = COUNT_MODELS if count_model is None else (count_model,)
+    candidates: list[bytes] = []
+    for variant in update_variants:
+        for model in count_variants:
+            if model == COUNT_PPMD:
+                if escape_method not in (None, ESCAPE_DISTINCT):
+                    continue
+                methods = (ESCAPE_DISTINCT,)
+            else:
+                methods = (escape_method,) if escape_method is not None else ESCAPE_METHODS
+            for method in methods:
+                candidates.append(_encode_ppm_method(
+                    data,
+                    max_order=max_order,
+                    prefix_history=prefix_history,
+                    escape_method=method,
+                    update_exclusion=variant,
+                    count_model=model,
+                ))
+    if not candidates:
+        raise ValueError("no valid PPM variant requested")
+    return min(candidates, key=len)
 
 
 def decode_ppm(
@@ -350,6 +369,7 @@ def decode_ppm(
         2,
         PPM_STANDARD_VERSION,
         PPM_UPDATE_EXCLUSION_VERSION,
+        PPM_DISCOUNTED_VERSION,
     ):
         raise ValueError("unknown PPM version")
 
@@ -361,13 +381,27 @@ def decode_ppm(
     if escape_method not in ESCAPE_METHODS:
         raise ValueError("invalid PPM escape method")
 
-    bit_length, pos = vdecode(blob, 3)
+    count_model = COUNT_RAW
+    update_exclusion = version == PPM_UPDATE_EXCLUSION_VERSION
+    header_pos = 3
+    if version == PPM_DISCOUNTED_VERSION:
+        if len(blob) < 4:
+            raise ValueError("truncated discounted PPM header")
+        flags = blob[3]
+        update_exclusion = bool(flags & 1)
+        count_model = flags >> 1
+        if count_model != COUNT_PPMD or flags & ~0x03:
+            raise ValueError("invalid discounted PPM flags")
+        if escape_method != ESCAPE_DISTINCT:
+            raise ValueError("discounted PPM requires distinct escape mass")
+        header_pos = 4
+
+    bit_length, pos = vdecode(blob, header_pos)
     byte_length = (bit_length + 7) // 8
     if pos + byte_length != len(blob):
         raise ValueError("PPM payload length mismatch")
 
     decoder = _ArithmeticDecoder(blob[pos:], bit_length)
-    update_exclusion = version == PPM_UPDATE_EXCLUSION_VERSION
     if version == 2:
         tables, history = _fresh_legacy_state(prefix_history, max_order)
     else:
@@ -394,15 +428,15 @@ def decode_ppm(
                 continue
 
             assert counts is not None
-            mass = sum(counts[s] for s in symbols)
-            escape = _escape_mass(counts, symbols, escape_method)
+            mass = sum(_symbol_weight(counts[s], count_model) for s in symbols)
+            escape = _escape_mass(counts, symbols, escape_method, count_model=count_model)
             total = mass + escape
             target = decoder.target(total)
 
             if target < mass:
                 low = 0
                 for candidate in symbols:
-                    high = low + counts[candidate]
+                    high = low + _symbol_weight(counts[candidate], count_model)
                     if target < high:
                         decoder.update(low, high, total)
                         symbol = candidate
