@@ -1,0 +1,18 @@
+name: PPM selector probe
+on:
+  push:
+    branches: [cix-ppm-selector-eval]
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[fast-bwt]' brotli zstandard pytest
+      - run: python -m pytest -q
+      - run: python benchmarks/ppm_selector_probe.py
+      - run: python benchmarks/current_real_probe.py
