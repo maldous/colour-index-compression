@@ -2,7 +2,7 @@ name: Universal cross-corpus benchmark
 
 on:
   push:
-    branches: [main]
+    branches: [cix-universal-level6]
     paths:
       - ".github/workflows/universal-suite.yml"
   workflow_dispatch:
@@ -66,7 +66,7 @@ jobs:
           python benchmarks/universal_member.py
           --corpus "${{ matrix.corpus }}"
           --member "${{ matrix.member }}"
-          --level 9
+          --level 6
       - uses: actions/upload-artifact@v4
         if: always()
         with:
