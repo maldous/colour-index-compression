@@ -115,15 +115,24 @@ Higher levels may spend more time, but they do not enable format-specific logic.
 
 A change is not accepted merely because it improves Canterbury.
 
-Required general-purpose gates:
+Required evidence stack, in order:
 
-- Canterbury: fixed 11-file aggregate
-- Calgary: fixed 14-file aggregate
-- Canterbury Artificial: report every member individually, especially random input
-- Canterbury Large: report each fixed member individually rather than an overall average
-- Silesia
-- enwik8 / enwik9 when runtime permits
-- generated incompressible, biased, Markov, repetitive, numeric and mixed-regime streams
+1. Canterbury + Calgary + Canterbury Artificial. Canterbury and Calgary use fixed
+   aggregates; Artificial is reported member-by-member and is primarily a pathology gate.
+2. Silesia. This is the primary heterogeneous general-purpose leaderboard gate; all
+   12 files are compressed individually and their physical byte sizes are summed.
+3. Canterbury Large. Report each fixed member individually rather than inventing a single
+   average score.
+4. enwik8. Long-context/text-modelling gate at 100 MB.
+5. enwik9. Maximum-compression/text-modelling gate at 1 GB; apply its published benchmark
+   accounting rules separately from Silesia.
+6. Pizza & Chili Repetitive Corpus. Long-range repetition, deduplication and match-distance
+   stress.
+7. Frozen modern CIX real-world corpus. Immutable content-addressed contemporary assets,
+   added only after the public standard gates and never changed to favour CIX.
+
+Generated incompressible, biased, Markov, repetitive, numeric and mixed-regime streams
+remain fast architectural probes and do not replace any public corpus above.
 
 The Canterbury project itself describes Canterbury as the main comparison corpus,
 Calgary as an older fixed corpus, Artificial as pathological/outlier testing, and Large
