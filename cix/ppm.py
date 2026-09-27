@@ -305,7 +305,7 @@ def encode_ppm(
     max_order: int = 4,
     prefix_history: bytes = b"",
     escape_method: int | None = None,
-    update_exclusion: bool | None = False,
+    update_exclusion: bool | None = None,
 ) -> bytes:
     if not 0 <= max_order <= 8:
         raise ValueError("PPM order outside supported range")
