@@ -1,20 +1,15 @@
-name: PPM selector probe
+name: PPM wide physical probe
 on:
   push:
-    branches: [cix-order-wide-v2]
-  workflow_dispatch:
+    branches: [cix-order-wide-fast]
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -e '.[fast-bwt]' brotli zstandard pytest
-      - run: python -m pytest -q
-      - run: python benchmarks/ppm_selector_probe.py
-      - run: sed -i 's/ORDERS = (2, 3, 4)/ORDERS = (1, 2, 3, 4, 5, 6)/' benchmarks/ppm_selector_probe.py
-      - run: python benchmarks/ppm_selector_probe.py
+      - run: pip install -e '.[fast-bwt]' brotli zstandard
       - run: python benchmarks/current_real_probe.py
