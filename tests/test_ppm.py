@@ -77,6 +77,7 @@ def test_ppm_update_exclusion_round_trip_with_and_without_history():
                 max_order=order,
                 prefix_history=prefix,
                 update_exclusion=True,
+                count_model=COUNT_RAW,
             )
             assert payload[0] == 4
             assert decode_ppm(
