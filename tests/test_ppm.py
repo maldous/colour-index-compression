@@ -51,3 +51,40 @@ def test_ppm_warmup_is_deterministic_from_decoder_history():
         source_length=len(data),
         prefix_history=prefix,
     )==data
+
+
+def test_ppm_update_exclusion_round_trip_with_and_without_history():
+    cases = (
+        (b"", b"abracadabra abracadabra abracadabra " * 80),
+        (
+            b"shared recurring context sequence|" * 240,
+            b"shared recurring context sequence|" * 100,
+        ),
+        (bytes(range(64)) * 80, bytes(range(64)) * 25),
+    )
+    for prefix, data in cases:
+        for order in (2, 4):
+            payload = encode_ppm(
+                data,
+                max_order=order,
+                prefix_history=prefix,
+                update_exclusion=True,
+            )
+            assert payload[0] == 4
+            assert decode_ppm(
+                payload,
+                source_length=len(data),
+                prefix_history=prefix,
+            ) == data
+
+
+def test_ppm_variant_portfolio_selects_physical_minimum():
+    data = (
+        b"prediction by partial matching adapts repeated contexts and words. "
+        * 120
+    )
+    standard = encode_ppm(data, max_order=4, update_exclusion=False)
+    update_excluded = encode_ppm(data, max_order=4, update_exclusion=True)
+    portfolio = encode_ppm(data, max_order=4, update_exclusion=None)
+    assert len(portfolio) == min(len(standard), len(update_excluded))
+    assert decode_ppm(portfolio, source_length=len(data)) == data
