@@ -1,6 +1,6 @@
 import os
 
-from cix.ppm import decode_ppm, encode_ppm, estimate_ppm_bits
+from cix.ppm import PPM_SEE_VERSION, decode_ppm, encode_ppm, estimate_ppm_bits
 
 
 def test_ppm_round_trip_repetitive_and_random():
@@ -69,6 +69,7 @@ def test_ppm_update_exclusion_round_trip_with_and_without_history():
                 max_order=order,
                 prefix_history=prefix,
                 update_exclusion=True,
+                secondary_escape=False,
             )
             assert payload[0] == 4
             assert decode_ppm(
@@ -83,8 +84,66 @@ def test_ppm_variant_portfolio_selects_physical_minimum():
         b"prediction by partial matching adapts repeated contexts and words. "
         * 120
     )
-    standard = encode_ppm(data, max_order=4, update_exclusion=False)
-    update_excluded = encode_ppm(data, max_order=4, update_exclusion=True)
-    portfolio = encode_ppm(data, max_order=4, update_exclusion=None)
+    standard = encode_ppm(
+        data,
+        max_order=4,
+        update_exclusion=False,
+        secondary_escape=False,
+    )
+    update_excluded = encode_ppm(
+        data,
+        max_order=4,
+        update_exclusion=True,
+        secondary_escape=False,
+    )
+    portfolio = encode_ppm(
+        data,
+        max_order=4,
+        update_exclusion=None,
+        secondary_escape=False,
+    )
     assert len(portfolio) == min(len(standard), len(update_excluded))
+    assert decode_ppm(portfolio, source_length=len(data)) == data
+
+
+def test_ppm_secondary_escape_round_trip_with_history_and_update_variants():
+    prefix = b"secondary escape warm history|" * 180
+    data = b"secondary escape warm history|" * 90
+    for update_exclusion in (False, True):
+        payload = encode_ppm(
+            data,
+            max_order=4,
+            prefix_history=prefix,
+            update_exclusion=update_exclusion,
+            secondary_escape=True,
+        )
+        assert payload[0] == PPM_SEE_VERSION
+        assert decode_ppm(
+            payload,
+            source_length=len(data),
+            prefix_history=prefix,
+        ) == data
+
+
+def test_ppm_secondary_escape_is_exact_portfolio_competitor():
+    data = (
+        b"adaptive secondary escape probabilities follow recurring contexts. "
+        * 100
+    )
+    incumbent = encode_ppm(
+        data,
+        max_order=4,
+        secondary_escape=False,
+    )
+    secondary = encode_ppm(
+        data,
+        max_order=4,
+        secondary_escape=True,
+    )
+    portfolio = encode_ppm(
+        data,
+        max_order=4,
+        secondary_escape=None,
+    )
+    assert len(portfolio) == min(len(incumbent), len(secondary))
     assert decode_ppm(portfolio, source_length=len(data)) == data
