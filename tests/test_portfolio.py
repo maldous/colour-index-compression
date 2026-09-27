@@ -19,7 +19,7 @@ def test_lz_substreams_round_trip_and_exploit_repetition():
 
 
 
-def test_lz_optimal_candidate_round_trip():
+def test_lz_high_effort_candidate_round_trip():
     unit = b"0123456789abcdef--generic-pattern--"
     data = (unit * 90) + (unit[:17] * 20) + (unit * 40)
     payload, _ = encode_lz_block(
@@ -28,6 +28,25 @@ def test_lz_optimal_candidate_round_trip():
         chain=48,
     )
     assert decode_lz_block(payload, source_length=len(data)) == data
+
+def test_lz_sparse_long_match_round_trip():
+    # Strong literal models make sparse long matches a distinct high-effort
+    # regime; verify that the chain=96 tournament remains exactly reversible.
+    unit = b"generic-long-match-pattern-0123456789|"
+    data = (
+        unit * 40
+        + bytes(range(128)) * 4
+        + unit * 30
+        + b"middle-residual-" * 40
+        + unit * 35
+    )
+    payload, _ = encode_lz_block(
+        data,
+        context_models=(ContextModel(1, 8), ContextModel(2, 10)),
+        chain=96,
+    )
+    assert decode_lz_block(payload, source_length=len(data)) == data
+
 
 def test_lz_uses_previous_stream_history():
     prefix = b"shared-dictionary-sequence:" * 100
