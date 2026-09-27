@@ -1027,7 +1027,7 @@ def encode_best_block(
         and _looks_bwt_worthy(block)
     ):
         try:
-            from .ppm import encode_ppm, estimate_ppm_bits
+            from .ppm import encode_ppm, estimate_ppm_portfolio_bits
 
             order_candidates = sorted(
                 {
@@ -1038,10 +1038,11 @@ def encode_best_block(
             )
             profiled_ppm = sorted(
                 (
-                    estimate_ppm_bits(
+                    estimate_ppm_portfolio_bits(
                         block,
                         max_order=order,
                         prefix_history=prefix_history,
+                        sample_limit=len(block),
                     ),
                     order,
                 )

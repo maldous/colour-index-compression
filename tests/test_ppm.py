@@ -1,6 +1,12 @@
 import os
 
-from cix.ppm import PPM_SEE_VERSION, decode_ppm, encode_ppm, estimate_ppm_bits
+from cix.ppm import (
+    PPM_SEE_VERSION,
+    decode_ppm,
+    encode_ppm,
+    estimate_ppm_bits,
+    estimate_ppm_portfolio_bits,
+)
 
 
 def test_ppm_round_trip_repetitive_and_random():
@@ -147,3 +153,23 @@ def test_ppm_secondary_escape_is_exact_portfolio_competitor():
     )
     assert len(portfolio) == min(len(incumbent), len(secondary))
     assert decode_ppm(portfolio, source_length=len(data)) == data
+
+
+def test_ppm_portfolio_estimator_tracks_exact_order_winner():
+    data = (
+        b"adaptive order selection should follow the models actually encoded. "
+        * 160
+    )
+    exact = {
+        order: len(encode_ppm(data, max_order=order))
+        for order in (2, 3, 4)
+    }
+    estimated = {
+        order: estimate_ppm_portfolio_bits(
+            data,
+            max_order=order,
+            sample_limit=len(data),
+        )
+        for order in (2, 3, 4)
+    }
+    assert min(estimated, key=estimated.get) == min(exact, key=exact.get)

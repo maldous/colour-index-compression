@@ -319,6 +319,111 @@ def estimate_ppm_bits(
     return bits * (len(data) / len(sample))
 
 
+
+def _estimate_ppm_portfolio_variant_bits(
+    data: bytes,
+    *,
+    max_order: int,
+    prefix_history: bytes,
+    sample_limit: int,
+    update_exclusion: bool,
+) -> float:
+    """Estimate all active escape models for one update policy in one shared pass."""
+    sample = data[:sample_limit]
+    if not sample:
+        return 0.0
+
+    tables, history, states = _prime_see_from_history(
+        prefix_history,
+        len(data),
+        max_order,
+        update_exclusion=update_exclusion,
+    )
+    fixed_bits = {method: 0.0 for method in ESCAPE_METHODS}
+    see_bits = 0.0
+
+    for symbol in sample:
+        excluded: set[int] = set()
+        coded = False
+        matched_order = 0
+        highest = min(max_order, len(history))
+
+        for order in range(highest, -1, -1):
+            counts = tables.get(_ctx(history, order))
+            symbols = _eligible(counts, excluded)
+            if not symbols:
+                continue
+
+            assert counts is not None
+            mass = sum(counts[s] for s in symbols)
+            key = _see_key(order, counts, symbols)
+            escape_count, hit_count = _see_state(states, key)
+            event_total = escape_count + hit_count
+            hit = symbol in counts and symbol not in excluded
+
+            if hit:
+                count = counts[symbol]
+                for method in ESCAPE_METHODS:
+                    escape = _escape_mass(counts, symbols, method)
+                    fixed_bits[method] += math.log2(mass + escape) - math.log2(count)
+                see_bits += math.log2(event_total) - math.log2(hit_count)
+                see_bits += math.log2(mass) - math.log2(count)
+                _see_update(states, key, escaped=False)
+                coded = True
+                matched_order = order
+                break
+
+            for method in ESCAPE_METHODS:
+                escape = _escape_mass(counts, symbols, method)
+                fixed_bits[method] += math.log2(mass + escape) - math.log2(escape)
+            see_bits += math.log2(event_total) - math.log2(escape_count)
+            _see_update(states, key, escaped=True)
+            excluded.update(symbols)
+
+        if not coded:
+            fallback = math.log2(max(1, 256 - len(excluded)))
+            for method in ESCAPE_METHODS:
+                fixed_bits[method] += fallback
+            see_bits += fallback
+
+        _observe_symbol(
+            tables,
+            history,
+            symbol,
+            max_order,
+            min_order=matched_order if update_exclusion else 0,
+        )
+
+    scale = len(data) / len(sample)
+    return min(min(fixed_bits.values()), see_bits) * scale
+
+
+def estimate_ppm_portfolio_bits(
+    data: bytes,
+    *,
+    max_order: int,
+    prefix_history: bytes = b"",
+    sample_limit: int = 4096,
+) -> float:
+    """Estimate the best currently encodable PPM variant for order selection."""
+    if not 0 <= max_order <= 8:
+        raise ValueError("PPM order outside supported range")
+    if sample_limit <= 0:
+        raise ValueError("sample_limit must be positive")
+    if not data:
+        return 0.0
+
+    return min(
+        _estimate_ppm_portfolio_variant_bits(
+            data,
+            max_order=max_order,
+            prefix_history=prefix_history,
+            sample_limit=sample_limit,
+            update_exclusion=update_exclusion,
+        )
+        for update_exclusion in (False, True)
+    )
+
 def _encode_ppm_method(
     data: bytes,
     *,
