@@ -716,6 +716,7 @@ class StreamConfig:
     enable_ppm: bool = True
     ppm_order: int = 4
     ppm_beam: int = 1
+    ppm_orders: tuple[int, ...] = ()
     enable_expert_mix: bool = True
     expert_orders: tuple[int, ...] = (0, 1, 2, 4)
     enable_wavelet: bool = True
@@ -744,7 +745,8 @@ class StreamConfig:
             structured_block_target=65536,
             enable_ppm=True,
             ppm_order=6,
-            ppm_beam=2,
+            ppm_beam=6,
+            ppm_orders=(1, 2, 3, 4, 5, 6),
             enable_expert_mix=True,
             expert_orders=(0, 1, 2, 3, 4, 6),
             enable_fixed_mix=True,
@@ -1029,13 +1031,19 @@ def encode_best_block(
         try:
             from .ppm import encode_ppm, estimate_ppm_portfolio_bits
 
-            order_candidates = sorted(
-                {
-                    max(0, config.ppm_order - 2),
-                    max(0, config.ppm_order - 1),
-                    config.ppm_order,
-                }
+            order_candidates = (
+                sorted(set(config.ppm_orders))
+                if config.ppm_orders
+                else sorted(
+                    {
+                        max(0, config.ppm_order - 2),
+                        max(0, config.ppm_order - 1),
+                        config.ppm_order,
+                    }
+                )
             )
+            if any(order < 0 or order > 8 for order in order_candidates):
+                raise ValueError("PPM order candidate outside supported range")
             profiled_ppm = sorted(
                 (
                     estimate_ppm_portfolio_bits(
