@@ -90,13 +90,15 @@ def main():
 
     old_total = 0
     new_total = 0
+    full_total = 0
     exact_total = 0
     improved = 0
     worsened = 0
     exact_hits_old = 0
     exact_hits_new = 0
+    exact_hits_full = 0
 
-    print("case bytes exact old new old_size new_size best_size")
+    print("case bytes exact old new full old_size new_size full_size best_size")
     for name, data in sources.items():
         prefix = b""
         exact = {}
