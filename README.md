@@ -73,8 +73,21 @@ The CIX stream is open-ended:
 - `--extreme` — broad bounded search
 - expert controls for chunking, history and generic model families
 
-## Benchmark rule
+## Benchmark evidence stack
 
-Canterbury alone is not an optimization target. A codec change should be judged across
-multiple fixed standard corpora and pathological inputs. Improvements that merely trade
-one corpus-specific trick for another do not count as architectural progress.
+CIX uses a fixed evidence order. A result does not graduate to a stronger claim until it
+survives the earlier tiers under the same format-agnostic codec policy.
+
+1. Canterbury + Calgary + Artificial — fast architectural gate and pathological checks.
+2. Silesia — primary heterogeneous general-purpose leaderboard gate.
+3. Canterbury Large — large-file scaling, reported per member rather than as one average.
+4. enwik8 — 100 MB long-context/text modelling gate.
+5. enwik9 — 1 GB maximum-compression/text-modelling gate.
+6. Pizza & Chili Repetitive Corpus — long-range repetition and deduplication stress.
+7. Frozen modern CIX real-world corpus — immutable, hashed contemporary formats and mixed
+   assets, used only after the public standard corpora.
+
+Canterbury alone is not an optimization target. Improvements that merely trade one
+corpus-specific trick for another do not count as architectural progress. Silesia is the
+first benchmark used for an external leaderboard-style claim because its published
+score is the total number of bytes from compressing its 12 files individually.
