@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from cix.multinomial import StreamConfig
+from cix.cli import config_for_level
 from cix.transforms import SPECS
 from cix.record import BASE_WIDTHS
 
@@ -53,3 +54,10 @@ def test_record_width_priors_are_generic():
     # never embedded in the canonical candidate list.
     assert 216 not in BASE_WIDTHS
     assert 432 not in BASE_WIDTHS
+
+
+def test_maximum_effort_preserves_fine_chunk_search():
+    level8 = config_for_level(8)
+    level9 = config_for_level(9)
+    assert level9.min_block <= level8.min_block
+    assert level9.probe_stride <= level8.probe_stride
