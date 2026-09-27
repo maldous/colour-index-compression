@@ -1029,12 +1029,11 @@ def encode_best_block(
         try:
             from .ppm import encode_ppm, estimate_ppm_portfolio_bits
 
-            order_candidates = sorted(
-                {
-                    max(0, config.ppm_order - 2),
-                    max(0, config.ppm_order - 1),
-                    config.ppm_order,
-                }
+            order_candidates = list(
+                range(
+                    max(0, config.ppm_order - 3),
+                    min(8, config.ppm_order + 2) + 1,
+                )
             )
             profiled_ppm = sorted(
                 (
