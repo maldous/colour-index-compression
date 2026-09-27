@@ -11,6 +11,7 @@ import lzma
 import tarfile
 import time
 import urllib.request
+import zipfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -25,6 +26,7 @@ CORPORA = {
     "calgary": "https://corpus.canterbury.ac.nz/resources/calgary.tar.gz",
     "artificial": "https://corpus.canterbury.ac.nz/resources/artificl.tar.gz",
     "large": "https://corpus.canterbury.ac.nz/resources/large.tar.gz",
+    "silesia": "https://mattmahoney.net/dc/silesia.zip",
 }
 
 
@@ -49,6 +51,22 @@ def ratio(size: int, original: int) -> float:
 
 
 def member_bytes(corpus: str, member_name: str, work: Path) -> bytes:
+    if corpus == "silesia":
+        archive = work / "silesia.zip"
+        if not archive.exists():
+            urllib.request.urlretrieve(CORPORA[corpus], archive)
+        with zipfile.ZipFile(archive) as zf:
+            matches = [
+                info for info in zf.infolist()
+                if not info.is_dir() and Path(info.filename).name == member_name
+            ]
+            if len(matches) != 1:
+                raise RuntimeError(
+                    f"{corpus}/{member_name}: expected exactly one archive member, "
+                    f"found {len(matches)}"
+                )
+            return zf.read(matches[0])
+
     archive = work / f"{corpus}.tar.gz"
     if not archive.exists():
         urllib.request.urlretrieve(CORPORA[corpus], archive)
