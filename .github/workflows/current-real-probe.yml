@@ -1,7 +1,7 @@
-name: Current universal real probe
+name: PPM LOE probe
 on:
   push:
-    branches: [main]
+    branches: [cix-ppm-loe]
     paths:
       - "cix/**"
       - "tests/**"
@@ -19,5 +19,5 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -e '.[fast-bwt]' brotli zstandard pytest
-      - run: python -m pytest -q
-      - run: python benchmarks/current_real_probe.py
+      - run: python -m pytest -q tests/test_ppm.py
+      - run: python benchmarks/ppm_loe_probe.py

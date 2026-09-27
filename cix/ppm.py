@@ -14,6 +14,7 @@ PPM_VERSION = 4
 PPM_STANDARD_VERSION = 3
 PPM_UPDATE_EXCLUSION_VERSION = 4
 PPM_SEE_VERSION = 5
+PPM_LOE_VERSION = 6
 SEE_PRIOR_ESCAPE = 1
 SEE_PRIOR_HIT = 2
 SEE_RESCALE_LIMIT = 256
@@ -220,6 +221,101 @@ def _prime_see_from_history(
         matched_order = 0
         highest = min(max_order, len(history))
         for order in range(highest, -1, -1):
+            counts = tables.get(_ctx(history, order))
+            symbols = _eligible(counts, excluded)
+            if not symbols:
+                continue
+            assert counts is not None
+            key = _see_key(order, counts, symbols)
+            hit = symbol in counts and symbol not in excluded
+            _see_update(states, key, escaped=not hit)
+            if hit:
+                matched_order = order
+                break
+            excluded.update(symbols)
+
+        _observe_symbol(
+            tables,
+            history,
+            symbol,
+            max_order,
+            min_order=matched_order if update_exclusion else 0,
+        )
+
+    return tables, history, states
+
+
+
+def _loe_start_order(
+    tables: dict[bytes, dict[int, int]],
+    history: bytearray,
+    max_order: int,
+) -> int:
+    """Choose the local PPM start order from MPS probability.
+
+    The rule is causal and format-agnostic: among currently matching contexts,
+    choose the order whose most-probable symbol has the highest empirical
+    probability. Ties prefer the longer context.
+    """
+    highest = min(max_order, len(history))
+    best_order = highest
+    best_peak = 0
+    best_total = 1
+    found = False
+    for order in range(highest, -1, -1):
+        counts = tables.get(_ctx(history, order))
+        if not counts:
+            continue
+        total = sum(counts.values())
+        peak = max(counts.values())
+        if (
+            not found
+            or peak * best_total > best_peak * total
+            or (
+                peak * best_total == best_peak * total
+                and order > best_order
+            )
+        ):
+            best_order = order
+            best_peak = peak
+            best_total = total
+            found = True
+    return best_order
+
+
+def _prime_loe_see_from_history(
+    prefix_history: bytes,
+    block_length: int,
+    max_order: int,
+    *,
+    update_exclusion: bool,
+) -> tuple[
+    dict[bytes, dict[int, int]],
+    bytearray,
+    dict[tuple[int, int, int], tuple[int, int]],
+]:
+    """Warm LOE counts and SEE state using the same causal choices as coding."""
+    tables: dict[bytes, dict[int, int]] = {}
+    history = bytearray()
+    states: dict[tuple[int, int, int], tuple[int, int]] = {}
+    if not prefix_history:
+        return tables, history, states
+
+    training_length = min(
+        len(prefix_history),
+        PPM_HISTORY_MAX,
+        max(PPM_HISTORY_MIN, block_length * 2),
+    )
+    start = len(prefix_history) - training_length
+    if max_order and start:
+        history.extend(prefix_history[max(0, start - max_order) : start])
+
+    for symbol in prefix_history[start:]:
+        excluded: set[int] = set()
+        matched_order = 0
+        start_order = _loe_start_order(tables, history, max_order)
+
+        for order in range(start_order, -1, -1):
             counts = tables.get(_ctx(history, order))
             symbols = _eligible(counts, excluded)
             if not symbols:
@@ -659,6 +755,165 @@ def _decode_ppm_see(
     return bytes(out)
 
 
+
+def _encode_ppm_loe(
+    data: bytes,
+    *,
+    max_order: int,
+    prefix_history: bytes,
+    update_exclusion: bool,
+) -> bytes:
+    tables, history, states = _prime_loe_see_from_history(
+        prefix_history,
+        len(data),
+        max_order,
+        update_exclusion=update_exclusion,
+    )
+    encoder = _ArithmeticEncoder()
+
+    for symbol in data:
+        excluded: set[int] = set()
+        coded = False
+        matched_order = 0
+        start_order = _loe_start_order(tables, history, max_order)
+
+        for order in range(start_order, -1, -1):
+            counts = tables.get(_ctx(history, order))
+            symbols = _eligible(counts, excluded)
+            if not symbols:
+                continue
+
+            assert counts is not None
+            key = _see_key(order, counts, symbols)
+            escape_count, hit_count = _see_state(states, key)
+            event_total = escape_count + hit_count
+            hit = symbol in counts and symbol not in excluded
+
+            if hit:
+                encoder.encode(0, hit_count, event_total)
+                mass = sum(counts[s] for s in symbols)
+                low = 0
+                for candidate in symbols:
+                    high = low + counts[candidate]
+                    if candidate == symbol:
+                        encoder.encode(low, high, mass)
+                        coded = True
+                        matched_order = order
+                        break
+                    low = high
+                _see_update(states, key, escaped=False)
+                break
+
+            encoder.encode(hit_count, event_total, event_total)
+            _see_update(states, key, escaped=True)
+            excluded.update(symbols)
+
+        if not coded:
+            remaining = [s for s in range(256) if s not in excluded]
+            rank = remaining.index(symbol)
+            encoder.encode(rank, rank + 1, len(remaining))
+
+        _observe_symbol(
+            tables,
+            history,
+            symbol,
+            max_order,
+            min_order=matched_order if update_exclusion else 0,
+        )
+
+    payload, bit_length = encoder.finish()
+    flags = 1 if update_exclusion else 0
+    return bytes((PPM_LOE_VERSION, max_order, flags)) + vencode(bit_length) + payload
+
+
+def _decode_ppm_loe(
+    blob: bytes,
+    *,
+    source_length: int,
+    prefix_history: bytes,
+) -> bytes:
+    if len(blob) < 3 or blob[0] != PPM_LOE_VERSION:
+        raise ValueError("invalid PPM LOE payload")
+    max_order = blob[1]
+    flags = blob[2]
+    if not 0 <= max_order <= 8 or flags & ~1:
+        raise ValueError("invalid PPM LOE header")
+    update_exclusion = bool(flags & 1)
+
+    bit_length, pos = vdecode(blob, 3)
+    byte_length = (bit_length + 7) // 8
+    if pos + byte_length != len(blob):
+        raise ValueError("PPM LOE payload length mismatch")
+
+    decoder = _ArithmeticDecoder(blob[pos:], bit_length)
+    tables, history, states = _prime_loe_see_from_history(
+        prefix_history,
+        source_length,
+        max_order,
+        update_exclusion=update_exclusion,
+    )
+    out = bytearray()
+
+    for _ in range(source_length):
+        excluded: set[int] = set()
+        symbol = None
+        matched_order = 0
+        start_order = _loe_start_order(tables, history, max_order)
+
+        for order in range(start_order, -1, -1):
+            counts = tables.get(_ctx(history, order))
+            symbols = _eligible(counts, excluded)
+            if not symbols:
+                continue
+
+            assert counts is not None
+            key = _see_key(order, counts, symbols)
+            escape_count, hit_count = _see_state(states, key)
+            event_total = escape_count + hit_count
+            target = decoder.target(event_total)
+
+            if target < hit_count:
+                decoder.update(0, hit_count, event_total)
+                mass = sum(counts[s] for s in symbols)
+                symbol_target = decoder.target(mass)
+                low = 0
+                for candidate in symbols:
+                    high = low + counts[candidate]
+                    if symbol_target < high:
+                        decoder.update(low, high, mass)
+                        symbol = candidate
+                        matched_order = order
+                        break
+                    low = high
+                if symbol is None:
+                    raise ValueError("PPM LOE symbol interval not found")
+                _see_update(states, key, escaped=False)
+                break
+
+            decoder.update(hit_count, event_total, event_total)
+            _see_update(states, key, escaped=True)
+            excluded.update(symbols)
+
+        if symbol is None:
+            remaining = [s for s in range(256) if s not in excluded]
+            target = decoder.target(len(remaining))
+            if not 0 <= target < len(remaining):
+                raise ValueError("PPM LOE fallback outside alphabet")
+            symbol = remaining[target]
+            decoder.update(target, target + 1, len(remaining))
+
+        out.append(symbol)
+        _observe_symbol(
+            tables,
+            history,
+            symbol,
+            max_order,
+            min_order=matched_order if update_exclusion else 0,
+        )
+
+    return bytes(out)
+
+
 def encode_ppm(
     data: bytes,
     *,
@@ -667,6 +922,7 @@ def encode_ppm(
     escape_method: int | None = None,
     update_exclusion: bool | None = None,
     secondary_escape: bool | None = None,
+    local_order: bool | None = None,
 ) -> bytes:
     if not 0 <= max_order <= 8:
         raise ValueError("PPM order outside supported range")
@@ -687,7 +943,7 @@ def encode_ppm(
     # Exact physical selection: incumbent escape laws remain available and
     # secondary escape estimation is an additional reversible competitor.
     candidates: list[bytes] = []
-    if secondary_escape is not True:
+    if local_order is not True and secondary_escape is not True:
         candidates.extend(
             _encode_ppm_method(
                 data,
@@ -699,9 +955,19 @@ def encode_ppm(
             for variant in variants
             for method in methods
         )
-    if secondary_escape is not False:
+    if local_order is not True and secondary_escape is not False:
         candidates.extend(
             _encode_ppm_see(
+                data,
+                max_order=max_order,
+                prefix_history=prefix_history,
+                update_exclusion=variant,
+            )
+            for variant in variants
+        )
+    if local_order is not False and secondary_escape is not False:
+        candidates.extend(
+            _encode_ppm_loe(
                 data,
                 max_order=max_order,
                 prefix_history=prefix_history,
@@ -724,6 +990,12 @@ def decode_ppm(
         raise ValueError("truncated PPM payload")
     if blob[0] == PPM_SEE_VERSION:
         return _decode_ppm_see(
+            blob,
+            source_length=source_length,
+            prefix_history=prefix_history,
+        )
+    if blob[0] == PPM_LOE_VERSION:
+        return _decode_ppm_loe(
             blob,
             source_length=source_length,
             prefix_history=prefix_history,

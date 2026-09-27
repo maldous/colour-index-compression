@@ -173,3 +173,49 @@ def test_ppm_portfolio_estimator_tracks_exact_order_winner():
         for order in (2, 3, 4)
     }
     assert min(estimated, key=estimated.get) == min(exact, key=exact.get)
+
+
+def test_ppm_local_order_estimation_is_reversible_competitor():
+    prefix = (
+        b"causal model history with several repeated local contexts "
+        b"and changing continuation statistics "
+    ) * 48
+    data = (
+        b"local context alpha alpha alpha beta "
+        b"local context alpha alpha gamma beta "
+    ) * 96
+
+    incumbent = encode_ppm(
+        data,
+        max_order=4,
+        prefix_history=prefix,
+        local_order=False,
+    )
+    loe = encode_ppm(
+        data,
+        max_order=4,
+        prefix_history=prefix,
+        local_order=True,
+    )
+    portfolio = encode_ppm(
+        data,
+        max_order=4,
+        prefix_history=prefix,
+    )
+
+    assert decode_ppm(
+        incumbent,
+        source_length=len(data),
+        prefix_history=prefix,
+    ) == data
+    assert decode_ppm(
+        loe,
+        source_length=len(data),
+        prefix_history=prefix,
+    ) == data
+    assert decode_ppm(
+        portfolio,
+        source_length=len(data),
+        prefix_history=prefix,
+    ) == data
+    assert len(portfolio) == min(len(incumbent), len(loe))
