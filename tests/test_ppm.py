@@ -1,6 +1,12 @@
 import os
 
-from cix.ppm import (\n    PPM_SEE_VERSION,\n    decode_ppm,\n    encode_ppm,\n    estimate_ppm_bits,\n    estimate_ppm_portfolio_bits,\n)
+from cix.ppm import (
+    PPM_SEE_VERSION,
+    decode_ppm,
+    encode_ppm,
+    estimate_ppm_bits,
+    estimate_ppm_portfolio_bits,
+)
 
 
 def test_ppm_round_trip_repetitive_and_random():
