@@ -18,7 +18,7 @@ from cix.ppm import (
     estimate_ppm_portfolio_bits,
 )
 
-ORDERS = (2, 3, 4)
+ORDERS = (0, 1, 2, 3, 4, 5, 6)
 BLOCK = 16384
 
 FILES = {
