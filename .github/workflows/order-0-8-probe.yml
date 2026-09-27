@@ -1,0 +1,16 @@
+name: PPM order 0-8 physical probe
+on:
+  push:
+    branches: [cix-order-0-8-probe]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[fast-bwt]' brotli zstandard pytest
+      - run: python -m pytest -q
+      - run: python benchmarks/current_real_probe.py
