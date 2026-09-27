@@ -7,8 +7,8 @@ import argparse
 import json
 from pathlib import Path
 
-AGGREGATE_CORPORA = {"canterbury", "calgary"}
-ORDER = ("canterbury", "calgary", "artificial", "large")
+AGGREGATE_CORPORA = {"canterbury", "calgary", "silesia"}
+ORDER = ("canterbury", "calgary", "artificial", "silesia", "large")
 
 
 def ratio(size: int, original: int) -> float:
