@@ -1,0 +1,15 @@
+name: Context gate probe
+on:
+  push:
+    branches: [cix-context-gate-probe]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[fast-bwt]'
+      - run: python benchmarks/context_gate_probe.py
