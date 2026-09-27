@@ -13,18 +13,10 @@ from .multinomial import _ArithmeticDecoder, _ArithmeticEncoder, vdecode, vencod
 PPM_VERSION = 4
 PPM_STANDARD_VERSION = 3
 PPM_UPDATE_EXCLUSION_VERSION = 4
-PPM_DISCOUNTED_VERSION = 5
-COUNT_RAW = 0
-COUNT_D025 = 1
-COUNT_D050 = 2
-COUNT_D075 = 3
-COUNT_PPMD = COUNT_D050
-COUNT_MODELS = (COUNT_RAW, COUNT_D025, COUNT_D050, COUNT_D075)
-DISCOUNT_PARAMS = {
-    COUNT_D025: (4, 1),
-    COUNT_D050: (2, 1),
-    COUNT_D075: (4, 3),
-}
+PPM_SEE_VERSION = 5
+SEE_PRIOR_ESCAPE = 1
+SEE_PRIOR_HIT = 2
+SEE_RESCALE_LIMIT = 256
 CONTEXT_LIMIT = 16384
 PPM_HISTORY_MAX = 65536
 PPM_HISTORY_MIN = 4096
@@ -58,29 +50,11 @@ def _eligible(counts: dict[int, int] | None, excluded: set[int]) -> list[int]:
     return [symbol for symbol in sorted(counts) if symbol not in excluded]
 
 
-def _symbol_weight(count: int, count_model: int) -> int:
-    if count_model == COUNT_RAW:
-        return count
-    params = DISCOUNT_PARAMS.get(count_model)
-    if params is None:
-        raise ValueError("unknown PPM count model")
-    scale, discount = params
-    return max(1, scale * count - discount)
-
-
 def _escape_mass(
     counts: dict[int, int],
     symbols: list[int],
     method: int,
-    *,
-    count_model: int = COUNT_RAW,
 ) -> int:
-    if count_model != COUNT_RAW:
-        params = DISCOUNT_PARAMS.get(count_model)
-        if params is None:
-            raise ValueError("unknown PPM count model")
-        _, discount = params
-        return max(1, discount * len(symbols))
     if method == ESCAPE_ONE:
         return 1
     if method == ESCAPE_DISTINCT:
@@ -90,6 +64,42 @@ def _escape_mass(
     if method == ESCAPE_SINGLETONS:
         return max(1, sum(1 for symbol in symbols if counts[symbol] == 1))
     raise ValueError("unknown PPM escape method")
+
+
+def _see_key(
+    order: int,
+    counts: dict[int, int],
+    symbols: list[int],
+) -> tuple[int, int, int]:
+    """Coarse secondary context for adaptive escape estimation."""
+    total = sum(counts[symbol] for symbol in symbols)
+    distinct_bucket = min(7, max(1, len(symbols)).bit_length() - 1)
+    total_bucket = min(15, max(1, total).bit_length() - 1)
+    return order, distinct_bucket, total_bucket
+
+
+def _see_state(
+    states: dict[tuple[int, int, int], tuple[int, int]],
+    key: tuple[int, int, int],
+) -> tuple[int, int]:
+    return states.get(key, (SEE_PRIOR_ESCAPE, SEE_PRIOR_HIT))
+
+
+def _see_update(
+    states: dict[tuple[int, int, int], tuple[int, int]],
+    key: tuple[int, int, int],
+    *,
+    escaped: bool,
+) -> None:
+    escape_count, hit_count = _see_state(states, key)
+    if escaped:
+        escape_count += 1
+    else:
+        hit_count += 1
+    if escape_count + hit_count > SEE_RESCALE_LIMIT:
+        escape_count = max(1, (escape_count + 1) // 2)
+        hit_count = max(1, (hit_count + 1) // 2)
+    states[key] = (escape_count, hit_count)
 
 
 def _observe_symbol(
@@ -178,6 +188,62 @@ def _prime_from_history(
     return tables, history
 
 
+def _prime_see_from_history(
+    prefix_history: bytes,
+    block_length: int,
+    max_order: int,
+    *,
+    update_exclusion: bool,
+) -> tuple[
+    dict[bytes, dict[int, int]],
+    bytearray,
+    dict[tuple[int, int, int], tuple[int, int]],
+]:
+    """Warm both PPM counts and secondary escape statistics from history."""
+    tables: dict[bytes, dict[int, int]] = {}
+    history = bytearray()
+    states: dict[tuple[int, int, int], tuple[int, int]] = {}
+    if not prefix_history:
+        return tables, history, states
+
+    training_length = min(
+        len(prefix_history),
+        PPM_HISTORY_MAX,
+        max(PPM_HISTORY_MIN, block_length * 2),
+    )
+    start = len(prefix_history) - training_length
+    if max_order and start:
+        history.extend(prefix_history[max(0, start - max_order) : start])
+
+    for symbol in prefix_history[start:]:
+        excluded: set[int] = set()
+        matched_order = 0
+        highest = min(max_order, len(history))
+        for order in range(highest, -1, -1):
+            counts = tables.get(_ctx(history, order))
+            symbols = _eligible(counts, excluded)
+            if not symbols:
+                continue
+            assert counts is not None
+            key = _see_key(order, counts, symbols)
+            hit = symbol in counts and symbol not in excluded
+            _see_update(states, key, escaped=not hit)
+            if hit:
+                matched_order = order
+                break
+            excluded.update(symbols)
+
+        _observe_symbol(
+            tables,
+            history,
+            symbol,
+            max_order,
+            min_order=matched_order if update_exclusion else 0,
+        )
+
+    return tables, history, states
+
+
 def _fresh_legacy_state(
     prefix_history: bytes,
     max_order: int,
@@ -194,16 +260,11 @@ def estimate_ppm_bits(
     sample_limit: int = 4096,
     escape_method: int = ESCAPE_DISTINCT,
     update_exclusion: bool = False,
-    count_model: int = COUNT_RAW,
 ) -> float:
     if not 0 <= max_order <= 8:
         raise ValueError("PPM order outside supported range")
     if escape_method not in ESCAPE_METHODS:
         raise ValueError("invalid PPM escape method")
-    if count_model not in COUNT_MODELS:
-        raise ValueError("invalid PPM count model")
-    if count_model != COUNT_RAW and escape_method != ESCAPE_DISTINCT:
-        raise ValueError("discounted PPM count model requires distinct escape mass")
 
     sample = data[:sample_limit]
     if not sample:
@@ -231,12 +292,12 @@ def estimate_ppm_bits(
                 continue
 
             assert counts is not None
-            mass = sum(_symbol_weight(counts[s], count_model) for s in symbols)
-            escape = _escape_mass(counts, symbols, escape_method, count_model=count_model)
+            mass = sum(counts[s] for s in symbols)
+            escape = _escape_mass(counts, symbols, escape_method)
             total = mass + escape
 
             if symbol in counts and symbol not in excluded:
-                bits += math.log2(total) - math.log2(_symbol_weight(counts[symbol], count_model))
+                bits += math.log2(total) - math.log2(counts[symbol])
                 coded = True
                 matched_order = order
                 break
@@ -265,7 +326,6 @@ def _encode_ppm_method(
     prefix_history: bytes,
     escape_method: int,
     update_exclusion: bool,
-    count_model: int,
 ) -> bytes:
     tables, history = _prime_from_history(
         prefix_history,
@@ -289,14 +349,14 @@ def _encode_ppm_method(
                 continue
 
             assert counts is not None
-            mass = sum(_symbol_weight(counts[s], count_model) for s in symbols)
-            escape = _escape_mass(counts, symbols, escape_method, count_model=count_model)
+            mass = sum(counts[s] for s in symbols)
+            escape = _escape_mass(counts, symbols, escape_method)
             total = mass + escape
 
             if symbol in counts and symbol not in excluded:
                 low = 0
                 for candidate in symbols:
-                    high = low + _symbol_weight(counts[candidate], count_model)
+                    high = low + counts[candidate]
                     if candidate == symbol:
                         encoder.encode(low, high, total)
                         coded = True
@@ -323,13 +383,175 @@ def _encode_ppm_method(
         )
 
     payload, bit_length = encoder.finish()
-    if count_model == COUNT_RAW:
-        version = PPM_UPDATE_EXCLUSION_VERSION if update_exclusion else PPM_STANDARD_VERSION
-        header = bytes((version, max_order, escape_method))
-    else:
-        flags = (1 if update_exclusion else 0) | (count_model << 1)
-        header = bytes((PPM_DISCOUNTED_VERSION, max_order, escape_method, flags))
-    return header + vencode(bit_length) + payload
+    version = (
+        PPM_UPDATE_EXCLUSION_VERSION
+        if update_exclusion
+        else PPM_STANDARD_VERSION
+    )
+    return (
+        bytes((version, max_order, escape_method))
+        + vencode(bit_length)
+        + payload
+    )
+
+
+
+def _encode_ppm_see(
+    data: bytes,
+    *,
+    max_order: int,
+    prefix_history: bytes,
+    update_exclusion: bool,
+) -> bytes:
+    tables, history, states = _prime_see_from_history(
+        prefix_history,
+        len(data),
+        max_order,
+        update_exclusion=update_exclusion,
+    )
+    encoder = _ArithmeticEncoder()
+
+    for symbol in data:
+        excluded: set[int] = set()
+        coded = False
+        matched_order = 0
+        highest = min(max_order, len(history))
+
+        for order in range(highest, -1, -1):
+            counts = tables.get(_ctx(history, order))
+            symbols = _eligible(counts, excluded)
+            if not symbols:
+                continue
+
+            assert counts is not None
+            key = _see_key(order, counts, symbols)
+            escape_count, hit_count = _see_state(states, key)
+            event_total = escape_count + hit_count
+            hit = symbol in counts and symbol not in excluded
+
+            if hit:
+                encoder.encode(0, hit_count, event_total)
+                mass = sum(counts[s] for s in symbols)
+                low = 0
+                for candidate in symbols:
+                    high = low + counts[candidate]
+                    if candidate == symbol:
+                        encoder.encode(low, high, mass)
+                        coded = True
+                        matched_order = order
+                        break
+                    low = high
+                _see_update(states, key, escaped=False)
+                break
+
+            encoder.encode(hit_count, event_total, event_total)
+            _see_update(states, key, escaped=True)
+            excluded.update(symbols)
+
+        if not coded:
+            remaining = [s for s in range(256) if s not in excluded]
+            rank = remaining.index(symbol)
+            encoder.encode(rank, rank + 1, len(remaining))
+
+        _observe_symbol(
+            tables,
+            history,
+            symbol,
+            max_order,
+            min_order=matched_order if update_exclusion else 0,
+        )
+
+    payload, bit_length = encoder.finish()
+    flags = 1 if update_exclusion else 0
+    return bytes((PPM_SEE_VERSION, max_order, flags)) + vencode(bit_length) + payload
+
+
+def _decode_ppm_see(
+    blob: bytes,
+    *,
+    source_length: int,
+    prefix_history: bytes,
+) -> bytes:
+    if len(blob) < 3 or blob[0] != PPM_SEE_VERSION:
+        raise ValueError("invalid PPM SEE payload")
+    max_order = blob[1]
+    flags = blob[2]
+    if not 0 <= max_order <= 8 or flags & ~1:
+        raise ValueError("invalid PPM SEE header")
+    update_exclusion = bool(flags & 1)
+
+    bit_length, pos = vdecode(blob, 3)
+    byte_length = (bit_length + 7) // 8
+    if pos + byte_length != len(blob):
+        raise ValueError("PPM SEE payload length mismatch")
+
+    decoder = _ArithmeticDecoder(blob[pos:], bit_length)
+    tables, history, states = _prime_see_from_history(
+        prefix_history,
+        source_length,
+        max_order,
+        update_exclusion=update_exclusion,
+    )
+    out = bytearray()
+
+    for _ in range(source_length):
+        excluded: set[int] = set()
+        symbol = None
+        matched_order = 0
+        highest = min(max_order, len(history))
+
+        for order in range(highest, -1, -1):
+            counts = tables.get(_ctx(history, order))
+            symbols = _eligible(counts, excluded)
+            if not symbols:
+                continue
+
+            assert counts is not None
+            key = _see_key(order, counts, symbols)
+            escape_count, hit_count = _see_state(states, key)
+            event_total = escape_count + hit_count
+            target = decoder.target(event_total)
+
+            if target < hit_count:
+                decoder.update(0, hit_count, event_total)
+                mass = sum(counts[s] for s in symbols)
+                symbol_target = decoder.target(mass)
+                low = 0
+                for candidate in symbols:
+                    high = low + counts[candidate]
+                    if symbol_target < high:
+                        decoder.update(low, high, mass)
+                        symbol = candidate
+                        matched_order = order
+                        break
+                    low = high
+                if symbol is None:
+                    raise ValueError("PPM SEE symbol interval not found")
+                _see_update(states, key, escaped=False)
+                break
+
+            decoder.update(hit_count, event_total, event_total)
+            _see_update(states, key, escaped=True)
+            excluded.update(symbols)
+
+        if symbol is None:
+            remaining = [s for s in range(256) if s not in excluded]
+            target = decoder.target(len(remaining))
+            if not 0 <= target < len(remaining):
+                raise ValueError("PPM SEE fallback outside alphabet")
+            symbol = remaining[target]
+            decoder.update(target, target + 1, len(remaining))
+
+        out.append(symbol)
+        _observe_symbol(
+            tables,
+            history,
+            symbol,
+            max_order,
+            min_order=matched_order if update_exclusion else 0,
+        )
+
+    return bytes(out)
 
 
 def encode_ppm(
@@ -339,37 +561,51 @@ def encode_ppm(
     prefix_history: bytes = b"",
     escape_method: int | None = None,
     update_exclusion: bool | None = None,
-    count_model: int | None = None,
+    secondary_escape: bool | None = None,
 ) -> bytes:
     if not 0 <= max_order <= 8:
         raise ValueError("PPM order outside supported range")
     if escape_method is not None and escape_method not in ESCAPE_METHODS:
         raise ValueError("invalid PPM escape method")
-    if count_model is not None and count_model not in COUNT_MODELS:
-        raise ValueError("invalid PPM count model")
 
-    update_variants = (False, True) if update_exclusion is None else (update_exclusion,)
-    count_variants = COUNT_MODELS if count_model is None else (count_model,)
+    variants = (
+        (False, True)
+        if update_exclusion is None
+        else (update_exclusion,)
+    )
+    methods = (
+        (escape_method,)
+        if escape_method is not None
+        else ESCAPE_METHODS
+    )
+
+    # Exact physical selection: incumbent escape laws remain available and
+    # secondary escape estimation is an additional reversible competitor.
     candidates: list[bytes] = []
-    for variant in update_variants:
-        for model in count_variants:
-            if model != COUNT_RAW:
-                if escape_method not in (None, ESCAPE_DISTINCT):
-                    continue
-                methods = (ESCAPE_DISTINCT,)
-            else:
-                methods = (escape_method,) if escape_method is not None else ESCAPE_METHODS
-            for method in methods:
-                candidates.append(_encode_ppm_method(
-                    data,
-                    max_order=max_order,
-                    prefix_history=prefix_history,
-                    escape_method=method,
-                    update_exclusion=variant,
-                    count_model=model,
-                ))
+    if secondary_escape is not True:
+        candidates.extend(
+            _encode_ppm_method(
+                data,
+                max_order=max_order,
+                prefix_history=prefix_history,
+                escape_method=method,
+                update_exclusion=variant,
+            )
+            for variant in variants
+            for method in methods
+        )
+    if secondary_escape is not False:
+        candidates.extend(
+            _encode_ppm_see(
+                data,
+                max_order=max_order,
+                prefix_history=prefix_history,
+                update_exclusion=variant,
+            )
+            for variant in variants
+        )
     if not candidates:
-        raise ValueError("no valid PPM variant requested")
+        raise ValueError("no PPM variants requested")
     return min(candidates, key=len)
 
 
@@ -379,11 +615,18 @@ def decode_ppm(
     source_length: int,
     prefix_history: bytes = b"",
 ) -> bytes:
-    if len(blob) < 3 or blob[0] not in (
+    if len(blob) < 3:
+        raise ValueError("truncated PPM payload")
+    if blob[0] == PPM_SEE_VERSION:
+        return _decode_ppm_see(
+            blob,
+            source_length=source_length,
+            prefix_history=prefix_history,
+        )
+    if blob[0] not in (
         2,
         PPM_STANDARD_VERSION,
         PPM_UPDATE_EXCLUSION_VERSION,
-        PPM_DISCOUNTED_VERSION,
     ):
         raise ValueError("unknown PPM version")
 
@@ -395,27 +638,13 @@ def decode_ppm(
     if escape_method not in ESCAPE_METHODS:
         raise ValueError("invalid PPM escape method")
 
-    count_model = COUNT_RAW
-    update_exclusion = version == PPM_UPDATE_EXCLUSION_VERSION
-    header_pos = 3
-    if version == PPM_DISCOUNTED_VERSION:
-        if len(blob) < 4:
-            raise ValueError("truncated discounted PPM header")
-        flags = blob[3]
-        update_exclusion = bool(flags & 1)
-        count_model = flags >> 1
-        if count_model not in DISCOUNT_PARAMS or flags & ~0x07:
-            raise ValueError("invalid discounted PPM flags")
-        if escape_method != ESCAPE_DISTINCT:
-            raise ValueError("discounted PPM requires distinct escape mass")
-        header_pos = 4
-
-    bit_length, pos = vdecode(blob, header_pos)
+    bit_length, pos = vdecode(blob, 3)
     byte_length = (bit_length + 7) // 8
     if pos + byte_length != len(blob):
         raise ValueError("PPM payload length mismatch")
 
     decoder = _ArithmeticDecoder(blob[pos:], bit_length)
+    update_exclusion = version == PPM_UPDATE_EXCLUSION_VERSION
     if version == 2:
         tables, history = _fresh_legacy_state(prefix_history, max_order)
     else:
@@ -442,15 +671,15 @@ def decode_ppm(
                 continue
 
             assert counts is not None
-            mass = sum(_symbol_weight(counts[s], count_model) for s in symbols)
-            escape = _escape_mass(counts, symbols, escape_method, count_model=count_model)
+            mass = sum(counts[s] for s in symbols)
+            escape = _escape_mass(counts, symbols, escape_method)
             total = mass + escape
             target = decoder.target(total)
 
             if target < mass:
                 low = 0
                 for candidate in symbols:
-                    high = low + _symbol_weight(counts[candidate], count_model)
+                    high = low + counts[candidate]
                     if target < high:
                         decoder.update(low, high, total)
                         symbol = candidate
