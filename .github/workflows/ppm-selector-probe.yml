@@ -1,7 +1,7 @@
 name: PPM selector probe
 on:
   push:
-    branches: [cix-ppm-selector-eval4]
+    branches: [cix-ppm-selector-eval5]
   workflow_dispatch:
 jobs:
   probe:
@@ -15,3 +15,4 @@ jobs:
       - run: pip install -e '.[fast-bwt]' brotli zstandard pytest
       - run: python -m pytest -q
       - run: python benchmarks/ppm_selector_probe.py
+      - run: python benchmarks/current_real_probe.py

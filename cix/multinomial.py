@@ -1042,6 +1042,7 @@ def encode_best_block(
                         block,
                         max_order=order,
                         prefix_history=prefix_history,
+                        sample_limit=len(block),
                     ),
                     order,
                 )
