@@ -15,8 +15,16 @@ PPM_STANDARD_VERSION = 3
 PPM_UPDATE_EXCLUSION_VERSION = 4
 PPM_DISCOUNTED_VERSION = 5
 COUNT_RAW = 0
-COUNT_PPMD = 1
-COUNT_MODELS = (COUNT_RAW, COUNT_PPMD)
+COUNT_D025 = 1
+COUNT_D050 = 2
+COUNT_D075 = 3
+COUNT_PPMD = COUNT_D050
+COUNT_MODELS = (COUNT_RAW, COUNT_D025, COUNT_D050, COUNT_D075)
+DISCOUNT_PARAMS = {
+    COUNT_D025: (4, 1),
+    COUNT_D050: (2, 1),
+    COUNT_D075: (4, 3),
+}
 CONTEXT_LIMIT = 16384
 PPM_HISTORY_MAX = 65536
 PPM_HISTORY_MIN = 4096
@@ -53,9 +61,11 @@ def _eligible(counts: dict[int, int] | None, excluded: set[int]) -> list[int]:
 def _symbol_weight(count: int, count_model: int) -> int:
     if count_model == COUNT_RAW:
         return count
-    if count_model == COUNT_PPMD:
-        return max(1, 2 * count - 1)
-    raise ValueError("unknown PPM count model")
+    params = DISCOUNT_PARAMS.get(count_model)
+    if params is None:
+        raise ValueError("unknown PPM count model")
+    scale, discount = params
+    return max(1, scale * count - discount)
 
 
 def _escape_mass(
@@ -65,8 +75,12 @@ def _escape_mass(
     *,
     count_model: int = COUNT_RAW,
 ) -> int:
-    if count_model == COUNT_PPMD:
-        return max(1, len(symbols))
+    if count_model != COUNT_RAW:
+        params = DISCOUNT_PARAMS.get(count_model)
+        if params is None:
+            raise ValueError("unknown PPM count model")
+        _, discount = params
+        return max(1, discount * len(symbols))
     if method == ESCAPE_ONE:
         return 1
     if method == ESCAPE_DISTINCT:
@@ -188,8 +202,8 @@ def estimate_ppm_bits(
         raise ValueError("invalid PPM escape method")
     if count_model not in COUNT_MODELS:
         raise ValueError("invalid PPM count model")
-    if count_model == COUNT_PPMD and escape_method != ESCAPE_DISTINCT:
-        raise ValueError("PPMD count model requires distinct escape mass")
+    if count_model != COUNT_RAW and escape_method != ESCAPE_DISTINCT:
+        raise ValueError("discounted PPM count model requires distinct escape mass")
 
     sample = data[:sample_limit]
     if not sample:
@@ -339,7 +353,7 @@ def encode_ppm(
     candidates: list[bytes] = []
     for variant in update_variants:
         for model in count_variants:
-            if model == COUNT_PPMD:
+            if model != COUNT_RAW:
                 if escape_method not in (None, ESCAPE_DISTINCT):
                     continue
                 methods = (ESCAPE_DISTINCT,)
@@ -390,7 +404,7 @@ def decode_ppm(
         flags = blob[3]
         update_exclusion = bool(flags & 1)
         count_model = flags >> 1
-        if count_model != COUNT_PPMD or flags & ~0x03:
+        if count_model not in DISCOUNT_PARAMS or flags & ~0x07:
             raise ValueError("invalid discounted PPM flags")
         if escape_method != ESCAPE_DISTINCT:
             raise ValueError("discounted PPM requires distinct escape mass")

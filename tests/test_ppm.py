@@ -1,6 +1,14 @@
 import os
 
-from cix.ppm import COUNT_PPMD, COUNT_RAW, decode_ppm, encode_ppm, estimate_ppm_bits
+from cix.ppm import (
+    COUNT_D025,
+    COUNT_D050,
+    COUNT_D075,
+    COUNT_RAW,
+    decode_ppm,
+    encode_ppm,
+    estimate_ppm_bits,
+)
 
 
 def test_ppm_round_trip_repetitive_and_random():
@@ -100,20 +108,21 @@ def test_ppmd_discounted_count_round_trip_with_and_without_history():
         (bytes(range(64)) * 60, bytes(range(64)) * 20),
     )
     for prefix, data in cases:
-        for update_exclusion in (False, True):
-            payload = encode_ppm(
-                data,
-                max_order=4,
-                prefix_history=prefix,
-                update_exclusion=update_exclusion,
-                count_model=COUNT_PPMD,
-            )
-            assert payload[0] == 5
-            assert decode_ppm(
-                payload,
-                source_length=len(data),
-                prefix_history=prefix,
-            ) == data
+        for count_model in (COUNT_D025, COUNT_D050, COUNT_D075):
+            for update_exclusion in (False, True):
+                payload = encode_ppm(
+                    data,
+                    max_order=4,
+                    prefix_history=prefix,
+                    update_exclusion=update_exclusion,
+                    count_model=count_model,
+                )
+                assert payload[0] == 5
+                assert decode_ppm(
+                    payload,
+                    source_length=len(data),
+                    prefix_history=prefix,
+                ) == data
 
 
 def test_ppm_discounted_count_portfolio_selects_physical_minimum():
@@ -121,8 +130,10 @@ def test_ppm_discounted_count_portfolio_selects_physical_minimum():
         b"adaptive probability discounting should compete by exact physical bytes. "
         * 100
     )
-    raw = encode_ppm(data, max_order=4, count_model=COUNT_RAW)
-    discounted = encode_ppm(data, max_order=4, count_model=COUNT_PPMD)
+    variants = [
+        encode_ppm(data, max_order=4, count_model=model)
+        for model in (COUNT_RAW, COUNT_D025, COUNT_D050, COUNT_D075)
+    ]
     portfolio = encode_ppm(data, max_order=4)
-    assert len(portfolio) == min(len(raw), len(discounted))
+    assert len(portfolio) == min(map(len, variants))
     assert decode_ppm(portfolio, source_length=len(data)) == data

@@ -1,7 +1,7 @@
 name: Current universal real probe
 on:
   push:
-    branches: [main]
+    branches: [main, cix-ppmd-discount]
     paths:
       - "cix/**"
       - "tests/**"
@@ -20,4 +20,4 @@ jobs:
           python-version: "3.12"
       - run: pip install -e '.[fast-bwt]' brotli zstandard pytest
       - run: python -m pytest -q
-      - run: python benchmarks/current_real_probe.py
+      - run: python benchmarks/ppm_discount_tournament.py
