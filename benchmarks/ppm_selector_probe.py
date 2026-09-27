@@ -125,21 +125,34 @@ def main():
             )
             for order in ORDERS
         }
+        full_est = {
+            order: estimate_ppm_portfolio_bits(
+                data,
+                max_order=order,
+                prefix_history=prefix,
+                sample_limit=len(data),
+            )
+            for order in ORDERS
+        }
 
         exact_order = min(ORDERS, key=lambda order: (exact[order], order))
         old_order = min(ORDERS, key=lambda order: (old_est[order], order))
         new_order = min(ORDERS, key=lambda order: (new_est[order], order))
+        full_order = min(ORDERS, key=lambda order: (full_est[order], order))
         old_size = exact[old_order]
         new_size = exact[new_order]
+        full_size = exact[full_order]
         best_size = exact[exact_order]
 
         old_total += old_size
         new_total += new_size
+        full_total += full_size
         exact_total += best_size
         exact_hits_old += old_order == exact_order
         exact_hits_new += new_order == exact_order
-        improved += new_size < old_size
-        worsened += new_size > old_size
+        exact_hits_full += full_order == exact_order
+        improved += full_size < old_size
+        worsened += full_size > old_size
 
         print(
             name,
@@ -147,32 +160,38 @@ def main():
             exact,
             old_order,
             new_order,
+            full_order,
             old_size,
             new_size,
+            full_size,
             best_size,
             flush=True,
         )
 
-    saved = old_total - new_total
+    saved = old_total - full_total
     regret_old = old_total - exact_total
     regret_new = new_total - exact_total
+    regret_full = full_total - exact_total
     print(
         "summary",
         f"cases={len(sources)}",
         f"old={old_total}",
         f"new={new_total}",
+        f"full={full_total}",
         f"best={exact_total}",
         f"saved={saved}",
         f"old_regret={regret_old}",
         f"new_regret={regret_new}",
+        f"full_regret={regret_full}",
         f"hits_old={exact_hits_old}",
         f"hits_new={exact_hits_new}",
+        f"hits_full={exact_hits_full}",
         f"improved={improved}",
         f"worsened={worsened}",
         flush=True,
     )
-    if new_total > old_total:
-        raise SystemExit("portfolio-aware selector regressed exact physical PPM bytes")
+    if full_total > old_total:
+        raise SystemExit("full-block portfolio selector regressed exact physical PPM bytes")
 
 
 if __name__ == "__main__":
