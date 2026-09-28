@@ -553,3 +553,47 @@ raises candidate membership to 50,462. Candidate choices and 3,918 exceptions
 are not encoded yet, so this is not a compression result. This motivates an
 explicit restricted-alphabet/escape tournament with identical-candidate uniform
 rank and arithmetic controls, plus adaptive choices.
+
+## Cross-object address candidates implemented
+
+`ecoff_got.py` builds candidate alphabets using symbol definitions already
+transmitted in the same archive. The current symbol value is first; additional
+same-name definitions are ordered by observed definition frequency and address.
+An explicit escape preserves arbitrary 64-bit values. GOT positions, executable
+bytes and TAR positions remain intact; only selected GOT words become zeros.
+The decoder first restores all symbol tables, then reconstructs the candidate
+sets and selected addresses, with no external dictionary or original input.
+
+All five full structural variants independently invert the complete Mozilla
+input. 54,380 GOT words are mapped. Local symbol values match 31,648; adding
+other transmitted objects gives 50,462 matches. Literal exception bytes fall
+from 181,856 to 31,344. With the same candidate sets plus escape, uniform path
+uncertainty is 87,255.08 bits. Blockwise ranks use 10,934 choice bytes; uniform
+arithmetic 10,910; adaptive arithmetic 1,748 (13,965.61 predictive bits). These
+are intermediate payloads, not final compressed sizes. Six tests pass, including
+multiple rank blocks, adaptive rescaling, arbitrary exceptions and nonzero high
+padding in the dynamic-header d_val union. The 32-bit union member must ignore
+the high 32-bit padding; interpreting it as a 64-bit count initially disabled all
+real objects and was corrected before any scored physical experiment.
+
+Seven full physical Brotli11 controls are now running in
+`ecoff-got-brotli-full`: ordinary input (-1), parent table/name constraints (-2),
+explicit global candidate choices (0), uniform ranks (1), uniform arithmetic (2),
+adaptive arithmetic (3), and local-only adaptive candidates (4). Source/probe
+immutability is enforced. Do not edit `ecoff_got.py`, `ecoff_got_probe.py`,
+`ecoff_fields.py` or their frozen dependencies while active. Compact structural
+proof: `2026-09-28-ecoff-got-structural-gate.json`. No updated corpus rank yet.
+
+Three small constructed TAR fixtures are in `ecoff-got-cohorts-v2`; use their
+explicit `--manifest results/leaderboard/ecoff-got-cohorts-v2/manifest.json`
+for future regional PAQ tests. They contain only two or three original objects
+each and have modest cross-object coverage, so the first fast backend tournament
+uses the complete Mozilla input. The probe default still points at the earlier
+single-object fixture; change it only after its live whole-file run finishes.
+
+Further unscored diagnostic: 239,835 relocated pointers lie in rdata/data/sdata.
+Same-name global definitions cover 89,395. Extending the alphabet to transmitted
+symbols and function starts from pdata covers 169,969, using a global alphabet
+of 122,959 addresses. Those broader ranks/escapes are not implemented yet. Their
+metadata, candidate-choice probability and effects on PAQ must all be measured;
+do not present candidate membership alone as a byte saving.
