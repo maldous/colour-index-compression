@@ -809,3 +809,40 @@ The older heavy-atom NCI trial completed independent extraction:
 **17,111 bytes larger** than the selected 447,748-byte hydrogen-constraint stream.
 The earlier 7–13-byte regional gains did not carry through; reject the complete
 candidate and preserve the incumbent. Evidence: `2026-09-28-nci-heavy-full-negative.json`.
+
+## Complete relocated-pointer portfolio: 36,864,338 bytes
+
+All seven full Mozilla streams restore. Framed parent 13,049,926; in-place
+indices 13,048,317; explicit choices 12,993,515; uniform ranks 13,113,781;
+uniform arithmetic 13,048,527; shared adaptive 12,976,109; local-only adaptive
+13,013,860 bytes. Shared definitions save 37,751 physical bytes with the same
+adaptive coder; ranks lose. The selected result saves 73,448 bytes against the
+prior portfolio member. Full evidence: `2026-09-28-ecoff-relocated-full.json`.
+
+Portfolio 12 freshly decoded all seven candidates again after input/frame/source/
+backend checks and transform recomputation. Eleven unchanged selected streams
+retain their independent restoration proofs. Complete sum **36,864,338 bytes**,
+still **54th equivalent**, with **9,038,827 bytes** above the 27,825,511 leader.
+The live leaderboard was downloaded again at 18:11:41Z; its page hash and all
+322 entries are unchanged. Proof: `2026-09-28-competitive-relocated-milestone.json`.
+The standalone CLI now selects portfolio 12. A separate CLI process restored the
+selected Mozilla frame in 4.8748s, peak 590,228 KiB, then an external comparison
+confirmed every byte; `2026-09-28-relocated-cli-restoration.json`.
+
+A separate causal feedback model `ecoff_pointer_deltas.py` predicts each next
+pointer from the previous pointer sharing its relocation-derived candidate
+alphabet. It also compares previous-any-pointer and declared-symbol predictors,
+plus in-place versus variable-length residuals. All five nontrivial full raw
+transforms restore; seven tests cover signed modular edges, exact context
+predictions and residual overflow. The context model predicts 101,838 pointers
+exactly and 232,516 of 239,835 residuals fit below 16,384. Those are raw diagnostics.
+Six full Brotli streams are running in `ecoff-pointer-deltas-brotli-full`; initial
+completed in-place context mode is 12,899,784 bytes and exact, but the full
+portfolio remains at 12's score until the remaining controls and integration.
+No ranking from a partial tournament. The new sources are frozen as 904f6df.
+
+The relocation-symbol diagnostic clarifies the next possible restriction:
+75,682 records refer to the .text section, 40,876 to .rdata, 20,449 to .rconst.
+Section-labelled targets may be better constrained by that section's range or
+local function starts than by same-name section bases from other objects. This
+is an unimplemented follow-up, not an additional gain. No external byte table.
