@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 from cix.multinomial import vencode,vdecode,_ArithmeticEncoder,_ArithmeticDecoder
 
-MAGIC=b'CIXH\x01'
+MAGIC=b'CIXH\x02'
 ROOT=Path(__file__).resolve().parents[1]
 BINARY=ROOT/'benchmark-work/references/paq8px-cix-bridge/build-local/paq8px'
 
@@ -65,6 +65,7 @@ def unrank_binary(blob,n,k):
 
 def arith_binary(stream):
     n=len(stream);k=sum(stream);coder=_ArithmeticEncoder()
+    if k==0 or k==n:return b''
     for bit in stream:
         if k==0 or k==n:break
         if bit:coder.encode(n-k,n,n);k-=1
@@ -74,7 +75,8 @@ def arith_binary(stream):
     return vencode(bits)+payload
 
 
-def unarith_binary(blob,pos,n,k):
+def unarith_binary(blob,pos,n,k,legacy=False):
+    if not legacy and (k==0 or k==n):return bytes([bool(k)])*n,pos
     bits,pos=vdecode(blob,pos);size=(bits+7)//8
     if pos+size>len(blob):raise ValueError('truncated arithmetic residual')
     coder=_ArithmeticDecoder(blob[pos:pos+size],bits);out=bytearray()
@@ -98,7 +100,7 @@ def encode(trace,paq_archive,source,subbits=1,method=0):
     out=bytearray(MAGIC+bytes([subbits,method,header_size])+header+vencode(len(source))+zlib.crc32(source).to_bytes(4,'big'))
     theoretical=0.0;rank_bytes=0;composition_bytes=0
     for stream in groups:
-        n=len(stream);k=sum(stream);count_header=vencode(n)+vencode(k)
+        n=len(stream);k=sum(stream);count_header=vencode(n)+(vencode(k) if n else b'')
         out.extend(count_header);composition_bytes+=len(count_header)
         cardinality=math.comb(n,k);theoretical+=math.log2(cardinality) if cardinality else 0
         payload=rank_binary(stream) if method==0 else arith_binary(stream)
@@ -111,7 +113,8 @@ def encode(trace,paq_archive,source,subbits=1,method=0):
 
 
 def residuals(frame):
-    if len(frame)<16 or frame[:5]!=MAGIC or frame[5] not in range(4) or frame[6] not in (0,1) or frame[7] not in (8,9):raise ValueError('invalid PAQ/CIX frame')
+    if len(frame)<16 or frame[:4]!=b'CIXH' or frame[4] not in (1,2) or frame[5] not in range(4) or frame[6] not in (0,1) or frame[7] not in (8,9):raise ValueError('invalid PAQ/CIX frame')
+    legacy=frame[4]==1
     subbits,method,header_size=frame[5:8];header=frame[8:8+header_size];pos=8+header_size
     if header[:6]!=b'paq8px':raise ValueError('invalid embedded PAQ header')
     original,pos=vdecode(frame,pos)
@@ -119,12 +122,15 @@ def residuals(frame):
     crc=int.from_bytes(frame[pos:pos+4],'big');pos+=4
     raw=bytearray(b'CIXE1'+bytes([subbits]));total=0
     for _ in range(31<<subbits):
-        n,pos=vdecode(frame,pos);k,pos=vdecode(frame,pos);total+=n
+        n,pos=vdecode(frame,pos)
+        if n or legacy:k,pos=vdecode(frame,pos)
+        else:k=0
+        total+=n
         if k>n or total>1<<28:raise ValueError('invalid diagnostic event count')
         if method==0:
             width=(math.comb(n,k)-1).bit_length();size=(width+7)//8
             stream=unrank_binary(frame[pos:pos+size],n,k);pos+=size
-        else:stream,pos=unarith_binary(frame,pos,n,k)
+        else:stream,pos=unarith_binary(frame,pos,n,k,legacy=legacy)
         raw.extend(n.to_bytes(8,'little'));raw.extend(stream)
     if pos!=len(frame):raise ValueError('trailing residual bytes')
     return header,bytes(raw),original,crc
