@@ -1,7 +1,7 @@
 # Experimental competitive portfolio reproduction
 
 The current standalone entry point is `benchmarks.competitive_cli`. It uses the
-portfolio-18 encoder from source bytes. It does not look up corpus hashes, fetch
+portfolio-19 encoder from source bytes. It does not look up corpus hashes, fetch
 saved streams, read original data during decoding, or call GitHub/CI/network
 services. Format detection and the bounded PAQ compute policy are part of the
 encoder. The physical frame identifies the corresponding standalone decoder.
@@ -35,6 +35,13 @@ PAQ8px v215 and v216 binaries live under
 v216 path. The exact source provenance and build fix are recorded in the
 `v215-source.json`, `v216-source.json`, and `v216-build-fix.json` reference files.
 The PAQ SIMD selection is AVX2. Preserve PAQ's upstream notices and licensing.
+The reversible-filter candidate also uses the separate state-only decoder under
+`benchmark-work/references/paq8px-cix-store-state/build-local/paq8px`. Its source
+and provenance are bundled and built separately. The unmodified v216 reference
+produces the level-zero archive; the isolated repair supplies state required by
+its recursive filter decoder without allocating a probability model. All twelve
+native level-zero streams restored with this decoder, and a nonzero control
+retained the native archive byte for byte.
 Published milestone reports record the qualified library and backend hashes;
 different rebuilds require independent qualification before sharing a claim.
 

@@ -1,0 +1,87 @@
+{
+  "complete": true,
+  "diagnostic_only": true,
+  "cpu": 16,
+  "source_bytes": 253952,
+  "source_sha256": "93d50bfc058f54ff8d8efa6e52e0d6a4d8844367cfbe5b6ad2d0be054cc7a8d4",
+  "identical_archives": true,
+  "rows": [
+    {
+      "variant": "native",
+      "physical_bytes": 45041,
+      "archive_sha256": "19bf74e656da3f1c94492a993f8f5a282578eff348f0d4a169e417a7dd29cee5",
+      "restored_sha256": "93d50bfc058f54ff8d8efa6e52e0d6a4d8844367cfbe5b6ad2d0be054cc7a8d4",
+      "round_trip": true,
+      "encode": {
+        "seconds": 112.216077005025,
+        "sampled_peak_kib": {
+          "Rss": 1343840,
+          "Swap": 0,
+          "AnonHugePages": 0
+        },
+        "system_vmstat_delta": {
+          "pswpin": 20805,
+          "pswpout": 268015,
+          "pgmajfault": 15012
+        }
+      },
+      "decode": {
+        "seconds": 115.56565199699253,
+        "sampled_peak_kib": {
+          "Rss": 1343568,
+          "Swap": 0,
+          "AnonHugePages": 0
+        },
+        "system_vmstat_delta": {
+          "pswpin": 21391,
+          "pswpout": 0,
+          "pgmajfault": 15100
+        }
+      }
+    },
+    {
+      "variant": "hugepage",
+      "physical_bytes": 45041,
+      "archive_sha256": "19bf74e656da3f1c94492a993f8f5a282578eff348f0d4a169e417a7dd29cee5",
+      "restored_sha256": "93d50bfc058f54ff8d8efa6e52e0d6a4d8844367cfbe5b6ad2d0be054cc7a8d4",
+      "round_trip": true,
+      "encode": {
+        "seconds": 120.48562718182802,
+        "sampled_peak_kib": {
+          "Rss": 1343852,
+          "Swap": 0,
+          "AnonHugePages": 8192
+        },
+        "system_vmstat_delta": {
+          "pswpin": 21205,
+          "pswpout": 119558,
+          "pgmajfault": 14758
+        }
+      },
+      "decode": {
+        "seconds": 123.70208811806515,
+        "sampled_peak_kib": {
+          "Rss": 1343552,
+          "Swap": 0,
+          "AnonHugePages": 14336
+        },
+        "system_vmstat_delta": {
+          "pswpin": 22329,
+          "pswpout": 29132,
+          "pgmajfault": 14709
+        }
+      }
+    }
+  ],
+  "provenance": {
+    "/home/user/src/colour-index-compression/benchmarks/paq_hugepage_probe.py": "d77afe9a041a1dc96b4d09a72a1fe1e7485839b125e152bc6ebd65e6345d013c",
+    "/home/user/src/colour-index-compression/benchmarks/calloc_hugepage.c": "68c9ae6c0b77e1f59482a99073568e98424eaf4832b3e4266eb4d895b29af920",
+    "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v215/build-local/paq8px": "b982f1e8307d6c38e8febc6415901fafcc2e84a14d51e0af7c5cbbe6322778e7",
+    "/home/user/src/colour-index-compression/results/leaderboard/ecoff-call-trace/source.bin": "93d50bfc058f54ff8d8efa6e52e0d6a4d8844367cfbe5b6ad2d0be054cc7a8d4",
+    "/home/user/src/colour-index-compression/results/leaderboard/paq-hugepage-paired/calloc_hugepage.so": "f99577c07f15e964f6f956806112dfa92e7edcebbb4635abeec6385f05ed3e9b"
+  },
+  "completed_at": "2026-09-28T20:17:12.730967+00:00",
+  "kernel_reference": "https://www.kernel.org/doc/html/latest/admin-guide/mm/transhuge.html",
+  "note": "Paired sequential observations under concurrent local workload; sampled RSS is not a full process high-water metric. No global VM policy or existing job changed.",
+  "conclusion": "Reject post-calloc advice as a speed improvement here. Archives are byte-identical and all decodes exact, but encode/decode take 120.49/123.70s versus native 112.22/115.57s. Only 8/14 MiB become huge pages out of about 1.28 GiB sampled RSS. This does not test advice before pages are first touched."
+}
