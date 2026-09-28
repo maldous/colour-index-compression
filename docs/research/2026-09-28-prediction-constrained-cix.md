@@ -597,3 +597,45 @@ symbols and function starts from pdata covers 169,969, using a global alphabet
 of 122,959 addresses. Those broader ranks/escapes are not implemented yet. Their
 metadata, candidate-choice probability and effects on PAQ must all be measured;
 do not present candidate membership alone as a byte saving.
+
+## Complete executable-constraint milestone: 54th equivalent
+
+All seven full Mozilla Brotli11 streams independently restore. Ordinary input
+**13,872,280 bytes**, derived tables/name offsets **13,131,258**, global candidate
+choices **13,049,702**, global uniform ranks **13,057,530**, global uniform
+arithmetic **13,053,276**, global adaptive arithmetic **13,049,557**, local-only
+adaptive candidates **13,077,702**. The shared-symbol model saves 28,145 bytes
+against local-only candidates with otherwise identical structure and coding.
+Adaptive coding is 145 bytes smaller than leaving choices to Brotli, while
+uniform ranks lose. Model information supplies the gain; no rank superiority.
+Evidence: `2026-09-28-ecoff-got-full-brotli.json`.
+
+Portfolio 11 (`competitive_ecoff.py`) recognizes real ECOFF content, considers
+all seven physical representations and retains the smaller incumbent. Its
+optional cache qualification checks all source/input/frame evidence, recomputes
+each transform, and repeats complete standalone restoration under the current
+Brotli native binary (whose hash is recorded). Seven fresh decodes qualify the
+new candidates; eleven unchanged portfolio streams preserve their independent
+full-restoration proofs. One new integration test covers uncached candidates,
+changed input, incomplete evidence and corrupted physical artifacts.
+
+Complete sum **36,937,786 bytes, equivalent 54th among 322 entries**; saves
+2,669,824 bytes against portfolio 10. Gap **9,112,275 bytes** above the live
+27,825,511 leader. The live page was downloaded again and its SHA is unchanged.
+All twelve physical files are in `results/leaderboard/competitive-ecoff-v11`;
+compact proof: `2026-09-28-competitive-ecoff-milestone.json`. First place remains
+unachieved; public source release and official listing remain pending.
+
+The longer PAQ v215 -8 Mozilla ordinary/table/name runs still execute separately.
+Do not edit their ECOFF sources. The GOT/Brotli tournament has completed, but the
+GOT codec/probe are now portfolio-qualified and should also remain frozen; add
+new modules for extensions. The focused next full PAQ comparison is shared GOT
+candidates plus PAQ versus the pending name/table control; schedule it with
+actual free memory, because the -12L NCI decoder still grows toward 20 GiB.
+
+An additional unscored call-target diagnostic finds 57,598 Alpha bsr-r26 calls,
+36,087 targeting the transmitted symbol/function-start alphabet. Uniform target
+indices would cost 391,675.09 bits, excluding membership flags and exceptions.
+PAQ already absolutizes those call displacements, so any replacement must respect
+its combined contiguous text/init/fini region and include a same-model control.
+Do not infer a gain from candidate membership; no call-target codec exists yet.
