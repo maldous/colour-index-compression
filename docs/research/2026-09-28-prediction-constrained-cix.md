@@ -1393,3 +1393,83 @@ versionappgprj_6aba005773a08191ae8a7978a687b3cb~appgver_3a60726357188191b6730f90
 No pending Site request or browser handoff. Goal stays active and unachieved;
 this turn completed meaningful negative experiments and initiated the stronger,
 evidence-directed predictive test. No GitHub Actions or GitHub push.
+
+## Causal predictor screening and completed regional controls
+
+This continuation is progress, not goal completion or a blocked turn. Portfolio19
+remains31,175,135 bytes /24th equivalent; no new complete member is qualified.
+
+All15 `ecoff-register-rank-cohorts` trials restore and lose. The unchanged / MRU /
+protected-MRU / role-MRU / bounded-MRU sizes are116154/131535/119114/128612/120044;
+144626/159003/147781/156484/148561;
+162108/188477/169395/180581/170363. Preserve the negative evidence JSON; no full
+run. Session71911 was already terminal and its handle is no longer retained.
+
+Alphabet feedback session86988 is terminal success: native/disabled/frequency/
+occupancy/both are70207/70207/70189/70183/70183;
+96145/96145/96134/96125/96126;
+97746/97746/97724/97715/97719. Native and disabled payloads match exactly.
+Occupancy saves24/20/31 physical bytes. The bounded affinity controller14720
+exited when manager3229196 finished. Do not restart it. Evidence is committed in
+`2026-09-28-paq-gp-alphabet-cohorts.json`.
+
+Memory pilot20634 is terminal success. Native/disabled/last-base/opcode-base/
+stride sizes40086/40086/39980/39886/40012; all restored exactly. The best saves
+200 physical bytes on the qualified253952-byte source after section4 transform.
+Evidence `2026-09-28-paq-memory-feedback-pilot.json`. Broader native versus mode2
+level4 tournament is LIVE session32637, manager3320626, CPU0, one worker,
+`paq-memory-feedback-cohorts`. First region restores70207/69831 (376-byte gain).
+Second native96145 is restored; remaining work pending. Freeze the memory
+builder, base GP builder, probe, native fork and complete parent transform closure.
+The old pilot and the selected overlapping regional cohorts are exploratory,
+not held-out tests and not whole-member leaderboard scores.
+
+`paq_register_screen.py` found a causal MRU prior useful while rewriting the
+register stream was not. Shared MRU, weight1/8 on native probabilities in
+[1/32,31/32], saves149.698756 predictive bytes on the qualified original trace.
+This screen is not physical compression; selection used that same object.
+`build_paq_register_prior.py` creates a separate v215 fork whose coder receives
+the prior mixture while `updateModels` still receives the ORIGINAL native p.
+Changing native p would also change Shared losses/misses and future SSE, so
+preserving this update is crucial to the identical-information control.
+
+New helper `benchmarks/native/CixRegisterPrior.hpp` handles all shuffled Alpha
+register fields causally, resets at code-block boundaries, skips the BSR target
+bits that PAQ labels Rb, and keeps unseen registers possible. The independent
+C++/Python oracle matches every opcode and block reset. Native disabled/all3
+synthetic modes restore; both tests pass39.80s. Binary SHA
+53d9396388a31d5f8dfa5e34a53e4c3be11b3184f8830f6a4e113b2acb4a4077.
+Build17625 and test12426 are terminal success.
+
+Physical qualification is LIVE session41955, manager3330244 CPU18,
+`paq-register-prior-qualified`. It carries a paid mode byte and checksum (CIXB19)
+and captures the complete original native p/y trace on the encoder ONLY; the
+independent decoder reads no source or trace. Mode0 restores exactly at45054
+framed bytes /45041 native bytes, and all8,127,392 trace bytes match the original.
+Modes1/2/3 remain pending at21:43Z; do not claim the predictive saving as physical.
+Freeze builder/header/probe/qualifier and binary through completion. The new probe
+uses the PLAIN source, unlike the section4 memory/alphabet probes, so their
+absolute sizes are not directly comparable. Modes1/2/3 are shared recency
+1/8 ambiguous,1/32 ambiguous,1/8 ungated. Before any broader rollout, require
+mode1 restoration and unchanged original predictions. This is a predictor
+improvement test, not a combinatorial-rank superiority claim.
+
+A new cheap paid-composition screen completed (session33027 terminal) and is
+negative. Five causal partitions—field, opcode/field, field/bit, prior opcode,
+and byte-bit position—were compared against unpartitioned confidence groups at
+four granularities. Exact binomial rank widths plus explicit lengths, counts,
+sparse IDs and selection costs never choose a context partition. Proposed layout
+sizes45796/45364/45424/45697 all exceed native45041. No decoder was implemented
+because the cost screen rejects every tested family. Two tests prove labels
+ignore current/future bits and exact widths match the existing type-class coder.
+This is a negative layout-cost diagnostic, not a new compressed archive. Preserve
+`2026-09-28-field-composition-screen.json`; do not launch its native branch.
+
+Site publication succeeded2026-09-28T21:39:29.108893Z at the existing URL.
+Source519295c2e4a640fa76aa6a8c7f233b1429b406d0,
+deploymentappgdep_6abade8214608191b7442590febfc8a9,
+versionappgprj_6aba005773a08191ae8a7978a687b3cb~appgver_33ed5f9fac00819197cd4fa96020ec5b.
+It includes completed alphabet/memory pilot gains and15 register negatives,
+retains31,175,135/24th, and labels the prior screen unscored. It does not yet
+include the new field-composition screen or the still-running qualifications.
+No browser handoff in this background goal, no pending Site request.
