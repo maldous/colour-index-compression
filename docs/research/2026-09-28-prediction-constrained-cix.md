@@ -1514,3 +1514,100 @@ in decode. Available memory is bounded; keep pilot concurrency modest.
 This goal continuation made verified experimental progress and rejected a
 further paid-composition formulation. First place remains unachieved, the goal
 stays active, and no GitHub Actions or GitHub push was used.
+
+## Completed predictor controls and the interaction experiment
+
+The previous turn was progress; this turn read the entire controlling attachment
+again and revalidated live processes. Goal remains active and unachieved.
+
+Register qualification41955 is terminal success. Modes0/1/2/3 use
+45054/44904/44984/46165 framed bytes, respectively. All four independently
+restore and every original PAQ p/y event remains byte-identical. The ungated
+prior loses1,111 bytes; gating is essential. Preserve
+`2026-09-28-register-prior-qualified.json`. Regional session12360 remains live,
+manager3344300 CPU20. First native/prior pair73760/73452 saves308 bytes and
+restores. Other regions remain pending. Freeze the register fork and dependencies.
+
+Memory tournament32637 is terminal success: all six streams restore; native/
+mode2 are70207/69831,96145/95796,97746/97185, savings376/349/561 bytes. Its raw
+control flag is false because mode0 was not requested, not because the native
+comparison failed. The preceding pilot proved native/disabled identity.
+`2026-09-28-paq-memory-feedback-cohorts.json` records this distinction.
+
+New isolated `build_paq_joint_feedback.py` combines the frozen memory and register
+patches without modifying either source. One paid outer mode chooses disabled,
+memory-only, register-only, or both (native reference is probe mode4).
+`paq_joint_feedback_probe.py` uses CIXB1a and the existing section4 transform.
+The register mixture still does not alter the p supplied to native model updates;
+memory feedback deliberately changes its mixer information. Binary SHA
+ a18622557c916a7bea26f9ba88794d480ab858c2bcc27107eb0154ac5fad906d.
+Build45006 is terminal success. Six tests pass49.89s (session17708): every mode
+restores; disabled payload equals native; each individual ablation's payload is
+byte-identical to its earlier separate fork on identical transformed input.
+
+Joint qualified-object pilot is LIVE session71145, manager3362208 CPU0,
+`paq-joint-feedback-pilot`, using the memory pilot manifest. At22:02Z modes
+4/0/1/2 restore40086/40086/39886/39939 bytes. Mode3 remains pending. Do not
+assume additivity; do not change builder/probe/header/native or parent dependencies.
+The freed performance core was reused only after the memory tournament exited.
+
+Native Webster v215-9L encoding has completed, but remains UNSCORED until its
+independent decode. Decoder3351985 and wrapper3351984 were identity-checked and
+pinned toCPU14, leaving Mozilla onCPU12; journal
+`2026-09-28-webster9-decode-affinity.json`. Never restart either. At22:02:31Z,
+v216 Mozilla decode44.28%, v215-12L NCI decode93.81%, v215-9L Mozilla encode58.02%,
+Webster decode3.46%; none has result.json. All other full jobs remain live.
+Published target re-fetched21:52:06Z: identical SHA78d29449a1036e1545d3665ccba9de65555f1b5afda78640c2e2b12dde946c86,
+322 rows, leader27,825,511. Evidence `2026-09-28-silesia-live-predictors.json`.
+
+Site source9201b97e107528cd949f3decc7c46a268e87904b published successfully at
+2026-09-28T21:57:35.231269Z, deploymentappgdep_6abae2c022f08191ae1f261d5775b223,
+versionappgprj_6aba005773a08191ae8a7978a687b3cb~appgver_9b8d813bb0b08191b53128a8f5309a1f.
+It includes all memory/reg controls above, preserves31,175,135/24th and labels
+joint feedback pending. Cell839 is terminal and collected; no pending Site call.
+Credential expires22:05:04Z. Portable profile was configured this turn.
+
+### Next stronger predictor: numerical screening evidence
+
+`paq_register_adaptive_screen.py` tests five causal experts: unchanged PAQ and
+MRU mixtures of1/128,1/32,1/8,1/2 on ambiguous register bits. Integer posterior
+weights are learned only after each decoded bit. Two tests pass, including
+comparison to exact short-sequence rational Bayes. Eight exploratory settings
+show opcode/field partitioning saves296.52 predictive bytes, but global
+learning unexpectedly loses718.33. Finite linear posterior floors forget past
+evidence; this is not a reliable approximation to unbounded Bayesian evidence.
+Do not promote that numerical implementation blindly. Screen95355 is terminal;
+evidence `2026-09-28-register-adaptive-screen.json`.
+
+A log-domain control (`paq_register_log_screen.py`) retains Q20 relative log
+likelihood scores and derives Q48 coding weights. An expert whose current
+coding weight vanishes still retains its score and can recover later. Two tests
+pass, including900 bits that force severe underflow then reverse the evidence;
+the mixture meets the best-expert-plus-one-bit bound within0.01 bit.
+Screen77665 is terminal. Results: global149.41 predictive bytes saved (restoring
+the expected control), field-role213.87, opcode/field305.08; native-biased variants
+are similar and slightly worse. The qualified fixed prior saved149.70 predictive
+bytes. Preserve `2026-09-28-register-log-screen.json` and the negative numerical
+control. These are still unscored prediction diagnostics on the selection object.
+
+The next implementation should be a NEW isolated native log-prior fork, not an
+edit to any existing helper or binary. Keep original p for PAQ updateModels and
+capture the unchanged original trace, as in the successful fixed-prior fork.
+A useful control set is disabled / opcode-field log mixture / native-biased log
+mixture / old fixed gated1/8; mode3 must reproduce the old prior payload exactly.
+Keying by opcode and register field-start is equivalent to the screen's
+opcode/field key and is causal before the register bits. Reset at each Alpha
+block. Global/field-role controls may be cheaper alternative implementation choices.
+
+The screen uses Python math.log2/exp2 and is NOT yet a portable stream algorithm.
+Use pinned mathematical lookup constants and integer interpolation for a native
+implementation: e.g.4,097 Q30 log2(1+i/4096) values and4,097 Q48 exp2(-i/4096)
+values. Normalize p to Q30 mantissa with its leading-bit exponent; interpolate
+log mantissa at12 index bits and18 fraction bits, then round to Q20. Derive Q48
+weights from score difference whole/fractional bits with12-bit table index and
+8-bit interpolation remainder. Keep all score evidence in signed64-bit state;
+rounding tiny coding weights to zero must NOT reset scores. Use unsigned128-bit
+products for weighted p and division; no floating computation in the codec.
+First verify this proposed table formulation against the screen and a C++/Python
+oracle, then build and physically qualify on the original source with exact
+native-trace equality. This is a design, not implemented code or measured gain.
