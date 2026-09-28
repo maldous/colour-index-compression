@@ -84,7 +84,7 @@ def decode(frame):
 
 
 def worker(spec):
-    path, mode, backend, options, output = spec; source = Path(path); data = source.read_bytes()
+    path, mode, backend, options, output, whole = spec; source = Path(path); data = source.read_bytes()
     folder = Path(output) / f'{source.stem}-{mode}'; folder.mkdir(parents=True, exist_ok=True)
     if (folder / 'stream.cixb').exists():
         raise ValueError('preserve existing GOT trial')
@@ -102,7 +102,7 @@ def worker(spec):
     if binary and paq.sha(Path(paq.paq_binary('v215')).read_bytes()) != binary:
         raise ValueError('GOT backend changed')
     row = dict(stats, input_path=str(source), backend=backend, options=options, physical_bytes=len(frame), round_trip=True,
-               complete_silesia_member=False, source_hashes=hashes, backend_sha256=binary, brotli_version=brotli.__version__,
+               complete_silesia_member=whole, source_hashes=hashes, backend_sha256=binary, brotli_version=brotli.__version__,
                revision=revision, input_sha256=paq.sha(data), frame_sha256=paq.sha(frame), restored_sha256=paq.sha(restored),
                encode_seconds=enc, decode_seconds=dec, peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
                child_peak_rss_kib=resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss)
@@ -114,17 +114,23 @@ def worker(spec):
 def main():
     p = argparse.ArgumentParser(description=__doc__); p.add_argument('--output'); p.add_argument('--prepare')
     p.add_argument('--manifest', default='results/leaderboard/ecoff-got-cohorts/manifest.json')
+    p.add_argument('--whole', action='store_true')
     p.add_argument('--modes', nargs='+', type=int, default=[-2, -1, 0, 1, 2, 3, 4]); p.add_argument('--backend', choices=['brotli', 'paq'], default='brotli')
     p.add_argument('--options', default='-4'); p.add_argument('--jobs', type=int, default=2); args = p.parse_args()
     if args.prepare:
         print(json.dumps(prepare(Path(args.prepare)), indent=2)); return
     if not args.output:
         p.error('--output is required')
-    root = Path(args.output).resolve(); root.mkdir(parents=True, exist_ok=True); manifest = json.loads(Path(args.manifest).read_text())
+    root = Path(args.output).resolve(); root.mkdir(parents=True, exist_ok=True)
+    if args.whole:
+        source = Path('benchmark-work/silesia/mozilla')
+        manifest = dict(constructed_subarchives=False, rows=[dict(path=str(source), sha256=paq.sha(source.read_bytes()))])
+    else:
+        manifest = json.loads(Path(args.manifest).read_text())
     for r in manifest['rows']:
         if paq.sha(Path(r['path']).read_bytes()) != r['sha256']:
             raise ValueError('fixture manifest mismatch')
-    specs = [(r['path'], m, args.backend, args.options, str(root)) for r in manifest['rows'] for m in args.modes]
+    specs = [(r['path'], m, args.backend, args.options, str(root), args.whole) for r in manifest['rows'] for m in args.modes]
     with concurrent.futures.ProcessPoolExecutor(args.jobs, max_tasks_per_child=1) as pool:
         rows = list(pool.map(worker, specs))
     (root / 'complete.json').write_text(json.dumps(dict(complete=True, diagnostic_only=True, fixture=manifest, rows=rows), indent=2) + '\n')
