@@ -155,3 +155,32 @@ and portfolio integration are complete. The original v215 -12L and v216 -8 full
 reference cohorts remain untouched. Next refinements may expose rounded geometric
 relations, predict compositions from atom/graph state, or use CIX count deficits
 to improve the predictor; always retain the arithmetic control.
+
+## Geometric candidate elimination and ordering constraints
+
+`sdf_hydrogen.py` uses deterministic integer CORDIC geometry. Known heavy-atom
+bond directions define a set of hydrogen slots in the largest angular gap.
+Each slot is used once, so the skeleton supplies an exact occupancy constraint
+without another histogram header. Small residuals retain the actual coordinates,
+including unusual layouts. Negative-zero signs are preserved separately.
+
+All 8964 NCI records transform and restore exactly. Among 155971 predicted atoms,
+148216 lie within two integer coordinate units of their predicted slot. The
+ordering constraint reduces log-cardinality from 115050.30 independent-choice
+bits to 60318.77 bits. These are structural measurements, not compressed sizes.
+
+Eighteen 64 KiB physical trials are complete in
+`2026-09-28-sdf-hydrogen-probes.json`. PAQ on textual restricted-choice digits gives
+1508, 1845, 1631 bytes on start/middle/end, versus original PAQ 1964/2938/2334.
+CIX mixed-radix ranks give 1512/1856/1640. Identical-constraint uniform arithmetic
+gives 1514/1858/1636; its predictive loss equals the CIX log-cardinality. Adaptive
+arithmetic on the same restricted candidate alphabet gives 1509/1844/1630.
+Every candidate independently restores. This supports structural prediction and
+occupancy feedback, not an intrinsic information advantage of enumerative ranks.
+Predictable slot ordering explains why uniform ranks leave savings unused.
+
+The textual-choice and adaptive-choice variants are now running on the entire
+NCI member at PAQ v215 -8 in `results/leaderboard/sdf-hydrogen-full8`. Do not edit
+`sdf_hydrogen.py` or its probe while this run is live: the runner checks source
+immutability. Earlier geometry-only full runs and both reference cohorts remain
+live independently. Their cached sources/streams must remain intact.
