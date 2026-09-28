@@ -257,3 +257,56 @@ All longer PAQ/NCI runs remain independent. Additional v215 -9L runs on Mozilla
 and Webster started in `results/leaderboard/paq-v215-priority9L`, two workers,
 to address the two largest gaps without waiting for the lower-level cohort queue.
 They are not scored until independent extraction completes. No Actions used.
+
+## Database fields, joint values and occupancy feedback
+
+The MySQL/MyISAM database layout is confirmed by the official Silesia description
+and OSDB's source schema. `mysql_record_constraints.py` parses 99,998 of 100,000
+physical records, retaining the two exceptional/null records literally. It also
+preserves noncanonical records and trailing fragments. Record headers and zero
+padding are reconstructed only after exact canonical checks. Every field
+dictionary and count is transmitted; no source-byte table or generator seed is
+part of the codec. The floating/decimal pair shares one joint alphabet.
+
+Five complete Brotli-backed trials independently restore all 10,085,684 bytes:
+plain columns 2,355,383; dictionary IDs 1,855,675; fixed-probability arithmetic
+1,837,302; remaining-count arithmetic 1,791,424; conditional permutation ranks
+1,791,528. The latter uses exact remaining-set ranks for unique keys, exact
+multinomial ranks for small cases, and remaining-count arithmetic otherwise.
+Global occupancy knowledge saves 45,878 bytes with identical dictionaries and
+count metadata. This is a concrete predictive-state gain; arithmetic retains a
+104-byte advantage over the blockwise rank representation on the whole member.
+
+PAQ v215 -4 comparisons also improve three independent record-aligned regions:
+start (65,536 bytes), middle offset 5,042,924 (65,536), end offset 10,020,228
+(65,456). Original PAQ sizes are 18,512 / 18,381 / 18,337. Dictionary-ID controls
+are 16,801 / 16,686 / 16,609. Remaining-count arithmetic gives
+16,182 / 16,075 / 16,001, and exact ranks give 16,162 / 16,066 / 15,987.
+The model and constraints deliver the large gain; rank versus arithmetic differs
+by only 9–20 bytes. Two full PAQ v215 -8 candidates (dictionary IDs and
+remaining-count arithmetic) are running in `mysql-record-paq-full8`. Do not edit
+the codec or its probe while they are live.
+
+A second independent codec infers the fixed width of literal character columns
+and transmits the width once. Four further full trials restore exactly:
+plain fixed width 1,729,410; six-bit alphabet 1,729,941; remaining-count alphabet
+arithmetic 1,729,940; same-count static arithmetic 1,730,011. Near-balanced
+compositions save 71 bytes against the static control, but do not beat the simple
+fixed-width column under Brotli. Keep the best complete physical representation.
+The record, dictionary, ordering, width, alphabet, checksum and exception costs
+are all included. Full and regional evidence, hashes, times and source provenance
+are in `2026-09-28-mysql-constraints.json`.
+
+Portfolio 4 completed 47,309,374 bytes, equivalent 124th. Portfolio 5 adds the
+fixed-width candidate and reuses hash-qualified unchanged streams; inspect
+`results/leaderboard/competitive-database-v5/complete.json` for its completed
+result. Both expose uncached encoders and standalone decoders; the database
+detector uses canonical source record bytes, never filenames or corpus hashes.
+
+Portfolio 5 completed: **47,247,360 physical bytes, equivalent 124th**, with all
+twelve exact streams hash-qualified and independent local restoration evidence.
+OSDB was freshly re-encoded and decoded; unchanged streams preserve their prior
+verified decodes. This saves 901,059 bytes against portfolio 3, leaving
+19,421,849 above the leader. A fresh live download confirmed all 322 published
+totals unchanged. The compact report is
+`2026-09-28-competitive-database-milestone.json`.
