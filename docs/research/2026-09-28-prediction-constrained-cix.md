@@ -1129,3 +1129,55 @@ jobs. Only those benchmark process/thread affinities changed; no global settings
 or unrelated applications changed. Managers inherit the new affinity for later
 children. The process identities, before/after masks and exact decode proof are
 in `2026-09-28-paq-performance-core-scheduling.json`. No jobs were restarted.
+
+## Verified Webster and combined procedure-address milestone
+
+Webster v216 -8 independently restored all 41,458,703 bytes: 4,626,898
+physical bytes, encode 7,254.64s and decode 8,661.34s under the concurrent
+workload (affinity changed during decode as recorded). Portfolio 16 qualified
+all twelve streams at 32,727,345 bytes, equivalent 25th, saving 3,962,929
+against portfolio 15. This large gain comes from the established PAQ backend.
+
+`ordered_subset.py` implements known combinadic ranks and arithmetic with the
+same valid-completion counts. Exhaustive small subsets prove every rank is a
+bijection; both restore sparse 64-entry subsets from a 2^30 universe without
+scanning the universe. `ecoff_pdata.py` applies these to strictly increasing
+procedure-address components, paying low-bit flags and each block endpoint.
+Exceptional tables remain literal. It runs after section-pointer prediction so
+its parent sees the original procedure table. Nine invariants pass.
+
+Twelve regional Brotli trials all restore. Simple previous-address differences
+save 454/520/574 bytes. Subset ranks save -11/160/379, and same-information
+arithmetic saves -189/212/172; all lose to simple differences. This supports
+address prediction, not an intrinsic rank advantage. A twelve-trial PAQ control
+is now running locally in `ecoff-pdata-paq-cohorts`; freeze its codec/probe.
+
+`ecoff_pdata_symbols.py` combines the regional winner with the already verified
+shared-symbol load transform. Three wraparound/exception tests pass. Both full
+Brotli streams restore: control 12,802,097 and differences 12,733,922 bytes.
+The latter saves 68,175 versus its same-wrapper control and 68,123 against the
+selected portfolio-15 Mozilla stream. Portfolio 18 composes this with verified
+Webster: **32,659,222 bytes, 25th equivalent; 4,833,711 bytes above the leader**.
+All twelve physical streams have qualified independent restoration evidence;
+both new Mozilla candidates were freshly decoded again during qualification.
+This turn has saved 4,031,052 complete bytes. Compact evidence is in
+`2026-09-28-competitive-intermediate-paq-milestone.json`,
+`2026-09-28-pdata-symbol-full.json` and
+`2026-09-28-competitive-pdata-symbols-milestone.json`. The leaderboard was
+rechecked at 19:52:37Z and its 322-entry hash remains unchanged.
+
+The direct causal PAQ-context tournament also completed all fifteen controls.
+Native and disabled-fork PAQ payloads are byte-identical in each region.
+Last-load context saves 10/11/29 physical bytes, two-load context 8/7/17, and
+register-local context 8/8/22. A six-trial native/last-load comparison at level 6
+is running in `paq-gp-feedback-level6-cohorts`, one worker, before any full new
+fork run. Preserve the level-4 evidence in `2026-09-28-paq-gp-feedback-cohorts.json`.
+
+The default CLI is now portfolio 18. Prospective complete-size PAQ is portfolio
+19 (`competitive_large_paq.py`), inheriting 18 and gated above 48 MiB. Do not
+qualify 19 until the full Mozilla reference result.json has exact restoration.
+Portfolio numbers 17 and 19 were prospective/unscored; no completed 17 result
+is claimed. The completed Webster decoder freed performance core10, which now
+runs the existing name-offset full experiment. The v216 manager is constrained
+to core8 for its remaining Mozilla run and subsequent decoder. Other long jobs
+remain live, never restarted. First place remains unachieved and research active.
