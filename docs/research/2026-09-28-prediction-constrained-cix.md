@@ -779,3 +779,33 @@ results and a refined modelling explanation, not a new complete-byte milestone.
 The ten long PAQ jobs still run. At the final local check, v216 Mozilla encoding
 was 46.76% and Webster decoding 20.75%; these percentages are process progress,
 not score estimates. Re-check processes before acting on this historical note.
+
+## Relocation-conditioned data pointer research
+
+Previous goal turn made progress through 106 completed controls and qualified
+PAQ loss attribution; it did not change the complete score. The current turn
+revalidated all reference processes before continuing. `ecoff_relocated_pointers`
+uses existing relocation symbol indices to constrain 239,835 data/rdata/sdata
+pointers. Same-object symbol values match 38,554; adding same-name definitions
+from transmitted objects matches 89,395. Exceptions are always literal. Duplicate
+or overlapping relocation fields are excluded deterministically. Modes compare
+framed control, in-place indices with membership flags, explicit side choices,
+uniform ranks, identical-alphabet arithmetic, and adaptive arithmetic. A seventh
+control uses only same-object definitions with the adaptive coder.
+
+All seven complete structural transforms independently invert Mozilla. Shared
+uniform path uncertainty is 1,121,925.49 bits; ranks use 140,354 choice bytes,
+uniform arithmetic 140,244, adaptive 2,185 (17,452.24 predictive bits). Shared
+literal exceptions use 1,203,520 raw bytes versus 1,610,248 with local definitions.
+These are raw structural payloads, not final compressed savings. Eight tests
+cover exact exceptions, shared definitions, invalid indices, and conflicting
+relocations. All six small physical Brotli fixtures restore. The immutable source
+is committed as bb66c2a. Seven full physical Brotli trials are running with four
+workers in `ecoff-relocated-brotli-full`, plus nine PAQ -4 cohort trials using two
+workers in `ecoff-relocated-paq-cohorts`. No new rank claim yet.
+
+The older heavy-atom NCI trial completed independent extraction:
+**464,859 physical bytes**, encode 2,863.85s, decode 3,447.75s. This is
+**17,111 bytes larger** than the selected 447,748-byte hydrogen-constraint stream.
+The earlier 7–13-byte regional gains did not carry through; reject the complete
+candidate and preserve the incumbent. Evidence: `2026-09-28-nci-heavy-full-negative.json`.
