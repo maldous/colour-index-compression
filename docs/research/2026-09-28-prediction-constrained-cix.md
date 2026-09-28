@@ -1217,3 +1217,92 @@ These percentages are historical observations, never scored results. Available
 memory was about 8 GiB; avoid adding another large full PAQ allocation while
 the 12L decoder grows. Goal active and unachieved; this turn made a material
 verified 4,031,052-byte improvement. Continue from actual process/artifact state.
+
+
+## Complete filtered portfolio 19 and causal alphabet feedback
+
+The stored-mode decoder failure was isolated to v216 predictorMain being null
+while block/filter decoding dereferences its Shared state. The separate
+`build_paq_store_state.py` fork supplies state only and fails on an unexpected
+probability request. Reference source/binaries are unchanged. All twelve native
+level-zero archives restore exactly through this fork, and the qualified
+253,952-byte nonzero control produces the identical native 45,027-byte stream.
+The fork binary is 6b815f63502c515a95654df316deb30b6a050fbee1293897f4e643c54843212b.
+
+The initial combined stdout/stderr segmentation reports contain progress
+contamination and must not be used for path analysis. Native level-zero archives
+were cheaply recreated with separate logs and must equal the already restored
+archives byte for byte. Clean parsing was corrected to include x86/64 and reject
+silently skipped records. The corrected compact path inventory includes all
+native block lines, with lengths explicitly described as declared leaf lengths,
+not original coverage or exact model-input byte counts. See
+`2026-09-28-paq-store-state-qualification.json` and
+`2026-09-28-paq-clean-path-inventory.json`.
+
+All twelve procedure PAQ controls completed: differences save 137/207/206 bytes;
+ordered subset ranks save -12/26/0; same-space arithmetic saves -16/20/-2.
+Simple differences win. All six direct last-load PAQ level6 controls restore,
+saving 7/7/23 bytes against native. The raw level6 report's
+control_matches_reference=false denotes absent disabled arms, not a failed
+comparison; disabled exact identity passed at level4. Compact reports preserve
+these distinctions. Post-calloc hugepage advice was slower with identical
+archives and is rejected; no live reference job uses it.
+
+The new `ecoff_filtered.py` CIXB13 stream combines the existing procedure/symbol
+transform with native PAQ v216 -0 reversible filters and Brotli11 (lgwin24).
+Full Mozilla mode0 (CIX only) is 12,733,922 bytes; mode1 (both) is 11,249,835;
+mode2 (filters only) is 12,398,643. All restore. Mode1 encodes in 150.560s and
+decodes in 6.241s under the current workload; all native archive headers and
+outer framing are counted. This is a measured representation-combination gain,
+not a rank-coding advantage over identical-information arithmetic.
+
+`competitive_filtered.py` is now portfolio19. It qualifies all three full
+candidates by source/backend/input/frame identity, recomputes structure, and
+freshly decodes each. Complete root `competitive-filtered-v19` contains all12
+qualified streams: **31,175,135 bytes, equivalent24th, 3,349,624 above leader**.
+This turn saved 1,484,087 complete bytes. Live leaderboard recheck at20:44:39Z
+retains 322 entries, leader27,825,511, SHA78d29449a1036e1545d3665ccba9de65555f1b5afda78640c2e2b12dde946c86.
+Default CLI is portfolio19. Prospective `competitive_large_paq.py` is now20,
+inheriting19; its prior19 label was never scored. Wait for full native Mozilla
+result.json before qualifying `competitive-large-paq-v20` from19.
+
+Source-only bundle `/tmp/cix-source-portfolio19-20260928.tar.gz` is 3,032,867
+bytes, 1,401 files, sourcef1d4f1f33133fcfcd89132e71cb2e610de2d0d86,
+SHAb491d7baa97c774d319f7447eb6a3c623196a260f93f986a0c45af3024214ff6.
+The stored-state decoder freshly rebuilt identically in the isolated tree.
+Six other qualified rebuilt binaries were reused after 713 source files matched
+against the prior isolated rebuild. The isolated default CLI restores full
+Mozilla in10.3296s,583484KiB, exact SHA657fc3764b0c75ac9de9623125705831ebbfbe08fed248df73bc2dc66e2a963b.
+Its file trace accesses no original research source/corpus/cache; the external
+Python dependency environment is reused. All staged files retain their hashes.
+See `2026-09-28-portfolio19-source-isolation.json`. The reproduction script now
+stages/builds the separate repaired fork too, without Git/network at build time.
+
+The Site published portfolio19 successfully at2026-09-28T20:50:04.725133Z:
+sourcea04ebba58484b827582bf0badbf0020c75850162,
+deploymentappgdep_6abad2ec4380819193d8d08e9f6b80ee,
+versionappgprj_6aba005773a08191ae8a7978a687b3cb~appgver_c670617eb9d48191a3012251d0b691e8.
+It shows31,175,135/24th, all completed controls above, corrected path inventory,
+and isolated source qualification. No browser handoff in this autonomous goal.
+The GitHub repository was read-only confirmed private this turn. No GitHub push,
+Actions job, public source release or official listing is claimed.
+
+`build_paq_gp_alphabet.py` adds causal displacement multiplicity and alphabet
+occupancy feedback in unused PAQ mixer slots. A uniform escape prior supports
+all16-bit values; counts reset per detected block, and rescaling preserves
+occupancy. It does not claim hard elimination of unseen values. Exact integer
+probability/rescaling invariants and all four modes restore; mode0 equals native
+bytes. Binaryc1d4d518df9fe85bd828c359b2a1c01c7502829ab41c10056646af2a8f536e60.
+The 15-trial three-region level4 tournament is LIVE session86988,
+manager3229196, `paq-gp-alphabet-cohorts`; freeze builder/probe/model sources and
+all parent dependencies. The first native/disabled pair is70207/70207. No
+feedback gain inferred yet. Only this manager/descendants were moved to CPUs0,18
+after the full filter batch freed core0; scheduling journal records identities.
+
+At20:50:03Z native v216 Mozilla is decoding14.39%, v215-12L NCI decoding74.74%,
+v215-9L Mozilla encoding47.16%, Webster encoding86.71%. These are historical
+process observations, never scored bytes. v216 Mozilla encoder completed at
+20:27:28Z; decoder3202350 runs onCPU8. All full ECOFF PAQ branches remain live.
+Available memory~9.8GiB; avoid gratuitous full PAQ allocations. First place is
+unachieved; goal remains active, this turn materially progressed. Revalidate
+processes before continuing rather than restarting any long run.
