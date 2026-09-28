@@ -30,6 +30,10 @@ def worker(args):
     if args.fast_comb:
         from benchmarks.fast_runtime import enable
         acceleration = enable(memoize=args.memoize)
+    if args.ppm_key_cache:
+        from benchmarks.ppm_key_cache import enable
+        enable()
+        acceleration = dict(acceleration or {}, ppm_key_cache=True)
     from cix.cli import config_for_level
     from cix.multinomial import StreamEncoder, StreamDecoder
     from cix.fileformat import _footer, split_file_wrapper
@@ -139,6 +143,7 @@ def main():
     p.add_argument('--python', default=sys.executable)
     p.add_argument('--fast-comb', action='store_true')
     p.add_argument('--memoize', action='store_true')
+    p.add_argument('--ppm-key-cache', action='store_true')
     args = p.parse_args()
     if args.worker:
         worker(args); return
@@ -153,6 +158,8 @@ def main():
             command.append('--fast-comb')
         if args.memoize:
             command.append('--memoize')
+        if args.ppm_key_cache:
+            command.append('--ppm-key-cache')
         with (out/(name+'.log')).open('a') as log:
             result=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,
                                   env={**os.environ,'OMP_NUM_THREADS':'1'})

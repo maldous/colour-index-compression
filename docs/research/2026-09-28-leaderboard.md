@@ -68,3 +68,12 @@ The accelerated PyPy/GMP suite passed 78 tests in 70.31 seconds; a separate cach
 growth/rescale/exclusion/eviction property test also passed. The cache remains
 experimental and is not enabled in the frozen Silesia run. A whole-stream paired
 qualification is needed before adoption; this is not a compression-size gain.
+
+The subsequent four-member whole-stream qualification is now complete. Every
+artifact matched the control SHA-256 and round-tripped. Aggregate encode time
+was 172.38 seconds for the control and 173.24 seconds with the cache; the apparent
+kernel improvement did not translate into a whole-stream benefit on this set.
+Do not enable the cache for the current Silesia run. Individual measurements and
+their concurrent-load limitation are in `2026-09-28-ppm-key-cache-streams.json`.
+The runner's explicit `--ppm-key-cache` option exists for further experiments
+only and defaults off.
