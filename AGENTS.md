@@ -1,5 +1,10 @@
 # CIX local research
 
+The explicit research goal is first place by total physical compressed bytes on
+https://mattmahoney.net/dc/silesia.html with a generic codec and no pre-known source
+optimization. An equivalent measured baseline rank is an intermediate milestone,
+not completion. Recheck the live leading total before claiming achievement.
+
 - Run all tests, profiling, algorithm tournaments and corpus benchmarks locally.
   Do not trigger, dispatch, rerun or otherwise consume GitHub Actions. Do not
   create or modify workflow files to start CI. Source pushes must not trigger CI.
