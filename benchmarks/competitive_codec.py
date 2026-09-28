@@ -68,6 +68,12 @@ def decode(frame):
         return raw
     if magic==spatial.MAGIC:return spatial.decode(frame)
     if magic==volume.MAGIC:return volume.decode(frame)
+    if magic==b'CIXG\x01':
+        from benchmarks.sdf_geometry_probe import decode as geometry
+        return geometry(frame)
+    if magic==b'CIXQ\x01':
+        from benchmarks.sdf_hydrogen_probe import decode as hydrogen
+        return hydrogen(frame)
     if magic==b'CIXT\x01':
         from benchmarks.legacy_mixer_native import enable
         from benchmarks.native_ppm_decode import enable as enable_ppm
