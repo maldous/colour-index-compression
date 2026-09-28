@@ -1764,3 +1764,91 @@ competitive-filtered-v19 to create competitive-large-paq-v20 using exact
 native restoration proof and reversible same-length header substitution.
 Then refresh liveleader, update default/reproduction/source package/Site.
 Never declare a rank from the unfinished archive.
+
+### Interaction verification completed; latest user requests fresh Site results
+
+Tests4607 TERMINAL success:6 tests passed51.28s. Disabled adaptive-joint
+matches native; memory-only matches qualified memory fork; adaptive-only
+matches standalone adaptive codec on the SAME transformed input. All modes
+restore. Joint log binary remains48f7abee704313908d4ffd0c07b336eddca7f7532eb4c87804c438a7f5dd6425.
+
+Pilot42074 TERMINAL success. For speed, ran only new modes0/2/3 and retained
+previous5 verified fixed-joint controls; no duplicate native/memory encodes.
+New framed sizes40,086/39,786/39,589. All restore, disabled PAQ payload equals
+native exactly. Collector `paq_joint_log_collect.py` checks source/frame/backend,
+CRC/payload, transformed-input hashes and transform inversion for every new
+and retained row. Evidence `2026-09-28-paq-joint-log-pilot.json`.
+Joint adaptive saves497 versus matched structural/native,297 versus memory,
+197 versus adaptive alone,153 versus previous fixed joint. All these controls
+have13 outer framing bytes and the same structural transform. Comparing against
+bare transformed-native payload would save484; do not imply same-information
+rank coding superiority or a whole-file result. This is predictive feedback.
+
+Higher-effort41211 TERMINAL success. Level6 native/joint pairs:
+69,853/69,250;95,734/95,143;97,063/96,312. Savings603/591/751, all3 new streams
+independently restored. Native controls are unchanged previously restored frames,
+rechecked with full hashes. Compact `2026-09-28-paq-joint-feedback-level6.json`.
+
+Adaptive joint REGIONAL session98956 is LIVE, discover its manager PID from /proc before acting.
+Command:taskset -c0,18,22 python -m benchmarks.paq_joint_log_probe
+--output results/leaderboard/paq-joint-log-cohorts --modes3 --jobs3.
+Started about23:00Z. No complete regional rows at23:04Z. All three workers inherit
+0,18,22, so OS may schedule them between these cores; no strict per-worker pin.
+Freeze new builder/probe, log headers/math/tables and parent closure.
+After complete.json: verify each frame, input/dependencies/backend, compare to
+previous fixed-joint regions at
+`results/leaderboard/paq-joint-feedback-cohorts/<seed>/complete.json`.
+Those have native/memory/fixed-register/fixed-joint arms4/1/2/3. New joint should
+be compared with exact matched physical sizes, especially oldjoint69,526/
+95,494/96,825. No adaptive-alone regional arm is present. All three inputs
+are exploratory overlapping object cohorts, not held-out. A regional collector
+has NOT yet been written. Existing pilot collector assumes unique modes and
+cannot directly consume three rows all with mode3. Do not misreport that.
+If new combination improves all regions, consider one full level8 native trial
+using this frozen fork; select by actual physical bytes and independent decode.
+
+Multi-prior screen92231 TERMINAL. Combining17 experts from shared/role recency,
+opcode/role counts and occupancy saves327.977 predictive bytes, only22.900 beyond
+qualified persistent mixture305.078. Role recency alone51.787; occupancy6.084;
+composition3.254. Full result `2026-09-28-register-multi-prior-screen.json`.
+Control reproduced to1e-6. Remains unscored prediction-only; not yet native.
+
+Discount screen96861 TERMINAL. More promising: explicit causal forgetting
+improves the same mixture. Retention31/32 saves386.74054 predictive bytes,
+81.66290 beyond persistent;127/128 saves379.54344 (+74.46580);511/512339.15241;
+2047/2048317.33462. Persistent control305.077644918 recovered to1e-6.
+`paq_register_discount_screen.py`, evidence`2026-09-28-register-discount-screen.json`.
+This is purposeful adaptation to changing regimes, NOT the rejected numerical
+posterior-floor bug. It does not retain the best-fixed-expert regret guarantee.
+Scores are normalized after each informative observation, then their nonnegative
+penalties are multiplied by(d-1)/d with nearest integer rounding. Uninformative
+identical-expert observations skip update/discount. No future data.
+
+Next useful native experiment, NOT implemented: NEW isolated discounted joint
+fork, preserving current log/joint binaries. New copies of math/header need
+explicit discount in posterior.observe. Suggested modes0disabled,1current
+persistent joint,2joint31/32,3joint127/128; memory feedback on for1/2/3. Mode1
+must reproduce current joint mode3 payload EXACTLY. All reset equalpriors,
+remove old log header's native-bias/mode3fixed semantics in the NEW copy only.
+Integer oracle should first reproduce the prediction screen closely; independent
+C++/Python tests, block resets, native trace identity across modes1/2/3 (same
+memory predictor information), and exact restoration then physical pilot are
+required. Old `CixLogMath.hpp` is FROZEN and scores are private; make a new header,
+not a live-source edit. New framing magic must avoid all existingCIXB variants.
+
+User asked to update @Sites with new results while research continues. Site
+source d724d91d43597222637a3ec899a18b50ac515d5f deployed successfully23:03:19.950704Z,
+appgdep_6abaf227c69c8191a2c7a911bfa8a86a, version
+appgprj_6aba005773a08191ae8a7978a687b3cb~appgver_c94e4b24a8e8819183ecf2603cfade43.
+Includes497-byte pilot and all higher-effort controls. Further source
+27db0516930842b6692d934a2b1b182f1c9584c7 replaces top historicalNCI summary with
+new497-byte result and refreshes stale21:10 snapshot time to23:04UTC. Whole
+31,175,135/24th score remains unchanged. Deployment call cell921 is PENDING as
+this checkpoint is written; collect it before further Site changes. Do not
+restart save. Current credential expiry23:11:43Z. Source bundle archive
+/tmp/cix-site-new-results-visible-20260928.tar.gz is immutable until completion.
+
+All full jobs still live. Runtime snapshot`2026-09-28-local-jobs-2303.json`:
+v216Mozilla decode66.20%;v215-9L Mozilla encode67.22%,Webster decode18.71%;
+12LWebster encode7.87%. NCI12L complete as above. No pending full result may
+enter score. Overall goal ACTIVE, unachieved, unblocked; this turn made progress.
