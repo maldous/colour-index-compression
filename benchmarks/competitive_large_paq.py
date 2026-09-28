@@ -1,18 +1,18 @@
-"""Prospective portfolio 16: remove the remaining PAQ size ceiling.
+"""Prospective portfolio 17: remove the remaining PAQ size ceiling.
 
 The complete score may be refreshed only after every eligible cached reference
 has independently restored. Pending archives are rejected, never projected.
 """
 import sys
 import time
-from benchmarks import competitive_symbol_loads as parent
+from benchmarks import competitive_intermediate_paq as parent
 from benchmarks import competitive_small_paq as reference
 from benchmarks import competitive_database_portfolio as database
 from benchmarks.competitive_codec import encode_paq
 
-NAME = 'CIX competitive complete-size PAQ/structural portfolio 16'
+NAME = 'CIX competitive complete-size PAQ/structural portfolio 17'
 SOURCES = [__file__]
-MIN_BYTES = 2 * reference.MAX_BYTES
+MIN_BYTES = parent.MAX_BYTES
 
 
 def eligible(data):
@@ -27,7 +27,7 @@ def additions(data, cache=None):
         frame, proof = reference.qualify(data, cache)
     else:
         frame = encode_paq(data, 'v216', '-8')
-    return [(frame, dict(name='paq-v216-8-above-24MiB-nondatabase', size=len(frame),
+    return [(frame, dict(name='paq-v216-8-above-48MiB-nondatabase', size=len(frame),
                          encode_seconds=time.perf_counter()-started), proof)]
 
 

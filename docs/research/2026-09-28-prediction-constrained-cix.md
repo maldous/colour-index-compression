@@ -1019,3 +1019,34 @@ and nine Webster negatives. New section-pointer PAQ controls and isolated-source
 proof are saved locally for the next material Site update. The active goal remains
 unachieved, unpaused and unblocked; this turn made measurable progress. The next
 turn must re-check live reference and full-candidate jobs before starting new ones.
+
+## Causal instruction state fed directly into PAQ
+
+Previous turn made progress: 80,018 verified full bytes saved, Site published,
+and a fresh isolated source candidate passed a traced standalone full decode.
+Current processes were revalidated; no job was restarted. Shared-symbol load
+normalization is negative on the first two PAQ fixtures (aligned +523/+444;
+dense +578/+531). Finish the last fixture before closing that controlled result.
+
+`build_paq_gp_feedback.py` now builds an isolated PAQ v215 fork that leaves
+instruction bytes unchanged and adds one causal displacement context to an
+otherwise unused mixer-input pair in DECAlphaModel. Three modes use the last
+completed GP load, the last two plus destination register, or the last load to
+the same register. State resets at code-block boundaries; context-map training
+persists. These are already decoded values, not future input or transmitted
+lookup tables. The outer frame pays a mode byte and its full framing/checksum.
+The native reference sources and binaries are untouched. Fork binary SHA
+74837dadd8325b755cf7c92cd79920676901e5cd28c5331ed801728838db1585; original-model
+SHA ed9e5304c5d00dca538967a9bb0eca0d5fd48be82b6bf554c4cffb475feaa6fd.
+
+Two meaningful native tests pass in 29.49s: all four settings restore a recognized
+synthetic executable exactly; mode zero produces the same PAQ payload as the
+unmodified native reference; each enabled mode changes the payload. The map
+is active only for LDQ instructions using register 29. Existing PAQ contexts,
+other input slots, arithmetic coding and code transforms stay intact. Fifteen
+whole-cohort trials now run in `paq-gp-feedback-cohorts`, two workers, comparing
+native reference, disabled fork, and three feedback contexts on the fixed three
+constructed subarchives. Each first applies the completed section/function
+transform, so all variants get identical predictive information. No result or
+full-file gain is claimed before restoration. Freeze builder, probe, fork and
+all dependent codecs while the tournament is live.
