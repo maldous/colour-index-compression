@@ -1852,3 +1852,12 @@ All full jobs still live. Runtime snapshot`2026-09-28-local-jobs-2303.json`:
 v216Mozilla decode66.20%;v215-9L Mozilla encode67.22%,Webster decode18.71%;
 12LWebster encode7.87%. NCI12L complete as above. No pending full result may
 enter score. Overall goal ACTIVE, unachieved, unblocked; this turn made progress.
+
+Latest Site publication COMPLETE: cell921 terminal collected. Source
+27db0516930842b6692d934a2b1b182f1c9584c7 deployed successfully
+2026-09-28T23:05:27.669721Z, deploymentappgdep_6abaf2a7738c8191bc8bc0089ab2448a,
+versionappgprj_6aba005773a08191ae8a7978a687b3cb~appgver_4a068fe4ac7c819199a7524a7ee408d5.
+New497-byte verified experiment is visible in the top summary with fresh23:04UTC
+snapshot and explicit probe-versus-whole-corpus distinction. All supporting
+artifacts linked. No pending Site call. Background research skips browser
+handoff; deployed URL returned to user. Research goal continues active.
