@@ -380,3 +380,53 @@ six-bit and remaining-count representations, preserving the best physical frame.
 The original full reference and Mozilla/Webster priority runs continue locally.
 No Actions or source-repository push was used. Public-source eligibility remains
 pending; numerical position is not an official listing or first place.
+
+## Completed hydrogen slots, standalone reproduction and next database trials
+
+Both hydrogen-slot full streams completed independent extraction. PAQ choice
+text: **447,748 bytes**. Adaptive constrained arithmetic: **447,749 bytes**.
+All 8,964 records and 339,696 atoms restore, including negative zero. Geometric
+prediction locates 148,216 of 155,971 predicted atoms within two coordinate
+units. Independent slot uncertainty is 115,050.30 bits; using each slot once
+reduces combinatorial log-cardinality to 60,318.77 bits; adaptive ordering costs
+4,888.20 predictive bits and a 614-byte intermediate payload. PAQ on the plain
+choice digits produces an almost identical final stream. The model supplies the
+important improvement; mere reduction in uniform cardinality is insufficient to
+outperform an adaptive probability model of the same choices.
+
+Portfolio 9 qualifies the 447,748-byte physical frame. Complete twelve-member
+total **42,238,073 bytes, still equivalent 84th**, gap **14,412,562 bytes**. The
+selected NCI stream is 328,885 bytes below the author's -12L value, but the full
+local -12L NCI reference remains in progress. Eight v216 -8 reference members
+have now completed: the new OSDB reference is 2,018,086 bytes, independently
+confirming the selected 1,698,992-byte CIX database model wins against this
+configuration by 319,094 bytes. No change to the complete total from that losing
+reference. Full evidence: `2026-09-28-nci-hydrogen-full.json` and
+`2026-09-28-competitive-hydrogen-milestone.json`.
+
+The fresh hydrogen prefix exactly reproduces the original 1,508-byte stream and
+restores independently. Qualification correctly rejected the old prefix's stale
+source hash (it predates added arithmetic controls); the current full trial
+qualifies. Two tests pass. `benchmarks.competitive_cli` now provides an entirely
+uncached encoder and standalone decoder. A fresh 992-byte mixed probe compresses
+to 67 bytes and restores in a separate process; the encoder independently
+verifies before writing. It refuses existing output paths. Reproduction notes
+are in `competitive-reproduction.md`; public source packaging remains pending.
+
+Nine fixed-field/PAQ probes have completed across three independent database
+regions. Fixed width plus six-bit alphabet yields **16,135 / 16,029 / 15,953**
+bytes, versus the previous same-backend remaining-count representation
+16,182 / 16,075 / 16,001. Replacing six-bit letters with remaining-count arithmetic
+is slightly larger on each region. Full modes 2 and 3 at PAQ v215 -8 now run in
+`results/leaderboard/mysql-fixed-paq-full8` (two workers); do not edit
+`mysql_fixed_paq.py`, `mysql_fixed_columns.py` or their dependencies while live.
+No partial or projected size is scored. The framed checksum/partial-record test
+passes. The original PAQ references and Mozilla/Webster priority comparisons
+remain active; inspect actual state before restarting anything.
+
+Next structural hypothesis: known earlier heavy-atom coordinates and the bond
+graph may restrict heavy-atom placement to a small set of angular or circle-
+intersection candidates, just as hydrogen slots do. Start with measured bond
+length/angle distributions and three short independent regions; transmit any
+learned lengths and preserve exact residuals. Do not assume arbitrary molecules
+obey the drawing model. Retain the incumbent unless actual complete bytes win.
