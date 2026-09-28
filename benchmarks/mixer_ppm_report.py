@@ -8,7 +8,7 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def report(root=Path('.')):
+def report(root=Path('.'), *, incumbent_folder='mixer-extended-tier1', candidate_folder='mixer-ppm-tier1'):
     manifest=json.loads((root/'results/corpus-manifest.json').read_text())
     counts={c:sum(x['corpus']==c for x in manifest) for c in ('canterbury','calgary','artificial')}
     if counts!={'canterbury':11,'calgary':14,'artificial':4} or len(manifest)!=29:
@@ -18,7 +18,7 @@ def report(root=Path('.')):
         path=root/item['path'];data=path.read_bytes()
         if len(data)!=item['size'] or sha(data)!=item['sha256']:raise ValueError('input mismatch')
         label=item['corpus']+'-'+path.name;records={}
-        for name,folder in (('incumbent','mixer-extended-tier1'),('candidate','mixer-ppm-tier1')):
+        for name,folder in (('incumbent',incumbent_folder),('candidate',candidate_folder)):
             record=json.loads((results/folder/(label+'.json')).read_text())
             frame=(results/folder/(label+'.cixr')).read_bytes()
             identity=record['identity']
