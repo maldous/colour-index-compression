@@ -1861,3 +1861,144 @@ New497-byte verified experiment is visible in the top summary with fresh23:04UTC
 snapshot and explicit probe-versus-whole-corpus distinction. All supporting
 artifacts linked. No pending Site call. Background research skips browser
 handoff; deployed URL returned to user. Research goal continues active.
+
+### Continued turn23:07–23:29Z: stronger predictor and requested comparison table
+
+Read full controlling objective this turn. Previous turn was progress; current
+turn also made progress. Overall goal remainsACTIVE, unachieved, unblocked.
+Full portfolio remains31,175,135 bytes,24th/322 equivalent. Source branch local
+only; no Actions or GitHub push. The Site source repository is separately
+explicitly authorized. Do not edit dependencies of any scored/live codec.
+
+Adaptive joint regional98956 TERMINAL success. It initially ran all3 native
+jobs onCPU0 despite0,18,22 affinity. Identity-checked worker+decoder threads
+were explicitly pinned to separate0/18/22; no restart. Journal
+`2026-09-28-joint-log-regional-affinity.json`. Future jobs need ONE CPU per
+worker/manager, not a mixedP/E mask that Linux may concentrate on the P core.
+Final new sizes69,251/95,214/96,515. Savings956/931/1,231 versus matched native,
+580/582/670 versus memory-only,275/280/310 versus fixed joint. All3 new streams
+restore. Collector `paq_joint_log_cohort_collect.py` checked12 previous frames,
+source/input/backend hashes and transform inversion. Evidence
+`2026-09-28-paq-joint-log-cohorts.json`. No adaptive-only regional arm; overlapping
+exploratory cohorts, not held-out or full-file results.
+
+Deterministic discounted native fork IMPLEMENTED and FROZEN:
+`build_paq_joint_discount.py`, `paq_joint_discount_probe.py`,
+`paq_joint_discount_qualify.py`, `register_discount_math.py`,
+`native/CixDiscountLogMath.hpp`, `native/CixDiscountRegisterPrior.hpp`.
+Old math/helper/forks unchanged. FrameCIXB1d. Memory opcode/base feedback active
+for1/2/3;0disabled;1persistent;2retention31/32;3retention127/128. All equalpriors.
+New native posterior adds explicit nearest-rounded discount to normalized
+nonnegative log penalties. Identical-expert events skip update/discount.
+Fork `paq8px-cix-joint-discount` binarySHA
+7f8a4605eca962cd6015839922afb2f2f7dd669d597921c216919aaf620e8b5a.
+Build12796 TERMINAL. Initial3 integer/helper tests80188 passed1.54s. Full9 tests
+19403 passed41.25s, including block resets, long-regime adaptation, all native
+modes restore, disablednative identity and persistentprevious-joint identity.
+
+Integer screen55993 TERMINAL. New `paq_register_discount_table_screen.py`
+reproduces preliminary float screen within0.000002 predictive byte. Retention
+31/32 saves386.740541781 predictive bytes,81.662897217 beyond persistent;
+127/128379.543441738 (+74.465797173). Evidence
+`2026-09-28-register-discount-table-screen.json`. Shifts9/11 remain diagnostic
+oracle cases; native profiles expose only5/7 andpersistent. No hard elimination.
+
+Qualification66486 TERMINAL success. Modes1/2/3 =39,589/39,505/39,513 physical
+bytes; all3 independently restored. Every underlying memory-aware PAQ p/y trace
+identical byte for byte. Persistent PAQ payload exactly matches oldjointmode3.
+Best saves84 versus persistent and581 versus matched structural/native40,086;
+all13 outer framing bytes included. Bare transformed-native difference568.
+`results/leaderboard/paq-joint-discount-qualified/complete.json`, compact
+`2026-09-28-paq-joint-discount-qualified.json`. New pilot uses independent
+ProcessPool workers with explicit single CPU per mode. Qualifier also checks
+native provenance's generated source hashes, not just builder/binary.
+
+Discount REGIONAL jobs LIVE, each mode2 only,jobs1, separate immutable manifest:
+root`results/leaderboard/paq-joint-discount-cohorts`:
+4274176→session95046,manager3530358,CPU0;
+35383296→13817,manager3530360,CPU18;
+47712256→8862,manager3530359,CPU22.
+Started23:26Z; still live/no complete rows23:29Z. Never restart on polltimeout.
+After all complete, compare exact frames to persistent-joint69,251/95,214/96,515
+and retained matched native controls. Need NEW collector; not implemented yet.
+If all improve, consider one full Mozilla level8 candidate onfreeP0. No full
+native joint/log/discount trial has yet been launched. Compare with pending
+full section4/native8 control as well as incumbent; all must fully restore.
+
+User latest steering: wants Site TABLE, left column algorithm, top columns
+ratio, compression speed, decompression speed; only best case per algorithm,
+not many versions; wants to see where CIX fits. Delivered a prominent9-family
+table and folded prior detailed experiments/per-file variants under a native
+`details` section. Preserve this product direction on future Site changes.
+
+Silesia source re-read withweb andindependently fetched23:18Z, exactly322 rows,
+unchangedSHA78d29449a1036e1545d3665ccba9de65555f1b5afda78640c2e2b12dde946c86.
+Snapshot `2026-09-28-silesia-comparison-source.json`. Published Silesia table has
+NO speed columns; do not import enwik9/other-corpus timings into Silesia rows.
+Families displayed:PAQ (branches grouped),cmix+Precomp,CIX,ZPAQ+Precomp,
+LZMA/LZMA2 (7-Zip/plzip/XZ grouped),Brotli,Zstandard,bzip2,gzip. Explicitly a
+selected-family comparison, not a new official rank. Best physical size wins;
+any published best may have no matched speed. Never transfer speed from a
+different/larger variant. Native publishedratio leaders13.13%,cmix13.33%,
+CIX14.71%,ZPAQ17.27%. CIX is12.04% larger than publishedleadingbytes, remains24th
+among322 configurations. No claim of official3rd from grouping.
+
+New reference speed runner `silesia_speed_reference.py`, session91814,
+manager3514049,CPU20 (singleE core), LIVE. Complete canonical Silesia, each
+algorithm separately compresses12 files; every stored archive decoded3 times;
+median per-file decode, one encode, decimal originalMB/s. IO included where
+specified; comparisons/source reads excluded. Concurrent research workload,
+not a uniform quiet-machine speed contest. Root
+`results/leaderboard/silesia-speed-reference-20260928`. Source frozen.
+Completed so far:
+Python gzip9:67,643,417B,9.211749MB/s encode,160.321499decode (NOT selected).
+bzip2:54,506,769B,8.256841encode,8.543460decode (tiespublishedbest,selectlocal).
+zstd1.5.7level22:52,364,062B,1.038443encode,420.599148decode (betteroldpublished).
+xz9extreme:48,456,004B,1.073114encode,57.730649decode (largerthanpublishedplzip
+48,335,267; therefore NOT selected and MUST NOT lend its speed to plzip).
+Brotli1.2.0q11lgwin24 is still running. Do not restart. On completion, collect
+session91814 and regenerate comparison evidence+Site; it may improve the
+published50,297,179-byte Brotli row or may remain unselected.
+
+Separate GNUgzip-9-n-c runner1739 TERMINAL. Root
+`results/leaderboard/silesia-gzip-speed-native-20260928`, all12×3decodesverified:
+67,631,918B,8.394519encode,115.235087decode. Smaller than published67,631,990,
+so select it instead of Pythonzlibgzip. Name/time metadata omitted, all format
+headers/checksums counted. CPU24, CLI pipe+artifactIO included. Noapproximation.
+No nativeplzip/lzip/7zz executable available. Do not fabricate missing speeds.
+
+Evidence generator `benchmarks/silesia_comparison_evidence.py` checks all physical
+local frames and corpus hashes, selects min complete output (tiesfavor timedlocal),
+and verifies current CIX12frames. Current CIX compression is NOT timed endtoend;
+researchcache bookkeeping zeros are NOT speed. CIXdecode≈0.008691689MB/s is
+211,938,580 bytes divided by the sum of recorded12 per-file verification times.
+Label historicalaggregate/mixedcores+load; not fresh uniform measurement.
+Generator arguments `--cix` defaultportfolio19 andrequired`--output`.
+Current generated evidence `/tmp/cix-family-comparison.json`, copied toSite.
+After profilechanges, explicitly pass its newcomplete.json; do not retain19.
+A final compact research comparison doc should be written after baselinebatch
+completes; not yet done. Generator also stores unusedlocal candidates toshow
+why their timings are notassigned to the bestpublishedrow.
+
+Site renderer NEW `/home/user/src/cix-research-site/scripts/render-comparison.py`
+accepts evidenceJSON; creates9unique algorithm rows,4requestedcolumns,
+highlightsCIX, exposes methodology/settingsfold, updates timestamp/statusJSON.
+Staticlinks/entry andtableuniqueness verified. No screenshot/browserQA requested.
+Historical table nowhidden inside`details#research-history`; comparisonsection
+marked`<!-- comparison:start -->...<!-- comparison:end -->` for updates.
+The source includes newest regional anddiscountpilot proofs inresearchhistory.
+
+LATEST SITE SUCCESS: sourcebc8b91b324d72561ad95a825ef6aab3a1ace4006,
+deploymentappgdep_6abaf80231e48191b65569bb2f0a38f3,
+versionappgprj_6aba005773a08191ae8a7978a687b3cb~appgver_60fe48ca65588191b783f6e08e5f5cf9,
+2026-09-28T23:28:18.032449Z. Cell947terminalcollected; no pending publication.
+Credentialexpires23:36:27Z (toolstoreonly). Portable profileconfiguredthisturn.
+Backgroundresearchskipsbrowserhandoff. Currenttablehasnumeric speeds for
+zstd,bzip2,gzip andhistoricalCIXdecode; otherbestprofilesexplicitlyNotreported,
+CIXencodeNottimed. This is deliberate evidence discipline, not estimated data.
+
+Full v216Mozilla decoder3202350CPU8 remainslive,76.83%23:29Z; result.jsonabsent.
+Do not project6,477,226-byte unfinished archive into rank. All originalfulljobs
+continue. Once verifiedresult exists, qualifyportfolio20,refreshliveleader,
+updateCLI/reproduction/sourcepackage AND newfamilytable plusSite; no source
+workflow/GitHubActions. Overall objective is stillfirstverifiedtotal belowliveleader.
