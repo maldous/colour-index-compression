@@ -31,7 +31,8 @@ import zlib
 from dataclasses import dataclass, field
 from typing import Iterable
 
-MAGIC = b"CIXM5"
+MAGIC = b"CIXM6"
+LEGACY_MAGIC = b"CIXM5"
 MODE_RAW = 0
 MODE_MULTINOMIAL = 1
 MODE_CONTEXT = 2
@@ -52,6 +53,7 @@ MODE_PPM = 16
 MODE_EXPERT_MIX = 17
 MODE_WAVELET = 18
 MODE_FIXED_MIX = 19
+MODE_HISTOGRAM = 20
 MODE_END = 255
 MAX_HISTORY_BYTES = 16 << 20
 MAX_DEDUP_BLOCKS = 4096
@@ -1217,6 +1219,15 @@ def encode_best_block(
         except Exception:
             pass
 
+    # Append after incumbent search so its pruning thresholds do not change.
+    from .histogram import type_class_candidate
+
+    histogram = type_class_candidate(block, candidates[1].payload)
+    if histogram is not None:
+        candidates.append(EncodedBlock(
+            MODE_HISTOGRAM, len(block), histogram, "count-vector-multinomial",
+        ))
+
     best = min(candidates, key=lambda candidate: len(candidate.framed))
     raw_size = len(candidates[0].framed)
     if raw_size - len(best.framed) < config.min_savings_bytes:
@@ -1543,7 +1554,7 @@ class StreamDecoder:
         if not self._started:
             if len(self._buffer) < len(MAGIC):
                 return b""
-            if bytes(self._buffer[: len(MAGIC)]) != MAGIC:
+            if bytes(self._buffer[: len(MAGIC)]) not in (MAGIC, LEGACY_MAGIC):
                 raise ValueError("not a CIX multinomial stream")
             try:
                 encoded_history, header_end = vdecode(
@@ -1606,6 +1617,11 @@ class StreamDecoder:
                 block, consumed = decode_type_class_known_n(payload, 0, source_length)
                 if consumed != len(payload):
                     raise ValueError("unused multinomial payload bytes")
+
+            elif mode == MODE_HISTOGRAM:
+                from .histogram import decode_type_class
+
+                block = decode_type_class(payload, source_length)
 
             elif mode == MODE_CONTEXT:
                 block, consumed = decode_context_type_classes(

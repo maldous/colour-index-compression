@@ -431,16 +431,26 @@ def _encode_ppm_method(
     prefix_history: bytes,
     escape_method: int,
     update_exclusion: bool,
-) -> bytes:
-    tables, history = _prime_from_history(
-        prefix_history,
-        len(data),
-        max_order,
-        update_exclusion=update_exclusion,
-    )
+    initial_state: tuple[dict[bytes, dict[int, int]], bytearray] | None = None,
+    max_bytes: int | None = None,
+) -> bytes | None:
+    if initial_state is None:
+        tables, history = _prime_from_history(
+            prefix_history, len(data), max_order,
+            update_exclusion=update_exclusion,
+        )
+    else:
+        # Escape laws share the same training statistics. Clone once per law;
+        # never let a candidate mutate another candidate's starting model.
+        tables = {context: counts.copy() for context, counts in initial_state[0].items()}
+        history = initial_state[1].copy()
     encoder = _ArithmeticEncoder()
 
-    for symbol in data:
+    for index, symbol in enumerate(data):
+        if max_bytes is not None and index % 256 == 0:
+            bits = encoder.writer.bit_length
+            if 3 + len(vencode(bits)) + (bits + 7) // 8 >= max_bytes:
+                return None
         excluded: set[int] = set()
         coded = False
         matched_order = 0
@@ -507,7 +517,8 @@ def _encode_ppm_see(
     max_order: int,
     prefix_history: bytes,
     update_exclusion: bool,
-) -> bytes:
+    max_bytes: int | None = None,
+) -> bytes | None:
     tables, history, states = _prime_see_from_history(
         prefix_history,
         len(data),
@@ -516,7 +527,11 @@ def _encode_ppm_see(
     )
     encoder = _ArithmeticEncoder()
 
-    for symbol in data:
+    for index, symbol in enumerate(data):
+        if max_bytes is not None and index % 256 == 0:
+            bits = encoder.writer.bit_length
+            if 3 + len(vencode(bits)) + (bits + 7) // 8 >= max_bytes:
+                return None
         excluded: set[int] = set()
         coded = False
         matched_order = 0
@@ -686,32 +701,31 @@ def encode_ppm(
 
     # Exact physical selection: incumbent escape laws remain available and
     # secondary escape estimation is an additional reversible competitor.
-    candidates: list[bytes] = []
+    best: bytes | None = None
     if secondary_escape is not True:
-        candidates.extend(
-            _encode_ppm_method(
-                data,
-                max_order=max_order,
-                prefix_history=prefix_history,
-                escape_method=method,
-                update_exclusion=variant,
+        for variant in variants:
+            initial = _prime_from_history(
+                prefix_history, len(data), max_order, update_exclusion=variant,
             )
-            for variant in variants
-            for method in methods
-        )
+            for method in methods:
+                candidate = _encode_ppm_method(
+                    data, max_order=max_order, prefix_history=prefix_history,
+                    escape_method=method, update_exclusion=variant,
+                    initial_state=initial, max_bytes=len(best) if best is not None else None,
+                )
+                if candidate is not None and (best is None or len(candidate) < len(best)):
+                    best = candidate
     if secondary_escape is not False:
-        candidates.extend(
-            _encode_ppm_see(
-                data,
-                max_order=max_order,
-                prefix_history=prefix_history,
-                update_exclusion=variant,
+        for variant in variants:
+            candidate = _encode_ppm_see(
+                data, max_order=max_order, prefix_history=prefix_history,
+                update_exclusion=variant, max_bytes=len(best) if best is not None else None,
             )
-            for variant in variants
-        )
-    if not candidates:
+            if candidate is not None and (best is None or len(candidate) < len(best)):
+                best = candidate
+    if best is None:
         raise ValueError("no PPM variants requested")
-    return min(candidates, key=len)
+    return best
 
 
 def decode_ppm(

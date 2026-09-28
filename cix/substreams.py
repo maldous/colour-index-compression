@@ -71,6 +71,7 @@ BYTE_STREAM_CHUNKED = 1
 BYTE_STREAM_ADAPTIVE = 2
 BYTE_STREAM_CONTEXT = 3
 BYTE_STREAM_WAVELET = 4
+BYTE_STREAM_HISTOGRAM = 5
 
 
 def _conditional_bits(values: bytes, order: int) -> float:
@@ -172,6 +173,14 @@ def encode_bytes(values: bytes) -> bytes:
         except Exception:
             pass
 
+    # Materialize this last: the incumbent candidate set and its pruning remain
+    # unchanged. The internal length gate prevents count-vector recursion.
+    from .histogram import type_class_candidate
+
+    histogram = type_class_candidate(values, candidates[0][1:])
+    if histogram is not None:
+        candidates.append(bytes((BYTE_STREAM_HISTOGRAM,)) + histogram)
+
     return min(candidates, key=len)
 
 
@@ -226,6 +235,11 @@ def decode_bytes(blob: bytes, count: int) -> bytes:
         if len(values) != count:
             raise ValueError("wavelet byte-substream length mismatch")
         return values
+
+    if mode == BYTE_STREAM_HISTOGRAM:
+        from .histogram import decode_type_class
+
+        return decode_type_class(blob[1:], count)
 
     raise ValueError("unknown byte-substream mode")
 
@@ -295,11 +309,12 @@ def encode_uints(values: list[int]) -> bytes:
         for low, width in zip(lows, widths):
             if width:
                 writer.bits(low, width)
+        low_blob = writer.finish()
         candidates.append(
             bytes((UINT_LOGCLASS,))
             + vencode(len(class_blob))
             + class_blob
-            + writer.finish()
+            + low_blob
         )
 
         local_class_blob = encode_bytes(bytes(classes))
@@ -307,7 +322,7 @@ def encode_uints(values: list[int]) -> bytes:
             bytes((UINT_LOGCLASS_LOCAL,))
             + vencode(len(local_class_blob))
             + local_class_blob
-            + writer.finish()
+            + low_blob
         )
 
     return min(candidates, key=len)
