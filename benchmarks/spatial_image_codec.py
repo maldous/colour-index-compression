@@ -4,7 +4,7 @@ Competitive specialization is explicit: implicit-VR little-endian DICOM and the
 240-byte image header layout observed in the Silesia x-ray member. Parameters and
 backend identity are stored in the frame; the decoder never needs a source file.
 """
-import io,lzma,zlib
+import lzma,zlib
 import numpy as np
 import imagecodecs
 from cix.multinomial import vencode,vdecode
@@ -27,18 +27,21 @@ def regions(data):
         if group==0x28 and element in (0x10,0x11,0x100) and n==2:tags[group,element]=int.from_bytes(data[start:start+n],'little')
         pos=start+n
     if len(data)>=240:
-        height=int.from_bytes(data[4:6],'big');width=int.from_bytes(data[6:8],'big');bits=int.from_bytes(data[8:10],'big')
+        width=int.from_bytes(data[4:6],'big');height=int.from_bytes(data[6:8],'big');bits=int.from_bytes(data[8:10],'big')
         if bits==16 and width>0 and height>0 and len(data)==240+width*height*2:
             result.append(dict(offset=240,length=width*height*2,width=width,height=height,slice_height=height,source='240-byte raster header'))
+            if width != height:
+                result.append(dict(offset=240,length=width*height*2,width=height,height=width,slice_height=width,source='240-byte raster header, alternative axes'))
     return result
 
 
 def encode_region(data,region,backend='jxl',effort=7):
     offset,length=region['offset'],region['length'];width,height=region['width'],region['height']
-    if offset+length>len(data) or length!=width*height*2:raise ValueError('bad spatial region')
+    if offset<0 or min(length,width,height)<=0 or offset+length>len(data) or length!=width*height*2:raise ValueError('bad spatial region')
     pixels=np.frombuffer(data[offset:offset+length],dtype='<u2').reshape(height,width).astype(np.uint16)
     depth=max(1,int(pixels.max(initial=0)).bit_length())
     if backend=='jxl':
+        if depth<=8:pixels=pixels.astype(np.uint8)
         payload=imagecodecs.jpegxl_encode(pixels,lossless=True,effort=effort,bitspersample=depth,numthreads=1);mode=1
     elif backend=='j2k':
         payload=imagecodecs.jpeg2k_encode(pixels,reversible=True,bitspersample=depth,numthreads=1);mode=2
@@ -63,7 +66,7 @@ def decode(frame):
     fn={1:imagecodecs.jpegxl_decode,2:imagecodecs.jpeg2k_decode,3:imagecodecs.jpegls_decode}.get(mode)
     if fn is None:raise ValueError('unsupported backend')
     pixels=fn(payload)
-    if pixels.dtype!=np.dtype('uint16') or pixels.ndim!=2:raise ValueError('unexpected image representation')
+    if pixels.dtype not in (np.dtype('uint8'),np.dtype('uint16')) or pixels.ndim!=2:raise ValueError('unexpected image representation')
     raw=pixels.astype('<u2').tobytes()
     if len(raw)!=length:raise ValueError('pixel length mismatch')
     data=metadata[:offset]+raw+metadata[offset:]
