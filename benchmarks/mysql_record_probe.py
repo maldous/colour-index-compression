@@ -18,8 +18,15 @@ def worker(spec):
     if (folder/'complete.json').exists():raise ValueError('preserve completed experiment')
     source=Path('benchmark-work/silesia/osdb');data=source.read_bytes()[offset:offset+length]
     sources={str(Path(codec.__file__)):sha(Path(codec.__file__).read_bytes()),'cix/multinomial.py':sha(Path('cix/multinomial.py').read_bytes())}
-    t=time.perf_counter();frame,stats=codec.encode(data,mode,backend,options);enc=time.perf_counter()-t
-    path=folder/'stream.cixd';path.write_bytes(frame);t=time.perf_counter();restored=codec.decode(path.read_bytes());dec=time.perf_counter()-t
+    from benchmarks import competitive_codec as competitive
+    t=time.perf_counter()
+    if mode==-1:
+        frame=competitive.encode_paq(data,'v215',options)
+        stats=dict(mode=mode,backend=backend,original_bytes=len(data),physical_bytes=len(frame),parsed_records=0,control='ordinary PAQ; identical physical archive size')
+    else:frame,stats=codec.encode(data,mode,backend,options)
+    enc=time.perf_counter()-t
+    path=folder/'stream.cixd';path.write_bytes(frame);t=time.perf_counter()
+    restored=competitive.decode(path.read_bytes()) if mode==-1 else codec.decode(path.read_bytes());dec=time.perf_counter()-t
     if restored!=data:raise ValueError('record frame failed byte-for-byte restoration')
     for p,h in sources.items():
         if sha(Path(p).read_bytes())!=h:raise ValueError('source changed during experiment')
