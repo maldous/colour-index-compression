@@ -1,0 +1,99 @@
+{
+  "complete": true,
+  "diagnostic_only": true,
+  "physical_codec": false,
+  "code_regions": 1,
+  "register_fields": 67096,
+  "native_register_predictive_bits": 99249.79087201683,
+  "contexts": [
+    "global",
+    "namespace",
+    "field role",
+    "opcode and field role"
+  ],
+  "rows": [
+    {
+      "context": 3,
+      "native_prior_bias": 1,
+      "mixed_predictive_bits": 96809.16971267454,
+      "saved_predictive_bytes": 305.07764491778653
+    },
+    {
+      "context": 3,
+      "native_prior_bias": 8,
+      "mixed_predictive_bits": 96844.41459958082,
+      "saved_predictive_bytes": 300.67203405450164
+    },
+    {
+      "context": 2,
+      "native_prior_bias": 1,
+      "mixed_predictive_bits": 97538.85577217063,
+      "saved_predictive_bytes": 213.8668874807754
+    },
+    {
+      "context": 2,
+      "native_prior_bias": 8,
+      "mixed_predictive_bits": 97548.95881187577,
+      "saved_predictive_bytes": 212.60400751763336
+    },
+    {
+      "context": 0,
+      "native_prior_bias": 1,
+      "mixed_predictive_bits": 98054.52274953805,
+      "saved_predictive_bytes": 149.40851530984764
+    },
+    {
+      "context": 0,
+      "native_prior_bias": 8,
+      "mixed_predictive_bits": 98055.78578408432,
+      "saved_predictive_bytes": 149.2506359915642
+    },
+    {
+      "context": 1,
+      "native_prior_bias": 1,
+      "mixed_predictive_bits": 98056.84469090129,
+      "saved_predictive_bytes": 149.1182726394436
+    },
+    {
+      "context": 1,
+      "native_prior_bias": 8,
+      "mixed_predictive_bits": 98059.37075940322,
+      "saved_predictive_bytes": 148.8025140767022
+    }
+  ],
+  "qualified_trace": {
+    "complete": true,
+    "diagnostic_only": true,
+    "offset": 43270656,
+    "bytes": 253952,
+    "input_sha256": "93d50bfc058f54ff8d8efa6e52e0d6a4d8844367cfbe5b6ad2d0be054cc7a8d4",
+    "physical_paq_bytes": 45041,
+    "frame_sha256": "19bf74e656da3f1c94492a993f8f5a282578eff348f0d4a169e417a7dd29cee5",
+    "round_trip": true,
+    "trace_equals_reference": true,
+    "trace_sha256": "51a487fb83a2b35a4ec1a943d5b2262505f91f8c05f05cd5d856e35d3f39f36b",
+    "binary_hashes": {
+      "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v215/build-local/paq8px": "b982f1e8307d6c38e8febc6415901fafcc2e84a14d51e0af7c5cbbe6322778e7",
+      "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-cix-bridge/build-local/paq8px": "7706516ac459daaaaff42a768bc5f0586fead1c2273cb16c24db053f96705c73"
+    },
+    "times": {
+      "trace": 81.8344976902008,
+      "reference": 82.89239491801709,
+      "decode": 86.78581703733653
+    },
+    "child_peak_rss_kib": 1343488,
+    "revision": "6540376818bd9945aef394174463ad5fd47203e6"
+  },
+  "source_hashes": {
+    "/home/user/src/colour-index-compression/benchmarks/paq_register_adaptive_screen.py": "f4c01a5b597fefd3a476b5d2ed33364550e8ec736ace9f95353c97335fa36dac",
+    "/home/user/src/colour-index-compression/benchmarks/paq_register_screen.py": "3e6697d0464e4df16678373262d0dff178d641b2c3c2ea338b1442dfa048240e",
+    "/home/user/src/colour-index-compression/benchmarks/ecoff_register_ranks.py": "aebd29cc428c8014ff0be49997bea1d25f27fb2192600bd9155aff8678768c36",
+    "/home/user/src/colour-index-compression/benchmarks/ecoff_call_trace_analysis.py": "09a1d205319043b45144bca300a672b9a0011501cd72cb386c0baa4c7d397634",
+    "/home/user/src/colour-index-compression/benchmarks/paq_register_log_screen.py": "448b841a24285be03582c704a5ae719a35016e95bc1ecd22db9432ed3d13dcfc"
+  },
+  "note": "Screen fixed-point causal expert mixtures using unchanged PAQ predictions.\n\nAdditional information comes only from previously decoded register fields and\npast expert errors. This is a prediction diagnostic, not a compressed artifact.\n",
+  "limitation": "Exploratory screen on the same object used for fixed-prior selection. Native integration, framing and independent restoration remain required.",
+  "numerical_control": "Log-domain control for causal register expert mixing.\n\nLinear posterior floors can forget evidence over long sequences. This control\nretains relative expert log likelihoods, including experts whose current coding\nweight rounds to zero. Future observations can revive them. Prediction-only;\nnative deterministic logarithm/weight tables are not implemented by this screen.\n",
+  "posterior": "relative Q20 log likelihood; Q48 coding weights; no floor imposed on past expert evidence",
+  "conclusion": "Log-domain evidence retention repairs the global numerical control:149.41 predictive bytes saved versus approximately718 bytes lost with a floored linear posterior. The opcode/field context suggests305.08 predictive bytes saved, versus149.70 for the qualified fixed prior. This justifies a new deterministic native implementation and full restoration test; it is not a physical compressed result. Existing scored/live sources must remain unchanged."
+}
