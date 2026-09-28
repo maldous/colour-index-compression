@@ -532,3 +532,24 @@ The new structural relation reduces selected table fields to one possible value.
 An arithmetic coder supplied the same deterministic prediction can also omit
 those bits; this is model information absent from the ordinary PAQ path, not a
 claim that changing the entropy coder creates information.
+
+## ECOFF symbol-name residual refinement
+
+Twelve further physical regional trials independently restore. Predicting each
+symbol-name offset from the previous transmitted string end gives
+**11,596 / 41,126 / 41,183 bytes**, versus derived tables alone
+11,830 / 41,335 / 41,527. Address deltas and byte-plane matrices do not improve
+consistently beyond name offsets; retain the simpler mode1 candidate. All three
+full structural variants restore all Mozilla bytes. Six tests cover arbitrary
+64-bit values, modular wrap, malformed names and multiple arbitrary TAR names.
+Full name-only mode1 PAQ v215 -8 runs in `ecoff-fields-full8`; all source files
+`ecoff_fields.py`, `ecoff_fields_probe.py` and existing ECOFF dependencies are
+frozen while running. Evidence: `2026-09-28-ecoff-field-probes.json`.
+
+A separate unscored GOT diagnostic uses only symbol definitions transmitted
+elsewhere in the same input archive. Same-object st_value matches 31,648 of
+54,380 mapped GOT words; adding same-name definitions from the other objects
+raises candidate membership to 50,462. Candidate choices and 3,918 exceptions
+are not encoded yet, so this is not a compression result. This motivates an
+explicit restricted-alphabet/escape tournament with identical-candidate uniform
+rank and arithmetic controls, plus adaptive choices.
