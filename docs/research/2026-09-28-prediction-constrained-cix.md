@@ -439,3 +439,56 @@ hexagonal drawing directions, with exact +/-1 rounding residuals. These measured
 facts motivate relative angular candidates and two-circle intersections. Any
 inferred radius must be carried in the frame; deviations remain exact residuals.
 Evidence: `2026-09-28-heavy-atom-diagnostic.json`.
+
+## Heavy-atom candidate tournament and complete PAQ medium-input tier
+
+`sdf_heavy.py` keeps the proven hydrogen skeleton and changes coordinate
+residuals using a radius inferred from input bonds and transmitted in the frame.
+Absolute directions, relative bond angles and two-neighbour circle intersections
+produce causal candidate sets; occupied bond directions are excluded, while
+unrestricted exact residuals preserve all deviations. Five tests cover arbitrary
+3D layouts, signed zero, partial records, circle candidates and uniform-control
+uncertainty equality. All 21 PAQ v215 -4 regional physical trials restore exactly.
+
+Best (circle/relative model with adaptive choices): **1501 / 1840 / 1618 bytes**,
+versus the incumbent hydrogen-only model **1508 / 1845 / 1631**. Gains are modest:
+7 / 5 / 13 bytes. With identical candidate sets, uniform ranks yield
+1544 / 1869 / 1652 and uniform arithmetic 1547 / 1870 / 1659. Rank framing saves
+only 1–7 bytes; adaptive modelling of candidate choices is much more useful.
+The summed log candidate counts is conditional uniform path uncertainty, not a
+claim that all future branching counts are independent of the chosen path.
+
+The complete structural transform was independently inverted before starting
+an expensive PAQ trial. All 33,553,445 bytes restore; 166,963 heavy atoms receive
+multiple candidates and 130,843 residuals are within two units. Conditional
+uniform choice uncertainty is 411,554.28 bits; the adaptive model costs
+214,964.85 predictive bits, with 26,874 physical intermediate choice bytes.
+The full model3/representation3 trial is now running in `sdf-heavy-full8`.
+Do not edit the heavy codec/probe or their dependencies while it is live. No full
+compressed-size improvement is claimed yet. Compact evidence is
+`2026-09-28-sdf-heavy-probes.json`.
+
+Two more ordinary PAQ v216 -8 references completed: **NCI 809,461 bytes** and
+**Samba 1,625,132 bytes**. NCI retains the stronger 447,748-byte CIX structural
+stream. The fixed PAQ compute tier now extends from 12 to 24 MiB using input
+length and the existing database detector, never filenames or corpus hashes.
+Portfolio 10 qualifies the exact independently restored Samba archive with an
+invertible six-byte header substitution and no physical size increase.
+
+Complete result: **39,607,610 physical bytes, equivalent 66th among 322 entries**.
+All 12 streams have independent full local restoration evidence; exact source,
+input, backend and physical artifact identities are rechecked. This saves
+2,630,463 bytes against portfolio 9, leaving **11,782,099 bytes** above the leader.
+The live leaderboard page was downloaded again and its SHA is unchanged.
+Evidence: `2026-09-28-competitive-medium-paq-milestone.json` and
+`2026-09-28-paq-nci-samba-local.json`. Mozilla and Webster remain the largest gaps.
+
+An isolated corpus-free source bundle is rebuilding in
+`/tmp/cix-reproduction-20260928`, through `benchmarks.reproduce_build`, with three
+compiler workers. It includes CIX source plus pinned PAQ sources and upstream
+notices, excludes GitHub workflows, corpus bytes, saved streams and binaries,
+and never performs network/CI operations. All four freshly built CIX native
+libraries are already byte-identical to the qualified originals; PAQ builds
+continue. This is a local release candidate only, not public source eligibility
+or an official submission. Its CLI currently selects portfolio 9; after build
+qualification, refresh the release candidate/CLI to the latest complete policy.
