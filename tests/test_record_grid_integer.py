@@ -4,6 +4,11 @@ import pytest
 from benchmarks import record_grid_integer as codec
 
 
+def test_unambiguous_frame_identifier():
+    from benchmarks import spatial_image_codec,volume_image_codec
+    assert codec.MAGIC not in (spatial_image_codec.MAGIC,volume_image_codec.MAGIC)
+
+
 @pytest.mark.parametrize('policy',[1,2,3])
 def test_integer_constraints_and_escapes(policy):
     rng=random.Random(72)

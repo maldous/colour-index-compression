@@ -11,7 +11,7 @@ from cix.multinomial import vencode,vdecode,_ArithmeticEncoder,_ArithmeticDecode
 from benchmarks import record_float_grid as grid
 from benchmarks import record_grid_feedback as feedback
 
-MAGIC=b'CIXI\x01'
+MAGIC=b'CIXZ\x01'
 RAW=b'SGBI1'
 
 
