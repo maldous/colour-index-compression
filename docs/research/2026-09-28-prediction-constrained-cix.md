@@ -129,3 +129,29 @@ source-field attribution of PAQ loss and controlled reversible structural trials
 Use ordinary PAQ on the same transformed representation as the control, and retain
 the original PAQ stream if both structural candidates lose. The user has renewed
 the instruction to continue autonomously until a verified first-place total.
+
+## Structural geometry result
+
+`sdf_geometry.py` preserves a V2000 record skeleton and predicts coordinates from
+an earlier bonded atom. Unsupported/noncanonical records remain literal. It
+compares signed binary residuals, textual residuals, and joint displacement
+palettes with atom-type-conditioned compositions. Palette entries, escapes,
+counts, type-class payloads, record flags, framing and checksum are all paid.
+The palette encoder uses the existing exact type-class codec (enumerative for
+short groups, same-count arithmetic beyond its established 2048-event threshold).
+
+Three disjoint 64 KiB windows at offsets 0, 16776722 and 33487909 completed using
+v215 -4. Ordinary PAQ sizes are 1964, 2938 and 2334 bytes. Framed textual geometry
+residuals plus PAQ are 1631, 2136 and 1797; conditional palette variants are 1823,
+2386 and 2058. Every full framed stream restores exactly. This establishes a
+structural predictor improvement on these windows, not superiority of CIX's
+combinatorial representation over arithmetic coding with the same structure.
+See `2026-09-28-sdf-geometry-probes.json` for hashes, costs and timings.
+
+Two complete NCI candidates (textual residuals and conditional palettes, both
+v215 -8) are running in `results/leaderboard/sdf-geometry-paq-full8`. Check process
+and result state. They do not change the complete 12-file score until restoration
+and portfolio integration are complete. The original v215 -12L and v216 -8 full
+reference cohorts remain untouched. Next refinements may expose rounded geometric
+relations, predict compositions from atom/graph state, or use CIX count deficits
+to improve the predictor; always retain the arithmetic control.
