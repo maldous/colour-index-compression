@@ -1106,3 +1106,26 @@ portfolio 17 above 48 MiB, inheriting the intermediate dispatcher; a real pendin
 Mozilla cache is rejected. Do not run portfolio 16 until Webster result.json has
 independent full restoration; do not run 17 until Mozilla does. The scored default
 and published Site remain portfolio 15, 36,690,274 / 54th.
+
+## Completed residual negatives and local CPU scheduling
+
+Both original-source Markov tournaments have completed. Bounded exact trails and
+whole binary run compositions each retain the incumbent on every confidence
+group. All six framed outputs restore the qualified 253,952-byte source through
+the causal PAQ bridge. Each costs 45,364 bytes versus PAQ 45,041, a 323-byte loss.
+The count constraints exclude arrangements, but their paid descriptions cost
+more than they save here. Reject these refinements for this trace; the negative
+does not disprove other structural constraints. Compact evidence is retained in
+`2026-09-28-paq-markov-negative.json` and
+`2026-09-28-paq-binary-markov-negative.json`.
+
+A CPU inventory exposed idle performance cores: inherited affinity restricted
+jobs to CPUs 16–31, although the cgroup allows CPUs 0–31. The same native PAQ
+decoder restores the same qualified archive exactly on CPU8 in 46.4519 seconds
+and CPU16 in 89.2131 seconds under the concurrent workload, an observed 1.9205x
+ratio. This is a local paired observation, not a general speed guarantee. Seven
+physical performance cores now host the longest local reference and full ECOFF
+jobs. Only those benchmark process/thread affinities changed; no global settings
+or unrelated applications changed. Managers inherit the new affinity for later
+children. The process identities, before/after masks and exact decode proof are
+in `2026-09-28-paq-performance-core-scheduling.json`. No jobs were restarted.
