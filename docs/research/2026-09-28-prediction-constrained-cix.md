@@ -310,3 +310,21 @@ verified decodes. This saves 901,059 bytes against portfolio 3, leaving
 19,421,849 above the leader. A fresh live download confirmed all 322 published
 totals unchanged. The compact report is
 `2026-09-28-competitive-database-milestone.json`.
+
+## Newly completed NCI palette candidate — integrate next
+
+The full `sdf-geometry-paq-full8/2-2` candidate completed independent decoding:
+**572,416 physical bytes**, all 33,553,445 source bytes restored. This is 204,217
+bytes below PAQ's author-reported -12L NCI size. It uses the earlier bonded
+coordinate model, displacement palette and type classes, then PAQ v215 -8.
+The physical CIXG frame, original input and current geometry source hashes were
+checked again after completion. Encode took 2789.04 seconds; decode 3289.39.
+
+It is not included in portfolio 5 or the published 124th-place total yet.
+Compact provenance: `2026-09-28-nci-full-palette.json`. The next concrete task is
+to integrate completed chemical candidates without invalidating ongoing runs or
+wasting an hour repeating already proven extraction. Reuse independently decoded
+streams only after exact input/frame/source/backend provenance checks, as for
+unchanged portfolio members; keep an uncached reproducible encoder and a
+standalone decoder. The other full chemical candidates and raw references must
+be checked from live process/artifact state before deciding which to retain.
