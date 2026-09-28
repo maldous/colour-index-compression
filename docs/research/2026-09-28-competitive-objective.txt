@@ -1,0 +1,167 @@
+Goal
+
+Achieve a locally measured, round-trip-verified CIX total below 27,825,511 bytes, the current leading published Silesia result ("paq8px_v215 -12L"), under the same effective rules and freedoms available to competing Silesia leaderboard entries.
+
+The objective is first place on the published Silesia leaderboard. Do not impose additional genericity restrictions that the leaderboard does not impose on existing competitors.
+
+Use only local/independent computation. Never trigger, depend on, or consume GitHub Actions.
+
+First establish a complete reproducible baseline and equivalent leaderboard rank. Preserve the Canterbury/Calgary/Artificial measurements as secondary validation and regression evidence, but do not allow those tests to prevent a legitimate Silesia improvement that is permitted under the leaderboard rules.
+
+Clearly distinguish intermediate improvements from achieving first place.
+
+Competition principle
+
+CIX may exploit every compression opportunity available to the existing leaders, provided the resulting compressor remains genuinely lossless, reproducible, self-consistent and eligible under the published benchmark methodology.
+
+Do not voluntarily handicap CIX relative to PAQ8px.
+
+Specifically, the following are legitimate research directions:
+
+- format-specific models;
+- format-specific reversible transformations;
+- automatic or explicit recognition of text, images, audio, executables, databases, archives and structured formats;
+- specialized models for particular languages, instruction sets, file structures or data representations;
+- corpus-informed parameter tuning;
+- predictors discovered by studying individual Silesia files;
+- contexts whose usefulness is predominantly or exclusively demonstrated by a Silesia member;
+- benchmark-driven model selection;
+- fixed constants resulting from benchmark experimentation;
+- specialized preprocessing;
+- dictionaries, structural predictors and transforms where permitted by the benchmark;
+- recognition techniques comparable to those already present in leading PAQ-family implementations;
+- any other technique demonstrably permitted to existing leaderboard competitors.
+
+Do not reject an idea merely because it is "benchmark-specific", "format-specific", "language-specific", "ISA-specific" or "not universal". Those are engineering characteristics to record, not grounds for exclusion from this objective.
+
+If an existing leading entry exploits an opportunity, assume CIX may investigate and exploit the same class of opportunity unless the published benchmark rules explicitly prohibit it.
+
+PAQ8px exploitation mandate
+
+Treat "paq8px_v215 -12L" as both the target and a source of competitive intelligence.
+
+Reverse-engineer why it achieves each individual Silesia file size.
+
+For every PAQ8px model, transform, context or special case, determine:
+
+1. What redundancy is it exploiting?
+2. On which Silesia files does it help?
+3. How many bytes does it save?
+4. Can CIX reproduce that advantage?
+5. Can CIX combine it with CIX-specific representations to do better?
+6. Is PAQ8px leaving residual structure that another model can exploit?
+7. Can specialization be made stronger because CIX controls both representation and entropy coding?
+
+Do not stop at architectural imitation. Use PAQ8px as the baseline to surpass.
+
+CIX-specific attack surface
+
+Aggressively explore interactions between competitive specialization and CIX mechanisms, including:
+
+- multinomial rather than binary decomposition;
+- direct 256-symbol composition coding;
+- enumerative/rank coding;
+- conditional composition coding;
+- hierarchical multinomial models;
+- composition/order separation;
+- adaptive alphabet reduction;
+- context-conditioned ranks;
+- block-size optimization;
+- recursive substreams;
+- transformed substreams;
+- specialized models selected per detected block;
+- residual modelling after reversible transforms;
+- PAQ-style context mixing feeding CIX composition models;
+- CIX models feeding conventional arithmetic/range coders where advantageous;
+- hybrid CIX/PAQ/LZ/BWT/PPM-style pipelines;
+- per-format and per-region model portfolios;
+- optimal or near-optimal selection of transformations and models when selection metadata costs less than the resulting savings.
+
+There is no architectural purity requirement. If the strongest compressor called CIX becomes a heterogeneous ensemble, that is acceptable.
+
+Silesia-specific research
+
+Treat each of the 12 Silesia members as a compression research problem in its own right:
+
+"dickens", "mozilla", "mr", "nci", "ooffice", "osdb", "reymont", "samba", "sao", "webster", "x-ray", "xml".
+
+For each file:
+
+- reproduce PAQ8px's published compressed size;
+- measure current CIX;
+- calculate the exact byte deficit;
+- identify its dominant structures;
+- inspect PAQ8px paths activated for that input;
+- identify specialized predictors/transforms responsible for its advantage;
+- develop CIX equivalents and extensions;
+- measure marginal byte savings;
+- retain combinations producing the best total.
+
+Optimize the sum of all 12 compressed sizes, because that is what the leaderboard ranks. A regression on one file is acceptable when another improvement produces a larger reduction in the total.
+
+Experimental procedure
+
+Maintain an autonomous research loop:
+
+1. Reproduce the current CIX baseline.
+2. Round-trip every result and verify byte-for-byte equality.
+3. Reproduce relevant reference compressor results locally where practical.
+4. Maintain exact per-file and total byte counts.
+5. Calculate the current equivalent Silesia leaderboard position after every material improvement.
+6. Identify the files contributing most to the gap above 27,825,511.
+7. Study PAQ8px and other stronger-per-file compressors for exploitable mechanisms.
+8. Implement the highest-value hypothesis.
+9. Benchmark it locally.
+10. Keep it if the total leaderboard score improves, unless it introduces invalidity or irreproducibility.
+11. Analyse interactions between successful mechanisms rather than assuming gains are additive.
+12. Repeat.
+
+Use ablations where they help understand an improvement, but do not allow research formalism to obstruct rapid exploration.
+
+Track at minimum:
+
+- total Silesia compressed bytes;
+- bytes for every individual file;
+- difference from PAQ8px for every file;
+- difference from the first-place total;
+- round-trip verification;
+- encoder/decoder time;
+- peak memory;
+- configuration/options;
+- commit/revision responsible for the result.
+
+Ranking discipline
+
+Do not claim first place because CIX beats gzip, bzip2, xz, zstd, Brotli, ZPAQ, cmix or an older PAQ.
+
+Those are milestones only.
+
+Do not claim first place from projections or partial-file results.
+
+First place is achieved only when all 12 canonical Silesia files have been independently compressed, decompressed and verified locally and their actual combined compressed size is strictly below 27,825,511 bytes, or below any newer published leader discovered before the claim is made.
+
+Before declaring victory, re-check the current published leaderboard.
+
+Two separate questions
+
+Do not conflate:
+
+A. Can CIX become the strongest universal/generic compressor?
+
+with:
+
+B. Can CIX obtain the best legitimate Silesia leaderboard score?
+
+The immediate objective is B.
+
+Generality, unseen-data performance and elegance remain valuable secondary measurements, but they must not silently become restrictions that competitors do not face.
+
+The research question is therefore:
+
+«Given everything the existing leaders are permitted to exploit, what is the smallest valid Silesia total CIX can produce?»
+
+Proceed autonomously through source analysis, experimentation, implementation, local benchmarking, specialization, ablation and refinement.
+
+Do not stop at parity with PAQ8px.
+
+Beat 27,825,511 bytes.

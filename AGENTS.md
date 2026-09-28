@@ -1,28 +1,37 @@
-# CIX local research
+# CIX local Silesia research
 
-The explicit research goal is first place by total physical compressed bytes on
-https://mattmahoney.net/dc/silesia.html with a generic codec and no pre-known source
-optimization. An equivalent measured baseline rank is an intermediate milestone,
-not completion. Recheck the live leading total before claiming achievement.
+The current user-authorized objective is first place by total physical compressed
+bytes on https://mattmahoney.net/dc/silesia.html under the same effective rules and
+freedoms as the existing competitors. Read the full controlling objective in
+`docs/research/2026-09-28-competitive-objective.txt`.
 
-- Run all tests, profiling, algorithm tournaments and corpus benchmarks locally.
-  Do not trigger, dispatch, rerun or otherwise consume GitHub Actions. Do not
-  create or modify workflow files to start CI. Source pushes must not trigger CI.
-- Preserve universal, reversible byte-only modelling. Never select or tune using
-  filenames, formats, MIME, corpus identity, language or ISA. Benchmark labels
-  belong in reports, never encoder input or model selection.
-- Select by complete physical bytes, including selectors, metadata, framing and
-  checksums. Verify exact restoration before accepting any size result. Keep
-  incumbents in the portfolio; measure CPU as well as size.
-- Evidence order: Canterbury + Calgary + Artificial; Silesia; Canterbury Large;
-  enwik8; enwik9; Pizza & Chili Repetitive; frozen modern CIX corpus. Prefix probes
-  and generated tournaments are diagnostic, never complete-corpus scores.
-- Calgary's current official comparison set has 14 members. The archive also
-  includes paper3 through paper6; report those only as supplemental evidence.
-  Report Artificial and Large per member, without aggregate leaderboard claims.
-- Use `.venv/bin/python`; set `OMP_NUM_THREADS=1` for small BWT jobs and bounded
-  local process parallelism. Run tests with `-m pytest -q --timeout=45`.
-- Freeze source and settings for paired comparisons. Record corpus hashes,
-  complete byte counts, encode/decode times, round trips and failures. Do not
-  promote a prefix result or project a missing leaderboard rank.
-- Consult `docs/research/` for the last verified checkpoint and remaining work.
+- The earlier universal-only constraint is superseded. Format, language, ISA,
+  corpus-informed and per-file/per-region specialization are explicitly allowed.
+  PAQ-backed and heterogeneous CIX ensembles are allowed. Attribute reused work;
+  preserve upstream licensing and reproducibility. No architectural purity rule.
+- Run computation locally. Never trigger, depend on or consume GitHub Actions.
+  Do not create or modify workflow files to start CI; source pushes must not
+  trigger CI. Read-only source downloads are permitted.
+- Optimize the sum across the 12 canonical Silesia files compressed independently.
+  Count actual physical bytes, including selection metadata, framing and checksums.
+  Verify byte-for-byte restoration. A per-file regression is acceptable if the
+  total improves. Keep recoverable incumbent artifacts for comparisons.
+- Canterbury, canonical Calgary 14 and Artificial are secondary validation and
+  regression evidence, not mandatory gates against legitimate Silesia gains.
+  Preserve Canterbury Large, enwik8/9, Pizza & Chili Repetitive and modern-corpus
+  evidence for later generality assessment. Never label prefix probes as full runs.
+- Study PAQ8px v215 -12L, reproduce reference results locally where practical,
+  inventory its models/transforms, measure ablations and marginal gains, and build
+  stronger CIX combinations. Do not stop at imitation or parity.
+- Record input/output hashes, exact per-file and total sizes, round trips, encoder
+  and decoder time, peak memory, options, source revisions and binary hashes.
+  The published per-file values are truncated KB: do not fabricate exact deficits.
+- Use `.venv/bin/python`; keep local parallelism within actual CPU/memory capacity.
+  `OMP_NUM_THREADS=1` is appropriate for small BWT jobs. Run relevant tests with
+  `-m pytest -q --timeout=45` and verify real codec invariants.
+- First-place claims require all 12 locally encoded/decoded/restored physical
+  streams and a total strictly below the live leader. Refresh the leaderboard
+  before claiming success. An equivalent numerical position is not an official
+  listing. Published eligibility requires freely downloadable public source.
+- Consult `docs/research/` and current process/artifact state; stale logs or a prior
+  session summary do not establish a process is still running.
