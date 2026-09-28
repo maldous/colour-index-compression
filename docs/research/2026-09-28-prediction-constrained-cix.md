@@ -509,3 +509,26 @@ still has the portfolio-9 CLI default but includes the portfolio-10 API.
 Do not publish that archive as a final release without refreshing the default
 and source revision. `2026-09-28-isolated-build-qualification.json` records source
 archive/manifest hashes, six binary matches and the isolated smoke result.
+
+## Mozilla linker-table constraints
+
+134 Alpha ECOFF objects are recognized by their actual headers inside the TAR
+stream. Symbol names plus relocation indices determine canonical hash/msym
+tables. Only exact reconstruction matches are replaced with zeros; unknown or
+noncanonical layouts remain literal. Byte positions and executable code remain
+unchanged, preserving PAQ instruction detection. The full structural transform
+restores all 51,220,480 input bytes, deriving 1,760,988 table bytes with 833 bytes
+of control metadata. This alone is not a compressed-size result.
+
+All 15 physical PAQ v215 -4 trials on three complete embedded objects restore.
+Ordinary PAQ sizes: **13,003 / 42,539 / 42,151**. Derived-table mode:
+**11,830 / 41,335 / 41,527**, saving 1,173 / 1,204 / 624 bytes. These are regional
+results, not a new full-corpus score. A complete Mozilla comparison at v215 -8
+is now running in `ecoff-paq-full8` with ordinary and transformed streams.
+Do not edit `ecoff_constraints.py`, `ecoff_probe.py`, or their dependencies
+while it runs. Full evidence: `2026-09-28-ecoff-derived-tables.json`.
+
+The new structural relation reduces selected table fields to one possible value.
+An arithmetic coder supplied the same deterministic prediction can also omit
+those bits; this is model information absent from the ordinary PAQ path, not a
+claim that changing the entropy coder creates information.
