@@ -691,3 +691,42 @@ size grows from 122,959 to 212,498 but matches only 414 additional relocated
 pointers (169,969 to 170,383 of 239,835). Keep the call-specific model separate.
 Proof and completed Brotli regional trials are in
 `2026-09-28-call-constraint-structural-gate.json`.
+
+## Completed call-target controls and actual PAQ loss
+
+The base/expanded call batch has finished **83 physical trials**, all independently
+restored: 45 regional PAQ, 36 regional Brotli, and two full Mozilla Brotli streams.
+Base in-place full stream **13,064,757 bytes**; expanded-entry in-place
+**13,064,645 bytes**. Both lose against the 13,049,557-byte incumbent by
+15,200 and 15,088 bytes and are rejected. The complete corpus remains 54th.
+Compact evidence: `2026-09-28-call-constraint-physical-trials.json`.
+
+Expanded in-place indices improve the three original PAQ regions by 10/8/57
+bytes. Three additional complete objects selected for alternate-entry call
+density improve by 31/60/34 bytes: 40,318→40,287; 24,280→24,220;
+10,393→10,359. Separate adaptive streams instead give 40,591/24,318/10,378.
+These are exploratory selected regions, not held-out generality claims. Uniform
+ranks/arithmetic and explicit side streams are generally weaker than preserving
+indices in the instruction stream. No regional result changes the corpus score.
+
+A qualified trace of the ordinary 253,952-byte object at offset 43,270,656 is in
+`ecoff-call-trace`. Its PAQ v215 -4 archive is byte-identical with and without
+instrumentation; an independent extraction restores exactly. The complete
+127,776-byte transformed code region maps uniquely into the trace. Its 469 calls
+use an alphabet of 984 function/alternate-entry addresses. PAQ spends only
+1,727.52 predictive bits (215.94 bytes) on their 21-bit target fields. Restricting
+the binary trie to those addresses forces 4,827 bit decisions, but the original
+PAQ cost of those forced decisions is only 419.93 bits (52.49 bytes). Candidate
+and membership delivery costs are EXCLUDED: this is an optimistic diagnostic,
+not a physical CIX gain. It explains why replacing detailed PAQ predictions with
+uniform address ranks is a poor tradeoff. Preserve original probabilities when
+adding constraints rather than discarding their conditional detail.
+
+All 57,598 complete-input absolute call fields have low two bits equal to 3.
+The first dense-index representation removes that alignment pattern. A separate
+codec `ecoff_call_aligned.py` maps an index to 4*index+3 before compensating for
+PAQ's absolute-call transform. It restores the full input exactly and passes the
+literal-exception/target-index test. Twelve PAQ trials (control and aligned mode
+on six complete objects) are running in `ecoff-call-aligned-paq-objects`.
+Its sources are now frozen. This refinement tests compatibility with PAQ's
+learned instruction representation; do not claim a gain before physical results.
