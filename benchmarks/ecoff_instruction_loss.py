@@ -61,7 +61,8 @@ def analyze(folder):
     rows=[]
     for key,row in totals.items():
         rows.append(dict(field=key,**row,paq_predictive_bytes=row['paq_bits']/8,observed_alphabet=len(counts[key]),
-            global_type_class_bits=cardinality_bits(counts[key]),opcode_conditioned_type_class_bits=sum(cardinality_bits(c) for c in conditional[key].values())))
+            global_type_class_bits=cardinality_bits(counts[key]),opcode_conditioned_type_class_bits=
+                None if key=='Opcode' else sum(cardinality_bits(c) for c in conditional[key].values())))
     rows.sort(key=lambda r:r['paq_bits'],reverse=True)
     if sum(r['raw_bits'] for r in rows)!=sum(r['bytes'] for r in locations)*8:raise ValueError('field coverage mismatch')
     return dict(diagnostic_only=True,physical_codec=False,qualified_trace=proof,code_regions=locations,rows=rows,
