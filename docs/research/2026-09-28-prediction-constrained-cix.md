@@ -328,3 +328,55 @@ streams only after exact input/frame/source/backend provenance checks, as for
 unchanged portfolio members; keep an uncached reproducible encoder and a
 standalone decoder. The other full chemical candidates and raw references must
 be checked from live process/artifact state before deciding which to retain.
+
+## Complete PAQ-backed constraint integration and bounded reference portfolio
+
+The completed NCI palette frame was qualified into portfolio 6, giving
+45,328,656 bytes (103rd equivalent). Optional cache reuse checks the complete
+input, physical stream, source, backend, independent extraction evidence and
+recomputed/inverted structural transform; uncached encoding remains available.
+A fresh prefix encode matches the old physical stream exactly and decodes.
+
+Portfolio 7 adds the completed v216 -8 backend with a reproducible compute gate:
+inputs at most 12 MiB, excluding detected MyISAM records. The ordinary encoder
+runs PAQ from the input; hashes only identify optional, independently restored
+cached artifacts. The six-byte CIX header replaces the six-byte PAQ header
+without changing physical size or payload. It completed **42,393,159 bytes,
+87th equivalent**. Seven reference members have completed, including SAO at
+3,730,635 bytes, confirming the selected 2,159,749-byte CIX SAO stream also wins
+against an independently measured full-file PAQ configuration (v216 -8, not -12L).
+
+The second full geometry candidate now completes **504,363 bytes** on NCI.
+Textual bonded-coordinate residuals beat the palette/type-class representation
+by 68,053 bytes after PAQ v215 -8. The structural model is useful; enumerative
+palette coding is not the best final representation. Independent decoding took
+3711.33 seconds after 3196.87 seconds encoding. Hydrogen-slot candidates remain
+separate ongoing experiments.
+
+Both full OSDB PAQ v215 -8 comparisons also completed: dictionary IDs
+**1,723,002 bytes**, remaining-count arithmetic **1,698,992 bytes**. The latter
+saves 24,010 bytes with the same field dictionaries and backend, and 30,418
+against the earlier selected fixed-width/Brotli candidate. This is additional
+full-file evidence for the CIX structural-state feedback direction.
+
+Portfolio 8 qualifies the textual geometry and remaining-count database frames
+without repeating their hour-long extraction. All twelve exact physical streams
+retain independent full local restoration evidence. Final total:
+**42,294,688 bytes, equivalent 84th among 322 entries**; 14,469,177 bytes remain
+above the 27,825,511-byte leader. The live page was downloaded again at
+2026-09-28T15:49:04Z and its SHA is unchanged. Compact complete evidence is in
+`2026-09-28-competitive-paq-constraints-milestone.json`; controlled full-file
+comparisons are in `2026-09-28-full-paq-structural-comparisons.json`.
+New qualification checks passed seven tests in total across the chemical,
+bounded-reference and refreshed-constraint modules; both refreshed uncached
+prefix encoders reproduce the earlier streams and independently decode.
+
+Exploratory cross-column OSDB counts show almost all 10,000 pairs across each
+pair of 100-value columns. Empirical mutual information is only 0.070–0.074 bits,
+consistent with sparse-count estimation noise; no deterministic cross-column
+relation is established. Do not invent a joint-value constraint from this.
+Next small test: combine inferred fixed widths with PAQ and compare literal,
+six-bit and remaining-count representations, preserving the best physical frame.
+The original full reference and Mozilla/Webster priority runs continue locally.
+No Actions or source-repository push was used. Public-source eligibility remains
+pending; numerical position is not an official listing or first place.
