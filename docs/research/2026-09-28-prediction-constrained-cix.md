@@ -430,3 +430,12 @@ intersection candidates, just as hydrogen slots do. Start with measured bond
 length/angle distributions and three short independent regions; transmit any
 learned lengths and preserve exact residuals. Do not assume arbitrary molecules
 obey the drawing model. Retain the incumbent unless actual complete bytes win.
+
+The initial heavy-atom diagnostic is complete (not a compression result):
+183,608 heavy atoms; 140,023 have one earlier heavy neighbour, 26,662 have two,
+and 278 have three or more. The dominant heavy-bond length is 10,000 coordinate
+units (173,133 edges when rounded to 100 units). Frequent displacements follow
+hexagonal drawing directions, with exact +/-1 rounding residuals. These measured
+facts motivate relative angular candidates and two-circle intersections. Any
+inferred radius must be carried in the frame; deviations remain exact residuals.
+Evidence: `2026-09-28-heavy-atom-diagnostic.json`.
