@@ -646,3 +646,48 @@ peak RSS 394,692 KiB. Frame SHA:
 `a1e7d1dbec5159a5e4ad1adeabbe51d85cdc98a9debe00ff95acdc30d842fadc`.
 Proof: `2026-09-28-ecoff-cli-restoration.json`. The isolated source archive from
 earlier still has the older default and must be refreshed before release.
+
+## Function-constrained calls and measured alternate entries
+
+Previous goal turn made a complete verified improvement to 54th; this turn
+continues with new call-target codecs. `ecoff_calls.py` derives function addresses
+from transmitted symbols and pdata, filters them to the contiguous text/init/fini
+range recognized by PAQ, and preserves arbitrary branch exceptions. In-place
+indices compensate for PAQ's existing absolute-call displacement transform.
+Modes: 0 framed control; 1 in-place indices with membership bits; 2 explicit
+side-stream indices; 3 uniform mixed-radix ranks; 4 identical-alphabet uniform
+arithmetic; 5 adaptive arithmetic with per-object Fenwick frequencies. All six
+full structural representations restore; seven tests cover signed branch edges,
+unknown targets, rank/arithmetic controls and adaptive rescaling.
+
+An exact offset diagnostic found all 21,511 initially unlisted calls target
+16 bytes after an address in the function set. A separate frozen version,
+`ecoff_call_entries.py`, adds +16 candidates (within the code range). All 57,598
+calls then lie in the transmitted-information alphabet. This +16 offset is an
+empirically tested model parameter, not an asserted universal ABI rule. Four full
+structural representations restore; six additional tests preserve exceptions
+outside the expanded set. Uniform rank payload 84,206 bytes; same-information
+arithmetic 84,183; adaptive 70,870. In-place mode carries a 7,200-byte raw mask
+which is subsequently compressed; no final-size claim from these raw payloads.
+
+Eighteen fast physical Brotli trials restore. Expanded-entry in-place results
+17,864 / 53,561 / 66,143 versus controls 17,792 / 53,530 / 66,215 are mixed.
+The two in-place whole-file variants (base and expanded entries) are running in
+`ecoff-calls-brotli-full`, two small-memory workers. The base PAQ tournament
+`ecoff-calls-paq-objects` has completed the first two regions with almost no
+benefit; its third region shows 70 bytes saved by in-place indices so far. The
+expanded-entry PAQ tournament is queued in session 19635, waiting for the base
+complete.json before starting three workers. Do not edit either call codec, its
+probe, or frozen parent dependencies while these processes run.
+
+The whole shared-GOT PAQ v215 -8 mode3 trial has also started in
+`ecoff-got-paq-full8` after checking live memory availability (about 13 GiB).
+This gives a same-PAQ-backend comparison against the existing table/name runs.
+It remains separate from the completed Brotli portfolio. All older reference
+runs and heavy-atom extraction continue; inspect processes before acting.
+
+A broader pointer diagnostic rejects indiscriminate +16 expansion: address-pool
+size grows from 122,959 to 212,498 but matches only 414 additional relocated
+pointers (169,969 to 170,383 of 239,835). Keep the call-specific model separate.
+Proof and completed Brotli regional trials are in
+`2026-09-28-call-constraint-structural-gate.json`.
