@@ -1473,3 +1473,44 @@ It includes completed alphabet/memory pilot gains and15 register negatives,
 retains31,175,135/24th, and labels the prior screen unscored. It does not yet
 include the new field-composition screen or the still-running qualifications.
 No browser handoff in this background goal, no pending Site request.
+
+### Subsequent physical register qualification and live handoff
+
+Mode 1 has now independently restored at 44,904 framed bytes / 44,891 PAQ
+payload bytes, saving 150 against the identically framed 45,054-byte control.
+The complete original PAQ p/y trace remains byte-identical (SHA51a487fb83a2b35a4ec1a943d5b2262505f91f8c05f05cd5d856e35d3f39f36b).
+The compact two-arm evidence is
+`2026-09-28-register-prior-qualified-pair.json`. It explicitly states that the
+four-arm tournament is not yet complete. Qualification session41955 continues
+modes2/3 on CPU18. Do not restart it or alter frozen sources.
+
+The six-trial native-versus-mode1 regional test is LIVE session12360,
+`paq-register-prior-cohorts`, one worker on CPU20, using the plain regional
+inputs. It has no completed result at21:47Z. The memory tournament32637 now
+has two exact positive pairs:70207→69831 (376 saved),96145→95796 (349 saved).
+Its third native/mode2 pair remains pending. No extrapolation to full Mozilla.
+If both predictors validate across regions, the next useful interaction is a
+controlled joint memory/register fork, with each individual predictor as an
+ablation and all selector costs included; do not assume additive gains.
+
+The Site has been updated again with the completed register pair and the
+negative field-composition screen. Historical Mozilla headings/status wording
+was corrected. Latest source d00555b807cac1df7ed30d43a2ecd7b6377faadf,
+deployment appgdep_6abae02a9dc081918afb1dbd4c7a3480,
+version appgprj_6aba005773a08191ae8a7978a687b3cb~appgver_f3408b10fedc8191a58be3c5d2bcb84f,
+succeeded at2026-09-28T21:46:34.554145Z. Cell817 is terminal and collected.
+It retains31,175,135 bytes /24th equivalent. No pending publication call.
+Credential expires21:48:20Z; renew next time if expired. No browser handoff
+because this is the continuing background goal.
+
+At21:47:06Z native v216 Mozilla decode is39.63%; v215-12L NCI decode89.31%;
+v215-9L Mozilla encode55.92%; Webster encode99.58%. All lack result.json and
+remain unscored. Long-job manager affinities are verified:12L→CPU6,
+v216→CPU8,9L→CPUs12/14,derived-table pair→CPUs2/4,field→CPU10. New native
+children may need revalidation after phase changes, never restarts. All full
+ECOFF jobs remain live, with both ordinary/derived-table and field variants now
+in decode. Available memory is bounded; keep pilot concurrency modest.
+
+This goal continuation made verified experimental progress and rejected a
+further paid-composition formulation. First place remains unachieved, the goal
+stays active, and no GitHub Actions or GitHub push was used.
