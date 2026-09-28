@@ -48,3 +48,23 @@ claiming first place.
 Full artifacts and runtime logs remain in the ignored `results/leaderboard/`
 directory. The companion checkpoint JSON preserves the prerequisite results,
 published corpus hashes and leaderboard snapshot data in version control.
+
+## Experimental PPM key cache
+
+`benchmarks/ppm_key_cache.py` caches sorted symbols for growing PPM context
+dictionaries, with strong references and a bounded entry count. It does not
+change probabilities or candidate selection. Run its generated tournament with
+`.venv-pypy/bin/python -m benchmarks.ppm_key_cache`.
+
+All 18 cases (uniform, small alphabet and periodic; orders 1/3/5; cold and
+warmed) produced identical compressed bytes and decoded with the original
+implementation. Summing each case's fastest of two timings gives 16.43 seconds
+baseline versus 14.62 seconds cached, an 11% reduction. Some individual cases
+regressed. These measurements ran alongside the local Silesia workers and are
+diagnostic, not isolated speed-leaderboard evidence. Raw results are in
+`2026-09-28-ppm-key-cache.json`.
+
+The accelerated PyPy/GMP suite passed 78 tests in 70.31 seconds; a separate cache
+growth/rescale/exclusion/eviction property test also passed. The cache remains
+experimental and is not enabled in the frozen Silesia run. A whole-stream paired
+qualification is needed before adoption; this is not a compression-size gain.
