@@ -757,3 +757,10 @@ v215 -4 trials are running in `ecoff-symbol-text-paq-objects`, comparing the sam
 parent control, boundaries, and boundaries plus word separators. Freeze these
 modules and dependencies until complete. Structural evidence:
 `2026-09-28-symbol-text-structural.json`.
+
+The aligned whole-file Brotli comparison also completed and is negative:
+control 13,049,791 bytes; aligned indices 13,065,351 bytes (15,560 worse).
+Both independently restore all Mozilla bytes. This confirms the alignment change
+does not repair the full Brotli regression. No call variant enters the portfolio.
+The combined call programme now has 97 completed physical trials. Retain the
+qualified PAQ finding: the fields already carry little residual uncertainty.
