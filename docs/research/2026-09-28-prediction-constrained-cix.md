@@ -2004,7 +2004,7 @@ updateCLI/reproduction/sourcepackage AND newfamilytable plusSite; no source
 workflow/GitHubActions. Overall objective is stillfirstverifiedtotal belowliveleader.
 
 
-## Continuation 23:51Z — discounted regional completion and comparison speeds
+## Continuation 23:47Z — discounted regional completion and comparison speeds
 
 Progress: all three new discounted-joint regional streams restore independently.
 Physical sizes 69,154 / 95,137 / 96,388 bytes; improvements 97 / 77 / 127 over
@@ -2052,3 +2052,14 @@ Critical full jobs revalidated23:43Z: nativev216decode3202350CPU8; fieldsdecode
 Memory8.6GiBavailable, noadditional large native concurrency launched.
 First qualified full candidate may be integrated immediately; do not wait for
 all full trials and do not count incomplete physical archives.
+
+
+Site publication succeeded2026-09-28T23:47:47.304293Z. Source
+c79731eaf7595da9711d718b36b206408ee772ec; deployment
+appgdep_6abafc935de08191a518f20e88a645d0; version
+appgprj_6aba005773a08191ae8a7978a687b3cb~appgver_45fbdb35f4d08191aa4486d0b6e0b94d.
+Cell971 collected terminal; no pending deployment. Site now has completed
+Brotli ratio+matching speeds and all three discounted regional results behind
+the research fold. Source scientific checkpoint90db287. Knownprivateaudience
+preserved; onlySitespush, noGitHubActions. Credential toolstore expires23:55:44Z.
+Backgroundresearch retains URL handoff without opening another browser tab.
