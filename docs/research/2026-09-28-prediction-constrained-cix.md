@@ -846,3 +846,30 @@ The relocation-symbol diagnostic clarifies the next possible restriction:
 Section-labelled targets may be better constrained by that section's range or
 local function starts than by same-name section bases from other objects. This
 is an unimplemented follow-up, not an additional gain. No external byte table.
+
+## Complete causal pointer-feedback milestone: 36,770,292 bytes
+
+All six full feedback representations restore. Parent framed control 13,049,589;
+previous-any-pointer in place 13,066,624; same-alphabet causal pointer in place
+12,899,784; declared-symbol-only 13,045,261; previous-any-pointer varints
+13,054,073; same-alphabet causal varints **12,882,063 bytes**. Grouping by the
+transmitted candidate alphabet is essential; merely differencing adjacent
+pointers loses. Evidence: `2026-09-28-pointer-feedback-full.json`.
+
+Portfolio 13 freshly recomputed all transforms and repeated all six independent
+full decodes, then retained the smallest exact physical stream. Complete sum
+**36,770,292 bytes, 54th equivalent**, gap **8,944,781** to first. Saves 94,046
+against portfolio 12 and 167,494 against the previous Site snapshot (portfolio
+11). No first-place claim. Proof: `2026-09-28-competitive-pointer-feedback-milestone.json`.
+The CLI now selects portfolio 13; a separate process restored the selected frame
+in 4.9635s with peak 590,228 KiB. Frame SHA
+`150e13e7dfae232b2f9c7383f303b607e309ae0b3351f2ea6c9a18eef0e44188`;
+proof `2026-09-28-pointer-feedback-cli-restoration.json`.
+
+The prospective large-input PAQ extension is now portfolio 14 and inherits the
+completed pointer-feedback dispatcher. It remains unscored until all eligible
+v216 Mozilla/Webster references finish extraction. Twelve new same-fixture PAQ
+feedback controls (modes 0/2/3/5) run with three workers in
+`ecoff-pointer-deltas-paq-cohorts`, alongside the two-worker nine-trial relocated
+pointer cohort. No whole-file PAQ pointer-feedback run has started yet. Inspect
+all three cohort outcomes before selecting a whole-file PAQ candidate.
