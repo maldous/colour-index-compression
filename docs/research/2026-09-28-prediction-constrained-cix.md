@@ -730,3 +730,30 @@ literal-exception/target-index test. Twelve PAQ trials (control and aligned mode
 on six complete objects) are running in `ecoff-call-aligned-paq-objects`.
 Its sources are now frozen. This refinement tests compatibility with PAQ's
 learned instruction representation; do not claim a gain before physical results.
+
+All twelve aligned-index PAQ trials have now restored. In-place alignment saves
+6/0/73/44/59/29 bytes against the six framed controls, with mixed performance
+against unaligned indices (only 11 bytes smaller in aggregate across these
+selected diagnostic objects). Full aligned/control Brotli streams are running
+in `ecoff-call-aligned-brotli-full`; no full PAQ call variant has been launched.
+Evidence: `2026-09-28-call-alignment-controls.json`.
+
+The qualified trace diagnostic and the original 83 call controls were published
+to the research Site; the complete 36,937,786-byte score is unchanged. A prospective
+`competitive_large_paq.py` profile extends portfolio 11 above 24 MiB. It uses the
+existing exact PAQ qualification and rejects pending artifacts. Its real NCI
+qualification/unfinished-cache check passes. Do not run its complete refresh
+until the eligible Mozilla and Webster v216 -8 results have independently
+restored. The default standalone CLI remains the completed portfolio 11.
+
+A broader follow-up exposes symbol-name boundaries to PAQ's text models.
+`ecoff_symbol_text.py` first builds the shared-GOT constrained representation,
+then swaps NUL/newline bytes within detected .dynstr ranges; an additional mode
+also swaps underscore/space. Both are position-preserving involutions and support
+arbitrary bytes. The inverse restores symbol names before the parent rebuilds
+its dependent tables and addresses. Both full transforms restore exactly; three
+fixture tests pass. They affect 3,915,136 symbol-table bytes. Nine physical PAQ
+v215 -4 trials are running in `ecoff-symbol-text-paq-objects`, comparing the same
+parent control, boundaries, and boundaries plus word separators. Freeze these
+modules and dependencies until complete. Structural evidence:
+`2026-09-28-symbol-text-structural.json`.
