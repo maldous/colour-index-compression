@@ -46,8 +46,8 @@ def decode(frame):
     return data
 
 
-def native_encoder():
+def native_encoder(library="results/leaderboard/native_mixer_rounding.so"):
     from benchmarks.native_contextual_mixer import encoder
-    native=encoder('results/leaderboard/native_mixer_rounding.so')
+    native=encoder(library)
     def encode(data,bits):return MAGIC+native(data,bits)[5:]
     return encode
