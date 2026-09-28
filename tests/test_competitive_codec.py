@@ -1,4 +1,5 @@
 import random
+import struct
 import zlib
 from pathlib import Path
 import pytest
@@ -36,6 +37,16 @@ def test_paq_header_contains_version_without_overhead():
         frame=codec.wrap_paq(original,version)
         assert len(frame)==len(original)
         assert codec.unwrap_paq(frame)==(version,original)
+
+
+def test_float_grid_selected_and_independently_decoded():
+    data=struct.pack('<7i',0,1,80,0,1,1,28)+b'\0'*28*80
+    blob,record=codec.encode(data,legacy_cache=legacy_raw(data))
+    assert record['selected'].startswith('float-grid-')
+    assert len(blob)==min(row['size'] for row in record['trials'])
+    assert codec.decode(blob)==data
+    assert not codec.has_fixed_star_records(data[:-1])
+    assert not codec.has_fixed_star_records(data[:24]+struct.pack('<i',27)+data[28:])
 
 
 def test_reject_ambiguous_and_invalid_frames():

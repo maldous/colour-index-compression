@@ -62,15 +62,17 @@ def main():
     if old_policy['core_sha256']!=source_digest(Path.cwd()):raise ValueError('changed baseline core')
     for key,path in source_files.items():
         if old_policy[key]!=codec.sha(Path(path).read_bytes()):raise ValueError('changed baseline dependency: '+path)
-    import imagecodecs
+    import imagecodecs,numpy,brotli,zstandard
     tracked=['benchmarks/competitive_codec.py','benchmarks/competitive_run.py','benchmarks/spatial_image_codec.py',
              'benchmarks/volume_image_codec.py','benchmarks/native_ppm_decode.cpp','benchmarks/native_ppm_decode.py',
+             'benchmarks/record_float_grid.py',
              'benchmarks/legacy_mixer_native.py','benchmarks/native_legacy_mixer.cpp',
              'results/leaderboard/native_ppm_decode.so','results/leaderboard/native_legacy_mixer.so']
-    policy=dict(name='CIX competitive spatial/volume portfolio 1',legacy_policy=old_policy,
+    policy=dict(name='CIX competitive spatial/volume/float-grid portfolio 2',legacy_policy=old_policy,
         revision=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         sources={path:codec.sha(Path(path).read_bytes()) for path in tracked},
-        imagecodecs_version=imagecodecs.__version__,imagecodecs_native_versions=imagecodecs.version(),paq_policy=None)
+        imagecodecs_version=imagecodecs.__version__,imagecodecs_native_versions=imagecodecs.version(),
+        numpy_version=numpy.__version__,brotli_version=brotli.__version__,zstandard_version=zstandard.__version__,paq_policy=None)
     items=json.loads(Path('results/silesia-manifest.json').read_text())
     if args.paq_reference:
         complete=json.loads((Path(args.paq_reference)/'complete.json').read_text())

@@ -6,6 +6,7 @@ the exact backend version. This changes no arithmetic payload and adds no bytes.
 PAQ is credited as a backend, not presented as a new CIX model.
 """
 import hashlib
+import struct
 import subprocess
 import tempfile
 import time
@@ -15,6 +16,7 @@ from pathlib import Path
 from cix.multinomial import vencode, vdecode
 from benchmarks import spatial_image_codec as spatial
 from benchmarks import volume_image_codec as volume
+from benchmarks import record_float_grid as grid
 
 RAW=b'CIXU\x01'
 PAQ=b'CIXP\x01'
@@ -68,6 +70,7 @@ def decode(frame):
         return raw
     if magic==spatial.MAGIC:return spatial.decode(frame)
     if magic==volume.MAGIC:return volume.decode(frame)
+    if magic==grid.MAGIC:return grid.decode(frame)
     if magic==b'CIXG\x01':
         from benchmarks.sdf_geometry_probe import decode as geometry
         return geometry(frame)
@@ -88,6 +91,14 @@ def decode(frame):
             subprocess.run([binary,'-d','-simd','AVX2',str(archive),str(restored)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
             return restored.read_bytes()
     raise ValueError('unsupported competitive frame')
+
+
+def has_fixed_star_records(data):
+    """Recognize the declared record layout, without file names or corpus hashes."""
+    if len(data)<28:return False
+    _,_,count,numbering,motion,magnitudes,width=struct.unpack_from('<7i',data)
+    return (numbering==0 and motion==1 and abs(magnitudes)==1 and width==28
+            and count!=0 and 28+28*abs(count)==len(data))
 
 
 def encode(data,*,legacy_cache=None,paq=None,paq_cache=None):
@@ -120,6 +131,10 @@ def encode(data,*,legacy_cache=None,paq=None,paq_cache=None):
         if region['height']>region['slice_height']:
             for mode,effort in [(m,9) for m in range(6)]+[(3,10)]:
                 consider(f'volume-{index}-{mode}-{effort}',lambda:volume.encode(data,region,mode,effort))
+    if has_fixed_star_records(data):
+        for mode in (1,2,3):
+            for backend in (0,1,2):
+                consider(f'float-grid-{mode}-{backend}',lambda:grid.encode(data,mode,backend)[0])
     if paq is not None:
         version,options=paq
         consider(f'paq-{version}-{options}',lambda:wrap_paq(paq_cache,version) if paq_cache is not None else encode_paq(data,version,options),paq_cache is not None)
