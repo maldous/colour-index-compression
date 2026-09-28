@@ -1,16 +1,16 @@
-"""Prospective portfolio 17: remove the remaining PAQ size ceiling.
+"""Prospective portfolio 19: remove the remaining PAQ size ceiling.
 
 The complete score may be refreshed only after every eligible cached reference
 has independently restored. Pending archives are rejected, never projected.
 """
 import sys
 import time
-from benchmarks import competitive_intermediate_paq as parent
+from benchmarks import competitive_pdata_symbols as parent
 from benchmarks import competitive_small_paq as reference
 from benchmarks import competitive_database_portfolio as database
 from benchmarks.competitive_codec import encode_paq
 
-NAME = 'CIX competitive complete-size PAQ/structural portfolio 17'
+NAME = 'CIX competitive complete-size PAQ/structural portfolio 19'
 SOURCES = [__file__]
 MIN_BYTES = parent.MAX_BYTES
 
