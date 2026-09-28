@@ -930,3 +930,51 @@ transform is claimed or implemented. This is an input-derived model, not an
 external symbol dictionary. `ecoff_symbol_loads.py` compares local lexical IDs,
 global symbol-frequency IDs (aligned and dense), global lexical IDs, and a
 framed parent control. Eight invariants pass; full structural gates follow.
+
+## Shared symbol-load milestone: 36,690,274 bytes
+
+The five full raw load transforms restore exactly. The global lexical alphabet
+covers only 8,637 loads, so no full physical trial was allocated to it. Four
+complete Brotli comparisons finish: framed parent control 12,856,408; local
+lexical IDs 12,868,374; global symbol-frequency aligned IDs **12,802,045**; global
+frequency dense IDs 12,802,330 bytes. Shared aligned identities normalize 306,223
+of 393,897 eligible loads; local IDs normalize 364,075 but lose. The winning
+representation saves **54,533 bytes** against portfolio 14. Full encode 177.45s,
+decode 8.2749s, 754,148 KiB process peak under concurrent load. Eight invariants
+and all full raw/physical restorations pass. Source f5e8710; four candidates were
+qualified and independently decoded again by portfolio 15 (c6277d2). Complete
+score **36,690,274**, still **54th equivalent**, gap **8,864,763** to first.
+The leaderboard page hash and 322 rows were rechecked and unchanged. This goal
+turn has improved the complete score by **80,018 bytes**, not achieved first.
+
+The direct PAQ trace supplies a discriminating limit: 1,155 eligible loads in
+one independently qualified 253,952-byte object; 927 belong to the transmitted
+symbol alphabet. Their 6,811 forced prefix decisions cost original PAQ only
+166.07197 bits (20.759 bytes) before candidate delivery/membership/framing.
+PAQ spends 3,899.77 bits on the matched displacements altogether. This is a
+specific forced-branch diagnostic with unchanged probabilities elsewhere, NOT
+an upper bound on all conditional predictive architectures. Cross-object symbol
+identity sharing remains a stronger hypothesis than simple support pruning.
+Evidence: `2026-09-28-load-target-paq-loss.json`. Nine same-cohort symbol-load PAQ
+trials compare control, global aligned and global dense in
+`ecoff-symbol-loads-paq-cohorts`, two workers. Do not project those results.
+
+A separate Webster test preserves prose order while lifting recognized tags
+into an explicitly transmitted dictionary and identity stream. Both raw full
+transforms restore all 41,458,703 bytes; five invariants cover literal tabs,
+arbitrary bytes, dictionary overflow and invalid IDs. The file contains 3,010,125
+tags with 190 spellings, occupying 13,043,977 bytes. Nine PAQ v215 -4 regional
+trials reject the approach: control/binary-IDs/printable-IDs are
+12,268/12,846/12,876; 12,844/13,495/13,528; 14,403/14,921/14,943. All restore.
+Even keeping prose order loses 518–684 physical bytes per selected 64 KiB region;
+no full PAQ prose-decomposition run is warranted. Preserve this negative in
+`2026-09-28-markup-prose-paq-negative.json`, with full raw structural evidence in
+`2026-09-28-markup-prose-structural.json`.
+
+Site portfolio 14 publication succeeded 2026-09-28T18:50:39Z, source
+5d37b745cc62aaff8c6ef95c058a3793886685a4. A follow-up publishes portfolio 15.
+Long references still run; the most recent local checks were v216 Mozilla
+65.57% encode, Webster 59.99% decode; v215 -9L Webster 62.25%, Mozilla 30.92%
+encode; v215 -12L NCI 48.52% decode. These are historical process percentages,
+not completed scores. Ten long PAQ processes plus bounded regional controls
+remain local, on inherited CPUs 16–31. No Actions, workflows or GitHub pushes.
