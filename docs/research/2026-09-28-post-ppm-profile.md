@@ -23,3 +23,16 @@ This single probe ran under concurrent load and is not a speed-leaderboard claim
 The cache remains disabled in the main Silesia cohort while a four-complete-member
 qualification runs in `results/leaderboard/runtime-comb-cache/`. The explicit
 runner option is `--comb-cache`; it records settings and implementation hash.
+
+The broader qualification subsequently passed all four complete-stream hash
+comparisons and exact round trips. Aggregate encoding time was 68.90 seconds
+cached versus 90.48 seconds uncached under concurrent load. All 84 tests passed
+in 42.20 seconds; 28,670 additional exact coefficient comparisons covered the
+entire cache domain and its bypass boundary. This qualifies the cache for the
+unchanged byte policy, not a general speed-leaderboard claim.
+
+After qualification, the nine remaining original Silesia workers were stopped
+at recoverable checkpoints, confirmed absent, and resumed with `--comb-cache`.
+The three verified members were preserved. The independent bounded-PPM trial
+was not restarted or changed. Four-member measurements and accelerator hashes
+are recorded in `2026-09-28-comb-cache-streams.json`.
