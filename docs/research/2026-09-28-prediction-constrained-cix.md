@@ -1652,3 +1652,115 @@ outlined above; it has NOT been built. The existing fixed-prior and joint
 streams must stay decodable with their frozen binaries. Do not overwrite them.
 This turn made verified experimental progress; the complete leaderboard goal
 remains active and unachieved. No GitHub Actions or GitHub source push.
+
+### Native adaptive prediction and regional completion (2026-09-28,22:55Z)
+
+This goal turn made progress. The completed portfolio remains31,175,135 bytes,
+24th equivalent, default profile19. First place remains unachieved. Read the
+controlling pasted-text objective before every goal continuation. No Actions or
+GitHub source push. Preserve every live/scored source dependency and binary.
+
+The deterministic log-domain native predictor is now implemented and qualified,
+superseding the preceding design-only note. New frozen files include
+`generate_register_log_tables.py`, `native/CixLogTables.hpp`,
+`native/CixLogMath.hpp`, `native/CixLogRegisterPrior.hpp`,
+`register_log_math.py`, `build_paq_register_log.py`,
+`paq_register_log_probe.py`, `paq_register_log_qualify.py`,
+`paq_register_table_screen.py`, and `paq_register_log_regional.py`.
+No floating-point codec calculations: pinned mathematical integer tables;
+Q20 scores preserve evidence when Q48 coding weights round to zero. All9 tests
+passed49.08s, including native restoration, disabled identity, fixed-prior
+payload identity, integer C++/Python oracle, resets and long underflow/recovery.
+Fork `paq8px-cix-register-log` binarySHA
+2b5f28580b82053f7e15c5f5a681d546b445268c07c1efbf780b70127534de1b.
+
+Physical qualification18586 is complete. Modes0/1/2/3 framed sizes
+45,054/44,749/44,753/44,904; all restore, every original native PAQ p/y trace
+matches. Adaptive saves305 versus identically framed native, but292 versus
+bare native45,041 after all13 outer-frame bytes. Do not conflate those controls.
+Evidence `2026-09-28-register-log-qualified.json`. Integer screen saves
+305.077644564 predictive bytes, matching the float control within0.000002 byte.
+This changes predictive information while retaining arithmetic coding; it does
+not establish a smaller hard state space or a same-information rank advantage.
+
+Adaptive regional42203 is TERMINAL success. Framed native/adaptive pairs:
+73,760/73,176;99,711/99,119;101,087/100,416. Savings584/592/671 versus framed
+native,571/579/658 versus bare native after13 bytes framing,276/282/306 beyond
+fixed prior. Three new independent restorations; six old native/fixed frames
+retained only after full input/frame/CRC/payload/source/backend identity checks.
+`2026-09-28-register-log-cohorts.json`, source report
+`results/leaderboard/paq-register-log-cohorts/comparison.json`.
+Regions overlap objects and are exploratory, not held-out or projected ranks.
+
+Fixed-prior12360 and joint regional37994/10268/87477 are TERMINAL success.
+Fixed regional gains308/310/365 against framed native, all6 restore. Joint
+mode4/1/2/3 sizes70,207/69,831/69,896/69,526;
+96,145/95,796/95,838/95,494;97,746/97,185/97,379/96,825.
+Joint saves681/651/921 versus structural/native,305/302/360 versus memory-only.
+All12 restore and native/memory payloads match prior independent tournament.
+Evidence `2026-09-28-paq-joint-feedback-cohorts.json`, collector
+`paq_joint_feedback_collect.py`. No disabled arm in regional batch; pilot
+proved disabled identity. Raw false control flag means absent arm, not mismatch.
+
+NCI v215-12L independently completed22:24:07Z:775,836 bytes, all33,553,445
+original bytes restored, encode15,206.334s/decode21,130.887s, peak19,858,432/
+15,387,136KiB. Selected CIX447,748 saves328,088 versus this local reference.
+ArchiveSHA52467f80ad61f7f0c7ab35ccb34c1d7ef9940c90f698cd9358dc6c4f38ad2b0f.
+Result `results/leaderboard/paq-v215-reference/nci/result.json`, compact
+`2026-09-28-nci-paq12-local.json`. Runner deletes restored.bin only AFTER
+independent byte equality and atomic qualified result; that deletion is normal.
+Input/archive/backend/verifier hashes rechecked. Local archive is797 bytes below
+author exact NCI value; cause unestablished. No full local12L total exists.
+Manager2168849/session65954 proceeded to Webster native3416451 onCPU6.
+
+Latest Site is SUCCESSFULLY deployed, source
+44b8404e3ff84f8b0f021e43c630736e13200b65, deployment
+appgdep_6abaef0508b08191b0fc6edf2e11a6fc, version
+appgprj_6aba005773a08191ae8a7978a687b3cb~appgver_9eccd90d637c81919bfe03008d85f83e,
+2026-09-28T22:49:56.867126Z. Includes all adaptive/fixed/joint regional controls,
+NCI12L and clear292-byte net pilot gain. Cell891 terminal collected. Site
+credential expires22:58:51Z; stored in tool session only. No pending deployment.
+Portable profile already configured; background task skips browser handoff.
+
+### Next interactions now live
+
+New isolated `build_paq_joint_log.py`, `paq_joint_log_probe.py`,
+`tests/test_paq_joint_log.py` combine memoryopcode/base and adaptive log register
+prediction, with0disabled/1memory/2adaptive/3both/4native controls. CIXB1c frame.
+Fork `paq8px-cix-joint-log` binarySHA
+48f7abee704313908d4ffd0c07b336eddca7f7532eb4c87804c438a7f5dd6425.
+Build26157 TERMINAL success. All prior forks stay immutable. Test4607 is LIVE
+onCPU24 as of22:55Z; wait for pass before launching physical pilot.
+Pilot manifest prepared `results/leaderboard/paq-joint-log-pilot/manifest.json`,
+one qualified253,952-byte source. No pilot codecs started yet. Launch all5 modes,
+jobs1; only after tests. Compare memory/native payloads with prior pilot and
+adaptive-alone with log codec on SAME section4 transformed input.
+
+New `paq_joint_feedback_level6.py` tests fixed joint model at higher effort,
+reusing three qualified nativelevel6 frames from GP tournament after full
+input/frame/backend/source checks. Session41211/manager3464565 LIVE,
+workers pinned0/18/22, about1.7GiB each. Root
+`results/leaderboard/paq-joint-feedback-level6`, reportcomparison.json.
+All three new joint streams must independently restore. Do not restart or
+modify its source closure. Earlier level6 native controls use identical
+section4 transform; final transformed hashes must agree.
+
+New cheap `paq_register_multi_prior_screen.py` tests eight log-domain expert
+mixtures using causal shared/role recency, opcode/role counts, and occupancy.
+Session92231 onCPU20 LIVE. It must reproduce the qualified shared-recency
+305.077-byte predictive control to1e-6 before accepting output. Other priors
+use only past completed fields. No physical codec, no hard exclusion, no rank
+advantage or whole-file extrapolation. Output expected
+`docs/research/2026-09-28-register-multi-prior-screen.json`.
+
+Full v216 Mozilla decoder3202350 CPU8 still LIVE,62.52%22:51:55Z.
+Archive6,477,226 bytes is UNSCORED until result.json; restored.bin remains0
+because PAQ buffers/inverts the archive, not evidence of stall. Other full
+jobs revalidated alive; v215-9L Mozilla65.67%, Webster decode16.23%;12L Webster
+encode6.04%. Freeze all dependencies. Do not restart on poll timeouts.
+
+Only after v216 Mozilla result.json, run competitive_large_paq against
+competitive-filtered-v19 to create competitive-large-paq-v20 using exact
+native restoration proof and reversible same-length header substitution.
+Then refresh liveleader, update default/reproduction/source package/Site.
+Never declare a rank from the unfinished archive.
