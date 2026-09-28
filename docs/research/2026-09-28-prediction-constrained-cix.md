@@ -184,3 +184,76 @@ NCI member at PAQ v215 -8 in `results/leaderboard/sdf-hydrogen-full8`. Do not ed
 `sdf_hydrogen.py` or its probe while this run is live: the runner checks source
 immutability. Earlier geometry-only full runs and both reference cohorts remain
 live independently. Their cached sources/streams must remain intact.
+
+## Full SAO grid-constraint milestone
+
+Ten full SAO trials independently restore all 7,251,944 bytes. The best is
+2,285,288 physical bytes: integer decimal-grid coordinates, exact floating-bit
+corrections, and Brotli 11. This saves 2,497,002 bytes against the current complete
+portfolio's SAO member and 1,438,639 against PAQ's author-reported -12L SAO result.
+The latter is an author comparison; the local PAQ reference has not yet completed.
+No updated full-corpus total is inferred from the single-member result.
+
+The record layout is documented by OpenZL. The grid scales are transmitted,
+all IEEE corrections are stored exactly, and non-grid values, signed zero, NaNs
+and partial records remain lossless. No original-byte lookup is used.
+Under xz, conditional type-class ranks cost 2,347,578 bytes versus 2,349,446 for
+the same-count arithmetic control and 2,361,130 for raw correction IDs. Under
+Brotli, raw IDs win at 2,285,288 versus 2,291,651 ranks and 2,293,792 arithmetic.
+This is a substantial additional structural constraint, not proof of a unique
+information advantage for enumeration. All ten measurements and provenance are
+in `2026-09-28-sao-grid-milestone.json`.
+
+The competitive dispatcher now detects the declared 28-byte record layout and
+compares all nine grid/backend candidates with its incumbents. A complete run
+is in `results/leaderboard/competitive-grid-v2`. It started from the exact source
+hashes committed as `6c7d9fb` immediately after launch, so its recorded startup
+HEAD predates that integration commit; source hashes establish the implementation.
+Fresh standalone decoding of all twelve selected streams is required before
+updating the rank. Do not edit its tracked dependencies while running.
+
+A second controlled experiment uses decoded integer coordinates to predict the
+last exact floating correction seen at that coordinate. The table is causal and
+requires no transmitted training data. A full physical tournament compares raw
+IDs, CIX ranks, and identical-count arithmetic with and without this feedback.
+The observational conditional-entropy diagnostic is not a scored result.
+
+Sixteen markup trials also completed, using leaf-context value columns and
+stack-constrained closing tags on xml/webster regions. Column separation loses
+on all tested regions; stack constraints save eight bytes on one xml prefix
+but lose on the middle region. PAQ already predicts this redundancy well.
+Preserve the negative evidence in `2026-09-28-markup-constraints.json`; do not
+launch full markup runs from this weak result.
+
+## Complete constrained-grid portfolio: 135th equivalent
+
+The parent grid portfolio independently decoded all twelve selected streams:
+48,273,958 bytes, equivalent 139th. Mozilla's unchanged stream took 1096.84 seconds
+to decode under the concurrent local workload. The parent uses the exact tracked
+source committed in 6c7d9fb; its startup HEAD predates that commit as noted above.
+
+Causal correction feedback reduces full SAO to 2,234,479 bytes. Bounded integer
+intervals and Rice/raw fallbacks reduce it further to 2,159,749, with every byte
+restored. All three final interval controls select the same 47 bounded blocks
+and the same remaining Rice blocks. The interval rank saves 3,365 bytes against
+fixed-bit coding and 92 against uniform arithmetic. All bound costs are paid.
+The same-wrapper feedback control saves 51,267 full-file bytes. PAQ v215 -4 on
+the same 64 KiB prefix saves 298 bytes with feedback, from 20,988 to 20,690.
+See `2026-09-28-sao-feedback-intervals.json` for complete measurements.
+
+`competitive_grid_refresh.py` exposes an uncached encoder and standalone decoder
+for portfolio 3. It adds candidates only where the unchanged source-header
+detector recognizes the fixed record layout. The full benchmark refresh checks
+all twelve input hashes, physical frame hashes and original independent decode
+evidence. Eleven streams are unchanged; their proven decodes are preserved. SAO
+is re-encoded across the complete new portfolio and freshly decoded. The final
+physical total is **48,148,419 bytes, equivalent 135th among 322 entries**.
+This saves 2,622,541 against portfolio 1; 20,322,908 bytes remain above the leader.
+No first-place claim is made. Compact evidence is in
+`2026-09-28-competitive-grid-milestone.json`; full rows and physical streams are in
+`results/leaderboard/competitive-grid-v3`.
+
+All longer PAQ/NCI runs remain independent. Additional v215 -9L runs on Mozilla
+and Webster started in `results/leaderboard/paq-v215-priority9L`, two workers,
+to address the two largest gaps without waiting for the lower-level cohort queue.
+They are not scored until independent extraction completes. No Actions used.
