@@ -181,5 +181,24 @@
   "interpretation": "Causal register log mixture tested with arithmetic coding retained. Any gain adds predictive information; it is not rank-coding superiority with identical information.",
   "source_report": "results/leaderboard/paq-register-log-qualified/complete.json",
   "source_report_sha256": "32e7a145197af43753f67ca1460390a33df779606b0f9c9f0806c40346287f58",
-  "conclusion": "All four framed streams restore the qualified253952-byte object and preserve every original PAQ p/y event. Disabled/adaptive/native-biased-adaptive/old-fixed sizes45054/44749/44753/44904. Adaptive saves305 bytes versus native and155 versus the previously qualified fixed prior. Fixed control reproduces its older PAQ payload byte for byte. This is added causal predictive information using arithmetic coding, not rank superiority with identical information. No full-member gain inferred."
+  "conclusion": "All four framed streams restore the qualified253952-byte object and preserve every original PAQ p/y event. Disabled/adaptive/native-biased-adaptive/old-fixed sizes45054/44749/44753/44904. Adaptive saves305 bytes versus native and155 versus the previously qualified fixed prior. Fixed control reproduces its older PAQ payload byte for byte. This is added causal predictive information using arithmetic coding, not rank superiority with identical information. No full-member gain inferred.",
+  "comparison": {
+    "native_archive_bytes": 45041,
+    "identically_framed_native_bytes": 45054,
+    "adaptive_frame_bytes": 44749,
+    "extra_experimental_framing_bytes": 13,
+    "saved_vs_framed_control_bytes": 305,
+    "saved_vs_bare_native_archive_bytes": 292
+  },
+  "uncertainty_accounting": {
+    "source_fixed_width_bits": 2031616,
+    "arithmetic_events": 2031848,
+    "native_predictive_bits": 360260.0141092791,
+    "adaptive_predictive_bits_from_integer_screen": 357819.39295276435,
+    "native_archive_bits": 360328,
+    "adaptive_actual_frame_bits": 357992,
+    "additional_hard_state_exclusion": false,
+    "composition_metadata_bytes": 0,
+    "interpretation": "The legal sequence space remains unchanged. Causal recency and learned expert likelihoods down-weight arrangements. Actual frame includes13 bytes of experimental framing, including the mode selector; net gain against the bare native PAQ archive is292 bytes. Prediction-bit totals are a diagnostic of the matched integer model, not a new source entropy or same-information coder advantage."
+  }
 }
