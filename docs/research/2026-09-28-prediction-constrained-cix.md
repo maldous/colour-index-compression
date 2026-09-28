@@ -1050,3 +1050,59 @@ constructed subarchives. Each first applies the completed section/function
 transform, so all variants get identical predictive information. No result or
 full-file gain is claimed before restoration. Freeze builder, probe, fork and
 all dependent codecs while the tournament is live.
+
+## Exact continuation constraints and scalable binary Markov classes
+
+`markov_euler.py` uses the classical directed matrix-tree/Whittle identity to
+count only trails compatible with every transition count and fixed endpoints.
+It compares a joint independent-row rank, remaining-row arithmetic, exact-trail
+rank, and arithmetic using the same valid-completion counts. This is an
+implementation of known counting theory, not a novelty claim for the theorem.
+Exhaustive independent enumeration of every ternary sequence of lengths 1–7
+confirms all class cardinalities and every rank. Six tests pass. Eighty complete
+physical fixture trials restore: rank improves five of twenty fixtures over
+independent rows, by up to six bytes; conditioned arithmetic matches nineteen
+of twenty rank sizes, differing by one byte on the other. The largest excluded
+space is 42 bits. Eight PAQ-error windows show no physical gain; two OSDB nibble
+windows save one byte each but have substantial matrix metadata. These are
+residual diagnostics, not full Silesia gains. Evidence:
+`2026-09-28-markov-euler-tournament.json`. No portfolio addition follows them.
+Sources: Whittle (1955), doi:10.1111/j.2517-6161.1955.tb00197.x; Jacquet, Knessl
+and Szpankowski, https://www.cs.purdue.edu/homes/spa/papers/aofa10.pdf.
+
+`paq_markov_residual.py` now tests that exact constraint through the real PAQ
+prediction bridge on the independently qualified 253,952-byte object. All mode,
+count, block, checksum and selection bytes are included. Whole-group binomial
+composition remains a physical-size fallback. The complete control restores at
+45,364 bytes versus the original PAQ's 45,041; conditioned 4,096-event rank and
+arithmetic packets remain pending. Root: `paq-markov-residual-original`.
+
+The binary case also factorizes into two positive run-length compositions:
+C(n0-1,r0-1) * C(n1-1,r1-1). `binary_markov_runs.py` exploits that exact structure
+without repeated determinants or bounded packet headers. Counts, initial bit
+and run number are transmitted. A joint rank and identical-information arithmetic
+control both support whole confidence groups. Every binary sequence of length
+1–9 agrees with the general determinant count, and both representations restore;
+three additional long/invalid-metadata tests and three wrapper tests pass.
+`paq_binary_markov.py` compares this whole-group representation with the same
+binomial fallback. The complete-source bridge tournament is running separately
+in `paq-binary-markov-original`; no gain is yet claimed. Both active source sets
+are frozen. The old trace and PAQ reference remain unchanged.
+
+The nine shared-symbol normalization PAQ trials are now all complete and negative:
+control/aligned/dense = 70,212/70,735/70,790; 96,149/96,593/96,680;
+97,750/98,374/98,501. Preserve the full Brotli gain, reject a full PAQ normalized
+load trial. Evidence: `2026-09-28-symbol-load-paq-negative.json`.
+The direct causal PAQ-context fork is a separate experiment: first fixture native
+and disabled controls both 70,207; last-load 70,197; two-load 70,199; register-local
+70,199. Those small positive results do not establish a complete-file gain.
+
+A prospective bounded portfolio 16 extends native PAQ to inputs of 24–48 MiB,
+excluding the recognized database format. It can adopt a completed Webster
+result while retaining the fully verified current Mozilla stream. This is a
+fixed source-byte size policy, not a partial-file projection. Its NCI qualification
+and pending-cache rejection pass. `competitive_large_paq.py` is now prospective
+portfolio 17 above 48 MiB, inheriting the intermediate dispatcher; a real pending
+Mozilla cache is rejected. Do not run portfolio 16 until Webster result.json has
+independent full restoration; do not run 17 until Mozilla does. The scored default
+and published Site remain portfolio 15, 36,690,274 / 54th.
