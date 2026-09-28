@@ -1306,3 +1306,90 @@ process observations, never scored bytes. v216 Mozilla encoder completed at
 Available memory~9.8GiB; avoid gratuitous full PAQ allocations. First place is
 unachieved; goal remains active, this turn materially progressed. Revalidate
 processes before continuing rather than restarting any long run.
+
+
+## Negative residual controls and targeted memory feedback
+
+This goal turn made experimental progress, without changing the complete score:
+portfolio 19 remains 31,175,135 bytes / 24th equivalent. Thirty new physical
+regional trials completed and restored. Do not repeat or promote them blindly.
+
+`ecoff_filtered_columns.py` (CIXB15) locates exact uniquely matched PAQ-shuffled
+instruction regions in the native stored archive. Explicit offset/length
+metadata pays for reversing byte planes, bit planes and opcode-conditioned
+columns. All eight invariants pass, including vectorized shuffle equality with
+the qualified PAQ trace mapping. Twelve regional trials reject the branch:
+control/byte-plane/bit-plane/opcode-column sizes are
+116154/135595/190855/116190;
+144626/163150/215756/145442;
+162108/191160/271929/161266.
+Opcode grouping is mixed; other variants lose throughout. Session18658 is
+terminal. Preserve `2026-09-28-filtered-columns-negative.json`. Repartitioning
+is a bijection, not a smaller legal state space by itself.
+
+`ecoff_gp_residual.py` (CIXB16) retains instruction positions/opcodes/registers
+while moving GP displacements to paid residual streams. Modes1/2/3 use literal
+byte planes, last-access differences, and register-specific differences.
+Modes4/5 deliver identical register-conditioned counts and use exact type-class
+ranks versus remaining-count arithmetic, in bounded 256-byte chunks. Thirteen
+invariants pass, including alphabet bijections, wraparound, register contexts,
+and full native filtered frames. All eighteen regional trials restore and lose:
+control/literal/delta/register-delta/rank/arithmetic sizes are
+116154/116426/116970/117043/117561/117676;
+144626/144977/145796/145507/146222/146016;
+162108/162807/163885/163654/164164/164133.
+Counts reduce order-class bits to 20985.765/20538.843/32120.825 from field widths
+54000/50544/83664, but counts, framing and lost sequence correlations outweigh
+that conditional reduction. Field width is not PAQ uncertainty. Rank/arithmetic
+have mixed final-byte differences and neither beats the incumbent. Session91867
+is terminal; preserve `2026-09-28-gp-residual-negative.json`. No full run launched.
+
+`ecoff_instruction_loss.py` attributes all bits of the qualified 127,776-byte
+code region (31,944 instructions) inside the 253,952-byte real object, matching
+every outcome to the unchanged native PAQ trace. Opcode loss is 6327.7725
+predictive bytes, non-GP memory displacement4701.1122, memory Ra3889.0849,
+memory Rb1877.2142, versus GP displacement535.2412. These are unscored prediction
+costs. Count-conditioned classes exclude count delivery; opcode self-conditioning
+is explicitly null, never treated as a zero-cost prediction. Full evidence:
+`2026-09-28-instruction-field-loss.json`. Current exact author-reported deficits
+are refreshed in `2026-09-28-portfolio19-per-file-deficits.json`.
+
+This motivates `build_paq_memory_feedback.py`, which derives its isolated patch
+from the already-qualified GP mixer insertion without changing that source.
+It normalizes the current memory-displacement prefix against causal predictions:
+mode1 last access using the same base register; mode2 last opcode/base access;
+mode3 previous stride through the same base register. Block state resets; all
+observations are completed decoded fields. No future counts or source tables.
+The native/disabled and all three synthetic modes restore, and disabled payload
+is byte-identical (one test,39.30s). Built binary SHA
+ea5f908e79c07fbd3b14f43ad38f9804c9a9e537afa9014f4d341f3ba454b81f.
+Root `benchmark-work/references/paq8px-cix-memory-feedback` holds source/build
+and provenance. Build session39465 and test61787 are terminal success.
+The five-trial qualified-object pilot is LIVE session20634, single workerCPU20,
+`results/leaderboard/paq-memory-feedback-pilot`, using its manifest.json.
+Freeze builder, `paq_memory_feedback_probe.py` (CIXB17), base GP builder, binary,
+and parent transform closure until it completes. No completed pilot result yet.
+
+The separate alphabet-feedback tournament session86988 remains live. Eight
+results were complete at21:12:13Z: first region native/disabled/frequency/
+occupancy/both =70207/70207/70189/70183/70183. Second region native/disabled/
+frequency =96145/96145/96134; other arms pending. Do not infer whole-file gains.
+The ProcessPool manager's additional threads still had old inherited masks;
+all are now updated. Current pairs were pinned to distinct cores0/18 because
+Linux was scheduling both on core0. Worker identities and before/after masks are
+in `2026-09-28-alphabet-thread-affinity.json`. New workers may need revalidation;
+never change unrelated jobs or claim timing comparability across affinity changes.
+
+At21:12:13Z native v216 Mozilla decoder was live at25.35%, v215-12L NCI decoder
+at80.96%, v215-9L Mozilla encoder50.52%, Webster91.74%. Native Mozilla still has
+no result.json; keep prospective portfolio20 unqualified. All long full ECOFF
+runs remain live, unchanged. Only process observations, never inferred scores.
+
+The Site retains31,175,135/24th and now includes all thirty negatives, field-cost
+attribution and current per-file deficits. Publication succeeded at
+2026-09-28T21:12:55.038605Z, sourcec9b84f8896914e201de49982da5d75dcc2e1eed0,
+deploymentappgdep_6abad847acb4819195a3755d94661966,
+versionappgprj_6aba005773a08191ae8a7978a687b3cb~appgver_3a60726357188191b6730f909d022f35.
+No pending Site request or browser handoff. Goal stays active and unachieved;
+this turn completed meaningful negative experiments and initiated the stronger,
+evidence-directed predictive test. No GitHub Actions or GitHub push.
