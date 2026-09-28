@@ -492,3 +492,20 @@ libraries are already byte-identical to the qualified originals; PAQ builds
 continue. This is a local release candidate only, not public source eligibility
 or an official submission. Its CLI currently selects portfolio 9; after build
 qualification, refresh the release candidate/CLI to the latest complete policy.
+
+The fixed-field full PAQ follow-up is now a verified negative result: six-bit
+alphabet **1,728,106 bytes**, remaining-count alphabet **1,728,093 bytes**.
+Both restore independently, but exceed the incumbent 1,698,992-byte database
+stream by 29,114 / 29,101 bytes. Regional gains did not survive whole-file PAQ
+model interactions. No portfolio addition. Evidence is in
+`2026-09-28-mysql-fixed-paq-full-negative.json`.
+
+The isolated build completed successfully: all four CIX native libraries AND
+both PAQ backends are byte-identical to the qualified original binaries. A
+fresh uncached portfolio-10 API smoke test in the isolated tree, with no corpus
+present, reproduces the original 67-byte stream from a 992-byte mixed input and
+restores exactly. The main CLI is now updated to portfolio 10; the staged archive
+still has the portfolio-9 CLI default but includes the portfolio-10 API.
+Do not publish that archive as a final release without refreshing the default
+and source revision. `2026-09-28-isolated-build-qualification.json` records source
+archive/manifest hashes, six binary matches and the isolated smoke result.

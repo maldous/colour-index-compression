@@ -1,7 +1,7 @@
 # Experimental competitive portfolio reproduction
 
 The current standalone entry point is `benchmarks.competitive_cli`. It uses the
-portfolio-9 encoder from source bytes. It does not look up corpus hashes, fetch
+portfolio-10 encoder from source bytes. It does not look up corpus hashes, fetch
 saved streams, read original data during decoding, or call GitHub/CI/network
 services. Format detection and the bounded PAQ compute policy are part of the
 encoder. The physical frame identifies the corresponding standalone decoder.

@@ -9,7 +9,7 @@ import json
 import resource
 import time
 from pathlib import Path
-from benchmarks import competitive_hydrogen as codec
+from benchmarks import competitive_medium_paq as codec
 from benchmarks.competitive_codec import sha
 
 
