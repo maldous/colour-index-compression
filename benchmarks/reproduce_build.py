@@ -24,7 +24,7 @@ def stage(destination):
     if destination.exists():raise ValueError('use a new destination; existing source/build directories are preserved')
     destination.mkdir(parents=True)
     tracked=subprocess.check_output(['git','ls-files','cix','benchmarks','tests'],cwd=ROOT,text=True).splitlines()
-    selected=[p for p in tracked if Path(p).suffix in ('.py','.cpp','.h','.hpp')]
+    selected=[p for p in tracked if Path(p).suffix in ('.py','.c','.cpp','.h','.hpp')]
     selected+=['docs/research/competitive-reproduction.md']
     for name in selected:
         target=destination/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/name,target)
@@ -35,6 +35,9 @@ def stage(destination):
         provenance=Path('benchmark-work/references')/(version+'-source.json')
         shutil.copy2(ROOT/provenance,destination/provenance)
     fix=Path('benchmark-work/references/v216-build-fix.json');shutil.copy2(ROOT/fix,destination/fix)
+    fork=Path('benchmark-work/references/paq8px-cix-store-state')
+    shutil.copytree(ROOT/fork/'source',destination/fork/'source',ignore=shutil.ignore_patterns('.git','.github','build-local','__pycache__'))
+    shutil.copy2(ROOT/fork/'provenance.json',destination/fork/'provenance.json')
     (destination/'requirements-research.txt').write_text('numpy==2.5.3\nimagecodecs==2026.8.16\nbrotli==1.2.0\nzstandard==0.25.0\n')
     (destination/'REPRODUCE.md').write_text('''# CIX experimental source reproduction
 
@@ -59,6 +62,10 @@ JPEG XL/JPEG-LS/JPEG 2000), Brotli and Zstandard remain external dependencies;
 their licenses and notices apply. CIX is research source; no new license grant
 or official submission is implied by this staging operation.
 
+The isolated PAQ stored-state decoder source and provenance are included. Its
+level-zero repair provides decoder state without probability models. Native
+reference backends remain unmodified; the extra fork is built separately.
+
 SOURCE-MANIFEST.json records every staged file hash and the CIX source revision.
 BUILD-RESULT.json records local rebuilt binary hashes. Benchmark corpora and
 saved compressed outputs are deliberately absent. See
@@ -77,6 +84,7 @@ def run_logged(command,root,log):
 def build(root,jobs):
     paths=[root/'results/leaderboard'/(name+'.so') for name in LIBRARIES]
     paths += [root/'benchmark-work/references'/('paq8px-'+v)/'build-local/paq8px' for v in ('v215','v216')]
+    paths += [root/'benchmark-work/references/paq8px-cix-store-state/build-local/paq8px']
     if any(p.exists() for p in paths):raise ValueError('existing binary preserved; rebuild in a fresh extracted source directory')
     manifest=json.loads((root/'SOURCE-MANIFEST.json').read_text())
     for name,digest in manifest['files'].items():
@@ -87,9 +95,9 @@ def build(root,jobs):
             'benchmarks/'+name+'.cpp','-o','results/leaderboard/'+name+'.so'],root,logs/(name+'.log'))
         print('built '+name,flush=True)
     with concurrent.futures.ThreadPoolExecutor(jobs) as pool:list(pool.map(native,LIBRARIES))
-    for version in ('v215','v216'):
+    for version in ('v215','v216','cix-store-state'):
         base=root/'benchmark-work/references'/('paq8px-'+version)
-        source=base/('paq8px-'+version[1:]);out=base/'build-local'
+        source=base/('source' if version=='cix-store-state' else 'paq8px-'+version[1:]);out=base/'build-local'
         run_logged(['cmake','-S',str(source),'-B',str(out),'-DCMAKE_BUILD_TYPE=Release','-DNATIVECPU=OFF'],root,logs/(version+'-configure.log'))
         run_logged(['cmake','--build',str(out),'--parallel',str(jobs)],root,logs/(version+'-build.log'))
         print('built paq8px '+version,flush=True)
