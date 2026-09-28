@@ -5,6 +5,13 @@ bytes on https://mattmahoney.net/dc/silesia.html under the same effective rules 
 freedoms as the existing competitors. Read the full controlling objective in
 `docs/research/2026-09-28-competitive-objective.txt`.
 
+The latest focused directive is prediction-constrained combinatorial research:
+use actual PAQ-class modelling to shrink the residual arrangement space, then
+test CIX representations against arithmetic coding with identical predictions.
+Read `docs/research/2026-09-28-prediction-constrained-cix.md`. Continue existing
+reference runs and publish verified milestones to the research Site; prioritize
+this hypothesis over further unrelated backend tuning.
+
 - The earlier universal-only constraint is superseded. Format, language, ISA,
   corpus-informed and per-file/per-region specialization are explicitly allowed.
   PAQ-backed and heterogeneous CIX ensembles are allowed. Attribute reused work;
