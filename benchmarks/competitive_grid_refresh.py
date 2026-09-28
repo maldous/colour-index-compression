@@ -29,6 +29,21 @@ def additions(data):
     return trials
 
 
+def encode(data,**kwargs):
+    """Uncached reproducible portfolio; no file names or original-byte tables."""
+    blob,selection=codec.encode(data,**kwargs)
+    for candidate,row in additions(data):
+        selection['trials'].append(row)
+        if len(candidate)<len(blob):blob=candidate;selection['selected']=row['name']
+    return blob,selection
+
+
+def decode(frame):
+    if frame[:5]==feedback.MAGIC:return feedback.decode(frame)
+    if frame[:5]==integer.MAGIC:return integer.decode(frame)
+    return codec.decode(frame)
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--parent',required=True);p.add_argument('--output',required=True);args=p.parse_args()
     parent=Path(args.parent);out=Path(args.output);out.mkdir(parents=True,exist_ok=True)
@@ -57,9 +72,7 @@ def main():
         frame=out/(name+'.cixc');frame.write_bytes(blob);changed=codec.sha(blob)!=previous['frame_sha256']
         if candidates:
             t=time.perf_counter()
-            if blob[:5]==feedback.MAGIC:restored=feedback.decode(frame.read_bytes())
-            elif blob[:5]==integer.MAGIC:restored=integer.decode(frame.read_bytes())
-            else:restored=codec.decode(frame.read_bytes())
+            restored=decode(frame.read_bytes())
             dec=time.perf_counter()-t
             if restored!=data:raise ValueError('fresh augmented frame did not restore')
         else:dec=previous['decode_seconds']
