@@ -48,6 +48,11 @@ def worker(args):
             estimate_source_sha256=hashlib.sha256(Path(__file__).with_name('native_ppm_estimates.cpp').read_bytes()).hexdigest(),
             estimate_wrapper_sha256=hashlib.sha256(Path(__file__).with_name('native_ppm_estimates.py').read_bytes()).hexdigest(),
             estimate_binary_sha256=hashlib.sha256(Path(args.native_estimates).read_bytes()).hexdigest())
+    if args.comb_cache:
+        from benchmarks.comb_cache import enable
+        enable()
+        acceleration = dict(acceleration or {}, comb_cache=dict(capacity=8192, maximum_n=4096),
+            comb_cache_sha256=hashlib.sha256(Path(__file__).with_name('comb_cache.py').read_bytes()).hexdigest())
     from cix.cli import config_for_level
     from cix.multinomial import StreamEncoder, StreamDecoder
     from cix.fileformat import _footer, split_file_wrapper
@@ -167,6 +172,7 @@ def main():
     p.add_argument('--ppm-key-cache', action='store_true')
     p.add_argument('--native-ppm', help='Explicit path to qualified experimental shared library')
     p.add_argument('--native-estimates', help='Explicit path to experimental estimator library')
+    p.add_argument('--comb-cache', action='store_true')
     args = p.parse_args()
     if args.worker:
         worker(args); return
@@ -187,6 +193,8 @@ def main():
             command.extend(['--native-ppm', args.native_ppm])
         if args.native_estimates:
             command.extend(['--native-estimates', args.native_estimates])
+        if args.comb_cache:
+            command.append('--comb-cache')
         with (out/(name+'.log')).open('a') as log:
             result=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,
                                   env={**os.environ,'OMP_NUM_THREADS':'1'})
