@@ -764,3 +764,18 @@ Both independently restore all Mozilla bytes. This confirms the alignment change
 does not repair the full Brotli regression. No call variant enters the portfolio.
 The combined call programme now has 97 completed physical trials. Retain the
 qualified PAQ finding: the fields already carry little residual uncertainty.
+
+The nine symbol-text trials completed. Control / boundary swap / boundary plus
+underscore swap are 11,584 / 11,590 / 11,601; 41,081 / 41,087 / 41,090;
+41,080 / 41,089 / 41,075 bytes. All restore. There is no consistent gain and no
+full symbol-text trial is warranted. PAQ's pinned `detectText` already accepts
+NUL after printable ASCII as an asciiz exception, explaining the weak premise.
+Source attribution and all physical proofs: `2026-09-28-symbol-text-controls.json`.
+
+Site publication succeeded at 2026-09-28T17:57:13Z, source
+`7c3950618cf2b3eb43cd0177fdb57a5111218039`, with all 97 completed call controls
+and the unchanged 54th-place score. This goal turn produced controlled negative
+results and a refined modelling explanation, not a new complete-byte milestone.
+The ten long PAQ jobs still run. At the final local check, v216 Mozilla encoding
+was 46.76% and Webster decoding 20.75%; these percentages are process progress,
+not score estimates. Re-check processes before acting on this historical note.
