@@ -1611,3 +1611,44 @@ products for weighted p and division; no floating computation in the codec.
 First verify this proposed table formulation against the screen and a C++/Python
 oracle, then build and physically qualify on the original source with exact
 native-trace equality. This is a design, not implemented code or measured gain.
+
+### Joint pilot completion and continued regional work
+
+Joint pilot71145 is now terminal success. Native/disabled/memory-only/register-
+only/joint frames are40,086/40,086/39,886/39,939/39,742 bytes, all restored.
+Joint saves344 bytes versus native and144 versus memory-only. Individual
+savings200+147 almost combine, but this is one qualified object. Evidence
+`2026-09-28-paq-joint-feedback-pilot.json` is committed.
+
+The twelve-trial joint regional tournament is LIVE in three separate local
+processes, each with a single fixed CPU and four arms4/1/2/3. Root
+`results/leaderboard/paq-joint-feedback-cohorts`; individual manifests and outputs
+are named by cohort seed. Sessions:4274176→37994 onCPU0;
+35383296→10268 onCPU18;47712256→87477 onCPU22. Current manager identities and
+launch details are in `2026-09-28-joint-cohort-launch.json`. No agent delegation.
+Freeze all joint/memory/register builders, helper header, probe, binary and
+parent transform closure. Once complete, aggregate all three complete.json files,
+compare native and memory-only PAQ payload hashes with the earlier cohort
+controls, and retain all physical timings/restoration/source evidence. Raw
+control_matches_reference is false here because disabled mode0 is absent;
+this batch has direct native mode4 controls and the pilot proved mode0 identity.
+Do not mistake the omitted disabled arm for a mismatch.
+
+Fixed-prior regional session12360 continues onCPU20. The first two native/prior
+pairs are73,760→73,452 (308 saved) and99,711→99,401 (310 saved); all restore.
+The third region is still pending. This uses plain inputs, unlike the joint
+section4 inputs, so compare only like-for-like ablations.
+
+Latest Site source cd675416097b854e0746e69e00d09adef57c55b7 published at
+2026-09-28T22:09:12.790544Z, deployment appgdep_6abae579a9048191b62a55c984086379,
+version appgprj_6aba005773a08191ae8a7978a687b3cb~appgver_6e83874ee9b481918df4335724973500.
+It includes the completed344-byte joint pilot, labels the12 regional trials
+pending, and retains the full31,175,135-byte /24th-equivalent score. Cell853 is
+terminal and collected; no pending publication. Source credential expiry22:17:23Z.
+Adaptive log-screen results remain unscored and are not promoted on the Site.
+
+The next code task remains the NEW deterministic native log-prior implementation
+outlined above; it has NOT been built. The existing fixed-prior and joint
+streams must stay decodable with their frozen binaries. Do not overwrite them.
+This turn made verified experimental progress; the complete leaderboard goal
+remains active and unachieved. No GitHub Actions or GitHub source push.
