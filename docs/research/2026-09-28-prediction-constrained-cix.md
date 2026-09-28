@@ -639,3 +639,10 @@ indices would cost 391,675.09 bits, excluding membership flags and exceptions.
 PAQ already absolutizes those call displacements, so any replacement must respect
 its combined contiguous text/init/fini region and include a same-model control.
 Do not infer a gain from candidate membership; no call-target codec exists yet.
+
+The CLI now selects portfolio 11. A separate process given only the selected
+13,049,557-byte Mozilla frame restored 51,220,480 bytes exactly in 2.2696s,
+peak RSS 394,692 KiB. Frame SHA:
+`a1e7d1dbec5159a5e4ad1adeabbe51d85cdc98a9debe00ff95acdc30d842fadc`.
+Proof: `2026-09-28-ecoff-cli-restoration.json`. The isolated source archive from
+earlier still has the older default and must be refreshed before release.
