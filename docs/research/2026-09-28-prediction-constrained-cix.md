@@ -978,3 +978,35 @@ Long references still run; the most recent local checks were v216 Mozilla
 encode; v215 -12L NCI 48.52% decode. These are historical process percentages,
 not completed scores. Ten long PAQ processes plus bounded regional controls
 remain local, on inherited CPUs 16–31. No Actions, workflows or GitHub pushes.
+
+Portfolio 15 now has a fresh source-only release candidate at
+`/tmp/cix-source-portfolio15-20260928.tar.gz` (source 1054b52, 1,007 files,
+2,095,539 bytes, SHA 9ee789e914e72e8f24c6728f89583f72a1ed74a1148e00b934d5b416affb1135).
+Its isolated CLI restores the newest full Mozilla stream in 7.4799s, 495,704 KiB.
+A file-access trace confirms no original repository codec source, corpus, or
+benchmark cache was opened. The compressed input was explicitly supplied; an
+external byte comparison subsequently passed. All staged source hashes remain
+unchanged. This is a fresh Python/source qualification, not a claimed repeated
+native rebuild: 749 dependency files match the previously rebuilt isolated
+source, whose six binary hashes and proof are retained. Evidence:
+`2026-09-28-portfolio15-source-isolation.json`. No public source was published.
+
+The twelve section/function PAQ cohort controls are complete. Hybrid ordinals
+save 88/132/68 bytes against controls; uniform ranks lose 1/27/6 and uniform
+arithmetic loses 4/28/9. All restore. One full hybrid PAQ v215 -8 candidate is
+now running in `ecoff-section-pointers-paq-full8`; the causal-feedback full PAQ
+candidate remains separate and live. Frozen sources stay unchanged.
+The first shared-symbol PAQ cohort is negative (aligned 70,735 vs control 70,212);
+wait for the other representations and regions before concluding or launching
+a full shared-symbol PAQ run.
+
+Possible next modelling refinement (unimplemented): preserve original instruction
+values for PAQ while adding contexts from previously decoded symbol identities.
+A decoder-visible lookup would have to be transmitted and paid, or derived from
+already decoded tables. Inspect PAQ block boundaries and model state first; never
+feed an untransmitted future target or uncounted sidecar into a scored predictor.
+The pinned DECAlphaFilter already byte-swaps memory instructions, so opcode and
+registers precede displacement bits; DECAlphaModel.hpp already has many register/
+displacement maps. A shared-symbol context must demonstrate new predictive value
+against those existing maps, including lookup-delivery costs. No new PAQ fork or
+model change has been made for this idea yet.
