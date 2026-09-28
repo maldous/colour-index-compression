@@ -25,7 +25,7 @@ def test_exact_coordinates_including_negative_zero_and_exceptions(model):
     coords=[(0,0,0),(10000,0,0),(0,6200,0),(-6200,0,0),(0,-6200,0)]
     source=record(coords,[b'C',b'C',b'H',b'H',b'H'],[(0,1),(0,2),(0,3),(0,4)])
     source=source.replace(b'    0.0000',b'   -0.0000',1)*70+b'partial record\n'
-    for rep in (0,1):
+    for rep in (0,1,2,3):
         frame,stats=codec.encode(source,model,rep)
         assert codec.decode(frame)==source
         assert stats['parsed_records']==70
@@ -33,6 +33,7 @@ def test_exact_coordinates_including_negative_zero_and_exceptions(model):
             assert stats['predicted_atoms']==210
             assert stats['within_two_units']==210
             assert stats['candidate_order_combinatorial_bits']<stats['candidate_independent_bits']
+            if rep==2:assert abs(stats['choice_arithmetic_prediction_bits']-stats['candidate_order_combinatorial_bits'])<1e-8
         with pytest.raises((ValueError,IndexError)):codec.decode(frame+b'X')
 
 
@@ -42,4 +43,4 @@ def test_arbitrary_layouts_remain_lossless():
         coords=[tuple(rng.randrange(-100000,100000) for _ in range(3)) for _ in range(5)]
         source+=record(coords,[b'C',b'C',b'H',b'H',b'H'],[(0,1),(0,2),(0,3),(0,4)])
     for model in (1,2):
-        for rep in (0,1):assert codec.decode(codec.encode(source,model,rep)[0])==source
+        for rep in (0,1,2,3):assert codec.decode(codec.encode(source,model,rep)[0])==source

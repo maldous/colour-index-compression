@@ -59,9 +59,10 @@ def worker(spec):
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',required=True);p.add_argument('--bytes',type=int,default=65536)
     p.add_argument('--offsets',nargs='+',type=int,default=[0,16776722,33487909]);p.add_argument('--jobs',type=int,default=4)
-    p.add_argument('--models',nargs='+',type=int,default=[0,1,2]);p.add_argument('--options',default='-4');args=p.parse_args()
+    p.add_argument('--models',nargs='+',type=int,default=[0,1,2]);p.add_argument('--representations',nargs='+',type=int,default=[0,1])
+    p.add_argument('--options',default='-4');args=p.parse_args()
     root=Path(args.output).resolve();root.mkdir(parents=True,exist_ok=True)
-    specs=[(offset,args.bytes,m,r,args.options,str(root)) for offset in args.offsets for m in args.models for r in ([0,1] if m==2 else [0])]
+    specs=[(offset,args.bytes,m,r,args.options,str(root)) for offset in args.offsets for m in args.models for r in (args.representations if m==2 else [0])]
     with concurrent.futures.ProcessPoolExecutor(args.jobs,max_tasks_per_child=1) as pool:rows=list(pool.map(worker,specs))
     (root/'complete.json').write_text(json.dumps(dict(complete=True,rows=rows),indent=2)+'\n')
 

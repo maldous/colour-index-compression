@@ -7,7 +7,7 @@ residuals retain arbitrary layouts, unusual structures and rounding. PAQ-text
 choice digits and CIX mixed-radix ranks receive identical candidate sets.
 """
 from math import isqrt,log2
-from cix.multinomial import vencode,vdecode
+from cix.multinomial import vencode,vdecode,_ArithmeticEncoder,_ArithmeticDecoder
 from benchmarks.sdf_geometry import SEP,fixed,layout
 
 MAGIC=b'SDFH\x01'
@@ -97,8 +97,9 @@ def candidates(i,coordinates,parents,adj,types,slots,model,radius):
 
 
 def encode(data,model=2,representation=1,radius=6200):
-    if model not in (0,1,2) or representation not in (0,1) or not 1<=radius<=1000000:raise ValueError('invalid hydrogen mode')
+    if model not in (0,1,2) or representation not in (0,1,2,3) or not 1<=radius<=1000000:raise ValueError('invalid hydrogen mode')
     records=data.split(SEP);skeleton=[];flags=bytearray((len(records)+7)//8);vectors=[];digits=[]
+    arithmetic=_ArithmeticEncoder();frequencies={};arithmetic_uncertainty=0.0
     rank=0;product=1;parsed=0;predicted=0;close=0;uncertainty=0.0;independent_uncertainty=0.0
     for record_index,record in enumerate(records):
         try:rest,coords,parents,adj,types=parse(record)
@@ -109,6 +110,12 @@ def encode(data,model=2,representation=1,radius=6200):
             chosen=min(range(len(options)),key=lambda k:(sum((actual[j]-options[k][j])**2 for j in range(3)),k))
             if len(options)>1:
                 digits.append(chosen);rank+=chosen*product;product*=len(options);uncertainty+=log2(len(options))
+                if representation>=2:
+                    counts=frequencies.setdefault(len(options),[1]*len(options));lo=sum(counts[:chosen]);total=sum(counts)
+                    arithmetic.encode(lo,lo+counts[chosen],total);arithmetic_uncertainty+=log2(total/counts[chosen])
+                    if representation==3:
+                        counts[chosen]+=1
+                        if sum(counts)>4096:counts[:]=[(c+1)//2 for c in counts]
             if key is not None:
                 predicted+=1;independent_uncertainty+=log2(sum(types[j]==b'H' for j in adj[key]))
             residual=tuple(actual[k]-options[chosen][k] for k in range(3));vectors.append(residual)
@@ -116,26 +123,33 @@ def encode(data,model=2,representation=1,radius=6200):
                 close+=max(map(abs,residual))<=2;slots[key].pop(chosen)
     body=SEP.join(skeleton);out=bytearray(MAGIC+bytes([model,representation])+vencode(radius)+vencode(len(records))+flags+vencode(len(body))+body)
     payload=bytes(48+d for d in digits) if representation==0 else rank.to_bytes(((product-1).bit_length()+7)//8,'little')
+    if representation>=2:
+        packed,bits=arithmetic.finish();payload=vencode(bits)+packed
     out.extend(vencode(len(payload)));out.extend(payload)
     out.extend(b''.join(('%d,%d,%d\n'%v).encode() for v in vectors))
     return bytes(out),dict(records=len(records),parsed_records=parsed,atoms=len(vectors),model=model,
         representation=representation,radius=radius,predicted_atoms=predicted,within_two_units=close,
         candidate_order_choices=len(digits),candidate_order_combinatorial_bits=uncertainty,
         candidate_independent_bits=independent_uncertainty,order_payload_bytes=len(payload),
+        choice_arithmetic_prediction_bits=arithmetic_uncertainty if representation>=2 else None,
         transformed_bytes=len(out),original_bytes=len(data))
 
 
 def decode(blob):
     if blob[:5]!=MAGIC or len(blob)<7:raise ValueError('invalid hydrogen stream')
     model,representation=blob[5:7];radius,pos=vdecode(blob,7)
-    if model not in (0,1,2) or representation not in (0,1) or not 1<=radius<=1000000:raise ValueError('invalid hydrogen mode')
+    if model not in (0,1,2) or representation not in (0,1,2,3) or not 1<=radius<=1000000:raise ValueError('invalid hydrogen mode')
     nr,pos=vdecode(blob,pos);nf=(nr+7)//8;flags=blob[pos:pos+nf];pos+=nf
     if len(flags)!=nf:raise ValueError('truncated record flags')
     size,pos=vdecode(blob,pos);body=blob[pos:pos+size];pos+=size
     if len(body)!=size:raise ValueError('truncated skeleton')
     size,pos=vdecode(blob,pos);choices=blob[pos:pos+size];pos+=size
     if len(choices)!=size:raise ValueError('truncated choices')
-    rank=int.from_bytes(choices,'little') if representation else 0;digit_at=0
+    rank=int.from_bytes(choices,'little') if representation==1 else 0;digit_at=0;frequencies={}
+    if representation>=2:
+        bits,start=vdecode(choices,0)
+        if start+(bits+7)//8!=len(choices):raise ValueError('invalid choice arithmetic framing')
+        arithmetic=_ArithmeticDecoder(choices[start:],bits)
     vectors=[tuple(map(int,line.split(b','))) for line in blob[pos:].splitlines()]
     if any(len(v)!=3 for v in vectors):raise ValueError('invalid residual vector')
     records=body.split(SEP)
@@ -147,11 +161,20 @@ def decode(blob):
         for i in range(n):
             options,key=candidates(i,coords,parents,adj,types,slots,model,radius);chosen=0
             if len(options)>1:
-                if representation:chosen=rank%len(options);rank//=len(options)
-                else:
+                if representation==1:chosen=rank%len(options);rank//=len(options)
+                elif representation==0:
                     if digit_at>=len(choices):raise ValueError('missing candidate index')
                     chosen=choices[digit_at]-48;digit_at+=1
                     if not 0<=chosen<len(options):raise ValueError('candidate index outside restricted alphabet')
+                else:
+                    counts=frequencies.setdefault(len(options),[1]*len(options));total=sum(counts);target=arithmetic.target(total);lo=0
+                    for chosen,count in enumerate(counts):
+                        if target<lo+count:arithmetic.update(lo,lo+count,total);break
+                        lo+=count
+                    else:raise ValueError('choice arithmetic symbol invalid')
+                    if representation==3:
+                        counts[chosen]+=1
+                        if sum(counts)>4096:counts[:]=[(c+1)//2 for c in counts]
             if vector_at>=len(vectors):raise ValueError('missing coordinate residual')
             coordinate=tuple(options[chosen][k]+vectors[vector_at][k] for k in range(3));coords.append(coordinate);vector_at+=1
             if key is not None:slots[key].pop(chosen)
