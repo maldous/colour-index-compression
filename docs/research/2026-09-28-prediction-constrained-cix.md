@@ -95,3 +95,37 @@ new PAQ/CIX residual architecture. The stronger 3,547,548-byte oriented X-ray
 experiment remains outside that complete portfolio. Full PAQ v215 -12L and v216
 -8 reference cohorts are still running; inspect processes, not these notes, to
 establish current state.
+
+## Predicted composition and structural match tests
+
+The H3 codec predicts 16/64/256-event block compositions from a confidence prior,
+past counts, or previous composition, then bit-packs exact arrangement ranks.
+All 36 physical 64 KiB trials independently restore. Best sizes for xml, nci,
+mozilla and mr are 2309, 2077, 8131 and 10888 bytes, still above original PAQ.
+Metadata prediction alone did not overcome the lost probability detail.
+
+The CIXW1 bridge uses PAQ's actual match candidate and strength. A token identifies
+the first differing bit, or an exact byte match. This forces the matching prefix
+and first differing bit; the remaining suffix retains the original PAQ arithmetic
+probabilities. Four strength-conditioned token streams compare multinomial ranks,
+same-count arithmetic, and an adaptive 9-symbol arithmetic control. Every ordinary
+instrumented archive matches the reference, and the filtered probability/outcome
+trace is byte-identical to the original trace. All 12 candidates restore without
+the original source or probability trace. Best physical sizes are 3971, 3681,
+10534 and 12704 bytes: another negative result. Removing a large number of very
+cheap decisions is not the same as removing a large coded uncertainty.
+
+Detailed physical evidence, timings, hashes and source provenance for these 48
+trials is preserved in `2026-09-28-paq-cix-structural-trials.json`.
+An unscored selective-bin diagnostic also found no individual confidence bin whose
+rank plus count metadata beat its original PAQ cross-entropy on these prefixes.
+Do not spend further full-corpus computation on this fixed-bin construction.
+
+Refine the hypothesis toward information not already present in the PAQ state:
+structural relations, known field counts, geometry, and cross-record constraints.
+The NCI prefix has directly identifiable coordinate and bond fields; its raw
+source is present unchanged after nine coded header bytes. This permits exact
+source-field attribution of PAQ loss and controlled reversible structural trials.
+Use ordinary PAQ on the same transformed representation as the control, and retain
+the original PAQ stream if both structural candidates lose. The user has renewed
+the instruction to continue autonomously until a verified first-place total.
