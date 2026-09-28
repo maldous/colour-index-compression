@@ -1010,3 +1010,12 @@ registers precede displacement bits; DECAlphaModel.hpp already has many register
 displacement maps. A shared-symbol context must demonstrate new predictive value
 against those existing maps, including lookup-delivery costs. No new PAQ fork or
 model change has been made for this idea yet.
+
+Portfolio 15 Site publication succeeded 2026-09-28T19:03:56Z, source
+`dcb6344731190f00d4884f9d49c51f1854fbbec0`, deployment
+`appgdep_6ababa0bff8c81918df165b8c90db77b`. The published page shows 36,690,274
+bytes / 54th and the four full symbol-load controls, qualified PAQ loss diagnostic,
+and nine Webster negatives. New section-pointer PAQ controls and isolated-source
+proof are saved locally for the next material Site update. The active goal remains
+unachieved, unpaused and unblocked; this turn made measurable progress. The next
+turn must re-check live reference and full-candidate jobs before starting new ones.
