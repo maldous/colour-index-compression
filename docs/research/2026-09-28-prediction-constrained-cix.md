@@ -1181,3 +1181,39 @@ is claimed. The completed Webster decoder freed performance core10, which now
 runs the existing name-offset full experiment. The v216 manager is constrained
 to core8 for its remaining Mozilla run and subsequent decoder. Other long jobs
 remain live, never restarted. First place remains unachieved and research active.
+
+Portfolio 18 source isolation passed: bundle source
+1ee42a6c902c1d4afcd1ff8809491188e866a7eb, 1,032 files, 2,116,608 bytes,
+SHA 536c12949e12113d364b206440e9d0b07b0ceabe77c51df2e8462a21225d3678.
+The isolated CLI restores the 12,733,922-byte Mozilla frame in 7.5747s,
+594,852 KiB, with no original source/corpus/cache access in the file trace.
+All staged sources remain unchanged. The six native binaries are reused from
+the proven isolated rebuild after 718 relevant native/dependency source files
+match; this is not another claimed native rebuild. Evidence is in
+`2026-09-28-portfolio18-source-isolation.json`.
+
+The Site published portfolio 18 successfully at 2026-09-28T20:02:24.726855Z,
+source 66a80ac628b048079cd1ba43de3ad1af06ea4c22, deployment
+appgdep_6abac7c0f6808191826b51c8898040df, version
+appgprj_6aba005773a08191ae8a7978a687b3cb~appgver_1ef0d4427ac88191948771c6533b58bc.
+It shows 32,659,222 / 25th, all completed Markov and symbol controls, and source
+isolation. Browser handoff is skipped for this autonomous/background goal.
+
+A further causal procedure predictor uses the previous decoded unwind descriptor
+to predict the next address difference from past lengths. Last-value, running-mean
+and preceding-length controls all preserve modulo wraparound; five invariants
+pass. Twelve regional Brotli trials restore but reject full trials: last-value
+loses 79/226 and saves 103 bytes; mean loses 493/567/768; preceding-length loses
+139, saves 33 and ties. Preserve the negative in
+`2026-09-28-procedure-feedback-brotli-negative.json`. No scored candidate follows.
+The separate procedure rank/PAQ tournament's first region is now complete:
+control/differences/rank/arithmetic = 70,210/70,073/70,222/70,226. Wait for the
+other two regions. Direct GP-feedback level6 has only its first native control
+complete (69,853); do not infer the feedback effect.
+
+At 20:04:16Z the remaining reference processes were live: v216 Mozilla 89.42%
+encode; v215-9L Webster 76.50%, Mozilla 40.08% encode; v215-12L NCI 65.75% decode.
+These percentages are historical observations, never scored results. Available
+memory was about 8 GiB; avoid adding another large full PAQ allocation while
+the 12L decoder grows. Goal active and unachieved; this turn made a material
+verified 4,031,052-byte improvement. Continue from actual process/artifact state.
