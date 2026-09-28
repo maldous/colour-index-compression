@@ -18,12 +18,14 @@ from benchmarks.paq_reference_run import digest
 
 def parse(text):
     rows=[]
-    pattern=r'^\s*(\d+(?:-\d+)*)\s+\|\s*([a-zA-Z0-9 _-]{1,40})\|\s*(\d+) bytes \[(\d+) - (\d+)\]'
+    pattern=r'^\s*(\d+(?:-\d+)*)\s+\|\s*([a-zA-Z0-9 /_-]{1,40})\|\s*(\d+) bytes \[(\d+) - (\d+)\]'
     for m in re.finditer(pattern,text,re.M):
         key,kind,size,first,last=m.groups()
         if int(last)-int(first)+1!=int(size): raise ValueError('invalid block extent')
         rows.append(dict(key=key,kind=kind.strip(),declared_bytes=int(size),first=int(first),last=int(last)))
-    if not rows or len({r['key'] for r in rows})!=len(rows):raise ValueError('missing or duplicate segmentation records')
+    declared_lines=re.findall(r'^\s*\d+(?:-\d+)*\s+\|',text,re.M)
+    if not rows or len(declared_lines)!=len(rows) or len({r['key'] for r in rows})!=len(rows):
+        raise ValueError('missing, unrecognized or duplicate segmentation records')
     parents={r['key'].rsplit('-',1)[0] for r in rows if '-' in r['key']}
     counts=Counter();lengths=Counter()
     for row in rows:
