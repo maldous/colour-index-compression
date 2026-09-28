@@ -873,3 +873,20 @@ feedback controls (modes 0/2/3/5) run with three workers in
 `ecoff-pointer-deltas-paq-cohorts`, alongside the two-worker nine-trial relocated
 pointer cohort. No whole-file PAQ pointer-feedback run has started yet. Inspect
 all three cohort outcomes before selecting a whole-file PAQ candidate.
+
+Site publication of portfolio 13 succeeded at 2026-09-28T18:23:18Z, source
+`393b88bcfd2c2055ee677b181ca30dec3780ec75`. It includes the new complete total,
+all thirteen full pointer/feedback controls, and the completed heavy-atom negative.
+No GitHub Actions or GitHub source push was used. Research source remains local;
+public source eligibility is still outstanding.
+
+At this turn's last PAQ cohort observation, relocated-pointer first fixture
+control/in-place/adaptive = 70,358/70,355/70,286 bytes; second fixture
+96,450/96,474/96,358. Feedback first fixture control/context-in-place/declared-only
+= 70,357/70,298/70,410; variable-length feedback and later fixtures remain pending.
+Sessions 32381 (two workers) and 11600 (three workers) are live; re-check actual
+processes next turn. Full reference v216 Mozilla encoding was 54.74%, Webster
+decoding 37.94%, and v215 -12L NCI decoding 40.59%, all historical progress only.
+The inherited compute affinity remains CPUs 16–31; no affinity change was made.
+This goal turn made a complete verified 167,494-byte improvement, but first place
+remains unachieved and the goal stays active.
