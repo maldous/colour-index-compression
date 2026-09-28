@@ -890,3 +890,43 @@ decoding 37.94%, and v215 -12L NCI decoding 40.59%, all historical progress only
 The inherited compute affinity remains CPUs 16–31; no affinity change was made.
 This goal turn made a complete verified 167,494-byte improvement, but first place
 remains unachieved and the goal stays active.
+
+## Section/function pointer milestone: 36,744,807 bytes
+
+Seven new full Brotli controls all restore. Framed causal-parent control 12,881,996;
+local function ordinals 12,857,734; code-section intervals 12,880,707; all section
+intervals 12,881,108; hybrid function/section ordinals **12,856,578**; identical
+function-alphabet uniform ranks 12,928,583; uniform arithmetic 12,928,247 bytes.
+The hybrid saves **25,485 bytes** against the previous selected member. Ranks
+remain worse than predictive residuals. Raw ranks use 109,847 choice bytes;
+identical-alphabet arithmetic uses 109,810. Both have the same 75,574 hits and
+transmitted function alphabets. All seven candidates were recomputed and decoded
+again during portfolio 14 qualification. Complete score **36,744,807**, still
+**54th equivalent**, gap **8,919,296**. A fresh live leaderboard fetch is unchanged.
+Evidence: `2026-09-28-section-pointer-full.json` and
+`2026-09-28-competitive-section-pointer-milestone.json`. Standalone CLI restoration
+was 5.8359s, 445,000 KiB peak; independent byte comparison passed. CLI now selects
+portfolio 14, and the prospective large-PAQ extension is unscored portfolio 15.
+
+All nine relocated-pointer PAQ cohort trials also finished. Shared adaptive modes
+save 72/92/71 bytes against controls. All twelve causal-feedback PAQ cohorts
+finished: context in-place saves 59/151/167; context varints save 66/178/161.
+Declared-only loses 53/36 on the first two and saves only 28 on the last. The
+varint feedback model has the best aggregate selected-fixture gain; one full
+Mozilla PAQ v215 -8 trial is now running in `ecoff-pointer-feedback-paq-full8`.
+Twelve section-pointer PAQ trials compare control, hybrid, ranks and arithmetic
+on the same three fixtures in `ecoff-section-pointers-paq-cohorts`. Regional
+results are diagnostic, never projected into the leaderboard total.
+
+The next instruction experiment uses dynamic GOT mappings and header GP values
+as a reversible coordinate system for LDQ instructions based on register 29.
+It normalizes reachable unambiguous symbol references to identities derived from
+transmitted symbol names. All unknown/ambiguous displacements remain literal;
+flags make decoding exact even if an instruction has a different runtime GP.
+HP's Tru64 specification (2002), 2.2.2 and 14, supplies the header/table layouts.
+A full diagnostic finds 393,897 eligible loads, 364,075 naming known GOT symbols.
+The 369 recognized LDGP prologues all reconstruct the header GP, but no prologue
+transform is claimed or implemented. This is an input-derived model, not an
+external symbol dictionary. `ecoff_symbol_loads.py` compares local lexical IDs,
+global symbol-frequency IDs (aligned and dense), global lexical IDs, and a
+framed parent control. Eight invariants pass; full structural gates follow.
