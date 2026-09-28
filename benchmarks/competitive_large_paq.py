@@ -12,7 +12,7 @@ from benchmarks.competitive_codec import encode_paq
 
 NAME = 'CIX competitive complete-size PAQ/structural portfolio 19'
 SOURCES = [__file__]
-MIN_BYTES = parent.MAX_BYTES
+MIN_BYTES = 48 << 20
 
 
 def eligible(data):
