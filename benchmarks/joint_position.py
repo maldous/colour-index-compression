@@ -6,7 +6,9 @@ from pathlib import Path
 from benchmarks.leaderboard_position import position
 
 
-def report(published_path, results_path, corpus_path):
+def report(published_path, results_path, corpus_path, *, extension=".cixt"):
+    if extension not in (".cixt", ".cixr"):
+        raise ValueError("unsupported physical frame extension")
     published = json.loads(Path(published_path).read_text())
     expected = published['verified_corpus']
     if len(expected) != 12 or len({r['name'] for r in expected}) != 12:
@@ -25,7 +27,7 @@ def report(published_path, results_path, corpus_path):
                 or row['original'] != len(data) or not row.get('round_trip')
                 or row['file'] != name or row['corpus'] != 'silesia'):
             raise ValueError('input or verification mismatch: ' + name)
-        blob = Path(results_path) / ('silesia-' + name + '.cixt')
+        blob = Path(results_path) / ('silesia-' + name + extension)
         if not blob.exists() or blob.stat().st_size != row['size']:
             raise ValueError('missing or mismatched physical frame: ' + name)
         if hashlib.sha256(blob.read_bytes()).hexdigest() != row['frame_sha256']:
@@ -50,8 +52,9 @@ def main():
     parser.add_argument('--results', default='results/leaderboard/joint-silesia')
     parser.add_argument('--corpus', default='benchmark-work/silesia')
     parser.add_argument('--output', default='results/leaderboard/joint-position.json')
+    parser.add_argument('--extension', choices=('.cixt', '.cixr'), default='.cixt')
     args = parser.parse_args()
-    result = report(args.published, args.results, args.corpus)
+    result = report(args.published, args.results, args.corpus, extension=args.extension)
     Path(args.output).write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps({k:v for k,v in result.items() if k not in ('members', 'policy')}, indent=2))
 
