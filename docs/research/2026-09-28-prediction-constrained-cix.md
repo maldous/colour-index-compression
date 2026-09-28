@@ -2002,3 +2002,53 @@ Do not project6,477,226-byte unfinished archive into rank. All originalfulljobs
 continue. Once verifiedresult exists, qualifyportfolio20,refreshliveleader,
 updateCLI/reproduction/sourcepackage AND newfamilytable plusSite; no source
 workflow/GitHubActions. Overall objective is stillfirstverifiedtotal belowliveleader.
+
+
+## Continuation 23:51Z — discounted regional completion and comparison speeds
+
+Progress: all three new discounted-joint regional streams restore independently.
+Physical sizes 69,154 / 95,137 / 96,388 bytes; improvements 97 / 77 / 127 over
+persistent adaptive joint, 1,053 / 1,008 / 1,358 against matched native controls.
+Collector `paq_joint_discount_collect.py` and compact proof
+`2026-09-28-paq-joint-discount-cohorts.json` committed in befb436. These selected,
+overlapping constructed regions are exploratory, not a new full-corpus score.
+
+Launched ONE complete Mozilla discounted-joint mode2/native-8 candidate at
+23:37:27Z, `paq_joint_discount_full.py`, session39592, manager3550731,
+native3551095 CPU0. Root `results/leaderboard/paq-joint-discount-full8`;
+status encode. Full source/transform/fork/decode closure FROZEN. No score or
+rank until the permanent frame independently decodes and all bytes compare.
+This run compares a strengthened predictor while retaining arithmetic coding;
+it does not establish a same-information intrinsic advantage for ranks.
+
+Added prospective `qualified_structural_paq.py`, `competitive_native_fields.py`
+and `competitive_native_got.py`. Parent remains profile19. They accept only
+complete full-frame proofs with current source/backend/input/frame identities,
+recompute and invert the structural stage, and honestly reuse the original
+exact independent full native decode; they never claim a fresh multi-hour
+decode. New tests reject partial proofs and changed input/mode/backend/source/
+frame, and independently restore both a real regional field stream and a
+fresh small native GOT stream. Eight tests passed in36.83s onCPU24.
+No profile promoted; no live/scored codec or dependency was modified.
+
+The reference speed batch91814 TERMINAL, all five algorithms completed.
+Brotli1.2.0q11lgwin24:49,564,563 physical bytes (23.386286% of canonical211,938,580),
+compression0.325814636MB/s, decompression160.649716MB/s. All12 stored archives
+decoded three times byte-exactly. This beats publishedBrotli50,297,179bytes,
+so it now supplies both ratio and matching speeds in the Site comparison.
+All measurements taken concurrently with research work, not quiet-machine
+speed rankings. Existing same-result timing discipline preserved: published
+plzip48,335,267 still beats localXZ48,456,004, so noXZ speed is assigned toplzip.
+Final comparison evidence now `2026-09-28-silesia-algorithm-comparison.json`.
+CIX remains31,175,135bytes,14.709514%,24th/322,3,349,624aboveleader. No uncached
+end-to-end CIXencode timing exists; historicaldecode≈0.008691689MB/s explicitly
+mixedCPU/load. Table has9selectedfamilies and4requestedcolumns. Latest new
+regional evidence also added behind research-history. Sitepublication pending.
+
+Critical full jobs revalidated23:43Z: nativev216decode3202350CPU8; fieldsdecode
+3317410CPU10; GOTdecode3517578 onEcores; otherfullstructuraldecoders3289734CPU4,
+3292069CPU2; priority9Lencoder2571939CPU12 andWebsterdecoder3351985CPU14;
+12LWebsterencoder3416451CPU6; pointer/sectionencoders3007311/3049296 onEcores.
+Memory8.6GiBavailable, noadditional large native concurrency launched.
+First qualified full candidate may be integrated immediately; do not wait for
+all full trials and do not count incomplete physical archives.
