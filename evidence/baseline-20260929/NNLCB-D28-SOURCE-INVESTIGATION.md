@@ -1,6 +1,6 @@
 # D28 ERR7091247 source investigation
 
-Updated 29 September 2026, 10:29 UTC. This is source-identification work, not a
+Updated 29 September 2026, 10:41 UTC. This is source-identification work, not a
 new compressor configuration or a completed baseline measurement.
 
 The NNLCB website names accession ERR7091247 in FASTQ form and gives
@@ -41,11 +41,15 @@ D28 therefore remains **NOT EXACTLY REPRODUCED** in the qualification matrix.
 It does not enter the frozen baseline's NNLCB aggregates or silently replace
 another representation. The original frozen schedule remains unchanged.
 
-The next finite diagnostic compares the candidate's gzip -9 size with the
-published D28 GZip row, after full SHA-256 reconstruction. It is recorded only
-as corroborating/contradictory source evidence. A rounded compressed-size match
-would still not be a cryptographic proof of original-input identity. This
-diagnostic is excluded from the controlled baseline timing tables.
+The finite gzip -9 diagnostic completed with full SHA-256 reconstruction:
+388,943,566 bytes, or 370.925489 MiB. NNLCB reports 370.926 "MegaBytes"
+(numerically binary MiB). The difference from that rounded display is 535.376
+bytes, within one display unit; gzip filename/header choices also affect its
+length. This strongly corroborates the candidate, but does not supply a
+cryptographic proof of historical input identity. It remains excluded from the
+controlled baseline timing tables and from exact-qualified NNLCB aggregates.
+The diagnostic archive was removed after its SHA-256 and restoration were
+recorded; the pinned source, output hash and reproduction command remain.
 
 Evidence:
 
@@ -57,6 +61,8 @@ Evidence:
 - `raw/D28-normalized-{stdout,stderr}.log`: complete preparation output.
 - `supplemental/prepare_sra_candidate.py`: preparation implementation.
 - `supplemental/check_sra_gzip_fingerprint.py`: bounded follow-up diagnostic.
+- `raw/D28-normalized-gzip-fingerprint.json`: completed diagnostic and the
+  unchanged published comparator row.
 
 Both source preparation and diagnostic execution acquire the shared compute
 lock; they cannot overlap a timed benchmark or heavy research experiment.
