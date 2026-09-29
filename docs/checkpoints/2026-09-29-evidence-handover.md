@@ -55,3 +55,14 @@ identity.  Do not clean broadly under `/tmp`, corpus sources, reference source,
 the active evidence worktree, or a running/queued job directory.  Coordinate
 hashing and deletion through the shared measurement lock so controlled evidence
 timing never overlaps the I/O.
+
+## Separate Hutter Prize eligibility track
+
+The user requested a parallel qualification track for the Hutter Prize. It is
+kept separate from the frozen external-evidence configuration and must not tune
+or mutate that baseline. The controlled local preflight is
+`benchmarks/hutter_eligibility.py`; its policy and known gaps are in
+`docs/research/2026-09-29-hutter-prize-eligibility.md`. No full enwik9 CIX
+submission measurement, self-contained submission package, public source
+release, or license evidence exists at this checkpoint. The preflight is
+fail-closed and a local pass never means Prize approval.

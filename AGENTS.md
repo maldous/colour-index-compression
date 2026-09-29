@@ -50,5 +50,13 @@ over marginal tuning, while preserving every completed qualified improvement.
   streams and a total strictly below the live leader. Refresh the leaderboard
   before claiming success. An equivalent numerical position is not an official
   listing. Published eligibility requires freely downloadable public source.
+- Hutter Prize work is a separate, enwik9-specific eligibility track; it does
+  not change the frozen evidence configuration or imply general-purpose merit.
+  Follow `docs/research/2026-09-29-hutter-prize-eligibility.md`. A local gate
+  must verify canonical 1,000,000,000-byte enwik9, the exact package formula,
+  one-core/no-GPU whole-process resource evidence, and offline source/licensing
+  evidence. A passing local gate is only a candidate: official approval belongs
+  to the Prize reviewers. Do not create a license declaration on behalf of an
+  upstream author or claim eligibility without the required public package.
 - Consult `docs/research/` and current process/artifact state; stale logs or a prior
   session summary do not establish a process is still running.
