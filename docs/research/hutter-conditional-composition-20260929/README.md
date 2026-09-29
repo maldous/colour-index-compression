@@ -35,11 +35,20 @@ The complete experimental archive contains magic/version, bin count, block
 size, original byte count, 32-byte vocabulary bitmap, and length-delimited
 blocks.  Each block contains its mode, bit count, payload length and, for
 composition mode, bin count plus every `(visits, ones)` pair as canonical
-varints.  Decoder checks reject malformed varints, impossible counts, a
+varints, and a CRC32 error check.  Its version-2 bin partition is a fixed,
+symmetric log-odds-like table, with finer bins near probability zero and one;
+it is not a uniform probability partition. Decoder checks reject malformed varints, impossible counts, a
 predictor/bin trajectory not matching transmitted visits, truncated payloads,
 trailing bytes, and output-length contradictions.  The selection compares the
 complete framed range and composition byte sequences for that block, including
 all metadata.  Ties retain range.
+
+One compression invocation writes three complete physical archives from the
+same single predictor trace: the selected portfolio archive, an all-range
+control, and an all-composition control. All have the same archive header and
+per-frame length delimiters; all must be independently decoded and hashed. The
+controls are therefore not estimates formed by adding or omitting frame
+overhead.
 
 ## Interpretation guardrail
 
@@ -66,6 +75,7 @@ KiB.  Each setting needs:
 * range-only, composition-only, and selected physical byte counts;
 * per-mode selected block counts, exact command, source revision, compiler,
   peak memory and elapsed time;
+* independent restore hashes for the selected, all-range, and all-composition archives;
 * proof that both contenders consumed exactly the same p1/bit trace during
   their encode-side comparison.
 
@@ -79,8 +89,10 @@ explicitly not bit-identical to the winner's clang-17 PGO/LTO/UPX executable.
 
 Encoder trace storage is O(block bits): about 256 KiB at a 64 KiB-byte block
 using the current compact trace fields.  Composition state is O(bin count).
-The predictor remains the dominant time and memory cost.  The decoder needs no
-trace.  This makes a bounded experiment practical under the Prize memory rule,
+The predictor remains the dominant time and memory cost. The decoder needs no
+trace, although the initial proof implementation uses `std::function` callbacks
+once per decoded bit and is therefore expected to add measurable runtime
+overhead until a retained coding gain justifies an inlined integration. This makes a bounded experiment practical under the Prize memory rule,
 but it does not make an improvement likely: calibrated PAQ probabilities carry
 more positional information than coarse bins, and count-vector metadata is
 usually costly on natural language.  The design is retained because it is an
