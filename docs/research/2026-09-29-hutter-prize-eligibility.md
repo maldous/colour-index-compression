@@ -35,6 +35,27 @@ Run the audit only against a real prepared candidate manifest:
   --output results/hutter/eligibility-report.json --strict
 ```
 
+## Offline draft profile
+
+`benchmarks/hutter_submission_profile.py` builds an exact-file-inventory draft
+bundle for `cix-stdlib-text-v1-draft`. It contains the CIX Python package plus
+`benchmarks/hutter_cix.py`, uses only Python's standard library, and encodes with
+`-9 --no-bwt` so an optional suffix-array package is not an implicit dependency.
+The draft can be reproduced with:
+
+```sh
+.venv/bin/python -m benchmarks.hutter_submission_profile \
+  --output results/hutter/cix-stdlib-text-v1-draft.zip \
+  --manifest results/hutter/cix-stdlib-text-v1-draft.json
+```
+
+It reports every packaged path, byte count and SHA-256 and marks itself
+`DRAFT_NOT_ELIGIBLE_NO_PROJECT_LICENSE_OR_PUBLIC_RELEASE`. This is an inventory
+and isolation starting point, not a counted submission or a claim that this
+profile reaches the target. The existing broad competitive CLI closure is not a
+minimal text-path dependency certificate; its 105-module inventory and optional
+dependency roots remain preserved in the Hutter evidence directory.
+
 The gate hashes the input by default and fails if that check is skipped. It also
 requires the actual restored billion-byte artifact, hash-pinned completed encode
 and decode receipts bound to the exact programs and archive, measured whole-run
