@@ -7,18 +7,20 @@ not a restriction on architecture. Only local computation; no GitHub Actions.
 
 Historical baseline at this frontier launch: portfolio19, 31,175,135 physical bytes.
 
-Update29September: portfolio20 is now26,402,526 bytes, first equivalent numerical
-position, with all12 independent full-restoration proofs. Mozilla PAQv216-8
-completed at00:16Z and replaced the old11,249,835-byte stream with6,477,226.
-The original gap analysis below is historical. Public-source publication and
-official listing remain pending; a concrete source package and submission draft
-are prepared, and an explicit publication/contact question is pending. Research
-runs already in progress remain active; no archive without completed restoration
-is scored. See2026-09-29-portfolio20-contributions.md for the completion audit.
-The live leaderboard was read again at 23:49Z on September28; the leader remains
-27,825,511 bytes. Mozilla contributes a 5,155,241-byte deficit versus the leader's
-author-reported member value. Existing completed advantages on SAO, NCI, OSDB
-and MRI partly offset that deficit. No pending archive contributes to the score.
+Update 29 September, 02:40 UTC: portfolio 22 is 25,846,533 bytes, first
+numerically equivalent position. All twelve physical frames have complete
+independent restoration evidence. Mozilla field prediction contributes 5,956,286;
+SAO bounded-grid PAQ contributes 2,124,696. The live published leader is still
+27,825,511; the current lead is 1,978,978 bytes (7.1121%). The user has explicitly
+renewed research for a greater lead. Further local computation is authorized
+independently of the unanswered source-publication/contact decision. No new
+public release, official listing or maintainer contact has occurred.
+
+The previously prepared portfolio 20 and 21 source archives remain frozen and
+available locally. New profiles must preserve the actual qualified parent.
+Existing long-running native PAQ and structural trials remain live. No unfinished
+archive contributes a projected score. The corpus-wide grid-feedback comparison
+and conditional-correction experiments continue under measured CPU/RAM capacity.
 
 ## Opportunity map and first discriminating tests
 

@@ -1,7 +1,7 @@
 # Experimental competitive portfolio reproduction
 
 The current standalone entry point is `benchmarks.competitive_cli`. It uses the
-portfolio-21 encoder from source bytes. It does not look up corpus hashes, fetch
+portfolio-22 encoder from source bytes. It does not look up corpus hashes, fetch
 saved streams, read original data during decoding, or call GitHub/CI/network
 services. Format detection and the bounded PAQ compute policy are part of the
 encoder. The physical frame identifies the corresponding standalone decoder.
@@ -56,9 +56,9 @@ release. A release must include the relevant Python/C++ sources, dependency
 provenance, build instructions, upstream notices and a fresh rebuild check.
 The numerical Silesia position is not an official listing.
 
-Portfolio 21 has a complete locally verified Silesia total of 25,881,586 bytes.
-The newly completed Mozilla field-prediction stream contributes 5,956,286 bytes; the eleven
-unchanged streams retain their independently verified physical artifacts.
+Portfolio 22 has a complete locally verified Silesia total of 25,846,533 bytes.
+The new bounded-grid PAQ stream contributes 2,124,696 SAO bytes. Mozilla retains
+the 5,956,286-byte field-prediction stream; other physical streams are unchanged.
 The live published leader was rechecked on 2026-09-29 at 27,825,511 bytes.
-This establishes first equivalent numerical position, 1,943,925 bytes smaller
+This establishes first equivalent numerical position, 1,978,978 bytes smaller
 than that leader. Public-source publication and official listing remain pending.

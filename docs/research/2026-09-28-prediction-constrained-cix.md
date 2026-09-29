@@ -2440,3 +2440,41 @@ GOT, pointer, section or stronger PAQ result has completed at this checkpoint;
 no projected savings. Research remains authorized and active independently of
 pending source-publication/contact approval. No Actions, public source push,
 email or source-repository visibility change occurred.
+
+
+## 2026-09-29 02:40 UTC: portfolio22 widens verified lead
+
+User renewed research for a greater lead. Read controlling attachment and current
+process/artifact reality. Full bounded-grid PAQ8 SAO completed02:25:21Z:
+2,124,696 bytes; all7,251,944 original bytes restored. Encode732.706s,
+decode725.022s; child peak2,489,600KiB. New qualified_grid_paq validates every
+recorded source/backend, header length/mode/version/CRC, original and restored
+hash, exact complete frame and current structural recomputation/inversion.
+competitive_grid_paq_v22 extends actual21 and passed18 guard/selection tests.
+Complete qualification session72209terminal:25,846,533 bytes, first equivalent,
+35,053 saved;1,978,978 (7.1121%) below live27,825,511 leader. New full page fetch
+matched prior SHA. Default CLI is22; unchanged eleven frames retain independent
+exact full-decoding proofs. No multi-minute full decode was repeated needlessly.
+
+New five-way whole-SAO correction-predictor test completed session57526:
+last-coordinate2158855; modal-coordinate2163395; last+coarsefallback2165140;
+modal+coarsefallback2165522; coarsecontextalone2181555. Every frame restores.
+None beats currentPAQ2124696. Retain negative result. The895-ish byte control
+shift versus earlierBrotli arises in a differently serialized header, not a new
+predictor. All dynamic counts depend only on previously decoded corrections.
+One shared model ID is paid; codec's initial docstring incorrectly says per-field.
+
+Next physical hypothesis: split corrections into groups computable from decoded
+coordinate magnitude/sign/lowbits, then compare raw symbols, paid conditional
+multinomial ranks and same-count arithmetic. New grid_conditional_corrections
+frameCIXB20 (not a change to any frozen codec). Sixty substream tests include
+empty/singleton/1025-length/palette>256 fallback cases;12 complete framed
+nonfinite/signed-zero/nongrid/tail cases allrestore. Eight full trials running
+session28373, rootresults/leaderboard/grid-conditional-full-20260929, two workers
+onCPUs20/22. All palette, count, partition and termination costs are paid.
+This is not a score until complete physical restoration and parent integration.
+
+Full feedback-only grid-PAQ8 remains in decode onCPU10, manager3819431,
+worker3866054/native3892460 atinspection. Original structural/GOT/pointer and
+high-effort PAQ runs remain live and frozen. Source publication/contact still
+requires the earlier unanswered decision; this does not block local research.
