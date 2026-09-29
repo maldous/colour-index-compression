@@ -57,6 +57,13 @@ overhead. Encoding and each decode log an FNV-1a-64 digest over the causal
 the controls and restoration consumed identical predictor information; they
 are logs, not decoder input.
 
+The experiment also emits a separate valid continuous-range archive from the
+same trace. It uses one range state for the whole test input, has its own
+declared archive layout and payload CRC, and must independently restore. This
+is the meaningful reference for any later comparison with a block-framed
+portfolio: a framed range result is only an internal control and never a
+Hutter-relevant gain over continuous fx2-style coding.
+
 ## Interpretation guardrail
 
 Given a fixed count vector, the composition payload is simply a range-coded
