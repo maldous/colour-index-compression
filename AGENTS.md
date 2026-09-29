@@ -1,4 +1,41 @@
-# CIX local Silesia research
+# CIX Hutter Prize / enwik9 research
+
+## Controlling directive — supersedes the historical text below
+
+The current user-authorized objective is exclusively the Hutter Prize: build a
+reproducible, self-contained compressor for canonical `enwik9` and surpass the
+official threshold under the Prize rules. The Silesia, NNLCB, Wikipedia and
+broad-evidence instructions below are historical records only. Do not start,
+resume, optimize, or publish them as active work unless the user changes this
+directive.
+
+Read `docs/research/2026-09-29-hutter-prize-eligibility.md` and
+`docs/research/2026-09-29-hutter-current-inventory.md` before work.
+
+- Canonical enwik9 is exactly 1,000,000,000 bytes, SHA-256
+  `159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc`.
+  Never call a prefix, smoke test, enwik8, text8, or Silesia result an enwik9
+  score.
+- The archived official record is 110,793,128 bytes. At least one-percent
+  saving permits an integer submission total of at most 109,685,196 bytes.
+  Account for every program/archive/option byte under the documented rule.
+- Enwik9-specific optimization is allowed. Preserve exact reconstruction,
+  offline operation, one-core/no-GPU execution, the 10,000,000,000-byte RAM
+  and 100,000,000,000-byte temporary-disk limits, and `70,000/T` time rule.
+- A local candidate requires a full canonical encode/decode, SHA-256 proof,
+  immutable receipts bound to program/archive/configuration hashes, actual
+  package accounting, and audited public source/licensing evidence. It never
+  constitutes official Prize approval.
+- The 27-file / 71,104-byte stdlib draft and 2,100-byte smoke restoration are
+  dependency/instrumentation prototypes, not score or submission accounting.
+- The next active work is a strong Hutter-specific profile, then controlled
+  full-enwik9 evidence. Do not run unbounded full encodes while the shared
+  measurement boundary is occupied; use its exclusive lock for heavy work.
+- Run locally only. Never trigger, depend on, or consume GitHub Actions. Do
+  not create or modify workflow files. Preserve external-source licenses and
+  do not invent a project license.
+
+## Historical Silesia directive — superseded
 
 The current user-authorized objective is first place by total physical compressed
 bytes on https://mattmahoney.net/dc/silesia.html under the same effective rules and

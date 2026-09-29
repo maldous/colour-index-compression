@@ -66,3 +66,15 @@ or mutate that baseline. The controlled local preflight is
 submission measurement, self-contained submission package, public source
 release, or license evidence exists at this checkpoint. The preflight is
 fail-closed and a local pass never means Prize approval.
+
+## Superseding user directive — Hutter only
+
+The user has replaced the previous Silesia/discovery and external-baseline
+mission with Hutter Prize/enwik9 work only. Preserve earlier material as
+historical evidence, but do not restart its queues or present it as active
+research. The active sequence is: construct a strong Hutter-specific profile;
+make package, dependency and option accounting reproducible; then run a
+controlled full canonical enwik9 encode/decode with eligibility receipts. The
+frozen evidence worktree remains untouched. The 27-file 71,104-byte stdlib
+draft and its 2,100-byte smoke restore are neither a Hutter score nor a
+submission package.
