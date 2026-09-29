@@ -56,6 +56,14 @@ profile reaches the target. The existing broad competitive CLI closure is not a
 minimal text-path dependency certificate; its 105-module inventory and optional
 dependency roots remain preserved in the Hutter evidence directory.
 
+`benchmarks/hutter_measure.py` is the paired local instrumentation harness. It
+pins a command to one requested CPU, samples its Linux `/proc` process tree for
+combined RSS, samples an otherwise-empty dedicated temporary directory, records
+the exact command/exit state, and hashes supplied input/archive/restored paths.
+It intentionally leaves GPU non-use and Geekbench calibration unset until an
+audited measurement supplies them; an instrumented run cannot become a local
+candidate merely by filling in those fields.
+
 The gate hashes the input by default and fails if that check is skipped. It also
 requires the actual restored billion-byte artifact, hash-pinned completed encode
 and decode receipts bound to the exact programs and archive, measured whole-run
