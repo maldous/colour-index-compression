@@ -37,14 +37,16 @@ def _fixture(tmp_path: Path) -> dict:
     freeze = tmp_path / "freeze.json"
     freeze.write_text(json.dumps({"source_commit": "frozen", "runtime_files": frozen_files}))
     imports = tmp_path / "imports.json"
-    imports.write_text(json.dumps({"research_commit": "closure", "local_python_modules": static_modules}))
+    imports.write_text(json.dumps({"research_commit": "closure", "local_python_modules": static_modules,
+                                   "non_stdlib_import_roots": sorted(package.NON_STDLIB_IMPORT_ROOTS)}))
     vendor = tmp_path / "vendor"
     _write(vendor / "brotli.py", b"# installed Brotli is a module, not a package\n")
-    for package_dir in ("numpy", "imagecodecs"):
+    for package_dir in ("numpy", "imagecodecs", "pydivsufsort", "zstandard"):
         _write(vendor / package_dir / "__init__.py", package_dir.encode())
         _write(vendor / f"{package_dir}-1.0.dist-info/LICENSE", b"license")
     _write(vendor / "_brotli.cpython-test.so", b"extension")
     _write(vendor / "imagecodecs.libs/libexample.so", b"private")
+    _write(vendor / "pydivsufsort.libs/libexample.so", b"private")
     return {"runtime": runtime, "freeze": freeze, "imports": imports, "vendor": vendor,
             "paq": [runtime / "benchmark-work/references/paq8px-v215", runtime / "benchmark-work/references/paq8px-v216"],
             "run": tmp_path / "run", "out": tmp_path / "out"}
@@ -94,6 +96,9 @@ def test_deterministic_bundle_and_exact_split_formula(tmp_path, monkeypatch):
     assert accounting["total_bytes"] == 2 * accounting["program_zip"]["bytes"] + len(b"real-archive") + len(b"encodedecode") + 2
     assert all(not entry["path"].startswith("/") for entry in accounting["program_zip"]["files"])
     assert "cix-p26.sh" in {entry["path"] for entry in accounting["program_zip"]["files"]}
+    paths = {entry["path"] for entry in accounting["program_zip"]["files"]}
+    assert "vendor/site-packages/pydivsufsort.libs/libexample.so" in paths
+    assert "vendor/site-packages/zstandard/__init__.py" in paths
 
 
 def test_changed_or_omitted_closure_or_native_artifact_fails_closed(tmp_path):
@@ -147,6 +152,15 @@ def test_symlink_input_is_rejected(tmp_path):
     target.unlink()
     target.symlink_to(case["runtime"] / "cix/__init__.py")
     with pytest.raises(ValueError, match="regular"):
+        _build(case)
+
+
+def test_unresolved_nonstdlib_import_root_fails_closed(tmp_path):
+    case = _fixture(tmp_path)
+    imports = json.loads(case["imports"].read_text())
+    imports["non_stdlib_import_roots"].append("unreviewed_extension")
+    case["imports"].write_text(json.dumps(imports))
+    with pytest.raises(ValueError, match="unresolved roots"):
         _build(case)
 
 

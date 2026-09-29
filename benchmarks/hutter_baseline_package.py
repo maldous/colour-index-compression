@@ -34,7 +34,8 @@ DEFAULT_NATIVE = (
     ("results/leaderboard/native_mixer_rounding.so", "benchmarks/native_mixer_rounding.cpp"),
     ("results/leaderboard/native_legacy_mixer.so", "benchmarks/native_legacy_mixer.cpp"),
 )
-VENDOR_NAMES = ("brotli", "numpy", "imagecodecs")
+VENDOR_NAMES = ("brotli", "numpy", "imagecodecs", "pydivsufsort", "zstandard")
+NON_STDLIB_IMPORT_ROOTS = frozenset(("_brotli", *VENDOR_NAMES))
 ZIP_TIME = (1980, 1, 1, 0, 0, 0)
 
 
@@ -90,8 +91,18 @@ def _module_paths(runtime: Path, modules: Iterable[str]) -> list[Path]:
     return sorted(files, key=lambda item: item.relative_to(runtime).as_posix())
 
 
-def _vendor_paths(root: Path) -> list[Path]:
+def _vendor_paths(root: Path, import_roots: Iterable[str]) -> list[Path]:
     """Select only the known static-import roots and their metadata/private libs."""
+    observed = frozenset(import_roots)
+    unknown = sorted(observed - NON_STDLIB_IMPORT_ROOTS)
+    missing = sorted(NON_STDLIB_IMPORT_ROOTS - observed)
+    if unknown or missing:
+        detail = []
+        if unknown:
+            detail.append("unresolved roots: " + ", ".join(unknown))
+        if missing:
+            detail.append("frozen inventory omitted required roots: " + ", ".join(missing))
+        raise ValueError("non-stdlib import inventory is not the approved frozen closure (" + "; ".join(detail) + ")")
     if root.is_symlink() or not root.is_dir():
         raise ValueError(f"vendor root is absent or not a real directory: {root}")
     selected: list[Path] = []
@@ -115,7 +126,7 @@ def _vendor_paths(root: Path) -> list[Path]:
             selected.extend(_file_tree(child))
         else:
             raise ValueError(f"vendor selection is not a regular file/directory: {child}")
-    required = {"brotli", "numpy", "imagecodecs"}
+    required = set(VENDOR_NAMES)
     missing = sorted(name for name in required if not ((root / name).is_dir() or (root / f"{name}.py").is_file()))
     if missing:
         raise ValueError(f"vendor root is missing required static dependencies: {', '.join(missing)}")
@@ -218,8 +229,11 @@ def build_bundle(*, runtime: Path, freeze_manifest: Path, static_imports: Path,
     if not isinstance(frozen.get("runtime_files"), dict):
         raise ValueError("freeze manifest has no runtime file hashes")
     modules = closure.get("local_python_modules")
+    import_roots = closure.get("non_stdlib_import_roots")
     if not isinstance(modules, list) or not modules:
         raise ValueError("static import inventory has no local module closure")
+    if not isinstance(import_roots, list) or not all(isinstance(root, str) for root in import_roots):
+        raise ValueError("static import inventory has no non-stdlib import roots")
     entries: dict[str, tuple[Path | None, bytes | None, str]] = {}
     for path in _module_paths(runtime, modules):
         _verify_frozen(path, runtime, frozen)
@@ -229,7 +243,7 @@ def build_bundle(*, runtime: Path, freeze_manifest: Path, static_imports: Path,
             path = runtime / rel
             _verify_frozen(path, runtime, frozen)
             _add_path(entries, rel, path, None, "frozen_native")
-    for root in _vendor_paths(vendor_root):
+    for root in _vendor_paths(vendor_root, import_roots):
         _add_path(entries, "vendor/site-packages/" + root.relative_to(vendor_root).as_posix(), root, None, "vendor_dependency")
     if {root.name for root in paq_roots} != {"paq8px-v215", "paq8px-v216"}:
         raise ValueError("exactly the frozen paq8px-v215 and paq8px-v216 roots are required")

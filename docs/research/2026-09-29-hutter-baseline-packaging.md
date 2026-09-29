@@ -27,6 +27,15 @@ and user site packages. Every runtime file is hash-checked against
 path-escaping inputs fail closed. The ZIP contains no absolute host paths,
 corpus bytes, run receipts, or benchmark artifacts.
 
+The frozen static import inventory currently declares six non-standard roots:
+`_brotli`, `brotli`, `imagecodecs`, `numpy`, `pydivsufsort`, and `zstandard`.
+`pydivsufsort` is reachable from CIX's BWT/longest-previous-factor acceleration
+paths; `zstandard` is reachable in the frozen closure's configured reference
+and portfolio support. The tool includes both packages, their `.dist-info`
+metadata and any package-private `.libs` directories, even where a particular
+enwik9 path may not select them. Any extra, missing, or otherwise unresolved
+non-standard root fails closed instead of silently producing a smaller package.
+
 The baseline's split-form arithmetic is exactly:
 
 ```
@@ -65,3 +74,20 @@ the actual frozen interpreter before running. The tool charges `encode` and
 `decode` even though they are positional operation selectors. It does not claim
 that a Python source ZIP is an accepted Prize program form; interpreter,
 toolchain and formal submission requirements remain unresolved.
+
+After a verified archive and ZIP have been produced, a safe relocated
+import-only preflight may be run after the measurement lock is free. It only
+imports the archived command and prints argparse help; it performs no encode,
+decode, corpus read, or recompression:
+
+```sh
+DEST=$(mktemp -d /tmp/cix-p26-import-preflight.XXXXXX)
+unzip -q /home/user/src/cix-hutter-baseline-20260929/run/cix-p26-program.zip -d "$DEST"
+"$DEST/cix-p26.sh" --help
+```
+
+This confirms the relocated package resolves its preserved relative native/PAQ
+paths using the same CPython ABI used to make the bundle. It cannot establish
+that CPython is bundled, that a compiler/Makefile can reproduce all native
+objects, or that the source form is publicly released and OSI-licensed. Those
+remain explicit qualification gaps.
