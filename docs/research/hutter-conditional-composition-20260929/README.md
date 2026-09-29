@@ -48,7 +48,10 @@ same single predictor trace: the selected portfolio archive, an all-range
 control, and an all-composition control. All have the same archive header and
 per-frame length delimiters; all must be independently decoded and hashed. The
 controls are therefore not estimates formed by adding or omitting frame
-overhead.
+overhead. Encoding and each decode log an FNV-1a-64 digest over the causal
+`(p1, bin, bit)` trace. Matching digests are an additional audit check that
+the controls and restoration consumed identical predictor information; they
+are logs, not decoder input.
 
 ## Interpretation guardrail
 
