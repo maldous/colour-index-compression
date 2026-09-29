@@ -9,7 +9,7 @@ winning Silesia measurement associated with the removed implementation.
 
 ## Scope checked
 
-- All 572 reachable source commits, including every local branch and 35
+- All 572 reachable source commits, including every local branch and 36
   `origin` refs (including the symbolic HEAD). The authenticated read-only fetch
   completed without adding commits. No GitHub Actions or remote writes used.
 - Every historical version of the relevant committed documentation and result

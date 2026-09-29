@@ -2188,3 +2188,13 @@ Webster8,429,248→8,201,364(dictionary335,281). This shows dictionary amortizat
 can reverse the earlier64KiB negative, but both results remain larger than the
 selected PAQ streams. No extra leaderboard saving or PAQ prediction is inferred.
 Its frozen sources are in commitfba951e; results/leaderboard/paid-word-brotli-whole.
+
+Portfolio20 source-only package prepared atresults/releases/cix-source-portfolio20-20260929.tar.gz,
+3,147,164 bytes SHA256d53c5509318620249da31a2cf5299c2b6f5497a7043f7bcc7788021bc35c7637,
+source6e704a3ae38a8438c3db441f3b1e212d8f089464. All1059 native source/provenance files
+match the prior isolated source; all7 qualified rebuilt binaries are unchanged.
+Fresh uncached portfolio20 CLI smoke encoded488→58 bytes and independently
+restored exactly. No corpus/cache is in the isolated source directory or archive.
+This does not repeat the full native Mozilla decode; its full restoration proof
+was reused only after exact identities and inverse-wrapper equivalence.
+Public source was not released and official submission was not sent.
