@@ -1,0 +1,132 @@
+{
+  "dataset_id": "SMOKE",
+  "dataset_name": "Harness validation only",
+  "algorithm": "paq8px",
+  "profile": "high-compression-v1",
+  "repetition": 0,
+  "warmup": false,
+  "smoke_only": true,
+  "cix_commit": null,
+  "started_utc": "2026-09-29T04:51:43.379154+00:00",
+  "input_manifest": {
+    "dataset_id": "SMOKE",
+    "name": "Harness validation only",
+    "path": "/home/user/src/cix-baseline-data/inputs/harness-smoke.bin",
+    "obtained_bytes": 1548,
+    "sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+    "compatibility": "NOT A BENCHMARK"
+  },
+  "status": "FAILED",
+  "original_bytes": 1548,
+  "original_sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+  "compressor_identity": {
+    "algorithm": "paq8px",
+    "path": "/home/user/src/cix-baseline-runtime-20260929/benchmark-work/references/paq8px-v215/build-local/paq8px",
+    "sha256": "b982f1e8307d6c38e8febc6415901fafcc2e84a14d51e0af7c5cbbe6322778e7",
+    "version_output": "paq8px data compressor v215 (c) 2026, Matt Mahoney et al.\npaq8px v215 (c) 2026, Matt Mahoney et al.\nFree under GPL, http://www.gnu.org/licenses/gpl.txt\n\nUsage:\n  to compress       ->   paq8px -LEVEL[FLAGS] [OPTIONS] INPUT [OUTPUT]\n  to decompress     ->   paq8px -d INPUT.paq8px215 [OUTPUT]\n  to test           ->   paq8px -t INPUT.paq8px215 [OUTPUT]\n  to list contents  ->   paq8px -l INPUT.paq8px215\n\nLEVEL:\n  -1 -2 -3 -4          | Compress using less memory (558, 572, 602, 660 MB)\n  -5 -6 -7 -8          | Use more memory (776, 1010, 1476, 2408 MB)\n  -9 -10 -11 -12       | Use even more memory (4273, 8003, 15463, 29358 MB)\n  -0                   | Segment and transform only, no compression\n  -0L                  | Segment and transform then LSTM-only compression (alternative: -lstmonly)\n\nFLAGS:\n  L                    | Enable LSTM model (+24 MB per block type)\n  A                    | Use adaptive learning rate\n  S                    | Skip RGB color transform (images)\n  B                    | Brute-force DEFLATE detection\n  E                    | Pre-train x86/x64 model\n  T                    | Pre-train text models (dictionary-based)\n\n  Example: paq8px -8LA file.txt   <- Level 8 + LSTM + adaptive learning rate\n\nBlock detection control (compression-only):\n  -forcebinary         | Force generic (binary) mode\n  -forcetext           | Force text mode\n\nLSTM-specific options (expert-only):\n  -lstmlayers=N        | Set the number of LSTM layers to N (1..5, default is 2)\n  -savelstm:text FILE  | Save learned LSTM model weights after compression\n  -loadlstm:text FILE  | Load LSTM model weights before compression/decompression\n\nMisc options:\n  -v                   | Verbose output\n  -log FILE            | Append compression results to log file\n  -simd MODE           | Override SIMD detection - expert only (NONE|SSE2|SSE3|SSE41|AVX2|AVX512|NEON)\n\nNotes:\n  INPUT may be FILE, PATH/FILE, or @FILELIST\n  OUTPUT is optional: FILE, PATH, PATH/FILE\n  The archive is created in the current folder with .paq8px215 extension if OUTPUT omitted\n  FLAGS are case-insensitive and only needed for compression; they may appear in any order\n  INPUT must precede OUTPUT; all other OPTIONS may appear anywhere\n\nFor detailed help with examples and more explanation, use:\n  paq8px -help\n\n",
+    "version_command": [
+      "/home/user/src/cix-baseline-runtime-20260929/benchmark-work/references/paq8px-v215/build-local/paq8px"
+    ],
+    "source": "Pinned bundled PAQ v215 source"
+  },
+  "compression_command": [
+    "/home/user/src/cix-baseline-runtime-20260929/benchmark-work/references/paq8px-v215/build-local/paq8px",
+    "-0",
+    "-simd",
+    "AVX2",
+    "/home/user/src/cix-baseline-runs/smoke-v1/paq8px/input.bin",
+    "/home/user/src/cix-baseline-runs/smoke-v1/paq8px/archive.bin"
+  ],
+  "decompression_command": [
+    "/home/user/src/cix-baseline-runtime-20260929/benchmark-work/references/paq8px-v215/build-local/paq8px",
+    "-d",
+    "-simd",
+    "AVX2",
+    "/home/user/src/cix-baseline-runs/smoke-v1/paq8px/archive.bin",
+    "/home/user/src/cix-baseline-runs/smoke-v1/paq8px/restored.bin"
+  ],
+  "cache": "Sequential pre-read immediately before each phase; no global cache drop",
+  "memory_definition": "Kernel wait4 ru_maxrss: largest process RSS, bytes; process-tree summed RSS sampled separately every 50ms",
+  "compression": {
+    "command": [
+      "/home/user/src/cix-baseline-runtime-20260929/benchmark-work/references/paq8px-v215/build-local/paq8px",
+      "-0",
+      "-simd",
+      "AVX2",
+      "/home/user/src/cix-baseline-runs/smoke-v1/paq8px/input.bin",
+      "/home/user/src/cix-baseline-runs/smoke-v1/paq8px/archive.bin"
+    ],
+    "cwd": "/home/user/src/cix-baseline-runs/smoke-v1/paq8px",
+    "started_utc": "2026-09-29T04:51:43.469110+00:00",
+    "timeout_seconds": 180,
+    "memory_limit_bytes": 51539607552,
+    "cpu_affinity": [
+      2
+    ],
+    "rss_sample_interval_seconds": 0.05,
+    "environment_overrides": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": ""
+    },
+    "finished_utc": "2026-09-29T04:51:43.472324+00:00",
+    "exit_code": 0,
+    "status": "COMPLETED",
+    "wall_seconds": 0.002976376097649336,
+    "user_seconds": 0.000126,
+    "system_seconds": 0.00234,
+    "cpu_utilization_percent": 82.85243259235895,
+    "kernel_max_single_process_rss_bytes": 12877824,
+    "sampled_process_tree_peak_rss_bytes": 1572864,
+    "input_blocks": 0,
+    "output_blocks": 24,
+    "minor_faults": 414,
+    "major_faults": 0,
+    "voluntary_context_switches": 1,
+    "involuntary_context_switches": 1
+  },
+  "compressed_bytes": 1570,
+  "compressed_sha256": "5842aac182d5ceb9ec4b112e55f4c86995db4693a5786803cf54b55b5c23bc3d",
+  "decompression": {
+    "command": [
+      "/home/user/src/cix-baseline-runtime-20260929/benchmark-work/references/paq8px-v215/build-local/paq8px",
+      "-d",
+      "-simd",
+      "AVX2",
+      "/home/user/src/cix-baseline-runs/smoke-v1/paq8px/archive.bin",
+      "/home/user/src/cix-baseline-runs/smoke-v1/paq8px/restored.bin"
+    ],
+    "cwd": "/home/user/src/cix-baseline-runs/smoke-v1/paq8px",
+    "started_utc": "2026-09-29T04:51:43.472735+00:00",
+    "timeout_seconds": 180,
+    "memory_limit_bytes": 51539607552,
+    "cpu_affinity": [
+      2
+    ],
+    "rss_sample_interval_seconds": 0.05,
+    "environment_overrides": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": ""
+    },
+    "finished_utc": "2026-09-29T04:51:44.603901+00:00",
+    "exit_code": -11,
+    "status": "FAILED",
+    "wall_seconds": 1.1309103481471539,
+    "user_seconds": 0.002084,
+    "system_seconds": 0.00020099999999999998,
+    "cpu_utilization_percent": 0.20204961460859105,
+    "kernel_max_single_process_rss_bytes": 12877824,
+    "sampled_process_tree_peak_rss_bytes": 4456448,
+    "input_blocks": 0,
+    "output_blocks": 8,
+    "minor_faults": 370,
+    "major_faults": 0,
+    "voluntary_context_switches": 3,
+    "involuntary_context_switches": 1
+  },
+  "failure_reason": "Decompression did not complete; see raw phase log",
+  "finished_utc": "2026-09-29T04:51:44.604363+00:00"
+}

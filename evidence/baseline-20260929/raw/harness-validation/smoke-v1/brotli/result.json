@@ -1,0 +1,133 @@
+{
+  "dataset_id": "SMOKE",
+  "dataset_name": "Harness validation only",
+  "algorithm": "brotli",
+  "profile": "high-compression-v1",
+  "repetition": 0,
+  "warmup": false,
+  "smoke_only": true,
+  "cix_commit": null,
+  "started_utc": "2026-09-29T04:51:43.091785+00:00",
+  "input_manifest": {
+    "dataset_id": "SMOKE",
+    "name": "Harness validation only",
+    "path": "/home/user/src/cix-baseline-data/inputs/harness-smoke.bin",
+    "obtained_bytes": 1548,
+    "sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+    "compatibility": "NOT A BENCHMARK"
+  },
+  "status": "VERIFIED",
+  "original_bytes": 1548,
+  "original_sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+  "compressor_identity": {
+    "algorithm": "brotli",
+    "path": "/home/user/src/cix-baseline-tools/brotli-1.2.0/build/brotli",
+    "sha256": "06fd49887a76324b4bf7f9d2687ac1ad090ca43a7660c05a0c39289b123c071c",
+    "version_output": "brotli 1.2.0\n",
+    "version_command": [
+      "/home/user/src/cix-baseline-tools/brotli-1.2.0/build/brotli",
+      "--version"
+    ],
+    "source": "https://github.com/google/brotli/releases/tag/v1.2.0"
+  },
+  "compression_command": [
+    "/home/user/src/cix-baseline-tools/brotli-1.2.0/build/brotli",
+    "-q",
+    "11",
+    "-w",
+    "24",
+    "-c",
+    "/home/user/src/cix-baseline-runs/smoke-v1/brotli/input.bin"
+  ],
+  "decompression_command": [
+    "/home/user/src/cix-baseline-tools/brotli-1.2.0/build/brotli",
+    "-d",
+    "-c",
+    "/home/user/src/cix-baseline-runs/smoke-v1/brotli/archive.bin"
+  ],
+  "cache": "Sequential pre-read immediately before each phase; no global cache drop",
+  "memory_definition": "Kernel wait4 ru_maxrss: largest process RSS, bytes; process-tree summed RSS sampled separately every 50ms",
+  "compression": {
+    "command": [
+      "/home/user/src/cix-baseline-tools/brotli-1.2.0/build/brotli",
+      "-q",
+      "11",
+      "-w",
+      "24",
+      "-c",
+      "/home/user/src/cix-baseline-runs/smoke-v1/brotli/input.bin"
+    ],
+    "cwd": "/home/user/src/cix-baseline-runs/smoke-v1/brotli",
+    "started_utc": "2026-09-29T04:51:43.180765+00:00",
+    "timeout_seconds": 180,
+    "memory_limit_bytes": 51539607552,
+    "cpu_affinity": [
+      2
+    ],
+    "rss_sample_interval_seconds": 0.05,
+    "environment_overrides": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": ""
+    },
+    "finished_utc": "2026-09-29T04:51:43.184234+00:00",
+    "exit_code": 0,
+    "status": "COMPLETED",
+    "wall_seconds": 0.003198246005922556,
+    "user_seconds": 0.0026769999999999997,
+    "system_seconds": 0.0,
+    "cpu_utilization_percent": 83.70212907458321,
+    "kernel_max_single_process_rss_bytes": 12845056,
+    "sampled_process_tree_peak_rss_bytes": 1835008,
+    "input_blocks": 0,
+    "output_blocks": 8,
+    "minor_faults": 474,
+    "major_faults": 0,
+    "voluntary_context_switches": 1,
+    "involuntary_context_switches": 1
+  },
+  "compressed_bytes": 257,
+  "compressed_sha256": "2f0ee4b62e019ae572ac9f10577a56dcb2e5a11834990fa2857bf2173f8dc293",
+  "decompression": {
+    "command": [
+      "/home/user/src/cix-baseline-tools/brotli-1.2.0/build/brotli",
+      "-d",
+      "-c",
+      "/home/user/src/cix-baseline-runs/smoke-v1/brotli/archive.bin"
+    ],
+    "cwd": "/home/user/src/cix-baseline-runs/smoke-v1/brotli",
+    "started_utc": "2026-09-29T04:51:43.184646+00:00",
+    "timeout_seconds": 180,
+    "memory_limit_bytes": 51539607552,
+    "cpu_affinity": [
+      2
+    ],
+    "rss_sample_interval_seconds": 0.05,
+    "environment_overrides": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": ""
+    },
+    "finished_utc": "2026-09-29T04:51:43.186566+00:00",
+    "exit_code": 0,
+    "status": "COMPLETED",
+    "wall_seconds": 0.0017406009137630463,
+    "user_seconds": 0.0,
+    "system_seconds": 0.001341,
+    "cpu_utilization_percent": 77.04235872776032,
+    "kernel_max_single_process_rss_bytes": 12845056,
+    "sampled_process_tree_peak_rss_bytes": 0,
+    "input_blocks": 0,
+    "output_blocks": 8,
+    "minor_faults": 285,
+    "major_faults": 0,
+    "voluntary_context_switches": 1,
+    "involuntary_context_switches": 1
+  },
+  "decompressed_sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+  "restored_bytes": 1548,
+  "verification": "SHA-256 and exact byte count",
+  "finished_utc": "2026-09-29T04:51:43.186945+00:00"
+}

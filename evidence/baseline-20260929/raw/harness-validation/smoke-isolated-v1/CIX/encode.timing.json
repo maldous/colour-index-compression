@@ -1,0 +1,285 @@
+{
+  "command": [
+    "bwrap",
+    "--unshare-user",
+    "--unshare-pid",
+    "--unshare-net",
+    "--die-with-parent",
+    "--ro-bind",
+    "/usr",
+    "/usr",
+    "--symlink",
+    "usr/bin",
+    "/bin",
+    "--ro-bind",
+    "/lib",
+    "/lib",
+    "--ro-bind",
+    "/lib64",
+    "/lib64",
+    "--ro-bind",
+    "/etc/ld.so.cache",
+    "/etc/ld.so.cache",
+    "--proc",
+    "/proc",
+    "--dev",
+    "/dev",
+    "--tmpfs",
+    "/tmp",
+    "--ro-bind",
+    "/home/user/src/cix-baseline-runtime-20260929",
+    "/codec",
+    "--ro-bind",
+    "/home/user/src/colour-index-compression/.venv",
+    "/venv",
+    "--ro-bind",
+    "/home/user/src/cix-baseline-tools",
+    "/tools",
+    "--bind",
+    "/home/user/src/cix-baseline-runs/smoke-isolated-v1/CIX",
+    "/work",
+    "--chdir",
+    "/codec",
+    "--",
+    "/venv/bin/python",
+    "-m",
+    "benchmarks.competitive_cli",
+    "encode",
+    "/work/input.bin",
+    "/work/archive.bin"
+  ],
+  "cwd": "/home/user/src/cix-baseline-runtime-20260929",
+  "started_utc": "2026-09-29T04:57:22.175922+00:00",
+  "timeout_seconds": 180,
+  "memory_limit_bytes": 51539607552,
+  "cpu_affinity": [
+    2
+  ],
+  "rss_sample_interval_seconds": 0.05,
+  "environment_overrides": {
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "CUDA_VISIBLE_DEVICES": "",
+    "PYTHONNOUSERSITE": "1",
+    "PYTHONPATH": ""
+  },
+  "resource_wrapper_command": [
+    "taskset",
+    "--cpu-list",
+    "2",
+    "prlimit",
+    "--as=51539607552:51539607552",
+    "--core=0",
+    "--",
+    "bwrap",
+    "--unshare-user",
+    "--unshare-pid",
+    "--unshare-net",
+    "--die-with-parent",
+    "--ro-bind",
+    "/usr",
+    "/usr",
+    "--symlink",
+    "usr/bin",
+    "/bin",
+    "--ro-bind",
+    "/lib",
+    "/lib",
+    "--ro-bind",
+    "/lib64",
+    "/lib64",
+    "--ro-bind",
+    "/etc/ld.so.cache",
+    "/etc/ld.so.cache",
+    "--proc",
+    "/proc",
+    "--dev",
+    "/dev",
+    "--tmpfs",
+    "/tmp",
+    "--ro-bind",
+    "/home/user/src/cix-baseline-runtime-20260929",
+    "/codec",
+    "--ro-bind",
+    "/home/user/src/colour-index-compression/.venv",
+    "/venv",
+    "--ro-bind",
+    "/home/user/src/cix-baseline-tools",
+    "/tools",
+    "--bind",
+    "/home/user/src/cix-baseline-runs/smoke-isolated-v1/CIX",
+    "/work",
+    "--chdir",
+    "/codec",
+    "--",
+    "/venv/bin/python",
+    "-m",
+    "benchmarks.competitive_cli",
+    "encode",
+    "/work/input.bin",
+    "/work/archive.bin"
+  ],
+  "finished_utc": "2026-09-29T04:57:23.641128+00:00",
+  "exit_code": 0,
+  "status": "COMPLETED",
+  "wall_seconds": 1.4649303597398102,
+  "user_seconds": 8.2e-05,
+  "system_seconds": 0.002976,
+  "cpu_utilization_percent": 0.20874712437136866,
+  "kernel_max_single_process_rss_bytes": 20447232,
+  "sampled_process_tree_peak_rss_bytes": 1074626560,
+  "input_blocks": 0,
+  "output_blocks": 0,
+  "minor_faults": 282,
+  "major_faults": 0,
+  "voluntary_context_switches": 2,
+  "involuntary_context_switches": 1,
+  "samples": [
+    [
+      0.0008794879540801048,
+      262144,
+      1
+    ],
+    [
+      0.05123832216486335,
+      28835840,
+      3
+    ],
+    [
+      0.10180853214114904,
+      39956480,
+      3
+    ],
+    [
+      0.15233853878453374,
+      75071488,
+      4
+    ],
+    [
+      0.20294179813936353,
+      184123392,
+      4
+    ],
+    [
+      0.253501420840621,
+      249397248,
+      4
+    ],
+    [
+      0.3040458019822836,
+      310738944,
+      4
+    ],
+    [
+      0.3546280930750072,
+      459636736,
+      4
+    ],
+    [
+      0.4052740689367056,
+      562135040,
+      4
+    ],
+    [
+      0.45598294399678707,
+      569737216,
+      4
+    ],
+    [
+      0.506579406093806,
+      665681920,
+      4
+    ],
+    [
+      0.5571474167518318,
+      851279872,
+      4
+    ],
+    [
+      0.6077115931548178,
+      939360256,
+      4
+    ],
+    [
+      0.6583044100552797,
+      1009090560,
+      4
+    ],
+    [
+      0.7089046388864517,
+      1072267264,
+      4
+    ],
+    [
+      0.7594913658685982,
+      675713024,
+      4
+    ],
+    [
+      0.8100307411514223,
+      88178688,
+      4
+    ],
+    [
+      0.8606864749453962,
+      190676992,
+      4
+    ],
+    [
+      0.9113254309631884,
+      256212992,
+      4
+    ],
+    [
+      0.961896127089858,
+      323059712,
+      4
+    ],
+    [
+      1.0124591989442706,
+      477986816,
+      4
+    ],
+    [
+      1.063011002726853,
+      566067200,
+      4
+    ],
+    [
+      1.1135850129649043,
+      570785792,
+      4
+    ],
+    [
+      1.1641501318663359,
+      673021952,
+      4
+    ],
+    [
+      1.2147179748862982,
+      838172672,
+      4
+    ],
+    [
+      1.2653178367763758,
+      934641664,
+      4
+    ],
+    [
+      1.3159703048877418,
+      1008304128,
+      4
+    ],
+    [
+      1.3667134828865528,
+      1074626560,
+      4
+    ],
+    [
+      1.4173717857338488,
+      633217024,
+      4
+    ]
+  ]
+}

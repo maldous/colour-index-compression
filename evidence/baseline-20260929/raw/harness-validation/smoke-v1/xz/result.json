@@ -1,0 +1,131 @@
+{
+  "dataset_id": "SMOKE",
+  "dataset_name": "Harness validation only",
+  "algorithm": "xz",
+  "profile": "high-compression-v1",
+  "repetition": 0,
+  "warmup": false,
+  "smoke_only": true,
+  "cix_commit": null,
+  "started_utc": "2026-09-29T04:51:42.995815+00:00",
+  "input_manifest": {
+    "dataset_id": "SMOKE",
+    "name": "Harness validation only",
+    "path": "/home/user/src/cix-baseline-data/inputs/harness-smoke.bin",
+    "obtained_bytes": 1548,
+    "sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+    "compatibility": "NOT A BENCHMARK"
+  },
+  "status": "VERIFIED",
+  "original_bytes": 1548,
+  "original_sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+  "compressor_identity": {
+    "algorithm": "xz",
+    "path": "/bin/xz",
+    "sha256": "b5b163eb273291934556377ab883b4b2a5d4da50bd0dc0a91774ecc234ccd8d0",
+    "version_output": "xz (XZ Utils) 5.4.5\nliblzma 5.4.5\n",
+    "version_command": [
+      "/bin/xz",
+      "--version"
+    ],
+    "source": "https://tukaani.org/xz/"
+  },
+  "compression_command": [
+    "/bin/xz",
+    "-9e",
+    "-T1",
+    "-c",
+    "/home/user/src/cix-baseline-runs/smoke-v1/xz/input.bin"
+  ],
+  "decompression_command": [
+    "/bin/xz",
+    "-d",
+    "-T1",
+    "-c",
+    "/home/user/src/cix-baseline-runs/smoke-v1/xz/archive.bin"
+  ],
+  "cache": "Sequential pre-read immediately before each phase; no global cache drop",
+  "memory_definition": "Kernel wait4 ru_maxrss: largest process RSS, bytes; process-tree summed RSS sampled separately every 50ms",
+  "compression": {
+    "command": [
+      "/bin/xz",
+      "-9e",
+      "-T1",
+      "-c",
+      "/home/user/src/cix-baseline-runs/smoke-v1/xz/input.bin"
+    ],
+    "cwd": "/home/user/src/cix-baseline-runs/smoke-v1/xz",
+    "started_utc": "2026-09-29T04:51:43.084829+00:00",
+    "timeout_seconds": 180,
+    "memory_limit_bytes": 51539607552,
+    "cpu_affinity": [
+      2
+    ],
+    "rss_sample_interval_seconds": 0.05,
+    "environment_overrides": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": ""
+    },
+    "finished_utc": "2026-09-29T04:51:43.088273+00:00",
+    "exit_code": 0,
+    "status": "COMPLETED",
+    "wall_seconds": 0.0032014893367886543,
+    "user_seconds": 0.000741,
+    "system_seconds": 0.0019089999999999999,
+    "cpu_utilization_percent": 82.77397552284708,
+    "kernel_max_single_process_rss_bytes": 12832768,
+    "sampled_process_tree_peak_rss_bytes": 2359296,
+    "input_blocks": 0,
+    "output_blocks": 8,
+    "minor_faults": 964,
+    "major_faults": 0,
+    "voluntary_context_switches": 1,
+    "involuntary_context_switches": 1
+  },
+  "compressed_bytes": 336,
+  "compressed_sha256": "25db1631a6a74317956a580efae94210ae90a64b1094dcd252ea4f6ccaad268e",
+  "decompression": {
+    "command": [
+      "/bin/xz",
+      "-d",
+      "-T1",
+      "-c",
+      "/home/user/src/cix-baseline-runs/smoke-v1/xz/archive.bin"
+    ],
+    "cwd": "/home/user/src/cix-baseline-runs/smoke-v1/xz",
+    "started_utc": "2026-09-29T04:51:43.088696+00:00",
+    "timeout_seconds": 180,
+    "memory_limit_bytes": 51539607552,
+    "cpu_affinity": [
+      2
+    ],
+    "rss_sample_interval_seconds": 0.05,
+    "environment_overrides": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": ""
+    },
+    "finished_utc": "2026-09-29T04:51:43.091041+00:00",
+    "exit_code": 0,
+    "status": "COMPLETED",
+    "wall_seconds": 0.0021514729596674442,
+    "user_seconds": 0.0,
+    "system_seconds": 0.0017549999999999998,
+    "cpu_utilization_percent": 81.5720221866638,
+    "kernel_max_single_process_rss_bytes": 12832768,
+    "sampled_process_tree_peak_rss_bytes": 1835008,
+    "input_blocks": 0,
+    "output_blocks": 8,
+    "minor_faults": 303,
+    "major_faults": 0,
+    "voluntary_context_switches": 1,
+    "involuntary_context_switches": 1
+  },
+  "decompressed_sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+  "restored_bytes": 1548,
+  "verification": "SHA-256 and exact byte count",
+  "finished_utc": "2026-09-29T04:51:43.091413+00:00"
+}

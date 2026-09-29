@@ -1,0 +1,1085 @@
+Front. Comput. Sci., 2025, 19(7): 197360
+https://doi.org/10.1007/s11704-024-40300-5
+
+   REVIEW ARTICLE
+
+
+
+     A survey and benchmark evaluation for neural-network-based
+        lossless universal compressors toward multi-source data
+
+           Hui SUN1,2*, Huidong MA1*, Feng LING1, Haonan XIE3, Yongxia SUN1, Liping YI1,2,
+                                          ✉
+                Meng YAN ( )1, Cheng ZHONG4, Xiaoguang LIU1, Gang WANG ( )1                                     ✉
+     1 Nankai-Baidu Joint Laboratory, Parallel and Distributed Software Technology Laboratory, TMCC, SysNet, DISSec,
+                         GTIISC, College of Computer Science, Nankai University, Tianjin 300350, China
+         2 College of Computing and Data Science, Nanyang Technological University, Singapore 639798, Singapore
+       3 Institute of Artificial Intelligence, School of Electrical Engineering, Guangxi University, Nanning 53004, China
+      4 Key Laboratory of Parallel, Distributed and Intelligent of Guangxi Universities and Colleges, School of Computer,
+                               Electronics and Information, Guangxi University, Nanning 53004, China
+
+   The Author(s) 2025. This article is published with open access at link.springer.com and journal.hep.com.cn
+
+
+Abstract As various types of data grow explosively, large-              Keywords lossless compression, benchmark evaluation,
+scale data storage, backup, and transmission become                     universal compressors, neural networks, deep learning
+challenging, which motivates many researchers to propose
+efficient universal compression algorithms for multi-source             1    Introduction
+data. In recent years, due to the emergence of hardware                 With the rapid expansion of information technologies and
+acceleration devices such as GPUs, TPUs, DPUs, and FPGAs,               internet-connected computers, worldwide data growth has
+the performance bottleneck of neural networks (NN) has been             surpassed Moore’s Law [1]. For example, according to the
+overcome, making NN-based compression algorithms                        latest “Global Data Sphere 2023” released by IDC, the total
+increasingly practical and popular. However, the research               global data volume is expected to grow from 126 ZB1) in
+survey for the NN-based universal lossless compressors has not          2022 to 284 ZB in 2027 [2]. Such massive amounts of data
+been conducted yet, and there is also a lack of unified                 poses a challenge to data storage, transmission, and sharing.
+evaluation metrics. To address the above problems, in this              Traditional storage methods, which rely on multi-server and
+paper, we present a holistic survey as well as benchmark                disk-array technologies, require high infrastructure expenses,
+evaluations. Specifically, i) we thoroughly investigate NN-             thus is difficult to deploy and implement. Therefore,
+based lossless universal compression algorithms toward multi-           developing efficient compression methods are essential to
+source data and classify them into 3 types: static pre-training,        alleviate the pressure of large-scale data storage and promote
+adaptive, and semi-adaptive. ii) We unify 19 evaluation metrics         data transmission and sharing.
+to comprehensively assess the compression effect, resource                 Compression solutions are either universal or dedicated. The
+consumption, and model performance of compressors. iii) We              former are designed to deal with a variety of data types
+conduct experiments more than 4600 CPU/GPU hours to                     including text, image, audio, video, etc., while the latter are
+evaluate 17 state-of-the-art compressors on 28 real-world               usually used for specific fields such as DNA sequencing data
+datasets across data types of text, images, videos, audio, etc.         [3–8], 3D point cloud data [9,10], and video image data
+iv) We also summarize the strengths and drawbacks of NN-                [11–15]. In this paper, we focus on the lossless universal
+based lossless data compressors and discuss promising research          compression algorithms, which are able to recover the original
+directions. We summarize the results as the NN-based Lossless           data without losing any information and thus are ideal for
+Compressors Benchmark (NNLCB, See fahaihi.github.io/                    scenarios requiring high data integrity, such as long-term
+NNLCB website), which will be updated and maintained                    backups for large-size databases.
+continuously in the future.                                                Recently, NN-based compressors exhibit plenty of
+                                                                        advantages and receive increasing attention. Comparing to the
+Received March 24, 2024; accepted December 9, 2024
+                                                                        traditional lossless compressors (XZ [16], Zstd [17], Brotli
+                                                                        [18], BSC [19], Szip [20], Bzip2 [21], Zpaq [22], Mcm [23],
+E-mail: yanm@nbjl.nankai.edu.cn; wgzwp@nbjl.nankai.edu.cn               Starlit [24], WSDC [25], etc.) NN-based compressors are
+* These authors contributed equally to this work.                       superior in terms of space saving. On the one side, the
+
+1) 1 ZB = 10244 GB
+2                                              Front. Comput. Sci., 2025, 19(7): 197360
+
+
+widespread adoption of neural network technologies [26–28]         surveys on data compression can be traced back to Holtz [51],
+fostered various kinds of Deep-learning neural networks, such      Kimura [52], Chew [53], Sridevi [54], Hosseini [55],
+as Long Short-Term Memory (LSTM) [29], Bidirectional Gate          Srisooksai [56], Sharma [57], etc. We suggest readers refer to
+Recurrent Units (BiGRU) [30], Transformer [31], Large              [49] for those earlier survey works.
+Language Models (LLMs) [32–34], Mamba [35], and                      In the following, we summarize surveys for traditional
+Extended Long Short-Term Memory (xLSTM) [36]. Those                universal compression techniques over the past ten years. We
+techniques have promoted the development of NN-based               also summarize some reviews of dedicated compression
+compressors. [37–39]. On the other side, hardware                  algorithms, because they encompass a thorough evaluation of
+acceleration devices like GPUs, TPUs, DPUs, and FPGAs              universal methods.
+have facilitated the design of parallel algorithms, helping NN-      Research surveys for dedicated compression methods
+based compressors break time and throughput performance            generally concentrated on specific application domains, such
+bottlenecks [39–41].                                               as genomic, electrocardiogram (ECG), medical image, and
+  After thorough investigation, we find that the research          smart grid data. Among these survey works, [6,58–62]
+survey for the NN-based universal lossless compressors has         provided comprehensive reviews of both dedicated and
+not been conducted yet, and two main challenges exist              universal compression methods for large genomic datasets,
+regarding the review and benchmark testing. Firstly, previous      and displayed experimental results comparing compression
+works primarily focused on traditional compressors and the         ratio, time, and memory usage. [63,64] compared significant
+comparison between traditional methods and NN-based                techniques in compressing ECG data and evaluated their
+methods is absent. Secondly, the evaluation metrics for NN-        effects on compression ratio and the quality of data
+based compressors are disorganized, and a unified standard for     reconstruction. They also delved into various performance
+performance measurement is needed. To this end, this study         metrics and addressed open challenges in the field of ECG.
+thoroughly reviews the latest advancements in NN-based             [65–67] supplied a comprehensive overview of the current
+universal lossless compressors and proposes a comprehensive        landscape of medical-image compression techniques, covering
+benchmark evaluation. The primary contributions of this paper      lossless, lossy, and hybrid compression methods. [68–70]
+can be summarized as follows:                                      conducted comprehensive studies on data compression
+                                                                   techniques for big data in smart grids, aiming to enhance data
+    ● We holistically reviewed NN-based universal
+                                                                   analysis efficiency while reducing transmission pressure and
+      compressors and unified the corresponding evaluation
+                                                                   storage costs. [71–75] presented systematic surveys of data
+      metrics.
+                                                                   compression methods for large volumes of data generated by
+    ● We offered a comprehensive benchmark evaluation for
+                                                                   the Internet of Things (IoT) sensing devices such as cameras,
+      NN-based compressors and conducted a thorough
+                                                                   satellites, and seismic monitoring; they focus on exploring
+      analysis of existing state-of-the-art solutions.
+                                                                   data compression techniques in cloud computing
+    ● We identified the challenges of NN-based lossless
+                                                                   environments.
+      compression and summarized potential research
+                                                                     In the research field of universal compression technologies
+      directions.
+                                                                   for multi-source data, Kaur et al. [76] systematically presented
+  The rest of this paper is organized as follows: Section 2        the application of data deduplication techniques in lossless
+provides a brief introduction to relevant state-of-the-art         compression solutions within cloud computing, and they
+surveys; Section 3 presents a detailed description and analysis    specifically focused on data redundancy issues in storage
+of NN-based universal lossless compression methods; Section        systems. Cappello et al. [77] introduced the development of
+4 outlines comprehensive evaluation metrics including              compression techniques for floating-point datasets in universal
+compression effect, resource consumption, and neural network       data and explored their potential applications in scientific
+model performance; Section 5 introduces the benchmark              computing. Jayasankar et al. [49] provided a comprehensive
+evaluation and displays experimental analysis; Section 6           overview of the applications of compression techniques and
+suggests potential future research directions; and finally,        the developmental history, and they also categorized these
+Section 7 concludes our work.                                      techniques based on the quality of recovered data, encoding
+                                                                   schemes, data types, and applications. Chiarot et al. [50]
+2   Related work                                                   conducted a comprehensive review of time-series
+Since Shannon brought forward his Information Theory [42],         compressors, sorting through the classification, evaluation
+the academia and industry have endeavored to create concise        metrics, and practical application cases of time series
+representations for data streams utilizing the redundancy          compressors.
+patterns in the data. Traditional universal lossless compression     Our study is an additional supplement to the above surveys.
+methods can be categorized into multiple types according to        To the best knowledge of the authors, NNLCB is the first
+the algorithmic-coding schemes they use, such as Huffman           work providing a comprehensive review of the promising NN-
+Coding (HC) [43], Arithmetic Coding (AC) [44], Dictionary          based universal lossless compressors. Details are given in the
+Coding (DC) [45], Burrows-Wheeler Transform (BWT) [46],            next section.
+Run-Length Encoding (RLE) [47], and Wavelet Transform
+(WT) [48]. Many literature [43–50] give detailed descriptions      3     NN-based lossless universal compressors
+about those traditional compression technologies. The earlier      In this section, we first divide NN-based algorithms into three
+ Hui SUN et al. A survey and benchmark evaluation for neural-network-based lossless universal compressors toward multi-source data                          3
+
+
+types and compare their advantages and weaknesses at a high
+level. Then we introduce representative algorithms for each
+type, and provide pseudocode descriptions. Finally, we offer a
+summary of NN-based compressors.
+3.1 Overview
+Generally, a universal lossless compression algorithm based
+on neural networks contains two core components: a
+probabilistic prediction model M and an encoder E . Here we
+briefly introduce their functions and workflow.
+  Let x = {xi }|x|
+                i=1 denotes the serialized data sequence to be
+compressed, where xi ∈ S represents the token in alphabet S
+and |x| is the sequence length. The model M is responsible for
+predicting the probability distribution of each target token                        Fig. 1   The compression process of the static pre-training methods
+xn ∈ x based on history t tokens {xn−t , xn−t+1 , ..., xn−1 } , where
+1 ⩽ t ⩽ |x| and n = t + 1, t + 2, ..., |x| . Here, the model M can be          neural network to generate a static model M static , whose
+realized by recurrent neural networks, attention mechanisms,                   parameters remain unchanged during the subsequent
+or large language models, etc. After probabilistic prediction,                 processes. Then, in the compression stage, the pre-trained
+the encoder E encodes the target token xn using the standard                   static model is used to predict the probability distribution of
+encoding algorithms such as huffman coding or arithmetic                       the input data sequences, and the prediction results are fed into
+coding, etc. The more precisely the model predicts, the smaller                the encoder. Such methods have two advantages. Firstly, the
+the discrepancy between the predicted output and the actual                    pre-trained model can be applied to all sequences homologous
+ground truth output will be, and thus the better result the                    with the input data, thus the pre-training stage can be omit for
+encoder outputs.                                                               these homologous data. Secondly, due to the sufficient pre-
+  Generally, the encoder has converged to the theoretical                      training before the actual compression, the static pre-training
+entropy limit during the lossless compression. Therefore, the                  method achieves a stable and excellent compression ratio.
+compression performance of universal NN-based lossless                         However, such methods also have some shortcomings. Firstly,
+compression algorithms depends mainly on the ability of the                    additional computation and time overhead are entailed due to
+probabilistic prediction model M to fit the input data. In the                 the extra pre-training stage. Furthermore, as Fig. 1 shows, the
+following part, we concentrate on the design and                               model parameters and framework information have to be
+implementation of the NN-based prediction model M . To                         saved in the compressed output file to recover the original file
+learn more about the encoder E , we suggest referring to                       during the decompression. As a result, an additional amount of
+[43,44].                                                                       storage is required, and the size of model M static should also
+  In [78], the NN-based lossless compressors are divided into                  be considered when calculating the compression ratio.
+online and offline. In this paper, following the guidance of                   Therefore, static methods are unsuitable for some small-size
+[79], we categorize NN-based lossless universal compressors                    datasets.
+into static pre-training (offline), adaptive (online), and semi-                  Schmidhuber and Heil [78] were the first to propose using
+adaptive methods. The comparison of these methods are                          an NN-based prediction model combined with an encoding
+shown in Table 1 (in an ideal scenario). Details for                           algorithm to achieve lossless data compression. The workflow
+representative algorithms are given in the following                           of the compressor is as follows. First, given the to-be-
+subsections.
+                                                                               compressed sequence x = {xi }|x|  i=1 , set the sliding window (also
+3.2 Static pre-training methods                                                known as context length) as t and step-size as 1, where
+In static pre-training methods, the compression process                        1 ⩽ t ⩽ |x| . During the pre-training stage, each sequence
+consists of two independent stages: (1) pre-training stage,                    {xn−t , ..., xn−1 } is embedded into the matrix X =
+which obtains an well-trained NN model of the to-be-                           [Xn−t , ..., Xn−1 ] ∈ Rt×k according to the one-hot coding, where
+compressed data, and (2) compression stage, which outputs a                    each vector Xi has the length of k = |S| . The NN model
+compact representation of the to-be-compressed data. Figure 1                  M static takes the matrix X as input and predicts the probability
+presents the workflow for this category.                                       distribution of token xn . The network is trained by minimizing
+  In the pre-training stage, the input sequences are fed into the              the difference between the output probability distribution and
+
+Table 1    Overall comparison of NN-based universal lossless compression methods
+Method                 Model pre-training   Model saving     Compression ratio     Time cost                      Representative works
+Static pre-training           √                 √                ⋆⋆⋆                   ⋆        Ref [78,80,81], DeepZip [82], DecMac [83], LLMZip [84]
+Adaptive                      ×                 ×                   ⋆                ⋆⋆⋆             TRACE [37], OREA [38], PAC [39], Cmix [85]
+Semi-adaptive                 √                 √                  ⋆⋆                 ⋆⋆                      DZip (Combined Model) [79]
+Notes. Model pre-training: Whether or not the model M requires pre-training. Model saving: Whether or not the model need to be saved and included in the
+compressed file. Compression ratio: A smaller value indicates better compression performance, detailed in the evaluation metrics section. The “√” and “×”
+represent “Yes” or “No”, and more instances of “ ⋆ ” indicate a stronger advantage.
+4                                               Front. Comput. Sci., 2025, 19(7): 197360
+
+
+the actual conditional probability distribution. Once the            two recurrent neural network variants, ii) biGRU: a multi-
+model’s output matches the actual conditional probability            input single-output bidirectional Gated Recurrent Unit, and iii)
+distribution, the target token and its corresponding probability     LSTM-multi: a multi-input multi-output Long Short-Term
+distribution are input into the encoder to realize data              Memory Network. The experimental results demonstrate that
+compression. The above steps are repeated as the window              the LSTM-multi model performs best in the compression task,
+slides with step size 1, and finally, the probability distribution   followed by the biGRU and FCNN models. This suggests that
+for tokens xt+1 , ..., x|x| are all obtained. The experiments show   with the ability to capture long-term dependencies of
+that the proposed compressor outperforms the widely used             sequences, RNNs show better performance in sequence-
+conventional compressor Lempel-Ziv [45] regarding                    prediction tasks. Liu et al. [83] proposed an NN-based
+compression ratio. In addition, the combination of predictor         compressor DecMac, which employs Long Short-Term
+and arithmetic coding can perform better than huffman coding.        Memory Network (LSTM) and arithmetic coding. Different
+However, the limitation with this method is that the                 with RNN, the LSTM introduces three gating mechanism
+compression speed is slower than traditional algorithms by           (input, forgetting, and output), which effectively solves the
+three orders of magnitude.                                           problem of gradient vanishing or gradient explosion when
+   Subsequent works [80,82,83] are greatly influenced by [78].       modeling long sequences. DecMac adopts a three-layer LSTM
+Algorithm 1 formalizes the workflow for these methods.               structure as a predictor, which better captures the
+   Mahoney [80] proposed another improved NN-based                   dependencies in sequences and has a stronger prediction
+lossless compressor. The author found that using two                 ability for target tokens. Experimental results confirm that
+strategies, adaptive learning rate and learning rate decay, can      DecMac outperforms the PAQ [88] and traditional table
+effectively improve the training speed and compression effect.       lookup and G-Gram based methods (such as Zip, Gzip [89],
+This work also discussed the impact of prediction accuracy on        and RAR [90]) in text compression tasks.
+data correlations, and how to balance training and                      Recent advances in deep-learning technologies and
+compression effects by setting a lower limit on the learning         accelerated hardware have prompted pre-trained Large
+rate. The experiments prove that the proposed compressor             Language Models (LLMs), which demonstrate superior
+performs excellently when compressing text data. Compared            performance in several natural language processing domains.
+with the state-of-the-art compressors during the same period,        Researchers on the Google team [81] advocate looking at
+PPM [86] and BWT-based method [87], the proposed                     LLMs from a compression perspective. By virtue of its
+compressor has apparent advantages in compression speed and          outstanding predictive capability, LLMs can be combined with
+ratio, especially when dealing with large-scale text data.           arithmetic encoders to achieve lossless compression. In their
+   Goyal et al. [82] proposed an NN-based universal                  study, the authors evaluate the performance of three classes of
+compressor, DeepZip, which integrates the Recurrent Neural           compression algorithms, including i) traditional compressors
+Network (RNN) with arithmetic encoding. Compared with the            Gzip and Lzma2 [91], ii) specialized compressors PNG [92]
+traditional probability-distribution prediction model, the RNN       and FLAC [93] designed for images and audio, as well as
+model introduces recurrent connectivity, which captures the          iii) LLMs Chinchilla [94] and Transformers [95], both
+contextual relationships in the sequential data. Besides, the        integrated with the arithmetic encoding. By ignoring model
+RNN has a specific modeling ability to establish long-term           parameter size, the LLM Chinchilla (especially the version
+dependencies in longer sequences. This effectively solves the        with 70 billion parameters) outperforms the other five
+problem that traditional models cannot handle long sequences,        compressors on the text dataset enwik9 [96], the image dataset
+                                                                     ImageNet [97], and the audio dataset LibriSpeech [98]. It is
+and directly improves the model training effect and
+                                                                     interesting to note that the Chinchilla model was pre-trained
+compression ability. For comparison, the authors investigate
+                                                                     on textual data only, but it demonstrated excellent
+the compression effects of three probabilistic prediction
+                                                                     compression performance on multiple types of datasets. This
+models when they are combined with an arithmetic encoder,
+                                                                     phenomenon suggests that the LLMs possess strong
+including i) FCNN: a Fully Connected Neural Network and
+                                                                     generalization ability and can adapt to various compression
+                                                                     tasks.
+                                                                        Valmeekam et al. [84] proposed another NN-based
+                                                                     compressor that integrates the large language model LLaMA
+                                                                     [99] with three coding algorithms (zlib [100], Token-by-
+                                                                     Token, and arithmetic coding) to perform lossless
+                                                                     compression. Experimental results demonstrate that the
+                                                                     algorithm exhibits the best compression efficiency with
+                                                                     arithmetic coding and outperforms the traditional compression
+                                                                     algorithms Zpaq [22] and Paq8h [101] on text datasets.
+
+                                                                     3.3 Adaptive methods
+                                                                     Different from the static pre-training methods, this methods
+                                                                     utilize a dynamic model Madaptive to predict the probability
+                                                                     distribution of the to-be-compressed sequences, and the
+ Hui SUN et al. A survey and benchmark evaluation for neural-network-based lossless universal compressors toward multi-source data              5
+
+
+prediction results are fed into the encoder E . As Fig. 2 plots,          employs the LSTM model only during the prediction stage.
+each time the model predicts the probability distribution of a            Compared to DeepZip and DecMac, which are static pre-
+target token, the prediction result is transferred to the                 training compressors using the LSTM model as a predictor,
+backward controller and further upgrades the model. One                   Lstm-compress can compress target tokens in real-time
+obvious advantage of these methods is that they do not require            without pre-training the model or saving model parameters to
+a pre-training process. Therefore, these methods have a lower             the compressed file. However, in some study cases presented
+time consumption than static pre-training methods. Besides,               in the DeepZip paper, the output file of Lstm-compress was
+adaptive methods are also suitable for scenarios such as real-            found larger than the original file, which may be caused by the
+time data transmission. However, the shortcoming of adaptive              gradient vanishing or exploding during the training process or
+methods is that the compression ratio is usually inferior to the          by improper setting of hyperparameters.
+static pre-training methods (under the same network                          Proposed by Bellard, NNCP [103] uses the LSTM model as
+architecture and scale). Algorithm 2 provides a formal                    a predictor. The authors designed two structures with different
+description for adaptive compressors.                                     network depths and parameter scales for the LSTM model.
+  Cmix [85] developed by Byron is a typical adaptive                      Experimental results on the datasets enwik8 and enwik9 [96]
+compressor, which is excellent in compression ratio. The                  show that the NNCP algorithm with a deeper LSTM model
+compression process of Cmix mainly consists of three parts:               outperforms the Gzip, XZ, and Lstm-compress algorithms
+preprocessing, model prediction, and contextual mixing.                   regarding the compression ratio, and is second only to the
+Firstly, in the preprocessing stage, Cmix uses a specific                 Cmix compressor. In the study of NNCP, the authors also
+module to recognize the data type and convert it into an easy-            attempt to combine Transformer [31] and arithmetic coding to
+to-compress format. Secondly, in the model-prediction stage,              realize lossless compression. Transformer architecture has two
+The Cmix reads the data bit-by-bit and applies thousands of               advantages over traditional RNN and LSTM. On the one hand,
+independent models to predict the probability of the target               the self-attention mechanism allows the model to process
+                                                                          token dependencies throughout the whole sequence. On the
+token. Finally, in the context-mixing phase, Cmix uses the
+                                                                          other hand, Transformer supports parallel computing, and thus
+byte-level LSTM mixer, bit-level context mixture (CM), and
+                                                                          is better at processing long sequences. However, the authors
+Secondary Symbol Estimation (SSE) algorithm to mix the
+                                                                          found that the Transformer performed worse than the LSTM
+probabilistic predictions of multiple models into a single
+                                                                          model in the compression task, which may be caused by the
+probability. Experiment results show that Cmix generally
+                                                                          insufficient network depth and inadequate training.
+outperforms existing traditional and NN-based compressors
+                                                                             Mao et al. [37] proposed an efficient Transformer-based
+regarding compression ratio for various datasets. However,
+                                                                          universal compressor TRACE. In their work, the prediction
+because Cmix employs thousands of prediction models, it
+                                                                          model adopts the linear attention mechanism SLiM [104] to
+consumes more time and memory.                                            reduce memory and computational costs. In addition, the
+  The authors of Cmix [85] subsequently developed another                 authors argued that the input token can be embeded into a
+compression algorithm, named Lstm-compress [102], which                   shorter vector whose dimension is less than the hidden layer
+                                                                          dimension. For example, on one input sequence x = {xi }n−1    i=n−t , a
+                                                                          conventional Transformer would map the sequence to
+                                                                          X = [Xn−t , Xn−t+1 , ..., Xn−1 ] ∈ Rt×D , where D is the hidden layer
+                                                                          dimension. However, the method proposed by the author maps
+                                                                          the sequence to X = [Xn−t , Xn−t+1 , ..., Xn−1 ] ∈ Rt×d , where d is
+                                                                          the token dimension and d ⩽ D . Based on such reduction, the
+                                                                          researchers designed the grouping strategy, in which, the
+                                                                                          D
+  Fig. 2   Schematic of the compression process of the adaptive methods
+                                                                          neighbouring d vectors in X are assigned into the same group
+                                                                                                                                          t×d
+                                                                          to form a new sequence X ′ = [X ′ t×d , ..., Xn−1′ ] ∈ R D ×D
+                                                                                                                                        .
+                                                                                                                 n− D
+                                                                          Compared with the traditional token mapping method,
+                                                                          TRACE reduces the input sequence length without changing
+                                                                          the parameters of Transformer, reduces the redundant
+                                                                          information, and saves the computational cost. Therefore, the
+                                                                          compression ratio and speed are improved. The experimental
+                                                                          results show that TRACE outperforms Tensorflow-compress
+                                                                          [105], NNCP, and DZip regarding peak GPU memory usage
+                                                                          and model inference latency. With respect to the overall
+                                                                          compression ratio, TRACE outperforms traditional algorithms
+                                                                          Gzip, 7Z, ZSTD-19, and the NN-based algorithm DZip.
+                                                                            In subsequent studies from the same research team, Mao
+                                                                          et al. [38] also designed the compression algorithm OREO, an
+                                                                          NN-based lossless compressor that incorporates Multi-Layer
+                                                                          Perceptron (MLP) and Ordered Masks (OM). The authors
+6                                                    Front. Comput. Sci., 2025, 19(7): 197360
+
+
+found that during the compression process, predictors based
+on RNN or attentional mechanisms (e.g., DZip, NNCP, or
+TRACE) tend to assign higher weights to history tokens closer
+to the target token, thus implicitly learning the order of
+importance of tokens in the input sequence stream. Based on
+this finding, the authors apply an MLP module combined with
+an OM component instead of the more computationally
+expensive RNN and attention mechanisms. The MLP is
+responsible for extracting features from sequences, and the
+OM makes up for the shortcomings of the MLP in establishing
+sequence correlation. Experimental results show that OREO
+performs better regarding compression ratio and compression
+speed. In the follow-up study, the authors also developed the
+compression algorithm PAC [39] based on the algorithm
+OREO to solve the repetitive problem and the problem of
+intra-batch distribution variation, thus further improving the
+compression ratio and compression speed.
+
+3.4 Semi-adaptive methods                                                model parameters. Entering the compression stage, DZip
+The semi-adaptive methods integrate the static pre-training              synchronously applies the bootstrap model Mbs and supporter
+and adaptive methods, aiming to combine their strengths and              model M sup , integrates the outputs of the two models using
+compensate for their weaknesses. As Fig. 3 shows, the semi-              the convex combination strategy, and adjusts the parameters in
+adaptive compressors also include two stages: pre-training and           real time during the compression process. The experimental
+data compression. In stage 2, it utilizes an NN-based                    results show that DZip outperforms the traditional
+bootstrapping model Mbs , which is a pre-trained static model,           compression algorithms and other NN-based compression
+as well as an NN-based supporter model M sup , which is an               algorithms during the same time period in terms of
+adaptive model coupled with a backward controller. Based on              compression ratio.
+such design, semi-adaptive compression methods usually have
+excellent compression performance. However, their resource               3.5 Brief summary of NN-based compressors
+cost and time consumption are relatively high due to pre-                In this section, we summarize the aforementioned three types
+training and dynamic updating. For better understanding, we              of compressors. Table 2 sketches the information of the 15
+also give an algorithm description of the semi-adaptive                  NN-based compressors, including the publication year,
+compressors, as shown in Algorithm 3.                                    methodology, programming language, and primary prediction
+   The compression algorithm DZip proposed by Goyal et al.               method.
+[79] is a representative semi-adaptive compressor. The                      i) To the best of our knowledge, static and adaptive
+predictor contains two structurally different models: the                compressors are still the mainstream of research because they
+Bootstrap Model (BM) and the Supporter Model (SM). In the                correspond to a wider range of application scenarios. In
+pre-training phase, DZip trains the bootstrap model Mbs by               contrast, semi-adaptive method has only yielded one proposal,
+scanning the input data for multiple rounds and obtains fixed            namely Dzip (Combined), mainly because balancing model
+                                                                         complexity and compression ratio is challenging, and is
+                                                                         influenced by various factors such as the number of training
+                                                                         epochs and the selection of static models. In general, static
+                                                                         compressors are suitable for medium to long-term data
+                                                                         storage, and adaptive compressors are suitable for real-time
+                                                                         transmission.
+                                                                            ii) As can be seen from Table 2, NN-based compressors are
+                                                                         generally implemented using Python because it encapsulates
+                                                                         most mainstream deep-learning frameworks, such as
+                                                                         PaddlePaddle [106], Tensorflow [107], Pytorch [108], and
+                                                                         provides flexible and convenient interfaces.
+                                                                            iii) Recurrent neural networks and their variants are the
+                                                                         primary prediction cores for NN-based compressors (such as
+                                                                         Cmix, Lstm-compress, DeepZip, NNCP, DecMac,
+                                                                         Tensorflow-compress, and Dzip), whether for static, adaptive,
+                                                                         or semi-adaptive methods. This is because architectures like
+                                                                         RNNs, biGRUs, and LSTMs can effectively capture relational
+                                                                         features between sequences, thus possessing stronger
+     Fig. 3   The compression process of the semi-adaptive methods       predictive and compression capabilities.
+ Hui SUN et al. A survey and benchmark evaluation for neural-network-based lossless universal compressors toward multi-source data                       7
+
+
+Table 2     Brief summary of the NN-based universal compressors
+Name                              Year         Method        Language                          Major prediction model components
+Ref. [78]                         1996         Static        Unknown                            Easy feedforward neural network
+Ref. [80]                         2000         Static        Unknown                            Easy feedforward neural network
+Cmix [85]                                                                 Multi-model mixing, long short-term memory mixer, bit-level context mixture,
+                                  2014        Adaptive            C/C++                and secondary symbol estimation (SSE) algorithm
+Lstm-compress [102]               2016        Adaptive            C/C++                             Long short-term memory
+DeepZip [82]                                                                       Recurrent neural network, fully connected neural network,
+                                  2018         Static        Unknown             bidirectional gated recurrent unit, and long short-term memory
+NNCP [103]                        2019       Adaptive         C/C++                         Long short-term memory and transformer
+DecMac [83]                       2019        Static         Unknown                                Long short-term memory
+Tensorflow-compress [105]         2020       Adaptive         Python                            Long short-term memory network
+Dzip (Bootstrap) [79]             2021       Adaptive         Python                            Bidirectional gated recurrent unit
+Dzip (Combined) [79]              2021     Semi-adaptive      Python                 Bidirectional gated recurrent unit and residual network
+TRACE [37]                        2022       Adaptive         Python                                       Transformer
+OREA [38]                         2022       Adaptive         Python                       Multi-layer perceptron and gumbel-softmax
+PAC [39]                          2023       Adaptive         Python                   Multi-layer perceptron and learned ordered masks
+LLMZip [84]                       2024        Static          Python                             Large language model LLaMA
+LMIC [81]                         2024        Static          Python                   Large language models chinchilla and transformer
+
+  iv) To design compressors based on Transformer and Large                                            S ize(Fa )
+                                                                                                CR =             × 8 bits/base,                     (1)
+language models is the main research direction in the future,                                         S ize(Fb )
+especially for the static compressors. These models are trained                                       (                )
+                                                                                                            S ize(Fa )
+extensively using large-scale multi-modal data, which endows                                    SS P = 1−                × 100%.                    (2)
+                                                                                                            S ize(Fb )
+them with powerful deep learning capabilities. As a result,
+they exhibit better generalization in compressing multi-source                 In Eq. (1), the CR represents the average number of bits
+data.                                                                       required to store a basic unit of the original data. For image
+                                                                            compression, a data unit is a pixel; for text compression, a data
+4    Evaluation metrics                                                     unit is a character. Here, the smaller CR value, the fewer bits
+Traditional lossless compression methods usually use metrics                required for the algorithm to store a basic unit of the original
+such as compression ratio, throughput, time cost, and peak                  data, and the better the compression performance. In Eq. (2),
+memory consumption to evaluate the performance of                           the SSP denotes the percentage of storage space saved by the
+compression and decompression algorithms [7,49,50,109].                     compression algorithm, and larger SSP values indicate better
+                                                                            compression performance. For example, if S ize(Fb ) and
+However, different from traditional CPU-based compression
+                                                                            S ize(Fa ) take 12587 B and 33269 B, then the
+algorithms, in NN-based compressors, the performance of the
+                                                                                   33269 × 8 = 3.027bits/base and the S S P = 1 − 33269 ×
+                                                                            CR = 12587                                                12587
+model impacts the compressing effect significantly. Therefore,
+we advocate that model performance should be considered                     100 = 62.166% .
+                                                                               In addition, to avoid the influence of data probability
+when we evaluate NN-based lossless universal compression
+                                                                            distribution, the overall compression performance of the
+algorithms. In addition, NN-based lossless compression
+                                                                            algorithm on multi-source data is evaluated using
+methods usually use specialized hardware devices to
+                                                                            Compression Robust Performance (CRP) and Average or
+accelerate the computation, e.g., GPUs, TPUs DPUs, and
+                                                                            Weighted Average Compression Ratio (Avg/WavgCR), as well
+FPGAs. Thus, the computational resource consumption of the
+                                                                            as Average or Weighted Space Savings Percentage
+hardware should also be considered. Based on the literature
+                                                                            (Avg/WavgSSP). Let S ize(Fbi ) and S ize(Fai ) denote the i th
+[37–39,79,110], we summarize the evaluation metrics for the
+                                                                            file size before and after compression, where i ⩽ N and N
+NN-based lossless compressors from three aspects, including
+                                                                            denotes the number of total files. The CRP, Avg/WavgCR, and
+compression effect, resource consumption, and model                         Avg/WavgSSP are defined as follows:
+performance.                                                                                      √
+                                                                                                    ∑N−1               2
+4.1 Evaluation of compression effect                                                                 i=0 (CRi − CRu )
+                                                                                         CRP =         √                 × 100%,          (3)
+The compression effect metrics evaluate the compressor’s                                                 N × CRu
+ability to save space and stay robust. In this paper, we suggest
+using Compression Ratio (CR) and Storage Saving Percentage                                                           N−1
+                                                                                                                     ∑
+(SSP) to evaluate the algorithm’s effectiveness in saving                                        Avg/WavgCR =              αi × CRi ,               (4)
+                                                                                                                     i=0
+storage space, and using Compression Robust Performance
+(CRP) to evaluate the robustness of the compression effect.                                                          N−1
+                                                                                                                     ∑
+The definitions and descriptions are as follows.                                               Avg/WavgS S P =             αi × S S Pi .            (5)
+   Let S ize(Fb ) and S ize(Fa ) denote the size (in Bytes) of the                                                   i=0
+file before and after compression, the CR and SSP are                         In Eqs. (3)−(5), CRi and S S Pi denote the compression ratio
+calculated as follows:                                                      and storage saving percentage of the i th file obtained by
+8                                                      Front. Comput. Sci., 2025, 19(7): 197360
+                                        ∑N−1
+                                               CRi
+Eqs. (1) and (2), and CRu = i=0N      denotes the average                  NN-based compression algorithms, we have implemented a
+compression ratio obtained by running the algorithm on N                   benchmark test. All experiments were conducted on a GPU
+datasets. The αi indicates the weighted factor. For the                    server equipped with 4 × Intel Xeon Silver 4310 CPUs (2.10
+                                                                           GHz, 48 cores in total), 4 × NVIDIA GeForce RTX 4090
+AvgCR,we have αi = N1 . For the WavgCR, we have
+       S ize(Fai )
+                                                                           GPUs (16384 CUDA cores, 24 GB of GPU memory), and 128
+αi = ∑N−1            j   . In Eq. (3), the CRP is calculated in the same   GB of DDR4 RAM. The server runs the Linux operating
+            S ize(Fa )
+                                                                           system Ubuntu 20.04.6 LTS.
+      j=0
+way as the Coefficient of Variation (CV) [110], which is
+calculated as the ratio of standard deviation and mean value                 We used 28 open-source datasets with a total data size of
+multiplied by 100%. The smaller the CRP value, the less the                8482 MB. These datasets include various types and formats,
+algorithm is perturbed by the probability distribution of the              such as text, image, and audio. Table 3 provides detailed
+tested datasets and the higher the compression robustness.                 information about the experimental datasets.
+                                                                             We tested the performance of 17 state-of-the-art universal
+4.2 Evaluation of resource consumption                                     lossless compressors (8 NN-based and 9 Traditional methods)
+In recent years, the emergence of acceleration hardware                    on the benchmark datasets, the detailed information about
+devices such GPUs has created new opportunities for NN-                    these compressors is presented in Table 4. Download links of
+based lossless compression [37,111]. Therefore, besides                    datasets and execute scripts of compressors can be found in
+evaluating the usage of system memory by traditional metrics               Supplementary Material Section S1−S2, and Table S1.
+such as the Compression Peak Memory (CPM) and
+Decompression Peak memory (DPM) consumption, we                            5.2 Results
+                                                                           The overall compression effect and resource consumption of
+suggest including the GPU Peak Memory (GPM)
+                                                                           14 compressors (except for LLMZip, Cmix, and X3) on 28
+consumption. Here, smaller CPM/DPM and GPM values
+                                                                           datasets are shown in Table 5. Because LLMZip, Cmix, and
+mean that the algorithm uses less computational resources,
+                                                                           X3 require over 36 hours to run datasets larger than 100 MB,
+thus can run better on performance-constrained devices.
+                                                                           the results of their runs on some datasets are documented in
+Besides, the Compression Time (CT) and Decompression
+                                                                           Supplementary Material Tables S2−S4.
+Time (DT) should also be included in resource consumption
+metrics, especially for real-time data transfer scenarios.                 5.2.1 Compression effect
+Smaller CT and DT imply better compression and                             Among the remaining 14 algorithms (expect for LLMZip,
+decompression performance.                                                 Cmix, and X3), as Table 5 shows, the NNCP with a deeper
+  To avoid the impact of extreme probability distributions of              LSTM model outperformed the other 14 algorithms on
+the tested dataset on the compressor’s performance, we                     WavgCR and WavgSSP. The two adaptive compressors PAC
+suggest using average memory consumption (AvgCPM,                          and TRACE ranked second and third on WavgCR and
+AvgDPM) and total time cost (TotalCT, TotalDT) to evaluate                 WavgSSP. The semi-adaptive method DZip ranked fourth in
+the overall resource-consuming performance of the                          terms of WavgCR and first on AvgCR. For static pre-training
+compression algorithms across all datasets.                                and semi-adaptive methods the size of the pre-trained static
+                                                                           model affects the compression ratio, so some of them are more
+4.3 Evaluation of model performance                                        suitable for compressing relatively large datasets to eliminate
+As introduced in Section 3, the NN-based compression                       the impact of the model size. For example, the semi-adaptive
+algorithms includes two parts, a probability prediction model              method DZip* lags behind all other algorithms except
+and an encoder, while the former plays a primary role in the               DeepZip* on AvgCR but outperforms all traditional algorithms
+compression effect. Therefore, we suggest evaluating the                   on WavgCR, indicating that DZip* behaves better when
+performance of prediction models for NN-based methods. We                  compressing larger files. The DeepZip adopted the static pre-
+use the same three model performance metrics as in the works               training method, which did not work well. When applies
+[37–39], i.e., the total number of model Parameters (Params),              DeepZip to datasets image (D17) and enwik9 (D19), the
+Floating Point Operations (FLOPs), and Model Inference                     compressed file size is twice as large as the original file,
+Latency (MIL). Here, the Params is closely related to GPU                  which may be caused by gradient vanishing or gradient
+memory consumption, representing the spatial complexity of                 explosion during the pre-training process. LSTM-compress
+the model. The FLOPs denote the overall computational                      has the same problem, e.g. its compression ratio on dataset
+quantity of completing one compression operation,                          dna (D27) is much worse than other NN-based and traditional
+representing the time complexity of the model. The MIL refers              algorithms (see Supplementary Material Tables S5−S7).
+to the time required for the model to complete one operation,              Because DZip utilizes a deeper support model M sup during
+which is typically calculated by dividing the total time by the            training, the parameters are adjusted to avoid the same
+number of operations. Smaller values for all three metrics                 problem as DeepZip.
+indicate that the model consumes less computational power                     The metric SSP reflects the space-saving ability of the tested
+and resources.                                                             algorithms. Table 5 also showed that the AvgSSP and
+                                                                           WavgSSP of NN-based compression algorithms are also better
+5   Benchmark testing and analysis                                         than that of traditional algorithms in general. For example, the
+5.1 Experimental platform, datasets, and algorithms                        AvgSSPs of DZip and NNCP exceeded 68 % , which means
+In order to facilitate a comprehensive and fair comparison of              that they save an average of more than 68 % of storage space
+ Hui SUN et al. A survey and benchmark evaluation for neural-network-based lossless universal compressors toward multi-source data                                  9
+
+
+Table 3    Detailed information of used datasets
+
+ID            Name              Type       File size (Byte) Alp-Size ( |S| ) Entropy ( |log|S|
+                                                                                           2 |)
+                                                                                                                            Description
+D1           xml [111]          Text          5345280             104             6.700                                   Files in xml format
+D2         ooffice [111]   Heterogeneous      6152192             256             8.000                           Files consisting of Office programs
+D3        reymont [111]         Text          6627202             256             8.000                    A pdf file with the contents of Reymont’s book
+D4           sao [111]     Homogeneous        7251944             256             8.000                     Files containing information of 258, 996 stars
+D5          x-ray [111]        Image          8474240             256             8.000             12-bit grayscale scaled x-ray medical image of a child’s hand
+D6           mr [111]          Image          9970564             256             8.000                   A magnetic resonance medical image of the head
+D7          osdb [111]     Heterogeneous     10085684             256             8.000                         Open source database files for testing
+D8        dickens [111]         Text         10192446             100             6.644                   Text file consisting of multiple novels by Dickens
+D9         samba [111]     Heterogeneous     21606400             256             8.000                            An collected open source project
+D10          nci [111]     Homogeneous       33553445              62             5.954                                   Files in SDF format
+D11       webster [111]    Heterogeneous     41458703              98             6.615                     An English dictionary stored in HTML format
+D12        mozilla [111]   Homogeneous       51220480             256             8.000                               The executable file Mozilla
+D13        enwik8 [96]          Text         100000000            205             7.679                First 108 bytes of the English Wikipedia dump on 2006
+D14       text8 [96]            Text         100000000             27             4.755           First 108 bytes of the English Wikipedia (only text) dump on 2006
+D15     MNIST [112]            Image          54880032            256             8.000             A widely studied dataset containing handwritten digital images
+D16    CIFAR-10 [113]          Image         186213868            256             8.000                  A standard dataset of images with multiple categories
+D17     ImageNet [97]          Image         745823247            256             8.000                    Training datasets in task3 from ISLVRC on 2012
+D18    ImageTest [114]         Image         470611702            256             8.000           A new 8-bit benchmark dataset for image compression evaluation
+D19      Silesia [111]     Heterogeneous     211938580            256             8.000            A heterogeneous corpus of 12 documents with various data types
+D20      Backup [37]       Heterogeneous    1000000000            256             8.000               109 bytes random extract from the disk backup of TRACE
+D21        enwik9 [96]          Text        1000000000            206             7.687                First 109 bytes of the English Wikipedia dump on 2006
+D22     Book [31]              Text         1000000000            202             7.658                             First 109 bytes of BookCorpus
+D23    ESC [115]               Audio         220522000            256             8.000                            First 500 audio files of the ESC
+D24 Command [116]              Audio         327759206            256             8.000           First 10000 audio files of the Google Speech Commands Dataset
+D25 LibriSpeech [117]          Audio         359034309            256             8.000            Development set ("clean" speech) of LibriSpeech ASR corpus
+D26 LJSpeech [117]             Audio         293847664            256             8.000                    First 10000 audio files of the LJ Speech Dataset
+D27 DNACorpus [118]           Genome         685597124              4             2.000                 A corpus of DNA sequences from 15 different species
+D28 ERR7091247 [119]          Genome        1926041160             32             5.000           A collection of genomics sequencing dataset with FastQ format
+
+
+Table 4    Detailed information of tested universal lossless compression algorithms
+Algorithm                             Year           Language             Parallelism              Methods                        Hyperparameters
+NN-based methods:
+Cmix [85]                             2014             C/C++              Unknown                 NN, CM, AC
+Lstm-compress [102]                   2016             C/C++              Unknown                NN, LSTM, AC
+NNCP [103]                            2019             C/C++             GPU-parallel            NN, LSTM, AC                        -t 16, -cuda
+DeepZip [82]                          2019            Python             GPU-parallel         NN, GRU/LSTM, AC                      -bs 64, -ts 64
+DZip [79]                             2021            Python             GPU-parallel         NN, GRU/LSTM, AC                      -bs 64, -ts 64
+TRACE [37]                            2022            Python             GPU-parallel         NN, Transformer, AC                   -bs 512, -ts 8
+PAC [39]                              2023            Python             GPU-parallel            NN, MLP, AC                        -bs 512, -ts 1
+LLMZip [84]                           2024            Python             GPU-parallel            NN, LLM, AC                      -ts 511, -node 1
+Traditional methods:
+Gzip [89]                             1996             C/C++             Multi-Cores                 LZ77
+PBzip2 [120]                          2015             C/C++             Multi-Cores               BWT, HC                     -p = 16, -9, -m = 2000
+XZ [16]                               2015             C/C++             Multi-Cores                 LZ77                           -t = 16, -9, -e
+BSC [19]                              2016             C/C++             Multi-Cores                 BWT                                   -e2
+SnZip [121]                           2016             C/C++              Unknown                    LZ77                              -t = snzip
+Lzma2 [91]                            2022             C/C++             Multi-Cores               LZ77, AC                -mmt = 16, -m0 = lzma2, -mx9
+PPMD [122]                            2022             C/C++             Multi-Cores               PPM, AC                    -mmt = 16, -m0 = ppmd
+X3 [123,124]                          2023             C/C++              Unknown                     DC
+LZ4-multi [125]                       2024             C/C++             Multi-Cores                 LZ77                             -t 16 -best
+Notes. Year: the date of publication of the literature or toolkit used; Language: the main programming language for compressors; Parallelism: the parallel
+mechanism of the compressor, where “ Multi − Cores ” indicates that the algorithm supports parallel computation using multiple CPU cores (threads),
+“ GPU − Parallel ” indicates that the algorithm supports GPU parallel computation and “ Multi − Nodes ” denotes the compressor support multiple GPU nodes
+for parallel; Methods: the main techniques used; CM (Context Mixing): bits, modeled by combining predictions of independent models; BWT (Burrows-
+Wheeler Transform): bytes are sorted by context, then modeled by order-0 symbol ranking; AC (Arithmetic Coding): commonly used with dynamic modeling
+methods; LZ77: repeated strings are coded by offset and length of previous occurrence; DC (Dictionary-based compressor); PPM (Prediction by Partial
+Match); HC (Huffman Coding); MLP (Multi-Layer Perceptron); LSTM (Long Short-Term Memory); GRU (Gated Recurrent Units); NN (Neural Networks);
+Hyperparameters: default or document-recommended parameters.
+
+for all datasets. SnZip had excellent running speed and                             36.244%, significantly               lower      than     other     traditional
+memory usage performance, but the AvgSSP was only                                   compressors.
+10                                                          Front. Comput. Sci., 2025, 19(7): 197360
+
+
+Table 5     Compression effect of different universal lossless compression algorithms on the benchmark datasets
+
+Algorithm         WavgCR (bits/base) AvgCR (bits/base) WavgSSP/% AvgSSP/% CRP/% TotalCT (Hour) TotalDT (Hour) AvgCPM (GB) AvgDPM (GB)
+NN-based methods:
+NNCP [103]            4.183 #1           2.521 #2       47.713 #1 68.476 #2 13.084 942.928        926.049        0.111       0.111
+PAC [39]              4.327 #2
+                                         2.638 #3
+                                                        45.912 #2
+                                                                  67.019 #3 12.720  74.398        116.868        6.102       6.295
+TRACE [37]                    4.411 #3            2.718          44.867 #3  66.032      12.486       69.128        131.110          6.106          6.449
+DZip [79]                      4.494             2.516 #1         43.819   68.545 #1    14.272      332.787        148.374         10.113          4.790
+DZip* [79]                     4.562              3.802           42.971    52.476      11.158      332.787        148.374         10.113          4.790
+Lstm-compress [102]             5.340             3.023           33.252    62.208      13.498      493.762        482.245        0.009 #3       0.009 #3
+DeepZip* [82]                  16.835             7.045          −110.434   11.933      18.504      250.714         52.449         13.708         4.292
+DeepZip [82]                   16.865             5.760          −110.811   28.003      24.092      250.714         52.449         13.708         4.292
+Traditional methods:
+BSC [19]                       4.826              2.928           39.677     63.394     13.045       0.353          0.300           0.121          0.116
+Lzma2 [91]                     4.912              3.122           38.590     60.967     12.289       0.584          0.030           1.264          0.427
+XZ [16]                        4.923              3.118           38.463     61.021     12.365       0.879          0.040           1.612          0.504
+PPMD [122]                     4.960              3.025           38.001     62.181     12.934       0.893          0.953           0.226          0.225
+PBzip2 [120]                   5.052              3.275           36.845     59.062     11.798      0.024 #1       0.016 #2         0.115          0.084
+Gzip [89]                      5.351              3.862           33.113     51.728 10.342    #3     0.451          0.026         0.002 #1       0.002 #1
+LZ4-multi [125]                5.618              4.280           29.770     46.501 9.656 #2        0.064 #3       0.009 #1        0.116          0.025
+SnZip [121]                    5.981              5.100           25.235     36.244   7.473  #1
+                                                                                                    0.031 #2
+                                                                                                                     0.021 #3      0.003 #2       0.003 #2
+Notes. For the compressors DeepZip and DZip, the results for considering the model are marked with asterisks “ ”. The top-3 performance results are shown in
+                                                                                                                 ∗
+boldface, with “ # ” indicating the performance rank. We ensure data integrity by comparing the hash values of the uncompressed and compressed files. The
+Supplementary Material Section S3 Tables S5 ∼ S20 provide CR, CT, DT, CPM, and DPM results on all 28 datasets for each tested compressor.
+
+  To some extent, the CRP reflects the compressor’s                               Dzip, TRACE, and PAC. The detailed explanations are
+sensitivity to datasets, but algorithms with high sensitivity                     provided in the next subsection.
+may perform badly in compression ratio. For example, the
+NNCP, whose compression ratio was the highest, behaved                            5.2.3 Model performance
+poorly in robustness (13.084%), while the SnZip, whose                            We tested the model performance of 4 NN-based compressors,
+compression ratio was the lowest, had the best robustness                         which are all implemented in Python language and also
+                                                                                  support GPU parallel acceleration, including DeepZip, DZip,
+(7.473%).
+                                                                                  TRACE, and PAC. We set batchsize and timestep for all
+5.2.2 Resource consumption                                                        algorithms to 512 and 16, respectively. The results are shown
+For resource consumption, the AvgCPM, AvgDPM, TotalCT,                            in Table 6.
+and TotalDT values of NN-based compressors are much                                 From Table 6, it can be seen that the prediction model of
+higher than that of traditional algorithms.                                       DeepZip is more lightweight and outperforms the other three
+   In our benchmark results, the RNN-based compression                            algorithms regarding GPM, FLOPs, Params, and MIL.
+algorithm NNCP had the best compression ratio but the worst                       Conversely, DZip applies a deeper model than DeepZip to
+compression and decompression time cost (1869.022 hours),                         improve the compression ratio, thus its prediction model is the
+                                                                                  heaviest among all models, and it performs worse than the
+five orders of magnitude slower than the fastest traditional
+                                                                                  other three algorithms in all metrics, especially Params and
+compression algorithm PBzip2 (0.040 hours). The advanced
+                                                                                  FLOPs. TRACE adopts a single-layer Performer and a shared
+NN-based compressors TRACE (200.238 hours) and PAC                                feed-forward neural network, resulting in only a slightly
+(191.266 hours) were faster than the previous NNCP, Lstm-                         higher parameter count compared to DeepZip. PAC fuses
+compress (967.008 hours), DeepZip (303.163 hours), and                            MLP and ordered masking as a probability prediction model,
+DZip (481.161 hours). This is because the TRACE employs a                         and although its parameter count is nearly double that of
+single-layer Performer structure, byte grouping, and shared                       TRACE, its FLOPs are less than half of TRACE, and its GPM
+feed-forward network to improve the compression speed. The                        and MIL are also significantly lower than TRACE. This also
+PAC designs a progressive compression framework and                               indicates that the computational cost and resource
+employs a more lightweight MLP as a probability distribution                      consumption of the MLP-based compressor are considerably
+predictor. The semi-adaptive algorithm DZip with an                               lower than that of the Transformer-based compressor.
+additional Support Model had a significantly slower speed
+                                                                                  Table 6   Model performance and GPM results of NN-based compressors
+than the static method DeepZip, especially at the decompres-
+sion process. Regarding peak memory consumption, except                           Algorithm       GPM (GB) FLOPs (Giga) Params (Million) MIL (Millisecond)
+for NNCP (0.111 GB) and Lstm-compress (0.009 GB), other                           DeepZip [82] 0.364              3.477            0.606            0.811
+                                                                                  DZip [79]         0.496        16.563           26.180            1.635
+NN-based compression algorithms performed worse than
+                                                                                  TRACE [37]        0.431         9.133            2.366            1.614
+traditional compressors.
+                                                                                  PAC [39]          0.175         4.336            8.476            1.345
+   It is worth mentioning that it is hard to assess the GPU
+                                                                                  Notes. Since the GPU consumption for model compression and decompres-
+memory usage of compressors Cmix, NNCP, and Lstm-                                 sion is nearly identical, we only evaluated the algorithm’s compression GPU
+compress, therefore we only tested the GPM of DeepZip,                            peak memory usage.
+ Hui SUN et al. A survey and benchmark evaluation for neural-network-based lossless universal compressors toward multi-source data   11
+
+
+6   Limitations and future directions                                 6.3 System-aware parallel compression
+After reviewing the literature and conducting benchmark tests,        According to the testing results, we noticed that the tested
+we found that the NN-based lossless universal compressors             algorithms failed to fully utilize the CPU and GPU resources.
+are more effective than traditional methods in terms of               For example, our computer system had 4*12 CPU cores and
+compression ratio. This is because deep neural units can learn        4*16384 GPU computing units, but these cores or units were
+the probability distribution of compressed data well. However,        not fully utilized during the compressing process.
+software, hardware, and time consumption currently limit the          Furthermore, our compression system had memory of 128 GB
+widespread adoption of NN-based compressors. To further               on the CPU side and 24 GB on the GPU side, but the resource
+help develop NN-based lossless universal compressors, this            utilization was low during the compression and
+section outlines four limitations and potential research              decompression. In our tests, even the high CPM-cost
+directions, as follows.                                               compressor Cmix [85] consumed a maximum of 19.174 GB
+                                                                      memory merely, while the high GPM-cost compressor DZip
+6.1 Deep model compression                                            [79] consumed a maximum of 0.496 GB memory only.
+In the benchmark testing, we found that the size of model             Besides, NN-based compressors require longer compression
+parameters is an essential factor affecting the compression           and decompression times compared to traditional
+ratio of NN-based compressors. However, it seems that not             compressors, which restricts the use of compressors in real-
+every neuron in the network is necessary. For example, the            time compression application scenarios. For example, in our
+PAC [39] compressor has a parameter size of 8.476 million,            testing, the total time spent on compression and
+while the TRACE [37] compressor has a size of 2.366 million.          decompression for TRACE was 200.238 hours, whereas for
+While the parameter size of the former is 3.584 times higher          PPMD, it was only 1.846 hours. The time difference was as
+than that of the latter, the increase of AvgCR and WavgCR             high as 108.471 times.
+values are only 2.943% and 1.904%, respectively. In fact, Qin           Therefore, designing system-aware parallel compressors that
+et al. [126] investigated the relationship between model size         effectively utilize system resources, maximize compression
+and compressed data size and achieved a uniform structural            ratios, and save time cost holds broad application prospects,
+reduction of the model. They proposed model compression as            particularly for long-term data backup. In addition, designing
+an effective data-compression method and established a                system-aware parallel compressors can improve the robustness
+comprehensive pre-training approach under the lasso                   of compressors, particularly when the compression servers
+framework [126,127]. Unlike other domains in deep learning            offer limited computing resources, such as memory.
+science (such as disease prediction, drug target prediction,
+protein spatial structure, and financial default prediction), NN-     6.4 Incremental and searchable compression
+based compression prefers to overfit the model according to           Through our benchmark tests, the NN-based lossless universal
+the dataset and maximizes the learning for the original               compression algorithms have demonstrated overwhelming
+probability distribution. Therefore, to prune and compress the        advantages over traditional methods in terms of the
+model specifically for NN-based compressors using this                compression ratio, although the resource consumption is
+characteristic will help improve the compression ratio and also       relatively high. With the rapid improvement of hardware
+help reduce model training cost and inference latency.                acceleration device, these promising compression algorithms
+                                                                      are expected to further break through performance bottlenecks
+6.2 Automated parameter tuning                                        in the coming years. Therefore, we believe that NN-based
+Our research has revealed that the perturbations of input data        compressors will be widely applied in the future. Considering
+probability distributions greatly influence the effectiveness of      practical application demands, incremental and searchable
+the NN-based compressors. For instance, the NNCP [103]                compression algorithms have a wide prospect for multiple
+algorithm, which achieves the best compression ratio among            application and research scenarios. For instance, when we
+all compressors, exhibits a CRP value of 3.084% only,                 compress time series or genetic sequencing data for data
+demonstrating the poor robustness to different datasets. The          backup, newly generated data often strongly correlate with the
+TRACE [37] algorithm achieves the best compression ratio on           historical data. To design and implement incremental
+the dataset nci (D10), while it behaves the worst on the dataset      compression techniques, the redundancy characteristics
+image (D17), resulting in a performance difference of 19.956          between compressed and uncompressed data can be fully
+times (see Supplementary Material Section S3 Table 12). The           explored. Therefore, the compression ratio and the processing
+poor robustness issue may be due to the fixed model                   time is optimized, and the storage and sharing costs are
+architectures. For specific, existing compressors employ fixed        lowered. Additionally, retrieving data from massive
+model architectures to process all kinds of data streams              compressed datasets is computationally intensive. Thus,
+without exploring the probability distribution of the input           designing efficient data retrieval algorithms to access the
+dataset or adjusting the model size flexibly based on the data        compressed data on demand is a meaningful research
+probability distribution. Therefore, adapting the model               direction.
+architectures (i.e., model size and model parameters)
+automatically to fit the tested dataset’s data probability            7    Conclusion
+distribution and the alphabet size might improve the                  In this paper, we have conducted a comprehensive and
+compression ratio and reduce time cost.                               essential literature survey and algorithm evaluation work.
+12                                                        Front. Comput. Sci., 2025, 19(7): 197360
+
+
+Specifically, i) we thoroughly reviewed the universal lossless                           sequencing data compression tools. Nature Methods, 2016, 13(12):
+compression algorithms designed for multi-source data based                              1005−1008
+on neural networks technologies and provided a systematic                           6.   Kredens K V, Martins J V, Dordal O B, Ferrandin M, Herai R H,
+classification guide for NN-based compressors. ii) We unified                            Scalabrin E E, Ávila B C. Vertical lossless genomic data compression
+the NN-based compression metrics and benchmarked the                                     tools for assembled genomes: a systematic literature review. PLoS
+                                                                                         One, 2020, 15(5): e0232942
+state-of-the-art NN-based and traditional compression tools on
+                                                                                    7.   Sun H, Zheng Y, Xie H, Ma H, Liu X, Wang G. PMFFRC: a large-
+28 multi-source real-wolrd datasets, testing the compression
+                                                                                         scale genomic short reads compression optimizer via memory
+effect, resource consumption, and model performance. iii) We
+                                                                                         modeling and redundant clustering. BMC Bioinformatics, 2023, 24(1):
+also summarized the limitations and future directions for the
+                                                                                         454
+NN-based lossless universal compressors.
+                                                                                    8.   Sun H, Zheng Y, Xie H, Ma H, Zhong C, Yan M, Liu X, Wang G.
+  Based on the current work, future studies will involve                                 PQSDC: a parallel lossless compressor for quality scores data via
+testing more NN-based and traditional compression tools and                              sequences      partition    and     run-length   prediction   mapping.
+provide a more detailed classification method for NN-based                               Bioinformatics, 2024, 40(5): btae323
+compressors. Additionally, designing and implementing an                            9.   Ai D, Lu H Y, Yang Y R, Liu Y H, Lu J, Liu Y. A brief overview 3D
+automated universal lossless compressors evaluation                                      point cloud data compression technology. Journal of Xi’an University
+framework would be valuable foundational work.                                           of Posts and Telecommunications, 2021, 26(1): 90−96
+                                                                                   10.   Chen X, Tian J, Beaver I, Freeman C, Yan Y, Wang J, Tao D.
+Acknowledgements This work was partly supported by the National
+                                                                                         FCBench: cross-domain benchmarking of lossless compression for
+Natural Science Foundation of China (Grant Nos. 62272253 and 62272252)
+and the Fundamental Research Funds for the Central Universities. It was also             floating-point data. Proceedings of the VLDB Endowment, 2024,
+supported in part by the China Scholarship Council (CSC202406200085) and                 17(6): 1418−1431
+the Innovation Project of Guangxi Graduate Education (YCBZ2024005). The            11.   Mishra D, Singh S K, Singh R K. Deep architectures for image
+High-performance Computing Center of Guangxi University partly supported                 compression: a critical review. Signal Processing, 2022, 191: 108346
+the experimental work. The authors thank the editor and anonymous reviewers        12.   Jamil S, Piran M J, Rahman M U, Kwon O J. Learning-driven lossy
+for their constructive comments and suggestions for improving our                        image compression: a comprehensive survey. Engineering
+manuscript.
+                                                                                         Applications of Artificial Intelligence, 2023, 123: 106361
+                                                                                   13.   Bourai N E H, Merouani H F, Djebbar A. Deep learning-assisted
+Competing interests The authors declare that they have no competing
+interests or financial conflicts to disclose.                                            medical image compression challenges and opportunities: systematic
+                                                                                         review. Neural Computing and Applications, 2024, 36(17):
+Electronic supplementary material Supplementary material is available in                 10067−10108
+the online version of this article at journal.hep.com.cn and link.springer.com.    14.   Tian T, Wang H. Large-scale video compression: recent advances and
+                                                                                         challenges. Frontiers of Computer Science, 2018, 12(5): 825−839
+Open Access This article is licensed under a Creative Commons Attribution          15.   Im S K, Ghandi M M. Improved rate-distortion optimized video
+4.0 International License, which permits use, sharing, adaptation, distribution
+                                                                                         coding using non-integer bit estimation and multiple Lambda search.
+and reproduction in any medium or format, as long as you give appropriate
+                                                                                         Frontiers of Computer Science, 2016, 10(1): 157−166
+credit to the original author(s) and the source, provide a link to the Creative
+Commons licence, and indicate if changes were made.                                16.   Lasse C. The official website of the XZ compressor. See
+   The images or other third party material in this article are included in the          tukaani.org/xz/ website, 2015
+article’s Creative Commons licence, unless indicated otherwise in a credit line    17.   Meta. Zstandard-Fast real-time compression algorithm. See
+to the material. If material is not included in the article’s Creative Commons           facebook/zstd: Zstandard - Fast real-time compression algorithm
+licence and your intended use is not permitted by statutory regulation or                website, 2024
+exceeds the permitted use, you will need to obtain permission directly from        18.   Google. Brotli compression format. See github.com/google/brotli
+the copyright holder.
+                                                                                         website, 2024
+   To view a copy of this licence, visit http://creativecommons.org/licenses/by/
+                                                                                   19.   IlyaGrebnov. High performance block-sorting data compression
+4.0/.
+                                                                                         library. See github.com/IlyaGrebnov/libbsc website, 2024
+References                                                                         20.   Michael. szip homepage. See compressconsult.com/szip/ website, 2002
+                                                                                   21.   Julian S. The official website of the Bzip2 compressor. See
+ 1.    Schaller R R. Moore’s law: past, present and future. IEEE Spectrum,               sourceware.org/bzip2/ website, 2019
+       1997, 34(6): 52−59                                                          22.   Mahoney M. Incremental journaling backup utility and archiver. See
+ 2.    Rydning J. Global DataSphere, Data Marketplaces, and Data as a                    mattmahoney.net/dc/zpaq website, 2016
+       Service. See idc. com/getdoc.jsp?containerId=IDC_P38353 website,            23.   mathieuchartier. MCMfile compressor. See github.com/mathieuchar-
+       2023                                                                              tier/mcm website, 2016
+ 3.    Sun H, Ma H, Zheng Y, Xie H, Wang X, Liu X. SR2C: a structurally            24.   Margaritov. Hutter prize submission 2021a: STARLIT + cmix. See
+       redundant short reads collapser for optimizing DNA data compression.              github.com/amargaritov/starlit website, 2021
+       In: Proceedings of the 29th IEEE International Conference on Parallel       25.   Aslanyurek M, Mesut A. A static dictionary-based approach to
+       and Distributed Systems. 2023, 60−67                                              compressing short texts. In: Proceedings of the 6th International
+ 4.    Ji Z, Zhou J R, Jiang L, Wu Q H. Overview of DNA sequence data                    Conference on Computer Science and Engineering. 2021, 342−347
+       compression techniques. Acta Electronica Sinica, 2010, 38(5):               26.   Kasneci E, Sessler K, Kuchemann S, Bannert M, Dementieva D,
+       1113−1121                                                                         Fischer F, Gasser U, Groh G, Günnemann S, Hüllermeier E, Krusche
+ 5.    Numanagić I, Bonfield J K, Hach F, Voges J, Ostermann J, Alberti C,               S, Kutyniok G, Michaeli T, Nerdel C, Pfeffer J, Poquet O, Sailer M,
+       Mattavelli M, Sahinalp S C. Comparison of high-throughput                         Schmidt A, Seidel T, Stadler M, Weller J, Kuhn J, Kasneci G.
+Hui SUN et al. A survey and benchmark evaluation for neural-network-based lossless universal compressors toward multi-source data                     13
+
+
+      ChatGPT for good? On opportunities and challenges of large language           compression. In: Proceedings of 1997 Data Compression Conference.
+      models for education. Learning and Individual Differences, 2023, 103:         1997, 469
+      102274                                                                  47.   Capon J. A probabilistic model for run-length coding of pictures. IRE
+27.   Wei C, Wang Y C, Wang B, Kuo C C J. An overview on language                   Transactions on Information Theory, 1959, 5(4): 157−163
+      models: recent developments and outlook. 2023, arXiv preprint arXiv:    48.   Smith C A. A survey of various data compression techniques.
+      2303.05759                                                                    International Journal of Recent Technology Engineering, 2010, 2(1):
+28.   Thirunavukarasu A J, Ting D S J, Elangovan K, Gutierrez L, Tan T F,           1−20
+      Ting D S W. Large language models in medicine. Nature Medicine,         49.   Jayasankar U, Thirumal V, Ponnurangam D. A survey on data
+      2023, 29(8): 1930−1940                                                        compression techniques: from the perspective of data quality, coding
+29.   Hochreiter S, Schmidhuber J. Long short-term memory. Neural                   schemes, data type and applications. Journal of King Saud University-
+      Computation, 1997, 9(8): 1735−1780                                            Computer and Information Sciences, 2021, 33(2): 119−140
+30.   Yu Y, Si X, Hu C, Zhang J. A review of recurrent neural networks:       50.   Chiarot G, Silvestri C. Time series compression survey. ACM
+      LSTM cells and network architectures. Neural Computation, 2019,               Computing Surveys, 2023, 55(10): 1−32
+      31(7): 1235−1270                                                        51.   Holtz K. The evolution of lossless data compression techniques. In:
+31.   Vaswani A, Shazeer N, Parmar N, Uszkoreit J, Jones L, Gomez A N,              Proceedings of WESCON ’93. 1993, 140−145
+      Kaiser Ł, Polosukhin I. Attention is all you need. In: Proceedings of   52.   Kimura N, Latifi S. A survey on data compression in wireless sensor
+      the 31st International Conference on Neural Information Processing            networks. In: Proceedings of International Conference on Information
+      Systems. 2017, 6000−6010                                                      Technology: Coding and Computing. 2005, 8−13
+32.   Huang Y, Xu J, Lai J, Jiang Z, Chen T, Li Z, Yao Y, Ma X, Yang L,       53.   Chew L W, Ang L M, Seng K P. Survey of image compression
+      Chen H, Li S, Zhao P. Advancing transformer architecture in long-             algorithms in wireless sensor networks. In: Proceedings of 2008
+      context large language models: a comprehensive survey. 2024, arXiv            International Symposium on Information Technology. 2008, 1−9
+      preprint arXiv: 2311.12351                                              54.   Me S S, Vijayakuymar V R, Anuja R. A survey on various
+33.   Radford A, Wu J, Child R, Luan D, Amodei D, Sutskever I. Language             compression methods for medical images. International Journal of
+      models are unsupervised multitask learners. OpenAI Blog, 2019, 1(8):          Intelligent Systems and Applications (IJISA), 2012, 4(3): 13−19
+      9                                                                       55.   Hosseini M. Data compression algorithms and their applications. See
+34.   Devlin J, Chang M W, Lee K, Toutanova K. BERT: pre-training of                scribd.com/document/77511910/Data-Compression-Algorithms-and-
+      deep bidirectional transformers for language understanding. In:               Their-Applications website, 2012
+      Proceedings of 2019 Conference of the North American Chapter of the     56.   Srisooksai T, Keamarungsi K, Lamsrichan P, Araki K. Practical data
+      Association for Computational Linguistics: Human Language                     compression in wireless sensor networks: a survey. Journal of Network
+      Technologies. 2018, 4171−4186                                                 and Computer Applications, 2012, 35(1): 37−59
+35.   Gu A, Dao T. Mamba: linear-time sequence modeling with selective        57.   Sharma N, Kaur J, Kaur N. A review on various Lossless text data
+      state spaces. 2024, arXiv preprint arXiv: 2312.00752                          compression techniques. Research Cell: An International Journal of
+36.   Beck M, Pöppel K, Spanring M, Auer A, Prudnikova O, Kopp M,                   Engineering Sciences, 2014, 2: 58−63
+      Klambauer G, Brandstetter J, Hochreiter S. xLSTM: extended long         58.   Zhu Z, Zhang Y, Ji Z, He S, Yang X. High-throughput DNA sequence
+      short-term memory. 2024, arXiv preprint arXiv: 2405.04517                     data compression. Briefings in Bioinformatics, 2015, 16(1): 1−15
+37.   Mao Y, Cui Y, Kuo T W, Xue C J. TRACE: a fast transformer-based         59.   Hernaez M, Pavlichin D, Weissman T, Ochoa I. Genomic data
+      general-purpose lossless compressor. In: Proceedings of ACM Web               compression. Annual Review of Biomedical Data Science, 2019, 2:
+      Conference 2022. 2022, 1829−1838                                              19−37
+38.   Mao Y, Cui Y, Kuo T W, Xue C J. Accelerating general-purpose            60.   Kryukov K, Ueda M T, Nakagawa S, Imanishi T. Sequence
+      lossless compression via simple and scalable parameterization. In:            compression benchmark (SCB) database—A comprehensive
+      Proceedings of the 30th ACM International Conference on                       evaluation of reference-free compressors for FASTA-formatted
+      Multimedia. 2022, 3205−3213                                                   sequences. GigaScience, 2020, 9(7): giaa072
+39.   Mao Y, Li J, Cui Y, Xue J C. Faster and stronger lossless compression   61.   Gilmary R, Venkatesan A, Vaiyapuri G. Compression techniques for
+      with optimized autoregressive framework. In: Proceedings of the 60th          DNA sequences: a thematic review. Journal of Computing Science and
+      ACM/IEEE Design Automation Conference. 2023, 1−6                              Engineering, 2021, 15(2): 59−71
+40.   Zhong C, Sun H. Parallel algorithm for sensitive sequence recognition   62.   Sun H, Ma H, Zheng Y, Xie H, Yan M, Zhong C. LRCB: a
+      from long-read genome data with high error rate. Journal on                   comprehensive benchmark evaluation of reference-free lossless
+      Communications, 2023, 44(2): 160−171                                          compression tools for genomics sequencing long reads data. In:
+41.   Sayood K. Introduction to Data Compression. 5th ed. Sydney: Morgan            Proceedings of 2024 Data Compression Conference. 2024, 584
+      Kaufmann, 2017                                                          63.   Singh B, Kaur A, Singh J. A review of ECG data compression
+42.   Shannon C E. A mathematical theory of communication. The Bell                 techniques. International Journal of Computer Applications, 2015,
+      System Technical Journal, 1948, 27(3): 379−423                                116(11): 39−44
+43.   Moffat A. Huffman coding. ACM Computing Surveys (CSUR), 2019,           64.   Rajankar S O, Talbar S N. An electrocardiogram signal compression
+      52(4): 85                                                                     techniques: a comprehensive review. Analog Integrated Circuits and
+44.   Langdon G G. An introduction to arithmetic coding. IBM Journal of             Signal Processing, 2019, 98(1): 59−74
+      Research and Development, 1984, 28(2): 135−149                          65.   Kumar P, Parmar A. Versatile approaches for medical image
+45.   Ziv J, Lempel A. A universal algorithm for sequential data                    compression: a review. Procedia Computer Science, 2020, 167:
+      compression. IEEE Transactions on Information Theory, 1977, 23(3):            1380−1389
+      337−343                                                                 66.   Patidar G, Kumar S, Kumar D. A review on medical image data
+46.   Schindler M. A fast block-sorting algorithm for lossless data                 compression techniques. In: Proceedings of the 2nd International
+14                                                     Front. Comput. Sci., 2025, 19(7): 197360
+
+
+      Conference on Data, Engineering and Applications. 2020, 1−6                     Computing Surveys (CSUR), 1989, 21(4): 557−591
+67.   Seeli D J J, Thanammal K K. A comparative review and analysis of          87.   Burrows M, Wheeler D J. A block-sorting lossless data compression
+      medical image encryption and compression techniques. Multimedia                 algorithm. Palo Alto: Systems Research Center, 1994: 124
+      Tools and Applications, 2024                                              88.   Mahoney M V. Adaptive weighing of context models for lossless data
+68.   Wen L, Zhou K, Yang S, Li L. Compression of smart meter big data: a             compression. See mattmahoney.net/dc/cs200516.pdf, 2005
+      survey. Renewable and Sustainable Energy Reviews, 2018, 91: 59−69         89.   Gailly J L, Adler M, GZip offical website. See gnu.org/software/gzip/
+69.   Prokop K, Bień A, Barczentewicz S. Compression techniques for real-             manual/ website, 2023
+      time control and non-time-critical big data in smart grids: a review.     90.   Roshal E. RAR offical website. See rarlab.com/ website, 2024
+      Energies, 2023, 16(24): 8077                                              91.   LZMA2 Official Website. LZMA2. See 7-zip website, 2024
+70.   Tcheou M P, Lovisolo L, Ribeiro M V, da Silva E A B, Rodrigues M          92.   Boutell T. RFC2083: Png (portable network graphics) specification
+      A M, Romano J M T, Diniz P S R. The compression of electric signal              version 1.0. RFC Editor. See dl.acm.org/doi/pdf/10.17487/RFC2083,
+      waveforms for smart grids: state of the art and future trends. IEEE             1997
+      Transactions on Smart Grid, 2014, 5(1): 291−302                           93.   Coalson J. Free lossless audio codec. See xiph.org/flac website, 2023
+71.   Sheltami T, Musaddiq M, Shakshuki E. Data compression techniques          94.   Hoffmann J, Borgeaud S, Mensch A, Buchatskaya E, Cai T,
+      in wireless sensor networks. Future Generation Computer Systems,                Rutherford E, de Las Casas D, Hendricks L A, Welbl J, Clark A,
+      2016, 64: 151−162                                                               Hennigan T, Noland E, Millican K, van den Driessche G, Damoc B,
+72.   Sandhya Rani I, Venkateswarlu B. A systematic review of different               Guy A, Osindero S, Simonyan K, Elsen E, Rae J W, Vinyals O, Sifre
+      data compression technique of cloud big sensing data. In: Proceedings           L. Training compute-optimal large language models. 2022, arXiv
+      of the 2nd International Conference on Computer Networks and                    preprint arXiv: 2203.15556
+      Communication Technologies. 2020, 222−228                                 95.   Zaheer M, Guruganesh G, Dubey A, Ainslie J, Alberti C, Ontanon S,
+73.   Ketshabetswe K L, Zungeru A M, Mtengi B, Lebekwe C K,                           Pham P, Ravula A, Wang Q, Yang L, Ahmed A. Big bird:
+      Prabaharan S R S. Data compression algorithms for wireless sensor               Transformers for longer sequences. In: Proceedings of the 34th
+      networks: a review and comparison. IEEE Access, 2021, 9:                        Conference on Neural Information Processing Systems. 2020,
+      136872−136891
+                                                                                      17283−17297
+74.   Correa J D A, Pinto A S R, Montez C. Lossy data compression for IoT
+                                                                                96.   Mahoney M. Large text compression benchmark. See mattmahoney.
+      sensors: a review. Internet of Things, 2022, 19: 100516
+                                                                                      net/dc/text website, 2006
+75.   De Romarategui D G F. Compressing network data with deep learning.
+                                                                                97.   Russakovsky O, Deng J, Su H, Krause J, Satheesh S, Ma S, Huang Z,
+      Universitat Politècnica de Catalunya, Dissertation, 2024
+                                                                                      Karpathy A, Khosla A, Bernstein M, Berg A C, Fei-Fei L. Imagenet
+76.   Kaur R, Chana I, Bhattacharya J. Data deduplication techniques for
+                                                                                      large scale visual recognition challenge. International Journal of
+      efficient cloud storage management: a systematic review. The Journal
+                                                                                      Computer Vision, 2015, 115(3): 211−252
+      of Supercomputing, 2018, 74(5): 2035−2085
+                                                                                98.   Panayotov V, Chen G, Povey D, Khudanpur S. Librispeech: an ASR
+77.   Cappello F, Di S, Li S, Liang X, Gok A M, Tao D, Yoon C H, Wu X
+                                                                                      corpus based on public domain audio books. In: Proceedings of 2015
+      C, Alexeev Y, Chong F T. Use cases of lossy compression for floating-
+                                                                                      IEEE International Conference on Acoustics, Speech and Signal
+      point data in scientific data sets. The International Journal of High
+                                                                                      processing. 2015, 5206−5210
+      Performance Computing Applications, 2019, 33(6): 1201−1220
+                                                                                99.   Touvron H, Lavril T, Izacard G, Martinet X, Lachaux M A, Lacroix T,
+78.   Schmidhuber J, Heil S. Sequential neural text compression. IEEE
+                                                                                      Rozière B, Goyal N, Hambro E, Azhar F, Rodriguez A, Joulin A,
+      Transactions on Neural Networks, 1996, 7(1): 142−146
+                                                                                      Grave E, Lample G. LlaMA: open and efficient foundation language
+79.   Goyal M, Tatwawadi K, Chandak S, Ochoa I. DZip: improved general-
+                                                                                      models. 2023, arXiv preprint arXiv: 2302.13971
+      purpose lossless compression based on novel neural network
+                                                                               100.   Gailly J L, Adler M. zlib. See zlib.net/ website, 2024
+      modeling. In: Proceedings of 2020 Data Compression Conference.
+                                                                               101.   Rhatushnyak A. PAQ8H. See mattmahoney.net/dc/paq website, 2006
+      2020, 372−372
+                                                                               102.   byronknoll. Lstm-compress. See github.com/byronknoll/lstm-compress
+80.   Mahoney M V. Fast text compression with neural networks. In:
+                                                                                      website, 2017
+      Proceedings of the 13th International Florida Artificial Intelligence
+                                                                               103.   Bellard F. NNCP. See bellard.org/nncp/nncp website, 2019
+      Research Society Conference. 2000, 230−234
+                                                                               104.   Likhosherstov V, Choromanski K, Davis J, Song X, Weller A. Sub-
+81.   Delétang G, Ruoss A, Duquenne P A, Catt E, Genewein T, Mattern C,
+                                                                                      linear memory: How to make performers slim. In: Proceedings of the
+      Grau-Moya J, Wenliang L K, Aitchison M, Orseau L, Hutter M,
+                                                                                      35th Conference on Neural Information Processing Systems. 2021,
+      Veness J. Language modeling is compression. In: Proceedings of the
+                                                                                      6707−6719
+      12th International Conference on Learning Representations. 2024          105.   Knoll B. TensorFlow-compress. See github.com/byronknoll/tensorflow-
+82.   Goyal M, Tatwawadi K, Chandak S, Ochoa I. DeepZip: lossless data                compress website, 2020
+      compression using recurrent neural networks. In: Proceedings of 2019     106.   Ma Y, Yu D, Wu T, Wang H. PaddlePaddle: an open-source deep
+      Data Compression Conference. 2019, 575                                          learning platform from industrial practice. Frontiers of Data &
+83.   Liu Q, Xu Y, Li Z. DecMac: a deep context model for high efficiency             Computing, 2019, 1(1): 105−115
+      arithmetic coding. In: Proceedings of 2019 International Conference on   107.   Pang B, Nijkamp E, Wu Y N. Deep learning with TensorFlow: a
+      Artificial Intelligence in Information and Communication. 2019,                 review. Journal of Educational and Behavioral Statistics, 2020, 45(2):
+      438−443                                                                         227−248
+84.   Valmeekam C S K, Narayanan K, Kalathil D, Chamberland J F,               108.   Paszke A, Gross S, Massa F, Lerer A, Bradbury J, Chanan G, Killeen
+      Shakkottai S. LLMZip: lossless text compression using large language            T, Lin Z, Gimelshein N, Antiga L, Desmaison A, Köpf A, Yang E,
+      models. 2023, arXiv preprint arXiv: 2306.04050                                  DeVito Z, Raison M, Tejani A, Chilamkurthy S, Steiner B, Fang L,
+85.   Byronknoll. Cmix. See github.com/byronknoll/cmix website, 2024                  Bai J, Chintala S. PyTorch: an imperative style, high-performance
+86.   Bell T, Witten I H, Cleary J G. Modeling for text compression. ACM              deep learning library. In: Proceedings of the 33rd Conference on
+ Hui SUN et al. A survey and benchmark evaluation for neural-network-based lossless universal compressors toward multi-source data                 15
+
+
+       Neural Information Processing Systems. 2019, 32                                             Huidong MA obtained his BSc and MSc degrees
+109.   Wang D, Cui W. An efficient graph data compression model based on                           in computer science from Hainan University,
+       the germ quotient set structure. Frontiers of Computer Science, 2022,                       China and Guangxi University, China in 2020 and
+       16(6): 166617                                                                               2023, respectively. He is currently pursuing a PhD
+110.   Xing Y, Li G, Wang Z, Feng B, Song Z, Wu C. GTZ: a fast                                     degree in computer science at Nankai University,
+       compression and cloud transmission tool optimized for FASTQ files.                          China. His main research interests include data
+       BMC Bioinformatics, 2017, 18(16): 549
+                                                                                                   storage systems, machine learning, AI for data
+111.   Deorowicz S. Silesia corpus. See github.com/MiloszKrajewski/Silesia
+                                                                                 compression, and large language models. He has authored technical
+       Corpus website, 2018
+                                                                                 papers in conferences and journals, such as DCC, ICPADS, ISBRA,
+112.   LeCun Y, Bottou L, Bengio Y, Haffner P. Gradient-based learning
+       applied to document recognition. Proceedings of the IEEE, 1998,           Bioinformatics, and BMC Bioinformatics.
+       86(11): 2278−2324
+113.   Krizhevsky A. Learning multiple layers of features from tiny images.                         Feng LING obtained a BSc degree in information
+       See cs.toronto.edu/~kriz/learning-features-2009-TR.pdf website, 2009                         security from Northeast University, China in
+114.   Image Compression Benchmark official website. See imagecompres-                              2022. He is currently pursuing a MSc degree at
+       sion.info/ website, 2015                                                                     Nankai University, China. He is a member of the
+115.   Piczak K J. ESC: dataset for environmental sound classification. In:
+                                                                                                    Nankai-Baidu Joint Laboratory and the Parallel
+       Proceedings of the 23rd ACM international conference on Multimedia.
+                                                                                                    and Distributed Software Technology Laboratory.
+       2015, 1015−1018
+                                                                                                    His research interests include AI for data
+116.   Warden P. Speech commands: a dataset for limited-vocabulary speech
+       recognition. 2018, arXiv preprint arXiv: 1804.03209                       compression, high-performance computing, parallel algorithm
+117.   Ito K, Johnson L. The LJ speech dataset. See keithito.com/LJ-Speech-      design, and neural network inference frameworks.
+       Dataset website, 2017
+118.   Pratas D, Pinho A J. A DNA sequence corpus for compression                                   Haonan XIE is currently pursuing a PhD degree in
+       benchmark. In: Proceedings of the 12th International Conference on                           automation at the School of Electrical
+       Practical Applications of Computational Biology & Bioinformatics.                            Engineering, Guangxi University, China. He is a
+       2019, 208−215
+                                                                                                    CAAI member, IEEE member, and IET member.
+119.   Geer L Y, Marchler-Bauer A, Geer R C, Han L, He J, He S, Liu C, Shi
+                                                                                                    His main research interests include artificial
+       W, Bryant S H. The NCBI biosystems database. Nucleic Acids
+                                                                                                    intelligence-engaged energy conversion, systems
+       Research, 2010, 38(suppl_1): D492−D496
+120.   PBzip2. PBzip2. See launchpad.net/pbzip2 website, 2009                                       engineering modeling, and compression &
+121.   Takehiro K. SnZip Official Website. See github.com/kubo/snzip             management of big data in the power industry. He has authored
+       website, 2021                                                             technical papers in RSER, AE, DCC, ICPADS, Bioinformatics, and
+122.   PPMD Official Website. PPMD. See 7-zip website, 2010                      BMC Bioinformatics journals and conferences.
+123.   Barina D, Klima O. X3: lossless data compressor. In: Proceedings of
+       2022 Data Compression Conference. 2022, 441                                                 Yongxia SUN received her BSc and MSc degrees
+124.   Barina D. Experimental lossless data compressor. Microprocessors and
+                                                                                                   in information management & system and
+       Microsystems, 2023, 98: 104803
+                                                                                                   computer technology from Tianjin Agricultural
+125.   LZ4. LZ4 official website. See github.com/lz4/lz4 website, 2024
+                                                                                                   University, China and Hunan University of
+126.   Qin L, Sun J. Model compression for data compression: neural
+       network based lossless compressor made practical. In: Proceedings of                        Technology and Business, China. She is currently
+       2023 Data Compression Conference. 2023, 52−61                                               pursing the PhD degree at college of computer
+127.   Tibshirani R. Regression shrinkage and selection via the lasso. Journal                     science, Nankai University, China. She is a
+       of the Royal Statistical Society: Series B (Methodological), 1996,        member of the Nankai-Baidu Joint Laboratory and the Parallel and
+       58(1): 267−288                                                            Distributed Software Technology Laboratory. Her research interests
+                                                                                 include data compression and storage, data auditing, machine
+                   Hui SUN obtained his BSc and MSc degrees in                   learning, and blockchain application. She has authored technical
+                   information security and computer science from                papers in Computer Networks, CMC, etc.
+                   China University of Mining and Technology and
+                   Guangxi University, China in 2019 and 2022,                                     Liping YI is currently pursuing the PhD degree at
+                   respectively. He is currently pursuing the PhD                                  the College of Computer Science, Nankai
+                   degree at the College of Computer Science,                                      University, China and is also a visiting student at
+                   Nankai University, China, and is also a visiting                                the College of Computing and Data Science
+student at the College of Computing and Data Science (CCDS),                                       (CCDS), Nanyang Technological University
+Nanyang Technological University (NTU), Singapore. His research                                    (NTU), Singapore. Her research interests include
+interests include AI for data compression, deep learning, and parallel                             federated learning, she has authored technical
+computing. He has authored technical conferences and journal papers              papers in NeurIPS, ICML, MM, IJCAI, ICASSP, ICWS, DASFAA,
+in DCC, ICPADS, ISBRA, Journal on Communications, Journal of                     etc. conferences and TSC, TMC, KBS journals. She served as the
+Chinese Computer Systems, Bioinformatics, BMC Bioinformatics,                    reviewer of NeurIPS, ICML, ICLR, KDD, AAAI, IJCAI, CVPR,
+etc.                                                                             MM, ICASSP, ICME, FL-IJCAI’23 workshop, FL@FM-NeurIPS’23
+16                                                Front. Comput. Sci., 2025, 19(7): 197360
+
+workshop, FL@FM-TheWebConf’24 workshop, FL@FM-ICME’24                  bioinformatics, distributed computing, and information security. He
+Workshop conferences, and TMC, TNNLS, TGCN, Neurocomputing             is an outstanding member of Chinese Computer Federation.
+journals.
+                                                                                         Xiaoguang LIU received his BSc, MSc, and PhD
+                  Meng YAN obtained her BSc and PhD degrees in                           degrees in computer science from Nankai
+                  physics and computer science from Tianjin                              University, China in 1996, 1999, and 2002,
+                  University and Nankai University, China in 2014                        respectively. He is currently a professor at the
+                  and 2022, respectively. She is an assistant                            Department of Computer Science, Nankai
+                  professor at Nankai University, conducting                             University, China. His research interests include
+                  postdoctoral research at the Nankai-Baidu Joint                        search engines, storage systems, GPU computing,
+                  Laboratory. Her main research areas include          and federated learning. He has authored technical papers in DCC,
+blockchain, machine learning, and AI for data compression. She has     ICML, AAAI, IJCAI, WWW, SIGIR, VLDB conferences and TC,
+published technical papers on SRDS, Chinese Journal of Electronics,    TPDS, TOS, TKDE, TDSC, TMM, TNNLS, TCSVT journals, etc.
+Bioinformatics, etc. She is currently a member of editor board for
+Journal Blockchain.                                                                      Gang WANG received his BSc, MSc, and PhD
+                                                                                         degrees in computer science from Nankai
+                  Cheng ZHONG received the PhD degree in                                 University, China in 1996, 1999 and 2002,
+                  computer science and technology from the                               respectively. He is currently a professor at the
+                  University of Science and Technology of China,                         Department of Computer Science, Nankai
+                  China. He is currently a professor with the School                     University, China. His research interests include
+                  of Computer, Electronics and Information at                            parallel computing, storage systems, data mining,
+                  Guangxi University, China. He has been hosted        machine learning, and federated learning. He has authored technical
+                  several national and provincial research projects.   papers in ICML, AAAI, IJCAI, WWW, SIGIR, DCC, VLDB, ACM
+He has published more than 150 journal/conference papers and edited    MM conferences and TC, TPDS, TOS, TKDE, TDSC, TNNLS,
+5 books. His research interests include parallel computing,            TCSVT journals, etc.
+

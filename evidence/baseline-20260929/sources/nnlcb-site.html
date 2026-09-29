@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>NNLCB | Neural-Network-Based Lossless Compression Benchmark</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="NNLCB" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Neural-Network-Based Lossless Compression Benchmark" />
+<meta property="og:description" content="Neural-Network-Based Lossless Compression Benchmark" />
+<link rel="canonical" href="https://fahaihi.github.io/NNLCB/" />
+<meta property="og:url" content="https://fahaihi.github.io/NNLCB/" />
+<meta property="og:site_name" content="NNLCB" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="NNLCB" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","description":"Neural-Network-Based Lossless Compression Benchmark","headline":"NNLCB","name":"NNLCB","url":"https://fahaihi.github.io/NNLCB/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/NNLCB/assets/css/style.css?v=91eeea5094a49bd1e60fa9ee4bf3a8e50891da63">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/NNLCB/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://fahaihi.github.io/NNLCB/">NNLCB</a></h1>
+      
+
+      
+<!-- LOGO -->
+<p><br /></p>
+<h1 align="center">
+  <img src="https://fahaihi.github.io/NNLCB/LOG.png" alt="Logo" width="821" height="350" />
+</h1>
+
+<h1 id="a-holistic-benchmark-evaluation-for-neural-network-based-lossless-universal-compressors">A Holistic Benchmark Evaluation for Neural-Network-Based Lossless Universal Compressors</h1>
+
+<h2 id="overview">Overview</h2>
+<p>NNLCB is a general-purpose (Universal) lossless compression algorithms benchmark test for multi-source data with deep neural networks.
+Currently, in our benchmark, we performed examinations on general-purpose lossless compressors, including 8 NN-based and 9 traditional compressors, using 28 datasets with differing type. Each loss-less compressor was evaluated on 19 performance measures, including compression robustness, compression strength, as well as time and peak memory required for compression and decompression, etc.</p>
+
+<p><strong>Note</strong>: The NNLCB has been published on the <a href="https://journal.hep.com.cn/fcs/EN/10.1007/s11704-024-40300-5">FCS journal</a>. If you would like to test new compressors, please contact us.</p>
+
+<h2 id="benchmark-results">Benchmark Results</h2>
+<h4 id="performance-comparison-of-different-universal-lossless-compression-tools-on-benchmark-datasets">Performance comparison of different universal lossless compression tools on benchmark datasets</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center"><strong>Algorithm</strong></th>
+      <th style="text-align: center"><strong><em>WavgCR</em></strong></th>
+      <th style="text-align: center"><strong><em>AvgCR</em></strong></th>
+      <th style="text-align: center"><strong><em>WavgSSP</em></strong></th>
+      <th style="text-align: center"><strong><em>AvgSSP</em></strong></th>
+      <th style="text-align: center"><strong><em>CRP</em></strong></th>
+      <th style="text-align: center"><strong><em>TotalCT</em></strong></th>
+      <th style="text-align: center"><strong><em>TotalDT</em></strong></th>
+      <th style="text-align: center"><strong><em>AvgCPM</em></strong></th>
+      <th style="text-align: center"><strong><em>AvgDPM</em></strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"> </td>
+      <td style="text-align: center">(bits/base)</td>
+      <td style="text-align: center">(bits/base)</td>
+      <td style="text-align: center">(\%)</td>
+      <td style="text-align: center">(\%)</td>
+      <td style="text-align: center">(\%)</td>
+      <td style="text-align: center">(Hour)</td>
+      <td style="text-align: center">(Hour)</td>
+      <td style="text-align: center">(GB)</td>
+      <td style="text-align: center">(GB)</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">NNCP</td>
+      <td style="text-align: center"><strong>4.183</strong></td>
+      <td style="text-align: center"><strong>2.521</strong></td>
+      <td style="text-align: center"><strong>47.713</strong></td>
+      <td style="text-align: center"><strong>68.476</strong></td>
+      <td style="text-align: center">13.084</td>
+      <td style="text-align: center">942.928</td>
+      <td style="text-align: center">926.049</td>
+      <td style="text-align: center">0.111</td>
+      <td style="text-align: center">0.111</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">PAC</td>
+      <td style="text-align: center"><strong>4.327</strong></td>
+      <td style="text-align: center"><strong>2.638</strong></td>
+      <td style="text-align: center"><strong>45.912</strong></td>
+      <td style="text-align: center"><strong>67.019</strong></td>
+      <td style="text-align: center">12.720</td>
+      <td style="text-align: center">74.398</td>
+      <td style="text-align: center">116.868</td>
+      <td style="text-align: center">6.102</td>
+      <td style="text-align: center">6.295</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">TRACE</td>
+      <td style="text-align: center"><strong>4.411</strong></td>
+      <td style="text-align: center">2.718</td>
+      <td style="text-align: center"><strong>44.867</strong></td>
+      <td style="text-align: center">66.032</td>
+      <td style="text-align: center">12.486</td>
+      <td style="text-align: center">69.128</td>
+      <td style="text-align: center">131.110</td>
+      <td style="text-align: center">6.106</td>
+      <td style="text-align: center">6.449</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">DZip</td>
+      <td style="text-align: center">4.494</td>
+      <td style="text-align: center"><strong>2.516</strong></td>
+      <td style="text-align: center">43.819</td>
+      <td style="text-align: center"><strong>68.545</strong></td>
+      <td style="text-align: center">14.272</td>
+      <td style="text-align: center">332.787</td>
+      <td style="text-align: center">148.374</td>
+      <td style="text-align: center">10.113</td>
+      <td style="text-align: center">4.790</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">DZip*</td>
+      <td style="text-align: center">4.562</td>
+      <td style="text-align: center">3.802</td>
+      <td style="text-align: center">42.971</td>
+      <td style="text-align: center">52.476</td>
+      <td style="text-align: center">11.158</td>
+      <td style="text-align: center">332.787</td>
+      <td style="text-align: center">148.374</td>
+      <td style="text-align: center">10.113</td>
+      <td style="text-align: center">4.790</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Lstm-compress</td>
+      <td style="text-align: center">5.395</td>
+      <td style="text-align: center">2.786</td>
+      <td style="text-align: center">32.563</td>
+      <td style="text-align: center">65.168</td>
+      <td style="text-align: center">14.543</td>
+      <td style="text-align: center">492.869</td>
+      <td style="text-align: center">474.498</td>
+      <td style="text-align: center"><strong>0.009</strong></td>
+      <td style="text-align: center"><strong>0.009</strong></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">DeepZip*</td>
+      <td style="text-align: center">16.835</td>
+      <td style="text-align: center">7.045</td>
+      <td style="text-align: center">-110.434</td>
+      <td style="text-align: center">11.933</td>
+      <td style="text-align: center">18.504</td>
+      <td style="text-align: center">250.714</td>
+      <td style="text-align: center">52.449</td>
+      <td style="text-align: center">13.708</td>
+      <td style="text-align: center">4.292</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">DeepZip</td>
+      <td style="text-align: center">16.865</td>
+      <td style="text-align: center">5.760</td>
+      <td style="text-align: center">-110.811</td>
+      <td style="text-align: center">28.003</td>
+      <td style="text-align: center">24.092</td>
+      <td style="text-align: center">250.714</td>
+      <td style="text-align: center">52.449</td>
+      <td style="text-align: center">13.708</td>
+      <td style="text-align: center">4.292</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">BSC</td>
+      <td style="text-align: center">4.826</td>
+      <td style="text-align: center">2.928</td>
+      <td style="text-align: center">39.677</td>
+      <td style="text-align: center">63.394</td>
+      <td style="text-align: center">13.045</td>
+      <td style="text-align: center">0.353</td>
+      <td style="text-align: center">0.300</td>
+      <td style="text-align: center">0.121</td>
+      <td style="text-align: center">0.116</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Lzma2</td>
+      <td style="text-align: center">4.912</td>
+      <td style="text-align: center">3.122</td>
+      <td style="text-align: center">38.590</td>
+      <td style="text-align: center">60.967</td>
+      <td style="text-align: center">12.289</td>
+      <td style="text-align: center">0.584</td>
+      <td style="text-align: center">0.030</td>
+      <td style="text-align: center">1.264</td>
+      <td style="text-align: center">0.427</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">XZ</td>
+      <td style="text-align: center">4.923</td>
+      <td style="text-align: center">3.118</td>
+      <td style="text-align: center">38.463</td>
+      <td style="text-align: center">61.021</td>
+      <td style="text-align: center">12.365</td>
+      <td style="text-align: center">0.879</td>
+      <td style="text-align: center">0.040</td>
+      <td style="text-align: center">1.612</td>
+      <td style="text-align: center">0.504</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">PPMD</td>
+      <td style="text-align: center">4.960</td>
+      <td style="text-align: center">3.025</td>
+      <td style="text-align: center">38.001</td>
+      <td style="text-align: center">62.181</td>
+      <td style="text-align: center">12.934</td>
+      <td style="text-align: center">0.893</td>
+      <td style="text-align: center">0.953</td>
+      <td style="text-align: center">0.226</td>
+      <td style="text-align: center">0.225</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">PBzip2</td>
+      <td style="text-align: center">5.052</td>
+      <td style="text-align: center">3.275</td>
+      <td style="text-align: center">36.845</td>
+      <td style="text-align: center">59.062</td>
+      <td style="text-align: center">11.798</td>
+      <td style="text-align: center"><strong>0.024</strong></td>
+      <td style="text-align: center"><strong>0.016</strong></td>
+      <td style="text-align: center">0.115</td>
+      <td style="text-align: center">0.084</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Gzip</td>
+      <td style="text-align: center">5.351</td>
+      <td style="text-align: center">3.862</td>
+      <td style="text-align: center">33.113</td>
+      <td style="text-align: center">51.728</td>
+      <td style="text-align: center"><strong>10.342</strong></td>
+      <td style="text-align: center">0.451</td>
+      <td style="text-align: center">0.026</td>
+      <td style="text-align: center"><strong>0.002</strong></td>
+      <td style="text-align: center"><strong>0.002</strong></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">LZ4-multi</td>
+      <td style="text-align: center">5.618</td>
+      <td style="text-align: center">4.280</td>
+      <td style="text-align: center">29.770</td>
+      <td style="text-align: center">46.501</td>
+      <td style="text-align: center"><strong>9.656</strong></td>
+      <td style="text-align: center"><strong>0.064</strong></td>
+      <td style="text-align: center"><strong>0.009</strong></td>
+      <td style="text-align: center">0.116</td>
+      <td style="text-align: center">0.025</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">SnZip</td>
+      <td style="text-align: center">5.981</td>
+      <td style="text-align: center">5.100</td>
+      <td style="text-align: center">25.235</td>
+      <td style="text-align: center">36.244</td>
+      <td style="text-align: center"><strong>7.473</strong></td>
+      <td style="text-align: center"><strong>0.031</strong></td>
+      <td style="text-align: center"><strong>0.021</strong></td>
+      <td style="text-align: center"><strong>0.003</strong></td>
+      <td style="text-align: center"><strong>0.003</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Notes.</strong> “*” : Consideration of NN Model Size; 
+“Avg/WavgCR (bits/base)” : Average OR Weighted Average Compression Ratio; 
+“TotalCT/DT (Hours)” : Total Compression OR Decompression Time;
+“AvgCPM/DPM (GB)” : Average Compression OR Decompression Peak Memory;
+“Avg/WavgSSP (%)” : Average OR Weighted Average Storage Saving Percentage;
+“CRP (%)” : Compression Robust Performance (%).</p>
+
+<h2 id="benchmark-datasets">Benchmark Datasets</h2>
+
+<p>We benchmark on 28 widely studied datasets. 
+These datasets contain various types of text, images, audio, genomic data, etc.
+Please refer to our paper for detailed information about the data, and the details of how to obtain each dataset are given below.
+The detailed link address of the benchmark datasets are as follows:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">ID</th>
+      <th style="text-align: center">Name</th>
+      <th style="text-align: center">Data Type</th>
+      <th style="text-align: center">Size (Bytes)</th>
+      <th style="text-align: center">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">D1</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">xml</a></td>
+      <td style="text-align: center">text</td>
+      <td style="text-align: center">5345280</td>
+      <td style="text-align: center">Files in xml format</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D2</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">ooffice</a></td>
+      <td style="text-align: center">heterogeneous</td>
+      <td style="text-align: center">6152192</td>
+      <td style="text-align: center">Files consisting of Office programs</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D3</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">reymont</a></td>
+      <td style="text-align: center">text</td>
+      <td style="text-align: center">6627202</td>
+      <td style="text-align: center">A pdf file with the contents of Reymont’s book</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D4</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">sao</a></td>
+      <td style="text-align: center">homogeneous</td>
+      <td style="text-align: center">7251944</td>
+      <td style="text-align: center">Files containing information of 258,996 stars</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D5</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">x-ray</a></td>
+      <td style="text-align: center">image</td>
+      <td style="text-align: center">8474240</td>
+      <td style="text-align: center">12-bit grayscale scaled x-ray medical image of a child’s hand</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D6</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">mr</a></td>
+      <td style="text-align: center">image</td>
+      <td style="text-align: center">9970564</td>
+      <td style="text-align: center">A magnetic resonance medical image of the head</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D7</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">osdb</a></td>
+      <td style="text-align: center">heterogeneous</td>
+      <td style="text-align: center">10085684</td>
+      <td style="text-align: center">Open source database files for testing</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D8</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">dickens</a></td>
+      <td style="text-align: center">text</td>
+      <td style="text-align: center">10192446</td>
+      <td style="text-align: center">Text file consisting of multiple novels by Dickens</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D9</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">samba</a></td>
+      <td style="text-align: center">heterogeneous</td>
+      <td style="text-align: center">21606400</td>
+      <td style="text-align: center">An collected open source project</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D10</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">nci</a></td>
+      <td style="text-align: center">homogeneous</td>
+      <td style="text-align: center">33553445</td>
+      <td style="text-align: center">Files in SDF format</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D11</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">webster</a></td>
+      <td style="text-align: center">heterogeneous</td>
+      <td style="text-align: center">41458703</td>
+      <td style="text-align: center">An English dictionary stored in HTML format</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D12</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">mozilla</a></td>
+      <td style="text-align: center">homogeneous</td>
+      <td style="text-align: center">51220480</td>
+      <td style="text-align: center">The executable file Mozilla</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D13</td>
+      <td style="text-align: center"><a href="https://mattmahoney.net/dc/enwik8.zip">enwik8</a></td>
+      <td style="text-align: center">text</td>
+      <td style="text-align: center">100000000</td>
+      <td style="text-align: center">First $2^8$ bytes of the English Wikipedia dump on 2006</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D14</td>
+      <td style="text-align: center"><a href="https://mattmahoney.net/dc/text8.zip">text8</a></td>
+      <td style="text-align: center">text</td>
+      <td style="text-align: center">100000000</td>
+      <td style="text-align: center">First $2^8$ bytes of the English Wikipedia (only text) dump on 2006</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D15</td>
+      <td style="text-align: center"><a href="http://yann.lecun.com/exdb/mnist/">MNIST</a></td>
+      <td style="text-align: center">image</td>
+      <td style="text-align: center">54880032</td>
+      <td style="text-align: center">A widely studied dataset containing handwritten digital images</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D16</td>
+      <td style="text-align: center"><a href="https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz">CIFAR-10</a></td>
+      <td style="text-align: center">image</td>
+      <td style="text-align: center">186213868</td>
+      <td style="text-align: center">A standard dataset of images with multiple categories</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D17</td>
+      <td style="text-align: center"><a href="https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_train_t3.tar">ImageNet</a></td>
+      <td style="text-align: center">image</td>
+      <td style="text-align: center">745823247</td>
+      <td style="text-align: center">Training datasets in task3 from ISLVRC on 2012</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D18</td>
+      <td style="text-align: center"><a href="http://imagecompression.info/test_images/rgb8bit.zip">ImageTest</a></td>
+      <td style="text-align: center">image</td>
+      <td style="text-align: center">470611702</td>
+      <td style="text-align: center">A new 8-bit benchmark dataset for image compression evaluation</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D19</td>
+      <td style="text-align: center"><a href="https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip">Silesia</a></td>
+      <td style="text-align: center">heterogeneous</td>
+      <td style="text-align: center">211938580</td>
+      <td style="text-align: center">A heterogeneous corpus of 12 documents with various data types</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D20</td>
+      <td style="text-align: center"><a href="https://drive.google.com/file/d/18qvfbeeOwD1Fejq9XtgAJwYoXjSV8UaC/view?usp=sharing">Backup</a></td>
+      <td style="text-align: center">heterogeneous</td>
+      <td style="text-align: center">1000000000</td>
+      <td style="text-align: center">$2^9$ bytes random extract from the disk backup of TRACE</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D21</td>
+      <td style="text-align: center"><a href="https://mattmahoney.net/dc/enwik9.zip">enwik9</a></td>
+      <td style="text-align: center">text</td>
+      <td style="text-align: center">1000000000</td>
+      <td style="text-align: center">First $2^9$ bytes of the English Wikipedia dump on 2006</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D22</td>
+      <td style="text-align: center"><a href="https://storage.googleapis.com/huggingface-nlp/datasets/bookcorpus/bookcorpus.tar.bz2">Book</a></td>
+      <td style="text-align: center">text</td>
+      <td style="text-align: center">1000000000</td>
+      <td style="text-align: center">First $2^9$ bytes of BookCorpus</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D23</td>
+      <td style="text-align: center"><a href="https://codeload.github.com/karolpiczak/ESC-50/zip/refs/heads/master">ESC</a></td>
+      <td style="text-align: center">audio</td>
+      <td style="text-align: center">220522000</td>
+      <td style="text-align: center">First 500 audio files of the ESC</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D24</td>
+      <td style="text-align: center"><a href="http://download.tensorflow.org/data/speech_commands_v0.01.tar.gz">Command</a></td>
+      <td style="text-align: center">audio</td>
+      <td style="text-align: center">327759206</td>
+      <td style="text-align: center">First 10,000 audio files of the Google Speech Commands Dataset</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D25</td>
+      <td style="text-align: center"><a href="https://openslr.trmal.net/resources/12/dev-clean.tar.gz">LibriSpeech</a></td>
+      <td style="text-align: center">audio</td>
+      <td style="text-align: center">359034309</td>
+      <td style="text-align: center">Development set (“clean” speech) of LibriSpeech ASR corpus</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D26</td>
+      <td style="text-align: center"><a href="https://data.keithito.com/data/speech/LJSpeech-1.1.tar.bz2">LJSpeech</a></td>
+      <td style="text-align: center">audio</td>
+      <td style="text-align: center">293847664</td>
+      <td style="text-align: center">First 10,000 audio files of  the LJ Speech Dataset</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D27</td>
+      <td style="text-align: center"><a href="https://sweet.ua.pt/pratas/datasets/DNACorpus.zip">DNACorpus</a></td>
+      <td style="text-align: center">genome</td>
+      <td style="text-align: center">685597124</td>
+      <td style="text-align: center">A corpus of DNA sequences from 15 different species</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">D28</td>
+      <td style="text-align: center"><a href="https://www.ncbi.nlm.nih.gov/sra/ERR7091247">ERR7091247</a></td>
+      <td style="text-align: center">genome</td>
+      <td style="text-align: center">1926041160</td>
+      <td style="text-align: center">A collection of genomics sequencing dataset with FastQ format</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="algorithms-details">Algorithms Details</h2>
+<p>In our comparison examinations, we benchmarked 8 advanced general-purpose NN-based compressors Cmix, NNCP, Lstm-compress, DeepZip, DZip, TRACE, PAC, LLMZip and 9 traditional methods Gzip, PBzip2, XZ, BSC, SnZip, Lzma2, and PPMD, LZ4, and X3.</p>
+
+<p>All experiments were conducted on a GPU server equipped with 4 * Intel Xeon Silver 4310 CPUs (2.10 GHz, 48 cores in total), 4* NVIDIA GeForce RTX 4090 GPUs (16,384 CUDA cores, 24 GB of GPU memory), and 128 GB of DDR4 RAM. The server runs the operating system Ubuntu 20.04.6 LTS.</p>
+
+<h2 id="algorithms-details-and-commands">Algorithms details and commands</h2>
+
+<h3 id="cmix"><a href="https://github.com/byronknoll/cmix">Cmix</a></h3>
+<p>Cmix is a neural network based lossless compression algorithm aimed at optimizing compression ratio at the cost of high CPU/memory usage, and it uses thousands of context models followed by an NN-based mixer. We used Cmix V19 to finish the experiments.</p>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+cmix <span class="nt">-c</span> file file.cmix
+<span class="c"># decompression</span>
+cmix <span class="nt">-d</span> file.cmix file.cmix.out
+</code></pre></div></div>
+<h3 id="lstm-compress"><a href="https://github.com/byronknoll/lstm-compress">LSTM-compress</a></h3>
+<p>LSTM-compressor is an LSTM-based lossless compression algorithm that uses the same LSTM module and preprocessing code as CMIX. LSTM-compress currently only supports compression of a single file. In this manuscript, we used LSTM-compress V3. The detailed commands are as follows.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+lstm-compress <span class="nt">-c</span> file file.lstm
+<span class="c"># decompression</span>
+lstm-compress <span class="nt">-d</span> file.lstm file.lstm.out
+</code></pre></div></div>
+
+<h3 id="nncp"><a href="https://bellard.org/nncp">NNCP</a></h3>
+<p>NNCP is a lossless compression algorithm based on LSTM and supports multi-GPU parallel processing. NNCP is an experiment to build a practical lossless data compressor with neural networks. The latest version uses a Transformer model. In this manuscript, we used NNCP V2021-06-01 to finish the experiments. The detailed commands are as follows.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+nncp c file file.nncp <span class="nt">-T</span> 16 <span class="nt">--cuda</span>
+<span class="c"># decompression</span>
+nncp d file.nncp file.nncp.out <span class="nt">-T</span> 16 <span class="nt">--cuda</span>
+</code></pre></div></div>
+<h3 id="deepzip"><a href="https://github.com/mohit1997/DeepZip">DeepZip</a></h3>
+<p>DeepZip is a general-purpose compression algorithm based on recurrent neural networks. It belongs to the static pre-training method. The detailed commands for using DeepZip are shown below.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+sh ./compress.sh file file.deepzip bs model
+<span class="c"># decompression</span>
+sh ./decompress.sh file.deepzip file.deepzip.out bs model
+</code></pre></div></div>
+<h3 id="dzip"><a href="https://github.com/mohit1997">DZip</a></h3>
+<p>DZip is an upgraded version of DeepZip, with an extra deeper network added to DeepZip to improve compression. DZip includes two compression modes, combined mode and bootstrap mode.  The detailed commands of DZip are as follows.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+sh ./compress.sh file file.dzip com model
+<span class="c"># decompression</span>
+sh ./decompress.sh file.dzip file.dzip.out com model
+</code></pre></div></div>
+<h3 id="trace"><a href="https://github.com/mynotwo/A-Fast-Transformer-based-General-Purpose-LosslessCompressor">TRACE</a></h3>
+<p>TRACE is a lossless compression algorithm based on Performer (a Transformer variant.) TRACE uses byte grouping and shared FFNs, and therefore has better execution efficiency. Since the original TRACE puts compression and decompression processes into simultaneous execution, in order to test the performance of compression and decompression separately, we have modified the source files to test the performance of compression or decompression separately.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+python compressor.py <span class="nt">--source</span> file <span class="nt">--comp</span> file.trace
+<span class="c"># decompression</span>
+python compressor.py <span class="nt">--comp</span> file.trace <span class="nt">--decomp</span> file.trace.out
+</code></pre></div></div>
+
+<h3 id="pac"><a href="https://github.com/mynotwo/Faster-and-Stronger-Lossless-Compression-with-Optimized-Autoregressive-Framework">PAC</a></h3>
+<p>PAC is a deep learning based compression algorithm fusing MLP and Ordered Mask. Due to the use of MLP, PAC has a lower computational cost. Again, we separate the compression-decompression process of PAC as shown in the command line below.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+python compressor.py <span class="nt">--source</span> file <span class="nt">--comp</span> file.pac
+<span class="c"># decompression</span>
+python compressor.py <span class="nt">--comp</span> file.pac <span class="nt">--decomp</span> file.pac.out
+</code></pre></div></div>
+
+<h3 id="llmzip"><a href="https://github.com/vcskaushik/LLMzip?tab=readme-ov-file">LLMZip</a></h3>
+<p>LLMZip uses LLaMA as probabilistic predictor in combination with entropy coding (zlib, Token-by-Token and arithmetic coding) to achieve general-purpose lossless compression. The compression and decompression commands of LLMZip are as follows.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+torchrun <span class="nt">--nproc_per_node</span> 1 LLMzip_run.py <span class="nt">--ckpt_dir</span> llama2/llama-2-7b <span class="nt">--tokenizer_path</span> llama2/tokenizer.model <span class="nt">--win_len</span> 511 <span class="nt">--text_file</span> file <span class="nt">--compression_folder</span> file <span class="nt">--encode_decode</span> 0
+<span class="c"># decompression</span>
+torchrun <span class="nt">--nproc_per_node</span> 1 LLMzip_run.py <span class="nt">--ckpt_dir</span> llama2/llama-2-7b <span class="nt">--tokenizer_path</span> llama2/tokenizer.model <span class="nt">--win_len</span> 511 <span class="nt">--text_file</span> file <span class="nt">--compression_folder</span> file <span class="nt">--encode_decode</span> 1
+</code></pre></div></div>
+
+<h3 id="gzip"><a href="https://www.gnu.org/software/gzip/">Gzip</a></h3>
+
+<p>Gzip is a popular early general-purpose lossless compression program originally written by Jean-loup Gailly for the GNU project. The commands for Gzip are shown below.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+<span class="nb">gzip</span> <span class="nt">-c</span> file <span class="o">&gt;</span> file.gz <span class="nt">-9</span>
+<span class="c"># decompression</span>
+<span class="nb">gzip </span>file.gz <span class="nt">-9</span>
+</code></pre></div></div>
+<h3 id="pbzip2"><a href="https://launchpad.net/pbzip2">PBzip2</a></h3>
+<p>PBzip2 is a parallel implementation of the Bzip2 block-sorting file compression algorithm that uses pthreads and achieves near-linear speedup on SMP devices. PBzip2 utilizes the Burrows-Wheeler block sorting algorithm for compressing files, along with Huffman coding for efficient text compression. This manuscript uses parallel Bzip2 V1.1.13  to compress data.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+pbzip2 <span class="nt">-9</span> <span class="nt">-m2000</span> <span class="nt">-p16</span> <span class="nt">-c</span> file <span class="o">&gt;</span> file.bz2
+<span class="c"># decompression</span>
+pbzip2 <span class="nt">-dc</span> <span class="nt">-9</span> <span class="nt">-p16</span> <span class="nt">-m2000</span> file.bz2
+</code></pre></div></div>
+
+<h3 id="xz"><a href="https://xz.tukaani.org/xz-utils/">XZ</a></h3>
+<p>XZ Utils is free general-purpose data compression software with a high compression ratio. XZ Utils were written for POSIX-like systems, but also work on some not-so-POSIX systems. XZ Utils are the successor to LZMA Utils. In our experiments, we used XZ V5.5.0. The compression and decompression commands are as follows.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+pbzip2 <span class="nt">-9</span> <span class="nt">-m2000</span> <span class="nt">-p16</span> <span class="nt">-c</span> file <span class="o">&gt;</span> file.bz2
+<span class="c"># decompression</span>
+pbzip2 <span class="nt">-dc</span> <span class="nt">-9</span> <span class="nt">-p16</span> <span class="nt">-m2000</span> file.bz2
+</code></pre></div></div>
+
+<h3 id="bsc"><a href="https://github.com/IlyaGrebnov/libbsc">BSC</a></h3>
+<p>BSC is a high-performance file compressor based on lossless block-ordered data compression algorithm, block-ordered data compression algorithm, high-performance file compressor. This manuscript uses BSC V3.3.2 to compress and decompress data.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+bsc e file file.bsc <span class="nt">-e2</span>
+<span class="c"># decompression</span>
+bsc d file.bsc file.bsc.out
+</code></pre></div></div>
+
+<h3 id="snzip"><a href="https://github.com/kubo/snzip">SnZip</a></h3>
+<p>SnZip is a traditional general-purpose lossless compression algorithm based on snappy. It supports a wide range of file formats including framing-format, old framing-format and so on. The default is framing-format. The command line to run SnZip is as follows.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+snzip <span class="nt">-k</span> <span class="nt">-t</span> snzip file
+<span class="c"># decompression</span>
+snzip <span class="nt">-kd</span> <span class="nt">-t</span> snzip file.snz
+</code></pre></div></div>
+
+<h3 id="lzma2"><a href="https://www.7-zip.org/">LZMA2</a></h3>
+<p>LZMA2 improves the multi-threading capability and performance of the LZMA algorithm and better handles incompressible data, so the compression performance is slightly improved. We also used the built-in LZMA2 algorithm in the 7-Zip application.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+7zz a <span class="nt">-m0</span><span class="o">=</span>lzma2 <span class="nt">-mx9</span> <span class="nt">-mmt16</span> file.7z file
+<span class="c"># decompression</span>
+7zz x <span class="nt">-y</span> <span class="nt">-mx9</span> <span class="nt">-mmt16</span> file.7z
+</code></pre></div></div>
+
+<h3 id="ppmd"><a href="https://www.7-zip.org/">PPMD</a></h3>
+<p>PPMD is a context-based compressor, and its core idea is the Partial Matching Prediction (PPM) algorithm proposed by Cleary and Witten. PPM is a statistical modeling technique that uses a set of previous symbols in the input to predict the next symbol to reduce the output data’s entropy. PPM differs from a dictionary because PPM predicts the next symbol instead of trying to find the next symbol in the dictionary to encode. We utilized the PPMD in the 7-Zip to compress data.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+7zz a <span class="nt">-m0</span><span class="o">=</span>ppmd <span class="nt">-mx9</span> <span class="nt">-mmt16</span> file.7z file
+<span class="c"># decompression</span>
+7zz x <span class="nt">-y</span> <span class="nt">-mx9</span> <span class="nt">-mmt16</span> file.7z
+</code></pre></div></div>
+
+<h3 id="lz4-multi"><a href="https://github.com/lz4/lz4">LZ4-multi</a></h3>
+<p>LZ4 is a lossless compression algorithm with compression speeds greater than 500 MB/s per kernel (greater than 0.15 bytes/cycle). Its decoder is extremely fast, up to several GB/s (1 byte/cycle) per kernel. The latest lz4 algorithm supports multi-threaded versions.</p>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># compression</span>
+lz4 <span class="nt">-12</span> <span class="nt">-T16</span> file file.lz4
+<span class="c"># decompression</span>
+lz4 <span class="nt">-12</span> <span class="nt">-T16</span> <span class="nt">-d</span> file.lz4 file.lz4.reads
+<span class="se">\e</span>nd<span class="o">{</span>lstlisting<span class="o">}</span>
+</code></pre></div></div>
+
+<h2 id="experimental-configuration">Experimental Configuration</h2>
+
+<p>All experiments were conducted on a GPU server equipped with 4 * Intel Xeon Silver 4310 CPUs (2.10 GHz, 48 cores in total), 4* NVIDIA GeForce RTX 4090 GPUs (16,384 CUDA cores, 24 GB of GPU memory), and 128 GB of DDR4 RAM. The server runs the operating system Ubuntu 20.04.6 LTS.</p>
+
+<!-- ## Acknowledgements
+- Thanks to [@NCBI](https://www.freelancer.com/u/Ostokhoon) for all available datasets.
+-->
+
+<h2 id="additional-information">Additional Information</h2>
+<p><strong>Source-Version-Date</strong>   2024.03.08. 2024.03.10.</p>
+
+<p><strong>Latest-Version-Date</strong>   2024.07.28.</p>
+
+<p><strong>Authors:</strong>     NBJL-AIGroup.</p>
+
+<p><strong>Contact us:</strong>  https://nbjl.nankai.edu.cn, sunh@nbjl.naikai.edu.cn, and mahd@nbjl.naikai.edu.cn</p>
+
+<h2 id="change-log">Change Log</h2>
+<p>2024.07.29: Modify the ReadMe file to include the X3 algorithm.</p>
+
+<p>2024.12.15: updating linux sever from 128 GB of DDR4 RAM to 512 GB.</p>
+
+
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  </body>
+</html>

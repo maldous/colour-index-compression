@@ -1,0 +1,225 @@
+{
+  "command": [
+    "bwrap",
+    "--unshare-user",
+    "--unshare-pid",
+    "--unshare-net",
+    "--die-with-parent",
+    "--ro-bind",
+    "/usr",
+    "/usr",
+    "--symlink",
+    "usr/bin",
+    "/bin",
+    "--ro-bind",
+    "/lib",
+    "/lib",
+    "--ro-bind",
+    "/lib64",
+    "/lib64",
+    "--ro-bind",
+    "/etc/ld.so.cache",
+    "/etc/ld.so.cache",
+    "--proc",
+    "/proc",
+    "--dev",
+    "/dev",
+    "--tmpfs",
+    "/tmp",
+    "--ro-bind",
+    "/home/user/src/cix-baseline-runtime-20260929",
+    "/codec",
+    "--ro-bind",
+    "/home/user/src/colour-index-compression/.venv",
+    "/venv",
+    "--ro-bind",
+    "/home/user/src/cix-baseline-tools",
+    "/tools",
+    "--bind",
+    "/home/user/src/cix-baseline-runs/smoke-artifact-only-v1/CIX/decoder-only",
+    "/work",
+    "--chdir",
+    "/codec",
+    "--",
+    "/venv/bin/python",
+    "-m",
+    "benchmarks.competitive_cli",
+    "decode",
+    "/work/archive.bin",
+    "/work/restored.bin"
+  ],
+  "cwd": "/home/user/src/cix-baseline-runtime-20260929",
+  "started_utc": "2026-09-29T05:03:11.503914+00:00",
+  "timeout_seconds": 180,
+  "memory_limit_bytes": 51539607552,
+  "cpu_affinity": [
+    2
+  ],
+  "rss_sample_interval_seconds": 0.05,
+  "environment_overrides": {
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "CUDA_VISIBLE_DEVICES": "",
+    "PYTHONNOUSERSITE": "1",
+    "PYTHONPATH": ""
+  },
+  "resource_wrapper_command": [
+    "taskset",
+    "--cpu-list",
+    "2",
+    "prlimit",
+    "--as=51539607552:51539607552",
+    "--core=0",
+    "--",
+    "bwrap",
+    "--unshare-user",
+    "--unshare-pid",
+    "--unshare-net",
+    "--die-with-parent",
+    "--ro-bind",
+    "/usr",
+    "/usr",
+    "--symlink",
+    "usr/bin",
+    "/bin",
+    "--ro-bind",
+    "/lib",
+    "/lib",
+    "--ro-bind",
+    "/lib64",
+    "/lib64",
+    "--ro-bind",
+    "/etc/ld.so.cache",
+    "/etc/ld.so.cache",
+    "--proc",
+    "/proc",
+    "--dev",
+    "/dev",
+    "--tmpfs",
+    "/tmp",
+    "--ro-bind",
+    "/home/user/src/cix-baseline-runtime-20260929",
+    "/codec",
+    "--ro-bind",
+    "/home/user/src/colour-index-compression/.venv",
+    "/venv",
+    "--ro-bind",
+    "/home/user/src/cix-baseline-tools",
+    "/tools",
+    "--bind",
+    "/home/user/src/cix-baseline-runs/smoke-artifact-only-v1/CIX/decoder-only",
+    "/work",
+    "--chdir",
+    "/codec",
+    "--",
+    "/venv/bin/python",
+    "-m",
+    "benchmarks.competitive_cli",
+    "decode",
+    "/work/archive.bin",
+    "/work/restored.bin"
+  ],
+  "finished_utc": "2026-09-29T05:03:12.332711+00:00",
+  "exit_code": 0,
+  "status": "COMPLETED",
+  "wall_seconds": 0.8285562391392887,
+  "user_seconds": 0.0,
+  "system_seconds": 0.0031019999999999997,
+  "cpu_utilization_percent": 0.3743861736195945,
+  "kernel_max_single_process_rss_bytes": 20185088,
+  "sampled_process_tree_peak_rss_bytes": 1084743680,
+  "input_blocks": 0,
+  "output_blocks": 0,
+  "minor_faults": 282,
+  "major_faults": 0,
+  "voluntary_context_switches": 2,
+  "involuntary_context_switches": 1,
+  "samples": [
+    [
+      0.0008237408474087715,
+      262144,
+      1
+    ],
+    [
+      0.05115592805668712,
+      3145728,
+      2
+    ],
+    [
+      0.10166150098666549,
+      22806528,
+      3
+    ],
+    [
+      0.15224308613687754,
+      40210432,
+      3
+    ],
+    [
+      0.20280671818181872,
+      151621632,
+      4
+    ],
+    [
+      0.2534256661310792,
+      226070528,
+      4
+    ],
+    [
+      0.30409657722339034,
+      287936512,
+      4
+    ],
+    [
+      0.3547501312568784,
+      412192768,
+      4
+    ],
+    [
+      0.4054113822057843,
+      546672640,
+      4
+    ],
+    [
+      0.45611341623589396,
+      568168448,
+      4
+    ],
+    [
+      0.5068331272341311,
+      606703616,
+      4
+    ],
+    [
+      0.5575456139631569,
+      762155008,
+      4
+    ],
+    [
+      0.6082887761294842,
+      898469888,
+      4
+    ],
+    [
+      0.6590018668211997,
+      973967360,
+      4
+    ],
+    [
+      0.7097272500395775,
+      1052348416,
+      4
+    ],
+    [
+      0.7603097101673484,
+      1084743680,
+      4
+    ],
+    [
+      0.8109565041959286,
+      71163904,
+      4
+    ]
+  ]
+}

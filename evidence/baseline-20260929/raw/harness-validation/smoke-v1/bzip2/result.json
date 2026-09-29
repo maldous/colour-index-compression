@@ -1,0 +1,127 @@
+{
+  "dataset_id": "SMOKE",
+  "dataset_name": "Harness validation only",
+  "algorithm": "bzip2",
+  "profile": "high-compression-v1",
+  "repetition": 0,
+  "warmup": false,
+  "smoke_only": true,
+  "cix_commit": null,
+  "started_utc": "2026-09-29T04:51:42.807748+00:00",
+  "input_manifest": {
+    "dataset_id": "SMOKE",
+    "name": "Harness validation only",
+    "path": "/home/user/src/cix-baseline-data/inputs/harness-smoke.bin",
+    "obtained_bytes": 1548,
+    "sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+    "compatibility": "NOT A BENCHMARK"
+  },
+  "status": "VERIFIED",
+  "original_bytes": 1548,
+  "original_sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+  "compressor_identity": {
+    "algorithm": "bzip2",
+    "path": "/bin/bzip2",
+    "sha256": "909769e6f36ab54e52f1099d59aec0e8d2f27b8c53f95c63429f5c571e027ada",
+    "version_output": "bzip2, a block-sorting file compressor.  Version 1.0.8, 13-Jul-2019.\n\n   usage: bzip2 [flags and input files in any order]\n\n   -h --help           print this message\n   -d --decompress     force decompression\n   -z --compress       force compression\n   -k --keep           keep (don't delete) input files\n   -f --force          overwrite existing output files\n   -t --test           test compressed file integrity\n   -c --stdout         output to standard out\n   -q --quiet          suppress noncritical error messages\n   -v --verbose        be verbose (a 2nd -v gives more)\n   -L --license        display software version & license\n   -V --version        display software version & license\n   -s --small          use less memory (at most 2500k)\n   -1 .. -9            set block size to 100k .. 900k\n   --fast              alias for -1\n   --best              alias for -9\n\n   If invoked as `bzip2', default action is to compress.\n              as `bunzip2',  default action is to decompress.\n              as `bzcat', default action is to decompress to stdout.\n\n   If no file names are given, bzip2 compresses or decompresses\n   from standard input to standard output.  You can combine\n   short flags, so `-v -4' means the same as -v4 or -4v, &c.\n\n",
+    "version_command": [
+      "/bin/bzip2",
+      "--help"
+    ],
+    "source": "https://sourceware.org/bzip2/"
+  },
+  "compression_command": [
+    "/bin/bzip2",
+    "-9",
+    "-c",
+    "/home/user/src/cix-baseline-runs/smoke-v1/bzip2/input.bin"
+  ],
+  "decompression_command": [
+    "/bin/bzip2",
+    "-d",
+    "-c",
+    "/home/user/src/cix-baseline-runs/smoke-v1/bzip2/archive.bin"
+  ],
+  "cache": "Sequential pre-read immediately before each phase; no global cache drop",
+  "memory_definition": "Kernel wait4 ru_maxrss: largest process RSS, bytes; process-tree summed RSS sampled separately every 50ms",
+  "compression": {
+    "command": [
+      "/bin/bzip2",
+      "-9",
+      "-c",
+      "/home/user/src/cix-baseline-runs/smoke-v1/bzip2/input.bin"
+    ],
+    "cwd": "/home/user/src/cix-baseline-runs/smoke-v1/bzip2",
+    "started_utc": "2026-09-29T04:51:42.895587+00:00",
+    "timeout_seconds": 180,
+    "memory_limit_bytes": 51539607552,
+    "cpu_affinity": [
+      2
+    ],
+    "rss_sample_interval_seconds": 0.05,
+    "environment_overrides": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": ""
+    },
+    "finished_utc": "2026-09-29T04:51:42.898163+00:00",
+    "exit_code": 0,
+    "status": "COMPLETED",
+    "wall_seconds": 0.0023460625670850277,
+    "user_seconds": 0.000176,
+    "system_seconds": 0.0016799999999999999,
+    "cpu_utilization_percent": 79.11127461131915,
+    "kernel_max_single_process_rss_bytes": 11853824,
+    "sampled_process_tree_peak_rss_bytes": 1310720,
+    "input_blocks": 0,
+    "output_blocks": 8,
+    "minor_faults": 282,
+    "major_faults": 0,
+    "voluntary_context_switches": 1,
+    "involuntary_context_switches": 1
+  },
+  "compressed_bytes": 636,
+  "compressed_sha256": "59a4dc52725bb172b424459fefc8d7f257fccb4500309de80cba81454f90c9e6",
+  "decompression": {
+    "command": [
+      "/bin/bzip2",
+      "-d",
+      "-c",
+      "/home/user/src/cix-baseline-runs/smoke-v1/bzip2/archive.bin"
+    ],
+    "cwd": "/home/user/src/cix-baseline-runs/smoke-v1/bzip2",
+    "started_utc": "2026-09-29T04:51:42.898574+00:00",
+    "timeout_seconds": 180,
+    "memory_limit_bytes": 51539607552,
+    "cpu_affinity": [
+      2
+    ],
+    "rss_sample_interval_seconds": 0.05,
+    "environment_overrides": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": ""
+    },
+    "finished_utc": "2026-09-29T04:51:42.900502+00:00",
+    "exit_code": 0,
+    "status": "COMPLETED",
+    "wall_seconds": 0.001735609956085682,
+    "user_seconds": 0.0,
+    "system_seconds": 0.0013269999999999998,
+    "cpu_utilization_percent": 76.45727056053427,
+    "kernel_max_single_process_rss_bytes": 11866112,
+    "sampled_process_tree_peak_rss_bytes": 0,
+    "input_blocks": 0,
+    "output_blocks": 8,
+    "minor_faults": 278,
+    "major_faults": 0,
+    "voluntary_context_switches": 1,
+    "involuntary_context_switches": 1
+  },
+  "decompressed_sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+  "restored_bytes": 1548,
+  "verification": "SHA-256 and exact byte count",
+  "finished_utc": "2026-09-29T04:51:42.900853+00:00"
+}

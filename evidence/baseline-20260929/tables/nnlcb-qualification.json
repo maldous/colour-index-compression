@@ -1,0 +1,4207 @@
+{
+  "exact_datasets": 15,
+  "exact_verified_cix_datasets": 0,
+  "complete_qualification": false,
+  "aggregate_units": {
+    "TotalCT": "seconds",
+    "TotalDT": "seconds",
+    "AvgCPM": "bytes",
+    "AvgDPM": "bytes",
+    "CR": "bits/original byte"
+  },
+  "metric_definition": "Paper equations 1\u20135; compressed-byte weights; CRP=population CV. Table bridge is an explicitly inferred additional metric.",
+  "aggregates": null,
+  "unresolved": {
+    "D1": "No completed local CIX measurement",
+    "D2": "No completed local CIX measurement",
+    "D3": "No completed local CIX measurement",
+    "D4": "No completed local CIX measurement",
+    "D5": "No completed local CIX measurement",
+    "D6": "No completed local CIX measurement",
+    "D7": "No completed local CIX measurement",
+    "D8": "No completed local CIX measurement",
+    "D9": "No completed local CIX measurement",
+    "D10": "No completed local CIX measurement",
+    "D11": "No completed local CIX measurement",
+    "D12": "No completed local CIX measurement",
+    "D13": "No completed local CIX measurement",
+    "D14": "No completed local CIX measurement",
+    "D15": "Canonical MNIST train/test image streams acquired via CVDF mirror after original URLs returned404. Combined header-inclusive length matches54880032, but NNLCB does not specify concatenation order.",
+    "D16": "Official CIFAR10 Python archive acquisition in progress; exact preparation order and metadata inclusion unspecified.",
+    "D17": "Official task3 archive acquired. It contains120 nested class TARs; NNLCB does not give nested-member concatenation order or an exact prepared-file hash.",
+    "D18": "Official rgb8bit archive acquired:14 PPM files total470611702 bytes (matching expected), plus2038 bytes documentation. Concatenation order and boundaries are unspecified.",
+    "D19": "All12 canonical members verified individually. Their summed length matches211938580, but NNLCB D19 container/concatenation order is unspecified.",
+    "D20": "Official Google Drive source is a roughly4GiB download, while NNLCB specifies a random1000000000-byte extract. No random seed, offset or extraction command is published.",
+    "D21": "No completed local CIX measurement",
+    "D22": "Official BookCorpus archive has two text members totalling4613316478 bytes, in archive order books_large_p2 then books_large_p1. Which concatenation/prefix produced NNLCB first1000000000 bytes is unspecified.",
+    "D23": "Official pinned ESC50 source acquired. Any500 WAV files have the listed total220522000 bytes; NNLCB does not specify which ordering selects the first500.",
+    "D24": "Official archive acquired. First10000 WAVs in archive order total328499914 bytes; lexical order totals327554434. Neither equals published327759206. Selection/order cannot be inferred from size alone.",
+    "D25": "Official dev-clean archive acquired. Its2703 FLAC files total359034309 bytes, matching expected, but NNLCB concatenation order and file-boundary handling are unspecified.",
+    "D26": "Official LJ Speech1.1 acquired. First10000 WAVs total2899573344 bytes in archive order or2880776288 lexically, approximately10x the published293847664. Neither first1000 ordering matches either. Authoritative preparation is unresolved.",
+    "D27": "Official DNACorpus archive acquired. Its17 file lengths sum to685597124, matching expected, but no authoritative concatenation order or prepared-stream hash is published.",
+    "D28": "Canonical ENA FASTQ for accession ERR7091247 downloading; alternative original-submitted FASTQ also exists. Exact NNLCB representation requires verification."
+  },
+  "datasets": [
+    {
+      "dataset_id": "D1",
+      "name": "xml",
+      "data_type": "text",
+      "expected_bytes": 5345280,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "Files in xml format",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 5345280,
+      "sha256": "0e82e54e695c1938e4193448022543845b33020c8be6bf3bf3ead2224903e08c",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/xml",
+      "preparation": "ZIP member xml; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D2",
+      "name": "ooffice",
+      "data_type": "heterogeneous",
+      "expected_bytes": 6152192,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "Files consisting of Office programs",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 6152192,
+      "sha256": "e7ee013880d34dd5208283d0d3d91b07f442e067454276095ded14f322a656eb",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/ooffice",
+      "preparation": "ZIP member ooffice; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D3",
+      "name": "reymont",
+      "data_type": "text",
+      "expected_bytes": 6627202,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "A pdf file with the contents of Reymont's book",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 6627202,
+      "sha256": "0eac0114a3dfe6e2ee1f345a0f79d653cb26c3bc9f0ed79238af4933422b7578",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/reymont",
+      "preparation": "ZIP member reymont; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D4",
+      "name": "sao",
+      "data_type": "homogeneous",
+      "expected_bytes": 7251944,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "Files containing information of 258,996 stars",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 7251944,
+      "sha256": "c2d0ea2cc59d4c21b7fe43a71499342a00cbe530a1d5548770e91ecd6214adcc",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/sao",
+      "preparation": "ZIP member sao; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D5",
+      "name": "x-ray",
+      "data_type": "image",
+      "expected_bytes": 8474240,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "12-bit grayscale scaled x-ray medical image of a child's hand",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 8474240,
+      "sha256": "7de9fce1405dc44ae5e6813ed21cd5751e761bd4265655a005d39b9685d1c9ad",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/x-ray",
+      "preparation": "ZIP member x-ray; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D6",
+      "name": "mr",
+      "data_type": "image",
+      "expected_bytes": 9970564,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "A magnetic resonance medical image of the head",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 9970564,
+      "sha256": "68637ed52e3e4860174ed2dc0840ac77d5f1a60abbcb13770d5754e3774d53e6",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/mr",
+      "preparation": "ZIP member mr; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D7",
+      "name": "osdb",
+      "data_type": "heterogeneous",
+      "expected_bytes": 10085684,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "Open source database files for testing",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 10085684,
+      "sha256": "60f027179302ca3ad87c58ac90b6be72ec23588aaa7a3b7fe8ecc0f11def3fa3",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/osdb",
+      "preparation": "ZIP member osdb; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D8",
+      "name": "dickens",
+      "data_type": "text",
+      "expected_bytes": 10192446,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "Text file consisting of multiple novels by Dickens",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 10192446,
+      "sha256": "b24c37886142e11d0ee687db6ab06f936207aa7f2ea1fd1d9a36763c7a507e6a",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/dickens",
+      "preparation": "ZIP member dickens; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D9",
+      "name": "samba",
+      "data_type": "heterogeneous",
+      "expected_bytes": 21606400,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "An collected open source project",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 21606400,
+      "sha256": "93ba07bc44d8267789c1d911992f40b089ffa2140b4a160fac11ccae9a40e7b2",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/samba",
+      "preparation": "ZIP member samba; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D10",
+      "name": "nci",
+      "data_type": "homogeneous",
+      "expected_bytes": 33553445,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "Files in SDF format",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 33553445,
+      "sha256": "fc63a31770947b8c2062d3b19ca94c00485a232bb91b502021948fee983e1635",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/nci",
+      "preparation": "ZIP member nci; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D11",
+      "name": "webster",
+      "data_type": "heterogeneous",
+      "expected_bytes": 41458703,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "An English dictionary stored in HTML format",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 41458703,
+      "sha256": "6a68f69b26daf09f9dd84f7470368553194a0b294fcfa80f1604efb11143a383",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/webster",
+      "preparation": "ZIP member webster; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D12",
+      "name": "mozilla",
+      "data_type": "homogeneous",
+      "expected_bytes": 51220480,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "The executable file Mozilla",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Named unmodified member of the canonical Silesia zip linked by NNLCB; extracted bytes reverified against preserved source zip and original canonical manifest.",
+      "obtained_bytes": 51220480,
+      "sha256": "657fc3764b0c75ac9de9623125705831ebbfbe08fed248df73bc2dc66e2a963b",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/mozilla",
+      "preparation": "ZIP member mozilla; no transformation",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D13",
+      "name": "enwik8",
+      "data_type": "text",
+      "expected_bytes": 100000000,
+      "source_url": "https://mattmahoney.net/dc/enwik8.zip",
+      "published_description": "First $2^8$ bytes of the English Wikipedia dump on 2006",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Unmodified named canonical ZIP member acquired from the exact NNLCB source URL.",
+      "obtained_bytes": 100000000,
+      "sha256": "2b49720ec4d78c3c9fabaee6e4179a5e997302b3a70029f30f2d582218c024a8",
+      "path": "/home/user/src/cix-baseline-data/inputs/enwik8",
+      "preparation": "Extract ZIP member enwik8",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D14",
+      "name": "text8",
+      "data_type": "text",
+      "expected_bytes": 100000000,
+      "source_url": "https://mattmahoney.net/dc/text8.zip",
+      "published_description": "First $2^8$ bytes of the English Wikipedia (only text) dump on 2006",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Unmodified named canonical ZIP member acquired from the exact NNLCB source URL.",
+      "obtained_bytes": 100000000,
+      "sha256": "6e890197040d37d85beb962ae1f041ff1d9a9ca8d20c7d99c85027eebf51dca7",
+      "path": "/home/user/src/cix-baseline-data/inputs/text8",
+      "preparation": "Extract ZIP member text8",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D15",
+      "name": "MNIST",
+      "data_type": "image",
+      "expected_bytes": 54880032,
+      "source_url": "http://yann.lecun.com/exdb/mnist/",
+      "published_description": "A widely studied dataset containing handwritten digital images",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Canonical MNIST train/test image streams acquired via CVDF mirror after original URLs returned404. Combined header-inclusive length matches54880032, but NNLCB does not specify concatenation order.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D16",
+      "name": "CIFAR-10",
+      "data_type": "image",
+      "expected_bytes": 186213868,
+      "source_url": "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz",
+      "published_description": "A standard dataset of images with multiple categories",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Official CIFAR10 Python archive acquisition in progress; exact preparation order and metadata inclusion unspecified.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D17",
+      "name": "ImageNet",
+      "data_type": "image",
+      "expected_bytes": 745823247,
+      "source_url": "https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_train_t3.tar",
+      "published_description": "Training datasets in task3 from ISLVRC on 2012",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Official task3 archive acquired. It contains120 nested class TARs; NNLCB does not give nested-member concatenation order or an exact prepared-file hash.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D18",
+      "name": "ImageTest",
+      "data_type": "image",
+      "expected_bytes": 470611702,
+      "source_url": "http://imagecompression.info/test_images/rgb8bit.zip",
+      "published_description": "A new 8-bit benchmark dataset for image compression evaluation",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Official rgb8bit archive acquired:14 PPM files total470611702 bytes (matching expected), plus2038 bytes documentation. Concatenation order and boundaries are unspecified.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D19",
+      "name": "Silesia",
+      "data_type": "heterogeneous",
+      "expected_bytes": 211938580,
+      "source_url": "https://sun.aei.polsl.pl//~sdeor/corpus/silesia.zip",
+      "published_description": "A heterogeneous corpus of 12 documents with various data types",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "All12 canonical members verified individually. Their summed length matches211938580, but NNLCB D19 container/concatenation order is unspecified.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D20",
+      "name": "Backup",
+      "data_type": "heterogeneous",
+      "expected_bytes": 1000000000,
+      "source_url": "https://drive.google.com/file/d/18qvfbeeOwD1Fejq9XtgAJwYoXjSV8UaC/view?usp=sharing",
+      "published_description": "$2^9$ bytes random extract from the disk backup of TRACE",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Official Google Drive source is a roughly4GiB download, while NNLCB specifies a random1000000000-byte extract. No random seed, offset or extraction command is published.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D21",
+      "name": "enwik9",
+      "data_type": "text",
+      "expected_bytes": 1000000000,
+      "source_url": "https://mattmahoney.net/dc/enwik9.zip",
+      "published_description": "First $2^9$ bytes of the English Wikipedia dump on 2006",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "EXACT",
+      "compatibility_explanation": "Unmodified named canonical ZIP member acquired from the exact NNLCB source URL.",
+      "obtained_bytes": 1000000000,
+      "sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
+      "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+      "preparation": "Extract ZIP member enwik9",
+      "measurement": null
+    },
+    {
+      "dataset_id": "D22",
+      "name": "Book",
+      "data_type": "text",
+      "expected_bytes": 1000000000,
+      "source_url": "https://storage.googleapis.com/huggingface-nlp/datasets/bookcorpus/bookcorpus.tar.bz2",
+      "published_description": "First $2^9$ bytes of BookCorpus",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Official BookCorpus archive has two text members totalling4613316478 bytes, in archive order books_large_p2 then books_large_p1. Which concatenation/prefix produced NNLCB first1000000000 bytes is unspecified.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D23",
+      "name": "ESC",
+      "data_type": "audio",
+      "expected_bytes": 220522000,
+      "source_url": "https://codeload.github.com/karolpiczak/ESC-50/zip/refs/heads/master",
+      "published_description": "First 500 audio files of the ESC",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Official pinned ESC50 source acquired. Any500 WAV files have the listed total220522000 bytes; NNLCB does not specify which ordering selects the first500.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D24",
+      "name": "Command",
+      "data_type": "audio",
+      "expected_bytes": 327759206,
+      "source_url": "http://download.tensorflow.org/data/speech_commands_v0.01.tar.gz",
+      "published_description": "First 10,000 audio files of the Google Speech Commands Dataset",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Official archive acquired. First10000 WAVs in archive order total328499914 bytes; lexical order totals327554434. Neither equals published327759206. Selection/order cannot be inferred from size alone.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D25",
+      "name": "LibriSpeech",
+      "data_type": "audio",
+      "expected_bytes": 359034309,
+      "source_url": "https://openslr.trmal.net/resources/12/dev-clean.tar.gz",
+      "published_description": "Development set (\"clean\" speech) of LibriSpeech ASR corpus",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Official dev-clean archive acquired. Its2703 FLAC files total359034309 bytes, matching expected, but NNLCB concatenation order and file-boundary handling are unspecified.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D26",
+      "name": "LJSpeech",
+      "data_type": "audio",
+      "expected_bytes": 293847664,
+      "source_url": "https://data.keithito.com/data/speech/LJSpeech-1.1.tar.bz2",
+      "published_description": "First 10,000 audio files of  the LJ Speech Dataset",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Official LJ Speech1.1 acquired. First10000 WAVs total2899573344 bytes in archive order or2880776288 lexically, approximately10x the published293847664. Neither first1000 ordering matches either. Authoritative preparation is unresolved.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D27",
+      "name": "DNACorpus",
+      "data_type": "genome",
+      "expected_bytes": 685597124,
+      "source_url": "https://sweet.ua.pt/pratas/datasets/DNACorpus.zip",
+      "published_description": "A corpus of DNA sequences from 15 different species",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Official DNACorpus archive acquired. Its17 file lengths sum to685597124, matching expected, but no authoritative concatenation order or prepared-stream hash is published.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    },
+    {
+      "dataset_id": "D28",
+      "name": "ERR7091247",
+      "data_type": "genome",
+      "expected_bytes": 1926041160,
+      "source_url": "https://www.ncbi.nlm.nih.gov/sra/ERR7091247",
+      "published_description": "A collection of genomics sequencing dataset with FastQ format",
+      "definition_source": "sources/nnlcb-README.md",
+      "compatibility": "NOT EXACTLY REPRODUCED",
+      "compatibility_explanation": "Canonical ENA FASTQ for accession ERR7091247 downloading; alternative original-submitted FASTQ also exists. Exact NNLCB representation requires verification.",
+      "obtained_bytes": null,
+      "sha256": null,
+      "path": null,
+      "measurement": null
+    }
+  ],
+  "matrix": [
+    {
+      "dataset_id": "D1",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D1",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D2",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D3",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D4",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D5",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D6",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D7",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D8",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D9",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D10",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D11",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D12",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D13",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D14",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical MNIST train/test image streams acquired via CVDF mirror after original URLs returned404. Combined header-inclusive length matches54880032, but NNLCB does not specify concatenation order."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical MNIST train/test image streams acquired via CVDF mirror after original URLs returned404. Combined header-inclusive length matches54880032, but NNLCB does not specify concatenation order."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical MNIST train/test image streams acquired via CVDF mirror after original URLs returned404. Combined header-inclusive length matches54880032, but NNLCB does not specify concatenation order."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical MNIST train/test image streams acquired via CVDF mirror after original URLs returned404. Combined header-inclusive length matches54880032, but NNLCB does not specify concatenation order."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical MNIST train/test image streams acquired via CVDF mirror after original URLs returned404. Combined header-inclusive length matches54880032, but NNLCB does not specify concatenation order."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical MNIST train/test image streams acquired via CVDF mirror after original URLs returned404. Combined header-inclusive length matches54880032, but NNLCB does not specify concatenation order."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D15",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official CIFAR10 Python archive acquisition in progress; exact preparation order and metadata inclusion unspecified."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official CIFAR10 Python archive acquisition in progress; exact preparation order and metadata inclusion unspecified."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official CIFAR10 Python archive acquisition in progress; exact preparation order and metadata inclusion unspecified."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official CIFAR10 Python archive acquisition in progress; exact preparation order and metadata inclusion unspecified."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official CIFAR10 Python archive acquisition in progress; exact preparation order and metadata inclusion unspecified."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official CIFAR10 Python archive acquisition in progress; exact preparation order and metadata inclusion unspecified."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D16",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official task3 archive acquired. It contains120 nested class TARs; NNLCB does not give nested-member concatenation order or an exact prepared-file hash."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official task3 archive acquired. It contains120 nested class TARs; NNLCB does not give nested-member concatenation order or an exact prepared-file hash."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official task3 archive acquired. It contains120 nested class TARs; NNLCB does not give nested-member concatenation order or an exact prepared-file hash."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official task3 archive acquired. It contains120 nested class TARs; NNLCB does not give nested-member concatenation order or an exact prepared-file hash."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official task3 archive acquired. It contains120 nested class TARs; NNLCB does not give nested-member concatenation order or an exact prepared-file hash."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official task3 archive acquired. It contains120 nested class TARs; NNLCB does not give nested-member concatenation order or an exact prepared-file hash."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D17",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official rgb8bit archive acquired:14 PPM files total470611702 bytes (matching expected), plus2038 bytes documentation. Concatenation order and boundaries are unspecified."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official rgb8bit archive acquired:14 PPM files total470611702 bytes (matching expected), plus2038 bytes documentation. Concatenation order and boundaries are unspecified."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official rgb8bit archive acquired:14 PPM files total470611702 bytes (matching expected), plus2038 bytes documentation. Concatenation order and boundaries are unspecified."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official rgb8bit archive acquired:14 PPM files total470611702 bytes (matching expected), plus2038 bytes documentation. Concatenation order and boundaries are unspecified."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official rgb8bit archive acquired:14 PPM files total470611702 bytes (matching expected), plus2038 bytes documentation. Concatenation order and boundaries are unspecified."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official rgb8bit archive acquired:14 PPM files total470611702 bytes (matching expected), plus2038 bytes documentation. Concatenation order and boundaries are unspecified."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D18",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "All12 canonical members verified individually. Their summed length matches211938580, but NNLCB D19 container/concatenation order is unspecified."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "All12 canonical members verified individually. Their summed length matches211938580, but NNLCB D19 container/concatenation order is unspecified."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "All12 canonical members verified individually. Their summed length matches211938580, but NNLCB D19 container/concatenation order is unspecified."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "All12 canonical members verified individually. Their summed length matches211938580, but NNLCB D19 container/concatenation order is unspecified."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "All12 canonical members verified individually. Their summed length matches211938580, but NNLCB D19 container/concatenation order is unspecified."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "All12 canonical members verified individually. Their summed length matches211938580, but NNLCB D19 container/concatenation order is unspecified."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D19",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official Google Drive source is a roughly4GiB download, while NNLCB specifies a random1000000000-byte extract. No random seed, offset or extraction command is published."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official Google Drive source is a roughly4GiB download, while NNLCB specifies a random1000000000-byte extract. No random seed, offset or extraction command is published."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official Google Drive source is a roughly4GiB download, while NNLCB specifies a random1000000000-byte extract. No random seed, offset or extraction command is published."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official Google Drive source is a roughly4GiB download, while NNLCB specifies a random1000000000-byte extract. No random seed, offset or extraction command is published."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official Google Drive source is a roughly4GiB download, while NNLCB specifies a random1000000000-byte extract. No random seed, offset or extraction command is published."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official Google Drive source is a roughly4GiB download, while NNLCB specifies a random1000000000-byte extract. No random seed, offset or extraction command is published."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D20",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "No completed local CIX measurement"
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D21",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official BookCorpus archive has two text members totalling4613316478 bytes, in archive order books_large_p2 then books_large_p1. Which concatenation/prefix produced NNLCB first1000000000 bytes is unspecified."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official BookCorpus archive has two text members totalling4613316478 bytes, in archive order books_large_p2 then books_large_p1. Which concatenation/prefix produced NNLCB first1000000000 bytes is unspecified."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official BookCorpus archive has two text members totalling4613316478 bytes, in archive order books_large_p2 then books_large_p1. Which concatenation/prefix produced NNLCB first1000000000 bytes is unspecified."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official BookCorpus archive has two text members totalling4613316478 bytes, in archive order books_large_p2 then books_large_p1. Which concatenation/prefix produced NNLCB first1000000000 bytes is unspecified."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official BookCorpus archive has two text members totalling4613316478 bytes, in archive order books_large_p2 then books_large_p1. Which concatenation/prefix produced NNLCB first1000000000 bytes is unspecified."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official BookCorpus archive has two text members totalling4613316478 bytes, in archive order books_large_p2 then books_large_p1. Which concatenation/prefix produced NNLCB first1000000000 bytes is unspecified."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D22",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official pinned ESC50 source acquired. Any500 WAV files have the listed total220522000 bytes; NNLCB does not specify which ordering selects the first500."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official pinned ESC50 source acquired. Any500 WAV files have the listed total220522000 bytes; NNLCB does not specify which ordering selects the first500."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official pinned ESC50 source acquired. Any500 WAV files have the listed total220522000 bytes; NNLCB does not specify which ordering selects the first500."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official pinned ESC50 source acquired. Any500 WAV files have the listed total220522000 bytes; NNLCB does not specify which ordering selects the first500."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official pinned ESC50 source acquired. Any500 WAV files have the listed total220522000 bytes; NNLCB does not specify which ordering selects the first500."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official pinned ESC50 source acquired. Any500 WAV files have the listed total220522000 bytes; NNLCB does not specify which ordering selects the first500."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D23",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official archive acquired. First10000 WAVs in archive order total328499914 bytes; lexical order totals327554434. Neither equals published327759206. Selection/order cannot be inferred from size alone."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official archive acquired. First10000 WAVs in archive order total328499914 bytes; lexical order totals327554434. Neither equals published327759206. Selection/order cannot be inferred from size alone."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official archive acquired. First10000 WAVs in archive order total328499914 bytes; lexical order totals327554434. Neither equals published327759206. Selection/order cannot be inferred from size alone."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official archive acquired. First10000 WAVs in archive order total328499914 bytes; lexical order totals327554434. Neither equals published327759206. Selection/order cannot be inferred from size alone."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official archive acquired. First10000 WAVs in archive order total328499914 bytes; lexical order totals327554434. Neither equals published327759206. Selection/order cannot be inferred from size alone."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official archive acquired. First10000 WAVs in archive order total328499914 bytes; lexical order totals327554434. Neither equals published327759206. Selection/order cannot be inferred from size alone."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D24",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official dev-clean archive acquired. Its2703 FLAC files total359034309 bytes, matching expected, but NNLCB concatenation order and file-boundary handling are unspecified."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official dev-clean archive acquired. Its2703 FLAC files total359034309 bytes, matching expected, but NNLCB concatenation order and file-boundary handling are unspecified."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official dev-clean archive acquired. Its2703 FLAC files total359034309 bytes, matching expected, but NNLCB concatenation order and file-boundary handling are unspecified."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official dev-clean archive acquired. Its2703 FLAC files total359034309 bytes, matching expected, but NNLCB concatenation order and file-boundary handling are unspecified."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official dev-clean archive acquired. Its2703 FLAC files total359034309 bytes, matching expected, but NNLCB concatenation order and file-boundary handling are unspecified."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official dev-clean archive acquired. Its2703 FLAC files total359034309 bytes, matching expected, but NNLCB concatenation order and file-boundary handling are unspecified."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D25",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official LJ Speech1.1 acquired. First10000 WAVs total2899573344 bytes in archive order or2880776288 lexically, approximately10x the published293847664. Neither first1000 ordering matches either. Authoritative preparation is unresolved."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official LJ Speech1.1 acquired. First10000 WAVs total2899573344 bytes in archive order or2880776288 lexically, approximately10x the published293847664. Neither first1000 ordering matches either. Authoritative preparation is unresolved."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official LJ Speech1.1 acquired. First10000 WAVs total2899573344 bytes in archive order or2880776288 lexically, approximately10x the published293847664. Neither first1000 ordering matches either. Authoritative preparation is unresolved."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official LJ Speech1.1 acquired. First10000 WAVs total2899573344 bytes in archive order or2880776288 lexically, approximately10x the published293847664. Neither first1000 ordering matches either. Authoritative preparation is unresolved."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official LJ Speech1.1 acquired. First10000 WAVs total2899573344 bytes in archive order or2880776288 lexically, approximately10x the published293847664. Neither first1000 ordering matches either. Authoritative preparation is unresolved."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official LJ Speech1.1 acquired. First10000 WAVs total2899573344 bytes in archive order or2880776288 lexically, approximately10x the published293847664. Neither first1000 ordering matches either. Authoritative preparation is unresolved."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D26",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official DNACorpus archive acquired. Its17 file lengths sum to685597124, matching expected, but no authoritative concatenation order or prepared-stream hash is published."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official DNACorpus archive acquired. Its17 file lengths sum to685597124, matching expected, but no authoritative concatenation order or prepared-stream hash is published."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official DNACorpus archive acquired. Its17 file lengths sum to685597124, matching expected, but no authoritative concatenation order or prepared-stream hash is published."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official DNACorpus archive acquired. Its17 file lengths sum to685597124, matching expected, but no authoritative concatenation order or prepared-stream hash is published."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official DNACorpus archive acquired. Its17 file lengths sum to685597124, matching expected, but no authoritative concatenation order or prepared-stream hash is published."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Official DNACorpus archive acquired. Its17 file lengths sum to685597124, matching expected, but no authoritative concatenation order or prepared-stream hash is published."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D27",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "CR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical ENA FASTQ for accession ERR7091247 downloading; alternative original-submitted FASTQ also exists. Exact NNLCB representation requires verification."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "SSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical ENA FASTQ for accession ERR7091247 downloading; alternative original-submitted FASTQ also exists. Exact NNLCB representation requires verification."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "CRP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "AvgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "WavgCR",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "AvgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "WavgSSP",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "CT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical ENA FASTQ for accession ERR7091247 downloading; alternative original-submitted FASTQ also exists. Exact NNLCB representation requires verification."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "DT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical ENA FASTQ for accession ERR7091247 downloading; alternative original-submitted FASTQ also exists. Exact NNLCB representation requires verification."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "CPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical ENA FASTQ for accession ERR7091247 downloading; alternative original-submitted FASTQ also exists. Exact NNLCB representation requires verification."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "DPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "Canonical ENA FASTQ for accession ERR7091247 downloading; alternative original-submitted FASTQ also exists. Exact NNLCB representation requires verification."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "GPM",
+      "status": "NOT APPLICABLE",
+      "value": null,
+      "explanation": "Frozen CIX executes on the CPU and allocates no GPU model/device memory. This is an architectural fact, not a GPU measurement."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "AvgCPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "AvgDPM",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "TotalCT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "TotalDT",
+      "status": "NOT REPRODUCIBLE",
+      "value": null,
+      "explanation": "The full 28-dataset exact verified universe is incomplete; no subset aggregate is substituted."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "Params",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "FLOPs",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    },
+    {
+      "dataset_id": "D28",
+      "metric": "MIL",
+      "status": "UNSUPPORTED",
+      "value": null,
+      "explanation": "Frozen CIX uses adaptive PAQ mixers and sometimes an LSTM; model-operation instrumentation and a dataset-level model accounting definition are not implemented. No artificial zero or N/A is assigned."
+    }
+  ]
+}

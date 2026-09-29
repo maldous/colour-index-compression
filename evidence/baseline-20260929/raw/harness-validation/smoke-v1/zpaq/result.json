@@ -1,0 +1,142 @@
+{
+  "dataset_id": "SMOKE",
+  "dataset_name": "Harness validation only",
+  "algorithm": "zpaq",
+  "profile": "high-compression-v1",
+  "repetition": 0,
+  "warmup": false,
+  "smoke_only": true,
+  "cix_commit": null,
+  "started_utc": "2026-09-29T04:51:43.187322+00:00",
+  "input_manifest": {
+    "dataset_id": "SMOKE",
+    "name": "Harness validation only",
+    "path": "/home/user/src/cix-baseline-data/inputs/harness-smoke.bin",
+    "obtained_bytes": 1548,
+    "sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+    "compatibility": "NOT A BENCHMARK"
+  },
+  "status": "VERIFIED",
+  "original_bytes": 1548,
+  "original_sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+  "compressor_identity": {
+    "algorithm": "zpaq",
+    "path": "/home/user/src/cix-baseline-tools/zpaq715/zpaq",
+    "sha256": "bf08e58895cd6cb9eb733cca767dbb66f8d051e2b764a9fc3a5df7bdd5b3f838",
+    "version_output": "zpaq v7.15 journaling archiver, compiled Sep 29 2026\nUsage: zpaq command archive[.zpaq] files... -options...\nFiles... may be directory trees. Default is the whole archive.\nUse * or ???? in archive name for multi-part or \"\" for empty.\nCommands:\n   a  add         Append files to archive if dates have changed.\n   x  extract     Extract most recent versions of files.\n   l  list        List or compare external files to archive by dates.\nOptions:\n  -all [N]        Extract/list versions in N [4] digit directories.\n  -f -force       Add: append files if contents have changed.\n                  Extract: overwrite existing output files.\n                  List: compare file contents instead of dates.\n  -index F        Extract: create index F for archive.\n                  Add: create suffix for archive indexed by F, update F.\n  -key X          Create or access encrypted archive with password X.\n  -mN  -method N  Compress level N (0..5 = faster..better, default 1).\n  -noattributes   Ignore/don't save file attributes or permissions.\n  -not files...   Exclude. * and ? match any string or char.\n       =[+-#^?]   List: exclude by comparison result.\n  -only files...  Include only matches (default: *).\n  -repack F [X]   Extract to new archive F with key X (default: none).\n  -sN -summary N  List: show top N sorted by size. -1: show frag IDs.\n                  Add/Extract: if N > 0 show brief progress.\n  -test           Extract: verify but do not write files.\n  -tN -threads N  Use N threads (default: 0 = 32 cores).\n  -to out...      Rename files... to out... or all to out/all.\n  -until N        Roll back archive to N'th update or -N from end.\n  -until 2026-09-29 04:48:02  Set date, roll back (UT, default time: 235959).\n",
+    "version_command": [
+      "/home/user/src/cix-baseline-tools/zpaq715/zpaq"
+    ],
+    "source": "https://mattmahoney.net/dc/zpaq715.zip"
+  },
+  "compression_command": [
+    "/home/user/src/cix-baseline-tools/zpaq715/zpaq",
+    "add",
+    "/home/user/src/cix-baseline-runs/smoke-v1/zpaq/archive.zpaq",
+    "input.bin",
+    "-method",
+    "5",
+    "-threads",
+    "1"
+  ],
+  "decompression_command": [
+    "/home/user/src/cix-baseline-tools/zpaq715/zpaq",
+    "extract",
+    "/home/user/src/cix-baseline-runs/smoke-v1/zpaq/archive.zpaq",
+    "input.bin",
+    "-to",
+    "/home/user/src/cix-baseline-runs/smoke-v1/zpaq/restored.bin",
+    "-threads",
+    "1"
+  ],
+  "cache": "Sequential pre-read immediately before each phase; no global cache drop",
+  "memory_definition": "Kernel wait4 ru_maxrss: largest process RSS, bytes; process-tree summed RSS sampled separately every 50ms",
+  "compression": {
+    "command": [
+      "/home/user/src/cix-baseline-tools/zpaq715/zpaq",
+      "add",
+      "/home/user/src/cix-baseline-runs/smoke-v1/zpaq/archive.zpaq",
+      "input.bin",
+      "-method",
+      "5",
+      "-threads",
+      "1"
+    ],
+    "cwd": "/home/user/src/cix-baseline-runs/smoke-v1/zpaq",
+    "started_utc": "2026-09-29T04:51:43.278178+00:00",
+    "timeout_seconds": 180,
+    "memory_limit_bytes": 51539607552,
+    "cpu_affinity": [
+      2
+    ],
+    "rss_sample_interval_seconds": 0.05,
+    "environment_overrides": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": ""
+    },
+    "finished_utc": "2026-09-29T04:51:43.324754+00:00",
+    "exit_code": 0,
+    "status": "COMPLETED",
+    "wall_seconds": 0.046264511067420244,
+    "user_seconds": 0.021602,
+    "system_seconds": 0.024062999999999998,
+    "cpu_utilization_percent": 98.70416642565056,
+    "kernel_max_single_process_rss_bytes": 94896128,
+    "sampled_process_tree_peak_rss_bytes": 1572864,
+    "input_blocks": 0,
+    "output_blocks": 24,
+    "minor_faults": 26656,
+    "major_faults": 0,
+    "voluntary_context_switches": 9,
+    "involuntary_context_switches": 9
+  },
+  "compressed_bytes": 1352,
+  "compressed_sha256": "20d5bdd65198e0fb398ad96610da48b075df41ecde237653abb04c491df1559e",
+  "decompression": {
+    "command": [
+      "/home/user/src/cix-baseline-tools/zpaq715/zpaq",
+      "extract",
+      "/home/user/src/cix-baseline-runs/smoke-v1/zpaq/archive.zpaq",
+      "input.bin",
+      "-to",
+      "/home/user/src/cix-baseline-runs/smoke-v1/zpaq/restored.bin",
+      "-threads",
+      "1"
+    ],
+    "cwd": "/home/user/src/cix-baseline-runs/smoke-v1/zpaq",
+    "started_utc": "2026-09-29T04:51:43.325303+00:00",
+    "timeout_seconds": 180,
+    "memory_limit_bytes": 51539607552,
+    "cpu_affinity": [
+      2
+    ],
+    "rss_sample_interval_seconds": 0.05,
+    "environment_overrides": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": ""
+    },
+    "finished_utc": "2026-09-29T04:51:43.378198+00:00",
+    "exit_code": 0,
+    "status": "COMPLETED",
+    "wall_seconds": 0.052585861179977655,
+    "user_seconds": 0.023558,
+    "system_seconds": 0.028371,
+    "cpu_utilization_percent": 98.75087872435992,
+    "kernel_max_single_process_rss_bytes": 94896128,
+    "sampled_process_tree_peak_rss_bytes": 1572864,
+    "input_blocks": 0,
+    "output_blocks": 24,
+    "minor_faults": 26507,
+    "major_faults": 0,
+    "voluntary_context_switches": 2,
+    "involuntary_context_switches": 1
+  },
+  "decompressed_sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e",
+  "restored_bytes": 1548,
+  "verification": "SHA-256 and exact byte count",
+  "finished_utc": "2026-09-29T04:51:43.378716+00:00"
+}
