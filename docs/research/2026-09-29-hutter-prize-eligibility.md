@@ -7,8 +7,8 @@ Silesia result into a Hutter Prize claim.
 The canonical local input is
 `/home/user/src/cix-baseline-data/inputs/enwik9`: 1,000,000,000 bytes and
 SHA-256 `159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc`.
-The current official record cited by the Prize is 110,793,128 bytes. The strict
-one-percent threshold therefore permits at most 109,685,196 bytes; 109,685,197
+The current official record cited by the Prize is 110,793,128 bytes. Its
+requirement for at least one-percent saving therefore permits at most 109,685,196 bytes; 109,685,197
 does not qualify.
 
 The detailed rules use the split-program accounting

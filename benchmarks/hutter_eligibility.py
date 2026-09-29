@@ -81,6 +81,10 @@ def _nonnegative_int(value: Any) -> bool:
     return type(value) is int and value >= 0
 
 
+def _positive_int(value: Any) -> bool:
+    return type(value) is int and value > 0
+
+
 def _resource(stage: str, value: Any, failures: list[str]) -> dict[str, Any] | None:
     if not isinstance(value, dict):
         failures.append(f"measurements.{stage}: missing whole-run resource record")
@@ -115,8 +119,8 @@ def _resource(stage: str, value: Any, failures: list[str]) -> dict[str, Any] | N
         failures.append(f"measurements.{stage}: wall time must be finite and positive")
     elif math.isfinite(score) and score > 0 and elapsed >= 70_000 * 3600 / score:
         failures.append(f"measurements.{stage}: does not satisfy strict 70,000/T hour rule")
-    if not _nonnegative_int(rss):
-        failures.append(f"measurements.{stage}: process-tree RSS must be a nonnegative integer")
+    if not _positive_int(rss):
+        failures.append(f"measurements.{stage}: process-tree RSS must be a positive integer")
     elif rss > RAM_LIMIT_BYTES:
         failures.append(f"measurements.{stage}: process-tree RSS exceeds 10,000,000,000 bytes")
     if not _nonnegative_int(temp):
@@ -145,7 +149,9 @@ def _bound_run_evidence(
             failures.append(f"evidence.{stage}: {key} is absent or not bound to the counted artifact")
 
 
-def _review_evidence(value: Any, failures: list[str]) -> dict[str, Any] | None:
+def _review_evidence(value: Any, *, packaging: dict[str, Any], compressor: dict[str, Any] | None,
+                     decompressor: dict[str, Any] | None, archive: dict[str, Any] | None,
+                     documentation_hashes: dict[str, str], failures: list[str]) -> dict[str, Any] | None:
     record = _json_evidence(value, "evidence.packaging_review", failures)
     if record is None:
         return None
@@ -153,6 +159,18 @@ def _review_evidence(value: Any, failures: list[str]) -> dict[str, Any] | None:
                 "license_completeness_verified"):
         if record["payload"].get(key) is not True:
             failures.append(f"evidence.packaging_review: {key} is not independently recorded")
+    payload = record["payload"]
+    expected = {"public_source_url": packaging.get("public_source_url"),
+                "artifact_hashes": {"compressor": compressor["sha256"] if compressor else None,
+                                    "decompressor": decompressor["sha256"] if decompressor else None,
+                                    "archive": archive["sha256"] if archive else None},
+                "documentation_hashes": documentation_hashes}
+    for key, expected_value in expected.items():
+        if payload.get(key) != expected_value:
+            failures.append(f"evidence.packaging_review: {key} is not bound to this package")
+    for key in ("offline_execution_audit", "public_source_access_audit"):
+        if not isinstance(payload.get(key), str) or not payload[key].strip():
+            failures.append(f"evidence.packaging_review: {key} needs a concrete audit reference")
     return record
 
 
@@ -229,12 +247,17 @@ def evaluate(manifest: dict[str, Any], *, verify_input: bool = True) -> dict[str
     if not isinstance(packaging.get("osi_license"), str) or not packaging["osi_license"].strip():
         failures.append("packaging.osi_license is missing")
     source_root = Path(packaging["source_root"]) if isinstance(packaging.get("source_root"), str) else None
+    documentation_hashes: dict[str, str] = {}
     for field in ("root_license_path", "dependency_license_manifest_path", "usage_document_path", "algorithm_document_path"):
         relative = packaging.get(field)
         candidate = source_root / relative if source_root and isinstance(relative, str) else None
         if candidate is None or not candidate.is_file():
             failures.append(f"packaging.{field}: missing readable evidence file")
-    _review_evidence(evidence.get("packaging_review"), failures)
+        else:
+            documentation_hashes[field] = sha256_file(candidate)
+    _review_evidence(evidence.get("packaging_review"), packaging=packaging, compressor=compressor,
+                     decompressor=decompressor, archive=archive, documentation_hashes=documentation_hashes,
+                     failures=failures)
 
     return {
         "schema_version": 1,

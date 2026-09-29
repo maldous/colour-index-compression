@@ -40,12 +40,18 @@ def _manifest(tmp_path: Path, *, same_binary: bool = False) -> dict:
     common = {"completed": True, "exit_code": 0, "input_sha256": None, "input_bytes": gate.ENWIK9_BYTES,
               "compressor_sha256": hashes["compressor"], "decompressor_sha256": hashes["decompressor"],
               "archive_sha256": hashes["archive"]}
+    documentation_hashes = {field: hashlib.sha256((source / filename).read_bytes()).hexdigest()
+                            for field, filename in {"root_license_path": "LICENSE", "dependency_license_manifest_path": "DEPENDENCIES",
+                                                    "usage_document_path": "USAGE", "algorithm_document_path": "ALGORITHM"}.items()}
     result["evidence"] = {"encode": _json(tmp_path / "encode.json", {**common, "measurement": result["measurements"]["compression"]}),
                           "decode": _json(tmp_path / "decode.json", {**common, "measurement": result["measurements"]["decompression"]}),
                           "restored": _file(tmp_path / "restored", b"canonical"),
                           "packaging_review": _json(tmp_path / "review.json", {
                               "offline_execution_verified": True, "public_source_access_verified": True,
-                              "osi_license_verified": True, "license_completeness_verified": True})}
+                              "osi_license_verified": True, "license_completeness_verified": True,
+                              "offline_execution_audit": "local audit receipt v1", "public_source_access_audit": "public URL audit v1",
+                              "public_source_url": result["packaging"]["public_source_url"], "artifact_hashes": hashes,
+                              "documentation_hashes": documentation_hashes})}
     return result
 
 
@@ -135,6 +141,15 @@ def test_nonfinite_or_invalid_resource_numbers_fail(tmp_path):
     result = gate.evaluate(manifest, verify_input=False)
     assert any("wall time" in failure for failure in result["failures"])
     assert any("temporary disk must" in failure for failure in result["failures"])
+
+
+def test_zero_rss_and_unbound_packaging_review_fail(tmp_path):
+    manifest = _manifest(tmp_path)
+    manifest["measurements"]["compression"]["peak_process_tree_rss_bytes"] = 0
+    manifest["evidence"]["packaging_review"]["sha256"] = "0" * 64
+    result = gate.evaluate(manifest, verify_input=False)
+    assert any("RSS must be a positive" in failure for failure in result["failures"])
+    assert any("packaging_review: SHA-256" in failure for failure in result["failures"])
 
 
 def test_exact_time_limit_and_boolean_numeric_fields_fail(tmp_path):
