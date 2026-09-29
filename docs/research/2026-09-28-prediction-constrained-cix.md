@@ -2253,3 +2253,15 @@ reproduction checks, not substitutes for the existing full-member proofs.
 Completion audit/contribution files explicitly preserve every incomplete item,
 including public source, official listing, full v215-12L reference and exhaustive
 per-model ablations. No goal-complete claim is made.
+
+Site source44a5c70383701a1a758d4dbd56bd283add1bbafd was published privately,
+deploymentappgdep_6abb08bb59f081918526d5448f0b3e8c
+(versionappgprj_6aba005773a08191ae8a7978a687b3cb~appgver_900ed91a1dd881919bb60e1e9633dbdc),
+succeeded2026-09-29T00:39:40.094594Z. It now explains the four full-file
+contributions and links the isolation audit. No browser handoff for this
+background goal update. Source code has not been published publicly.
+All18 explicitly tracked native/managerPIDs were revalidated live again;
+see2026-09-29-local-jobs-0040.json. The publication/contact decision is still
+unanswered. Currentturn outcome: progress(contribution audit, source-isolation
+evidence, concrete submission draft and Sites). Goal remains active; no
+completion or blocked threshold claimed.
