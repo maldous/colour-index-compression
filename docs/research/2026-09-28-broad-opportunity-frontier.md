@@ -7,11 +7,11 @@ not a restriction on architecture. Only local computation; no GitHub Actions.
 
 Historical baseline at this frontier launch: portfolio19, 31,175,135 physical bytes.
 
-Update 29 September, 02:40 UTC: portfolio 22 is 25,846,533 bytes, first
+Update 29 September, 03:00 UTC: portfolio 23 is 25,839,568 bytes, first
 numerically equivalent position. All twelve physical frames have complete
 independent restoration evidence. Mozilla field prediction contributes 5,956,286;
-SAO bounded-grid PAQ contributes 2,124,696. The live published leader is still
-27,825,511; the current lead is 1,978,978 bytes (7.1121%). The user has explicitly
+SAO grid-feedback PAQ contributes 2,117,731. The live published leader is still
+27,825,511; the current lead is 1,985,943 bytes (7.1371%). The user has explicitly
 renewed research for a greater lead. Further local computation is authorized
 independently of the unanswered source-publication/contact decision. No new
 public release, official listing or maintainer contact has occurred.
@@ -19,8 +19,8 @@ public release, official listing or maintainer contact has occurred.
 The previously prepared portfolio 20 and 21 source archives remain frozen and
 available locally. New profiles must preserve the actual qualified parent.
 Existing long-running native PAQ and structural trials remain live. No unfinished
-archive contributes a projected score. The corpus-wide grid-feedback comparison
-and conditional-correction experiments continue under measured CPU/RAM capacity.
+archive contributes a projected score. The full coordinate-grouping PAQ follow-up
+and bounded text-model adaptation tests continue under measured CPU/RAM capacity.
 
 ## Opportunity map and first discriminating tests
 

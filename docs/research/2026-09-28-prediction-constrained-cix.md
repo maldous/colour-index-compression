@@ -2537,3 +2537,36 @@ completed. Archive3156113bytesSHA256
 It is preserved asprevious evidence,not relabelledcurrent23. Source23 packaging
 andSiteupdate follow. NativeGOTprospective22 still extends21: neverqualify against
 current23 with thatwrapper. Createa parent-aligned successor whenproof completes.
+
+
+### Published research checkpoint 03:01 UTC
+
+Site publication SUCCEEDED2026-09-29T03:01:14.735605Z. Exactsource
+4c69cdc2ebee38351c861966a10be764a3410814, deployment
+appgdep_6abb29e86e708191a603a55401cfc436, version
+appgprj_6aba005773a08191ae8a7978a687b3cb~appgver_367472f0a1c881919b5e6c77baa229c9.
+Nine-family/four-column table, all12 members andscorecards consistently show
+25,839,568 bytes,12.19%original,7.14% below published leader. Complete grid
+controls,13 new full correction trials,6 matched PAQ regionals,uncertainty
+accounting andcurrent23 source smoke are linked. Current source-only archive
+3157035bytes,1491sourcefiles,SHA256
+30d82fb95e952358a28d6695624cf6e014be546f664eeb0ecc69fcbed3a4419d;
+1076native source/provenance files unchanged from22,seven prior qualifiednative
+binaries reused aftermatching,andfreshuncachedsmallCLI encode/decode passed.
+No current fullarchive decode was repeated within the smoke. No corpus,
+benchmarkstreams,binaries orworkflows in sourcearchive. It remainsprivate.
+
+Score23 frozen sources checkedagain at03:01UTC. Full grouped correctionPAQ
+session53530 remainsrunning onCPU10; twelve text-adaptation controls session32410
+run sequentiallyCPU22. First ordinary/adaptive-CM pair32352/32363B bothrestore;
+thispartialpair isnot a cohortconclusion andnot ontheSite asan improvement.
+DiscountedjointMozilla hasprogressed fromencode todecode, native3899792CPU0.
+Otherstructural andhigher-effort referenceworkers remainlive; currentjobproof
+2026-09-29-local-jobs-0300.json. No wholeGOT/pointer/section/strongerPAQ result
+hascompleted inthischeckpoint. Preserve their sources and original streams.
+
+Current public-source/contact question remainsunanswered; no newquestion, source
+GitHubpush,visibilitychange ormaintainer message. Localresearch remains explicitly
+authorized separately. NoActions. Goaltool stillreports oldofficial-listinggoal
+blocked; no unsupportedresume orfalsecompletion was attempted. Furtherresearch
+canproceed withavailablelocal evidence independently ofthat publication decision.
