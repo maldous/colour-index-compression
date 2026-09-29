@@ -29,7 +29,7 @@ its enwik3–6 prefix tests must not appear as full-dataset measurements.
   bridge separately. No complete CRP compatibility claim is justified yet.
 - Lstm-compress has a further independent inconsistency: supplementary CR rows
   average 3.023071, whereas the aggregate table reports 2.786. Its reconstructed
-  weighted CR is 5.339758 versus published 5.395, and compression times sum to
+  weighted CR is 5.339764 versus published 5.395, and compression times sum to
   493.762217 hours versus published 492.869. Both authoritative tables are
   preserved verbatim as numeric records; no values are repaired to force a match.
 - The advertised `results.xlsx` contains placeholder tables, not benchmark

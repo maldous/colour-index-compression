@@ -10,6 +10,9 @@ CIX commit `f26d32836c15cb1a5e37ebfddd5826c4b33ff8a6`, standalone
 rebuild reproduced all seven native hashes exactly. CIX source is extracted
 into a separate runtime and rechecked against SOURCE-MANIFEST before each run.
 Frozen CIX source/configuration will not be changed in response to any dataset.
+The qualified Python environment is copied byte-for-byte to a separate baseline
+directory. Its files, symlinks and interpreter hash are checked before CIX runs;
+the research environment can therefore evolve later without changing this one.
 Format detection already present in the encoder is disclosed; this is not a
 claim that its development was blind to Silesia. No filename/hash recognition,
 saved streams, source lookup or external pretrained input-specific state is
@@ -50,6 +53,10 @@ only data directory initially contains the compressed artifact; it has no
 original input, encoder logs, selection files, corpus mount or network access.
 Wrapper startup and namespace creation are included equally in each phase's
 wall time. The complete wrapped argv is retained in raw timing records.
+Each phase has an initially empty private temporary directory on the same NVMe
+filesystem, mounted at `/tmp`. Temporary transform files use normal disk I/O;
+there is no RAM-backed scratch advantage for CIX. The decoder sees only the
+archive, the empty temporary directory and its initially empty resource log.
 
 All processes inherit affinity to logical CPU2, a performance-core logical CPU
 on this machine. BLAS/OpenMP thread variables are1; GPU visibility is empty.
@@ -58,6 +65,10 @@ the entire process tree to the same one logical CPU. No local parallel
 compression jobs or intentional heavy research workloads run during measurement.
 Unrelated user services are not stopped; their measured background presence is
 disclosed. The environment snapshot and each phase retain observed load.
+The user's later request authorizes a parallel R&D agent. Its heavy experiments
+must acquire the same exclusive compute lock as the baseline. The scheduler waits
+at atomic run boundaries; lock waits never enter compression/decompression timing
+or become false failed trials. Light analysis and research Site work can continue.
 
 ## Limits and repetitions
 
@@ -65,7 +76,8 @@ disclosed. The environment snapshot and each phase retain observed load.
 - Memory: 48 GiB per-process virtual address limit plus a sampled48GiB summed
   process-tree RSS guard. A limit/error is retained, never replaced by a smaller
   input or favourable earlier result.
-- Disk preflight: room for a full-size archive plus5GiB reserve, then a separate
+- Disk preflight: room for up to1GiB initial output plus5GiB reserve, with a live
+  free-space guard enforcing the reserve throughout both phases, then a separate
   check for the full restored file after actual archive size is known. Full-size
   normal files are used; sparse-source assumptions and a hash-only output sink
   do not replace real output writes. Space failures are explicit.
@@ -93,6 +105,18 @@ For inputs over100,000,000 bytes, the verified archive is also removed after
 its size/hash and full round-trip proof are recorded, to bound local disk use.
 Smaller physical archives remain preserved. Deletion happens outside phase
 timing. Every raw measurement and reproduction command remains available.
+Large failed payloads and temporary scratch files are inventoried and hashed
+before removal; failures remain failures. They do not consume disk indefinitely
+and deprive later compressors of space. Neutral input hardlinks are always removed.
+
+For the full Wikipedia XML, if room for a second full copy is insufficient
+after compression, the harness may remove only its reproducible XML input while
+retaining and rechecking the pinned official bzip2 source. The complete decoded
+output is written normally, checked against the original hash, then becomes the
+next identical input. If decoding fails, the XML is regenerated from the official
+download outside timing before another compressor starts. The compressed archive
+is the decoder's sole input. This rolling storage policy changes neither bytes,
+compression/decompression commands nor normal phase I/O, and every use is logged.
 
 GNU/Linux `wait4` records user/system CPU, largest-process peakRSS, I/O blocks
 and context switches. GNU time runs inside the namespace because the outer
@@ -136,6 +160,14 @@ The high-entropy random stream must show plausible overhead, not magical gain.
 CSV/JSON/text are synthetic style generators, not actual records/documents.
 Scaling exponents will be estimated only from completed observations, retaining
 per-size measurements and censored DNFs. No extrapolation is a10GiB result.
+
+`run_suite.py` records the entire schedule before the first run. Algorithm order
+uses a fixed SHA-256 ordering and a fixed cyclic rotation between repetitions;
+timings and compression outcomes never determine that order. One local lock
+prevents overlapping measurements. Generation, acquisition and builds do not run
+concurrently with measurement. A failed prescribed invocation remains visible and
+later repetitions for that pair receive explicit NOT RUN records. An interrupted
+run requires review rather than being silently overwritten or retried.
 
 ## Publication gate
 

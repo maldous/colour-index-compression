@@ -188,11 +188,12 @@
     "published_description": "First $2^8$ bytes of the English Wikipedia dump on 2006",
     "definition_source": "sources/nnlcb-README.md",
     "compatibility": "EXACT",
-    "compatibility_explanation": "Unmodified named canonical ZIP member acquired from the exact NNLCB source URL.",
+    "compatibility_explanation": "Unmodified named canonical ZIP member from the exact NNLCB URL.",
     "obtained_bytes": 100000000,
     "sha256": "2b49720ec4d78c3c9fabaee6e4179a5e997302b3a70029f30f2d582218c024a8",
     "path": "/home/user/src/cix-baseline-data/inputs/enwik8",
-    "preparation": "Extract ZIP member enwik8"
+    "preparation": "python3 scripts/prepare_public_inputs.py enwik8 --storage /home/user/src/cix-baseline-data",
+    "source_artifact_sha256": "547994d9980ebed1288380d652999f38a14fe291a6247c157c3d33d4932534bc"
   },
   {
     "dataset_id": "D14",
@@ -203,11 +204,12 @@
     "published_description": "First $2^8$ bytes of the English Wikipedia (only text) dump on 2006",
     "definition_source": "sources/nnlcb-README.md",
     "compatibility": "EXACT",
-    "compatibility_explanation": "Unmodified named canonical ZIP member acquired from the exact NNLCB source URL.",
+    "compatibility_explanation": "Unmodified named canonical ZIP member from the exact NNLCB URL.",
     "obtained_bytes": 100000000,
     "sha256": "6e890197040d37d85beb962ae1f041ff1d9a9ca8d20c7d99c85027eebf51dca7",
     "path": "/home/user/src/cix-baseline-data/inputs/text8",
-    "preparation": "Extract ZIP member text8"
+    "preparation": "python3 scripts/prepare_public_inputs.py text8 --storage /home/user/src/cix-baseline-data",
+    "source_artifact_sha256": "a6640522afe85d1963ad56c05b0ede0a0c000dddc9671758a6cc09b7a38e5232"
   },
   {
     "dataset_id": "D15",
@@ -232,10 +234,11 @@
     "published_description": "A standard dataset of images with multiple categories",
     "definition_source": "sources/nnlcb-README.md",
     "compatibility": "NOT EXACTLY REPRODUCED",
-    "compatibility_explanation": "Official CIFAR10 Python archive acquisition in progress; exact preparation order and metadata inclusion unspecified.",
+    "compatibility_explanation": "Official Python archive acquired and hashed. Its six data/test pickle batches total186213868 bytes (matching NNLCB); readme and batches.meta add246 bytes. Physical archive order differs from lexical/numeric batch order, and NNLCB does not specify concatenation.",
     "obtained_bytes": null,
     "sha256": null,
-    "path": null
+    "path": null,
+    "source_artifact_sha256": "6d958be074577803d12ecdefd02955f39262c83c16fe9348329d7fe0b5c001ce"
   },
   {
     "dataset_id": "D17",
@@ -287,11 +290,14 @@
     "source_url": "https://drive.google.com/file/d/18qvfbeeOwD1Fejq9XtgAJwYoXjSV8UaC/view?usp=sharing",
     "published_description": "$2^9$ bytes random extract from the disk backup of TRACE",
     "definition_source": "sources/nnlcb-README.md",
-    "compatibility": "NOT EXACTLY REPRODUCED",
-    "compatibility_explanation": "Official Google Drive source is a roughly4GiB download, while NNLCB specifies a random1000000000-byte extract. No random seed, offset or extraction command is published.",
-    "obtained_bytes": null,
-    "sha256": null,
-    "path": null
+    "compatibility": "EXACT",
+    "compatibility_explanation": "Unmodified named backup_1GB member already prepared in the exact TRACE archive linked by NNLCB. Its1000000000 bytes match the definition; no new random extraction or concatenation was performed.",
+    "obtained_bytes": 1000000000,
+    "sha256": "ca3c53465568b36c6b160fe9adfea51cc72f7f81b0c8d38a1961e579175dab63",
+    "path": "/home/user/src/cix-baseline-data/inputs/backup_1GB",
+    "source_artifact_sha256": "23f089163ec3c6edbfb1e0ba5e5b8e1e2a7eba3763ac8ee3571ad92315ee1a92",
+    "source_member": "backup_1GB",
+    "preparation": "python3 scripts/prepare_public_inputs.py backup --storage /home/user/src/cix-baseline-data"
   },
   {
     "dataset_id": "D21",
@@ -302,11 +308,12 @@
     "published_description": "First $2^9$ bytes of the English Wikipedia dump on 2006",
     "definition_source": "sources/nnlcb-README.md",
     "compatibility": "EXACT",
-    "compatibility_explanation": "Unmodified named canonical ZIP member acquired from the exact NNLCB source URL.",
+    "compatibility_explanation": "Unmodified named canonical ZIP member from the exact NNLCB URL.",
     "obtained_bytes": 1000000000,
     "sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc",
     "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
-    "preparation": "Extract ZIP member enwik9"
+    "preparation": "python3 scripts/prepare_public_inputs.py enwik9 --storage /home/user/src/cix-baseline-data",
+    "source_artifact_sha256": "99cdb5ac84392252d3f0912ccedd195bc95bd80cbef3b0cdf2eee4ad9a3b7a51"
   },
   {
     "dataset_id": "D22",
@@ -401,9 +408,10 @@
     "published_description": "A collection of genomics sequencing dataset with FastQ format",
     "definition_source": "sources/nnlcb-README.md",
     "compatibility": "NOT EXACTLY REPRODUCED",
-    "compatibility_explanation": "Canonical ENA FASTQ for accession ERR7091247 downloading; alternative original-submitted FASTQ also exists. Exact NNLCB representation requires verification.",
+    "compatibility_explanation": "Three authoritative representations investigated: ENA FASTQ1837915117 bytes; original-submitted FASTQ1805158053 bytes; NCBI run-browser FASTQ1926041160 bytes, matching NNLCB length but with31 distinct byte values versus paper Table3 reporting32. NCBI export shows simplified qualities. Historical byte equivalence remains unproven; matching size alone does not qualify it.",
     "obtained_bytes": null,
     "sha256": null,
-    "path": null
+    "path": null,
+    "candidate_source_manifest": "manifests/ERR7091247-ncbi-inventory.json"
   }
 ]

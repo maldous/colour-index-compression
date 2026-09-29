@@ -11,9 +11,16 @@ import json
 import os
 from pathlib import Path
 import signal
+import shutil
 import subprocess
 import threading
 import time
+
+
+def machine_state():
+    """Small read-only snapshots expose background load, swap and host I/O."""
+    paths=('/proc/loadavg','/proc/meminfo','/proc/stat','/proc/diskstats')
+    return {path:Path(path).read_text() for path in paths}
 
 
 def process_tree(root_pid):
@@ -35,14 +42,16 @@ def process_tree(root_pid):
 
 
 def run(command, cwd, stdout_path, stderr_path, *, timeout_seconds, memory_bytes,
-        cpu, sample_seconds=0.05, env_extra=None):
+        cpu, sample_seconds=0.05, env_extra=None,disk_path=None,disk_reserve_bytes=0):
     stdout_path, stderr_path = Path(stdout_path), Path(stderr_path)
     if stdout_path.exists() or stderr_path.exists():
         raise FileExistsError('Never overwrite a previous phase log or output')
     record = dict(command=command,cwd=str(cwd),started_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                   timeout_seconds=timeout_seconds,memory_limit_bytes=memory_bytes,cpu_affinity=[cpu],
                   rss_sample_interval_seconds=sample_seconds,
-                  environment_overrides={'OMP_NUM_THREADS':'1','OPENBLAS_NUM_THREADS':'1','MKL_NUM_THREADS':'1', **(env_extra or {})})
+                  environment_overrides={'OMP_NUM_THREADS':'1','OPENBLAS_NUM_THREADS':'1','MKL_NUM_THREADS':'1', **(env_extra or {})},
+                  machine_state_before=machine_state(),disk_reserve_bytes=disk_reserve_bytes,
+                  disk_path=str(disk_path) if disk_path else None)
     env = dict(os.environ, **record['environment_overrides'])
     done = threading.Event()
     samples = []
@@ -62,6 +71,8 @@ def run(command, cwd, stdout_path, stderr_path, *, timeout_seconds, memory_bytes
                 rss, family = process_tree(proc.pid)
                 samples.append((elapsed,rss,len(family)))
                 why = 'TIMEOUT' if elapsed >= timeout_seconds else 'RESOURCE LIMIT' if rss > memory_bytes else None
+                if disk_path is not None and shutil.disk_usage(disk_path).free<disk_reserve_bytes:
+                    why='RESOURCE LIMIT';record['disk_reserve_reached']=True
                 if why and not limit:
                     limit.append(why)
                     try: os.killpg(proc.pid,signal.SIGKILL)
@@ -82,5 +93,5 @@ def run(command, cwd, stdout_path, stderr_path, *, timeout_seconds, memory_bytes
                   input_blocks=usage.ru_inblock,output_blocks=usage.ru_oublock,
                   minor_faults=usage.ru_minflt,major_faults=usage.ru_majflt,
                   voluntary_context_switches=usage.ru_nvcsw,involuntary_context_switches=usage.ru_nivcsw,
-                  samples=samples)
+                  samples=samples,machine_state_after=machine_state())
     return record

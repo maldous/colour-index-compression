@@ -35,7 +35,9 @@ def aggregate(raw_rows):
                     raw_result_paths=[r['raw_result_path'] for r in all_rows],
                     cix_commit=rows[0].get('cix_commit'))
         if not verified:
-            result['status']=rows[-1]['status'];result['failure_reason']=rows[-1].get('failure_reason')
+            actual_failures=[r for r in all_rows if r['status'] not in ('VERIFIED','NOT RUN')]
+            cause=actual_failures[0] if actual_failures else rows[-1]
+            result['status']=cause['status'];result['failure_reason']=cause.get('failure_reason')
             output.append(result);continue
         if len(verified)!=required or len(rows)!=required or result['failures']:
             result['failure_reason']='Prescribed measured repetition schedule is incomplete or contains a failed run'

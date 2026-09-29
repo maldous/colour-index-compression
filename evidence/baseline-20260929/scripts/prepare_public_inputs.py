@@ -10,6 +10,7 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
+import tarfile
 import time
 import zipfile
 
@@ -74,11 +75,45 @@ def prepare_wikipedia(storage,wait):
     return row
 
 
+def prepare_backup(storage):
+    """NNLCB's exact linked TRACE archive already contains the named 1GB asset."""
+    acquired=json.loads((ROOT/'raw/acquire-D20.json').read_text())
+    assert acquired['status']=='VERIFIED DOWNLOAD'
+    source=storage/'sources/nnlcb-backup-download.bin'
+    with source.open('rb') as f:assert hashlib.file_digest(f,'sha256').hexdigest()==acquired['sha256']
+    destination=storage/'inputs/backup_1GB'
+    with tarfile.open(source,'r|gz') as archive:
+        found=False
+        for member in archive:
+            if member.name!='backup_1GB':continue
+            assert member.isfile() and member.size==1_000_000_000
+            if found:raise ValueError('Duplicate prepared backup member')
+            found=True
+            if destination.exists():
+                with destination.open('rb') as f:digest=hashlib.file_digest(f,'sha256').hexdigest()
+                size=destination.stat().st_size
+            else:
+                with archive.extractfile(member) as reader:
+                    size,digest=copy_stream(reader,destination,max_bytes=1_000_000_000)
+        assert found and size==1_000_000_000
+    manifest=ROOT/'manifests/nnlcb-datasets.json';rows=json.loads(manifest.read_text())
+    row=next(r for r in rows if r['dataset_id']=='D20')
+    row.update(compatibility='EXACT',
+               compatibility_explanation='Unmodified named backup_1GB member already prepared in the exact TRACE archive linked by NNLCB. Its1000000000 bytes match the definition; no new random extraction or concatenation was performed.',
+               path=str(destination),obtained_bytes=size,sha256=digest,
+               source_artifact_sha256=acquired['sha256'],source_member='backup_1GB',
+               preparation=f'python3 scripts/prepare_public_inputs.py backup --storage {storage}')
+    manifest.write_text(json.dumps(rows,indent=2)+'\n')
+    return row
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('dataset',choices=['enwik8','text8','enwik9','wikipedia'])
+    parser.add_argument('dataset',choices=['enwik8','text8','enwik9','wikipedia','backup'])
     parser.add_argument('--storage',type=Path,required=True)
     parser.add_argument('--wait',action='store_true')
     args=parser.parse_args()
-    row=prepare_wikipedia(args.storage,args.wait) if args.dataset=='wikipedia' else prepare_zip(args.dataset,{'enwik8':'D13','text8':'D14','enwik9':'D21'}[args.dataset],args.storage)
+    if args.dataset=='wikipedia':row=prepare_wikipedia(args.storage,args.wait)
+    elif args.dataset=='backup':row=prepare_backup(args.storage)
+    else:row=prepare_zip(args.dataset,{'enwik8':'D13','text8':'D14','enwik9':'D21'}[args.dataset],args.storage)
     print(json.dumps(row,indent=2))
