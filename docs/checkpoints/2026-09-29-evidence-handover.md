@@ -41,3 +41,17 @@ Original results/ and benchmark-work/ remain preserved in this checkout. Source
 bundle25 excludes corpus and compressed results. Checkpoint archival must retain
 selected physical frames, their evidence, and active-job handover separately.
 No Actions, destructive reset/clean/history rewrite or third-party messages.
+
+## Storage policy at the shared benchmark boundary
+
+Disk capacity is a constrained research resource.  Before any deletion, preserve
+unique selected frames, complete-result JSON, source/backend provenance,
+round-trip evidence, checkpoint archives and currently active job inputs.  Prefer
+removing only decoder-output copies that have been SHA-256 compared with the
+canonical retained input and recorded in a durable deletion receipt.  A historical
+stream may be removed only after its exact frame hash is retained elsewhere with
+the corresponding recovery path and proof; do not treat equal byte length as
+identity.  Do not clean broadly under `/tmp`, corpus sources, reference source,
+the active evidence worktree, or a running/queued job directory.  Coordinate
+hashing and deletion through the shared measurement lock so controlled evidence
+timing never overlaps the I/O.
