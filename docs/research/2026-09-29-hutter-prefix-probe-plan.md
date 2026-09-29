@@ -1,6 +1,6 @@
 # First bounded Hutter text probe
 
-The first real Wikipedia experiment is a non-qualifying 8 MiB prefix of the
+The first real Wikipedia experiment is a non-qualifying 1 MiB prefix of the
 canonical enwik9 byte stream. It uses local `paq8px v215` with
 `-10L -forcetext -simd AVX2`: the highest documented local PAQ level below the
 10 GB Hutter RAM limit (nominal 8,003 MB before the small LSTM increment).
@@ -17,7 +17,7 @@ the shared measurement lock is free:
 ```sh
 flock /home/user/src/cix-evidence-baseline-20260929/evidence/baseline-20260929/raw/measurement.lock \
   .venv/bin/python -m benchmarks.hutter_text_prefix_probe \
-  --output results/hutter/paq-v215-10l-prefix8m --cpu 8
+  --output results/hutter/paq-v215-10l-prefix1m --bytes 1048576 --cpu 8
 ```
 
 This will establish a costed text-path baseline, not a Hutter score, eligibility
@@ -32,3 +32,11 @@ an initial affinity mask. The actual cgroup cpuset is CPUs 0–31 and CPU 8 is a
 5.8 GHz performance core, whereas CPU 16 is a 4.3 GHz efficiency core. The
 waiting unit is therefore replaced before computation with CPU 8. Any future
 Geekbench 5 calibration must use CPU 8 as well.
+
+## Bounded-size correction
+
+The 8 MiB wait-only plan is superseded before it acquired the lock. A previously
+observed PAQ encode of about 5.3 MiB consumed nearly twenty minutes, so 8 MiB
+encode plus decode could reach the finite limit without producing a useful first
+result. The initial reference is reduced to exactly 1,048,576 bytes. This is a
+runtime-bound planning change, not a full-enwik9 estimate.
