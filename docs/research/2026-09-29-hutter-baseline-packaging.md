@@ -86,8 +86,10 @@ unzip -q /home/user/src/cix-hutter-baseline-20260929/run/cix-p26-program.zip -d 
 "$DEST/cix-p26.sh" --help
 ```
 
-This confirms the relocated package resolves its preserved relative native/PAQ
-paths using the same CPython ABI used to make the bundle. It cannot establish
-that CPython is bundled, that a compiler/Makefile can reproduce all native
-objects, or that the source form is publicly released and OSI-licensed. Those
-remain explicit qualification gaps.
+This confirms only that the relocated Python import closure and CLI help load
+under the same CPython ABI used to make the bundle. It does **not** execute a
+native backend or PAQ path: those relative runtime paths remain untested until
+a separately controlled backend execution check is made. It also cannot
+establish that CPython is bundled, that a compiler/Makefile can reproduce all
+native objects, or that the source form is publicly released and OSI-licensed.
+Those remain explicit qualification gaps.
