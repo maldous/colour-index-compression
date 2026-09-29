@@ -2124,3 +2124,11 @@ Allfourrestore. Thirdregionstillrunningatlastpoll. Whole-word-dictionarycost
 mayamortizeatlargerscales; don'tinterpretregionalnegativeasproofagainstallWRT.
 Needcollectsession37320androotcomplete.json beforedrawingbatchconclusion.
 Fullnativejobscontinue; noadditionalhigh-memoryCMIXprocessstarted.
+
+
+Correction afterterminalcollection: paid-word37320 COMPLETEDat00:07Z. Thirdpair
+14387->15471,loss1084B. Allsixrestore,currentdependenciesandphysicalframehashes
+checked. Rootcomplete.jsonpresent,compactproof
+`2026-09-29-paid-word-regional-negative.json`. Nohypothesisoflarge-blockamortization
+isdisproven; donotrunfullnativebasedonnegative64KiBbatchwithoutacheaperscalegate.
+Sitewordstatusupdatedfromrunningtocompleted;publicationagainpending.
