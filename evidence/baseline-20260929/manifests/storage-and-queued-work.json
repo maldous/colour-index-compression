@@ -1,0 +1,19 @@
+{
+  "observed_utc": "2026-09-29T10:18:32.839827+00:00",
+  "free_bytes": 121199693824,
+  "user_directive": "Monitor free space and clean where possible while preserving evidence and useful research.",
+  "scope": "CIX working data and verified disposable duplicates only; unrelated workspace/system data not removed.",
+  "policy": {
+    "measurement_reserve_bytes": 5368709120,
+    "large_restored_outputs": "Delete only after full hash verification and preservation of raw result records.",
+    "synthetic_inputs": "Generate one at a time; remove only after prescribed jobs.",
+    "wikipedia": "Preserve official compressed source; rolling XML restoration only if required, with identical hash before the next compressor.",
+    "maintenance": "Shared exclusive measurement lock for heavy I/O.",
+    "duplicate_cleanup": "Explicit allowlist and SHA-256 equality to retained canonical source; check no open-file use; durable removal receipt."
+  },
+  "units": {
+    "cix-evidence-baseline-20260929.service": "MainPID=589490\nExecStart={ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 -u evidence/baseline-20260929/scripts/run_suite.py --storage /home/user/src/cix-baseline-data --output /home/user/src/cix-baseline-runs/controlled-v1 --wait ; ignore_errors=no ; start_time=[Tue 2026-09-29 20:06:06 AEST] ; stop_time=[n/a] ; pid=589490 ; code=(null) ; status=0/0 }\nActiveState=active\nSubState=running\n",
+    "cix-evidence-preparation-boundary-20260929.service": "MainPID=614012\nExecStart={ path=/usr/bin/flock ; argv[]=/usr/bin/flock --wait 21600 /home/user/src/cix-evidence-baseline-20260929/evidence/baseline-20260929/raw/measurement.lock /usr/bin/timeout --signal=TERM --kill-after=60s 1500 /bin/sh -c /usr/bin/python3 evidence/baseline-20260929/supplemental/cleanup_verified_restorations.py && /usr/bin/python3 evidence/baseline-20260929/supplemental/prepare_sra_candidate.py ; ignore_errors=no ; start_time=[Tue 2026-09-29 20:17:40 AEST] ; stop_time=[n/a] ; pid=614012 ; code=(null) ; status=0/0 }\nActiveState=active\nSubState=running\n",
+    "cix-rd-xray-plane-v215-full4-20260929.service": "MainPID=0\nActiveState=inactive\nSubState=dead\n"
+  }
+}
