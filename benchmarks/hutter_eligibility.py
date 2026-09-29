@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -18,7 +19,8 @@ from typing import Any
 ENWIK9_BYTES = 1_000_000_000
 ENWIK9_SHA256 = "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc"
 CURRENT_RECORD_BYTES = 110_793_128
-# The prize condition is strict: S < 0.99 * L.  This is the largest integer S.
+# The prize condition is strict: S < 0.99 * L.  With integer bytes the largest
+# admissible S is floor(0.99 * L), because this particular product is noninteger.
 HURDLE_BYTES = 109_685_196
 RAM_LIMIT_BYTES = 10_000_000_000
 TEMP_LIMIT_BYTES = 100_000_000_000
@@ -59,6 +61,26 @@ def _artifact(value: Any, field: str, failures: list[str]) -> dict[str, Any] | N
     return {"path": str(path), "bytes": path.stat().st_size, "sha256": actual_hash}
 
 
+def _json_evidence(value: Any, field: str, failures: list[str]) -> dict[str, Any] | None:
+    record = _artifact(value, field, failures)
+    if record is None:
+        return None
+    try:
+        payload = json.loads(Path(record["path"]).read_text())
+    except (OSError, json.JSONDecodeError):
+        failures.append(f"{field}: not valid JSON")
+        return None
+    if not isinstance(payload, dict):
+        failures.append(f"{field}: JSON must be an object")
+        return None
+    record["payload"] = payload
+    return record
+
+
+def _nonnegative_int(value: Any) -> bool:
+    return type(value) is int and value >= 0
+
+
 def _resource(stage: str, value: Any, failures: list[str]) -> dict[str, Any] | None:
     if not isinstance(value, dict):
         failures.append(f"measurements.{stage}: missing whole-run resource record")
@@ -71,27 +93,67 @@ def _resource(stage: str, value: Any, failures: list[str]) -> dict[str, Any] | N
         return None
     if value.get("measurement_scope") != "whole_enwik9_process_tree":
         failures.append(f"measurements.{stage}: scope must be whole_enwik9_process_tree")
-    if value["cpu_cores"] != 1:
+    if type(value["cpu_cores"]) is not int or value["cpu_cores"] != 1:
         failures.append(f"measurements.{stage}: must use one CPU core")
     if value["gpu_used"] is not False:
         failures.append(f"measurements.{stage}: GPU use is not permitted")
+    if (type(value["geekbench5_single_core"]) not in (int, float)
+            or type(value["wall_seconds"]) not in (int, float)):
+        failures.append(f"measurements.{stage}: time and Geekbench score must be numeric, not strings or booleans")
+        return None
     try:
         score = float(value["geekbench5_single_core"])
         elapsed = float(value["wall_seconds"])
-        rss = int(value["peak_process_tree_rss_bytes"])
-        temp = int(value["peak_temp_bytes"])
+        rss = value["peak_process_tree_rss_bytes"]
+        temp = value["peak_temp_bytes"]
     except (TypeError, ValueError):
         failures.append(f"measurements.{stage}: invalid numeric value")
         return None
-    if score <= 0:
-        failures.append(f"measurements.{stage}: Geekbench 5 single-core score must be positive")
-    elif elapsed > 70_000 * 3600 / score:
-        failures.append(f"measurements.{stage}: exceeds 70,000/T hour rule")
-    if rss > RAM_LIMIT_BYTES:
+    if not math.isfinite(score) or score <= 0:
+        failures.append(f"measurements.{stage}: Geekbench 5 single-core score must be finite and positive")
+    if not math.isfinite(elapsed) or elapsed <= 0:
+        failures.append(f"measurements.{stage}: wall time must be finite and positive")
+    elif math.isfinite(score) and score > 0 and elapsed >= 70_000 * 3600 / score:
+        failures.append(f"measurements.{stage}: does not satisfy strict 70,000/T hour rule")
+    if not _nonnegative_int(rss):
+        failures.append(f"measurements.{stage}: process-tree RSS must be a nonnegative integer")
+    elif rss > RAM_LIMIT_BYTES:
         failures.append(f"measurements.{stage}: process-tree RSS exceeds 10,000,000,000 bytes")
-    if temp > TEMP_LIMIT_BYTES:
+    if not _nonnegative_int(temp):
+        failures.append(f"measurements.{stage}: temporary disk must be a nonnegative integer")
+    elif temp > TEMP_LIMIT_BYTES:
         failures.append(f"measurements.{stage}: temporary disk exceeds 100,000,000,000 bytes")
     return dict(value)
+
+
+def _bound_run_evidence(
+    stage: str, record: dict[str, Any] | None, *, input_hash: str | None,
+    compressor: dict[str, Any] | None, decompressor: dict[str, Any] | None,
+    archive: dict[str, Any] | None, measurement: dict[str, Any] | None,
+    failures: list[str],
+) -> None:
+    if record is None:
+        return
+    payload = record["payload"]
+    required = {"completed": True, "exit_code": 0, "input_sha256": input_hash,
+                "input_bytes": ENWIK9_BYTES, "measurement": measurement,
+                "compressor_sha256": compressor["sha256"] if compressor else None,
+                "decompressor_sha256": decompressor["sha256"] if decompressor else None,
+                "archive_sha256": archive["sha256"] if archive else None}
+    for key, expected in required.items():
+        if payload.get(key) != expected:
+            failures.append(f"evidence.{stage}: {key} is absent or not bound to the counted artifact")
+
+
+def _review_evidence(value: Any, failures: list[str]) -> dict[str, Any] | None:
+    record = _json_evidence(value, "evidence.packaging_review", failures)
+    if record is None:
+        return None
+    for key in ("offline_execution_verified", "public_source_access_verified", "osi_license_verified",
+                "license_completeness_verified"):
+        if record["payload"].get(key) is not True:
+            failures.append(f"evidence.packaging_review: {key} is not independently recorded")
+    return record
 
 
 def evaluate(manifest: dict[str, Any], *, verify_input: bool = True) -> dict[str, Any]:
@@ -143,6 +205,22 @@ def evaluate(manifest: dict[str, Any], *, verify_input: bool = True) -> dict[str
     compression = _resource("compression", measurements.get("compression"), failures)
     decompression = _resource("decompression", measurements.get("decompression"), failures)
 
+    evidence = manifest.get("evidence") if isinstance(manifest.get("evidence"), dict) else {}
+    encode_evidence = _json_evidence(evidence.get("encode"), "evidence.encode", failures)
+    decode_evidence = _json_evidence(evidence.get("decode"), "evidence.decode", failures)
+    _bound_run_evidence("encode", encode_evidence, input_hash=input_observation.get("sha256"), compressor=compressor,
+                        decompressor=decompressor, archive=archive, measurement=compression, failures=failures)
+    _bound_run_evidence("decode", decode_evidence, input_hash=input_observation.get("sha256"), compressor=compressor,
+                        decompressor=decompressor, archive=archive, measurement=decompression, failures=failures)
+    restored = _artifact(evidence.get("restored"), "evidence.restored", failures)
+    if restored is not None:
+        if restored["bytes"] != ENWIK9_BYTES or restored["sha256"] != input_observation.get("sha256"):
+            failures.append("evidence.restored: does not exactly match the verified canonical input")
+        if decode_evidence is not None:
+            payload = decode_evidence["payload"]
+            if payload.get("restored_sha256") != restored["sha256"] or payload.get("restored_bytes") != restored["bytes"]:
+                failures.append("evidence.decode: restored identity is not bound to the restored artifact")
+
     packaging = manifest.get("packaging") if isinstance(manifest.get("packaging"), dict) else {}
     if packaging.get("offline_self_contained") is not True:
         failures.append("packaging.offline_self_contained must be true")
@@ -156,6 +234,7 @@ def evaluate(manifest: dict[str, Any], *, verify_input: bool = True) -> dict[str
         candidate = source_root / relative if source_root and isinstance(relative, str) else None
         if candidate is None or not candidate.is_file():
             failures.append(f"packaging.{field}: missing readable evidence file")
+    _review_evidence(evidence.get("packaging_review"), failures)
 
     return {
         "schema_version": 1,
@@ -169,6 +248,9 @@ def evaluate(manifest: dict[str, Any], *, verify_input: bool = True) -> dict[str
         "package": {"formula": "compressor + (1 if same SHA-256 else 2) * decompressor + archive + UTF-8 required option bytes",
                     "decoder_multiplier": multiplier, "required_option_bytes": option_bytes, "total_bytes": package_bytes},
         "measurements": {"compression": compression, "decompression": decompression},
+        "evidence_hashes": {"encode": encode_evidence["sha256"] if encode_evidence else None,
+                            "decode": decode_evidence["sha256"] if decode_evidence else None,
+                            "packaging_review": evidence.get("packaging_review", {}).get("sha256") if isinstance(evidence.get("packaging_review"), dict) else None},
         "failures": failures,
     }
 

@@ -9,6 +9,11 @@ def _file(path: Path, payload: bytes) -> dict:
     return {"path": str(path), "sha256": hashlib.sha256(payload).hexdigest()}
 
 
+def _json(path: Path, value: dict) -> dict:
+    import json
+    return _file(path, json.dumps(value, sort_keys=True).encode())
+
+
 def _manifest(tmp_path: Path, *, same_binary: bool = False) -> dict:
     encoder = _file(tmp_path / "encoder.zip", b"encoder")
     decoder = encoder if same_binary else _file(tmp_path / "decoder.zip", b"decoder")
@@ -17,7 +22,7 @@ def _manifest(tmp_path: Path, *, same_binary: bool = False) -> dict:
     source.mkdir()
     for name in ("LICENSE", "DEPENDENCIES", "USAGE", "ALGORITHM"):
         (source / name).write_text(name)
-    return {
+    result = {
         "schema_version": 1, "mode": "split",
         "input": {"path": str(tmp_path / "enwik9")},
         "artifacts": {"compressor": encoder, "decompressor": decoder, "archive": archive},
@@ -31,6 +36,17 @@ def _manifest(tmp_path: Path, *, same_binary: bool = False) -> dict:
                       "dependency_license_manifest_path": "DEPENDENCIES", "usage_document_path": "USAGE",
                       "algorithm_document_path": "ALGORITHM"},
     }
+    hashes = {name: result["artifacts"][name]["sha256"] for name in ("compressor", "decompressor", "archive")}
+    common = {"completed": True, "exit_code": 0, "input_sha256": None, "input_bytes": gate.ENWIK9_BYTES,
+              "compressor_sha256": hashes["compressor"], "decompressor_sha256": hashes["decompressor"],
+              "archive_sha256": hashes["archive"]}
+    result["evidence"] = {"encode": _json(tmp_path / "encode.json", {**common, "measurement": result["measurements"]["compression"]}),
+                          "decode": _json(tmp_path / "decode.json", {**common, "measurement": result["measurements"]["decompression"]}),
+                          "restored": _file(tmp_path / "restored", b"canonical"),
+                          "packaging_review": _json(tmp_path / "review.json", {
+                              "offline_execution_verified": True, "public_source_access_verified": True,
+                              "osi_license_verified": True, "license_completeness_verified": True})}
+    return result
 
 
 def test_strict_integer_hurdle():
@@ -86,6 +102,46 @@ def test_local_candidate_never_claims_official_approval(tmp_path, monkeypatch):
     input_path.write_bytes(b"canonical")
     monkeypatch.setattr(gate, "ENWIK9_BYTES", len(b"canonical"))
     monkeypatch.setattr(gate, "ENWIK9_SHA256", hashlib.sha256(b"canonical").hexdigest())
+    for key in ("encode", "decode"):
+        record = Path(manifest["evidence"][key]["path"])
+        import json
+        payload = json.loads(record.read_text())
+        payload["input_sha256"] = gate.ENWIK9_SHA256
+        payload["input_bytes"] = gate.ENWIK9_BYTES
+        if key == "decode":
+            payload.update(restored_sha256=gate.ENWIK9_SHA256, restored_bytes=len(b"canonical"))
+        manifest["evidence"][key] = _json(record, payload)
     result = gate.evaluate(manifest)
     assert result["status"] == "LOCAL_ELIGIBILITY_CANDIDATE"
     assert result["official_approval"] is False
+
+
+def test_decode_receipt_must_be_bound_to_archive_and_restore(tmp_path):
+    manifest = _manifest(tmp_path)
+    import json
+    record = Path(manifest["evidence"]["decode"]["path"])
+    payload = json.loads(record.read_text())
+    payload["archive_sha256"] = "0" * 64
+    manifest["evidence"]["decode"] = _json(record, payload)
+    result = gate.evaluate(manifest, verify_input=False)
+    assert any("evidence.decode: archive_sha256" in failure for failure in result["failures"])
+    assert any("evidence.restored" in failure for failure in result["failures"])
+
+
+def test_nonfinite_or_invalid_resource_numbers_fail(tmp_path):
+    manifest = _manifest(tmp_path)
+    manifest["measurements"]["compression"]["wall_seconds"] = float("nan")
+    manifest["measurements"]["decompression"]["peak_temp_bytes"] = -1
+    result = gate.evaluate(manifest, verify_input=False)
+    assert any("wall time" in failure for failure in result["failures"])
+    assert any("temporary disk must" in failure for failure in result["failures"])
+
+
+def test_exact_time_limit_and_boolean_numeric_fields_fail(tmp_path):
+    manifest = _manifest(tmp_path)
+    manifest["measurements"]["compression"].update(wall_seconds=70_000 * 3600 / 1000, geekbench5_single_core=1000)
+    manifest["measurements"]["decompression"].update(wall_seconds=True, cpu_cores=True)
+    result = gate.evaluate(manifest, verify_input=False)
+    assert any("strict 70,000/T" in failure for failure in result["failures"])
+    assert any("numeric, not strings or booleans" in failure for failure in result["failures"])
+    assert any("one CPU core" in failure for failure in result["failures"])

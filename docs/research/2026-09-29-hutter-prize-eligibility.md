@@ -36,12 +36,13 @@ Run the audit only against a real prepared candidate manifest:
 ```
 
 The gate hashes the input by default and fails if that check is skipped. It also
-requires actual artifact hashes, package-byte accounting, measured whole-run
-limits, offline/self-contained evidence, a public HTTPS source reference, an
-OSI license declaration, and readable root-license, dependency-license, usage,
-and algorithm documentation. It can state only `LOCAL_ELIGIBILITY_CANDIDATE`;
-it always records `official_approval: false` because Prize reviewers alone can
-approve a submission.
+requires the actual restored billion-byte artifact, hash-pinned completed encode
+and decode receipts bound to the exact programs and archive, measured whole-run
+limits, and a hash-pinned packaging review. The review must record offline
+execution, public-source access, OSI-license verification and license-completeness
+checks; declarations and filenames alone cannot pass it. It can state only
+`LOCAL_ELIGIBILITY_CANDIDATE`; it always records `official_approval: false`
+because Prize reviewers alone can approve a submission.
 
 ## Missing before a local candidate can exist
 
@@ -57,9 +58,9 @@ approve a submission.
   document suitable for the submitted package.
 - External review and acceptance by the Hutter Prize maintainers.
 
-The official rule, FAQ, and main-page snapshots used for this audit are preserved
-outside the research checkout in `/home/user/src/cix-hutter-eligibility-20260929`
-with retrieval metadata and SHA-256 records. Source references are
+The official rule, FAQ, and main-page snapshots used for this audit, with retrieval
+metadata and SHA-256 records, are committed in
+`docs/evidence/hutter-prize-20260929/`. Source references are
 https://www.hutter1.net/prize/hrules.htm,
 https://www.hutter1.net/prize/hfaq.htm, and
 https://www.hutter1.net/prize/.
