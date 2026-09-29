@@ -2302,3 +2302,33 @@ The Site remains at the latest first-equivalent result; no new size milestone
 justifies another deployment. Current turn is progress (successor qualification
 and actual compute reassignment), not completion. Publication/contact remains a
 pending user decision; continued live local work means no blocked state is set.
+
+
+## 2026-09-29: publication decision blocks the official-listing goal
+
+Read the full controlling attachment. Previous turn was progress; this turn
+revalidated the winning twelve physical frames, frozen dependencies and source
+archive, confirmed the source repository is still PRIVATE, and re-read the live
+leaderboard: no CIX listing, leader still 27,825,511 bytes. The prepared result
+remains 26,402,526 bytes and all twelve complete restoration proofs are intact.
+
+The explicit publication/contact question has remained unanswered for three
+consecutive goal turns: submission preparation, successor safeguarding, and this
+revalidation. Required preparation is complete and reviewable. More compression
+refinement does not resolve public-source eligibility or authorize contacting
+the maintainer. The goal is therefore being marked blocked on that decision,
+not complete or paused. No additional permission question is sent.
+
+Existing local jobs are preserved and can finish without further interaction.
+The pointer encoder 3007311 completed normally; its existing worker 3007055 now
+has live decoder 3676928. Other tracked managers/native workers remain live;
+GOT decoder 3517578 remains on CPU8. No process was restarted or cancelled.
+No partial output is scored. Existing high-effort reference and model trials
+remain incomplete; do not imply an exhaustive research programme is finished.
+
+On resumption, inspect current processes/artifacts and the user's exact decision
+before publishing anything. The reviewed source package remains the frozen
+portfolio20 release candidate; later prospective profiles are not that package.
+The latest Site remains deployment appgdep_6abb08bb59f081918526d5448f0b3e8c,
+source44a5c70383701a1a758d4dbd56bd283add1bbafd. No Site update is needed for a
+publication-permission wait. Full audit:2026-09-29-publication-blocker-audit.json.
