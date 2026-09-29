@@ -2500,3 +2500,40 @@ Started matched context0/context3 nativePAQ-4 controls on the same three disjoin
 two workers onCPUs16/18. First two complete pairs improve40705→40568 and
 38024→37832, all independent restores. Wait for third pair before full launch;
 no partial projection enters score. New wrapperMAGICCIXB21; sources frozen.
+
+
+### Portfolio23: feedback-only full PAQ beats the bounded representation
+
+Full feedback-onlyPAQ8 completed with2,117,731 bytes and exact restoration,
+saving another6,965 versus22 and42,018 since the previous publishedSite21.
+The regional preference for bounded ranks did not determine the whole-file
+winner; exact physical selection did. competitive_grid_feedback_paq_v23
+preserves every22 candidate and addsmode1. Qualification session27937terminal,
+allcurrent dependency/input/frame hashes, header identity, structural rerun
+and inversepassed. DefaultCLI23. Total25,839,568,firstequivalent,1,985,943
+(7.1371%)below freshly rechecked27,825,511 leader. Full proof:
+2026-09-29-competitive-grid-feedback-paq-milestone.json. Both measured alternatives
+and timing:2026-09-29-grid-backend-full-paq.json. Session73415terminal.
+
+Allsix grouped-PAQ regional streams now complete andrestore. Three matched
+improvements40705→40568,38024→37832,43333→43210 (137/192/123 saved).
+Full groupedPAQ8 session53530 launched, manager3914276,worker3914285,
+native3914914. Afterfeedback completed, movedallthree fromEcore16 tofreePcore10
+without restart orsource changes. Encodingtiming spans placements; no uniform
+speedclaim. Proof2026-09-29-grouped-grid-core-reassignment.json. Root
+results/leaderboard/grid-conditional-paq-full8-20260929. No projectedsize.
+
+Broadened the next bounded screen to pristinePAQ text models: nativev215 flags
+-4,-4A,-4L,-4LA on three disjoint131072-byte Dickens regions, one workerCPU22,
+session32410. Upstreamsrc/paq8px.cpp explicitly definesA as adaptive CM-mixer
+learning rate andL as addinganLSTM expert. No external dictionary,pretraining
+snapshot or source changes. Every physicalarchive is extracted andcompared.
+Reportrootresults/leaderboard/paq-text-adaptation-regions-20260929. Existingfull
+higher-effort reference/structural research continues independently.
+
+A portfolio22 source-only bundle also passedisolated uncachedCLI smoke before23
+completed. Archive3156113bytesSHA256
+790263c1bc0a123615bd88b3fa9848a36ee7191301241b28f8d14c2791322c02.
+It is preserved asprevious evidence,not relabelledcurrent23. Source23 packaging
+andSiteupdate follow. NativeGOTprospective22 still extends21: neverqualify against
+current23 with thatwrapper. Createa parent-aligned successor whenproof completes.
