@@ -2198,3 +2198,20 @@ restored exactly. No corpus/cache is in the isolated source directory or archive
 This does not repeat the full native Mozilla decode; its full restoration proof
 was reused only after exact identities and inverse-wrapper equivalence.
 Public source was not released and official submission was not sent.
+
+Site source06bf39fb12cecd7ed850e11cea43e48504dc834e was pushed only to the
+Sites source repository. Deploymentappgdep_6abb065c53d08191a520fdfaf22a5401
+(versionappgprj_6aba005773a08191ae8a7978a687b3cb~appgver_a3fb88cab1608191a4256e5ba9a2dcbd)
+succeeded2026-09-29T00:29:36.646752Z at
+https://cix-research-lab.matthewaldous.chatgpt.site/. The nine-family table now
+shows CIX first,26,402,526 bytes,12.46%,5.11% below the published leader,
+with official-listing/public-source caveats and the historical audit.
+Static entrypoint, asset links, report totals and table ordering passed.
+Background research update: no browser handoff or extra browser testing.
+
+Goal-turn outcome: material progress, first equivalent numerical size achieved.
+Do not mark the published-leaderboard objective complete while freely downloadable
+public source and official listing remain pending. No source-repository visibility
+change, public release, maintainer message or Actions job was made. Remaining
+full-file trials remain untouched; revalidate their process state before resuming.
+The history question is answered from available records; no older lost #1 was found.
