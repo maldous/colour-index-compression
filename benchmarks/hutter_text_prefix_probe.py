@@ -82,10 +82,16 @@ def main() -> int:
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
     inp, archive, restored = out / "enwik9-prefix.bin", out / "stream.paq8px", out / "restored.bin"
-    source_sha256 = digest(args.source)
-    if source_sha256 != CANONICAL_SHA256:
-        raise ValueError("source SHA-256 is not canonical enwik9")
-    prefix(args.source, inp, args.bytes)
+    preflight = {"source": str(args.source), "prefix_bytes": args.bytes, "runner_sha256": digest(Path(__file__))}
+    try:
+        source_sha256 = digest(args.source)
+        if source_sha256 != CANONICAL_SHA256:
+            raise ValueError("source SHA-256 is not canonical enwik9")
+        prefix(args.source, inp, args.bytes)
+    except Exception as error:
+        write_json(out / "failed.json", {"state": "FAILED_PREFLIGHT", "failed_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+                                         "preflight": preflight, "error": str(error)})
+        raise
     binary = ROOT / "benchmark-work/references/paq8px-v215/build-local/paq8px"
     if not binary.is_file():
         raise FileNotFoundError(binary)
