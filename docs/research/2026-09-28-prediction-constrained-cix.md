@@ -2215,3 +2215,41 @@ public source and official listing remain pending. No source-repository visibili
 change, public release, maintainer message or Actions job was made. Remaining
 full-file trials remain untouched; revalidate their process state before resuming.
 The history question is answered from available records; no older lost #1 was found.
+
+
+## 2026-09-29: publication preparation and contribution audit
+
+Previous goal turn: progress(first-equivalent full score, history audit, Sites).
+Read the entire controlling attachment again. Current repository clean before
+this turn. Revalidated all remaining native processes: v215-12L reference on
+Webster; v215-9L Mozilla encode andWebsterdecode; complete-Mozilla ordinary,
+structural-fields andshared-symbol decoders; pointer/section encoders; discounted
+joint full encoder. All live and CPU-active at00:30Z; no restarts or source edits.
+
+Read-only GitHub confirms research source remains private; proposed standalone
+maldous/cix-silesia repository does not exist. Prepared an exact maintainer
+submission draft from the actual12 sizes, model attribution, source hash,
+build/measurement limitations and publication plan. Recipient comes from the
+maintainer's own website. No message was sent. Asked the user asynchronously
+for explicit permission to publish only the prepared source in a NEW public
+repository and/or send the prepared submission. Existing private research history
+would remain private and no workflow files/Actions would be used. Permission
+is pending; elapsed time is not approval. This is not yet a three-turn blocker:
+independent qualification and running experiments continue to make progress.
+
+Completed24-stream selected/control contribution audit: nativePAQv216-8 total
+28,803,779; CIX26,402,526; saving2,401,253(8.34%). MR saves149,560; NCI361,713;
+OSDB319,094; SAO1,570,886. Eight files retain nativePAQpayloads. NCI/OSDB use
+v215 in their transformed pipelines, so these are whole-pipeline comparisons,
+not isolated-transform ablations. Exact author v215-12L comparisons stay separate
+from incomplete local high-effort reference reproduction.
+
+An additional source-isolation audit passed: traced CLI smoke decode had zero
+original source/corpus/cache reads and no network connections; renamed-input
+level8 native archives were byte-identical. The source archive's1477 members
+contain no workflows, binaries or saved benchmark streams. The trace and scoped
+evidence are in2026-09-29-portfolio20-isolation-audit.json. These are extra small
+reproduction checks, not substitutes for the existing full-member proofs.
+Completion audit/contribution files explicitly preserve every incomplete item,
+including public source, official listing, full v215-12L reference and exhaustive
+per-model ablations. No goal-complete claim is made.

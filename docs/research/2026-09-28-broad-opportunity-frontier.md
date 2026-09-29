@@ -5,7 +5,16 @@ changes in compression and all techniques needed to win Silesia. This broadens
 the earlier focused PAQ/CIX hypothesis; that hypothesis remains an active branch,
 not a restriction on architecture. Only local computation; no GitHub Actions.
 
-The complete qualified baseline remains portfolio19: 31,175,135 physical bytes.
+Historical baseline at this frontier launch: portfolio19, 31,175,135 physical bytes.
+
+Update29September: portfolio20 is now26,402,526 bytes, first equivalent numerical
+position, with all12 independent full-restoration proofs. Mozilla PAQv216-8
+completed at00:16Z and replaced the old11,249,835-byte stream with6,477,226.
+The original gap analysis below is historical. Public-source publication and
+official listing remain pending; a concrete source package and submission draft
+are prepared, and an explicit publication/contact question is pending. Research
+runs already in progress remain active; no archive without completed restoration
+is scored. See2026-09-29-portfolio20-contributions.md for the completion audit.
 The live leaderboard was read again at 23:49Z on September28; the leader remains
 27,825,511 bytes. Mozilla contributes a 5,155,241-byte deficit versus the leader's
 author-reported member value. Existing completed advantages on SAO, NCI, OSDB
