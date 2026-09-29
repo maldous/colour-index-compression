@@ -2385,3 +2385,58 @@ complete its independent restoration before qualifying any22 result. If another
 profile wins first, create a new aligned successor; never score a different
 encoder parent. Existing full PAQ, shared-symbol, pointer, section and discounted
 joint experiments remain local and frozen. No GitHub Actions.
+
+
+### Grid backend tournament complete; full-member experiment continues
+
+All18 matched regional frames restore exactly. At offsets0/3625972/7120876,
+bounded-grid PAQ-4 sizes40710/38034/43339 versus bounded-grid Brotli
+42389/39736/44918: savings1679/1702/1579. Same-constraint arithmetic
+40715/38037/43343 loses only5/3/4 bytes to ranks. Feedback-only PAQ
+40869/38501/43309 wins the final region by30bytes but loses the first two.
+Ordinary PAQ70532/70843/72631; all framing paid. Fifteen additional Brotli
+invariant cases retain nonfinite floats, negative zero, nongrid values and tails;
+each rejects a damaged header. Eighteen regional source/frame/backend proofs
+verified again by collector; no regional result is scored.
+
+Launched full SAO bounded-rank-PAQ8 then feedback-PAQ8 sequentially, one worker
+onCPU10: results/leaderboard/grid-backend-full8-20260929. Seven GiB available
+before launch; each native-8 run approximately4GiB, existing jobs preserved.
+Compare full physical bytes to selectedSAO2159749 only after complete decoding.
+The regional pilot initially sharedCPU10; a bounded process-tree controller
+then pinned its three workers individually to10/16/18. No scored source edit or
+restart. Its session36166 ends automatically when manager3801484 exits.
+
+Portfolio21 isolated source candidate prepared from0caf14c,1481files;1076native
+source/provenance files matched previous20. Reused seven previously qualified
+native binaries, fresh uncached small CLI encode and independent decode pass.
+Source-only archive3150348bytes SHA256
+35509b2011b6aa98e5c6d11617bfa70c7bf76a512ed23cfe8407af5926130e3b.
+No corpus, streams, binaries or workflows in archive. The first smoke mistakenly
+resolved the virtualenv executable symlink to systemPython and failed at import;
+correct virtualenv rerun passed before output. No publication authorized.
+
+
+Latest Site publication succeeded2026-09-29T02:04:35.136159Z, exact source
+53e0c53b3b16304a56149d056a185aa34781b33f, deployment
+appgdep_6abb1ca26cc08191a5402adc50d66627. It includes all18 completed grid
+regional trials, full-file follow-up status, current21 isolated package and
+unchanged25,881,586-byte score. No usable open_in_codex tool is available for
+handoff; successful production URL returned normally. Full-grid session73415
+is live: manager3819431, worker3819440, native3819895 CPU10, encoding bounded
+mode2 at-8; feedbackmode1 queued sequentially. Prior pilot66941 and bounded
+pinning controller36166 both terminal (controller exited with its manager).
+
+Two cheap full-corpus floating-grid arithmetic screens also completed. Alternative
+pi multiplication/division orders and unit/hour/minute/second decomposition
+failed to lower the measured feedback-residual entropy below the incumbent
+on either64bit field;32bitfields were unchanged. These are diagnostics only,
+not physical compressed results. Keep existing formula and avoid a costly full
+trial on this negative screen. Reports:2026-09-29-grid-formula-screen.json and
+2026-09-29-grid-units-formula-screen.json. Sources for all current scored21
+policies were rechecked again and unchanged after these independent experiments.
+Current live process inventory:2026-09-29-local-jobs-0205.json. No whole-file
+GOT, pointer, section or stronger PAQ result has completed at this checkpoint;
+no projected savings. Research remains authorized and active independently of
+pending source-publication/contact approval. No Actions, public source push,
+email or source-repository visibility change occurred.

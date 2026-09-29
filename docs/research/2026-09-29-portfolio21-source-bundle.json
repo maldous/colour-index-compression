@@ -1,0 +1,71 @@
+{
+  "source_revision": "0caf14c08c8bb615f9e0204a1f364c9ed7d10cde",
+  "source_archive": "/home/user/src/colour-index-compression/results/releases/cix-source-portfolio21-20260929.tar.gz",
+  "archive_bytes": 3150348,
+  "archive_sha256": "35509b2011b6aa98e5c6d11617bfa70c7bf76a512ed23cfe8407af5926130e3b",
+  "source_files": 1481,
+  "matched_previously_rebuilt_source_files": 1076,
+  "reused_qualified_binaries": {
+    "results/leaderboard/native_ppm.so": "d337cde96c94ddc378c5d23c9c9000ab62a3535d60ee6917cbd52688593a6f96",
+    "results/leaderboard/native_mixer_rounding.so": "13ee84e42298c085e1c1955c66f97bc5c698bc52b65ef9f8484181668dee117a",
+    "results/leaderboard/native_ppm_decode.so": "e5b0ce02af1412accdd3d7c7dcf74d4aa9caa26f3328460b40e2cefb8bb713e2",
+    "results/leaderboard/native_legacy_mixer.so": "776d66a303c971f095229965edfbc03586f36cbbc36189029f17fcec10bd7f8a",
+    "benchmark-work/references/paq8px-v215/build-local/paq8px": "b982f1e8307d6c38e8febc6415901fafcc2e84a14d51e0af7c5cbbe6322778e7",
+    "benchmark-work/references/paq8px-v216/build-local/paq8px": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+    "benchmark-work/references/paq8px-cix-store-state/build-local/paq8px": "6b815f63502c515a95654df316deb30b6a050fbee1293897f4e643c54843212b"
+  },
+  "smoke_encode": {
+    "policy": "CIX competitive complete-size PAQ and field-prediction portfolio 21",
+    "operation": "encode",
+    "source_bytes": 489,
+    "output_bytes": 57,
+    "source_sha256": "33a3c6e528122ec56aec70c087797d0bbc1f1c6243d024599fb0f2ca9dabfa54",
+    "output_sha256": "0aae87de6f4f285e7f4ca015d1aaa49e6ac0cb5d37c98bd8abeffb608e1f5b4f",
+    "seconds": 0.8385719917714596,
+    "peak_rss_kib": 38880,
+    "child_peak_rss_kib": 751616,
+    "selection": {
+      "selected": "paq-v216-8-under-12MiB-nondatabase",
+      "trials": [
+        {
+          "name": "raw",
+          "size": 500,
+          "encode_seconds": 0
+        },
+        {
+          "name": "joint-ppm-mixer",
+          "size": 96,
+          "encode_seconds": 0.045907686930149794,
+          "cache_used": false
+        },
+        {
+          "name": "paq-v216-8-under-12MiB-nondatabase",
+          "size": 57,
+          "encode_seconds": 0.792375517077744
+        }
+      ]
+    },
+    "round_trip": true,
+    "verify_seconds": 0.8069778229109943
+  },
+  "smoke_decode": {
+    "policy": "CIX competitive complete-size PAQ and field-prediction portfolio 21",
+    "operation": "decode",
+    "source_bytes": 57,
+    "output_bytes": 489,
+    "source_sha256": "0aae87de6f4f285e7f4ca015d1aaa49e6ac0cb5d37c98bd8abeffb608e1f5b4f",
+    "output_sha256": "33a3c6e528122ec56aec70c087797d0bbc1f1c6243d024599fb0f2ca9dabfa54",
+    "seconds": 0.7953514391556382,
+    "peak_rss_kib": 35944,
+    "child_peak_rss_kib": 751616,
+    "source_frame_decoded": true
+  },
+  "round_trip": true,
+  "corpus_or_saved_benchmark_frames_in_package": false,
+  "source_files_unchanged": true,
+  "github_actions_used": false,
+  "completed_at": "2026-09-29T02:00:01.260024+00:00",
+  "scope": "Source-only portfolio21 candidate; fresh uncached small CLI round trip, previously qualified native binaries reused only after native source hashes matched portfolio20. No binaries/corpus/benchmark frames/workflows in the source archive. Whole Mozilla restoration was completed independently in frozen worker, not repeated in smoke.",
+  "environment_note": "First smoke resolved the virtualenv symlink to system Python and failed at import before encoding; retried with the actual virtualenv entrypoint. External Python dependencies reuse the qualified environment.",
+  "publication": "Private local candidate; not publicly released or officially listed."
+}
