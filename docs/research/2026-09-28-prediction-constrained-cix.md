@@ -2478,3 +2478,25 @@ Full feedback-only grid-PAQ8 remains in decode onCPU10, manager3819431,
 worker3866054/native3892460 atinspection. Original structural/GOT/pointer and
 high-effort PAQ runs remain live and frozen. Source publication/contact still
 requires the earlier unanswered decision; this does not block local research.
+
+
+### Eight full conditional controls complete; positive grouping, negative counts
+
+All8 conditional-correction full frames restore. Context/coding sizes:
+0/raw2159821; magnitude/raw2152480; magnitude+lowbits/raw2152532;
+exact-coordinate/raw2144044; magnitude/ranks2158459;
+magnitude/arithmetic2168964; lowbits/ranks2174106;
+lowbits/arithmetic2167100. Exact-coordinate stable grouping saves15777 bytes
+against same-wrapper ungrouped control, but none beats selectedPAQ2124696.
+Paid counts/ranks do not beat raw grouped data; arithmetic beats ranks on the
+finer partition and loses on the coarser one. Uncertainty accounting records
+uniform palette cardinality, conditional class cardinality, actual correction
+bytes and overhead; transmitted compositions are explicitly charged.
+Full reports2026-09-29-grid-conditional-full.json and
+2026-09-29-grid-conditional-uncertainty.json.
+
+Started matched context0/context3 nativePAQ-4 controls on the same three disjoint
+131068-byte regions, session62357, rootgrid-conditional-paq-regions-20260929,
+two workers onCPUs16/18. First two complete pairs improve40705→40568 and
+38024→37832, all independent restores. Wait for third pair before full launch;
+no partial projection enters score. New wrapperMAGICCIXB21; sources frozen.
