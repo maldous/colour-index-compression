@@ -1,7 +1,7 @@
 # Experimental competitive portfolio reproduction
 
 The current standalone entry point is `benchmarks.competitive_cli`. It uses the
-portfolio-25 encoder from source bytes. It does not look up corpus hashes, fetch
+portfolio-26 encoder from source bytes. It does not look up corpus hashes, fetch
 saved streams, read original data during decoding, or call GitHub/CI/network
 services. Format detection and the bounded PAQ compute policy are part of the
 encoder. The physical frame identifies the corresponding standalone decoder.
@@ -56,11 +56,16 @@ release. A release must include the relevant Python/C++ sources, dependency
 provenance, build instructions, upstream notices and a fresh rebuild check.
 The numerical Silesia position is not an official listing.
 
-Portfolio 25 has a complete locally verified Silesia total of 25,502,494 bytes.
-New selected physical streams: section-constrained Mozilla 5,834,880; grouped-grid
-SAO 2,105,875; native PAQ8px v215 -9L Webster 4,423,086. All twelve restore exactly.
+Portfolio 26 has a complete locally verified Silesia total of 25,481,891 bytes.
+It replaces the selected Mozilla frame with the 5,814,277-byte joint-discount
+PAQ structural frame, 20,603 bytes smaller than portfolio 25's Mozilla frame.
+The candidate's stored physical frame was independently decoded with its native
+decoder, structurally inverted and checked byte-for-byte; portfolio assembly
+then revalidated all twelve input/frame/source/backend identities. New selected
+physical streams also include grouped-grid SAO 2,105,875 and native PAQ8px
+v215 -9L Webster 4,423,086. All twelve restore exactly.
 The native LSTM tier applies to 24–48 MiB inputs excluding recognized chemical
 and MyISAM records. It is computed directly by the ordinary encoder.
 The live published leader was rechecked on 2026-09-29 at 27,825,511 bytes.
-The equivalent numerical position is first, 2,323,017 bytes (8.35%) below the
+The equivalent numerical position is first, 2,343,620 bytes (8.42%) below the
 published leader. Public-source publication and official listing remain pending.
