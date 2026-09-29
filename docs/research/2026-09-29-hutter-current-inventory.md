@@ -1,11 +1,13 @@
 # Hutter-only current inventory — 2026-09-29
 
-This separates available inputs and small checks from actual Hutter evidence. No
-full enwik9 codec run was started.
+This separates available inputs and small checks from actual Hutter evidence. The full frozen portfolio-26 enwik9 encode started at 11:33 UTC on 29 September
+2026. It has not yet produced a verified completed result. See
+`2026-09-29-hutter-full-baseline-and-rank-history.md` and actual run status under
+`/home/user/src/cix-hutter-baseline-20260929/run/status.json`.
 
 | Item | Availability / result | Interpretation |
 | --- | --- | --- |
-| Canonical enwik9 | `/home/user/src/cix-baseline-data/inputs/enwik9`, 1,000,000,000 bytes, SHA-256 `159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc` | Available input; no CIX archive or full decode result exists. |
+| Canonical enwik9 | `/home/user/src/cix-baseline-data/inputs/enwik9`, 1,000,000,000 bytes, SHA-256 `159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc` | Full frozen CIX p26 encode running; independent decode follows. No completed result yet. |
 | enwik8 | `/home/user/src/cix-baseline-data/inputs/enwik8`, 100,000,000 bytes | Available development input; no CIX result artifact exists here. |
 | text8 | `/home/user/src/cix-baseline-data/inputs/text8`, 100,000,000 bytes | Available development input; no CIX result artifact exists here. |
 | Draft smoke | 2,100-byte synthetic input → 61-byte archive → exact 2,100-byte restore | CLI/routing smoke only; not a text-prefix, enwik8, enwik9, or Prize score. |

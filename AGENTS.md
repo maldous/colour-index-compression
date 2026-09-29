@@ -35,6 +35,32 @@ Read `docs/research/2026-09-29-hutter-prize-eligibility.md` and
   not create or modify workflow files. Preserve external-source licenses and
   do not invent a project license.
 
+## Immediate priority — full existing-CIX enwik9 baseline
+
+As of 29 September 2026, the user explicitly requires a complete baseline of
+what CURRENT CIX achieves before more micro-experiments. The frozen, unchanged
+portfolio-26 encode is running as system unit
+`cix-hutter-full-p26-enwik9-20260929.service`, started 11:33 UTC. Read actual
+`/home/user/src/cix-hutter-baseline-20260929/run/status.json` and systemd state.
+Do not launch duplicate encodes, change the frozen runtime, or interrupt a
+meaningful atomic phase. The runner automatically follows successful encoding
+with a separate full decode and canonical SHA-256 verification. CPU 8, exclusive
+measurement lock, MemoryMax 10,000,000,000, no swap/network. No other heavy CIX
+experiment is queued; preserve timing isolation.
+
+Tested frozen source/tag: `ea0d4e4ebd8d14dea4bb7a422f858c87bfa514fc` /
+`hutter-full-enwik9-baseline-start-20260929`; unchanged codec p26 is
+`77615c7e4f3aeadf84c0a7397436acc420df91f3`. Read
+`docs/research/2026-09-29-hutter-full-baseline-and-rank-history.md`.
+After full encode/decode, preserve raw receipts and archive, calculate an actual
+complete program/archive/options package total (separate from archive bytes),
+and publish the measured result and all eligibility gaps to the existing Site.
+No package score may be guessed from the source inventory. A 72-hour operational
+phase cap is not the calibrated Prize time limit. Check resource failures and
+partial files explicitly; never count them as completed results. Only then resume
+conditional-residual experiments from their preserved state. The prior Silesia
+#1-equivalent result is preserved; 24th was an earlier milestone, not a regression.
+
 ## Historical Silesia directive — superseded
 
 The current user-authorized objective is first place by total physical compressed
