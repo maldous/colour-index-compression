@@ -2132,3 +2132,20 @@ checked. Rootcomplete.jsonpresent,compactproof
 `2026-09-29-paid-word-regional-negative.json`. Nohypothesisoflarge-blockamortization
 isdisproven; donotrunfullnativebasedonnegative64KiBbatchwithoutacheaperscalegate.
 Sitewordstatusupdatedfromrunningtocompleted;publicationagainpending.
+
+
+FINAL Site status for this continuation: source
+c7d3840796228515a7dea769b62974dbdc799908; deployment
+appgdep_6abb01bb2e808191b3447f464746e3b5; version
+appgprj_6aba005773a08191ae8a7978a687b3cb~appgver_a8b6b80c83148191b227439e3b84bc10;
+succeeded2026-09-29T00:09:46.546664Z. Cell1009terminalcollected, nopendingSitecall.
+All6paid-wordcontrolsnowdisplayedascomplete, all6imagecontrolscomplete, rule
+screencomplete. Sourcecheckpoint2074712. Bothcheckoutsotherwiseclean. Primary
+comparisonremainsonebestrowperfamily, CIX31,175,135B/24th withqualifiedspeeds.
+Next priority: collectnativev216Mozilla fullproofwhenready(95.01%at00:07Z),
+qualifycompleteportfolio,refreshliveleaderandcompleteallreproducibility/default
+CLI/Siteupdatesbeforeclaiminganynewrank. Prospectivefields/GOTqualification
+alsoavailable. Fullnewdiscountjoint39592stillrunningCPU0;sourcefrozen.
+Broadexperimentalbranchesfinishednegative;largerWRTamortizationandstronger
+neuralmodelsremainresearchoptions, notverifiedimprovements. Do notlaunch
+32GiB-CMIXwhileonly~7GiBavailable orassume4GiBGPUentirelyfree.
