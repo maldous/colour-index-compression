@@ -4,6 +4,7 @@
 Run under the shared measurement lock. Inputs, frames, checkpoints and logs are
 preserved. An unexpected hash, open file or changing file is never removed.
 """
+import argparse
 import datetime
 import hashlib
 import json
@@ -32,11 +33,15 @@ def digest(path):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--receipt', type=Path,
+                        default=ROOT/'raw/cleanup-verified-restorations-20260929.json')
+    args = parser.parse_args()
     if digest(SOURCE) != SHA:
         raise RuntimeError('Canonical preserved source did not match')
     if not shutil.which('fuser'):
         raise RuntimeError('Open-file check unavailable')
-    receipt = ROOT / 'raw/cleanup-verified-restorations-20260929.json'
+    receipt = args.receipt
     if receipt.exists():
         raise RuntimeError('Existing cleanup receipt; do not overwrite')
     rows = []
@@ -57,7 +62,9 @@ def main():
         if row['sha256'] != SHA or (before.st_ino, before.st_size, before.st_mtime_ns) != (after.st_ino, after.st_size, after.st_mtime_ns):
             row['reason'] = 'Hash mismatch or file changed during inspection'
             continue
-        result = subprocess.run(['fuser', '-s', '--', str(path)], capture_output=True)
+        # This installed fuser rejects an explicit '--' separator; these fixed
+        # absolute paths cannot be parsed as options.
+        result = subprocess.run(['fuser', '-s', str(path)], capture_output=True)
         if result.returncode != 1 or result.stderr:
             row['reason'] = 'Open-file check reported use or uncertainty'
             continue
