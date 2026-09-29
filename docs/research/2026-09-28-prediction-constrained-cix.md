@@ -2570,3 +2570,37 @@ GitHubpush,visibilitychange ormaintainer message. Localresearch remains explicit
 authorized separately. NoActions. Goaltool stillreports oldofficial-listinggoal
 blocked; no unsupportedresume orfalsecompletion was attempted. Furtherresearch
 canproceed withavailablelocal evidence independently ofthat publication decision.
+
+
+### 2026-09-29: portfolio24 and renewed larger-gain research
+
+User explicitly renewed research: harder, better, very significant savings.
+Four complete independent experiments qualified against actual portfolio23:
+GOT+PAQ8 Mozilla5917452; pointer feedback+PAQ8 Mozilla5857527;
+coordinate-grouped PAQ8 SAO2105875; nativev215 -9L Webster4423086.
+Exact physical selection chooses pointer, grouped andLSTM, saving314427bytes.
+Total25525141, twelvefull restored members, firstequivalent,2300370bytes
+(8.2671%) below freshlyfetched published27825511. Source/backend/input/frame
+identities checked, structural representations recomputed/inverted. Unchanged
+nineframes preserve their original complete extraction proofs. No projected
+archive was scored. Default competitive_cli now uses parent-aligned24. New
+qualifier/header/routing/physicalselection tests plus existing guards:25passed.
+Report2026-09-29-competitive-prediction-v24-milestone.json.
+
+Twelve text-adaptation regionals allcomplete andrestore: LSTM saves95/113/111
+bytes onthree disjointDickens regions; adaptiveCM learning loses6–11 versus
+correspondingcontrols. Full nativev215 -9L Dickens thenReymont launchedCPU8,
+session96400, rootpaq-v215-text9L-20260929. PointerresidualLSTM threecohort
+followupCPU10, session18252, rootecoff-pointer-lstm-regions-20260929. Existing
+Webster12L, Mozilla9L, sectionpointer anddiscountedjointdecodes preserved.
+
+New opportunity: causalcopy-and-correctfunctiontemplates. An initial same-name
+screenfound521104 repeatedfunctionbytes and289152bytes withless25% changed
+words. Newecoff_function_templates expandsmatchingto opcode signatures across
+allpdata-delimitedfunctions, retainingfourpreviouscandidates. Referenceindices,
+selectionmetadata andallXOR/subtractioncorrections aretransmitted; decoderuses
+onlypreviouslyrestoredfunctions. Sixinvariant/adversarialtests passed. Full
+Brotli controls(plainparent/XOR/subtraction) launchedCPU14, session47615,
+rootecoff-function-templates-brotli-full-20260929. This isunscoredresearch.
+Publicsource/contact decisionremainspending; localresearchandprivateSitesupdates
+authorizedindependently. NoActionsorpublicsourcepush.

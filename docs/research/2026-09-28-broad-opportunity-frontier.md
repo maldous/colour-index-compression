@@ -7,20 +7,16 @@ not a restriction on architecture. Only local computation; no GitHub Actions.
 
 Historical baseline at this frontier launch: portfolio19, 31,175,135 physical bytes.
 
-Update 29 September, 03:00 UTC: portfolio 23 is 25,839,568 bytes, first
-numerically equivalent position. All twelve physical frames have complete
-independent restoration evidence. Mozilla field prediction contributes 5,956,286;
-SAO grid-feedback PAQ contributes 2,117,731. The live published leader is still
-27,825,511; the current lead is 1,985,943 bytes (7.1371%). The user has explicitly
-renewed research for a greater lead. Further local computation is authorized
-independently of the unanswered source-publication/contact decision. No new
-public release, official listing or maintainer contact has occurred.
+Update 29 September: portfolio24 is 25,525,141 physical bytes, first equivalent
+position and 8.2671% below the freshly checked 27,825,511-byte published leader.
+All twelve complete streams restore exactly. New pointer-feedback Mozilla,
+grouped-coordinate SAO and online-LSTM Webster save 314,427 bytes versus23.
+The public-source/contact decision remains pending independently of research.
 
-The previously prepared portfolio 20 and 21 source archives remain frozen and
-available locally. New profiles must preserve the actual qualified parent.
-Existing long-running native PAQ and structural trials remain live. No unfinished
-archive contributes a projected score. The full coordinate-grouping PAQ follow-up
-and bounded text-model adaptation tests continue under measured CPU/RAM capacity.
+Current larger-gain experiments: complete native -9L Dickens/Reymont onCPU8;
+matched pointer-residual LSTM cohorts onCPU10; new causal function-template
+whole-Mozilla controls onCPU14. Original full section-pointer, discountedjoint,
+Mozilla9L and Webster12L trials remain frozen and running. No projected scores.
 
 ## Opportunity map and first discriminating tests
 
