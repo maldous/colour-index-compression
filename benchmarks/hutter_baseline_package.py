@@ -20,6 +20,7 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import shutil
+import stat
 import tempfile
 import zipfile
 from typing import Any, Iterable
@@ -28,10 +29,10 @@ from typing import Any, Iterable
 CANONICAL_BYTES = 1_000_000_000
 CANONICAL_SHA256 = "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc"
 DEFAULT_NATIVE = (
-    ("results/leaderboard/native_ppm.so", "benchmarks/native_ppm.py"),
-    ("results/leaderboard/native_ppm_decode.so", "benchmarks/native_ppm_decode.py"),
+    ("results/leaderboard/native_ppm.so", "benchmarks/native_ppm.cpp"),
+    ("results/leaderboard/native_ppm_decode.so", "benchmarks/native_ppm_decode.cpp"),
     ("results/leaderboard/native_mixer_rounding.so", "benchmarks/native_mixer_rounding.cpp"),
-    ("results/leaderboard/native_mixer_ppm.so", "benchmarks/native_mixer_ppm.cpp"),
+    ("results/leaderboard/native_legacy_mixer.so", "benchmarks/native_legacy_mixer.cpp"),
 )
 VENDOR_NAMES = ("brotli", "numpy", "imagecodecs")
 ZIP_TIME = (1980, 1, 1, 0, 0, 0)
@@ -99,6 +100,7 @@ def _vendor_paths(root: Path) -> list[Path]:
         lower = child.name.lower()
         matches = (
             child.name in VENDOR_NAMES
+            or child.name == "brotli.py"
             or lower.startswith("_brotli") and child.suffix == ".so"
             or any(lower.startswith(name + "-") and lower.endswith(".dist-info") for name in VENDOR_NAMES)
             or any(lower in {name + ".libs", ".libs"} for name in VENDOR_NAMES)
@@ -114,7 +116,7 @@ def _vendor_paths(root: Path) -> list[Path]:
         else:
             raise ValueError(f"vendor selection is not a regular file/directory: {child}")
     required = {"brotli", "numpy", "imagecodecs"}
-    missing = sorted(name for name in required if not (root / name).is_dir())
+    missing = sorted(name for name in required if not ((root / name).is_dir() or (root / f"{name}.py").is_file()))
     if missing:
         raise ValueError(f"vendor root is missing required static dependencies: {', '.join(missing)}")
     if not any(path.name.startswith("_brotli") for path in selected):
@@ -151,7 +153,7 @@ def _verify_frozen(path: Path, runtime: Path, frozen: dict[str, Any]) -> None:
         raise ValueError(f"selected frozen runtime file changed: {rel}")
 
 
-def _run_evidence(run: Path) -> dict[str, Any] | None:
+def _run_evidence(run: Path, frozen_source_commit: str | None) -> dict[str, Any] | None:
     """Return actual complete archive facts, or None only when --allow-pending."""
     status_path, complete_path = run / "status.json", run / "complete.json"
     if not status_path.is_file() or not complete_path.is_file():
@@ -168,6 +170,8 @@ def _run_evidence(run: Path) -> dict[str, Any] | None:
         complete.get("full_round_trip") is True,
         complete.get("archive_sha256") == status.get("archive_sha256"),
         complete.get("archive_bytes") == status.get("archive_bytes"),
+        status.get("source_commit") == frozen_source_commit,
+        complete.get("source_commit") == frozen_source_commit,
         archive.is_file(),
     )
     if not all(required):
@@ -181,14 +185,28 @@ def _run_evidence(run: Path) -> dict[str, Any] | None:
 
 def _launcher() -> bytes:
     return (b"#!/bin/sh\nset -eu\nROOT=$(CDPATH= cd -- \"$(dirname -- \"$0\")\" && pwd)\n"
-            b"export PYTHONPATH=\"$ROOT:$ROOT/vendor/site-packages${PYTHONPATH:+:$PYTHONPATH}\"\n"
-            b"exec python3 -m benchmarks.competitive_cli \"$@\"\n")
+            b"exec env -i PATH=\"${PATH:-/usr/bin:/bin}\" PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1 "
+            b"CIX_ROOT=\"$ROOT\" python3 -S \"$ROOT/cix-p26-bootstrap.py\" \"$@\"\n")
+
+
+def _bootstrap() -> bytes:
+    return (b"# Generated fixed bootstrap for the measured CIX p26 baseline.\n"
+            b"import os\nimport runpy\nimport sys\nimport sysconfig\n"
+            b"from pathlib import Path\n"
+            b"root = Path(os.environ['CIX_ROOT']).resolve()\n"
+            b"os.chdir(root)\n"
+            b"stdlib = [sysconfig.get_path('stdlib'), sysconfig.get_path('platstdlib'), sysconfig.get_config_var('DESTSHARED')]\n"
+            b"sys.path[:] = [str(root), str(root / 'vendor' / 'site-packages')] + [p for p in stdlib if p]\n"
+            b"sys.argv = ['benchmarks.competitive_cli', *sys.argv[1:]]\n"
+            b"runpy.run_module('benchmarks.competitive_cli', run_name='__main__')\n")
 
 
 def _requirements() -> bytes:
     return (b"This measured p26 baseline bundle does not include CPython.\n"
             b"It requires a compatible CPython 3.12 runtime and the bundled vendor tree.\n"
-            b"It is not an offline self-contained or licensed Hutter Prize submission.\n")
+            b"The required positional runtime selectors are encode and decode.\n"
+            b"It is not an offline self-contained or licensed Hutter Prize submission,\n"
+            b"and this source ZIP is not asserted to be an accepted Prize program form.\n")
 
 
 def build_bundle(*, runtime: Path, freeze_manifest: Path, static_imports: Path,
@@ -222,10 +240,12 @@ def build_bundle(*, runtime: Path, freeze_manifest: Path, static_imports: Path,
         binary = paq / "build-local/paq8px"
         for path in _file_tree(source) + [binary]:
             _verify_frozen(path, runtime, frozen)
-            rel = (f"third_party/{paq.name}/source/" + path.relative_to(source).as_posix()
-                   if path != binary else f"third_party/{paq.name}/paq8px")
+            # Preserve paths referenced by the unmodified portfolio instead of
+            # relocating PAQ under a convenient but non-runnable namespace.
+            rel = path.relative_to(runtime).as_posix()
             _add_path(entries, rel, path, None, "frozen_paq")
     _add_path(entries, "cix-p26.sh", None, _launcher(), "generated_launcher")
+    _add_path(entries, "cix-p26-bootstrap.py", None, _bootstrap(), "generated_bootstrap")
     _add_path(entries, "RUNTIME-REQUIREMENTS.txt", None, _requirements(), "generated_requirement")
     if output.exists():
         raise FileExistsError(f"refusing to overwrite program bundle: {output}")
@@ -240,7 +260,8 @@ def build_bundle(*, runtime: Path, freeze_manifest: Path, static_imports: Path,
                 assert data is not None
                 info = zipfile.ZipInfo(name, date_time=ZIP_TIME)
                 info.compress_type = zipfile.ZIP_DEFLATED
-                info.external_attr = (0o755 if name == "cix-p26.sh" else 0o644) << 16
+                mode = 0o755 if name == "cix-p26.sh" else (stat.S_IMODE(source.stat().st_mode) if source is not None else 0o644)
+                info.external_attr = mode << 16
                 archive.writestr(info, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
         os.replace(temp, output)
     finally:
@@ -261,14 +282,15 @@ def build_bundle(*, runtime: Path, freeze_manifest: Path, static_imports: Path,
 def package_report(*, runtime: Path, freeze_manifest: Path, static_imports: Path, vendor_root: Path,
                    paq_roots: list[Path], run: Path, output: Path, required_options: list[str],
                    allow_pending: bool) -> dict[str, Any]:
-    evidence = _run_evidence(run)
+    frozen = json.loads(freeze_manifest.read_text())
+    evidence = _run_evidence(run, frozen.get("source_commit"))
     report: dict[str, Any] = {
         "schema_version": 1,
         "profile": "frozen-p26-current-cix-baseline-python-source-v1",
         "hutter_accounting": {"mode": "split_same_program",
             "formula": "2 * actual deterministic program ZIP + actual verified archive + exact UTF-8 required option bytes",
-            "required_options": required_options,
-            "required_option_bytes": sum(len(option.encode("utf-8")) for option in required_options),
+            "required_options": ["encode", "decode", *required_options],
+            "required_option_bytes": sum(len(option.encode("utf-8")) for option in ["encode", "decode", *required_options]),
             "program_zip": None, "archive": None, "total_bytes": None},
         "eligibility_status": "BASELINE_ONLY_NOT_SELF_CONTAINED_OR_LICENSED",
         "eligibility_gaps": ["CPython interpreter is external and uncounted", "no public source release", "no repository OSI license", "no formal Prize submission review"],

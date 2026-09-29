@@ -11,21 +11,29 @@ Until then `--allow-pending` produces only a report with null program, archive,
 and total fields. It never estimates a score from a source archive or module
 byte sum.
 
-The program ZIP has fixed entry ordering, 1980 ZIP timestamps and modes. It
-contains the frozen static Python closure, the four selected native
-PPM/mixer artifacts and their source, selected Python vendor packages including
-their `.dist-info` licensing metadata and private libraries, both frozen PAQ
-v215/v216 source trees and their built binaries, plus a fixed launcher. Every
-runtime file is hash-checked against `freeze-manifest.json`; absent, modified,
-symlinked, duplicate, or path-escaping inputs fail closed. The ZIP contains no
-absolute host paths, corpus bytes, run receipts, or benchmark artifacts.
+The program ZIP has fixed entry ordering, 1980 ZIP timestamps and preserved
+source executable modes. It contains the frozen static Python closure, the four
+actual p26 native dependencies (`native_ppm`, `native_ppm_decode`,
+`native_mixer_rounding`, and `native_legacy_mixer`) and their C++ sources,
+selected Python vendor packages including real file-module Brotli,
+their `.dist-info` licensing metadata and private libraries, and both frozen
+PAQ v215/v216 source trees and their binaries at the exact
+`benchmark-work/references/.../build-local/paq8px` paths hardcoded by the
+unchanged codec. The launcher changes into its extracted root and starts an
+isolated `python3 -S` bootstrap: it supplies only the bundled tree, vendor tree
+and CPython standard-library/extension paths, and clears inherited `PYTHONPATH`
+and user site packages. Every runtime file is hash-checked against
+`freeze-manifest.json`; absent, modified, symlinked, duplicate, or
+path-escaping inputs fail closed. The ZIP contains no absolute host paths,
+corpus bytes, run receipts, or benchmark artifacts.
 
 The baseline's split-form arithmetic is exactly:
 
 ```
 2 * actual deterministic program ZIP bytes
 + actual verified complete enwik9.cix bytes
-+ sum(UTF-8 byte lengths of declared required options)
++ UTF-8 byte lengths of the required positional selectors `encode` and `decode`
++ sum(UTF-8 byte lengths of any additionally declared required options)
 ```
 
 The multiplier is two total copies because the same program ZIP supplies both
@@ -53,6 +61,7 @@ holding the shared measurement lock and without recompression:
 ```
 
 The path to `site-packages` is intentionally explicit and must be checked on
-the actual frozen interpreter before running. No `--required-option` is used
-for the current launcher: `encode INPUT ARCHIVE` and `decode ARCHIVE RESTORED`
-are positional operations, so the reported required option count is zero.
+the actual frozen interpreter before running. The tool charges `encode` and
+`decode` even though they are positional operation selectors. It does not claim
+that a Python source ZIP is an accepted Prize program form; interpreter,
+toolchain and formal submission requirements remain unresolved.

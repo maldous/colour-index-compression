@@ -1,6 +1,10 @@
 import hashlib
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
+import zipfile
 
 import pytest
 
@@ -20,7 +24,7 @@ def _fixture(tmp_path: Path) -> dict:
     runtime = tmp_path / "runtime"
     static_modules = ["cix", "cix.core", "benchmarks", "benchmarks.competitive_cli"]
     for name in ("cix/__init__.py", "cix/core.py", "benchmarks/__init__.py", "benchmarks/competitive_cli.py"):
-        _write(runtime / name, name.encode())
+        _write(runtime / name, ("# " + name + "\n").encode())
     for binary, source in package.DEFAULT_NATIVE:
         _write(runtime / binary, binary.encode())
         _write(runtime / source, source.encode())
@@ -35,7 +39,8 @@ def _fixture(tmp_path: Path) -> dict:
     imports = tmp_path / "imports.json"
     imports.write_text(json.dumps({"research_commit": "closure", "local_python_modules": static_modules}))
     vendor = tmp_path / "vendor"
-    for package_dir in ("brotli", "numpy", "imagecodecs"):
+    _write(vendor / "brotli.py", b"# installed Brotli is a module, not a package\n")
+    for package_dir in ("numpy", "imagecodecs"):
         _write(vendor / package_dir / "__init__.py", package_dir.encode())
         _write(vendor / f"{package_dir}-1.0.dist-info/LICENSE", b"license")
     _write(vendor / "_brotli.cpython-test.so", b"extension")
@@ -85,18 +90,22 @@ def test_deterministic_bundle_and_exact_split_formula(tmp_path, monkeypatch):
                                     static_imports=case["imports"], vendor_root=case["vendor"], paq_roots=case["paq"],
                                     run=case["run"], output=case["out"] / "three.zip", required_options=["é"], allow_pending=False)
     accounting = result["hutter_accounting"]
-    assert accounting["required_option_bytes"] == 2
-    assert accounting["total_bytes"] == 2 * accounting["program_zip"]["bytes"] + len(b"real-archive") + 2
+    assert accounting["required_option_bytes"] == len(b"encodedecode") + len("é".encode("utf-8"))
+    assert accounting["total_bytes"] == 2 * accounting["program_zip"]["bytes"] + len(b"real-archive") + len(b"encodedecode") + 2
     assert all(not entry["path"].startswith("/") for entry in accounting["program_zip"]["files"])
     assert "cix-p26.sh" in {entry["path"] for entry in accounting["program_zip"]["files"]}
 
 
-def test_changed_or_omitted_frozen_artifact_fails_closed(tmp_path):
+def test_changed_or_omitted_closure_or_native_artifact_fails_closed(tmp_path):
     case = _fixture(tmp_path)
     (case["runtime"] / "cix/core.py").write_text("changed")
     with pytest.raises(ValueError, match="changed"):
         _build(case)
     case = _fixture(tmp_path / "other")
+    (case["runtime"] / "cix/core.py").unlink()
+    with pytest.raises(ValueError, match="does not resolve"):
+        _build(case)
+    case = _fixture(tmp_path / "another")
     (case["runtime"] / "results/leaderboard/native_ppm.so").unlink()
     with pytest.raises(ValueError, match="not a regular"):
         _build(case)
@@ -112,3 +121,55 @@ def test_mismatched_verified_archive_receipt_fails_closed(tmp_path, monkeypatch)
         package.package_report(runtime=case["runtime"], freeze_manifest=case["freeze"],
                                static_imports=case["imports"], vendor_root=case["vendor"], paq_roots=case["paq"],
                                run=case["run"], output=case["out"] / "program.zip", required_options=[], allow_pending=False)
+
+
+def test_changed_physical_archive_or_source_commit_mismatch_fails_closed(tmp_path, monkeypatch):
+    case = _fixture(tmp_path)
+    _complete_run(case, monkeypatch)
+    (case["run"] / "enwik9.cix").write_bytes(b"changed after receipt")
+    with pytest.raises(ValueError, match="does not match"):
+        package.package_report(runtime=case["runtime"], freeze_manifest=case["freeze"],
+                               static_imports=case["imports"], vendor_root=case["vendor"], paq_roots=case["paq"],
+                               run=case["run"], output=case["out"] / "program.zip", required_options=[], allow_pending=False)
+    (case["run"] / "enwik9.cix").write_bytes(b"archive")
+    record = json.loads((case["run"] / "status.json").read_text())
+    record["source_commit"] = "different"
+    (case["run"] / "status.json").write_text(json.dumps(record))
+    with pytest.raises(ValueError, match="incomplete, inconsistent"):
+        package.package_report(runtime=case["runtime"], freeze_manifest=case["freeze"],
+                               static_imports=case["imports"], vendor_root=case["vendor"], paq_roots=case["paq"],
+                               run=case["run"], output=case["out"] / "other.zip", required_options=[], allow_pending=False)
+
+
+def test_symlink_input_is_rejected(tmp_path):
+    case = _fixture(tmp_path)
+    target = case["runtime"] / "cix/core.py"
+    target.unlink()
+    target.symlink_to(case["runtime"] / "cix/__init__.py")
+    with pytest.raises(ValueError, match="regular"):
+        _build(case)
+
+
+def test_extracted_launcher_chdirs_and_executes_relative_native_fixture(tmp_path):
+    case = _fixture(tmp_path)
+    cli = case["runtime"] / "benchmarks/competitive_cli.py"
+    cli.write_text("import subprocess\nsubprocess.run(['results/leaderboard/native_ppm.so'], check=True)\nprint('portable-ok')\n")
+    native = case["runtime"] / "results/leaderboard/native_ppm.so"
+    native.write_text("#!/bin/sh\nprintf native-ok\n")
+    native.chmod(0o755)
+    frozen = json.loads(case["freeze"].read_text())
+    for path in (cli, native):
+        frozen["runtime_files"][path.relative_to(case["runtime"]).as_posix()] = _hash(path)
+    case["freeze"].write_text(json.dumps(frozen))
+    built = _build(case)
+    unpacked = tmp_path / "unpacked"
+    with zipfile.ZipFile(built["path"]) as source:
+        for info in source.infolist():
+            target = unpacked / info.filename
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(source.read(info))
+            os.chmod(target, info.external_attr >> 16)
+    result = subprocess.run([str(unpacked / "cix-p26.sh")], cwd=tmp_path, text=True, capture_output=True, check=True,
+                            env={"PATH": os.environ["PATH"], "PYTHONPATH": "/must/not/leak"})
+    assert "native-ok" in result.stdout
+    assert "portable-ok" in result.stdout
