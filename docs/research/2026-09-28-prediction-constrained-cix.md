@@ -2332,3 +2332,56 @@ portfolio20 release candidate; later prospective profiles are not that package.
 The latest Site remains deployment appgdep_6abb08bb59f081918526d5448f0b3e8c,
 source44a5c70383701a1a758d4dbd56bd283add1bbafd. No Site update is needed for a
 publication-permission wait. Full audit:2026-09-29-publication-blocker-audit.json.
+
+
+## 2026-09-29: user renewed research for a greater lead; portfolio 21 qualified
+
+The user explicitly requested continued local research/experiments for a greater
+lead and ongoing Site updates. This renews research work independently of the
+still-unanswered public-source/contact decision. Do not treat that publication
+question as blocking further compression experiments. No source release or
+maintainer contact has been authorized by this message.
+
+The completed full Mozilla fields worker restored all 51,220,480 source bytes
+from 5,956,286 physical bytes. Parent-aligned portfolio 21 qualification passed
+all input/frame/source/backend checks, recomputed and inverted the transform,
+and preserved the exact completed full-decode certificate. The other eleven
+streams remain unchanged. New total 25,881,586; first equivalent among 322
+published rows; 1,943,925 bytes (6.9861%) below the live 27,825,511-byte leader.
+Live page fetched byte-identically before claiming. Default CLI now uses v21.
+Eight successor tests pass; prior independent v21 decoder compatibility proof
+is retained. Compact milestone and five-replacement contribution reports are
+2026-09-29-competitive-native-fields-milestone.json and
+2026-09-29-portfolio21-contributions.json. Native v216 -8 total 28,803,779;
+CIX saves 2,922,193, across five whole-pipeline replacements.
+
+Newly completed same-version/level full controls: ordinary v215 -8 Mozilla
+6,477,271; basic structural mode 3 6,043,629; field prediction 5,956,286.
+All complete physical frames restore. Field prediction saves 520,985 bytes
+against ordinary native PAQ, including added wrapper costs. This is a structural
+model gain, not an intrinsic enumerative-vs-arithmetic advantage.
+
+Site publication succeeded 2026-09-29T01:54:31.018286Z, source
+403f0f8d391831146b3300120fa197fd238e0144, deployment
+appgdep_6abb1a462144819184a2c5d55b549845. The nine-family/four-column table,
+scorecards, full-member table, contribution evidence and new controls show v21.
+Previous portfolio20 source archive is preserved unchanged and explicitly
+historical on the Site; it does not certify a new v21 isolated package.
+
+Research continues: existing pointer decode 3676928 moved to free P core2,
+section decode3716867 to free P core4 after PID/PPID/command validation. Neither
+restarted; source/frame artifacts unchanged, timing spans CPU placement.
+New grid_backend_probe uses a separate frozen frame CIXB1e. Eighteen matched
+128KiB-ish full-frame probes cover three disjoint source regions, modes ordinary
+PAQ, grid feedback, bounded ranks, same-constraint arithmetic, fixed bits and
+bounded-rank Brotli. All bounds/framing are counted. Process session66941,
+root results/leaderboard/grid-backend-regions-20260929, three workers permitted
+CPUs10/16/18. Regional results do not change rank. Qualify the whole member only
+after the complete-byte frame restores; no projections.
+
+Prospective competitive_native_got_v22 extends current21 and uses the same
+strict successor-parent guard. The original native GOT whole-file worker must
+complete its independent restoration before qualifying any22 result. If another
+profile wins first, create a new aligned successor; never score a different
+encoder parent. Existing full PAQ, shared-symbol, pointer, section and discounted
+joint experiments remain local and frozen. No GitHub Actions.
