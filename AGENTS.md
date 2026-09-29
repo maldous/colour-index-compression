@@ -10,7 +10,17 @@ use actual PAQ-class modelling to shrink the residual arrangement space, then
 test CIX representations against arithmetic coding with identical predictions.
 Read `docs/research/2026-09-28-prediction-constrained-cix.md`. Continue existing
 reference runs and publish verified milestones to the research Site; prioritize
-this hypothesis over further unrelated backend tuning.
+this hypothesis within the broader search below.
+
+Latest user steering: investigate all opportunities for substantial compression
+changes and all technique families needed to win. Do not make the PAQ/CIX
+hypothesis an exclusive architecture. Read
+`docs/research/2026-09-28-broad-opportunity-frontier.md`; pursue discriminating
+local experiments across representations, mathematical constraints, transforms,
+grammar/dictionary/match models, neural predictors, mixtures and exact coding.
+Keep the existing full-file trials running and allocate extra work within the
+observed available memory/CPU/GPU capacity. Prefer material physical savings
+over marginal tuning, while preserving every completed qualified improvement.
 
 - The earlier universal-only constraint is superseded. Format, language, ISA,
   corpus-informed and per-file/per-region specialization are explicitly allowed.
