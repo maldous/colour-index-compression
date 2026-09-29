@@ -1,8 +1,8 @@
 # Hutter Prize eligibility track — 2026-09-29
 
-**Status: NOT YET QUALIFIED.** This is a separate enwik9-specific track. It
-does not alter the frozen external evidence configuration and does not turn the
-Silesia result into a Hutter Prize claim.
+**Status: NOT YET QUALIFIED.** Hutter Prize/enwik9 is now the sole active goal.
+The earlier Silesia and broad evidence programmes are preserved historical work;
+their results do not establish a Hutter Prize result.
 
 The canonical local input is
 `/home/user/src/cix-baseline-data/inputs/enwik9`: 1,000,000,000 bytes and
@@ -14,6 +14,15 @@ does not qualify.
 The detailed rules use the split-program accounting
 
 `compressor + (1 if compressor and decoder have the same SHA-256, else 2) × decoder + archive + required option bytes`.
+
+The primary self-extracting form, used by the current fx2-cmix winner, instead
+counts `compressor + complete self-extracting archive + required option bytes`.
+In `mode: self-extracting`, the archive is the decoder, and its full hash binds
+both encode/decode receipts and the packaging audit. The decode receipt must
+record invoking that counted archive without arguments. A separate uncounted
+launcher or a split-decoder receipt is rejected. This support avoids charging
+the already-embedded decoder a second time; it does not relax resource,
+offline, canonical-input or public-source requirements.
 
 Even where the executable is identical, that means one compressor and one
 decoder copy are counted. The preflight counts exact UTF-8 bytes for every

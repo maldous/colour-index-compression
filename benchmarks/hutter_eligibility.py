@@ -198,11 +198,20 @@ def evaluate(manifest: dict[str, Any], *, verify_input: bool = True) -> dict[str
         artifacts = {}
         failures.append("artifacts: missing")
     compressor = _artifact(artifacts.get("compressor"), "artifacts.compressor", failures)
-    decompressor = _artifact(artifacts.get("decompressor"), "artifacts.decompressor", failures)
     archive = _artifact(artifacts.get("archive"), "artifacts.archive", failures)
     mode = manifest.get("mode")
-    if mode != "split":
-        failures.append("mode: only documented split submissions are accepted by this preflight")
+    if mode == "self-extracting":
+        # The complete self-extracting archive IS the decoder. Binding the
+        # decoder receipts to a separate small launcher would omit its payload.
+        decompressor = archive
+        if artifacts.get("decompressor") is not None:
+            supplied = _artifact(artifacts["decompressor"], "artifacts.decompressor", failures)
+            if supplied and archive and supplied["sha256"] != archive["sha256"]:
+                failures.append("self-extracting: decompressor must be the complete counted archive")
+    else:
+        decompressor = _artifact(artifacts.get("decompressor"), "artifacts.decompressor", failures)
+        if mode != "split":
+            failures.append("mode: must be split or self-extracting")
 
     options = manifest.get("required_options")
     if not isinstance(options, list) or not all(isinstance(option, str) for option in options):
@@ -212,11 +221,18 @@ def evaluate(manifest: dict[str, Any], *, verify_input: bool = True) -> dict[str
         option_bytes = sum(len(option.encode("utf-8")) for option in options)
     package_bytes: int | None = None
     multiplier: int | None = None
+    formula = None
     if compressor and decompressor and archive:
-        # Identical binaries still appear as compressor + one decoder: two copies total.
-        multiplier = 1 if compressor["sha256"] == decompressor["sha256"] else 2
-        package_bytes = compressor["bytes"] + multiplier * decompressor["bytes"] + archive["bytes"] + option_bytes
-        if package_bytes > HURDLE_BYTES:
+        if mode == "self-extracting":
+            multiplier = 0  # Decoder bytes are already inside the archive.
+            formula = "compressor + complete self-extracting archive + UTF-8 required option bytes"
+            package_bytes = compressor["bytes"] + archive["bytes"] + option_bytes
+        elif mode == "split":
+            # Identical binaries still appear as compressor + one decoder: two copies total.
+            multiplier = 1 if compressor["sha256"] == decompressor["sha256"] else 2
+            formula = "compressor + (1 if same SHA-256 else 2) * decompressor + archive + UTF-8 required option bytes"
+            package_bytes = compressor["bytes"] + multiplier * decompressor["bytes"] + archive["bytes"] + option_bytes
+        if package_bytes is not None and package_bytes > HURDLE_BYTES:
             failures.append(f"package: {package_bytes} bytes exceeds strict Hutter hurdle {HURDLE_BYTES}")
 
     measurements = manifest.get("measurements") if isinstance(manifest.get("measurements"), dict) else {}
@@ -226,6 +242,10 @@ def evaluate(manifest: dict[str, Any], *, verify_input: bool = True) -> dict[str
     evidence = manifest.get("evidence") if isinstance(manifest.get("evidence"), dict) else {}
     encode_evidence = _json_evidence(evidence.get("encode"), "evidence.encode", failures)
     decode_evidence = _json_evidence(evidence.get("decode"), "evidence.decode", failures)
+    if mode == "self-extracting" and decode_evidence is not None:
+        command = decode_evidence["payload"].get("program_command")
+        if not (archive and command == [archive["path"]]):
+            failures.append("evidence.decode: self-extractor must be invoked without arguments as the complete counted archive")
     _bound_run_evidence("encode", encode_evidence, input_hash=input_observation.get("sha256"), compressor=compressor,
                         decompressor=decompressor, archive=archive, measurement=compression, failures=failures)
     _bound_run_evidence("decode", decode_evidence, input_hash=input_observation.get("sha256"), compressor=compressor,
@@ -268,7 +288,7 @@ def evaluate(manifest: dict[str, Any], *, verify_input: bool = True) -> dict[str
                   "strict_hurdle_bytes": HURDLE_BYTES, "ram_limit_bytes": RAM_LIMIT_BYTES,
                   "temp_limit_bytes": TEMP_LIMIT_BYTES},
         "input_observation": input_observation,
-        "package": {"formula": "compressor + (1 if same SHA-256 else 2) * decompressor + archive + UTF-8 required option bytes",
+        "package": {"mode": mode, "formula": formula,
                     "decoder_multiplier": multiplier, "required_option_bytes": option_bytes, "total_bytes": package_bytes},
         "measurements": {"compression": compression, "decompression": decompression},
         "evidence_hashes": {"encode": encode_evidence["sha256"] if encode_evidence else None,

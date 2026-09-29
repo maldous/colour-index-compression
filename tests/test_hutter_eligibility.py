@@ -77,6 +77,60 @@ def test_same_binary_still_counts_two_copies_total(tmp_path):
     assert package["total_bytes"] == 2 * len(b"encoder") + len(b"archive") + len(b"-9--decode")
 
 
+def test_self_extracting_counts_decoder_once_inside_archive(tmp_path):
+    manifest = _manifest(tmp_path)
+    manifest["mode"] = "self-extracting"
+    del manifest["artifacts"]["decompressor"]
+    result = gate.evaluate(manifest, verify_input=False)
+    assert result["package"]["total_bytes"] == len(b"encoder") + len(b"archive") + len(b"-9--decode")
+    assert result["package"]["decoder_multiplier"] == 0
+    # Existing split receipts cannot certify a different decoder/package form.
+    assert any("decompressor_sha256" in x for x in result["failures"])
+    assert any("without arguments" in x for x in result["failures"])
+    assert result["status"] == "NOT_YET_QUALIFIED"
+
+
+def test_self_extracting_rejects_separate_uncounted_decoder(tmp_path):
+    manifest = _manifest(tmp_path)
+    manifest["mode"] = "self-extracting"
+    result = gate.evaluate(manifest, verify_input=False)
+    assert any("decompressor must be the complete counted archive" in x for x in result["failures"])
+
+
+def test_unknown_package_mode_has_no_valid_score(tmp_path):
+    manifest = _manifest(tmp_path)
+    manifest["mode"] = "skip-decoder"
+    result = gate.evaluate(manifest, verify_input=False)
+    assert result["package"]["total_bytes"] is None
+    assert result["status"] == "NOT_YET_QUALIFIED"
+
+
+def test_bound_self_extractor_evidence_remains_only_local_candidate(tmp_path, monkeypatch):
+    import json
+    manifest = _manifest(tmp_path)
+    manifest["mode"] = "self-extracting"
+    archive = manifest["artifacts"]["archive"]
+    del manifest["artifacts"]["decompressor"]
+    (tmp_path / "enwik9").write_bytes(b"canonical")
+    monkeypatch.setattr(gate, "ENWIK9_BYTES", len(b"canonical"))
+    monkeypatch.setattr(gate, "ENWIK9_SHA256", hashlib.sha256(b"canonical").hexdigest())
+    for stage in ("encode", "decode", "packaging_review"):
+        path = Path(manifest["evidence"][stage]["path"])
+        value = json.loads(path.read_text())
+        if stage == "packaging_review":
+            value["artifact_hashes"]["decompressor"] = archive["sha256"]
+        else:
+            value.update(input_sha256=gate.ENWIK9_SHA256, input_bytes=gate.ENWIK9_BYTES,
+                         decompressor_sha256=archive["sha256"])
+            if stage == "decode":
+                value.update(program_command=[archive["path"]], restored_sha256=gate.ENWIK9_SHA256,
+                             restored_bytes=gate.ENWIK9_BYTES)
+        manifest["evidence"][stage] = _json(path, value)
+    result = gate.evaluate(manifest)
+    assert result["status"] == "LOCAL_ELIGIBILITY_CANDIDATE"
+    assert result["official_approval"] is False
+
+
 def test_wrong_enwik9_identity_fails_closed(tmp_path):
     manifest = _manifest(tmp_path)
     (tmp_path / "enwik9").write_bytes(b"not enwik9")
