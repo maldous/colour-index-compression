@@ -1,3 +1,17 @@
+# Active scope changed: Hutter Prize only — 2026-09-29
+
+The user's latest explicit instruction supersedes the prior Silesia competition
+and broad evidence-baseline mission. This evidence worktree is preserved,
+incomplete and inactive after its current atomic benchmark reaches a safe stop.
+Do not restart its schedule, NNLCB acquisition, modern full-Wikipedia comparison
+or synthetic scaling programme unless the user explicitly reauthorizes them.
+The active Hutter work is in `/home/user/src/colour-index-compression` and uses
+canonical enwik9 (1,000,000,000 bytes). Preserve this worktree, existing results,
+source data, hashes and frozen implementation. Do not rewrite the frozen plan.
+See `evidence/baseline-20260929/HUTTER-ONLY-HANDOVER.md`.
+
+The following instructions are historical context, superseded where conflicting.
+
 # CIX local Silesia research
 
 The current user-authorized objective is first place by total physical compressed
