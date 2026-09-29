@@ -2265,3 +2265,40 @@ see2026-09-29-local-jobs-0040.json. The publication/contact decision is still
 unanswered. Currentturn outcome: progress(contribution audit, source-isolation
 evidence, concrete submission draft and Sites). Goal remains active; no
 completion or blocked threshold claimed.
+
+
+## 2026-09-29: guard the winning parent during future qualification
+
+Previous turn was progress: release isolation, contribution audit, submission
+preparation and Sites. Read the full objective again. Revalidated the eighteen
+tracked native/manager processes live; the new field/GOT/stronger-Webster results
+still have no completed certificates. The public-source/contact question remains
+unanswered. No permission was inferred and no publication/submission attempted.
+
+Prepared a prospective field successor that extends portfolio 20 rather than the
+older portfolio 19 used by the earlier prepared wrappers. A new successor runner
+rejects incomplete or mismatched parent policies before invoking the existing
+strict physical/source/restoration verifier. Eight tests passed in 0.22s. Four
+independent compatibility decodes passed: full MR (9,970,564 original bytes), full
+SAO (7,251,944), an existing 73,728-byte regional field frame, and a 488-byte native
+PAQ smoke. No complete new field score is inferred. Default remains portfolio 20.
+Commands and scope: 2026-09-29-next-structural-qualification.md; proof:
+2026-09-29-native-fields-successor-check.json. Commit: d10bed7.
+
+Moved the existing shared-symbol decode 3517578 and worker 2865490/manager 2865430
+from efficiency cores to the free performance core 8. Exact process identities
+and parent relationships were checked before mutation, and affinity read back.
+No restart, source edit, archive edit or new high-memory process. The first guard
+attempt failed before mutation because the worker's command is multiprocessing
+spawn; the corrected guard verified that exact command and PPID. Its measured
+runtime now spans CPU placements, explicitly recorded in the reassignment proof.
+
+Portfolio 20 source dependencies and total were checked again using .venv Python.
+An initial system-Python check failed to import imagecodecs before making any
+changes; that environment error does not affect the qualified result. The prepared
+3,147,164-byte publication archive remains byte-identical at SHA256
+ d53c5509318620249da31a2cf5299c2b6f5497a7043f7bcc7788021bc35c7637.
+The Site remains at the latest first-equivalent result; no new size milestone
+justifies another deployment. Current turn is progress (successor qualification
+and actual compute reassignment), not completion. Publication/contact remains a
+pending user decision; continued live local work means no blocked state is set.
