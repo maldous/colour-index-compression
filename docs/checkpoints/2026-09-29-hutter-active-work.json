@@ -56,5 +56,18 @@
   "next_phase_requirement": "Parallel implementation or parallel independent CIX candidate/qualification runs, bounded by observed available CPU/RAM/disk. Preserve frozen per-run identity and distinguish concurrent research timings from controlled Prize measurements.",
   "site_version_id": "appgprj_6aba005773a08191ae8a7978a687b3cb~appgver_66f92295d6408191833116a64d7a8fff",
   "package_documentation_commit": "9010d4ccb211dbef24282afd07705c31dba6dc5f",
-  "resumption_gate": "Full baseline completion and reported accounting plus successful completed-result Site publication; an in-progress status refresh does not satisfy this gate."
+  "resumption_gate": "Full baseline completion and reported accounting plus successful completed-result Site publication; an in-progress status refresh does not satisfy this gate.",
+  "selfcontained_package_preparation": {
+    "commit": "fdf4ac0031029d8339986b2cdceba075a1bc6bb8",
+    "status": "PREPARED_NOT_BUILT",
+    "script": "benchmarks/hutter_selfcontained_package.py",
+    "review": "Frozen import paths, explicit ELF dependency analysis, actual CLI help routing and current one-file spec inspected. Agent reports 11 focused tests passed. No bundler installed or real executable built; no compression measurements performed.",
+    "remaining": [
+      "Wait for unchanged baseline full verification and release of measurement lock",
+      "Acquire and hash pinned build dependencies in isolated environment",
+      "Build actual executable; inspect dependency closure and count physical bytes",
+      "Verify isolated execution and full restoration; disclose source/license/calibration gaps"
+    ],
+    "restriction": "Preparation is not complete program accounting or Prize eligibility evidence."
+  }
 }
