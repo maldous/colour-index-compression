@@ -87,24 +87,38 @@ def absolute_output(value):
         path = Path.cwd() / path
     return path.parent.resolve(strict=True) / path.name
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("operation", choices=("encode", "decode"))
-    parser.add_argument("source")
-    parser.add_argument("destination")
-    args = parser.parse_args()
-    source, destination = absolute_existing(args.source), absolute_output(args.destination)
+def setup_runtime():
     root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
     runtime, vendor = root / "runtime", root / "runtime/vendor/site-packages"
     # Do not consult caller-provided package locations after boot.
     os.environ.pop("PYTHONPATH", None)
     os.environ["PYTHONNOUSERSITE"] = "1"
+    os.environ.update(OMP_NUM_THREADS="1", OPENBLAS_NUM_THREADS="1", MKL_NUM_THREADS="1", NUMEXPR_NUM_THREADS="1")
     sys.path.insert(0, str(vendor))
     sys.path.insert(0, str(runtime))
     for version in ("v215", "v216"):
         paq = runtime / "benchmark-work/references" / f"paq8px-{version}" / "build-local/paq8px"
         paq.chmod(paq.stat().st_mode | 0o111)
     os.chdir(runtime)
+
+def main():
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("-h", "--help", action="store_true")
+    parser.add_argument("operation", choices=("encode", "decode"), nargs="?")
+    parser.add_argument("source", nargs="?")
+    parser.add_argument("destination", nargs="?")
+    args = parser.parse_args()
+    if args.help:
+        if any((args.operation, args.source, args.destination)):
+            parser.error("--help takes no operation or paths")
+        setup_runtime()
+        sys.argv = ["benchmarks.competitive_cli", "--help"]
+        runpy.run_module("benchmarks.competitive_cli", run_name="__main__")
+        return
+    if not all((args.operation, args.source, args.destination)):
+        parser.error("operation, source and destination are required")
+    source, destination = absolute_existing(args.source), absolute_output(args.destination)
+    setup_runtime()
     sys.argv = ["benchmarks.competitive_cli", args.operation, str(source), str(destination)]
     runpy.run_module("benchmarks.competitive_cli", run_name="__main__")
 
@@ -113,15 +127,28 @@ if __name__ == "__main__":
 '''
 
 
-def spec_source(entrypoint: Path, selected: dict[str, Path], hiddenimports: list[str], output_name: str = PACKAGE_NAME) -> str:
-    """Generate a one-file spec with every non-code runtime file explicitly data-bound."""
-    datas = [(str(source), str(Path(target).parent)) for target, source in selected.items()]
-    rendered = repr(datas)
+def _is_elf(path: Path) -> bool:
+    with path.open("rb") as source:
+        return source.read(4) == b"\x7fELF"
+
+
+def payload_maps(selected: dict[str, Path]) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
+    """Classify every selected ELF explicitly for PyInstaller dependency analysis."""
+    datas, binaries = [], []
+    for target, source in selected.items():
+        row = (str(source), str(Path(target).parent))
+        (binaries if _is_elf(source) else datas).append(row)
+    return datas, binaries
+
+
+def spec_source(entrypoint: Path, selected: dict[str, Path], hiddenimports: list[str], pathex: list[Path], output_name: str = PACKAGE_NAME) -> str:
+    """Generate current-PyInstaller one-file spec with explicit ELF analysis."""
+    datas, binaries = payload_maps(selected)
     return f'''# Generated; run only with the recorded PyInstaller wheel and Python 3.12.
 # This uses one-file mode: no collection directory is emitted.
-a = Analysis([{str(entrypoint)!r}], pathex=[], binaries=[], datas={rendered}, hiddenimports={hiddenimports!r}, hookspath=[], runtime_hooks=[], excludes=[], noarchive=False)
+a = Analysis([{str(entrypoint)!r}], pathex={[str(path) for path in pathex]!r}, binaries={binaries!r}, datas={datas!r}, hiddenimports={hiddenimports!r}, hookspath=[], runtime_hooks=[], excludes=[], noarchive=False)
 pyz = PYZ(a.pure)
-exe = EXE(pyz, a.scripts, a.binaries, a.zipfiles, a.datas, [], name={output_name!r}, console=True, strip=False, upx=False)
+exe = EXE(pyz, a.scripts, a.binaries, a.datas, [], name={output_name!r}, console=True, strip=False, upx=False)
 '''
 
 
@@ -141,7 +168,8 @@ def prepare(*, runtime: Path, freeze_manifest: Path, static_imports: Path, vendo
     entrypoint.write_text(entrypoint_source())
     closure = json.loads(static_imports.read_text())
     hiddenimports = [*closure["local_python_modules"], *closure["non_stdlib_import_roots"]]
-    spec.write_text(spec_source(entrypoint, selected, hiddenimports))
+    spec.write_text(spec_source(entrypoint, selected, hiddenimports, [runtime.resolve(), vendor_root.resolve()]))
+    datas, binaries = payload_maps(selected)
     inventory = [{"target": target, "source_sha256": digest(source), "source_bytes": source.stat().st_size}
                  for target, source in selected.items()]
     plan = {
@@ -154,6 +182,9 @@ def prepare(*, runtime: Path, freeze_manifest: Path, static_imports: Path, vendo
         "entrypoint": {"path": entrypoint.name, "sha256": digest(entrypoint)},
         "spec": {"path": spec.name, "sha256": digest(spec)},
         "selected_files": inventory,
+        "payload_classification": {"data_targets": [target for target, _ in datas],
+                                   "binary_targets": [target for target, _ in binaries],
+                                   "note": "PyInstaller may add, relocate, or rewrite ELF dependencies; inspect and hash actual output before counting."},
         "required_runtime_selectors": ["encode", "decode"],
         "physical_executable_bytes": None,
         "package_total_bytes": None,
