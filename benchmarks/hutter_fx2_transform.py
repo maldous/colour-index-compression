@@ -51,6 +51,15 @@ def run(command, folder, name, cpu):
     record = dict(command=wrapped, exit_code=r.returncode,
                   wall_seconds=time.monotonic() - begin)
     timing = (folder / (name + '.time')).read_text().splitlines()[-1].split()
+    record['supervisor_resources'] = dict(inner_wall_seconds=float(timing[0]),
+        user_seconds=float(timing[1]), system_seconds=float(timing[2]), peak_rss_kib=int(timing[3]))
+    if name in ('encode', 'decode'):
+        # /usr/bin/time outside a PID namespace observes the bubblewrap
+        # supervisor, not the isolated transform's CPU/RSS. Read its inner log.
+        timing = (folder / name / 'workload.time').read_text().splitlines()[-1].split()
+        record['resource_measurement_scope'] = 'native transform process; GNU time inside namespace'
+    else:
+        record['resource_measurement_scope'] = 'build process and descendants; GNU time'
     record.update(inner_wall_seconds=float(timing[0]), user_seconds=float(timing[1]),
                   system_seconds=float(timing[2]), peak_rss_kib=int(timing[3]))
     write(folder / (name + '.json'), record)
@@ -68,7 +77,8 @@ def namespace(binary, folder, args, original=None):
                '--bind', str(folder / 'temp'), '/tmp', '--chdir', '/work']
     if original is not None:
         command += ['--ro-bind', str(original), '/canonical-enwik9']
-    return command + ['--', '/transform', *args]
+    return command + ['--', '/usr/bin/time', '-f', '%e %U %S %M',
+                      '-o', '/work/workload.time', '/transform', *args]
 
 
 def main():
@@ -128,7 +138,7 @@ def main():
         state['removed_after_full_verification'] = []
         for d in (enc, dec):
             for f in sorted(d.iterdir()):
-                if f.is_file() and f != transformed:
+                if f.is_file() and f != transformed and f.name != 'workload.time':
                     f.unlink()
                     state['removed_after_full_verification'].append(str(f.relative_to(out)))
         state.update(status='VERIFIED FULL TRANSFORM ONLY', round_trip=True,
