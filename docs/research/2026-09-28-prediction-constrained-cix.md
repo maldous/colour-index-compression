@@ -2110,3 +2110,17 @@ Nativev216Mozilla decode3202350CPU8revalidated00:03Zat93.18%;result.jsonabsent.
 Otherfullrunsstillalive. No projectedscore. Newfamilytablealreadypublished,
 nowpublishingbroadscope+completednegativesintherearch-historyfold. No new
 algorithmvariantsaddedtotheprimarytable.
+
+
+LatestSitepublicationSUCCEEDED2026-09-29T00:06:34.447782Z:
+source8fd471525ee880a0c6833886736b0ad862d7ad62,
+deploymentappgdep_6abb00fa92fc8191bc63257fa67afbd9,
+versionappgprj_6aba005773a08191ae8a7978a687b3cb~appgver_42cbb95412988191883a6732f598a68f.
+Cell1002terminalcollected. No pendingSitecall. Primary9-familytableunchanged;
+newbroadscopeandimage/ruleevidencepublishedinsideresearchhistory.
+Credentialtoolstoreexpires2026-09-29T00:14:48.699Z.
+Paid-wordfirsttwo controls:12257->13264,12827->13831physicalB,loss1007/1004.
+Allfourrestore. Thirdregionstillrunningatlastpoll. Whole-word-dictionarycost
+mayamortizeatlargerscales; don'tinterpretregionalnegativeasproofagainstallWRT.
+Needcollectsession37320androotcomplete.json beforedrawingbatchconclusion.
+Fullnativejobscontinue; noadditionalhigh-memoryCMIXprocessstarted.
