@@ -12,6 +12,10 @@ from the pinned `fx2-cmix` source revision
 `04c5806f99b9b0fa8572be8c8063b4324ec405de`.  Its upstream GPL-3.0 licence is
 retained.  The experiment adds a raw-stream `conditional_cmix` interface and
 does not alter the pinned source checkout or the current CIX repository.
+The isolated source is committed at
+`f951169`; its recovery bundle is
+`/home/user/src/cix-hutter-rd/conditional-composition/conditional-composition-source-20260929.bundle`,
+SHA-256 `2fdb521ad57a3046aff18711a8929a3872847185aebd4bf45e25b18e9a6e02b6`.
 
 For each block, the encoder calls the unmodified `Predictor::Predict()` once
 per real bit, discretizes the result in the same way as fx2's range coder, and
