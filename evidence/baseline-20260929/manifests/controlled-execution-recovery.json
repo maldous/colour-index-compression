@@ -1,0 +1,11 @@
+{
+  "observed_utc": "2026-09-29T10:13:12.270753+00:00",
+  "reason": "Recovered an interrupted, uncompleted CIX warm-up with unchanged frozen benchmark configuration. Cause of prior process disappearance is undetermined.",
+  "service_name": "cix-evidence-baseline-20260929.service",
+  "service_definition": "# /run/user/1000/systemd/transient/cix-evidence-baseline-20260929.service\n# This is a transient unit file, created programmatically via the systemd API. Do not edit.\n[Unit]\nDescription=Frozen CIX local evidence baseline; no GitHub Actions\n\n[Service]\nType=exec\nStandardOutput=append:/home/user/src/cix-baseline-runs/controlled-v1/service.log\nStandardError=append:/home/user/src/cix-baseline-runs/controlled-v1/service.log\nTimeoutStopSec=2min\nWorkingDirectory=/home/user/src/cix-evidence-baseline-20260929\nExecStart=\nExecStart=\"/usr/bin/python3\" \"-u\" \"evidence/baseline-20260929/scripts/run_suite.py\" \"--storage\" \"/home/user/src/cix-baseline-data\" \"--output\" \"/home/user/src/cix-baseline-runs/controlled-v1\" \"--wait\"\n",
+  "live_properties": "MainPID=589490\nResult=success\nExecMainStartTimestamp=Tue 2026-09-29 20:06:06 AEST\nExecStart={ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 -u evidence/baseline-20260929/scripts/run_suite.py --storage /home/user/src/cix-baseline-data --output /home/user/src/cix-baseline-runs/controlled-v1 --wait ; ignore_errors=no ; start_time=[Tue 2026-09-29 20:06:06 AEST] ; stop_time=[n/a] ; pid=589490 ; code=(null) ; status=0/0 }\nActiveState=active\nSubState=running\nInvocationID=8736a2b36f0640a0a6e96e57365b8645\n",
+  "raw_root": "/home/user/src/cix-baseline-runs/controlled-v1",
+  "interruption_record": "raw/controlled-v1-interruption-20260929.json",
+  "schedule_record": "raw/controlled-v1-schedule.json",
+  "background_policy": "Finite prescribed schedule in a transient user service. No boot enablement, automatic retry, remote computation or CI. Shared exclusive compute lock with user-authorized R&D."
+}
