@@ -2149,3 +2149,42 @@ alsoavailable. Fullnewdiscountjoint39592stillrunningCPU0;sourcefrozen.
 Broadexperimentalbranchesfinishednegative;largerWRTamortizationandstronger
 neuralmodelsremainresearchoptions, notverifiedimprovements. Do notlaunch
 32GiB-CMIXwhileonly~7GiBavailable orassume4GiBGPUentirelyfree.
+
+
+## 2026-09-29: historical audit and first equivalent position
+
+The user asked whether a previous #1 or better-than-24th result was discarded.
+Audited all572 reachable source commits and refreshed origin refs,292 unique
+historical documentation/result blobs,42 Site commits, saved memory and the
+available local session. No earlier verified full-Silesia result above24th was
+found. The27September generic-only policy did remove token/raster specializations;
+no retained full-Silesia winning result accompanies them. The earlier
+“Restore known baseline” commit removed benchmark automation, not codec code.
+Detailed scope and evidence:2026-09-29-historical-rank-audit.md. Mobile transcript
+before this local session is unavailable, so this does not rule out an earlier
+unsubstantiated conversational claim.
+
+During this audit, v216-8 Mozilla completed independent restoration at00:16:01Z.
+Its6,477,226-byte archive restores all51,220,480 original bytes exactly. Qualified
+portfolio20 totals26,402,526 bytes over all12 canonical independently compressed
+files, saving4,772,609 from portfolio19. All unchanged frames, original bytes,
+source/backend identities and restoration evidence were checked again. The
+physical six-byte CIX header replacement reverses to the exact decoded PAQ
+archive without size overhead. Full report:results/leaderboard/competitive-large-paq-v20/complete.json.
+
+A fresh live leaderboard read at00:22:37Z remains322 entries, leader27,825,511.
+The new total is1,422,985 bytes(5.113958%) below that leader: equivalent position1.
+This is the first substantiated local #1-equivalent total, not a recovered older
+win. It is a heterogeneous PAQ-backed CIX portfolio and does not establish
+intrinsic enumerative-coder superiority. The default CLI now selects portfolio20;
+9 relevant existing qualification/codec tests pass in0.82s. Public-source release
+and official listing remain pending; private GitHub source was not published.
+Compact proof:2026-09-29-competitive-large-paq-milestone.json. Source release
+preparation and Site update follow, with all pending full-file research preserved.
+
+The new full-member paid-WRT+Brotli scale experiment(session96615) also completed.
+All4 frames restore: Dickens2,827,959→2,657,808 bytes(dictionary142,716);
+Webster8,429,248→8,201,364(dictionary335,281). This shows dictionary amortization
+can reverse the earlier64KiB negative, but both results remain larger than the
+selected PAQ streams. No extra leaderboard saving or PAQ prediction is inferred.
+Its frozen sources are in commitfba951e; results/leaderboard/paid-word-brotli-whole.
