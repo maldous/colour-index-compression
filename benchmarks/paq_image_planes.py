@@ -54,10 +54,10 @@ def inverse(raw):
     return meta[:offset]+pixels+meta[offset:]
 
 
-def encode(data,region,shift,options):
+def encode(data,region,shift,version,options):
     raw=transform(data,region,shift)
     if inverse(raw)!=data:raise ValueError('plane inversion failed')
-    return MAGIC+vencode(len(data))+zlib.crc32(data).to_bytes(4,'big')+paq.encode_paq(raw,'v215',options),raw
+    return MAGIC+vencode(len(data))+zlib.crc32(data).to_bytes(4,'big')+paq.encode_paq(raw,version,options),raw
 
 
 def decode(frame):
@@ -69,20 +69,20 @@ def decode(frame):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',required=True)
-    p.add_argument('--cpu',type=int,default=2);p.add_argument('--options',default='-4');p.add_argument('--whole',action='store_true')
+    p.add_argument('--cpu',type=int,default=2);p.add_argument('--version',choices=('v215','v216'),default='v215');p.add_argument('--options',default='-4');p.add_argument('--whole',action='store_true')
     p.add_argument('--shifts',nargs='+',type=int,default=[0,4,6,8]);args=p.parse_args();os.sched_setaffinity(0,{args.cpu})
     root=Path(args.output);root.mkdir(parents=True,exist_ok=False);source=Path('benchmark-work/silesia/x-ray');data=source.read_bytes()
     region=spatial.regions(data)[-1];w,h=region['width'],region['height'];height=64
     blocks=[(0,data,region)] if args.whole else [(y,data[region['offset']+y*w*2:region['offset']+(y+height)*w*2],dict(offset=0,width=w,height=height)) for y in (0,(h-height)//2,h-height)]
-    hashes={str(Path(x).resolve()):paq.sha(Path(x).read_bytes()) for x in [*SOURCES,paq.paq_binary('v215')]}
+    hashes={str(Path(x).resolve()):paq.sha(Path(x).read_bytes()) for x in [*SOURCES,paq.paq_binary(args.version)]}
     revision=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip();rows=[]
     for y,block,r in blocks:
         for shift in args.shifts:
-            folder=root/f'{y}-{shift}';folder.mkdir();t=time.perf_counter();frame,raw=encode(block,r,shift,args.options);enc=time.perf_counter()-t
+            folder=root/f'{y}-{shift}';folder.mkdir();t=time.perf_counter();frame,raw=encode(block,r,shift,args.version,args.options);enc=time.perf_counter()-t
             (folder/'stream.cixb').write_bytes(frame);t=time.perf_counter();restored=decode((folder/'stream.cixb').read_bytes());dec=time.perf_counter()-t
             if restored!=block or source.read_bytes()!=data:raise ValueError('plane physical restoration mismatch')
             if any(paq.sha(Path(x).read_bytes())!=v for x,v in hashes.items()):raise ValueError('plane dependencies changed')
-            row=dict(row_offset=y,region=r,shift=shift,options=args.options,physical_bytes=len(frame),original_bytes=len(block),transformed_bytes=len(raw),
+            row=dict(row_offset=y,region=r,shift=shift,version=args.version,options=args.options,physical_bytes=len(frame),original_bytes=len(block),transformed_bytes=len(raw),
                 input_sha256=paq.sha(block),restored_sha256=paq.sha(restored),frame_sha256=paq.sha(frame),transformed_sha256=paq.sha(raw),
                 source_hashes=hashes,revision=revision,round_trip=True,complete_silesia_member=args.whole,
                 encode_seconds=enc,decode_seconds=dec,numpy_version=np.__version__,child_peak_rss_kib=resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss,
