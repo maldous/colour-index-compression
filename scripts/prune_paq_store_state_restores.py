@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -27,6 +28,15 @@ def write_receipt(receipt: dict) -> None:
         handle.flush()
         os.fsync(handle.fileno())
     temporary.replace(RECEIPT)
+
+
+def require_not_open(path: Path) -> None:
+    """`fuser -s PATH` is 1 when no process holds PATH; reject every other case."""
+    result = subprocess.run(['/bin/fuser', '-s', str(path)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if result.returncode == 0:
+        raise ValueError(f'open file refused: {path}')
+    if result.returncode != 1:
+        raise ValueError(f'could not establish open-file state for {path}: fuser={result.returncode}')
 
 
 def main() -> None:
@@ -69,6 +79,7 @@ def main() -> None:
     write_receipt(receipt)
     for target in targets:
         path = Path(target['path'])
+        require_not_open(path)
         path.unlink()
         if path.exists():
             raise ValueError(f'failed to remove {path}')
