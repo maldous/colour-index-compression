@@ -9,7 +9,7 @@ import json
 import resource
 import time
 from pathlib import Path
-from benchmarks import competitive_prediction_v24 as codec
+from benchmarks import competitive_section_paq_v25 as codec
 from benchmarks.competitive_codec import sha
 
 

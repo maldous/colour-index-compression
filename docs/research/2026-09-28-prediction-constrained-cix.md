@@ -2604,3 +2604,25 @@ Brotli controls(plainparent/XOR/subtraction) launchedCPU14, session47615,
 rootecoff-function-templates-brotli-full-20260929. This isunscoredresearch.
 Publicsource/contact decisionremainspending; localresearchandprivateSitesupdates
 authorizedindependently. NoActionsorpublicsourcepush.
+
+
+Section/function alphabet fullPAQ8 completed5834880 bytes, allMozilla restored.
+Parent-alignedportfolio25 now25502494, another22647saved,337074sinceSite23.
+Publishedleader27825511 unchanged;lead2323017(8.3485%). Currentdefault25.
+CompleteBrotlitemplates: control12881372;XOR12882441;subtraction12803097.
+Allthreewholeframesrestore;subtraction saves78275 againstsamecontrol butdoesnot
+beatselectedPAQ. NewmatchedPAQregionaltestsession72112CPU14, modes0and2.
+Templatecoverage5170896rawbytes;226789changedwords. No projectedPAQgains.
+
+Secondnewbranch: actualPAQ pathinventoryclassifiesXrayasdefault, withoutimage
+models. paq_image_planes reversiblytransmits16bitpixelsastwo8bitPGMgrayscale
+imageswithsplit4/6/8, plusalloriginalmetadataanddimensions. Native-0pathlog
+confirms two8b-img-grayscale segments,width2230,142720byteseach forfirstcrop.
+Twelve regional -4trialsrunningCPU2 session17955;36initialrawtransformroundtrips
+pass,14 additional automatededge/overflowtests pass. Initialcrop results120042
+controland119890split4bothrestore;notageneralorwhole-fileclaim.
+
+Isolatedsource24 bundle1497files,3161368bytesSHA256
+ d3dae6e35637d30c1ca6e4f190489c9d15132282fc9175ac9e20eb0661e2c7d0
+passedfreshsmalluncachedCLIroundtripwithseven previouslyqualifiednativebinaries.
+Preservedasprevioussourceproof;current25packaging follows.
