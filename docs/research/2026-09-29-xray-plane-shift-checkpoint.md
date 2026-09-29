@@ -36,10 +36,19 @@ The attempt was not restarted at this checkpoint because the frozen evidence
 baseline owns the shared local measurement lock.  Preserve this directory and
 the completed regional frames as an audit trail.
 
-## Next safe gate
+## Completed full gate
 
-After the baseline releases the shared measurement lock, run one bounded,
-exclusive-lock full X-ray `shift=4` trial.  Independently decode its stored
-frame, compare its physical bytes against the selected 3,531,428-byte X-ray
-portfolio member, and integrate it only if it wins.  No size is projected from
-the three bands.
+The bounded exclusive-lock full-member gate completed on 29 September using
+PAQ8px v215 `-4`, the four-bit split and the alternate 2,230-pixel raster
+orientation.  Its 3,561,735-byte `CIXB\x23` frame restored all 8,474,240 input
+bytes with the original SHA-256.  Encoding took 142.289 seconds and decoding
+took 141.702 seconds; peak child RSS was 626,944 KiB.  The stored frame hash is
+`29d73460de8498473a9c973df5515109cc198deea3befc3f860ff9ae4c441f1b`.
+
+It is **30,307 bytes larger** than portfolio 26's selected 3,531,428-byte X-ray
+frame, so it is rejected from the portfolio.  This resolves the regional
+signal: at this tested PAQ level, the self-contained PGM-plane representation
+does not pay on the complete member.  Preserve the full frame and result as
+negative evidence.  It does not rule out a separately justified test with a
+different predictor/configuration; it does rule out projecting the regional
+v215 `-4` saving into the score.
