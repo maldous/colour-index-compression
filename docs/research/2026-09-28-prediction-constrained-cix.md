@@ -2063,3 +2063,50 @@ Brotli ratio+matching speeds and all three discounted regional results behind
 the research fold. Source scientific checkpoint90db287. Knownprivateaudience
 preserved; onlySitespush, noGitHubActions. Credential toolstore expires23:55:44Z.
 Backgroundresearch retains URL handoff without opening another browser tab.
+
+
+## Broad-frontier continuation 2026-09-29T00:04:50.909828+00:00
+
+User steered: investigate all opportunities for substantial compression changes,
+all techniques needed to win. UpdatedAGENTS andnew
+`2026-09-28-broad-opportunity-frontier.md`; earlierfocusnotexclusivearchitecture.
+Nochange tolocal-only,sourceeligibility,exactroundtrip ornoActions constraints.
+
+NEW CIXI2multiscalevolumeexperiment,source1a7b564. Eight tests pass0.36s.
+Six completeMR/Xraystreams roundtrip; session92540terminal. Every nontrivial
+pyramid loses. MRidentitycontrol1671099onlysaves2framingbytes relative1671101,
+notamodelgain; preservedbutnotdefaultportfolio. Evidence
+`2026-09-28-multiscale-volume-negative.json`. No rerun justified.
+
+NEW directvisible-stateaffine/LCGscreen,scriptgenerative_rule_screen.py,
+session60519terminal. Full99998parsedOSDBrows, offset-awarefit fromprefixthen
+fullcountallrules: bestmatchingtransitions6/2/1062/10 forcolumns0/1/2/5 outof
+99997. Theearlierpreliminaryzero-offsetscreenhad6/2/1000/3; useformalnewJSON
+`2026-09-28-generative-rule-screen.json`. Noexactrecurrence, nobytesoranksclaimed;
+hiddenstategeneratorsandshufflesremainopen. NaiveconditionalMIwithuniquevalues
+wasoverfit, notcompressionevidence.
+
+CMIXv21pristinesourcefromauthor731518BZIP SHA
+8fd46731ed0125707021c2db4feb24179617b3993b735c335f2e0b3c00e5a0dc.
+Build13812terminal; GCC13.3CPU22,-O3 -ffp-contract=off -fno-fast-math.
+BinarySHA d4a5566fe3a58b8f8af722800963cbb7f3f88d5be8dbd8ffb579ed482f4fc558.
+Build/source/licenseprovenance`2026-09-28-cmix-preprocessor-build.json`.
+Preprocessing-only-s andstored-davoidlargePredictorallocation. FullneuralCMIX
+needs~32GiBrecommended; currently~7GiBavailable, notstarted. GPUisGTX1650,4096MiB
+with929MiBfree atinspection; don'tassumeunlimitedGPUcapacity. NNCPcurrentCuses
+binaryLibNC, sourceeligibilityneedsreview; earlierPythonversionisanalternative.
+
+NEWpaid_word_transform.py CIXB1e usesinput-learnedfrequencydictionary, CMIX-s
+reversiblewordreplacement, andidenticalentropybackend. Entire dictionarytravels
+insidecompressedpayload; noexternaldictionaryortrainingcache. Eight marker,
+capitalization,arbitrarybinaryandemptyroundtrips passed0.20s. Sourcef37a3f5.
+Six matchedPAQ-v215-4 regionalstreams (rawvsword onthreeexisting64KiBWebster
+fixtures),runnerpaid_word_probe.py session37320LIVE,CPU20singleworker. First
+rawcontrol12257Brestores. WholedependencyclosureFROZEN. Root
+`results/leaderboard/paid-word-paq-regions`; collectallresults,discriminatebefore
+consideringafullfile. Currentqualifiedscoreunchanged31,175,135B,24th/322.
+
+Nativev216Mozilla decode3202350CPU8revalidated00:03Zat93.18%;result.jsonabsent.
+Otherfullrunsstillalive. No projectedscore. Newfamilytablealreadypublished,
+nowpublishingbroadscope+completednegativesintherearch-historyfold. No new
+algorithmvariantsaddedtotheprimarytable.
