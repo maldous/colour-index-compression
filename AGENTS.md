@@ -55,6 +55,11 @@ Tested frozen source/tag: `ea0d4e4ebd8d14dea4bb7a422f858c87bfa514fc` /
 After full encode/decode, preserve raw receipts and archive, calculate an actual
 complete program/archive/options package total (separate from archive bytes),
 and publish the measured result and all eligibility gaps to the existing Site.
+Publish the verified archive size, encode/decode times and SHA-256 result as
+soon as the full round trip finishes. Package accounting must not delay that
+first numerical baseline. The user reiterated this priority on 29 September:
+no optimisation work before the current result is known. Evidence-only package
+preparation may continue without changing or competing with the active run.
 No package score may be guessed from the source inventory. A 72-hour operational
 phase cap is not the calibrated Prize time limit. Check resource failures and
 partial files explicitly; never count them as completed results. Only then resume
