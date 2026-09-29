@@ -62,14 +62,16 @@ no optimisation work before the current result is known. Evidence-only package
 preparation may continue without changing or competing with the active run.
 No package score may be guessed from the source inventory. A 72-hour operational
 phase cap is not the calibrated Prize time limit. Check resource failures and
-partial files explicitly; never count them as completed results. After reporting the current result and counted Hutter-size value, PAUSE and
-await the user's next decision. The user explicitly superseded the earlier
-automatic R&D resumption instruction on 29 September 2026. Do not resume
-conditional-residual experiments automatically. Future work must support a
-parallel version or parallel independent CIX candidate/qualification runs,
-while distinguishing research throughput from Prize-rule-compliant final
-measurements. Record that as a next-phase requirement, not permission to change
-or interrupt this current frozen run. The prior Silesia #1-equivalent result is
+partial files explicitly; never count them as completed results. Latest user steering on 29 September 2026: after reporting the complete current
+baseline and counted size, and successfully publishing that completed-result
+update to the existing Site, RESUME Hutter research with parallel execution.
+This explicitly supersedes the earlier pause-after-result request. Do not begin
+new research measurements before the complete baseline and Site update. Use a
+parallel implementation or parallel independent CIX candidate/qualification
+runs; preserve each run's frozen configuration, input identity, round-trip
+verification and memory/disk limits. Distinguish concurrent research throughput
+and contended timings from controlled Prize-rule qualification measurements.
+Do not change or interrupt this current frozen run. The prior Silesia #1-equivalent result is
 preserved; 24th was an earlier milestone, not a regression.
 
 ## Historical Silesia directive — superseded
