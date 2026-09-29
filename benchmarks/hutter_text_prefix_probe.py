@@ -22,6 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CANONICAL = Path("/home/user/src/cix-baseline-data/inputs/enwik9")
+CANONICAL_SHA256 = "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc"
 
 
 def digest(path: Path) -> str:
@@ -45,18 +46,28 @@ def prefix(source: Path, target: Path, size: int, *, expected_size: int = 1_000_
             remaining -= len(block)
 
 
+def write_json(path: Path, value: dict) -> None:
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+    temporary.replace(path)
+
+
 def run(command: list[str], output: Path, *, cpu: int) -> dict:
     metrics, log = output.with_suffix(".time"), output.with_suffix(".log")
-    wrapped = ["taskset", "-c", str(cpu), "/usr/bin/time", "-f", "%e %M", "-o", str(metrics), *command]
+    wrapped = ["taskset", "-c", str(cpu), "/usr/bin/time", "-f", "%e %U %S %M", "-o", str(metrics), *command]
     started = time.perf_counter()
     with log.open("wb") as sink:
         code = subprocess.run(wrapped, cwd=ROOT, stdout=sink, stderr=subprocess.STDOUT).returncode
     elapsed = time.perf_counter() - started
+    values = metrics.read_text().strip().split() if metrics.exists() else []
+    details = {"command": command, "cpu": cpu, "outer_wall_seconds": elapsed, "returncode": code,
+               "log": str(log), "completed": code == 0}
+    if len(values) == 4:
+        details.update(inner_wall_seconds=float(values[0]), user_cpu_seconds=float(values[1]),
+                       system_cpu_seconds=float(values[2]), peak_rss_kib=int(values[3]))
     if code:
-        raise RuntimeError(f"command failed ({code}); see {log}")
-    process_seconds, peak_rss_kib = metrics.read_text().strip().split()[-2:]
-    return {"command": command, "cpu": cpu, "wall_seconds": elapsed,
-            "process_seconds": float(process_seconds), "peak_rss_kib": int(peak_rss_kib), "log": str(log)}
+        raise RuntimeError(json.dumps(details, sort_keys=True))
+    return details
 
 
 def main() -> int:
@@ -71,25 +82,40 @@ def main() -> int:
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
     inp, archive, restored = out / "enwik9-prefix.bin", out / "stream.paq8px", out / "restored.bin"
+    source_sha256 = digest(args.source)
+    if source_sha256 != CANONICAL_SHA256:
+        raise ValueError("source SHA-256 is not canonical enwik9")
     prefix(args.source, inp, args.bytes)
     binary = ROOT / "benchmark-work/references/paq8px-v215/build-local/paq8px"
     if not binary.is_file():
         raise FileNotFoundError(binary)
-    policy = {"engine": "paq8px-v215", "options": ["-10L", "-forcetext", "-simd", "AVX2"],
-              "binary_sha256": digest(binary), "source": str(args.source), "prefix_bytes": args.bytes,
+    policy = {"engine": "paq8px-v215 reference text backend", "options": ["-10L", "-forcetext", "-simd", "AVX2"],
+              "binary_sha256": digest(binary), "runner_sha256": digest(Path(__file__)),
+              "source": str(args.source), "source_sha256": source_sha256, "prefix_bytes": args.bytes,
+              "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
               "qualifying": False, "nonqualifying_reason": "prefix only; no full enwik9 or submission accounting"}
-    encode = run([str(binary), "-10L", "-forcetext", "-simd", "AVX2", str(inp), str(archive)], archive, cpu=args.cpu)
-    decode = run([str(binary), "-d", "-simd", "AVX2", str(archive), str(restored)], restored, cpu=args.cpu)
-    if digest(inp) != digest(restored):
-        raise ValueError("round trip hash mismatch")
-    record = {"completed_at": dt.datetime.now(dt.timezone.utc).isoformat(), "policy": policy,
-              "input": {"bytes": inp.stat().st_size, "sha256": digest(inp)},
-              "archive": {"bytes": archive.stat().st_size, "sha256": digest(archive)},
-              "restored": {"bytes": restored.stat().st_size, "sha256": digest(restored)},
-              "round_trip": True, "encode": encode, "decode": decode}
-    (out / "complete.json").write_text(json.dumps(record, indent=2, sort_keys=True) + "\n")
-    print(json.dumps(record, indent=2))
-    return 0
+    started = {"state": "STARTED", "started_at": dt.datetime.now(dt.timezone.utc).isoformat(), "policy": policy,
+               "input": {"bytes": inp.stat().st_size, "sha256": digest(inp)}}
+    write_json(out / "started.json", started)
+    try:
+        encode = run([str(binary), "-10L", "-forcetext", "-simd", "AVX2", str(inp), str(archive)], archive, cpu=args.cpu)
+        write_json(out / "encode.json", {"state": "COMPLETE", **started, "archive": {"bytes": archive.stat().st_size, "sha256": digest(archive)}, "encode": encode})
+        decode = run([str(binary), "-d", "-simd", "AVX2", str(archive), str(restored)], restored, cpu=args.cpu)
+        input_hash, restored_hash = digest(inp), digest(restored)
+        if inp.stat().st_size != restored.stat().st_size or input_hash != restored_hash:
+            raise ValueError("round trip byte count or hash mismatch")
+        record = {"completed_at": dt.datetime.now(dt.timezone.utc).isoformat(), "policy": policy,
+                  "input": {"bytes": inp.stat().st_size, "sha256": input_hash},
+                  "archive": {"bytes": archive.stat().st_size, "sha256": digest(archive)},
+                  "restored": {"bytes": restored.stat().st_size, "sha256": restored_hash},
+                  "round_trip": True, "encode": encode, "decode": decode}
+        write_json(out / "complete.json", record)
+        print(json.dumps(record, indent=2))
+        return 0
+    except Exception as error:
+        write_json(out / "failed.json", {"state": "FAILED", "failed_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+                                         "policy": policy, "error": str(error)})
+        raise
 
 
 if __name__ == "__main__":
