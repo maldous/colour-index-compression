@@ -1,0 +1,87 @@
+{
+  "recorded_at": "2026-09-29T00:43:37.066141+00:00",
+  "reason": "CPU8 is an unoccupied performance core after native v216 Mozilla completed; move the existing full shared-symbol decode from efficiency cores without restarting it.",
+  "changes": [
+    {
+      "pid": 2865430,
+      "parent_pid": 1385821,
+      "cmd": ".venv/bin/python -m benchmarks.ecoff_got_probe --whole --backend paq --options=-8 --modes 3 --jobs 1 --output results/leaderboard/ecoff-got-paq-full8 ",
+      "old_affinity": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "new_affinity": [
+        8
+      ]
+    },
+    {
+      "pid": 2865490,
+      "parent_pid": 2865430,
+      "cmd": "/home/user/src/colour-index-compression/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=8, pipe_handle=12) --multiprocessing-fork ",
+      "old_affinity": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "new_affinity": [
+        8
+      ]
+    },
+    {
+      "pid": 3517578,
+      "parent_pid": 2865490,
+      "cmd": "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v215/build-local/paq8px -d -simd AVX2 /tmp/cix-paq-79j8fq5h/stream.paq8px215 /tmp/cix-paq-79j8fq5h/decoded.bin ",
+      "old_affinity": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "new_affinity": [
+        8
+      ]
+    }
+  ],
+  "source_or_stream_changes": false,
+  "restarted": false,
+  "timing_caveat": "This verification run spans two CPU placements and is not a uniform speed benchmark."
+}
