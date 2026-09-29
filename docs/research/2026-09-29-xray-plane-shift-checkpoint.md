@@ -10,8 +10,9 @@ prediction trace.
 
 At PAQ8px v215 `-4`, the three 64-row bands in
 `results/leaderboard/paq-image-planes-regions-20260929/complete.json` all
-round-trip exactly.  A four-bit low plane is the only tested split with a net
-improvement over the same PGM representation without splitting:
+round-trip exactly.  The control is the original band bytes with the ordinary
+PAQ path; it is deliberately not manufactured as a PGM image.  A four-bit low
+plane is the only tested split with a net improvement over that raw control:
 
 | Raster row | Unsplit | 4-bit split | Delta |
 | --- | ---: | ---: | ---: |
@@ -20,9 +21,11 @@ improvement over the same PGM representation without splitting:
 | 1,836 | 112,321 B | 112,512 B | +191 B |
 | **Total** | **360,986 B** | **359,933 B** | **-1,053 B** |
 
-Six- and eight-bit splits lost on all three aggregate comparisons.  This is a
-regional signal only.  It is not a Silesia member result and does not alter
-portfolio 26.
+Six- and eight-bit splits lost on all three aggregate comparisons.  The gain
+therefore includes the effect of presenting the two planes as PGM grayscale
+images to PAQ's image model, as well as the split itself.  This is a regional
+signal only.  It is not a Silesia member result and does not alter portfolio
+26.
 
 ## Interrupted full trial
 
