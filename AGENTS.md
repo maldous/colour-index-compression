@@ -1,5 +1,27 @@
 # CIX research — controlling directive 2026-09-30
 
+## Generic adaptive implementation — controlling user direction
+
+Acquisition closed at 2026-09-30T11:04:27Z. Do not initiate downloads, dataset
+searches or acquisition-manifest expansion. The usable subset and publisher
+versus local-identity checks are frozen in
+`docs/research/2026-09-30-generic-pipeline/acquisition-cutoff.json`.
+All earlier work stays preserved. No full enwik9/Hutter or external publication.
+
+The current deliverable is the generic CIXG1 pipeline (`cix/pipeline.py`),
+bounded byte profiling, paid representations/substreams, stored route/coder
+choices and independent archive-only validation. No filename, corpus/hash,
+semantic parser or specialized backend routing in the generic policy. Existing
+format-specific Silesia/domain paths remain separate historical implementations.
+Read the new FORMAT.md, PLAN.md, selector-freeze.json and results evidence.
+Source changes after the freeze require a new experiment identity; do not tune
+the frozen selector from held-out results. Use the existing WaveScheduler,
+four physical cores / 12 GB RAM / 4 GB temporary aggregate cap and no swap.
+Keep Actions disabled, repository private and dataset bytes outside Git.
+
+The five-domain programme below is preserved context; it does not supersede
+this generic implementation direction or authorize new acquisition.
+
 ## Five-domain forward transfer — current controlling direction
 
 Wikipedia-specific projection and Hutter research are PAUSED by the user's

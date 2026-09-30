@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import platform
 import subprocess
 import sys
@@ -82,9 +83,16 @@ def prepare():
     builds=sorted(str(p.relative_to(ROOT)) for p in (ROOT/'cix').glob('*.py'))
     builds += ['benchmarks/generic_probe.py']
     cells=[]
+    cpus=[]; physical=set()
+    for cpu in sorted(os.sched_getaffinity(0)):
+        topology=Path(f'/sys/devices/system/cpu/cpu{cpu}/topology')
+        core=((topology/'physical_package_id').read_text().strip(),(topology/'core_id').read_text().strip())
+        if core not in physical: cpus.append(cpu); physical.add(core)
+        if len(cpus)==4: break
+    if len(cpus)<4: raise RuntimeError('four available independent physical cores are required')
     for i,(inp,config) in enumerate(configuration):
         identity=hashed(canonical({'input':inp,'config':config,'build':{p:hashed((ROOT/p).read_bytes()) for p in builds}}))[:24]
-        cell_id='generic-'+identity; cpu=(0,2,4,6)[i%4]
+        cell_id='generic-'+identity; cpu=cpus[i%4]
         base=['/usr/bin/time','-v','-o','{workdir}/encode.time.txt',sys.executable,
               str(ROOT/'benchmarks/generic_probe.py'),'encode','{source}','{workdir}/candidate.bin']
         flags=['--mode',config['mode']]
@@ -133,6 +141,35 @@ def execute(stratum):
                           'status':[r.get('runner_status',r.get('status')) for r in results],'remaining':len(cells)}),flush=True)
 
 
+def prepare_ordering():
+    cells=json.loads((AREA/'cells.json').read_text())
+    if any(c['stratum']=='coder-control' for c in cells): raise RuntimeError('ordering controls already declared')
+    basecells=[c for c in cells if c['stratum']=='development' and c['configuration']=={'mode':'baseline'}]
+    for base in basecells:
+        template=json.loads(Path(base['manifest_path']).read_text())
+        for route in ('lz','predictor','bwt','stride'):
+            for coder in ('exact','count-range'):
+                manifest=json.loads(json.dumps(template))
+                manifest['configuration']={'mode':'forced-ordering','route':route,'coder':coder}
+                manifest['build_paths'] += ['benchmarks/generic_coder_audit.py']
+                manifest['stratum']='coder-control'
+                manifest['hypothesis']='Exact ranks and same-count range ordering receive identical transforms, paid counts and stream boundaries with no raw/run/eligibility fallback.'
+                manifest['mechanism']='only the ordering encoder changes; count-range construction includes incumbent rank CPU cost'
+                manifest['encode_command']=['/usr/bin/time','-v','-o','{workdir}/encode.time.txt',sys.executable,
+                    str(ROOT/'benchmarks/generic_coder_audit.py'),'{source}','{workdir}/candidate.bin','--route',route,'--coder',coder]
+                manifest['decode_command']=['/usr/bin/time','-v','-o','{workdir}/decode.time.txt',sys.executable,
+                    str(ROOT/'benchmarks/generic_probe.py'),'decode','{workdir}/candidate.bin','{workdir}/restored.bin','--mode','pipeline']
+                identity=hashed(canonical({'manifest':manifest,'build':build_identity(manifest,ROOT)}))[:24]
+                cell_id='generic-order-'+identity
+                path=AREA/'manifests'/f'{cell_id}.json';path.write_bytes(canonical(manifest)+b'\n')
+                loaded,sha=load_manifest(path)
+                cells.append({'cell_id':cell_id,'owner':'/root','manifest_path':str(path),'output_dir':str(AREA/'runs'/cell_id),
+                    'expected_manifest_sha256':sha,'expected_build_sha256':build_identity(loaded,ROOT),
+                    'label':base['label'],'stratum':'coder-control','configuration':manifest['configuration']})
+    (AREA/'cells.json').write_text(json.dumps(cells,indent=2)+'\n')
+    print(json.dumps({'new_ordering_cells':24,'selector_changed':False}),flush=True)
+
+
 def _timing(path):
     if not path.exists(): return {}
     result={}
@@ -158,6 +195,9 @@ def summarize():
                        input_sha256=receipt['identity']['input']['sha256'],verification=receipt['verification'],
                        archive_sha256=receipt['archive_sha256'],receipt=str(terminal),
                        encode=_timing(work/'encode.time.txt'),decode=_timing(work/'decode.time.txt'))
+            if row['status']=='FAILED':
+                errors='\n'.join(p.read_text() for p in terminal.parent.glob('*.stderr.log'))
+                row['failure_reason']='ROUTE_TIME_BUDGET' if 'TIME_BUDGET' in errors else 'COMMAND_OR_VERIFICATION_FAILURE'
             if (work/'encode.codec.json').exists():
                 codec=json.loads((work/'encode.codec.json').read_text())
                 row['codec']= {k:v for k,v in codec.items() if k!='blocks'}
@@ -166,6 +206,8 @@ def summarize():
                 row['accounting']=dict(Counter({k:sum(b['accounting'][k] for b in all_blocks)
                     for k in ('framing_bytes','structural_bytes','stream_descriptor_bytes','count_table_bytes','coded_payload_bytes')}))
                 assert sum(row['accounting'].values())+54 == row['bytes']
+            if (work/'ordering-audit.json').exists():
+                row['ordering_audit']=json.loads((work/'ordering-audit.json').read_text())
             if row['status']=='VERIFIED_SCREENING':
                 if hashed((work/'candidate.bin').read_bytes()) != row['archive_sha256'] or hashed((work/'restored.bin').read_bytes()) != row['input_sha256']:
                     raise RuntimeError('independent readback failed')
@@ -174,7 +216,7 @@ def summarize():
     import csv
     with (AREA/'results.csv').open('w',newline='') as f:
         fields=['label','stratum','configuration','status','original_bytes','complete_bytes','encode_seconds','decode_seconds','encode_rss_kib','decode_rss_kib','source_sha256']
-        writer=csv.DictWriter(f,fieldnames=fields); writer.writeheader()
+        writer=csv.DictWriter(f,fieldnames=fields,lineterminator='\n'); writer.writeheader()
         for r in rows:
             writer.writerow(dict(label=r['label'],stratum=r['stratum'],configuration=json.dumps(r['config'],sort_keys=True),status=r['status'],
                 original_bytes=r.get('original_bytes'),complete_bytes=r.get('bytes'),encode_seconds=r.get('encode',{}).get('seconds'),
@@ -184,7 +226,8 @@ def summarize():
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('operation',choices=('prepare','run','summarize'));p.add_argument('--stratum',default='development');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('operation',choices=('prepare','prepare-ordering','run','summarize'));p.add_argument('--stratum',default='development');a=p.parse_args()
     if a.operation=='prepare':prepare()
+    elif a.operation=='prepare-ordering':prepare_ordering()
     elif a.operation=='run':execute(a.stratum)
     else:summarize()
