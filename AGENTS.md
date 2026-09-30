@@ -1,4 +1,33 @@
-# CIX Hutter research — controlling directive 2026-09-30
+# CIX research — controlling directive 2026-09-30
+
+## Five-domain forward transfer — current controlling direction
+
+Wikipedia-specific projection and Hutter research are PAUSED by the user's
+latest instruction. Older directions below are retained historical context,
+not work to resume. Preserve their code, results, archives, receipts, inputs,
+and experiment IDs. Do not reopen the historical R&D programme.
+
+New work starts from the demonstrated molecular, numerical, database,
+executable/object, and volumetric-image implementations and evaluates exact
+transfer to new representative assets. Historical Silesia figures are
+source-specific references, never promised data-class savings. Use
+`docs/research/2026-09-30-domain-transfer/` for the new programme.
+
+Separate complete pipeline versus matched PAQ, structural representation,
+packing, and backend/settings effects. Inspect concrete recoverable index
+slack, padding and redundant terminations across dimensions/blocks/substreams;
+recognize capacity already shared by PAQ/range/JXL and do not force rank or
+class/count/index coding into every path. Charge all side information.
+
+Every first domain comparison must finish physical archives, independent exact
+restoration, compression/decompression time and memory measurement (or explicit
+failed/budget-limited status). Use immutable builds and the existing generic
+bounded runner/scheduler; its historical filename does not resume Hutter work.
+All workers share at most four physical cores, decimal 12 GB RAM and 4 GB
+temporary space, with no swap. Root schedules compression and alone commits
+and pushes finished additions. Keep repository private, Actions disabled, and
+do not publish or launch full-enwik9 jobs. Agents own disjoint NEW adapters and
+evidence files, preserving all incumbent implementations.
 
 ## Projection-only extension — current highest priority
 

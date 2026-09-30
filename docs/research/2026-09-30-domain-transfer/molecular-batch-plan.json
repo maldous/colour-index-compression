@@ -1,0 +1,11 @@
+{
+  "schema": "cix-molecular-pubchem-batch-plan-v1",
+  "purpose": "small fixed authoritative cross-molecule structural-transfer batch; not a representative molecular benchmark",
+  "cids": [1983, 2244, 2519, 3672, 5793, 5950, 681, 702],
+  "request_template": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/record/SDF/?record_type=3d",
+  "response_policy": "store every returned response byte unmodified; record HTTP/download failure and do not substitute another CID",
+  "preparation": "concatenate successful complete response files in declared CID order using their original bytes; no SDF reserialization, filtering or artificial hydrogen addition",
+  "download_limit_bytes": 204800,
+  "backend": "NOT_RUN",
+  "future_comparison": "original batch bytes and complete hydrogen_slots_v1 frame receive the same separately declared PAQv216 -4 AVX2 command"
+}

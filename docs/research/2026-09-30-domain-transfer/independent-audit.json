@@ -1,0 +1,67 @@
+{
+  "schema": "cix-domain-transfer-independent-audit-v1",
+  "scope": "Read-only review of the five new domain adapters and the domain probe/research harness. No PAQ or bounded experiment was launched, and no codec source was changed by this audit.",
+  "status": "CONDITIONAL_STATIC_PASS_PENDING_SNAPSHOT_CLOSURE_TEST",
+  "reviewed_paths": [
+    "benchmarks/domain_probe.py",
+    "benchmarks/domain_research.py",
+    "benchmarks/domain_molecular.py",
+    "benchmarks/domain_numeric_noaa.py",
+    "benchmarks/domain_database_csv.py",
+    "benchmarks/domain_executable_adapter.py",
+    "benchmarks/domain_volume.py"
+  ],
+  "format_and_reversibility": [
+    {
+      "domain": "molecular",
+      "status": "PASS_BY_STATIC_REVIEW_AND_EXISTING_EXACT_ADAPTER_RECEIPTS",
+      "finding": "The wrapper pays CIXDOM01 header, canonical source hash/variant metadata and PAQ payload. The inner SDFH stream retains parse-membership flags, record count, literal records, skeleton, choices and coordinate residuals. Existing fixed PubChem adapter evidence records exact restoration; a new PAQ-domain receipt does not yet exist."
+    },
+    {
+      "domain": "numeric",
+      "status": "PASS_BY_STATIC_REVIEW_AND_ADAPTER_TESTS",
+      "finding": "DNM1 pays rules, header, original length, record count and every typed stream. The strict parser rejects lexical forms it cannot reproduce. The packed-metadata variant pays its fixed-width mixed-radix stream and leaves numeric deltas/quality explicit. It is representation/packing work, not an enumerative-rank claim."
+    },
+    {
+      "domain": "database",
+      "status": "PASS_BY_STATIC_REVIEW_AND_ADAPTER_TESTS",
+      "finding": "DBCSV1 preserves raw field tokens, quoted spelling, separator pieces and terminators. Multiline/unterminated quoted input takes the paid literal fallback. Dictionary columns transmit palette counts and mode-3 remaining-count arithmetic order; this is not a raw database-file parser or an uncharged dictionary."
+    },
+    {
+      "domain": "executable",
+      "status": "PASS_BY_STATIC_REVIEW_AND_ADAPTER_TESTS",
+      "finding": "CIXELF1 frames raw payload, CRC, relocation membership bits and target-section identifiers. The packed identifier variant uses paid exact mixed radix. Decoder reparses only the framed payload and validates membership, radix bounds, section offsets, full frame consumption and CRC. Scope is explicitly ELF64 little-endian x86-64 R_X86_64_RELATIVE."
+    },
+    {
+      "domain": "volume",
+      "status": "PASS_BY_STATIC_REVIEW_AND_ADAPTER_TESTS",
+      "finding": "CIXDV2 pays dimensions, voxel boundaries, prefix/suffix, payload length and CRC. Plane-stack/delta-z are sent to PAQ as complete frames. The native JXL variant contains the CIXDV2 frame as the paid CIXDOM01 native payload; it is actual JXL backend evidence, not PAQ or rank-coding evidence. The prior native result remains preliminary until a domain-probe archive-only receipt exists."
+    }
+  ],
+  "source_independence": {
+    "status": "CONDITIONAL_PASS",
+    "finding": "CIXDOM01 carries source length, transformed length, adapter identity and source SHA-256; decode receives the archive and the publicly identified PAQ binary only. Runner decode declares the materialized source inaccessible. No adapter consults input filename, corpus hash, external dictionary, trained state or sidecar.",
+    "condition": "The frozen-snapshot bootstrap must be exercised successfully for each declared closure before an experiment is treated as an immutable-build result."
+  },
+  "backend_and_cost_attribution": {
+    "status": "PASS_WITH_REPORTING_LIMIT",
+    "finding": "Outer header, canonical metadata and payload are physically separable. For PAQ candidates the payload is PAQ output over the complete adapter frame; transform byte count is diagnostic and must not be added to compressed bytes. For native volume, the payload includes the inner CIXDV2 framing plus JXL payload, so any reported native gain must be attributed to the complete volume representation plus JXL, not solely JXL or CIX.",
+    "required_reporting": "Keep representation, outer framing, PAQ payload, native inner framing and JXL payload separate where available; do not label mode-3 database arithmetic or mixed-radix identifier packing as generic CIX rank-coding wins."
+  },
+  "resource_and_snapshot_enforcement": {
+    "status": "CONDITIONAL_PASS",
+    "finding": "The generic bounded runner supplies CPU affinity, systemd MemoryMax, MemorySwapMax=0, temporary-space observation, 30-second progress and archive-only decode. GNU time records per-command peak RSS; cgroup high water remains a lower bound. Domain cells deliberately omit a size gate, so completed candidate archives must decode even when larger than control.",
+    "blocker": "Before scheduling, verify the new domain-probe snapshot bootstrap with each complete import closure. Merely hashing a declared source file is insufficient if an import can resolve from the live checkout. The audit requires the probe's fail-closed origin checks, a snapshot-root execution test and runtime dependency inventory (notably numpy/imagecodecs for native volume)."
+  },
+  "known_non_results": [
+    "No five-domain matched PAQ compression result exists at this audit point.",
+    "No cross-domain ranking, generic-compression conclusion, Silesia result, Hutter score or eligibility conclusion follows.",
+    "The existing 225,932-byte volume result is a preliminary in-process native JXL diagnostic, not independent domain-probe verification."
+  ],
+  "promotion_gate": [
+    "Complete the snapshot-closure isolation test before dispatch.",
+    "Freeze complete import closure and runtime inventory in each immutable cell.",
+    "For each candidate, retain complete physical archive, independent archive-only SHA-256 restoration, per-phase wall time and RSS/memory evidence.",
+    "Compare only against a rehash-validated original-byte PAQ control with exactly matching source, wrapper, PAQ hash/options and source-filename policy."
+  ]
+}
