@@ -36,6 +36,16 @@ def timevalue(row,key):
  value=row.get(key)
  return value.get('seconds') if isinstance(value,dict) else None
 
+def normalized_status(row):
+ status=row['status']
+ if status!='FAILED':return status
+ record=row.get('failure') or {}
+ phases=record.get('phases') or []
+ stops=[p.get('stop_reason') for p in phases if isinstance(p,dict) and p.get('stop_reason')]
+ if any('wall_budget_exhausted' in s for s in stops):return 'TIME_BUDGET'
+ if any('temp_budget_exhausted' in s or 'memory' in s.lower() for s in stops):return 'RESOURCE_LIMIT'
+ return status
+
 def rss_mib(row,key):
  receipt=Path(row['receipt']) if row.get('receipt') else None
  if not receipt or not receipt.is_file():return None
@@ -54,12 +64,13 @@ def main():
  receipts=data_dir/'receipts';receipts.mkdir(exist_ok=True)
  for r0 in raw['rows']:
   r=dict(r0);member=next(m for m in members if m['label']==r['label']);profile=r['profile'];method=r['method']
-  out={'dataset':member['id'],'method':method,'profile':profile,'status':r['status'],'reason':r.get('reason'),
+  status=normalized_status(r)
+  out={'dataset':member['id'],'method':method,'profile':profile,'status':status,'reason':r.get('reason'),
     'original_bytes':member['length'],'input_sha256':member['sha256'],'repetitions':1,'preset':PRESETS[profile][method],
     'configuration':{'method':method,'profile':profile,'settings':r.get('configuration',PRESETS[profile][method]),'sample_count':1,'warmups':0},
     'encode_seconds':timevalue(r,'encode'),'decode_seconds':timevalue(r,'decode'),'encode_rss_mib':rss_mib(r,'encode_rss_mib'),'decode_rss_mib':rss_mib(r,'decode_rss_mib'),
     'receipt':None,'archive_sha256':r.get('archive_sha256'),'verification':r.get('verification')}
-  if r['status']=='VERIFIED_SCREENING':
+  if status=='VERIFIED_SCREENING':
    receipt=Path(r['receipt']);doc=json.loads(receipt.read_text());archive=Path(doc['artifacts']['archive']);restored=Path(doc['artifacts']['restored'])
    if not archive.is_file() or digest(archive)!=r['archive_sha256'] or archive.stat().st_size!=r['archive_bytes']:
     raise RuntimeError(f"archive readback failed: {r['label']} {profile} {method}")
