@@ -1,5 +1,22 @@
 # CIX Hutter research — controlling directive 2026-09-30
 
+## Shared opportunity matrix — latest direction
+
+Use `benchmarks/hutter_wikipedia_matrix.py` and
+`docs/research/2026-09-30-wikipedia-matrix/README.md` as the shared registry,
+matrix and evidence entry point. Each opportunity input is shared by several
+mechanisms; distinguish synthetic, targeted real, fixed development and
+withheld evidence. Freeze and hash generators, parameters, input bytes,
+sources, configurations, owners and budgets before dispatch. Strong means a
+strong mechanism-specific relationship, not simply exact repetitions.
+All new workers dispatch through WaveScheduler. The aggregate wave budget is
+four physical cores/12 GB RAM/4 GB temporary disk, never per worker. Until
+preserved CPU0/2 trials finish, the matrix dispatcher uses CPU4/6 with a total
+two-job/6 GB/2 GB reservation. Do not start independent schedulers or raw PAQ
+jobs to bypass this budget. Rehash cached controls before reuse. Root alone
+commits and pushes finished additions; never commit another worker's partial
+implementation. No publication, Actions or new full-enwik9.
+
 ## Highest-priority structural experiment — latest user direction
 
 Read docs/research/2026-09-30-wikipedia-structure/plan.json. Prior research is
