@@ -29,3 +29,13 @@ transformed bytes. Suggested result-schema columns
 are region/hash, page eligibility/exceptions, field descriptors, palette/count
 bytes, ordering/arithmetic bytes, transform bytes, PAQ payload, outer framing,
 physical bytes, decode hash, and delta to the raw matched frame.
+
+## Current completed and active work
+
+The first 4 MiB region completed with exact archive-only SHA-256 restoration: original 799,638 B; B closing-tag prediction 799,718 B; C typed streams 802,799 B; D skeletons 803,283 B. The other two predeclared old structural waves remain unstarted and preserved.
+
+The new column adapter has synthetic physical results: original 294 B, raw columns 434 B, count/arithmetic 516 B, count/rank 509 B, all independently verified. The same three column candidates are now measured on the 4 MiB dev0 region against its existing 799,638-byte verified original control. Every completed archive is reported before selection. Rejected completed encodes can skip decoding and remain explicitly unverified.
+
+[Field profiles](../2026-09-30-wikipedia-columns/field-profile.md) measure article text at 89.179–95.923% of original bytes on the three declared regions. Thus priority 2, alongside the page-column trial, is repeated **variable** article-body families and infobox/table field relationships. Raw frequency, exact duplicated lines, or pre-PAQ reductions alone are not evidence of incremental PAQ savings. Title reuse must mean title-to-body occurrences; contributor relationships must mean ID-to-username pairs. The initial broad body profiler used narrower proxies, which require a separately versioned correction before those rows inform prioritization.
+
+Next: conditional numeric residuals after field alignment, then title/redirect/contributor and category/link/URL relationships where measured coverage justifies a bounded ablation. No new full corpus run, publication, or Actions job is authorized.
