@@ -91,7 +91,7 @@ def load_manifest(path: Path) -> tuple[dict, str]:
     if missing:
         raise ValueError("manifest missing: " + ", ".join(missing))
     inp = manifest["input"]
-    for key in ("path", "offset", "length", "sha256"):
+    for key in ("offset", "length", "sha256"):
         if key not in inp:
             raise ValueError("manifest input missing: " + key)
     budget = manifest["budget"]
@@ -167,6 +167,50 @@ def valid_receipt(receipt: Path, expected: dict) -> bool:
         return False
 
 
+def validate_decode_size_gate(manifest: dict, source: dict) -> dict | None:
+    """Validate a completed matched control before any candidate encode starts."""
+    gate = manifest.get("decode_size_gate")
+    if gate is None:
+        return None
+    required = ("control_receipt", "archive_sha256", "control_bytes", "matching_configuration_keys")
+    if not isinstance(gate, dict) or any(key not in gate for key in required):
+        raise ValueError("decode_size_gate missing required fields")
+    receipt_path = Path(gate["control_receipt"])
+    if not receipt_path.is_absolute() or not receipt_path.is_file():
+        raise ValueError("decode_size_gate control_receipt must be an existing absolute path")
+    try:
+        control = json.loads(receipt_path.read_text())
+        identity, verification, artifacts = control["identity"], control["verification"], control["artifacts"]
+        control_input, control_configuration = identity["input"], identity["configuration"]
+    except (KeyError, json.JSONDecodeError) as error:
+        raise ValueError("decode_size_gate invalid control receipt") from error
+    if control.get("status") != "VERIFIED_SCREENING" or not verification.get("matched"):
+        raise ValueError("decode_size_gate control receipt is not verified")
+    for key in ("path", "offset", "length", "sha256"):
+        if control_input.get(key) != source.get(key):
+            raise ValueError("decode_size_gate control input mismatch")
+    keys = gate["matching_configuration_keys"]
+    if not isinstance(keys, list) or not all(isinstance(key, str) for key in keys):
+        raise ValueError("decode_size_gate matching_configuration_keys must be a string list")
+    candidate_configuration = manifest["configuration"]
+    for key in keys:
+        if control_configuration.get(key) != candidate_configuration.get(key):
+            raise ValueError(f"decode_size_gate configuration mismatch: {key}")
+    archive, restored = Path(artifacts["archive"]), Path(artifacts["restored"])
+    if not archive.is_file() or not restored.is_file():
+        raise ValueError("decode_size_gate control artifacts missing")
+    archive_sha = sha256(archive)
+    if (archive.stat().st_size != gate["control_bytes"] or archive.stat().st_size != control.get("archive_bytes")
+            or archive_sha != gate["archive_sha256"] or archive_sha != control.get("archive_sha256")):
+        raise ValueError("decode_size_gate control archive mismatch")
+    restored_sha = sha256(restored)
+    if restored_sha != source["sha256"] or restored_sha != verification.get("restored_sha256"):
+        raise ValueError("decode_size_gate control restored hash mismatch")
+    return {"control_receipt": str(receipt_path), "control_archive_bytes": archive.stat().st_size,
+            "control_archive_sha256": archive_sha, "matching_configuration_keys": keys,
+            "preflight_verified": True}
+
+
 def systemd_properties(unit: str) -> dict[str, str]:
     command = ["sudo", "-n", "systemctl", "show", unit, "--property=ActiveState", "--property=MainPID",
                "--property=MemoryCurrent", "--property=MemoryPeak", "--property=CPUUsageNSec",
@@ -236,6 +280,10 @@ def execute_phase(*, unit: str, command: list[str], work: Path, destination: Pat
     finally:
         stop_unit(unit)
     elapsed = time.monotonic() - started
+    # A transient unit can report success after RuntimeMaxSec killed its control
+    # group, so retain the declared wall boundary as the authoritative outcome.
+    if reason is None and elapsed >= wall:
+        reason = "wall_budget_exhausted"
     completed = exit_code == 0 and reason is None
     processed = input_bytes if completed else None
     with progress.open("a") as log:
@@ -256,6 +304,7 @@ def run(manifest_path: Path, results: Path, root: Path) -> dict:
     manifest, manifest_sha = load_manifest(manifest_path)
     build = build_identity(manifest, root)
     source = input_identity(manifest)
+    size_gate = validate_decode_size_gate(manifest, source)
     identity = {"manifest_sha256": manifest_sha, "build_sha256": build, "input": source,
                 "configuration": manifest["configuration"], "initial_state": manifest.get("initial_state", "empty")}
     experiment_id = hashlib.sha256(canonical(identity)).hexdigest()
@@ -267,6 +316,8 @@ def run(manifest_path: Path, results: Path, root: Path) -> dict:
         raise ValueError("existing receipt is not a matching verified result; use a new manifest")
     if (destination / "cancelled.json").exists():
         raise ValueError("cancelled experiment is never resumed; use a new manifest")
+    if (destination / "size-rejected.json").exists():
+        raise ValueError("size-rejected experiment is never reused or promoted; use a new manifest")
     destination.mkdir(parents=True, exist_ok=False)
     work = destination / "work"
     work.mkdir()
@@ -319,8 +370,12 @@ def run(manifest_path: Path, results: Path, root: Path) -> dict:
                                 budget=budget, cpu=cpu, inaccessible=[], input_bytes=source["length"])
         remaining = int(budget["wall_seconds"] - (time.monotonic() - started))
         decode_budget = {**budget, "wall_seconds": max(1, remaining)}
+        candidate_archive_bytes = archive.stat().st_size if archive.is_file() else None
+        candidate_archive_sha256 = sha256(archive) if archive.is_file() else None
+        size_rejected = bool(size_gate and encoded["exit_code"] == 0 and archive.is_file()
+                             and candidate_archive_bytes >= size_gate["control_archive_bytes"])
         decoded = execute_phase(unit=units[1], command=decode_command, work=work, destination=destination,
-                                budget=decode_budget, cpu=cpu, inaccessible=[Path(source["path"]), materialized], input_bytes=source["length"]) if encoded["exit_code"] == 0 and remaining > 0 else None
+                                budget=decode_budget, cpu=cpu, inaccessible=[Path(source["path"]), materialized], input_bytes=source["length"]) if encoded["exit_code"] == 0 and remaining > 0 and not size_rejected else None
     except BaseException:
         for unit in units: stop_unit(unit)
         (destination / "cancelled.json").write_text(json.dumps({"status": "CANCELLED", "at": utcnow()}) + "\n")
@@ -333,7 +388,7 @@ def run(manifest_path: Path, results: Path, root: Path) -> dict:
         restored_hash = sha256(restored)
         verification = {"matched": restored_hash == source["sha256"] and restored.stat().st_size == source["length"],
                         "source_sha256": source["sha256"], "restored_sha256": restored_hash}
-    status = "VERIFIED_SCREENING" if verification["matched"] else "FAILED"
+    status = "VERIFIED_SCREENING" if verification["matched"] else ("SIZE_REJECTED_UNVERIFIED" if size_rejected else "FAILED")
     row = {"status": status, "experiment_id": experiment_id, "identity": identity, "hypothesis": manifest["hypothesis"],
            "matched_control": manifest["matched_control"], "mechanism": manifest["mechanism"],
            "promotion_criteria": manifest["promotion_criteria"], "phases": [encoded, decoded], "budget": budget,
@@ -344,9 +399,15 @@ def run(manifest_path: Path, results: Path, root: Path) -> dict:
            "artifacts": {"archive": str(archive), "restored": str(restored)},
            "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
            "completed_at": utcnow()}
+    if size_gate:
+        row["decode_size_gate"] = {**size_gate, "candidate_archive_bytes": candidate_archive_bytes,
+                                    "candidate_archive_sha256": candidate_archive_sha256,
+                                    "comparison": "candidate >= completed verified control; decode skipped only after completed archive"}
     if status == "VERIFIED_SCREENING":
         receipt.write_bytes(canonical(row) + b"\n")
         row["receipt"] = str(receipt)
+    elif status == "SIZE_REJECTED_UNVERIFIED":
+        (destination / "size-rejected.json").write_bytes(canonical(row) + b"\n")
     else:
         (destination / "failed.json").write_bytes(canonical(row) + b"\n")
     return row

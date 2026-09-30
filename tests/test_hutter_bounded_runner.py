@@ -121,6 +121,48 @@ def test_cached_artifact_tamper_is_refused(tmp_path):
         run(path, tmp_path / "results", tmp_path)
 
 
+def test_completed_non_gain_skips_decoder_and_is_never_reused(tmp_path):
+    source = tmp_path / "input"; source.write_bytes(b"gate control" * 40)
+    control_script = tmp_path / "copy.py"; write_copy(control_script)
+    results = tmp_path / "results"
+    control = run(manifest(tmp_path, source, control_script), results, tmp_path)
+    control_receipt = Path(control["receipt"]); control_archive = Path(control["artifacts"]["archive"])
+    candidate_script = tmp_path / "larger.py"; candidate_script.write_text(
+        "import pathlib,sys\n"
+        "if sys.argv[1]=='encode': pathlib.Path(sys.argv[3]).write_bytes(pathlib.Path(sys.argv[2]).read_bytes()+b'!')\n"
+        "else: raise RuntimeError('decoder must not run')\n")
+    gate = {"control_receipt": str(control_receipt.resolve()), "archive_sha256": digest(control_archive),
+            "control_bytes": control_archive.stat().st_size, "matching_configuration_keys": ["codec"]}
+    candidate = run(manifest(tmp_path, source, candidate_script, decode_size_gate=gate), results, tmp_path)
+    assert candidate["status"] == "SIZE_REJECTED_UNVERIFIED"
+    assert candidate["phases"][0]["exit_code"] == 0 and candidate["phases"][1] is None
+    assert candidate["verification"]["matched"] is False
+    rejected = next(results.glob("*/size-rejected.json")); assert json.loads(rejected.read_text())["archive_bytes"] > gate["control_bytes"]
+    with pytest.raises(ValueError, match="size-rejected experiment"):
+        run(manifest(tmp_path, source, candidate_script, decode_size_gate=gate), results, tmp_path)
+
+
+@pytest.mark.parametrize("kind", ("input", "configuration", "hash"))
+def test_size_gate_mismatch_refuses_before_candidate_encode(tmp_path, kind):
+    source = tmp_path / "input"; source.write_bytes(b"control")
+    script = tmp_path / "copy.py"; write_copy(script)
+    results = tmp_path / "results"; control = run(manifest(tmp_path, source, script), results, tmp_path)
+    archive = Path(control["artifacts"]["archive"])
+    gate = {"control_receipt": str(Path(control["receipt"]).resolve()), "archive_sha256": digest(archive),
+            "control_bytes": archive.stat().st_size, "matching_configuration_keys": ["codec"]}
+    candidate_source = source
+    changes = {"decode_size_gate": gate}
+    if kind == "input":
+        candidate_source = tmp_path / "other"; candidate_source.write_bytes(b"different")
+    elif kind == "configuration":
+        changes["configuration"] = {"codec": "different"}
+    else:
+        gate["archive_sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="decode_size_gate"):
+        run(manifest(tmp_path, candidate_source, script, **changes), results, tmp_path)
+    assert len(list(results.glob("*/work/archive"))) == 1
+
+
 @pytest.mark.parametrize("seconds", [-1, 0, 1201])
 def test_moderate_budget_refuses_invalid_boundaries(tmp_path, seconds):
     source = tmp_path / "input"; source.write_bytes(b"abc")

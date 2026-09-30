@@ -1,0 +1,453 @@
+{
+  "aggregate": {
+    "all_12_verified": false,
+    "candidates": {},
+    "failed": [],
+    "missing": [
+      "dev100M/original",
+      "dev100M/B",
+      "dev100M/C",
+      "dev100M/D",
+      "dev400M/original",
+      "dev400M/B",
+      "dev400M/C",
+      "dev400M/D"
+    ]
+  },
+  "limitations": [
+    "Nested-prefix totals are not segment costs or full-corpus projections.",
+    "Research concurrency timings are not qualification timings.",
+    "Transform accounting is inside PAQ payload and is not added twice."
+  ],
+  "report_sha256_input": "a24e95676abfd26746da5530d4039346461cd8311c0330145ef3373a7c0a23e6",
+  "rows": [
+    {
+      "archive": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/efa4df6449aaa78c817371a30ee3383735d612cfccd42246753c389f4c4ac03b/work/candidate.cixstr",
+      "archive_sha256": "91aceef5df15253955eb4ef1ca3529f574611df445e462a0d9421d86177c5f88",
+      "budget": {
+        "cpu": 0,
+        "max_rss_bytes": 3000000000,
+        "max_temp_bytes": 1000000000,
+        "wall_seconds": 1200
+      },
+      "build_sha256": {
+        "benchmarks/hutter_bounded_runner.py": "915435a31257cf3f4d6407238f0a6b26e89c4b426ea97223fd173cb42437e955",
+        "benchmarks/hutter_structure.py": "a507c5d8513c189b45c1a19b736c85ddc607eb60ab46d180391376bba4cfc1f8",
+        "benchmarks/hutter_structure_moderate.py": "985e652b5d3bbc989eea01d48d5255c533ba2c2051151afb9c20cfe49f17556a",
+        "benchmarks/hutter_structure_order.py": "5115d61bd615de90990eabd57c16a3df56f94a717cdf7349f342a38026fc616b",
+        "benchmarks/hutter_structure_probe.py": "9f7e329b6564c4ea2952eb857bc069ec3855c42785f5a3117b8ecd2a48caa627",
+        "benchmarks/markup_columns.py": "f596472bbe8a4368e3b89f26dfd67e868ac4485f13e58f9e8f1027f60c6abe45",
+        "cix/__init__.py": "60e8b37e0530d6b7b8e9d2ae61f9187ac9f8620fbe5d9a26291be857edfb4fa6",
+        "cix/multinomial.py": "c778e1abb15fc869f2d740ccb1cdb518940f92d0caad7bda71342903cf215729"
+      },
+      "configuration": {
+        "codec_commit": "6001106e25cc1dcf86b7cbfbe67c185a7daeb04c",
+        "execution_boundary": "parent and child pinned CPU0; one lane per physical core; four jobs maximum",
+        "fx2": "NOT_RUN: global article-order dependency",
+        "mode": "original",
+        "paq_binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+        "paq_options": "-4 -simd AVX2",
+        "paq_version": "v216",
+        "selector": "NOT_RUN: every physical candidate separately reported",
+        "source_filename": "candidate.source.bin"
+      },
+      "input": {
+        "length": 4194304,
+        "offset": 0,
+        "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+        "sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77"
+      },
+      "mode": "original",
+      "mode_b_actual_transform_mode": null,
+      "mode_b_literal_fallback": false,
+      "original_bytes": 4194304,
+      "outer_header_bytes": 29,
+      "outer_metadata_bytes": 37,
+      "outer_mode": 0,
+      "paq_payload_bytes": 799572,
+      "phases": [
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/.venv/bin/python",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/efa4df6449aaa78c817371a30ee3383735d612cfccd42246753c389f4c4ac03b/build/benchmarks/hutter_structure_probe.py",
+            "encode",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/efa4df6449aaa78c817371a30ee3383735d612cfccd42246753c389f4c4ac03b/work/source.bin",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/efa4df6449aaa78c817371a30ee3383735d612cfccd42246753c389f4c4ac03b/work/candidate.cixstr",
+            "--mode",
+            "original",
+            "--paq-binary",
+            "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+            "--paq-sha256",
+            "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+          ],
+          "cpu_usage_seconds": 423.051434,
+          "elapsed_seconds": 485.82863069931045,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 9187328,
+          "phase": "cix-bounded-efa4df6449aa-encode",
+          "sampled_cgroup_memory_high_water_bytes": 511598592,
+          "stop_reason": null
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/.venv/bin/python",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/efa4df6449aaa78c817371a30ee3383735d612cfccd42246753c389f4c4ac03b/build/benchmarks/hutter_structure_probe.py",
+            "decode",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/efa4df6449aaa78c817371a30ee3383735d612cfccd42246753c389f4c4ac03b/work/candidate.cixstr",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/efa4df6449aaa78c817371a30ee3383735d612cfccd42246753c389f4c4ac03b/work/restored.bin",
+            "--paq-binary",
+            "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+            "--paq-sha256",
+            "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+          ],
+          "cpu_usage_seconds": 420.171139,
+          "elapsed_seconds": 482.13321685092524,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 9983722,
+          "phase": "cix-bounded-efa4df6449aa-decode",
+          "sampled_cgroup_memory_high_water_bytes": 508833792,
+          "stop_reason": null
+        }
+      ],
+      "physical_size_conserved": true,
+      "receipt": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/efa4df6449aaa78c817371a30ee3383735d612cfccd42246753c389f4c4ac03b/receipt.json",
+      "region": "dev0",
+      "restored": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/efa4df6449aaa78c817371a30ee3383735d612cfccd42246753c389f4c4ac03b/work/restored.bin",
+      "restored_sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77",
+      "status": "VERIFIED_SCREENING",
+      "total_bytes": 799638,
+      "transform_accounting": {
+        "applied": true,
+        "mode": "original"
+      },
+      "transformed_bytes": 4194304
+    },
+    {
+      "archive": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/1b4d7969e10f305ca9db52b10bac937ff0dea08521811eb1afaaebf61d749136/work/candidate.cixstr",
+      "archive_sha256": "7614e749d38bf7f46ef88f7d137e39e7c2abbe02d26dd24d6b05e1fbba714063",
+      "budget": {
+        "cpu": 2,
+        "max_rss_bytes": 3000000000,
+        "max_temp_bytes": 1000000000,
+        "wall_seconds": 1200
+      },
+      "build_sha256": {
+        "benchmarks/hutter_bounded_runner.py": "915435a31257cf3f4d6407238f0a6b26e89c4b426ea97223fd173cb42437e955",
+        "benchmarks/hutter_structure.py": "a507c5d8513c189b45c1a19b736c85ddc607eb60ab46d180391376bba4cfc1f8",
+        "benchmarks/hutter_structure_moderate.py": "985e652b5d3bbc989eea01d48d5255c533ba2c2051151afb9c20cfe49f17556a",
+        "benchmarks/hutter_structure_order.py": "5115d61bd615de90990eabd57c16a3df56f94a717cdf7349f342a38026fc616b",
+        "benchmarks/hutter_structure_probe.py": "9f7e329b6564c4ea2952eb857bc069ec3855c42785f5a3117b8ecd2a48caa627",
+        "benchmarks/markup_columns.py": "f596472bbe8a4368e3b89f26dfd67e868ac4485f13e58f9e8f1027f60c6abe45",
+        "cix/__init__.py": "60e8b37e0530d6b7b8e9d2ae61f9187ac9f8620fbe5d9a26291be857edfb4fa6",
+        "cix/multinomial.py": "c778e1abb15fc869f2d740ccb1cdb518940f92d0caad7bda71342903cf215729"
+      },
+      "configuration": {
+        "codec_commit": "6001106e25cc1dcf86b7cbfbe67c185a7daeb04c",
+        "execution_boundary": "parent and child pinned CPU2; one lane per physical core; four jobs maximum",
+        "fx2": "NOT_RUN: global article-order dependency",
+        "mode": "B",
+        "paq_binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+        "paq_options": "-4 -simd AVX2",
+        "paq_version": "v216",
+        "selector": "NOT_RUN: every physical candidate separately reported",
+        "source_filename": "candidate.source.bin"
+      },
+      "input": {
+        "length": 4194304,
+        "offset": 0,
+        "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+        "sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77"
+      },
+      "mode": "B",
+      "mode_b_actual_transform_mode": 1,
+      "mode_b_literal_fallback": false,
+      "original_bytes": 4194304,
+      "outer_header_bytes": 29,
+      "outer_metadata_bytes": 172,
+      "outer_mode": 3,
+      "paq_payload_bytes": 799517,
+      "phases": [
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/.venv/bin/python",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/1b4d7969e10f305ca9db52b10bac937ff0dea08521811eb1afaaebf61d749136/build/benchmarks/hutter_structure_probe.py",
+            "encode",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/1b4d7969e10f305ca9db52b10bac937ff0dea08521811eb1afaaebf61d749136/work/source.bin",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/1b4d7969e10f305ca9db52b10bac937ff0dea08521811eb1afaaebf61d749136/work/candidate.cixstr",
+            "--mode",
+            "B",
+            "--paq-binary",
+            "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+            "--paq-sha256",
+            "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+          ],
+          "cpu_usage_seconds": 415.510863,
+          "elapsed_seconds": 470.095787180122,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 9157290,
+          "phase": "cix-bounded-1b4d7969e10f-encode",
+          "sampled_cgroup_memory_high_water_bytes": 522674176,
+          "stop_reason": null
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/.venv/bin/python",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/1b4d7969e10f305ca9db52b10bac937ff0dea08521811eb1afaaebf61d749136/build/benchmarks/hutter_structure_probe.py",
+            "decode",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/1b4d7969e10f305ca9db52b10bac937ff0dea08521811eb1afaaebf61d749136/work/candidate.cixstr",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/1b4d7969e10f305ca9db52b10bac937ff0dea08521811eb1afaaebf61d749136/work/restored.bin",
+            "--paq-binary",
+            "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+            "--paq-sha256",
+            "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+          ],
+          "cpu_usage_seconds": 418.836906,
+          "elapsed_seconds": 474.27314866287634,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 9955075,
+          "phase": "cix-bounded-1b4d7969e10f-decode",
+          "sampled_cgroup_memory_high_water_bytes": 508809216,
+          "stop_reason": null
+        }
+      ],
+      "physical_size_conserved": true,
+      "receipt": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/1b4d7969e10f305ca9db52b10bac937ff0dea08521811eb1afaaebf61d749136/receipt.json",
+      "region": "dev0",
+      "restored": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/1b4d7969e10f305ca9db52b10bac937ff0dea08521811eb1afaaebf61d749136/work/restored.bin",
+      "restored_sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77",
+      "status": "VERIFIED_SCREENING",
+      "total_bytes": 799718,
+      "transform_accounting": {
+        "eligible": true,
+        "forced_closing_tags": 5384,
+        "literal_fallback_bytes": 0,
+        "mode": 1,
+        "original_bytes": 4194304,
+        "removed_tag_bytes": 30047,
+        "transformed_bytes": 4164266
+      },
+      "transformed_bytes": 4164266
+    },
+    {
+      "archive": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/3123b29d75423b19edf590b38bbb574b49f112c271da145948442b623c015484/work/candidate.cixstr",
+      "archive_sha256": "c9253a83114c7c2936282f768810d8168f5813fd24a3c9648d03c49d0bd69273",
+      "budget": {
+        "cpu": 4,
+        "max_rss_bytes": 3000000000,
+        "max_temp_bytes": 1000000000,
+        "wall_seconds": 1200
+      },
+      "build_sha256": {
+        "benchmarks/hutter_bounded_runner.py": "915435a31257cf3f4d6407238f0a6b26e89c4b426ea97223fd173cb42437e955",
+        "benchmarks/hutter_structure.py": "a507c5d8513c189b45c1a19b736c85ddc607eb60ab46d180391376bba4cfc1f8",
+        "benchmarks/hutter_structure_moderate.py": "985e652b5d3bbc989eea01d48d5255c533ba2c2051151afb9c20cfe49f17556a",
+        "benchmarks/hutter_structure_order.py": "5115d61bd615de90990eabd57c16a3df56f94a717cdf7349f342a38026fc616b",
+        "benchmarks/hutter_structure_probe.py": "9f7e329b6564c4ea2952eb857bc069ec3855c42785f5a3117b8ecd2a48caa627",
+        "benchmarks/markup_columns.py": "f596472bbe8a4368e3b89f26dfd67e868ac4485f13e58f9e8f1027f60c6abe45",
+        "cix/__init__.py": "60e8b37e0530d6b7b8e9d2ae61f9187ac9f8620fbe5d9a26291be857edfb4fa6",
+        "cix/multinomial.py": "c778e1abb15fc869f2d740ccb1cdb518940f92d0caad7bda71342903cf215729"
+      },
+      "configuration": {
+        "codec_commit": "6001106e25cc1dcf86b7cbfbe67c185a7daeb04c",
+        "execution_boundary": "parent and child pinned CPU4; one lane per physical core; four jobs maximum",
+        "fx2": "NOT_RUN: global article-order dependency",
+        "mode": "C",
+        "paq_binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+        "paq_options": "-4 -simd AVX2",
+        "paq_version": "v216",
+        "selector": "NOT_RUN: every physical candidate separately reported",
+        "source_filename": "candidate.source.bin"
+      },
+      "input": {
+        "length": 4194304,
+        "offset": 0,
+        "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+        "sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77"
+      },
+      "mode": "C",
+      "mode_b_actual_transform_mode": null,
+      "mode_b_literal_fallback": false,
+      "original_bytes": 4194304,
+      "outer_header_bytes": 29,
+      "outer_metadata_bytes": 137,
+      "outer_mode": 1,
+      "paq_payload_bytes": 802633,
+      "phases": [
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/.venv/bin/python",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/3123b29d75423b19edf590b38bbb574b49f112c271da145948442b623c015484/build/benchmarks/hutter_structure_probe.py",
+            "encode",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/3123b29d75423b19edf590b38bbb574b49f112c271da145948442b623c015484/work/source.bin",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/3123b29d75423b19edf590b38bbb574b49f112c271da145948442b623c015484/work/candidate.cixstr",
+            "--mode",
+            "C",
+            "--paq-binary",
+            "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+            "--paq-sha256",
+            "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+          ],
+          "cpu_usage_seconds": 418.591523,
+          "elapsed_seconds": 473.2101773088798,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 9235771,
+          "phase": "cix-bounded-3123b29d7542-encode",
+          "sampled_cgroup_memory_high_water_bytes": 846594048,
+          "stop_reason": null
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/.venv/bin/python",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/3123b29d75423b19edf590b38bbb574b49f112c271da145948442b623c015484/build/benchmarks/hutter_structure_probe.py",
+            "decode",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/3123b29d75423b19edf590b38bbb574b49f112c271da145948442b623c015484/work/candidate.cixstr",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/3123b29d75423b19edf590b38bbb574b49f112c271da145948442b623c015484/work/restored.bin",
+            "--paq-binary",
+            "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+            "--paq-sha256",
+            "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+          ],
+          "cpu_usage_seconds": 420.948711,
+          "elapsed_seconds": 475.91184622002766,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 10035000,
+          "phase": "cix-bounded-3123b29d7542-decode",
+          "sampled_cgroup_memory_high_water_bytes": 825905152,
+          "stop_reason": null
+        }
+      ],
+      "physical_size_conserved": true,
+      "receipt": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/3123b29d75423b19edf590b38bbb574b49f112c271da145948442b623c015484/receipt.json",
+      "region": "dev0",
+      "restored": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/3123b29d75423b19edf590b38bbb574b49f112c271da145948442b623c015484/work/restored.bin",
+      "restored_sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77",
+      "status": "VERIFIED_SCREENING",
+      "total_bytes": 802799,
+      "transform_accounting": {
+        "descriptor_bytes": 44509,
+        "framing_bytes": 21,
+        "physical_bytes": 4238834,
+        "records": 22070,
+        "tag_bytes": 100474,
+        "text_bytes": 4093830
+      },
+      "transformed_bytes": 4238834
+    },
+    {
+      "archive": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/6c20c149b286a7a721482ed4b2b27c1eb32efb89b5126ac5b26a622117e0a9d6/work/candidate.cixstr",
+      "archive_sha256": "b147f398ac368f3bf2e845f42e0712f5311bed7c7e8049c4f31047e4e2ce903f",
+      "budget": {
+        "cpu": 6,
+        "max_rss_bytes": 3000000000,
+        "max_temp_bytes": 1000000000,
+        "wall_seconds": 1200
+      },
+      "build_sha256": {
+        "benchmarks/hutter_bounded_runner.py": "915435a31257cf3f4d6407238f0a6b26e89c4b426ea97223fd173cb42437e955",
+        "benchmarks/hutter_structure.py": "a507c5d8513c189b45c1a19b736c85ddc607eb60ab46d180391376bba4cfc1f8",
+        "benchmarks/hutter_structure_moderate.py": "985e652b5d3bbc989eea01d48d5255c533ba2c2051151afb9c20cfe49f17556a",
+        "benchmarks/hutter_structure_order.py": "5115d61bd615de90990eabd57c16a3df56f94a717cdf7349f342a38026fc616b",
+        "benchmarks/hutter_structure_probe.py": "9f7e329b6564c4ea2952eb857bc069ec3855c42785f5a3117b8ecd2a48caa627",
+        "benchmarks/markup_columns.py": "f596472bbe8a4368e3b89f26dfd67e868ac4485f13e58f9e8f1027f60c6abe45",
+        "cix/__init__.py": "60e8b37e0530d6b7b8e9d2ae61f9187ac9f8620fbe5d9a26291be857edfb4fa6",
+        "cix/multinomial.py": "c778e1abb15fc869f2d740ccb1cdb518940f92d0caad7bda71342903cf215729"
+      },
+      "configuration": {
+        "codec_commit": "6001106e25cc1dcf86b7cbfbe67c185a7daeb04c",
+        "execution_boundary": "parent and child pinned CPU6; one lane per physical core; four jobs maximum",
+        "fx2": "NOT_RUN: global article-order dependency",
+        "mode": "D",
+        "paq_binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+        "paq_options": "-4 -simd AVX2",
+        "paq_version": "v216",
+        "selector": "NOT_RUN: every physical candidate separately reported",
+        "source_filename": "candidate.source.bin"
+      },
+      "input": {
+        "length": 4194304,
+        "offset": 0,
+        "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+        "sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77"
+      },
+      "mode": "D",
+      "mode_b_actual_transform_mode": null,
+      "mode_b_literal_fallback": false,
+      "original_bytes": 4194304,
+      "outer_header_bytes": 29,
+      "outer_metadata_bytes": 192,
+      "outer_mode": 2,
+      "paq_payload_bytes": 803062,
+      "phases": [
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/.venv/bin/python",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/6c20c149b286a7a721482ed4b2b27c1eb32efb89b5126ac5b26a622117e0a9d6/build/benchmarks/hutter_structure_probe.py",
+            "encode",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/6c20c149b286a7a721482ed4b2b27c1eb32efb89b5126ac5b26a622117e0a9d6/work/source.bin",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/6c20c149b286a7a721482ed4b2b27c1eb32efb89b5126ac5b26a622117e0a9d6/work/candidate.cixstr",
+            "--mode",
+            "D",
+            "--paq-binary",
+            "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+            "--paq-sha256",
+            "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+          ],
+          "cpu_usage_seconds": 417.391522,
+          "elapsed_seconds": 471.4626736557111,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 9108957,
+          "phase": "cix-bounded-6c20c149b286-encode",
+          "sampled_cgroup_memory_high_water_bytes": 847835136,
+          "stop_reason": null
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/.venv/bin/python",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/6c20c149b286a7a721482ed4b2b27c1eb32efb89b5126ac5b26a622117e0a9d6/build/benchmarks/hutter_structure_probe.py",
+            "decode",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/6c20c149b286a7a721482ed4b2b27c1eb32efb89b5126ac5b26a622117e0a9d6/work/candidate.cixstr",
+            "/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-structure/moderate/runs/6c20c149b286a7a721482ed4b2b27c1eb32efb89b5126ac5b26a622117e0a9d6/work/restored.bin",
+            "--paq-binary",
+            "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+            "--paq-sha256",
+            "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+          ],
+          "cpu_usage_seconds": 417.205417,
+          "elapsed_seconds": 471.40302331000566,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 9912486,
+          "phase": "cix-bounded-6c20c149b286-decode",
+          "sampled_cgroup_memory_high_water_bytes": 827346944,
+          "stop_reason": null
+        }
+      ],
+      "physical_size_conserved": true,
+      "receipt": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/6c20c149b286a7a721482ed4b2b27c1eb32efb89b5126ac5b26a622117e0a9d6/receipt.json",
+      "region": "dev0",
+      "restored": "docs/research/2026-09-30-wikipedia-structure/moderate/runs/6c20c149b286a7a721482ed4b2b27c1eb32efb89b5126ac5b26a622117e0a9d6/work/restored.bin",
+      "restored_sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77",
+      "status": "VERIFIED_SCREENING",
+      "total_bytes": 803283,
+      "transform_accounting": {
+        "descriptor_bytes": 2028,
+        "dictionary_bytes": 2959,
+        "framing_bytes": 21,
+        "literal_bytes": 3344,
+        "literal_records": 507,
+        "page_records": 506,
+        "physical_bytes": 4111837,
+        "value_bytes": 4103485
+      },
+      "transformed_bytes": 4111837
+    }
+  ],
+  "schema": "cix-structure-moderate-report-v1"
+}
