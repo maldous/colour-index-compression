@@ -10,6 +10,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+mod adaptive;
 mod ppm;
 mod rank;
 
@@ -87,6 +88,7 @@ struct Opt {
     input: String,
     output: Option<String>,
     route: Option<String>,
+    backend: String,
     block: Option<u32>,
     stream: bool,
     history: usize,
@@ -94,13 +96,14 @@ struct Opt {
     flush_interval: Option<std::time::Duration>,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|ppm|bwt|stride|phrases|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, LZ, predictor, PPM, BWT/MTF, stride transforms, phrases and raw DEFLATE. LZ requires 16 MiB and PPM requires 64 MiB of --memory. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--backend cix|deflate|hybrid|range] [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|ppm|bwt|stride|phrases|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, LZ, predictor, PPM, BWT/MTF, stride transforms, phrases and raw DEFLATE. Adaptive-range coding is available with --backend range. LZ requires 16 MiB and PPM requires 64 MiB of --memory. CIXG1 frames are limited to 65536 bytes.");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
         level: 6,
         threads: 1,
         memory: 512 * 1024 * 1024,
+        backend: "hybrid".into(),
         ..Opt::default()
     };
     let args: Vec<String> = env::args().collect();
@@ -154,6 +157,7 @@ fn parse() -> Result<Opt, String> {
             || a == "-o"
             || a == "--output"
             || a == "--route"
+            || a == "--backend"
             || a == "--block"
             || a == "--block-size"
             || a == "--history"
@@ -167,6 +171,12 @@ fn parse() -> Result<Opt, String> {
                 "--threads" => o.threads = args[i].parse().map_err(|_| "invalid thread count")?,
                 "--memory" => o.memory = parse_size(&args[i])?,
                 "--route" => o.route = Some(args[i].clone()),
+                "--backend" => {
+                    o.backend = args[i].clone();
+                    if !matches!(o.backend.as_str(), "cix" | "deflate" | "hybrid" | "range") {
+                        return Err("unsupported backend".into());
+                    }
+                }
                 "--block" => o.block = Some(args[i].parse().map_err(|_| "invalid block size")?),
                 "--block-size" => {
                     o.block = Some(
@@ -379,6 +389,9 @@ fn stream_payload(data: &[u8], level: u8, backend: &str) -> Result<(u8, Vec<u8>)
         let compressed = deflate(data, level).map_err(ioerr)?;
         candidates.push((3, compressed));
     }
+    if backend == "range" {
+        candidates.push((4, adaptive::encode(data)));
+    }
     // Python min() keeps the first equal-sized candidate; preserve its order.
     candidates
         .into_iter()
@@ -437,7 +450,7 @@ fn streams_decode(blob: &[u8], limit: usize) -> Result<Vec<Vec<u8>>, String> {
             1 => unrle(payload, n)?,
             2 => rank::decode_composition_tiles(payload, n)?,
             3 => inflate(payload, n)?,
-            4 => return Err("unsupported adaptive-range substream coder".into()),
+            4 => adaptive::decode(payload, n)?,
             5 => rank::decode_composition_tiles(payload, n)?,
             _ => return Err(format!("unsupported CIX substream coder {coder}")),
         };
@@ -777,13 +790,13 @@ fn join_streams(blob: &[u8], limit: usize) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-fn encode_route(route: u8, data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+fn encode_route(route: u8, data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
     match route {
         0 => Ok(data.to_vec()),
         1 => Ok(rle(data)),
         2 => stream_encode(data, level, "cix"),
         3 => lz_encode(data, level),
-        4 => stream_encode(&predictor_residual(data, false), level, "hybrid"),
+        4 => stream_encode(&predictor_residual(data, false), level, backend),
         5 => bwt_encode(data, level),
         6 => stride_encode(data, level),
         7 => phrase_encode(data, level),
@@ -1125,6 +1138,7 @@ fn encode<R: Read, W: Write>(
     block: u32,
     level: u8,
     forced: Option<&str>,
+    backend: &str,
     input_fd: i32,
     flush_interval: Option<std::time::Duration>,
 ) -> Result<(), String> {
@@ -1195,11 +1209,11 @@ fn encode<R: Read, W: Write>(
                 "deflate" => 10,
                 _ => return Err(format!("unsupported route: {f}")),
             };
-            (id, encode_route(id, data, level)?)
+            (id, encode_route(id, data, level, backend)?)
         } else {
             let mut candidates = vec![(0u8, data.to_vec()), (1, rle(data))];
-            candidates.push((2, encode_route(2, data, level)?));
-            candidates.push((10, encode_route(10, data, level)?));
+            candidates.push((2, encode_route(2, data, level, backend)?));
+            candidates.push((10, encode_route(10, data, level, backend)?));
             candidates.sort_by_key(|x| x.1.len());
             candidates.remove(0)
         };
@@ -1494,7 +1508,16 @@ fn run() -> Result<(), String> {
         if o.decode {
             decode(src, &mut lock, false, false, fd, o.memory)
         } else {
-            encode(src, &mut lock, block, o.level, forced, fd, o.flush_interval)
+            encode(
+                src,
+                &mut lock,
+                block,
+                o.level,
+                forced,
+                &o.backend,
+                fd,
+                o.flush_interval,
+            )
         }?
     } else {
         if o.input == out {
@@ -1506,7 +1529,16 @@ fn run() -> Result<(), String> {
             if o.decode {
                 decode(src, dst, false, false, fd, o.memory)
             } else {
-                encode(src, dst, block, o.level, forced, fd, o.flush_interval)
+                encode(
+                    src,
+                    dst,
+                    block,
+                    o.level,
+                    forced,
+                    &o.backend,
+                    fd,
+                    o.flush_interval,
+                )
             }
         })?;
         eprintln!("{}", out)

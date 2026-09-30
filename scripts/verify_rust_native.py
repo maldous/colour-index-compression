@@ -71,6 +71,16 @@ def main() -> None:
                     "archive_bytes": rust_archive.stat().st_size,
                     "archive_sha256": hashlib.sha256(rust_archive.read_bytes()).hexdigest(),
                     "canonical_equal": True, "cross_decode": True})
+        # Exercise the generic pipeline's adaptive-range backend explicitly.
+        range_data = (fixtures["mixed"] * 2)[:4096]
+        range_src = d / "adaptive.input"; range_src.write_bytes(range_data)
+        range_py = d / "adaptive.python.cix"
+        encode_file(range_src, range_py, effort="fast", backend="range", force="predictor", block_bytes=32768)
+        run(str(BIN / "cix"), "--route", "predictor", "--backend", "range", "-f", "--block", "32768", str(range_src))
+        range_rust = range_src.with_name(range_src.name + ".cix")
+        assert range_rust.read_bytes() == range_py.read_bytes(), "adaptive-range bytes differ from Python"
+        assert run(str(BIN / "cixcat"), "-", input=range_rust.read_bytes()).stdout == range_data
+        rows.append({"fixture": "mixed-adaptive-range", "route": "predictor", "coder": "adaptive-range", "source_bytes": len(range_data), "canonical_equal": True, "cross_decode": True})
         src = d / "pipe.bin"
         encoded = run(str(BIN / "cix"), "-c", "-", input=b"pipe input\0" * 100).stdout
         restored = run(str(BIN / "cixcat"), "-", input=encoded).stdout

@@ -8,9 +8,11 @@ to raw, runs and DEFLATE. LZ uses the frozen 4-byte key, 8-candidate chain and
 65,536-byte window. PPM uses order 3 and escape mass one. Exact arbitrary-
 precision `BigUint` ranks are used for alphabet-set, histogram and permutation
 ranks; fixed composition tiles are 1024 symbols. The reference 32-bit arithmetic
-coder supports PPM and type-class range decoding. Five fixtures cross-decode
-both ways with canonical route bytes; the PPM fixtures are 1 KiB, and a separate
-Python-generated count-range archive verifies coder 5 decoding. These code
+coder supports PPM, type-class range decoding, adaptive coder 4 and count-range
+coder 5 decoding. Fifty-one fixtures cross-decode both ways with canonical route
+bytes; the PPM fixtures are 1 KiB, and an adaptive-range predictor archive is
+byte-identical to the Python reference. A Python-generated count-range archive
+verifies coder 5 decoding. These code
 updates have not been performance-timed. The prior timing table below measures
 the earlier raw/run/DEFLATE implementation and remains exploratory because swap
 was active.
@@ -23,7 +25,7 @@ Build/host: Rust `1.98.1`, Cargo `1.98.1`, system zlib `1.3`, Linux x86_64. Buil
 
 The current supported CIXG1 route set and explicit remaining gaps are documented in the compatibility matrix below; the performance results that follow are from the earlier raw/run/DEFLATE-only build. Correctness fixtures include all currently ported routes.
 
-The compatibility matrix and unsupported paths are in [`rust/cix-native/README.md`](../../../rust/cix-native/README.md). Legacy CIXF1/CIXM6, adaptive substreams, mixture, and CIXB1 backend portfolio remain unsupported and are rejected explicitly.
+The compatibility matrix and unsupported paths are in [`rust/cix-native/README.md`](../../../rust/cix-native/README.md). Legacy CIXF1/CIXM6, mixture route 9, count-range encoding, and the CIXB1 backend portfolio remain unsupported and are rejected explicitly.
 
 ## Streaming checks
 
