@@ -19,38 +19,33 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 from benchmarks import markup_columns as stack
-from benchmarks import competitive_codec as paq
 from cix.multinomial import vencode, vdecode
 
 MAGIC = b"CIXSO1"
 DEVELOPMENT_RANGES = ((0, 32768), (100000000, 32768), (400000000, 32768))
 
 
-def _reliable(data):
-    """Return true only for a whole balanced fragment the stack decoder can replay."""
-    state = []
+def _lexically_safe(data):
+    """Reject only malformed lexical fragments; boundaries need not be balanced.
+
+    ``encode_stack`` already leaves unmatched boundary tags literal and only
+    replaces a closing tag when its locally reconstructed stack top predicts it.
+    That local property is causal and has an exact inverse, so requiring a whole
+    32 KiB region to be balanced would discard valid internal pairs for no
+    decoder-safety benefit.
+    """
     at = 0
     for match in stack.TOKEN.finditer(data):
         if b"<" in data[at:match.start()]:
             return False
-        token = match.group(); at = match.end()
-        name = stack.NAME.match(token)
-        if not name:  # comment, CDATA, processing instruction
-            continue
-        tag = name.group(1)
-        if token.startswith(b"</"):
-            if not state or tag != state[-1]:
-                return False
-            state.pop()
-        elif not token.rstrip().endswith(b"/>"):
-            state.append(tag)
-    return not state and b"<" not in data[at:]
+        at = match.end()
+    return b"<" not in data[at:]
 
 
 def encode(data, mode=1):
     if mode not in (0, 1):
         raise ValueError("unsupported structure mode")
-    if not mode or not _reliable(data):
+    if not mode or not _lexically_safe(data):
         return data, {"mode": 0, "eligible": False, "literal_fallback_bytes": len(data),
                       "transformed_bytes": len(data), "forced_closing_tags": 0}
     transformed, stats = stack.encode_stack(data, text=True)
@@ -78,6 +73,9 @@ def _frame(source, mode, payload):
 
 def encode_frame(source, options="-4"):
     """Select completed raw/stack+PAQ frames by physical size, raw on ties."""
+    # The unified structure runner only needs encode/decode above. Keep the
+    # heavyweight historical portfolio import out of that path.
+    from benchmarks import competitive_codec as paq
     raw_payload = paq.encode_paq(source, "v215", options)
     raw_frame = _frame(source, 0, raw_payload)
     transformed, info = encode(source)
@@ -103,6 +101,7 @@ def encode_frame(source, options="-4"):
 def decode_frame(frame):
     if len(frame) < 11 or frame[:6] != MAGIC or frame[6] not in (0, 1):
         raise ValueError("invalid structure PAQ frame")
+    from benchmarks import competitive_codec as paq
     mode = frame[6]; original, pos = vdecode(frame, 7)
     if pos + 4 > len(frame): raise ValueError("truncated frame checksum")
     crc = int.from_bytes(frame[pos:pos + 4], "big")
