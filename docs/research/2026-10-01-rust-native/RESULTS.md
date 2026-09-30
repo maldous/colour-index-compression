@@ -3,7 +3,8 @@
 ## Subsequent code update (correctness checked, not performance measured)
 
 The native encoder/decoder now supports CIXG1 route IDs 2 (composition), 4
-(predictor), 6 (stride), and 7 (phrases), in addition to raw, runs and DEFLATE.
+(predictor), 5 (BWT), 6 (stride), and 7 (phrases), in addition to raw, runs
+and DEFLATE.
 Arbitrary-precision `BigUint` ranks are used for alphabet-set, histogram, and
 permutation ranks; composition tiles are limited to 1024 symbols as in the
 reference implementation. Five fixture classes cross-decode both ways and

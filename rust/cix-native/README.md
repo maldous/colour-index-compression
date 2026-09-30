@@ -38,14 +38,14 @@ uncix --stream -c < output.cix > restored.bin
 
 ## Compatibility at this checkpoint
 
-| Operation | CIXG1 raw/run/composition/predictor/stride/phrases/DEFLATE | CIXG1 other routes | CIXF1/CIXM6 legacy stream |
+| Operation | CIXG1 raw/run/composition/predictor/BWT/stride/phrases/DEFLATE | CIXG1 other routes | CIXF1/CIXM6 legacy stream |
 |---|---|---|---|
-| Rust encode | Yes; auto-selection over raw/run/composition/DEFLATE or fixed `--route`; routes 2, 4, 6, 7, and 10 match Python on tested fixtures | Explicitly unavailable; never substituted | Unavailable |
-| Rust decode | Yes; route IDs 0, 1, 2, 4, 6, 7 and 10 with raw/run/exact-rank/DEFLATE substream coders | Explicit unsupported-route error | Unavailable |
+| Rust encode | Yes; auto-selection over raw/run/composition/DEFLATE or fixed `--route`; routes 2, 4, 5, 6, 7, and 10 match Python on tested fixtures | Explicitly unavailable; never substituted | Unavailable |
+| Rust decode | Yes; route IDs 0, 1, 2, 4, 5, 6, 7 and 10 with raw/run/exact-rank/DEFLATE substream coders | Explicit unsupported-route error | Unavailable |
 | Python decode of Rust output | Yes; cross-decoded, fixed routes byte-identical | N/A | N/A |
 | Exact original-byte restoration | Verified across empty, tiny, random, repetitive and mixed fixtures | Not claimed | Not claimed |
 
-The existing Python implementation remains the complete executable reference. Exact arbitrary-precision combinatorial ranks are implemented for CIX composition tiles up to 1024 symbols; no rank is narrowed to a machine integer. The predictor residual, six-choice stride selector, and phrase dictionary route are also ported. Arithmetic/range type-class coding, count-range, adaptive substreams, PPM, mixture, LZ, BWT and the CIXB1 backend portfolio remain unported. Timing-dependent Python selector behavior is not reproduced; Rust's current `auto` option compares only raw, run-length, composition, and DEFLATE candidates. Predictor, stride and phrases are available as explicit `--route` values; the native `auto` option is not the frozen Python effort selector. `--memory` bounds estimated codec working allocations, not executable/shared-library RSS; peak RSS is measured separately. `--threads` does not enable parallelism. The CLI handles one input path per invocation. SIGINT returns nonzero and removes incomplete file output; this is verified on the current Unix host.
+The existing Python implementation remains the complete executable reference. Exact arbitrary-precision combinatorial ranks are implemented for CIX composition tiles up to 1024 symbols; no rank is narrowed to a machine integer. The predictor residual, BWT/MTF, six-choice stride selector, and phrase dictionary routes are also ported. Arithmetic/range type-class coding, count-range, adaptive substreams, PPM, mixture, LZ and the CIXB1 backend portfolio remain unported. Timing-dependent Python selector behavior is not reproduced; Rust's current `auto` option compares only raw, run-length, composition, and DEFLATE candidates. Predictor, BWT, stride and phrases are available as explicit `--route` values; the native `auto` option is not the frozen Python effort selector. `--memory` bounds estimated codec working allocations, not executable/shared-library RSS; peak RSS is measured separately. `--threads` does not enable parallelism. The CLI handles one input path per invocation. SIGINT returns nonzero and removes incomplete file output; this is verified on the current Unix host.
 
 ## Verification
 

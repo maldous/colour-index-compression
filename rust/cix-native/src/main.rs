@@ -93,7 +93,7 @@ struct Opt {
     flush_interval: Option<std::time::Duration>,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|predictor|stride|phrases|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, predictor, stride transforms, phrases and raw DEFLATE. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|predictor|bwt|stride|phrases|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, predictor, BWT/MTF, stride transforms, phrases and raw DEFLATE. CIXG1 frames are limited to 65536 bytes.");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -782,11 +782,202 @@ fn encode_route(route: u8, data: &[u8], level: u8) -> Result<Vec<u8>, String> {
         1 => Ok(rle(data)),
         2 => stream_encode(data, level, "cix"),
         4 => stream_encode(&predictor_residual(data, false), level, "hybrid"),
+        5 => bwt_encode(data, level),
         6 => stride_encode(data, level),
         7 => phrase_encode(data, level),
         10 => stream_encode(data, level, "deflate"),
         _ => Err(format!("unsupported native route ID {route}")),
     }
+}
+
+fn bwt_transform(data: &[u8]) -> Result<(usize, Vec<u8>), String> {
+    let n = data.len();
+    if n == 0 {
+        return Ok((0, Vec::new()));
+    }
+    let mut suffixes: Vec<usize> = (0..n).collect();
+    let mut ranks: Vec<i64> = data.iter().map(|&b| b as i64).collect();
+    let mut width = 1usize;
+    loop {
+        suffixes.sort_unstable_by_key(|&i| {
+            (ranks[i], if i + width < n { ranks[i + width] } else { -1 })
+        });
+        let mut next = vec![0i64; n];
+        let mut class = 0i64;
+        let mut previous: Option<(i64, i64)> = None;
+        for &i in &suffixes {
+            let pair = (ranks[i], if i + width < n { ranks[i + width] } else { -1 });
+            if previous.is_some() && previous != Some(pair) {
+                class += 1;
+            }
+            next[i] = class;
+            previous = Some(pair);
+        }
+        ranks = next;
+        if class as usize == n - 1 {
+            break;
+        }
+        width = width.checked_mul(2).ok_or("BWT suffix width overflow")?;
+    }
+    let primary = suffixes
+        .iter()
+        .position(|&i| i == 0)
+        .ok_or("BWT suffix array omitted source start")?
+        + 1;
+    let mut transformed = Vec::with_capacity(n);
+    transformed.push(data[n - 1]);
+    for &i in &suffixes {
+        if i > 0 {
+            transformed.push(data[i - 1]);
+        }
+    }
+    if transformed.len() != n {
+        return Err("invalid BWT transform size".into());
+    }
+    Ok((primary, transformed))
+}
+
+fn mtf_encode(data: &[u8]) -> Vec<u8> {
+    let mut symbols: Vec<u8> = (0..=255).collect();
+    let mut positions: Vec<usize> = (0..256).collect();
+    let mut out = Vec::with_capacity(data.len());
+    for &byte in data {
+        let index = positions[byte as usize];
+        out.push(index as u8);
+        if index > 0 {
+            let moved = symbols[index];
+            for pos in (1..=index).rev() {
+                symbols[pos] = symbols[pos - 1];
+                positions[symbols[pos] as usize] = pos;
+            }
+            symbols[0] = moved;
+            positions[moved as usize] = 0;
+        }
+    }
+    out
+}
+
+fn mtf_decode(data: &[u8]) -> Vec<u8> {
+    let mut symbols: Vec<u8> = (0..=255).collect();
+    let mut out = Vec::with_capacity(data.len());
+    for &index in data {
+        let index = index as usize;
+        let symbol = symbols[index];
+        out.push(symbol);
+        if index > 0 {
+            symbols.copy_within(0..index, 1);
+            symbols[0] = symbol;
+        }
+    }
+    out
+}
+
+fn put_varint(mut value: usize, out: &mut Vec<u8>) {
+    while value >= 128 {
+        out.push((value as u8 & 0x7f) | 0x80);
+        value >>= 7;
+    }
+    out.push(value as u8);
+}
+
+fn mtf_runs(data: &[u8]) -> (Vec<u8>, Vec<u8>, Vec<u8>) {
+    let mtf = mtf_encode(data);
+    let mut tags = Vec::new();
+    let mut literals = Vec::new();
+    let mut lengths = Vec::new();
+    let mut i = 0;
+    while i < mtf.len() {
+        if mtf[i] == 0 {
+            let start = i;
+            i += 1;
+            while i < mtf.len() && mtf[i] == 0 {
+                i += 1;
+            }
+            tags.push(1);
+            put_varint(i - start, &mut lengths);
+        } else {
+            tags.push(0);
+            literals.push(mtf[i]);
+            i += 1;
+        }
+    }
+    (tags, literals, lengths)
+}
+
+fn unmtf_runs(parts: &[Vec<u8>], n: usize) -> Result<Vec<u8>, String> {
+    if parts.len() != 3 {
+        return Err("MTF substream count mismatch".into());
+    }
+    let (tags, literals, lengths) = (&parts[0], &parts[1], &parts[2]);
+    let (mut literal_pos, mut length_pos) = (0usize, 0usize);
+    let mut mtf = Vec::with_capacity(n);
+    for &tag in tags {
+        match tag {
+            0 if literal_pos < literals.len() => {
+                mtf.push(literals[literal_pos]);
+                literal_pos += 1;
+            }
+            1 => {
+                let count = unvar(lengths, &mut length_pos)?;
+                if count == 0 || mtf.len().checked_add(count).filter(|&v| v <= n).is_none() {
+                    return Err("invalid MTF zero run".into());
+                }
+                mtf.resize(mtf.len() + count, 0);
+            }
+            _ => return Err("invalid MTF tag/literal".into()),
+        }
+    }
+    if mtf.len() != n || literal_pos != literals.len() || length_pos != lengths.len() {
+        return Err("MTF stream lengths mismatch".into());
+    }
+    Ok(mtf_decode(&mtf))
+}
+
+fn bwt_inverse(primary: usize, transformed: &[u8]) -> Result<Vec<u8>, String> {
+    let n = transformed.len();
+    if n == 0 {
+        return if primary <= 1 {
+            Ok(Vec::new())
+        } else {
+            Err("invalid empty BWT index".into())
+        };
+    }
+    if primary == 0 || primary > n {
+        return Err("invalid BWT primary index".into());
+    }
+    let last: Vec<(u8, usize)> = transformed
+        .iter()
+        .copied()
+        .enumerate()
+        .map(|(i, b)| (b, i))
+        .collect();
+    let mut first = last.clone();
+    first.sort_unstable();
+    let mut inverse_last = vec![0usize; n];
+    for (index, &item) in last.iter().enumerate() {
+        inverse_last[item.1] = index + usize::from(index >= primary);
+    }
+    let mut current = first[primary - 1];
+    let mut out = Vec::with_capacity(n);
+    for _ in 0..n {
+        out.push(current.0);
+        let mapped = inverse_last[current.1];
+        let index = if mapped == 0 { n - 1 } else { mapped - 1 };
+        current = first[index];
+    }
+    Ok(out)
+}
+
+fn bwt_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+    let (primary, transformed) = bwt_transform(data)?;
+    let (tags, literals, lengths) = mtf_runs(&transformed);
+    let owned = vec![tags, literals, lengths];
+    let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
+    let streams = streams_encode(&refs, level, "hybrid")?;
+    let mut out = Vec::with_capacity(4 + streams.len());
+    out.extend_from_slice(&(primary as u32).to_le_bytes());
+    out.extend_from_slice(&streams);
+    Ok(out)
 }
 fn inflate(b: &[u8], n: usize) -> Result<Vec<u8>, String> {
     let mut d = Decompress::new(false);
@@ -866,6 +1057,7 @@ fn encode<R: Read, W: Write>(
                 "raw" => 0,
                 "runs" => 1,
                 "composition" => 2,
+                "bwt" => 5,
                 "predictor" => 4,
                 "stride" => 6,
                 "phrases" => 7,
@@ -955,6 +1147,15 @@ fn decode<R: Read, W: Write>(
             4 => {
                 let residual = stream_decode(&b, n as usize)?;
                 predictor_residual(&residual, true)
+            }
+            5 => {
+                if b.len() < 4 {
+                    return Err("truncated BWT primary index".into());
+                }
+                let primary = u32::from_le_bytes(b[..4].try_into().unwrap()) as usize;
+                let parts = streams_decode(&b[4..], (n as usize).saturating_mul(4))?;
+                let transformed = unmtf_runs(&parts, n as usize)?;
+                bwt_inverse(primary, &transformed)?
             }
             6 => {
                 if b.is_empty() {
@@ -1096,6 +1297,7 @@ fn run() -> Result<(), String> {
             "runs",
             "composition",
             "predictor",
+            "bwt",
             "stride",
             "phrases",
             "deflate",
