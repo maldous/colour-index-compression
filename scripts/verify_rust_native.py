@@ -38,7 +38,7 @@ def main() -> None:
         d = Path(td)
         for name, data in fixtures.items():
             source = d / f"{name}.bin"; source.write_bytes(data)
-            for route in ("raw", "runs", "deflate"):
+            for route in ("raw", "runs", "composition", "deflate"):
                 py_archive = d / f"{name}.python-{route}.cix"
                 encode_file(source, py_archive, effort="fast", backend="deflate", force=route, block_bytes=32768)
                 rust_restore = d / f"{name}.rust-{route}.bin"

@@ -1,5 +1,16 @@
 # Native Rust implementation and measurements
 
+## Subsequent code update (correctness checked, not performance measured)
+
+The native encoder/decoder now supports CIXG1 composition route ID 2 and the
+exact-rank CIX byte substream coder. Arbitrary-precision `BigUint` ranks are
+used for alphabet-set, histogram, and permutation ranks; composition tiles are
+limited to 1024 symbols as in the reference implementation. Five fixture
+classes cross-decode both ways and fixed composition archives are byte-identical
+to Python. This update has not been timed. The prior timing table below measures
+the earlier raw/run/DEFLATE implementation and remains exploratory because
+swap was active.
+
 Reference: Python commit `80b95427725ecf59d626b2982d50f6349abd56e1`, isolated in a separate worktree. The frozen Python sources are unchanged by this branch. Format references are `CIXF1`/`CIXM6` and `CIXG1`; this implementation writes and reads a compatible subset of CIXG1 without a version change.
 
 Build/host: Rust `1.98.1`, Cargo `1.98.1`, system zlib `1.3`, Linux x86_64. Build IDs were portable optimized `release`, `release-lto` (thin LTO), and a release build trained with merged LLVM profile data from the full Silesia set. All data comparisons use the existing local Silesia manifest only.

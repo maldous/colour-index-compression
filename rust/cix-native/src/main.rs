@@ -10,6 +10,8 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+mod rank;
+
 const MAGIC: &[u8; 5] = b"CIXG1";
 const HEADER: usize = 13;
 const END: u8 = 255;
@@ -91,7 +93,7 @@ struct Opt {
     flush_interval: Option<std::time::Duration>,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Input is streamed by default. Supported routes: raw, runs, raw DEFLATE. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, raw DEFLATE. CIXG1 frames are limited to 65536 bytes.");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -345,6 +347,76 @@ fn deflate(b: &[u8], level: u8) -> io::Result<Vec<u8>> {
     e.write_all(b)?;
     e.finish()
 }
+fn entropy(b: &[u8]) -> f64 {
+    if b.is_empty() {
+        return 0.0;
+    }
+    let mut counts = [0usize; 256];
+    let mut order = Vec::new();
+    for &x in b {
+        let c = &mut counts[x as usize];
+        if *c == 0 {
+            order.push(x as usize);
+        }
+        *c += 1;
+    }
+    let n = b.len() as f64;
+    n.log2()
+        - order
+            .into_iter()
+            .map(|i| counts[i] as f64 * (counts[i] as f64).log2())
+            .sum::<f64>()
+            / n
+}
+
+fn stream_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
+    let mut candidates: Vec<(u8, Vec<u8>)> = vec![(0, data.to_vec()), (1, rle(data))];
+    if matches!(backend, "cix" | "hybrid") && entropy(&data[..data.len().min(8192)]) < 7.5 {
+        candidates.push((2, rank::encode_composition_tiles(data)?));
+    }
+    if matches!(backend, "deflate" | "hybrid") {
+        let compressed = deflate(data, level).map_err(ioerr)?;
+        candidates.push((3, compressed));
+    }
+    // Python min() keeps the first equal-sized candidate; preserve its order.
+    let (coder, payload) = candidates
+        .into_iter()
+        .min_by_key(|(_, payload)| payload.len())
+        .ok_or("no CIX substream candidates")?;
+    let mut out = Vec::with_capacity(13 + payload.len());
+    out.push(1);
+    out.push(coder);
+    out.extend_from_slice(&(data.len() as u32).to_le_bytes());
+    out.extend_from_slice(&(payload.len() as u32).to_le_bytes());
+    out.extend_from_slice(&payload);
+    Ok(out)
+}
+
+fn stream_decode(blob: &[u8], expected: usize) -> Result<Vec<u8>, String> {
+    if blob.len() < 10 || blob[0] != 1 {
+        return Err("invalid CIX substream descriptor".into());
+    }
+    let coder = blob[1];
+    let n = u32::from_le_bytes(blob[2..6].try_into().unwrap()) as usize;
+    let size = u32::from_le_bytes(blob[6..10].try_into().unwrap()) as usize;
+    if n != expected || size != blob.len() - 10 {
+        return Err("invalid CIX substream lengths".into());
+    }
+    let payload = &blob[10..];
+    match coder {
+        0 => {
+            if size != n {
+                return Err("raw substream size mismatch".into());
+            }
+            Ok(payload.to_vec())
+        }
+        1 => unrle(payload, n),
+        2 => rank::decode_composition_tiles(payload, n),
+        5 => Err("unsupported CIX count-range substream coder".into()),
+        3 => inflate(payload, n),
+        _ => Err(format!("unsupported CIX substream coder {coder}")),
+    }
+}
 fn inflate(b: &[u8], n: usize) -> Result<Vec<u8>, String> {
     let mut d = Decompress::new(false);
     let mut out = Vec::with_capacity(n.saturating_add(1));
@@ -419,27 +491,14 @@ fn encode<R: Read, W: Write>(
         let rh: [u8; 32] = Sha256::digest(data).into();
         whole.update(data);
         let mut candidates = vec![(0u8, data.to_vec()), (1, rle(data))];
-        let stream = deflate(data, level).map_err(ioerr)?;
-        let mut coder = 3u8;
-        let mut body = stream;
-        if candidates[0].1.len() < body.len() {
-            coder = 0;
-            body = candidates[0].1.clone()
-        }
-        if candidates[1].1.len() < body.len() {
-            coder = 1;
-            body = candidates[1].1.clone()
-        }
-        let mut z = vec![1, coder];
-        z.extend_from_slice(&(got as u32).to_le_bytes());
-        z.extend_from_slice(&(body.len() as u32).to_le_bytes());
-        z.append(&mut body);
-        candidates.push((10, z));
+        candidates.push((2, stream_encode(data, level, "cix")?));
+        candidates.push((10, stream_encode(data, level, "deflate")?));
         let (route, payload) = if let Some(f) = forced {
             let id = match f {
                 "raw" => 0,
                 "runs" => 1,
                 "deflate" => 10,
+                "composition" => 2,
                 _ => return Err(format!("unsupported route: {f}")),
             };
             candidates.into_iter().find(|x| x.0 == id).unwrap()
@@ -518,28 +577,8 @@ fn decode<R: Read, W: Write>(
                 b
             }
             1 => unrle(&b, n as usize)?,
-            10 => {
-                if b.len() < 10 || b[0] != 1 {
-                    return Err("invalid DEFLATE substream descriptor".into());
-                }
-                let coder = b[1];
-                let decoded = u32::from_le_bytes(b[2..6].try_into().unwrap());
-                let size = u32::from_le_bytes(b[6..10].try_into().unwrap()) as usize;
-                if decoded != n || size != b.len() - 10 {
-                    return Err("invalid DEFLATE substream lengths".into());
-                }
-                match coder {
-                    0 => {
-                        if size != n as usize {
-                            return Err("raw substream size mismatch".into());
-                        }
-                        b[10..].to_vec()
-                    }
-                    1 => unrle(&b[10..], n as usize)?,
-                    3 => inflate(&b[10..], n as usize)?,
-                    _ => return Err(format!("unsupported DEFLATE-route coder {coder}")),
-                }
-            }
+            2 => stream_decode(&b, n as usize)?,
+            10 => stream_decode(&b, n as usize)?,
             _ => return Err(format!("unsupported CIXG1 route ID {}", r[0])),
         };
         if <[u8; 32]>::from(Sha256::digest(&data)) != sum {
@@ -661,7 +700,7 @@ fn run() -> Result<(), String> {
         return Err("--flush-interval on non-seekable input requires Unix poll support".into());
     }
     if let Some(r) = &o.route {
-        if !["auto", "raw", "runs", "deflate"].contains(&r.as_str()) {
+        if !["auto", "raw", "runs", "composition", "deflate"].contains(&r.as_str()) {
             return Err(format!("unsupported native route: {r}"));
         }
     }

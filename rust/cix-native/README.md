@@ -38,14 +38,14 @@ uncix --stream -c < output.cix > restored.bin
 
 ## Compatibility at this checkpoint
 
-| Operation | CIXG1 raw/run/DEFLATE route | CIXG1 other routes | CIXF1/CIXM6 legacy stream |
+| Operation | CIXG1 raw/run/composition/DEFLATE | CIXG1 other routes | CIXF1/CIXM6 legacy stream |
 |---|---|---|---|
 | Rust encode | Yes; auto-selection or fixed `--route`; canonical fixed bytes match Python for tested zlib build | Explicitly unavailable; never substituted | Unavailable |
-| Rust decode | Yes; supports route IDs 0, 1 and route 10 with raw/run/DEFLATE coders | Explicit unsupported-route error | Unavailable |
+| Rust decode | Yes; supports route IDs 0, 1, 2, and 10 with raw/run/exact-rank/DEFLATE coders | Explicit unsupported-route error | Unavailable |
 | Python decode of Rust output | Yes; cross-decoded, fixed routes byte-identical | N/A | N/A |
 | Exact original-byte restoration | Verified across empty, tiny, random, repetitive and mixed fixtures | Not claimed | Not claimed |
 
-The existing Python implementation remains the complete executable reference. Native combinatorial CIX ranks, adaptive/range coding, PPM, mixture, LZ, predictor, BWT, stride and phrase routes are not yet ported. Timing-dependent Python selector behavior is not reproduced. `--memory` bounds estimated codec working allocations, not executable/shared-library RSS; peak RSS is measured separately. `--threads` does not enable parallelism. The CLI handles one input path per invocation. SIGINT returns nonzero and removes incomplete file output; this is verified on the current Unix host.
+The existing Python implementation remains the complete executable reference. Exact arbitrary-precision combinatorial ranks are implemented for CIX composition tiles up to 1024 symbols; no rank is narrowed to a machine integer. Arithmetic/range type-class coding, count-range, adaptive substreams, PPM, mixture, LZ, predictor, BWT, stride, phrase routes, and the CIXB1 backend portfolio remain unported. Timing-dependent Python selector behavior is not reproduced; Rust's current `auto` option compares only raw, run-length, composition, and DEFLATE candidates and is not the frozen Python effort selector. `--memory` bounds estimated codec working allocations, not executable/shared-library RSS; peak RSS is measured separately. `--threads` does not enable parallelism. The CLI handles one input path per invocation. SIGINT returns nonzero and removes incomplete file output; this is verified on the current Unix host.
 
 ## Verification
 
