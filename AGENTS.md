@@ -1,5 +1,20 @@
 # CIX research — controlling directive 2026-09-30
 
+## Benchmark dashboard and settings extension — current user authorization
+
+The user explicitly authorized a public Sites compression benchmark dashboard
+and speed/size settings and representation evaluation. The private research
+repository remains private; only the requested dashboard and result downloads
+may be public. Source/selector remains frozen. Settings evidence is in
+`docs/research/2026-09-30-codec-profiles/`; all 11 route coverage and preserved
+mixer timeouts are in `docs/research/2026-09-30-representation-coverage/`.
+These are previously exposed 16 KiB screens, not renewed qualification or
+unseen holdouts. PAQ -12L / five LSTM layers exceeds the shared 12 GB cap and
+is explicitly unranked, never silently replaced. No acquisition, full corpus
+run or Actions authorization is added. Dashboard checkout is the separate
+`/home/user/src/cix-benchmark-site` repository. Keep completed evidence pushed
+privately and published settings groups separate.
+
 ## Generic adaptive implementation — controlling user direction
 
 Acquisition closed at 2026-09-30T11:04:27Z. Do not initiate downloads, dataset
