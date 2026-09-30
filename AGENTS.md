@@ -35,6 +35,18 @@ Read `docs/research/2026-09-29-hutter-prize-eligibility.md` and
   not create or modify workflow files. Preserve external-source licenses and
   do not invent a project license.
 
+## Latest steering — full parallel challenger now
+
+The user additionally authorizes a full end-to-end parallel challenger to run
+alongside the serial baseline and potentially finish first. Implement and test
+both independent CIX block scheduling and a separately named independent-chunk
+PAQ profile where adaptive state prevents exact same-stream parallelism. Run
+with explicit CPU/memory/disk bounds; retain original baseline unchanged.
+Chunked results are a different configuration with measured compression tradeoffs,
+not the current serial p26 score. Decode from archive alone and SHA-256 verify
+all canonical enwik9 bytes before reporting completion. Concurrent timing is
+research evidence, not an isolated Prize qualification measurement.
+
 ## Latest steering — parallel implementation during baseline
 
 On 30 September the user explicitly authorized parallelising CIX code while
