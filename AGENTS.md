@@ -1,5 +1,20 @@
 # CIX Hutter research — controlling directive 2026-09-30
 
+## Highest-priority structural experiment — latest user direction
+
+Read docs/research/2026-09-30-wikipedia-structure/plan.json. Prior research is
+checkpointed at tag research-before-wikipedia-structure-20260930 (48876c2).
+The remaining-count frozen holdout and 1/8 MiB evaluations completed; preserve
+those configurations/results. Structure, grammar and schema-aware Wikipedia
+compression now lead implementation. Reuse portfolio and region codecs; PAQ is
+a full-size candidate, not an unknown-file fallback. Compare original PAQ,
+order-preserving structural prediction, shared typed streams and shared skeletons.
+Use identical pinned PAQ settings and charge all representation/selection bytes.
+Only combine count feedback after individual structural gains are established.
+New structural holdouts are 600M/900M; old 700M/850M are exposed. No new full
+enwik9, Sites publication, Actions or public repository change is authorized.
+
+
 The current user directive supersedes all earlier baseline-completion gates.
 Both full-enwik9 serial and parallel baselines were explicitly cancelled. Never restart
 these or launch replacement full-size baselines. Preserve their evidence and frozen code.
