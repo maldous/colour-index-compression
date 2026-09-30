@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 PROGRESS_SECONDS = 30.0
 MAX_SCREENING_SECONDS = 300
 REQUIRED = ("hypothesis", "matched_control", "input", "configuration", "mechanism",
-            "budget", "promotion_criteria", "command", "artifacts", "build_paths")
+            "budget", "promotion_criteria", "encode_command", "decode_command", "artifacts", "build_paths")
 
 
 def utcnow() -> str:
@@ -116,6 +116,10 @@ def build_identity(manifest: dict, root: Path) -> dict:
 def input_identity(manifest: dict) -> dict:
     spec = manifest["input"]
     path = Path(spec["path"]).resolve()
+    if int(spec["offset"]) < 0 or int(spec["length"]) <= 0:
+        raise ValueError("input offset must be nonnegative and length positive")
+    if int(spec["offset"]) + int(spec["length"]) > path.stat().st_size:
+        raise ValueError("input range exceeds source file")
     actual = sha256(path, int(spec["offset"]), int(spec["length"]))
     if actual != spec["sha256"]:
         raise ValueError("input range hash mismatch")
@@ -177,7 +181,62 @@ def unit_int(properties: dict[str, str], key: str) -> int:
         return 0
 
 
+def execute_phase(*, unit: str, command: list[str], work: Path, destination: Path, budget: dict,
+                  cpu: int, inaccessible: list[Path], input_bytes: int) -> dict:
+    """Execute one phase in a transient cgroup and retain only measured facts."""
+    wall, max_memory, max_temp = (int(budget[k]) for k in ("wall_seconds", "max_rss_bytes", "max_temp_bytes"))
+    properties = ["--property=MemoryMax=" + str(max_memory), "--property=MemorySwapMax=0",
+                  "--property=KillMode=control-group", "--property=AllowedCPUs=" + str(cpu),
+                  "--property=CPUAffinity=" + str(cpu), "--property=User=user", "--property=Group=user",
+                  "--property=NoNewPrivileges=yes", "--property=PrivateNetwork=yes", "--property=RemainAfterExit=yes",
+                  "--property=Environment=OMP_NUM_THREADS=1", "--property=Environment=OPENBLAS_NUM_THREADS=1",
+                  "--property=Environment=MKL_NUM_THREADS=1",
+                  "--property=RuntimeMaxSec=" + str(wall), "--property=WorkingDirectory=" + str(work),
+                  "--property=StandardOutput=file:" + str(destination / (unit + ".stdout.log")),
+                  "--property=StandardError=file:" + str(destination / (unit + ".stderr.log"))]
+    properties.extend("--property=InaccessiblePaths=" + str(path) for path in inaccessible)
+    launcher = ["sudo", "-n", "systemd-run", "--quiet", "--collect", "--unit=" + unit] + properties + ["--"] + command
+    started, peak_memory, peak_temp, cpu_usage, reason, exit_code = time.monotonic(), 0, 0, 0, None, None
+    launched = subprocess.run(launcher, cwd=work, capture_output=True, text=True, check=False)
+    if launched.returncode:
+        raise RuntimeError("systemd cgroup launch failed: " + launched.stderr.strip())
+    progress = destination / "progress.jsonl"; next_progress = started
+    try:
+        while True:
+            elapsed, props = time.monotonic() - started, systemd_properties(unit)
+            peak_memory = max(peak_memory, unit_int(props, "MemoryCurrent"), unit_int(props, "MemoryPeak"))
+            peak_temp = max(peak_temp, directory_bytes(work)); cpu_usage = max(cpu_usage, unit_int(props, "CPUUsageNSec"))
+            if time.monotonic() >= next_progress:
+                with progress.open("a") as log:
+                    log.write(json.dumps({"at": utcnow(), "phase": unit, "processed_bytes": None,
+                        "elapsed_seconds": elapsed, "cgroup_memory_bytes": peak_memory,
+                        "temp_bytes": peak_temp, "cpu": cpu}) + "\n")
+                next_progress += PROGRESS_SECONDS
+            if not props or props.get("ActiveState") in ("inactive", "failed") or (props.get("ActiveState") == "active" and props.get("MainPID") == "0"):
+                exit_code = unit_int(props, "ExecMainStatus") if props else 1
+                if props.get("Result", "success") != "success": exit_code = exit_code or 1
+                if props.get("Result") == "timeout": reason = "wall_budget_exhausted"
+                break
+            if elapsed >= wall or peak_temp > max_temp or peak_memory > max_memory:
+                reason = "wall_budget_exhausted" if elapsed >= wall else ("temp_budget_exhausted" if peak_temp > max_temp else "memory_budget_exhausted")
+                stop_unit(unit); exit_code = 1; break
+            time.sleep(0.05)
+    finally:
+        stop_unit(unit)
+    elapsed = time.monotonic() - started
+    with progress.open("a") as log:
+        log.write(json.dumps({"at": utcnow(), "phase": unit, "processed_bytes": input_bytes,
+            "elapsed_seconds": elapsed, "throughput_bytes_per_second": input_bytes / elapsed if elapsed else None,
+            "cgroup_memory_high_water_bytes": peak_memory, "temp_bytes": peak_temp, "cpu": cpu,
+            "completed": True}) + "\n")
+    return {"phase": unit, "command": command, "exit_code": exit_code, "stop_reason": reason,
+            "elapsed_seconds": elapsed, "sampled_cgroup_memory_high_water_bytes": peak_memory,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": peak_temp, "cpu_usage_seconds": cpu_usage / 1_000_000_000}
+
+
 def run(manifest_path: Path, results: Path, root: Path) -> dict:
+    manifest_path, results, root = manifest_path.resolve(), results.resolve(), root.resolve()
     manifest, manifest_sha = load_manifest(manifest_path)
     build = build_identity(manifest, root)
     source = input_identity(manifest)
@@ -203,6 +262,9 @@ def run(manifest_path: Path, results: Path, root: Path) -> dict:
         copied = snapshot / name
         copied.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(original, copied)
+        if sha256(copied) != build[name]:
+            raise RuntimeError("immutable build snapshot hash mismatch")
+        copied.chmod(0o444)
     budget = manifest["budget"]
     cpu = int(budget["cpu"])
     if cpu not in os.sched_getaffinity(0):
@@ -215,83 +277,60 @@ def run(manifest_path: Path, results: Path, root: Path) -> dict:
     except BlockingIOError as error:
         lease.close()
         raise RuntimeError(f"CPU {cpu} already leased by another bounded experiment") from error
-    max_rss, max_temp, wall = (int(budget[k]) for k in ("max_rss_bytes", "max_temp_bytes", "wall_seconds"))
-    values = {"workdir": str(work), "source": source["path"], "offset": str(source["offset"]),
+    materialized = work / "input.range"
+    with Path(source["path"]).open("rb") as incoming, materialized.open("wb") as outgoing:
+        incoming.seek(source["offset"]); copied_bytes = outgoing.write(incoming.read(source["length"]))
+    if copied_bytes != source["length"] or sha256(materialized) != source["sha256"]:
+        raise RuntimeError("materialized input range mismatch")
+    values = {"workdir": str(work), "source": str(materialized), "offset": "0",
               "length": str(source["length"]), "receipt": str(receipt)}
-    command = replace_tokens(manifest["command"], values)
+    encode_command = replace_tokens(manifest["encode_command"], values)
+    decode_command = replace_tokens(manifest["decode_command"], values)
     # Directly invoked declared builds always run from their immutable copy.
-    command = [str(snapshot / name) if part == str((root / name).resolve()) else part
-               for part in command for name in [None]]
+    replacements = {str((root / name).resolve()): str(snapshot / name) for name in manifest["build_paths"]}
+    encode_command = [replacements.get(part, part) for part in encode_command]
+    decode_command = [replacements.get(part, part) for part in decode_command]
     archive = Path(replace_tokens([manifest["artifacts"]["archive"]], values)[0])
     restored = Path(replace_tokens([manifest["artifacts"]["restored"]], values)[0])
-    progress = destination / "progress.jsonl"
-
-    env = {**os.environ, "OMP_NUM_THREADS": "1", "OPENBLAS_NUM_THREADS": "1", "MKL_NUM_THREADS": "1",
-           "CIX_EXPERIMENT_MANIFEST": str(destination / "manifest.json"), "CIX_EXPERIMENT_RECEIPT": str(receipt)}
-    # Do not fall back silently: this scope supplies process-tree MemoryMax,
-    # MemorySwapMax=0 and cgroup kill semantics rather than a best-effort rlimit.
-    unit = "cix-bounded-" + experiment_id[:16]
-    launcher = ["sudo", "-n", "systemd-run", "--quiet", "--collect", "--unit=" + unit,
-                "--property=MemoryMax=" + str(max_rss), "--property=MemorySwapMax=0",
-                "--property=KillMode=control-group", "--property=AllowedCPUs=" + str(cpu),
-                "--property=CPUAffinity=" + str(cpu), "--property=Environment=OMP_NUM_THREADS=1",
-                "--property=Environment=OPENBLAS_NUM_THREADS=1", "--property=Environment=MKL_NUM_THREADS=1",
-                "--property=WorkingDirectory=" + str(work),
-                "--property=StandardOutput=file:" + str(destination / "stdout.log"),
-                "--property=StandardError=file:" + str(destination / "stderr.log"), "--"] + command
+    units = ["cix-bounded-" + experiment_id[:12] + "-encode", "cix-bounded-" + experiment_id[:12] + "-decode"]
+    old_sigterm = signal.getsignal(signal.SIGTERM)
+    signal.signal(signal.SIGTERM, lambda _signum, _frame: (_ for _ in ()).throw(KeyboardInterrupt()))
     started = time.monotonic()
-    launched = subprocess.run(launcher, cwd=work, env=env, capture_output=True, text=True, check=False)
-    if launched.returncode:
-        raise RuntimeError("systemd cgroup launch failed: " + launched.stderr.strip())
-    peak_rss = peak_temp = 0
-    reason = None
-    next_progress = started
-    exit_code = None
-    while True:
-        elapsed = time.monotonic() - started
-        props = systemd_properties(unit)
-        current_rss = unit_int(props, "MemoryCurrent")
-        peak_rss = max(peak_rss, current_rss, unit_int(props, "MemoryPeak"))
-        peak_temp = max(peak_temp, directory_bytes(work))
-        if time.monotonic() >= next_progress:
-            with progress.open("a") as log:
-                log.write(json.dumps({"at": utcnow(), "phase": "running", "processed_bytes": None,
-                                      "elapsed_seconds": elapsed, "rss_bytes": peak_rss,
-                                      "temp_bytes": peak_temp, "cpu": cpu, "cgroup": unit}) + "\n")
-            next_progress += PROGRESS_SECONDS
-        if not props or props.get("ActiveState") in ("inactive", "failed"):
-            exit_code = 0 if props.get("ActiveState") == "inactive" else 1
-            break
-        if elapsed >= wall:
-            reason = "wall_budget_exhausted"; stop_unit(unit); exit_code = 1; break
-        if peak_rss > max_rss:
-            reason = "rss_budget_exhausted"; stop_unit(unit); exit_code = 1; break
-        if peak_temp > max_temp:
-            reason = "temp_budget_exhausted"; stop_unit(unit); exit_code = 1; break
-        time.sleep(min(0.05, max(0.01, wall - elapsed)))
-    elapsed = time.monotonic() - started
-    peak_temp = max(peak_temp, directory_bytes(work))
+    try:
+        encoded = execute_phase(unit=units[0], command=encode_command, work=work, destination=destination,
+                                budget=budget, cpu=cpu, inaccessible=[], input_bytes=source["length"])
+        remaining = int(budget["wall_seconds"] - (time.monotonic() - started))
+        decode_budget = {**budget, "wall_seconds": max(1, remaining)}
+        decoded = execute_phase(unit=units[1], command=decode_command, work=work, destination=destination,
+                                budget=decode_budget, cpu=cpu, inaccessible=[Path(source["path"]), materialized], input_bytes=source["length"]) if encoded["exit_code"] == 0 and remaining > 0 else None
+    except BaseException:
+        for unit in units: stop_unit(unit)
+        (destination / "cancelled.json").write_text(json.dumps({"status": "CANCELLED", "at": utcnow()}) + "\n")
+        raise
+    finally:
+        signal.signal(signal.SIGTERM, old_sigterm)
+        lease.close()
     verification = {"matched": False, "source_sha256": source["sha256"], "restored_sha256": None}
-    if reason is None and exit_code == 0 and archive.is_file() and restored.is_file():
+    if encoded["exit_code"] == 0 and decoded and decoded["exit_code"] == 0 and archive.is_file() and restored.is_file():
         restored_hash = sha256(restored)
         verification = {"matched": restored_hash == source["sha256"] and restored.stat().st_size == source["length"],
                         "source_sha256": source["sha256"], "restored_sha256": restored_hash}
-    status = "VERIFIED" if verification["matched"] else "FAILED"
+    status = "VERIFIED_SCREENING" if verification["matched"] else "FAILED"
     row = {"status": status, "experiment_id": experiment_id, "identity": identity, "hypothesis": manifest["hypothesis"],
            "matched_control": manifest["matched_control"], "mechanism": manifest["mechanism"],
-           "promotion_criteria": manifest["promotion_criteria"], "command": command, "budget": budget,
-           "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity; RSS/temp sampled",
-           "cgroup_unit": unit, "exit_code": exit_code, "stop_reason": reason, "elapsed_seconds": elapsed,
-           "peak_rss_bytes": peak_rss, "peak_temp_bytes": peak_temp,
+           "promotion_criteria": manifest["promotion_criteria"], "phases": [encoded, decoded], "budget": budget,
+           "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+           "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
            "archive_bytes": archive.stat().st_size if archive.is_file() else None,
            "archive_sha256": sha256(archive) if archive.is_file() else None, "verification": verification,
+           "artifacts": {"archive": str(archive), "restored": str(restored)},
+           "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
            "completed_at": utcnow()}
-    if status == "VERIFIED":
+    if status == "VERIFIED_SCREENING":
         receipt.write_bytes(canonical(row) + b"\n")
         row["receipt"] = str(receipt)
     else:
         (destination / "failed.json").write_bytes(canonical(row) + b"\n")
-    lease.close()
     return row
 
 
@@ -301,8 +340,9 @@ def main() -> int:
     parser.add_argument("--results", type=Path, required=True)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     args = parser.parse_args()
-    print(json.dumps(run(args.manifest, args.results, args.root), sort_keys=True))
-    return 0
+    row = run(args.manifest, args.results, args.root)
+    print(json.dumps(row, sort_keys=True))
+    return 0 if row["status"] in ("VERIFIED_SCREENING", "REUSED_VERIFIED") else 1
 
 
 if __name__ == "__main__":
