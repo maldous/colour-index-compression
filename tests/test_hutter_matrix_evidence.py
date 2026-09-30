@@ -76,3 +76,17 @@ def test_duplicate_experiment_ids_are_refused(tmp_path):
     receipt(base / "two", experiment_id="same", fixture=True)
     with pytest.raises(ValueError, match="duplicate experiment"):
         collect(tmp_path)
+
+
+@pytest.mark.parametrize("field", ["framing_policy", "context_policy"])
+def test_collect_refuses_changed_declared_policy(tmp_path, field):
+    base = tmp_path / "docs/research/2026-09-30-wikipedia-body/runs"
+    receipt(base / "control", experiment_id="control", fixture=True)
+    receipt(base / "candidate", experiment_id="candidate", mode="body", mechanism="body dictionary", fixture=True)
+    candidate_path = base / "candidate/receipt.json"
+    candidate = json.loads(candidate_path.read_text())
+    candidate["identity"]["configuration"][field] = "changed policy"
+    candidate_path.write_text(json.dumps(candidate))
+    rows = {row["evidence_id"]: row for row in collect(tmp_path)}
+    assert rows["candidate"]["matched_raw_paq_control"] is None
+    assert rows["candidate"]["difference_vs_matched_raw_paq_bytes"] is None

@@ -197,7 +197,8 @@ def _control_key(row: dict[str, Any]) -> tuple[Any, ...]:
                                      and "shared" not in words and "warm-up" in words) else initial
     return (inp.get("path"), inp.get("offset"), inp.get("length"), inp.get("sha256"),
             config.get("paq_binary_sha256"), config.get("paq_options"),
-            config.get("source_filename"), reset_policy)
+            config.get("source_filename"), reset_policy,
+            config.get("framing_policy"), config.get("context_policy"))
 
 
 def _decode_status(record: dict[str, Any], restored: Path | None, source_hash: str | None) -> tuple[bool, str | None]:
@@ -293,7 +294,7 @@ def collect(root: Path | str) -> list[dict[str, Any]]:
         control = controls.get(_control_key(row))
         if control is None:
             row["matched_raw_paq_control"] = None
-            row["control_match_reason"] = "no independently verified raw PAQ control with identical input, PAQ hash/options, filename, and initial state"
+            row["control_match_reason"] = "no independently verified raw PAQ control with identical input, PAQ hash/options, filename, initial state, and declared framing/context policies"
             row["difference_vs_matched_raw_paq_bytes"] = None
         else:
             row["matched_raw_paq_control"] = {"evidence_id": control["evidence_id"],
