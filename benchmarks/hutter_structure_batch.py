@@ -43,12 +43,13 @@ def main():
             m['input'] = dict(path=str(source), offset=offset, length=length,
                               sha256=hashlib.sha256(data).hexdigest())
             m['configuration']['mode'] = mode
+            m['configuration']['execution_boundary'] = 'parent and child explicitly pinned CPU6'
             m['initial_state'] = 'empty; no warm-up; deterministic synthetic generation when applicable'
             m['promotion_criteria'] = 'All exact; >=0.5% aggregate development saving and >=2/3 region wins; never promote from synthetic alone.'
             m['build_paths'] = sorted(set(m['build_paths'] + ['benchmarks/hutter_structure_batch.py']))
             command = m['encode_command']
             command[command.index('--mode') + 1] = mode
-            path = manifests / f'{name}-{mode}.json'
+            path = manifests / f'{name}-{mode}-cpu6.json'
             if path.exists() and json.loads(path.read_text()) != m:
                 raise ValueError('immutable manifest mismatch')
             path.write_text(json.dumps(m, indent=2) + '\n')

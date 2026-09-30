@@ -1,0 +1,65 @@
+{
+  "hypothesis": "The frozen structural representation reduces complete physical bytes versus identical original-byte PAQ.",
+  "matched_control": "Same PAQ v216 -4 and CIXSTR1 outer framing for every candidate.",
+  "input": {
+    "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+    "offset": 400000000,
+    "length": 32768,
+    "sha256": "c156aa97eb5de448bb2d7fefb56556f4e0db414bd2f3b44b2d7fb9b8bb8a3f78"
+  },
+  "configuration": {
+    "mode": "C",
+    "paq_version": "v216",
+    "paq_options": "-4",
+    "paq_binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+    "source_filename": "source.bin",
+    "fx2": "NOT_RUN: global article-order dependency"
+  },
+  "mechanism": "shared typed streams",
+  "budget": {
+    "wall_seconds": 300,
+    "max_rss_bytes": 3000000000,
+    "max_temp_bytes": 1000000000,
+    "cpu": 6
+  },
+  "promotion_criteria": "All exact; >=0.5% aggregate development saving and >=2/3 region wins; never promote from synthetic alone.",
+  "build_paths": [
+    "benchmarks/hutter_bounded_runner.py",
+    "benchmarks/hutter_structure.py",
+    "benchmarks/hutter_structure_batch.py",
+    "benchmarks/hutter_structure_order.py",
+    "benchmarks/hutter_structure_probe.py",
+    "benchmarks/markup_columns.py",
+    "cix/__init__.py",
+    "cix/multinomial.py"
+  ],
+  "encode_command": [
+    "/home/user/src/colour-index-compression/.venv/bin/python",
+    "/home/user/src/colour-index-compression/benchmarks/hutter_structure_probe.py",
+    "encode",
+    "{source}",
+    "{workdir}/candidate.cixstr",
+    "--mode",
+    "C",
+    "--paq-binary",
+    "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+    "--paq-sha256",
+    "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+  ],
+  "decode_command": [
+    "/home/user/src/colour-index-compression/.venv/bin/python",
+    "/home/user/src/colour-index-compression/benchmarks/hutter_structure_probe.py",
+    "decode",
+    "{workdir}/candidate.cixstr",
+    "{workdir}/restored.bin",
+    "--paq-binary",
+    "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+    "--paq-sha256",
+    "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+  ],
+  "artifacts": {
+    "archive": "{workdir}/candidate.cixstr",
+    "restored": "{workdir}/restored.bin"
+  },
+  "initial_state": "empty; no warm-up; deterministic synthetic generation when applicable"
+}
