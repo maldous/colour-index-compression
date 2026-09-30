@@ -60,9 +60,18 @@ def main():
  ap=argparse.ArgumentParser();ap.add_argument('--research-area',type=Path,default=AREA);ap.add_argument('--site',type=Path,default=SITE);a=ap.parse_args()
  area=a.research_area.resolve();site=a.site.resolve();data_dir=site/'dist/data';data_dir.mkdir(parents=True,exist_ok=True)
  cov=json.loads((area/'coverage.json').read_text());raw=json.loads((area/'results.json').read_text())
+ retry_path=area/'cix-resource-retries-v1/results.json'
+ retry=json.loads(retry_path.read_text()) if retry_path.is_file() else None
+ retry_by_original={r['retry_of_cell_id']:r for r in (retry or {}).get('rows',[])}
+ cancellation_path=area/'cancellation.json';cancellation=json.loads(cancellation_path.read_text()) if cancellation_path.is_file() else None
  members=cov['members'];rows=[]
  receipts=data_dir/'receipts';receipts.mkdir(exist_ok=True)
- for r0 in raw['rows']:
+ for original in raw['rows']:
+  r0=dict(original);retry_row=retry_by_original.get(r0['cell_id'])
+  if retry_row and retry_row['status']=='VERIFIED_SCREENING':
+   r0.update(retry_row)
+   r0['superseded_attempt']={'cell_id':original['cell_id'],'status':original['status'],
+      'old_temp_limit_bytes':100_000_000,'failure_reason':'temp_budget_exhausted'}
   r=dict(r0);member=next(m for m in members if m['label']==r['label']);profile=r['profile'];method=r['method']
   status=normalized_status(r)
   out={'dataset':member['id'],'method':method,'profile':profile,'status':status,'reason':r.get('reason'),
@@ -71,7 +80,8 @@ def main():
     'encode_seconds':timevalue(r,'encode'),'decode_seconds':timevalue(r,'decode'),'encode_rss_mib':rss_mib(r,'encode_rss_mib'),'decode_rss_mib':rss_mib(r,'decode_rss_mib'),
     'receipt':None,'archive_sha256':r.get('archive_sha256'),'verification':r.get('verification')}
   if status=='VERIFIED_SCREENING':
-   receipt=Path(r['receipt']);doc=json.loads(receipt.read_text());archive=Path(doc['artifacts']['archive']);restored=Path(doc['artifacts']['restored'])
+   receipt=Path(r['receipt']);receipt=receipt if receipt.is_absolute() else area/receipt
+   doc=json.loads(receipt.read_text());archive=Path(doc['artifacts']['archive']);restored=Path(doc['artifacts']['restored'])
    if not archive.is_file() or digest(archive)!=r['archive_sha256'] or archive.stat().st_size!=r['archive_bytes']:
     raise RuntimeError(f"archive readback failed: {r['label']} {profile} {method}")
    if not restored.is_file() or digest(restored)!=member['sha256'] or restored.stat().st_size!=member['length']:
@@ -84,6 +94,10 @@ def main():
    out['encode_command']=scrub(doc['phases'][0]['command']);out['decode_command']=scrub(doc['phases'][1]['command'])
    out['receipt']=f'data/receipts/{member["name"]}-{profile}-{method}.json'
    target=receipts/f'{member["name"]}-{profile}-{method}.json';target.write_text(json.dumps(scrub(doc),indent=2)+'\n')
+   if r.get('retry_of_cell_id'):
+    out['resource_retry']={'retry_cell_id':r['cell_id'],'supersedes_cell_id':r['retry_of_cell_id'],
+      'temporary_space_limit_bytes':r['budget']['max_temp_bytes'],'previous_temporary_space_limit_bytes':100_000_000,
+      'note':'CIX-only retry; same input, implementation and profile with a larger temporary-space allowance.'}
   else:
    out['compressed_bytes']=None;out['ratio']=None;out['compressed_percent']=None;out['saving_percent']=None;out['encode_mib_s']=None;out['decode_mib_s']=None
    out['encode_command']=None;out['decode_command']=None
@@ -114,10 +128,12 @@ def main():
  profiles=[{'id':p,'name':PROFILE_LABELS[p],'note':('One complete encode/decode sample per cell; times include process startup and I/O. CIX evaluates its declared candidate set under a finite profile budget. PAQ size profile excluded at 29 GB estimated RAM.' if p=='size' else 'One complete encode/decode sample per cell; times include process startup and I/O. CIX candidate selection time includes all attempted routes and failed/timeout trials. These are observed single-run timings, not repeated-run estimates.')} for p in ('current','fast','size')]
  profile_lookup={p:{m:PRESETS[p][m] for m in METHODS} for p in PROFILES}
  results={'schema':3,'title':'CIX · Silesia encoder benchmark','exported_at':datetime.now(timezone.utc).isoformat(),'last_measurement_at':raw['collected_at'],
+   'run_status':'CANCELLED_BY_USER' if cancellation else 'IN_PROGRESS',
+   'run_summary':{'declared_cells':len(rows),'verified':sum(r['status']=='VERIFIED' for r in rows),'failed':sum(r['status']=='FAILED' for r in rows),'time_budget':sum(r['status']=='TIME_BUDGET' for r in rows),'cancelled':sum(r['status']=='CANCELLED_BY_USER' for r in rows),'pending':sum(r['status']=='PENDING' for r in rows),'resource_limit':sum(r['status']=='RESOURCE_LIMIT' for r in rows),'cix_resource_retries_verified':sum(bool(r.get('resource_retry')) for r in rows)},
    'cutoff':'Silesia-only benchmark; 12 complete official members; acquisition closed','research_commit':json.loads((area/'environment.json').read_text())['cix_commit'],
    'source_url':SOURCE,'total_input_bytes':sum(m['length'] for m in members),'methods':methods,'profiles':profiles,'presets':profile_lookup,
    'datasets':datasets,'results':rows,'collections':[{'name':'Silesia official corpus','source':SOURCE,'status':'READY','ready_artifacts':len(members),'bytes':sum(m['length'] for m in members),'note':'All 12 official files; publisher MD5s verified and local SHA-256s recorded.'}],
-   'limitations':['Silesia only: no conclusions for other datasets or compression competitions.','One cold encode and one archive-only decode per row; timing rankings are provisional single observations.','PAQ -12L five-layer size preset is prelaunch resource-excluded at an estimated 29 GB RAM versus the 12 GB shared ceiling.','Per-process working-memory values are cgroup sampled high-water lower bounds, not exact peak RSS.','CIX candidates are bounded by profile budgets; a timeout is unqualified and does not prove a candidate is larger.','CIXB1 wraps selected reference streams with 47 bytes of dispatch, length and source-digest metadata; that overhead is counted.'],
+   'limitations':['Silesia only: no conclusions for other datasets or compression competitions.','One cold encode and one archive-only decode per row; timing rankings are provisional single observations.','PAQ -12L five-layer size preset is prelaunch resource-excluded at an estimated 29 GB RAM versus the 12 GB shared ceiling.','Per-process working-memory values are cgroup sampled high-water lower bounds, not exact peak RSS.','CIX candidates are bounded by profile budgets; a timeout is unqualified and does not prove a candidate is larger.','CIXB1 wraps selected reference streams with 47 bytes of dispatch, length and source-digest metadata; that overhead is counted.','Seven CIX-only rows (Mozilla fast/current/size, NCI fast/current/size, Samba fast) were rerun after increasing the temporary-space limit from 100 MB to 1 GB. Their original attempts remain preserved in private raw evidence; no other method or dataset was rerun.',*([f"Matrix stopped at user request: {sum(r['status']=='CANCELLED_BY_USER' for r in rows)} cells cancelled; {sum(r['status']=='VERIFIED' for r in rows)} rows completed and verified. Incomplete cells are not ranked."] if cancellation else [])],
    'cix_commit':json.loads((area/'environment.json').read_text())['cix_commit'],'dataset_manifest':'data/silesia-manifest.json','results_csv':'data/results.csv'}
  (data_dir/'benchmarks.json').write_text(json.dumps(results,indent=2)+'\n')
  (data_dir/'silesia-manifest.json').write_text(json.dumps({'source':SOURCE,'publisher':'Matt Mahoney Silesia corpus','members':[{k:m[k] for k in ('name','length','sha256','publisher_md5','datatype','source')} for m in members],'publisher_checksum_verification':'All 12 publisher MD5 values checked against official list before matrix freeze; local SHA-256 is separately recorded.'},indent=2)+'\n')
@@ -126,5 +142,6 @@ def main():
   w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows({k:r.get(k) for k in fields} for r in rows)
  shutil.copyfile(area/'environment.json',data_dir/'silesia-environment.json')
  shutil.copyfile(area/'coverage.json',data_dir/'silesia-coverage.json')
+ if cancellation:shutil.copyfile(cancellation_path,data_dir/'silesia-cancellation.json')
  print(json.dumps({'site':str(site),'datasets':len(datasets),'rows':len(rows),'verified':sum(r['status']=='VERIFIED' for r in rows),'pending':sum(r['status']=='PENDING' for r in rows),'resource_limit':sum(r['status']=='RESOURCE_LIMIT' for r in rows),'exported_at':results['exported_at']},sort_keys=True))
 if __name__=='__main__':main()
