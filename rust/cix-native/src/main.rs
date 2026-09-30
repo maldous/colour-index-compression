@@ -93,7 +93,7 @@ struct Opt {
     flush_interval: Option<std::time::Duration>,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, raw DEFLATE. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|predictor|stride|phrases|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, predictor, stride transforms, phrases and raw DEFLATE. CIXG1 frames are limited to 65536 bytes.");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -369,7 +369,7 @@ fn entropy(b: &[u8]) -> f64 {
             / n
 }
 
-fn stream_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
+fn stream_payload(data: &[u8], level: u8, backend: &str) -> Result<(u8, Vec<u8>), String> {
     let mut candidates: Vec<(u8, Vec<u8>)> = vec![(0, data.to_vec()), (1, rle(data))];
     if matches!(backend, "cix" | "hybrid") && entropy(&data[..data.len().min(8192)]) < 7.5 {
         candidates.push((2, rank::encode_composition_tiles(data)?));
@@ -379,42 +379,413 @@ fn stream_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, Strin
         candidates.push((3, compressed));
     }
     // Python min() keeps the first equal-sized candidate; preserve its order.
-    let (coder, payload) = candidates
+    candidates
         .into_iter()
         .min_by_key(|(_, payload)| payload.len())
-        .ok_or("no CIX substream candidates")?;
-    let mut out = Vec::with_capacity(13 + payload.len());
-    out.push(1);
-    out.push(coder);
-    out.extend_from_slice(&(data.len() as u32).to_le_bytes());
-    out.extend_from_slice(&(payload.len() as u32).to_le_bytes());
-    out.extend_from_slice(&payload);
+        .ok_or_else(|| "no CIX substream candidates".into())
+}
+
+fn streams_encode(parts: &[&[u8]], level: u8, backend: &str) -> Result<Vec<u8>, String> {
+    if parts.is_empty() || parts.len() > 8 {
+        return Err("CIX stream count must be from 1 to 8".into());
+    }
+    let mut out = Vec::new();
+    out.push(parts.len() as u8);
+    for part in parts {
+        let (coder, payload) = stream_payload(part, level, backend)?;
+        out.push(coder);
+        out.extend_from_slice(&(part.len() as u32).to_le_bytes());
+        out.extend_from_slice(&(payload.len() as u32).to_le_bytes());
+        out.extend_from_slice(&payload);
+    }
     Ok(out)
 }
 
-fn stream_decode(blob: &[u8], expected: usize) -> Result<Vec<u8>, String> {
-    if blob.len() < 10 || blob[0] != 1 {
-        return Err("invalid CIX substream descriptor".into());
+fn streams_decode(blob: &[u8], limit: usize) -> Result<Vec<Vec<u8>>, String> {
+    if blob.is_empty() || blob[0] == 0 || blob[0] > 8 {
+        return Err("invalid CIX substream count".into());
     }
-    let coder = blob[1];
-    let n = u32::from_le_bytes(blob[2..6].try_into().unwrap()) as usize;
-    let size = u32::from_le_bytes(blob[6..10].try_into().unwrap()) as usize;
-    if n != expected || size != blob.len() - 10 {
-        return Err("invalid CIX substream lengths".into());
-    }
-    let payload = &blob[10..];
-    match coder {
-        0 => {
-            if size != n {
-                return Err("raw substream size mismatch".into());
-            }
-            Ok(payload.to_vec())
+    let mut pos = 1usize;
+    let mut total = 0usize;
+    let mut parts = Vec::with_capacity(blob[0] as usize);
+    for _ in 0..blob[0] {
+        if pos + 9 > blob.len() {
+            return Err("truncated CIX substream descriptor".into());
         }
-        1 => unrle(payload, n),
-        2 => rank::decode_composition_tiles(payload, n),
-        5 => Err("unsupported CIX count-range substream coder".into()),
-        3 => inflate(payload, n),
-        _ => Err(format!("unsupported CIX substream coder {coder}")),
+        let coder = blob[pos];
+        let n = u32::from_le_bytes(blob[pos + 1..pos + 5].try_into().unwrap()) as usize;
+        let size = u32::from_le_bytes(blob[pos + 5..pos + 9].try_into().unwrap()) as usize;
+        pos += 9;
+        total = total
+            .checked_add(n)
+            .ok_or("CIX substream length overflow")?;
+        let end = pos
+            .checked_add(size)
+            .ok_or("CIX substream payload overflow")?;
+        if total > limit || end > blob.len() {
+            return Err("CIX substream resource/truncation limit".into());
+        }
+        let payload = &blob[pos..end];
+        let decoded = match coder {
+            0 => {
+                if size != n {
+                    return Err("raw substream size mismatch".into());
+                }
+                payload.to_vec()
+            }
+            1 => unrle(payload, n)?,
+            2 => rank::decode_composition_tiles(payload, n)?,
+            3 => inflate(payload, n)?,
+            4 => return Err("unsupported adaptive-range substream coder".into()),
+            5 => return Err("unsupported CIX count-range substream coder".into()),
+            _ => return Err(format!("unsupported CIX substream coder {coder}")),
+        };
+        parts.push(decoded);
+        pos = end;
+    }
+    if pos != blob.len() {
+        return Err("trailing CIX substream bytes".into());
+    }
+    Ok(parts)
+}
+
+fn stream_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
+    streams_encode(&[data], level, backend)
+}
+
+fn stream_decode(blob: &[u8], expected: usize) -> Result<Vec<u8>, String> {
+    let mut parts = streams_decode(blob, expected)?;
+    if parts.len() != 1 || parts[0].len() != expected {
+        return Err("expected exactly one CIX byte substream".into());
+    }
+    Ok(parts.remove(0))
+}
+
+fn predictor_residual(data: &[u8], inverse: bool) -> Vec<u8> {
+    let mut values = vec![0u8; 65536];
+    let mut valid = vec![false; 65536];
+    let mut scores = [0u32; 3];
+    let mut out = Vec::with_capacity(data.len());
+    for (i, &value) in data.iter().enumerate() {
+        let past = if inverse { out.as_slice() } else { data };
+        let context = if i >= 2 {
+            past[i - 2] as usize * 256 + past[i - 1] as usize
+        } else {
+            0
+        };
+        let predictions = [
+            if i > 0 { past[i - 1] } else { 0 },
+            if i >= 4 { past[i - 4] } else { 0 },
+            if i >= 2 && valid[context] {
+                values[context]
+            } else {
+                0
+            },
+        ];
+        let mut winner = 0;
+        for k in 1..3 {
+            if scores[k] > scores[winner] {
+                winner = k;
+            }
+        }
+        let actual = if inverse {
+            value ^ predictions[winner]
+        } else {
+            value
+        };
+        out.push(if inverse {
+            actual
+        } else {
+            value ^ predictions[winner]
+        });
+        for k in 0..3 {
+            scores[k] += u32::from(predictions[k] == actual);
+        }
+        if i >= 2 {
+            values[context] = actual;
+            valid[context] = true;
+        }
+        if (i + 1) % 256 == 0 {
+            for score in &mut scores {
+                *score /= 2;
+            }
+        }
+    }
+    out
+}
+
+fn read_word(bytes: &[u8], endian_le: bool) -> u64 {
+    let mut word = [0u8; 8];
+    if endian_le {
+        word[..bytes.len()].copy_from_slice(bytes);
+        u64::from_le_bytes(word)
+    } else {
+        word[8 - bytes.len()..].copy_from_slice(bytes);
+        u64::from_be_bytes(word)
+    }
+}
+
+fn write_word(word: u64, width: usize, endian_le: bool, output: &mut Vec<u8>) {
+    let bytes = if endian_le {
+        word.to_le_bytes()
+    } else {
+        word.to_be_bytes()
+    };
+    if endian_le {
+        output.extend_from_slice(&bytes[..width]);
+    } else {
+        output.extend_from_slice(&bytes[8 - width..]);
+    }
+}
+
+fn stride_spec(id: u8) -> Result<(usize, bool, bool), String> {
+    match id {
+        4 => Ok((1, true, false)),
+        6 => Ok((4, true, true)),
+        7 => Ok((8, true, true)),
+        9 => Ok((4, false, true)),
+        17 => Ok((4, true, false)),
+        18 => Ok((8, true, false)),
+        _ => Err(format!("unsupported stride transform {id}")),
+    }
+}
+
+fn apply_stride(data: &[u8], id: u8) -> Result<Vec<u8>, String> {
+    let (width, little, delta) = stride_spec(id)?;
+    if width == 1 {
+        let mut out = data.to_vec();
+        for i in (1..out.len()).rev() {
+            out[i] = out[i].wrapping_sub(out[i - 1]);
+        }
+        return Ok(out);
+    }
+    let usable = data.len() / width * width;
+    let words: Vec<u64> = data[..usable]
+        .chunks_exact(width)
+        .map(|chunk| read_word(chunk, little))
+        .collect();
+    let mask = if width == 8 {
+        u64::MAX
+    } else {
+        (1u64 << (width * 8)) - 1
+    };
+    let mut transformed = Vec::with_capacity(data.len());
+    let mut previous = 0u64;
+    for (i, &word) in words.iter().enumerate() {
+        let value = if i == 0 {
+            word
+        } else if delta {
+            word.wrapping_sub(previous) & mask
+        } else {
+            word ^ previous
+        };
+        write_word(value, width, little, &mut transformed);
+        previous = word;
+    }
+    transformed.extend_from_slice(&data[usable..]);
+    let usable = transformed.len() / width * width;
+    let mut shuffled = Vec::with_capacity(transformed.len());
+    for lane in 0..width {
+        for index in (lane..usable).step_by(width) {
+            shuffled.push(transformed[index]);
+        }
+    }
+    shuffled.extend_from_slice(&transformed[usable..]);
+    Ok(shuffled)
+}
+
+fn invert_stride(data: &[u8], id: u8) -> Result<Vec<u8>, String> {
+    let (width, little, delta) = stride_spec(id)?;
+    if width == 1 {
+        let mut out = data.to_vec();
+        for i in 1..out.len() {
+            out[i] = out[i].wrapping_add(out[i - 1]);
+        }
+        return Ok(out);
+    }
+    let usable = data.len() / width * width;
+    let words = usable / width;
+    let mut unshuffled = vec![0u8; usable];
+    for lane in 0..width {
+        for word in 0..words {
+            unshuffled[lane + word * width] = data[lane * words + word];
+        }
+    }
+    unshuffled.extend_from_slice(&data[usable..]);
+    let raw_usable = unshuffled.len() / width * width;
+    let encoded_words: Vec<u64> = unshuffled[..raw_usable]
+        .chunks_exact(width)
+        .map(|chunk| read_word(chunk, little))
+        .collect();
+    let mask = if width == 8 {
+        u64::MAX
+    } else {
+        (1u64 << (width * 8)) - 1
+    };
+    let mut restored = Vec::with_capacity(data.len());
+    let mut previous = 0u64;
+    for (i, &encoded) in encoded_words.iter().enumerate() {
+        let value = if i == 0 {
+            encoded
+        } else if delta {
+            previous.wrapping_add(encoded) & mask
+        } else {
+            previous ^ encoded
+        };
+        write_word(value, width, little, &mut restored);
+        previous = value;
+    }
+    restored.extend_from_slice(&unshuffled[raw_usable..]);
+    Ok(restored)
+}
+
+fn select_stride(sample: &[u8]) -> Result<u8, String> {
+    let mut best = None;
+    for id in [4u8, 6, 7, 9, 17, 18] {
+        let transformed = apply_stride(sample, id)?;
+        let score = entropy(&transformed);
+        if best.map_or(true, |(_, old)| score < old) {
+            best = Some((id, score));
+        }
+    }
+    best.map(|(id, _)| id)
+        .ok_or("empty stride candidate set".into())
+}
+
+fn phrase_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+    use std::collections::HashMap;
+    let mut counts: HashMap<[u8; 2], (usize, usize)> = HashMap::new();
+    for i in 0..data.len().saturating_sub(1) {
+        let key = [data[i], data[i + 1]];
+        let entry = counts.entry(key).or_insert((0, i));
+        entry.0 += 1;
+    }
+    let mut dictionary: Vec<([u8; 2], usize, usize)> = counts
+        .into_iter()
+        .map(|(key, (count, first))| (key, count, first))
+        .collect();
+    dictionary.sort_by_key(|(_, count, first)| (std::cmp::Reverse(*count), *first));
+    let dictionary: Vec<[u8; 2]> = dictionary
+        .into_iter()
+        .take(32)
+        .filter_map(|(key, count, _)| (count >= 8).then_some(key))
+        .collect();
+    let mut lookup = HashMap::new();
+    for (index, &key) in dictionary.iter().enumerate() {
+        lookup.insert(key, index as u8);
+    }
+    let mut tags = Vec::new();
+    let mut literals = Vec::new();
+    let mut indices = Vec::new();
+    let mut i = 0;
+    while i < data.len() {
+        if i + 1 < data.len() {
+            if let Some(&index) = lookup.get(&[data[i], data[i + 1]]) {
+                tags.push(1);
+                indices.push(index);
+                i += 2;
+                continue;
+            }
+        }
+        tags.push(0);
+        literals.push(data[i]);
+        i += 1;
+    }
+    let owned = vec![tags, literals, indices];
+    let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
+    let streams = streams_encode(&refs, level, "hybrid")?;
+    let mut out = Vec::with_capacity(1 + 2 * dictionary.len() + streams.len());
+    out.push(dictionary.len() as u8);
+    for key in dictionary {
+        out.extend_from_slice(&key);
+    }
+    out.extend_from_slice(&streams);
+    Ok(out)
+}
+
+fn phrase_decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
+    if blob.is_empty() || blob[0] > 32 {
+        return Err("invalid phrase dictionary size".into());
+    }
+    let count = blob[0] as usize;
+    let start = 1 + count * 2;
+    if start > blob.len() {
+        return Err("truncated phrase dictionary".into());
+    }
+    let dictionary: Vec<[u8; 2]> = blob[1..start]
+        .chunks_exact(2)
+        .map(|p| [p[0], p[1]])
+        .collect();
+    let parts = streams_decode(&blob[start..], n.saturating_mul(2))?;
+    if parts.len() != 3 {
+        return Err("phrase stream count mismatch".into());
+    }
+    let (tags, literals, indices) = (&parts[0], &parts[1], &parts[2]);
+    let (mut a, mut b) = (0usize, 0usize);
+    let mut out = Vec::with_capacity(n);
+    for &tag in tags {
+        match tag {
+            0 if a < literals.len() => {
+                out.push(literals[a]);
+                a += 1;
+            }
+            1 if b < indices.len() && (indices[b] as usize) < dictionary.len() => {
+                out.extend_from_slice(&dictionary[indices[b] as usize]);
+                b += 1;
+            }
+            _ => return Err("invalid phrase tag/index".into()),
+        }
+        if out.len() > n {
+            return Err("phrase output overflow".into());
+        }
+    }
+    if out.len() != n || a != literals.len() || b != indices.len() {
+        return Err("phrase stream lengths mismatch".into());
+    }
+    Ok(out)
+}
+
+fn stride_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+    let id = select_stride(&data[..data.len().min(4096)])?;
+    let transformed = apply_stride(data, id)?;
+    let (width, _, _) = stride_spec(id)?;
+    let plane = transformed.len() / width;
+    let mut owned = Vec::with_capacity(width);
+    for lane in 0..width - 1 {
+        owned.push(transformed[lane * plane..(lane + 1) * plane].to_vec());
+    }
+    owned.push(transformed[(width - 1) * plane..].to_vec());
+    let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
+    let streams = streams_encode(&refs, level, "hybrid")?;
+    let mut out = Vec::with_capacity(1 + streams.len());
+    out.push(id);
+    out.extend_from_slice(&streams);
+    Ok(out)
+}
+
+fn join_streams(blob: &[u8], limit: usize) -> Result<Vec<u8>, String> {
+    let parts = streams_decode(blob, limit)?;
+    let total = parts.iter().map(Vec::len).sum();
+    if total > limit {
+        return Err("decoded CIX stream length exceeds limit".into());
+    }
+    let mut out = Vec::with_capacity(total);
+    for part in parts {
+        out.extend_from_slice(&part);
+    }
+    Ok(out)
+}
+
+fn encode_route(route: u8, data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+    match route {
+        0 => Ok(data.to_vec()),
+        1 => Ok(rle(data)),
+        2 => stream_encode(data, level, "cix"),
+        4 => stream_encode(&predictor_residual(data, false), level, "hybrid"),
+        6 => stride_encode(data, level),
+        7 => phrase_encode(data, level),
+        10 => stream_encode(data, level, "deflate"),
+        _ => Err(format!("unsupported native route ID {route}")),
     }
 }
 fn inflate(b: &[u8], n: usize) -> Result<Vec<u8>, String> {
@@ -490,19 +861,22 @@ fn encode<R: Read, W: Write>(
         let data = &buf[..got];
         let rh: [u8; 32] = Sha256::digest(data).into();
         whole.update(data);
-        let mut candidates = vec![(0u8, data.to_vec()), (1, rle(data))];
-        candidates.push((2, stream_encode(data, level, "cix")?));
-        candidates.push((10, stream_encode(data, level, "deflate")?));
         let (route, payload) = if let Some(f) = forced {
             let id = match f {
                 "raw" => 0,
                 "runs" => 1,
-                "deflate" => 10,
                 "composition" => 2,
+                "predictor" => 4,
+                "stride" => 6,
+                "phrases" => 7,
+                "deflate" => 10,
                 _ => return Err(format!("unsupported route: {f}")),
             };
-            candidates.into_iter().find(|x| x.0 == id).unwrap()
+            (id, encode_route(id, data, level)?)
         } else {
+            let mut candidates = vec![(0u8, data.to_vec()), (1, rle(data))];
+            candidates.push((2, encode_route(2, data, level)?));
+            candidates.push((10, encode_route(10, data, level)?));
             candidates.sort_by_key(|x| x.1.len());
             candidates.remove(0)
         };
@@ -578,6 +952,22 @@ fn decode<R: Read, W: Write>(
             }
             1 => unrle(&b, n as usize)?,
             2 => stream_decode(&b, n as usize)?,
+            4 => {
+                let residual = stream_decode(&b, n as usize)?;
+                predictor_residual(&residual, true)
+            }
+            6 => {
+                if b.is_empty() {
+                    return Err("truncated stride descriptor".into());
+                }
+                let transformed = join_streams(&b[1..], n as usize)?;
+                let restored = invert_stride(&transformed, b[0])?;
+                if restored.len() != n as usize {
+                    return Err("stride output size mismatch".into());
+                }
+                restored
+            }
+            7 => phrase_decode(&b, n as usize)?,
             10 => stream_decode(&b, n as usize)?,
             _ => return Err(format!("unsupported CIXG1 route ID {}", r[0])),
         };
@@ -700,7 +1090,18 @@ fn run() -> Result<(), String> {
         return Err("--flush-interval on non-seekable input requires Unix poll support".into());
     }
     if let Some(r) = &o.route {
-        if !["auto", "raw", "runs", "composition", "deflate"].contains(&r.as_str()) {
+        if ![
+            "auto",
+            "raw",
+            "runs",
+            "composition",
+            "predictor",
+            "stride",
+            "phrases",
+            "deflate",
+        ]
+        .contains(&r.as_str())
+        {
             return Err(format!("unsupported native route: {r}"));
         }
     }

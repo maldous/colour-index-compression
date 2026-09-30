@@ -38,9 +38,10 @@ def main() -> None:
         d = Path(td)
         for name, data in fixtures.items():
             source = d / f"{name}.bin"; source.write_bytes(data)
-            for route in ("raw", "runs", "composition", "deflate"):
+            for route in ("raw", "runs", "composition", "predictor", "stride", "phrases", "deflate"):
                 py_archive = d / f"{name}.python-{route}.cix"
-                encode_file(source, py_archive, effort="fast", backend="deflate", force=route, block_bytes=32768)
+                backend = "hybrid" if route in ("predictor", "stride", "phrases") else "deflate"
+                encode_file(source, py_archive, effort="fast", backend=backend, force=route, block_bytes=32768)
                 rust_restore = d / f"{name}.rust-{route}.bin"
                 run(str(BIN / "uncix"), "-f", "-o", str(rust_restore), str(py_archive))
                 assert rust_restore.read_bytes() == data

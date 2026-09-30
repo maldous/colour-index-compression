@@ -15,7 +15,7 @@
 - Stream CLI default: level 6 (`cix/cli.py::config_for_level`). Levels 1–9 are existing Python profiles; `--extreme` is a separate profile. This is distinct from generic `CIXG1` efforts.
 - Generic selector: `fast`, `balanced`, `maximum`; each block is selected from the frozen route shortlist and complete physical payload sizes. Stream backend defaults to `hybrid` (CIX composition and raw DEFLATE). See `pipeline.py::EFFORTS`, `shortlist`, and `streams`.
 - Initial native milestone: CIXG1 canonical fixed routes raw (0), runs (1), and raw DEFLATE stream coder (3), preserving all frame/header/checksum semantics.
-- Subsequent parity update: route ID 2 (composition) and exact-rank type-class substreams are implemented with arbitrary-precision integers and 1024-symbol tiles. Adaptive/range type-class and other routes remain unsupported and must be rejected explicitly; no silent fallback.
+- Subsequent parity update: route IDs 2 (composition), 4 (predictor), 6 (stride), and 7 (phrases) plus exact-rank type-class substreams are implemented with arbitrary-precision integers and 1024-symbol tiles. Adaptive/range type-class and other routes remain unsupported and must be rejected explicitly; no silent fallback.
 
 ## Fixture policy
 
