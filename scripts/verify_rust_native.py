@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import random
+import struct
 import subprocess
 import tempfile
 from pathlib import Path
@@ -24,7 +25,7 @@ def run(*args: str, input: bytes | None = None, ok: bool = True) -> subprocess.C
 
 def main() -> None:
     subprocess.run(["cargo", "build", "--release", "--manifest-path", str(ROOT / "rust/cix-native/Cargo.toml")], check=True)
-    from cix.pipeline import encode_file, decode_file
+    from cix.pipeline import encode_file, decode_file, _count_range
     rng = random.Random(92341)
     fixtures = {
         "empty": b"",
@@ -38,13 +39,17 @@ def main() -> None:
         d = Path(td)
         for name, data in fixtures.items():
             source = d / f"{name}.bin"; source.write_bytes(data)
-            for route in ("raw", "runs", "composition", "lz", "predictor", "bwt", "stride", "phrases", "deflate"):
+            for route in ("raw", "runs", "composition", "lz", "predictor", "bwt", "stride", "phrases", "ppm", "deflate"):
+                route_data = data[:1024] if route == "ppm" else data
+                route_source = d / f"{name}.{route}.input"; route_source.write_bytes(route_data)
                 py_archive = d / f"{name}.python-{route}.cix"
                 backend = "hybrid" if route in ("lz", "predictor", "bwt", "stride", "phrases") else "deflate"
-                encode_file(source, py_archive, effort="fast", backend=backend, force=route, block_bytes=32768)
+                encode_file(route_source, py_archive, effort="fast", backend=backend, force=route, block_bytes=32768)
                 rust_restore = d / f"{name}.rust-{route}.bin"
                 run(str(BIN / "uncix"), "-f", "-o", str(rust_restore), str(py_archive))
-                assert rust_restore.read_bytes() == data
+                assert rust_restore.read_bytes() == route_data
+                if route == "ppm" and route_data:
+                    run(str(BIN / "uncix"), "--memory", "16MiB", "-c", str(py_archive), ok=False)
                 if name == "repetitive" and route == "deflate":
                     malformed = bytearray(py_archive.read_bytes())
                     payload_end = 13 + 41 + int.from_bytes(malformed[18:22], "little")
@@ -54,15 +59,15 @@ def main() -> None:
                     run(str(BIN / "uncix"), "-c", str(trailing), ok=False)
 
                 rust_archive = d / f"{name}.rust-{route}.cix"
-                run(str(BIN / "cix"), "--route", route, "-f", "--block", "32768", str(source))
-                generated = source.with_name(source.name + ".cix")
+                run(str(BIN / "cix"), "--route", route, "-f", "--block", "32768", str(route_source))
+                generated = route_source.with_name(route_source.name + ".cix")
                 generated.rename(rust_archive)
                 assert rust_archive.read_bytes() == py_archive.read_bytes(), (name, route, "not canonical")
                 py_restore = d / f"{name}.python-restore-{route}.bin"
                 decode_file(rust_archive, py_restore)
-                assert py_restore.read_bytes() == data
-                rows.append({"fixture": name, "route": route, "source_bytes": len(data),
-                    "source_sha256": hashlib.sha256(data).hexdigest(),
+                assert py_restore.read_bytes() == route_data
+                rows.append({"fixture": name, "route": route, "source_bytes": len(route_data),
+                    "source_sha256": hashlib.sha256(route_data).hexdigest(),
                     "archive_bytes": rust_archive.stat().st_size,
                     "archive_sha256": hashlib.sha256(rust_archive.read_bytes()).hexdigest(),
                     "canonical_equal": True, "cross_decode": True})
@@ -74,6 +79,19 @@ def main() -> None:
         run(str(BIN / "uncix"), "-t", str(archive))
         run(str(BIN / "uncix"), "-l", str(archive))
         run(str(BIN / "cix"), "--route", "lz", "--memory", "4MiB", "-c", "-", input=b"abcd" * 100, ok=False)
+        run(str(BIN / "cix"), "--route", "ppm", "--memory", "16MiB", "-c", "-", input=b"abcd" * 100, ok=False)
+        range_data = (b"same-count arithmetic route\0" * 180)[:4096]
+        range_cix = _count_range(range_data)
+        range_payload = bytes((1,)) + struct.pack("<BII", 5, len(range_data), len(range_cix)) + range_cix
+        digest = hashlib.sha256(range_data).digest()
+        range_archive = d / "count-range.cix"
+        range_archive.write_bytes(
+            struct.pack("<5sII", b"CIXG1", len(range_data), 0)
+            + struct.pack("<BII32s", 2, len(range_data), len(range_payload), digest)
+            + range_payload
+            + struct.pack("<BII32s", 255, 0, 0, digest)
+        )
+        assert run(str(BIN / "cixcat"), "-", input=range_archive.read_bytes()).stdout == range_data
         out = d / "existing"; out.write_bytes(b"keep me")
         run(str(BIN / "uncix"), "-o", str(out), str(archive), ok=False)
         assert out.read_bytes() == b"keep me"

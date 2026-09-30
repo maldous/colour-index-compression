@@ -2,16 +2,18 @@
 
 ## Subsequent code update (correctness checked, not performance measured)
 
-The native encoder/decoder now supports CIXG1 route IDs 2 (composition), 4
-(predictor), 5 (BWT), 6 (stride), and 7 (phrases), in addition to raw, runs,
-LZ (3), and DEFLATE. The native LZ route uses the frozen 4-byte key, 8-candidate
-chain and 65,536-byte window; it requires a 16 MiB working-memory allowance.
-Arbitrary-precision `BigUint` ranks are used for alphabet-set, histogram, and
-permutation ranks; composition tiles are limited to 1024 symbols as in the
-reference implementation. Five fixture classes cross-decode both ways and
-fixed archives for these routes are byte-identical to Python. This update has
-not been timed. The prior timing table below measures the earlier
-raw/run/DEFLATE implementation and remains exploratory because swap was active.
+The native encoder/decoder now supports CIXG1 route IDs 2 (composition), 3
+(LZ), 4 (predictor), 5 (BWT), 6 (stride), 7 (phrases), and 8 (PPM), in addition
+to raw, runs and DEFLATE. LZ uses the frozen 4-byte key, 8-candidate chain and
+65,536-byte window. PPM uses order 3 and escape mass one. Exact arbitrary-
+precision `BigUint` ranks are used for alphabet-set, histogram and permutation
+ranks; fixed composition tiles are 1024 symbols. The reference 32-bit arithmetic
+coder supports PPM and type-class range decoding. Five fixtures cross-decode
+both ways with canonical route bytes; the PPM fixtures are 1 KiB, and a separate
+Python-generated count-range archive verifies coder 5 decoding. These code
+updates have not been performance-timed. The prior timing table below measures
+the earlier raw/run/DEFLATE implementation and remains exploratory because swap
+was active.
 
 Reference: Python commit `80b95427725ecf59d626b2982d50f6349abd56e1`, isolated in a separate worktree. The frozen Python sources are unchanged by this branch. Format references are `CIXF1`/`CIXM6` and `CIXG1`; this implementation writes and reads a compatible subset of CIXG1 without a version change.
 
@@ -19,9 +21,9 @@ Build/host: Rust `1.98.1`, Cargo `1.98.1`, system zlib `1.3`, Linux x86_64. Buil
 
 ## Verified native subset
 
-The Rust tools implement CIXG1 headers, independent block frames, varints for run coding, stream descriptors, rolling SHA-256, raw and RLE routes, raw DEFLATE route 10 with raw/run/DEFLATE stream coders, and generic archive termination. Rust decodes Python CIXG1 raw, run and DEFLATE archives, and Python decodes Rust archives. Fixed route archives were byte-identical across the five fixture classes and all 12 complete Silesia inputs. SHA-256 restoration passed in both directions.
+The current supported CIXG1 route set and explicit remaining gaps are documented in the compatibility matrix below; the performance results that follow are from the earlier raw/run/DEFLATE-only build. Correctness fixtures include all currently ported routes.
 
-The compatibility matrix and unsupported paths are in [`rust/cix-native/README.md`](../../../rust/cix-native/README.md). Legacy CIXF1/CIXM6, combinatorial rank, adaptive/range, PPM, mixture, LZ, predictor, BWT, stride and phrase routes remain unsupported and are rejected explicitly.
+The compatibility matrix and unsupported paths are in [`rust/cix-native/README.md`](../../../rust/cix-native/README.md). Legacy CIXF1/CIXM6, adaptive substreams, mixture, and CIXB1 backend portfolio remain unsupported and are rejected explicitly.
 
 ## Streaming checks
 

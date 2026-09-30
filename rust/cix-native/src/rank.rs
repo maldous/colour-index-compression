@@ -76,6 +76,208 @@ fn read_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {
     Err("oversized CIX varint".into())
 }
 
+struct BitWriter {
+    data: Vec<u8>,
+    current: u8,
+    used: u8,
+    bit_length: usize,
+}
+
+impl BitWriter {
+    fn new() -> Self {
+        Self {
+            data: Vec::new(),
+            current: 0,
+            used: 0,
+            bit_length: 0,
+        }
+    }
+    fn write(&mut self, bit: u8) {
+        self.current = (self.current << 1) | (bit & 1);
+        self.used += 1;
+        self.bit_length += 1;
+        if self.used == 8 {
+            self.data.push(self.current);
+            self.current = 0;
+            self.used = 0;
+        }
+    }
+    fn finish(mut self) -> (Vec<u8>, usize) {
+        if self.used > 0 {
+            self.data.push(self.current << (8 - self.used));
+        }
+        (self.data, self.bit_length)
+    }
+}
+
+pub struct ArithmeticEncoder {
+    low: u64,
+    high: u64,
+    pending: usize,
+    writer: BitWriter,
+}
+
+impl ArithmeticEncoder {
+    const HALF: u64 = 1 << 31;
+    const Q1: u64 = 1 << 30;
+    const Q3: u64 = 3 << 30;
+    const MAX: u64 = (1 << 32) - 1;
+
+    pub fn new() -> Self {
+        Self {
+            low: 0,
+            high: Self::MAX,
+            pending: 0,
+            writer: BitWriter::new(),
+        }
+    }
+    fn emit(&mut self, bit: u8) {
+        self.writer.write(bit);
+        while self.pending > 0 {
+            self.writer.write(bit ^ 1);
+            self.pending -= 1;
+        }
+    }
+    pub fn encode(&mut self, low_count: usize, high_count: usize, total: usize) {
+        let interval = self.high - self.low + 1;
+        self.high = self.low + (interval * high_count as u64 / total as u64) - 1;
+        self.low += interval * low_count as u64 / total as u64;
+        loop {
+            if self.high < Self::HALF {
+                self.emit(0);
+            } else if self.low >= Self::HALF {
+                self.emit(1);
+                self.low -= Self::HALF;
+                self.high -= Self::HALF;
+            } else if self.low >= Self::Q1 && self.high < Self::Q3 {
+                self.pending += 1;
+                self.low -= Self::Q1;
+                self.high -= Self::Q1;
+            } else {
+                break;
+            }
+            self.low <<= 1;
+            self.high = (self.high << 1) + 1;
+        }
+    }
+    pub fn finish(mut self) -> (Vec<u8>, usize) {
+        self.pending += 1;
+        self.emit(if self.low < Self::Q1 { 0 } else { 1 });
+        self.writer.finish()
+    }
+}
+
+struct BitReader<'a> {
+    data: &'a [u8],
+    bit_length: usize,
+    pos: usize,
+}
+
+impl<'a> BitReader<'a> {
+    fn read(&mut self) -> u8 {
+        if self.pos >= self.bit_length {
+            self.pos += 1;
+            return 0;
+        }
+        let bit = (self.data[self.pos >> 3] >> (7 - (self.pos & 7))) & 1;
+        self.pos += 1;
+        bit
+    }
+}
+
+pub struct ArithmeticDecoder<'a> {
+    reader: BitReader<'a>,
+    low: u64,
+    high: u64,
+    value: u64,
+}
+
+impl<'a> ArithmeticDecoder<'a> {
+    pub fn new(data: &'a [u8], bit_length: usize) -> Self {
+        let mut result = Self {
+            reader: BitReader {
+                data,
+                bit_length,
+                pos: 0,
+            },
+            low: 0,
+            high: ArithmeticEncoder::MAX,
+            value: 0,
+        };
+        for _ in 0..32 {
+            result.value = (result.value << 1) | result.reader.read() as u64;
+        }
+        result
+    }
+    pub fn target(&self, total: usize) -> usize {
+        let interval = self.high - self.low + 1;
+        (((self.value - self.low + 1) * total as u64 - 1) / interval) as usize
+    }
+    pub fn update(&mut self, low_count: usize, high_count: usize, total: usize) {
+        let interval = self.high - self.low + 1;
+        self.high = self.low + interval * high_count as u64 / total as u64 - 1;
+        self.low += interval * low_count as u64 / total as u64;
+        loop {
+            if self.high < ArithmeticEncoder::HALF {
+            } else if self.low >= ArithmeticEncoder::HALF {
+                self.low -= ArithmeticEncoder::HALF;
+                self.high -= ArithmeticEncoder::HALF;
+                self.value -= ArithmeticEncoder::HALF;
+            } else if self.low >= ArithmeticEncoder::Q1 && self.high < ArithmeticEncoder::Q3 {
+                self.low -= ArithmeticEncoder::Q1;
+                self.high -= ArithmeticEncoder::Q1;
+                self.value -= ArithmeticEncoder::Q1;
+            } else {
+                break;
+            }
+            self.low <<= 1;
+            self.high = (self.high << 1) + 1;
+            self.value = (self.value << 1) | self.reader.read() as u64;
+        }
+    }
+}
+
+fn encode_sequence_range(data: &[u8], counts: &[usize]) -> (Vec<u8>, usize) {
+    let mut mutable = counts.to_vec();
+    let mut fenwick = Fenwick::new(&mutable);
+    let mut remaining = data.len();
+    let mut encoder = ArithmeticEncoder::new();
+    for &symbol in data {
+        let i = symbol as usize;
+        let low = fenwick.prefix(i);
+        let high = low + mutable[i];
+        encoder.encode(low, high, remaining);
+        mutable[i] -= 1;
+        fenwick.add(i, -1);
+        remaining -= 1;
+    }
+    encoder.finish()
+}
+
+fn decode_sequence_range(
+    payload: &[u8],
+    bit_length: usize,
+    counts: &[usize],
+) -> Result<Vec<u8>, String> {
+    let mut mutable = counts.to_vec();
+    let mut fenwick = Fenwick::new(&mutable);
+    let mut remaining: usize = counts.iter().sum();
+    let mut decoder = ArithmeticDecoder::new(payload, bit_length);
+    let mut out = Vec::with_capacity(remaining);
+    while remaining > 0 {
+        let target = decoder.target(remaining);
+        let symbol = fenwick.select(target)?;
+        let low = fenwick.prefix(symbol);
+        let high = low + mutable[symbol];
+        decoder.update(low, high, remaining);
+        out.push(symbol as u8);
+        mutable[symbol] -= 1;
+        fenwick.add(symbol, -1);
+        remaining -= 1;
+    }
+    Ok(out)
+}
+
 fn colex_rank(values: &[usize]) -> BigUint {
     values
         .iter()
@@ -292,10 +494,14 @@ pub fn encode_type_class(data: &[u8]) -> Result<Vec<u8>, String> {
     let ways = cardinality(&counts);
     let width = fixed_width(&(&ways - BigUint::one()));
     if data.len() >= 2048 && ways > BigUint::one() {
-        return Err("CIX arithmetic sequence coding is not implemented yet".into());
+        let (payload, bit_length) = encode_sequence_range(data, &counts);
+        out.push(1);
+        varint(bit_length, &mut out);
+        out.extend_from_slice(&payload);
+    } else {
+        out.push(0); // canonical rank mode
+        out.extend(fixed_bytes(&permutation_rank(data, &counts)?, width));
     }
-    out.push(0); // canonical rank mode
-    out.extend(fixed_bytes(&permutation_rank(data, &counts)?, width));
     Ok(out)
 }
 
@@ -330,11 +536,26 @@ pub fn decode_type_class(data: &[u8], pos: &mut usize, n: usize) -> Result<Vec<u
     let width = fixed_width(&(&ways - BigUint::one()));
     let mode = *data.get(*pos).ok_or("missing CIX sequence mode")?;
     *pos += 1;
-    if mode != 0 {
-        return Err(format!("unsupported CIX type-class sequence mode {mode}"));
+    match mode {
+        0 => {
+            let rank = read_fixed(data, pos, width)?;
+            permutation_unrank(rank, &counts)
+        }
+        1 => {
+            let bit_length = read_varint(data, pos)?;
+            let byte_length = bit_length.div_ceil(8);
+            let end = pos
+                .checked_add(byte_length)
+                .ok_or("range stream length overflow")?;
+            if end > data.len() {
+                return Err("truncated CIX range stream".into());
+            }
+            let result = decode_sequence_range(&data[*pos..end], bit_length, &counts)?;
+            *pos = end;
+            Ok(result)
+        }
+        _ => Err(format!("unsupported CIX type-class sequence mode {mode}")),
     }
-    let rank = read_fixed(data, pos, width)?;
-    permutation_unrank(rank, &counts)
 }
 
 pub fn encode_composition_tiles(data: &[u8]) -> Result<Vec<u8>, String> {

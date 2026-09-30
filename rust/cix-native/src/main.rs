@@ -10,6 +10,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+mod ppm;
 mod rank;
 
 const MAGIC: &[u8; 5] = b"CIXG1";
@@ -93,7 +94,7 @@ struct Opt {
     flush_interval: Option<std::time::Duration>,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|bwt|stride|phrases|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, LZ, predictor, BWT/MTF, stride transforms, phrases and raw DEFLATE. LZ requires at least 16 MiB --memory. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|ppm|bwt|stride|phrases|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, LZ, predictor, PPM, BWT/MTF, stride transforms, phrases and raw DEFLATE. LZ requires 16 MiB and PPM requires 64 MiB of --memory. CIXG1 frames are limited to 65536 bytes.");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -437,7 +438,7 @@ fn streams_decode(blob: &[u8], limit: usize) -> Result<Vec<Vec<u8>>, String> {
             2 => rank::decode_composition_tiles(payload, n)?,
             3 => inflate(payload, n)?,
             4 => return Err("unsupported adaptive-range substream coder".into()),
-            5 => return Err("unsupported CIX count-range substream coder".into()),
+            5 => rank::decode_composition_tiles(payload, n)?,
             _ => return Err(format!("unsupported CIX substream coder {coder}")),
         };
         parts.push(decoded);
@@ -786,6 +787,7 @@ fn encode_route(route: u8, data: &[u8], level: u8) -> Result<Vec<u8>, String> {
         5 => bwt_encode(data, level),
         6 => stride_encode(data, level),
         7 => phrase_encode(data, level),
+        8 => ppm::encode(data, 3),
         10 => stream_encode(data, level, "deflate"),
         _ => Err(format!("unsupported native route ID {route}")),
     }
@@ -1189,6 +1191,7 @@ fn encode<R: Read, W: Write>(
                 "predictor" => 4,
                 "stride" => 6,
                 "phrases" => 7,
+                "ppm" => 8,
                 "deflate" => 10,
                 _ => return Err(format!("unsupported route: {f}")),
             };
@@ -1218,6 +1221,7 @@ fn decode<R: Read, W: Write>(
     verify_only: bool,
     list: bool,
     input_fd: i32,
+    memory: usize,
 ) -> Result<(), String> {
     let mut h = [0; HEADER];
     read_exact_poll(&mut src, &mut h, input_fd)?;
@@ -1228,6 +1232,10 @@ fn decode<R: Read, W: Write>(
     let hist = u32::from_le_bytes(h[9..13].try_into().unwrap());
     if block == 0 || block > MAX_BLOCK || hist != 0 && hist != 65536 {
         return Err("invalid CIXG1 header".into());
+    }
+    let estimated_decode_working = block as usize * 8 + 65536;
+    if estimated_decode_working > memory {
+        return Err(format!("archive frame needs about {estimated_decode_working} bytes working memory; raise --memory"));
     }
     let mut whole = Sha256::new();
     let mut total_bytes = 0u64;
@@ -1260,6 +1268,9 @@ fn decode<R: Read, W: Write>(
         }
         if n == 0 || n > block || s as u64 > 8 * n as u64 + 4096 {
             return Err("invalid block descriptor".into());
+        }
+        if r[0] == 8 && memory < 64 * 1024 * 1024 {
+            return Err("decoding this PPM block requires --memory of at least 64 MiB".into());
         }
         let mut b = vec![0; s as usize];
         read_exact_poll(&mut src, &mut b, input_fd)?;
@@ -1298,6 +1309,7 @@ fn decode<R: Read, W: Write>(
                 restored
             }
             7 => phrase_decode(&b, n as usize)?,
+            8 => ppm::decode(&b, n as usize)?,
             10 => stream_decode(&b, n as usize)?,
             _ => return Err(format!("unsupported CIXG1 route ID {}", r[0])),
         };
@@ -1412,6 +1424,11 @@ fn run() -> Result<(), String> {
             "--route lz requires --memory of at least 16 MiB for its bounded match index".into(),
         );
     }
+    if o.route.as_deref() == Some("ppm") && o.memory < 64 * 1024 * 1024 {
+        return Err(
+            "--route ppm requires --memory of at least 64 MiB for bounded context tables".into(),
+        );
+    }
     if o.history != 0 {
         if o.independent_blocks {
             return Err("--history conflicts with --independent-blocks".into());
@@ -1435,6 +1452,7 @@ fn run() -> Result<(), String> {
             "bwt",
             "stride",
             "phrases",
+            "ppm",
             "deflate",
         ]
         .contains(&r.as_str())
@@ -1464,7 +1482,7 @@ fn run() -> Result<(), String> {
     if o.test || o.list {
         let f = open_input(&o.input)?;
         let fd = input_fd(&f);
-        decode(f, io::sink(), true, o.list, fd)?;
+        decode(f, io::sink(), true, o.list, fd, o.memory)?;
         eprintln!("archive OK");
         return Ok(());
     }
@@ -1474,7 +1492,7 @@ fn run() -> Result<(), String> {
         let dst = io::stdout();
         let mut lock = dst.lock();
         if o.decode {
-            decode(src, &mut lock, false, false, fd)
+            decode(src, &mut lock, false, false, fd, o.memory)
         } else {
             encode(src, &mut lock, block, o.level, forced, fd, o.flush_interval)
         }?
@@ -1486,7 +1504,7 @@ fn run() -> Result<(), String> {
             let src = open_input(&o.input)?;
             let fd = input_fd(&src);
             if o.decode {
-                decode(src, dst, false, false, fd)
+                decode(src, dst, false, false, fd, o.memory)
             } else {
                 encode(src, dst, block, o.level, forced, fd, o.flush_interval)
             }
