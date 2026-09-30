@@ -200,6 +200,8 @@ def encode(source: Path, destination: Path, *, chunk_bytes: int, workers: int,
                 "chunk_bytes": chunk_bytes, "chunks": len(rows), "workers": workers, "cpus": list(cpus[:workers]),
                 "paq_version": "v216", "paq_options": options,
                 "paq_binary_sha256": PAQ_BINARIES["v216"], "seconds": time.perf_counter() - started,
+                "container_header_bytes": HEADER.size, "per_chunk_frame_bytes": ENTRY.size,
+                "chunk_payload_bytes": [row["payload_bytes"] for row in rows],
                 "chunk_seconds": [row["seconds"] for row in rows], "round_trip": bool(verify),
                 "verification": verification, "peak_rss_kib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss}
     finally:
@@ -282,6 +284,7 @@ def decode(source: Path, destination: Path, *, workers: int = 1, cpus: tuple[int
         # overwrites a destination another process created while we decoded.
         os.link(staged_restored, destination)
         return {"policy": "cix-parallel-independent-paq-v216", "operation": "decode",
+                "parallel_profile": True, "not_serial_cix": True, "not_hutter_qualified": True,
                 "source_bytes": source.stat().st_size, "output_bytes": total_written,
                 "source_sha256": _hash_file(source), "output_sha256": actual_sha,
                 "chunks": count, "workers": workers, "cpus": list(cpus[:workers]), "round_trip": True, "seconds": time.perf_counter() - started,
