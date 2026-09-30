@@ -1,6 +1,13 @@
 __pycache__/
 *.pyc
 
+# Generic-pipeline evidence keeps logs/receipts in Git, source datasets and
+# reconstructed bytes remain untracked. Immutable source is pinned by hashes.
+docs/research/2026-09-30-generic-pipeline/runs/**/build/
+docs/research/2026-09-30-generic-pipeline/runs/**/work/source.bin
+docs/research/2026-09-30-generic-pipeline/runs/**/work/restored.bin
+docs/research/2026-09-30-generic-pipeline/runs/**/work/candidate.bin
+
 # Ephemeral coordination inodes; preserve claim/terminal JSON as evidence.
 .hutter-experiment-scheduler/**/*.lock
 .hutter-experiment-scheduler/wave.lock
