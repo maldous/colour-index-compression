@@ -102,10 +102,12 @@ def encode(source, method):
         payload, bits = _encode_feedback(source, vectors)
     else:
         payload, bits = _encode_causal(source)
+    bit_length_framing_bytes = len(vencode(bits))
     out.extend(vencode(bits)); out.extend(payload)
-    return bytes(out), {"method": method, "physical_bytes": len(out), "framing_bytes": framing,
+    return bytes(out), {"method": method, "physical_bytes": len(out), "framing_bytes": framing + bit_length_framing_bytes,
                          "first_literal_bytes": int(bool(source)), "composition_metadata_bytes": metadata,
                          "payload_bytes": len(payload), "payload_bits": bits,
+                         "payload_bit_length_varint_bytes": bit_length_framing_bytes,
                          "contexts_used": sum(bool(sum(x)) for x in _vectors(source)), "frame_sha256": sha(bytes(out))}
 
 

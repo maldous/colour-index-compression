@@ -1,0 +1,18 @@
+{
+  "schema": "cix-track-b-derived-accounting-erratum-v1",
+  "status": "DERIVED_DO_NOT_OVERWRITE_RAW_RECEIPT",
+  "raw_receipt": "track-b-results/b4t-static-xml-table/long-0-static-xml-table.json",
+  "raw_archive_bytes": 312190,
+  "raw_payload_bytes": 311962,
+  "raw_metadata_bytes": 215,
+  "raw_framing_bytes": 228,
+  "issue": "raw framing_bytes was defined as archive minus payload, so it includes metadata_bytes and must not be summed with metadata_bytes",
+  "derived_non_overlapping_accounting": {
+    "payload_bytes": 311962,
+    "metadata_bytes": 215,
+    "non_metadata_framing_bytes": 13,
+    "sum_bytes": 312190
+  },
+  "formula": "non_metadata_framing_bytes = raw_archive_bytes - raw_payload_bytes - raw_metadata_bytes",
+  "scope": "presentation correction only; archive, raw receipt, SHA verification and measured size are unchanged"
+}

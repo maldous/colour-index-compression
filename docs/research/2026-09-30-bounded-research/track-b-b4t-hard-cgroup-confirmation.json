@@ -1,0 +1,44 @@
+{
+  "schema": "cix-track-b-hard-cgroup-confirmation-v1",
+  "status": "COMPLETE_EXACT_ARCHIVE_RESTORE",
+  "immutable_module_sha256": "18348d76b546eaf2468cfc068aa905ae8dafe4e3a612649775178e0c9da01757",
+  "input": {
+    "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+    "offset": 0,
+    "bytes": 1048576
+  },
+  "resource_configuration": {
+    "launcher": "systemd-run --user",
+    "AllowedCPUs": "16-19",
+    "taskset_cpu_list": "16-19",
+    "MemoryMax": 3000000000,
+    "MemorySwapMax": 0,
+    "RuntimeMaxSec": 300,
+    "actual_encoder_cpu_affinity": [16, 17, 18, 19],
+    "memory_peak_independently_captured": false,
+    "note": "The transient unit reported the stated memory/swap/time properties and taskset proved four-CPU affinity. The completed unit did not retain a cgroup memory-peak counter, so this confirms configured limits rather than a separately measured peak. Earlier B4/B4T resource enforcement was not verified."
+  },
+  "control": {
+    "raw_receipt": "track-b-results/b4t-hard-cgroup-confirm/long-0-control.json",
+    "archive_bytes": 312672,
+    "payload_bytes": 312661,
+    "metadata_bytes": 0,
+    "non_metadata_framing_bytes": 11,
+    "components_sum": 312672,
+    "round_trip_verified": true
+  },
+  "candidate": {
+    "raw_receipt": "track-b-results/b4t-hard-cgroup-confirm/long-0-static-xml-table.json",
+    "archive_bytes": 312190,
+    "raw_framing_bytes": 228,
+    "payload_bytes": 311962,
+    "metadata_bytes": 215,
+    "non_metadata_framing_bytes": 13,
+    "components_sum": 312190,
+    "round_trip_verified": true
+  },
+  "difference_bytes": -482,
+  "difference_percent": -0.15415515300378768,
+  "raw_accounting_erratum": "track-b-b4t-accounting-erratum.json",
+  "qualification_status": "NOT_A_HUTTER_SCORE_OR_SUBMISSION"
+}

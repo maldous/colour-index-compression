@@ -21,11 +21,18 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import zstandard as zstd
+import zstandard.backend_c as zstd_backend_c
 
 
 MAGIC = b"HTB1"
-DIRECT, SPACE_MASK, LINE_PREFIX = 0, 1, 2
-MODES = {"control": DIRECT, "space-mask": SPACE_MASK, "line-prefix": LINE_PREFIX}
+DIRECT, SPACE_MASK, LINE_PREFIX, COPY_DELTA, STATIC_XML, STATIC_XML_TABLE = 0, 1, 2, 3, 4, 5
+MODES = {"control": DIRECT, "space-mask": SPACE_MASK, "line-prefix": LINE_PREFIX, "copy-delta": COPY_DELTA, "static-xml": STATIC_XML, "static-xml-table": STATIC_XML_TABLE}
+XML_TOKENS = tuple(sorted((
+    b'<text xml:space="preserve">', b'</contributor>', b'<contributor>', b'</revision>',
+    b'<timestamp>', b'</timestamp>', b'</username>', b'<username>', b'</comment>',
+    b'<revision>', b'</title>', b'<title>', b'</page>', b'<page>', b'<comment>',
+    b'<minor />', b'&quot;', b'&amp;', b'&lt;', b'&gt;',
+), key=lambda token: (-len(token), token)))
 
 
 def sha256(data: bytes) -> str:
@@ -54,6 +61,15 @@ def decode_varint(data: bytes, position: int) -> tuple[int, int]:
             return value, position
         shift += 7
     raise ValueError("invalid/truncated varint")
+
+
+def checked_costs(archive: bytes, payload_bytes: int, metadata_bytes: int, **extra: int) -> dict[str, int]:
+    """Return non-overlapping physical-size components for every archive."""
+    costs = {"payload_bytes": payload_bytes, "metadata_bytes": metadata_bytes,
+             "framing_bytes": len(archive) - payload_bytes - metadata_bytes, **extra}
+    if costs["payload_bytes"] + costs["metadata_bytes"] + costs["framing_bytes"] != len(archive):
+        raise AssertionError("physical archive accounting does not sum")
+    return costs
 
 
 def split_space_mask(data: bytes) -> tuple[bytes, bytes]:
@@ -130,28 +146,180 @@ def inverse_line_prefix(transformed: bytes) -> bytes:
     return b"\n".join(lines)
 
 
+def copy_delta_transform(data: bytes, block_bytes: int = 1024, window_bytes: int = 65536) -> tuple[bytes, dict[str, int]]:
+    """Causal bounded near-match references, expressed as fully charged XOR edits.
+
+    A block may refer only to bytes before its start.  A 64-byte-spaced 8-byte
+    anchor table picks one causal candidate; the record stores its distance,
+    complete block length and every XOR edit byte.  This deliberately avoids
+    hidden match state: the decoder can recreate the reference from output
+    already restored from the archive.
+    """
+    output = bytearray()
+    anchors: dict[bytes, int] = {}
+    copied_blocks = 0
+    raw_blocks = 0
+    equal_bytes = 0
+    for start in range(0, len(data), block_bytes):
+        block = data[start : start + block_bytes]
+        candidate_start = None
+        candidate_equal = 0
+        for relative in range(0, max(0, len(block) - 7), 64):
+            anchor = block[relative : relative + 8]
+            anchor_position = anchors.get(anchor)
+            if anchor_position is None:
+                continue
+            reference_start = anchor_position - relative
+            if reference_start < max(0, start - window_bytes) or reference_start + len(block) > start:
+                continue
+            reference = data[reference_start : reference_start + len(block)]
+            matches = sum(left == right for left, right in zip(block, reference))
+            if matches > candidate_equal:
+                candidate_start, candidate_equal = reference_start, matches
+        if candidate_start is not None and candidate_equal * 8 >= len(block):
+            reference = data[candidate_start : candidate_start + len(block)]
+            output.append(1)
+            output += encode_varint(len(block))
+            output += encode_varint(start - candidate_start)
+            output += bytes(left ^ right for left, right in zip(block, reference))
+            copied_blocks += 1
+            equal_bytes += candidate_equal
+        else:
+            output.append(0)
+            output += encode_varint(len(block))
+            output += block
+            raw_blocks += 1
+        for relative in range(0, max(0, len(block) - 7), 64):
+            anchors[block[relative : relative + 8]] = start + relative
+        # Keep the bounded table causal and compact.  Stale anchors are harmless
+        # but must never be selected outside the explicit window.
+    return bytes(output), {"copy_delta_block_bytes": block_bytes, "copy_delta_window_bytes": window_bytes,
+                            "copy_delta_copied_blocks": copied_blocks, "copy_delta_raw_blocks": raw_blocks,
+                            "copy_delta_equal_bytes": equal_bytes}
+
+
+def inverse_copy_delta(transformed: bytes) -> bytes:
+    position = 0
+    output = bytearray()
+    while position < len(transformed):
+        marker = transformed[position]
+        position += 1
+        block_bytes, position = decode_varint(transformed, position)
+        if marker == 0:
+            if position + block_bytes > len(transformed):
+                raise ValueError("truncated copy-delta raw record")
+            output += transformed[position : position + block_bytes]
+            position += block_bytes
+        elif marker == 1:
+            distance, position = decode_varint(transformed, position)
+            if not distance or distance > len(output) or position + block_bytes > len(transformed):
+                raise ValueError("invalid copy-delta reference")
+            reference_start = len(output) - distance
+            if reference_start + block_bytes > len(output):
+                raise ValueError("non-causal copy-delta reference")
+            edits = transformed[position : position + block_bytes]
+            position += block_bytes
+            output += bytes(left ^ right for left, right in zip(output[reference_start : reference_start + block_bytes], edits))
+        else:
+            raise ValueError("unknown copy-delta record")
+    return bytes(output)
+
+
+def serialize_tokens(tokens: tuple[bytes, ...]) -> bytes:
+    return encode_varint(len(tokens)) + b"".join(encode_varint(len(token)) + token for token in tokens)
+
+
+def deserialize_tokens(blob: bytes) -> tuple[bytes, ...]:
+    count, position = decode_varint(blob, 0)
+    if not 1 <= count <= 255:
+        raise ValueError("invalid static-xml vocabulary size")
+    tokens = []
+    for _ in range(count):
+        length, position = decode_varint(blob, position)
+        if not 1 <= length <= 256 or position + length > len(blob):
+            raise ValueError("invalid static-xml vocabulary item")
+        tokens.append(blob[position : position + length])
+        position += length
+    if position != len(blob) or tuple(sorted(tokens, key=lambda token: (-len(token), token))) != tuple(tokens):
+        raise ValueError("invalid static-xml vocabulary ordering")
+    return tuple(tokens)
+
+
+def static_xml_transform(data: bytes, tokens: tuple[bytes, ...] = XML_TOKENS) -> tuple[bytes, dict[str, int]]:
+    """Replace a fixed XML grammar vocabulary with self-delimiting byte tokens.
+
+    This is intentionally not a learnt dictionary: the ordered vocabulary is
+    part of the named Hutter-specific decoder configuration.  ``0xff`` escapes
+    raw occurrences of itself; every recognized construct is two bytes (escape
+    plus stable vocabulary index), so all representation costs are in the
+    backend input and no side stream is hidden.
+    """
+    output = bytearray()
+    position = 0
+    replacements = 0
+    while position < len(data):
+        matched = next((index for index, token in enumerate(tokens, 1) if data.startswith(token, position)), None)
+        if matched is not None:
+            output.extend((0xff, matched))
+            position += len(tokens[matched - 1])
+            replacements += 1
+        elif data[position] == 0xff:
+            output.extend((0xff, 0xff))
+            position += 1
+        else:
+            output.append(data[position])
+            position += 1
+    return bytes(output), {"static_xml_vocabulary_entries": len(tokens), "static_xml_replacements": replacements}
+
+
+def inverse_static_xml(transformed: bytes, tokens: tuple[bytes, ...] = XML_TOKENS) -> bytes:
+    output = bytearray()
+    position = 0
+    while position < len(transformed):
+        byte = transformed[position]
+        position += 1
+        if byte != 0xff:
+            output.append(byte)
+            continue
+        if position == len(transformed):
+            raise ValueError("truncated static-xml escape")
+        code = transformed[position]
+        position += 1
+        if code == 0xff:
+            output.append(0xff)
+        elif 1 <= code <= len(tokens):
+            output += tokens[code - 1]
+        else:
+            raise ValueError("invalid static-xml token")
+    return bytes(output)
+
+
 def encode_archive(data: bytes, mode: str, level: int = 19) -> tuple[bytes, dict[str, int]]:
     compressor = zstd.ZstdCompressor(level=level)
     original_header = MAGIC + bytes((MODES[mode],)) + encode_varint(len(data))
     if mode == "control":
         payload = compressor.compress(data)
         archive = original_header + encode_varint(len(payload)) + payload
-        return archive, {"payload_bytes": len(payload), "metadata_bytes": 0,
-                         "framing_bytes": len(archive) - len(payload), "transformed_bytes": len(data)}
+        return archive, checked_costs(archive, len(payload), 0, transformed_bytes=len(data))
     if mode == "space-mask":
         mask, literals = split_space_mask(data)
         packed_mask = compressor.compress(mask)
         packed_literals = compressor.compress(literals)
         archive = original_header + encode_varint(len(packed_mask)) + encode_varint(len(packed_literals)) + packed_mask + packed_literals
-        return archive, {"payload_bytes": len(packed_mask) + len(packed_literals), "metadata_bytes": 0,
-                         "framing_bytes": len(archive) - len(packed_mask) - len(packed_literals),
-                         "transformed_bytes": len(mask) + len(literals), "mask_bytes": len(mask),
-                         "literal_bytes": len(literals)}
-    transformed = line_prefix_transform(data)
+        return archive, checked_costs(archive, len(packed_mask) + len(packed_literals), 0,
+                                      transformed_bytes=len(mask) + len(literals), mask_bytes=len(mask),
+                                      literal_bytes=len(literals))
+    if mode == "line-prefix":
+        transformed = line_prefix_transform(data)
+        transform_costs: dict[str, int] = {}
+    elif mode == "copy-delta":
+        transformed, transform_costs = copy_delta_transform(data)
+    else:
+        transformed, transform_costs = static_xml_transform(data)
     payload = compressor.compress(transformed)
-    archive = original_header + encode_varint(len(payload)) + payload
-    return archive, {"payload_bytes": len(payload), "metadata_bytes": 0,
-                     "framing_bytes": len(archive) - len(payload), "transformed_bytes": len(transformed)}
+    table = serialize_tokens(XML_TOKENS) if mode == "static-xml-table" else b""
+    archive = original_header + (encode_varint(len(table)) + table if table else b"") + encode_varint(len(payload)) + payload
+    return archive, checked_costs(archive, len(payload), len(table), transformed_bytes=len(transformed), **transform_costs)
 
 
 def decode_archive(archive: bytes) -> bytes:
@@ -160,13 +328,24 @@ def decode_archive(archive: bytes) -> bytes:
     mode = archive[4]
     original_bytes, position = decode_varint(archive, 5)
     decompressor = zstd.ZstdDecompressor()
-    if mode in (DIRECT, LINE_PREFIX):
+    if mode in (DIRECT, LINE_PREFIX, COPY_DELTA, STATIC_XML, STATIC_XML_TABLE):
+        tokens = XML_TOKENS
+        if mode == STATIC_XML_TABLE:
+            table_bytes, position = decode_varint(archive, position)
+            if position + table_bytes > len(archive):
+                raise ValueError("invalid static-xml table boundary")
+            tokens = deserialize_tokens(archive[position : position + table_bytes])
+            position += table_bytes
         payload_bytes, position = decode_varint(archive, position)
         if position + payload_bytes != len(archive):
             raise ValueError("invalid payload boundary")
         restored = decompressor.decompress(archive[position:])
         if mode == LINE_PREFIX:
             restored = inverse_line_prefix(restored)
+        elif mode == COPY_DELTA:
+            restored = inverse_copy_delta(restored)
+        elif mode in (STATIC_XML, STATIC_XML_TABLE):
+            restored = inverse_static_xml(restored, tokens)
     elif mode == SPACE_MASK:
         mask_bytes, position = decode_varint(archive, position)
         literals_bytes, position = decode_varint(archive, position)
@@ -184,9 +363,16 @@ def decode_archive(archive: bytes) -> bytes:
 
 def input_bytes(args: argparse.Namespace) -> tuple[bytes, dict[str, object]]:
     if args.synthetic:
-        if args.synthetic != "repeated-records":
+        if args.synthetic not in ("repeated-records", "xml-records"):
             raise ValueError("unknown synthetic input")
         seed = 7302026
+        if args.synthetic == "xml-records":
+            unit = (b'<page><title>Example %06d</title><id>%06d</id><revision><id>%06d</id>'
+                    b'<timestamp>2026-09-30T00:00:00Z</timestamp><contributor><username>Editor</username>'
+                    b'</contributor><comment>Text &amp; markup</comment><text xml:space="preserve">'
+                    b'content &lt;example&gt; &quot;quoted&quot;</text></revision></page>\n')
+            data = b"".join(unit % (index % 997, index % 997, index % 997) for index in range(1200))
+            return data, {"kind": "synthetic", "generator": "xml-records-v1", "seed": seed}
         unit = (b'{"article":"CIX experimental record","id":%06d,"kind":"revision",'
                 b'"comment":"small deterministic mutation"}\n')
         data = b"".join(unit % (index % 997) for index in range(2800))
@@ -203,9 +389,13 @@ def input_bytes(args: argparse.Namespace) -> tuple[bytes, dict[str, object]]:
 
 def immutable_identity() -> dict[str, str]:
     this_file = Path(__file__).resolve()
-    backend = Path(zstd.__file__).resolve()
-    return {"script_sha256": sha256(this_file.read_bytes()), "zstandard_module_sha256": sha256(backend.read_bytes()),
-            "zstandard_version": zstd.__version__}
+    module = Path(zstd.__file__).resolve()
+    backend = Path(zstd_backend_c.__file__).resolve()
+    python = Path(sys.executable).resolve()
+    return {"script_sha256": sha256(this_file.read_bytes()), "script_path": str(this_file),
+            "python_binary_sha256": sha256(python.read_bytes()), "python_version": sys.version,
+            "zstandard_module_sha256": sha256(module.read_bytes()), "zstandard_backend_sha256": sha256(backend.read_bytes()),
+            "zstandard_backend_path": str(backend), "zstandard_version": zstd.__version__}
 
 
 def encode_command(args: argparse.Namespace) -> None:
@@ -222,7 +412,7 @@ def encode_command(args: argparse.Namespace) -> None:
         "schema": "cix-hutter-track-b-v1", "completed_at": datetime.now(UTC).isoformat(),
         "trial_id": args.trial_id, "track": "B", "hutter_specific": True,
         "hypothesis": args.hypothesis, "expected_mechanism": args.expected_mechanism,
-        "promotion_criteria": args.promotion_criteria, "resource_budget": {"wall_seconds": args.budget_seconds, "cpu_cores": 4, "rss_bytes": 3 * 1024**3, "temporary_disk_bytes": 1024**3},
+        "promotion_criteria": args.promotion_criteria, "resource_budget": {"wall_seconds": args.budget_seconds, "logical_cpu_cap": 4, "rss_bytes": 3 * 1024**3, "temporary_disk_bytes": 1024**3},
         "matched_control": "HTB1 control: same zstandard 0.25.0 level and self-contained framing, direct input",
         "mode": args.mode, "backend": "zstandard", "backend_level": args.level,
         "input": {**input_description, "bytes": len(data), "sha256": sha256(data)},
@@ -231,6 +421,7 @@ def encode_command(args: argparse.Namespace) -> None:
                    "independent_decoder_command": command, "decoder_returncode": decoded.returncode, "decoder_stderr": decoded.stderr[-1000:]},
         "accounting": costs, "encode_seconds": encode_seconds,
         "process_peak_rss_bytes": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024,
+        "actual_cpu_affinity": sorted(os.sched_getaffinity(0)),
         "immutable_build": immutable_identity(), "status": "COMPLETE" if verified else "FAILED_VERIFICATION",
     }
     Path(args.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
@@ -249,7 +440,7 @@ def main() -> None:
     enc.add_argument("--mode", choices=MODES, required=True)
     enc.add_argument("--archive", required=True); enc.add_argument("--restored", required=True); enc.add_argument("--receipt", required=True)
     enc.add_argument("--trial-id", required=True); enc.add_argument("--hypothesis", required=True); enc.add_argument("--expected-mechanism", required=True); enc.add_argument("--promotion-criteria", required=True)
-    enc.add_argument("--input"); enc.add_argument("--offset", type=int, default=0); enc.add_argument("--length", type=int, default=0); enc.add_argument("--synthetic", choices=["repeated-records"])
+    enc.add_argument("--input"); enc.add_argument("--offset", type=int, default=0); enc.add_argument("--length", type=int, default=0); enc.add_argument("--synthetic", choices=["repeated-records", "xml-records"])
     enc.add_argument("--level", type=int, default=19); enc.add_argument("--budget-seconds", type=int, default=300)
     dec = sub.add_parser("decode")
     dec.add_argument("--archive", required=True); dec.add_argument("--output", required=True)

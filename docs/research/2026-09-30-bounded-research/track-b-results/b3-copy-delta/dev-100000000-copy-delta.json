@@ -1,0 +1,72 @@
+{
+  "accounting": {
+    "copy_delta_block_bytes": 1024,
+    "copy_delta_copied_blocks": 0,
+    "copy_delta_equal_bytes": 0,
+    "copy_delta_raw_blocks": 256,
+    "copy_delta_window_bytes": 65536,
+    "framing_bytes": 11,
+    "metadata_bytes": 0,
+    "payload_bytes": 91531,
+    "transformed_bytes": 262912
+  },
+  "backend": "zstandard",
+  "backend_level": 19,
+  "completed_at": "2026-09-30T07:02:10.781106+00:00",
+  "encode_seconds": 0.07045010011643171,
+  "expected_mechanism": "A charged prior-distance plus XOR edit record is more stationary than raw repeated records",
+  "hutter_specific": true,
+  "hypothesis": "Causal bounded near-match references expose repeated templates as low-entropy XOR edits",
+  "immutable_build": {
+    "python_binary_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+    "python_version": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "script_path": "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b3-copy-delta/immutable-build/benchmarks/hutter_track_b.py",
+    "script_sha256": "8c7f3c68fdacbe48da71319e27f66d267bf36305073034864417e2d08cb54712",
+    "zstandard_backend_path": "/home/user/src/colour-index-compression/.venv/lib/python3.12/site-packages/zstandard/backend_c.cpython-312-x86_64-linux-gnu.so",
+    "zstandard_backend_sha256": "7eb41c8b36cd99ed6c67e39f8574e42472687a14c6038c512bb3a90b7082616d",
+    "zstandard_module_sha256": "5dd909e0b60a946a0b08deaf57545d17dc044f5df4040beec55f7ef6c6fecd11",
+    "zstandard_version": "0.25.0"
+  },
+  "input": {
+    "bytes": 262144,
+    "kind": "file-range",
+    "length": 262144,
+    "offset": 100000000,
+    "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+    "sha256": "5251848741deca0c97ca86664b46d7f61d11ee69b59964bc6b9b3828c7452600"
+  },
+  "matched_control": "HTB1 control: same zstandard 0.25.0 level and self-contained framing, direct input",
+  "mode": "copy-delta",
+  "output": {
+    "archive": "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b3-copy-delta/dev-100000000-copy-delta.htb",
+    "archive_bytes": 91542,
+    "archive_sha256": "0d2c51bfd60fe5eae43dc6c5328c89856424dc4a0ff59b229d0402a39ffccc1b",
+    "decoder_returncode": 0,
+    "decoder_stderr": "",
+    "independent_decoder_command": [
+      "/home/user/src/colour-index-compression/.venv/bin/python",
+      "-m",
+      "benchmarks.hutter_track_b",
+      "decode",
+      "--archive",
+      "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b3-copy-delta/dev-100000000-copy-delta.htb",
+      "--output",
+      "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b3-copy-delta/dev-100000000-copy-delta.restored"
+    ],
+    "restored": "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b3-copy-delta/dev-100000000-copy-delta.restored",
+    "restored_sha256": "5251848741deca0c97ca86664b46d7f61d11ee69b59964bc6b9b3828c7452600",
+    "round_trip_verified": true
+  },
+  "process_peak_rss_bytes": 636645376,
+  "promotion_criteria": "Two of three development regions and aggregate at least 0.25 percent smaller than control",
+  "resource_budget": {
+    "cpu_cores": 4,
+    "rss_bytes": 3221225472,
+    "temporary_disk_bytes": 1073741824,
+    "wall_seconds": 300
+  },
+  "schema": "cix-hutter-track-b-v1",
+  "status": "COMPLETE",
+  "track": "B",
+  "trial_id": "b3-dev-100m-copy-delta"
+}
