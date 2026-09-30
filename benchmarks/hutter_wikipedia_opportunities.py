@@ -18,7 +18,9 @@ import time
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from benchmarks.hutter_structure_columns import extract_columns
+from benchmarks import hutter_structure as d1
+from benchmarks import markup_columns
+from benchmarks.hutter_structure_columns import _decode_columns, _page_counts, _parts, _slot_classes, extract_columns
 
 
 RANGES = ((0, 4 * 1024 * 1024), (100_000_000, 4 * 1024 * 1024), (400_000_000, 4 * 1024 * 1024))
@@ -76,91 +78,220 @@ def normalized(value: bytes) -> bytes:
     return NUMBER.sub(b"<NUM>", value)
 
 
-def body_profile(identifier: tuple[int, int, int], value: bytes) -> tuple[dict[str, int], set[str], Counter, Counter, Counter]:
-    """Return per-body occurrence counts and category membership only."""
-    categories: set[str] = set()
-    counts: dict[str, int] = {}
-    domains = Counter(URL.findall(value))
-    fields = FIELD.findall(value)
-    template_count = len(TEMPLATE.findall(value))
-    if template_count: categories.add("template_occurrence")
-    if INFOBOX.search(value) and fields: categories.add("infobox_field")
-    if TABLE_START.search(value) or TABLE_ROW.search(value): categories.add("wikitable")
-    if any(NUMBER.search(field_value) for _, field_value in fields): categories.add("numeric_field")
-    if REDIRECT.search(value): categories.add("redirect")
-    if CATEGORY.search(value) or INTERLANG.search(value): categories.add("category_interlang")
-    refs = REF.findall(value)
-    if domains or refs: categories.add("url_citation")
-    lines = [line for line in value.splitlines() if line and len(line) <= 512]
-    paragraphs = [part for part in value.split(b"\n\n") if part and len(part) <= 1024]
-    if lines: categories.add("repeated_line_family")
-    if paragraphs: categories.add("repeated_paragraph_family")
-    counts.update(template_occurrence=template_count, infobox_field=len(fields) if INFOBOX.search(value) else 0,
-                  wikitable=int(bool(TABLE_START.search(value) or TABLE_ROW.search(value))),
-                  numeric_field=sum(1 for _, field_value in fields if NUMBER.search(field_value)),
-                  redirect=int(bool(REDIRECT.search(value))), category_interlang=len(CATEGORY.findall(value)) + len(INTERLANG.findall(value)),
-                  url_citation=sum(domains.values()) + len(refs), lines=len(lines), paragraphs=len(paragraphs))
-    field_names = Counter(key.strip().lower() for key, _ in fields)
-    return counts, categories, domains, field_names, Counter(normalized(line) for line in lines) + Counter(normalized(part) for part in paragraphs)
+def _merge_size(spans: list[tuple[int, int]]) -> int:
+    """Return byte coverage of intervals, keeping source byte positions exact."""
+    total = end = 0
+    for start, stop in sorted(spans):
+        if stop <= end:
+            continue
+        total += stop - max(start, end)
+        end = stop
+    return total
+
+
+def _slot_paths(skeleton: bytes) -> list[tuple[bytes, ...]]:
+    """Recover a placeholder's tag ancestry from D2's exact skeleton bytes."""
+    stack: list[bytes] = []
+    raw = bytearray()
+    paths: list[tuple[bytes, ...]] = []
+    position = 0
+
+    def update_raw() -> None:
+        for match in d1.TOKEN.finditer(bytes(raw)):
+            markup_columns.update_stack(stack, match.group())
+        raw.clear()
+
+    while position < len(skeleton):
+        byte = skeleton[position]
+        position += 1
+        if byte:
+            raw.append(byte)
+            continue
+        if position == len(skeleton):
+            raise ValueError("truncated D2 skeleton escape")
+        kind = skeleton[position]
+        position += 1
+        if kind == 0:
+            raw.append(0)
+        elif kind == 1:
+            update_raw()
+            paths.append(tuple(stack))
+        else:
+            raise ValueError("invalid D2 skeleton escape")
+    return paths
+
+
+def _page_records(data: bytes) -> list[dict]:
+    """Align decoded D2 slots by physical page order, without reserializing XML."""
+    descriptor, dictionary, _literal, column_blob, _pages, _literal_records, _slots = _parts(data)
+    skeletons = d1._deserialize_skeletons(dictionary)
+    columns = _decode_columns(column_blob, skeletons, _page_counts(descriptor, skeletons))
+    classes = {identifier: _slot_classes(skeleton, [columns[identifier, slot] for slot in range(d1._placeholder_count(skeleton))])
+               for identifier, skeleton in enumerate(skeletons)}
+    paths = {identifier: _slot_paths(skeleton) for identifier, skeleton in enumerate(skeletons)}
+    seen = Counter()
+    result = []
+    position = 0
+    while position < len(descriptor):
+        kind = descriptor[position]
+        position += 1
+        if kind == 0:
+            _size, position = d1.vdecode(descriptor, position)
+            continue
+        if kind != 1:
+            raise ValueError("invalid D2 descriptor kind")
+        identifier, position = d1.vdecode(descriptor, position)
+        occurrence = seen[identifier]
+        seen[identifier] += 1
+        values = [columns[identifier, slot][occurrence] for slot in range(d1._placeholder_count(skeletons[identifier]))]
+        first = lambda label: next((values[index] for index, value_class in enumerate(classes[identifier]) if value_class == label), b"")
+        contributor_ids = [values[index] for index, path in enumerate(paths[identifier])
+                           if b"contributor" in path and path[-1:] == (b"id",)]
+        contributor_names = [values[index] for index, path in enumerate(paths[identifier])
+                             if b"contributor" in path and path[-1:] in ((b"username",), (b"ip",))]
+        result.append({"identifier": (identifier, occurrence), "title": first("title"), "body": first("articletext"),
+                       "contributor_pairs": list(zip(contributor_ids, contributor_names)),
+                       "contributor_paths": [b"/".join(path).decode("ascii", "backslashreplace") for path in paths[identifier]
+                                             if b"contributor" in path and path[-1:] in ((b"id",), (b"username",), (b"ip",))]})
+    return result
+
+
+def _body_spans(value: bytes) -> tuple[dict[str, list[tuple[int, int]]], Counter, Counter, list[tuple[bytes, bytes, int, int]], list[tuple[bytes, bytes, int, int]]]:
+    """Bounded raw-byte observations, returning positions rather than rewritten text."""
+    spans: dict[str, list[tuple[int, int]]] = defaultdict(list)
+    domains, field_names = Counter(), Counter()
+    for match in TEMPLATE.finditer(value): spans["template_occurrence"].append(match.span())
+    fields = list(FIELD.finditer(value))
+    infobox = INFOBOX.search(value)
+    if infobox and fields:
+        spans["infobox_field"].append(infobox.span())
+        spans["infobox_field"].extend(match.span() for match in fields)
+        field_names.update(match.group(1).strip().lower() for match in fields)
+    for match in fields:
+        if NUMBER.search(match.group(2)):
+            spans["numeric_field"].append(match.span()); field_names.update((match.group(1).strip().lower(),))
+    for regex, category in ((TABLE_START, "wikitable"), (TABLE_ROW, "wikitable"), (REDIRECT, "redirect"), (CATEGORY, "category_interlang"), (INTERLANG, "category_interlang"), (REF, "url_citation")):
+        spans[category].extend(match.span() for match in regex.finditer(value))
+    for match in URL.finditer(value):
+        spans["url_citation"].append(match.span()); domains.update((match.group(1),))
+    lines, paragraphs = [], []
+    start = 0
+    for chunk in value.splitlines(keepends=True):
+        stop = start + len(chunk)
+        raw = chunk.rstrip(b"\r\n")
+        if raw and len(raw) <= 512: lines.append((normalized(raw), raw, start, start + len(raw)))
+        start = stop
+    start = 0
+    for chunk in value.split(b"\n\n"):
+        stop = start + len(chunk)
+        if chunk and len(chunk) <= 1024: paragraphs.append((normalized(chunk), chunk, start, stop))
+        start = stop + 2
+    return spans, domains, field_names, lines, paragraphs
 
 
 def profile_region(data: bytes) -> dict:
+    # Keep the public D2 adapter in the observation path.  Page-order recovery
+    # below only aligns its decoded slots; it does not reserialize XML.
     extracted = extract_columns(data)
-    body_columns = [column for column in extracted["columns"] if column["field_class"] == "articletext"]
-    memberships: dict[str, set[tuple[int, int, int]]] = defaultdict(set)
-    occurrences = Counter()
-    domain_counts = Counter()
-    field_names = Counter()
-    line_families = Counter()
-    paragraph_families = Counter()
-    for column in body_columns:
-        for index, value in enumerate(column["values"]):
-            identifier = (column["skeleton_id"], column["slot_ordinal"], index)
-            counts, categories, domains, names, _ = body_profile(identifier, value)
-            for category in categories: memberships[category].add(identifier)
-            occurrences.update({key: value for key, value in counts.items() if key not in ("lines", "paragraphs")})
+    records = _page_records(data)
+    memberships: dict[str, set[tuple[int, int]]] = defaultdict(set)
+    spans_by_category: dict[str, dict[tuple[int, int], list[tuple[int, int]]]] = defaultdict(lambda: defaultdict(list))
+    domain_counts, field_names = Counter(), Counter()
+    line_items: list[tuple[tuple[int, int], bytes, bytes, int, int]] = []
+    paragraph_items: list[tuple[tuple[int, int], bytes, bytes, int, int]] = []
+    title_opening = title_whole = title_opening_bytes = title_whole_bytes = 0
+    pair_counts = Counter(); id_to_names: dict[bytes, set[bytes]] = defaultdict(set); contributor_paths = Counter()
+    for record in records:
+        identifier, body = record["identifier"], record["body"]
+        if body:
+            local_spans, domains, names, lines, paragraphs = _body_spans(body)
+            for category, spans in local_spans.items():
+                if spans:
+                    memberships[category].add(identifier)
+                    spans_by_category[category][identifier].extend(spans)
             domain_counts.update(domains); field_names.update(names)
-            line_families.update(normalized(line) for line in value.splitlines() if line and len(line) <= 512)
-            paragraph_families.update(normalized(part) for part in value.split(b"\n\n") if part and len(part) <= 1024)
-    topology = {"skeletoncount": extracted["skeletoncount"], "slotcolumns": extracted["slotcolumns"],
-                "pages": extracted["pages"], "literal_exception_bytes": len(extracted["literal_exceptions"]),
-                "articletext_columns": len(body_columns), "articletext_occurrences": sum(column["value_count"] for column in body_columns)}
-    title_columns = [column for column in extracted["columns"] if column["field_class"] == "title"]
-    contributor_columns = [column for column in extracted["columns"] if column["field_class"] == "contributor"]
-    title_repeat = sum(column["repeated_occurrences"] for column in title_columns)
-    pairs = 0
-    for skeleton in {column["skeleton_id"] for column in extracted["columns"]}:
-        titles = [column for column in title_columns if column["skeleton_id"] == skeleton]
-        contributors = [column for column in contributor_columns if column["skeleton_id"] == skeleton]
-        if titles and contributors:
-            pairs += min(len(titles[0]["values"]), len(contributors[0]["values"]))
-    memberships["xml_wikitext_topology"].update((column["skeleton_id"], column["slot_ordinal"], 0) for column in body_columns)
+            line_items.extend((identifier, *item) for item in lines)
+            paragraph_items.extend((identifier, *item) for item in paragraphs)
+            memberships["xml_wikitext_topology"].add(identifier)
+            spans_by_category["xml_wikitext_topology"][identifier].append((0, len(body)))
+        title = record["title"]
+        if title and body:
+            opening = body.split(b"\n\n", 1)[0]
+            at = opening.find(title)
+            if at >= 0:
+                title_opening += 1; title_opening_bytes += len(title)
+            at = body.find(title)
+            if at >= 0:
+                title_whole += 1; title_whole_bytes += len(title)
+                memberships["title_reuse"].add(identifier)
+                spans_by_category["title_reuse"][identifier].append((at, at + len(title)))
+        for pair in record["contributor_pairs"]:
+            pair_counts[pair] += 1; id_to_names[pair[0]].add(pair[1])
+        contributor_paths.update(record["contributor_paths"])
+
+    def family(name: str, items: list[tuple[tuple[int, int], bytes, bytes, int, int]]) -> dict:
+        raw_counts = Counter(raw for _identifier, _norm, raw, _start, _stop in items)
+        variants: dict[bytes, set[bytes]] = defaultdict(set)
+        for _identifier, norm, raw, _start, _stop in items: variants[norm].add(raw)
+        repeated_raw = {raw for raw, count in raw_counts.items() if count >= 2}
+        variable_norms = {norm for norm, raws in variants.items() if len(raws) >= 2}
+        exact_members = variable_members = 0
+        exact_spans: dict[tuple[int, int], list[tuple[int, int]]] = defaultdict(list)
+        variable_spans: dict[tuple[int, int], list[tuple[int, int]]] = defaultdict(list)
+        for identifier, norm, raw, start, stop in items:
+            if raw in repeated_raw:
+                exact_members += 1; memberships[name].add(identifier); spans_by_category[name][identifier].append((start, stop)); exact_spans[identifier].append((start, stop))
+            if norm in variable_norms:
+                variable_members += 1; memberships[name].add(identifier); spans_by_category[name][identifier].append((start, stop)); variable_spans[identifier].append((start, stop))
+        return {"occurrences": exact_members + variable_members, "distinct_values": len(variants),
+                "exact_duplicate_forms": len(repeated_raw), "exact_duplicate_members": exact_members,
+                "exact_duplicate_source_bytes": sum(_merge_size(spans) for spans in exact_spans.values()),
+                "variable_skeletons": len(variable_norms), "variable_skeleton_members": variable_members,
+                "variable_skeleton_source_bytes": sum(_merge_size(spans) for spans in variable_spans.values()),
+                "structural_variation": "bounded raw members grouped by link/URL/number-normalized byte skeleton"}
+
+    family_results = {"repeated_line_family": family("repeated_line_family", line_items),
+                      "repeated_paragraph_family": family("repeated_paragraph_family", paragraph_items)}
+    body_columns = [column for column in extracted["columns"] if column["field_class"] == "articletext"]
+    topology = {"skeletoncount": extracted["skeletoncount"], "slotcolumns": extracted["slotcolumns"], "pages": extracted["pages"],
+                "literal_exception_bytes": len(extracted["literal_exceptions"]), "articletext_columns": len(body_columns),
+                "articletext_occurrences": sum(column["value_count"] for column in body_columns)}
     result = {}
     for name in DEFINITIONS:
-        if name == "repeated_line_family":
-            repeated = {k: v for k, v in line_families.items() if v >= 2}
-            result[name] = {"coverage_body_occurrences": len(memberships[name]), "occurrences": sum(repeated.values()),
-                            "distinct_values": len(line_families), "structural_variation": "normalized bounded lines", "repeated_families": len(repeated)}
-        elif name == "repeated_paragraph_family":
-            repeated = {k: v for k, v in paragraph_families.items() if v >= 2}
-            result[name] = {"coverage_body_occurrences": len(memberships[name]), "occurrences": sum(repeated.values()),
-                            "distinct_values": len(paragraph_families), "structural_variation": "normalized bounded paragraphs", "repeated_families": len(repeated)}
+        if name in family_results:
+            result[name] = {"coverage_body_occurrences": len(memberships[name]), **family_results[name]}
+        elif name == "title_reuse":
+            result[name] = {"coverage_body_occurrences": len(memberships[name]), "occurrences": title_whole, "distinct_values": None,
+                            "opening_body_exact_occurrences": title_opening, "opening_body_exact_bytes": title_opening_bytes,
+                            "whole_body_exact_occurrences": title_whole, "whole_body_exact_bytes": title_whole_bytes,
+                            "structural_variation": "decoded title bytes searched only in the same decoded page's articletext"}
+        elif name == "contributor_pair":
+            result[name] = {"coverage_body_occurrences": 0, "occurrences": sum(pair_counts.values()), "distinct_values": len(pair_counts),
+                            "repeated_exact_pairs": sum(count for count in pair_counts.values() if count >= 2),
+                            "id_to_multiple_username_conflicts": sum(1 for names in id_to_names.values() if len(names) > 1),
+                            "source_bytes_covered": sum((len(identifier) + len(username)) * count for (identifier, username), count in pair_counts.items()),
+                            "source_byte_scope": "decoded contributor id/username or id/ip slot values, not articletext",
+                            "tag_paths": dict(sorted(contributor_paths.items())),
+                            "structural_variation": "same-record contributor id/username or id/ip positions, paired in decoded slot order"}
         else:
-            result[name] = {"coverage_body_occurrences": len(memberships[name]), "occurrences": occurrences[name] if name in occurrences else (title_repeat if name == "title_reuse" else pairs if name == "contributor_pair" else topology["articletext_occurrences"] if name == "xml_wikitext_topology" else 0),
+            source_spans = spans_by_category[name]
+            result[name] = {"coverage_body_occurrences": len(memberships[name]),
+                            "occurrences": sum(len(spans) for spans in source_spans.values()) if name != "xml_wikitext_topology" else topology["articletext_occurrences"],
                             "distinct_values": len(domain_counts) if name == "url_citation" else len(field_names) if name in ("infobox_field", "numeric_field") else None,
                             "structural_variation": "byte-level bounded detector; see documented definition"}
-    # The union has a single well-defined universe: D2 article-text values.
-    # Title reuse and contributor pairs are page-column observations and are
-    # deliberately reported outside this union.
-    union_categories = [name for name in memberships if name not in ("title_reuse", "contributor_pair")]
-    union = set().union(*(memberships[name] for name in union_categories)) if union_categories else set()
+        result[name].setdefault("source_bytes_covered", sum(_merge_size(spans) for spans in spans_by_category[name].values()))
+    # Topology deliberately spans each decoded article body, so including it
+    # would make the relation union tautologically cover every body byte.
+    body_categories = [name for name in memberships if name not in ("title_reuse", "xml_wikitext_topology")]
+    union_members = set().union(*(memberships[name] for name in body_categories)) if body_categories else set()
+    union_bytes = sum(_merge_size([span for name in body_categories for span in spans_by_category[name][identifier]]) for identifier in union_members)
     overlaps = {f"{left}|{right}": len(memberships[left] & memberships[right])
                 for index, left in enumerate(DEFINITIONS) for right in list(DEFINITIONS)[index + 1:]
                 if memberships[left] and memberships[right]}
-    return {"topology": topology, "opportunities": result,
-            "coverage_union_body_occurrences": len(union), "coverage_overlap_pairs": overlaps,
+    return {"topology": topology, "opportunities": result, "coverage_union_body_occurrences": len(union_members),
+            "coverage_union_source_bytes": union_bytes, "coverage_overlap_pairs": overlaps,
             "top_domains_counted": len(domain_counts), "top_field_names_counted": len(field_names),
-            "profile_note": "Coverage union is over D2 articletext field occurrences, not unique pages; title reuse and contributor pairs use page-column occurrences and are excluded from that union. Categories overlap and are not additive."}
+            "profile_note": "Coverage union excludes XML/wikitext topology because that detector intentionally spans every decoded article body. It is exact raw-byte interval coverage over the remaining D2 articletext relations. Title reuse is a separate title-in-same-body query; contributor relations use decoded same-record contributor ID/username pairs."}
 
 
 def run(input_path: Path, output_path: Path, budget_seconds: float = 30.0) -> dict:
@@ -178,12 +309,13 @@ def run(input_path: Path, output_path: Path, budget_seconds: float = 30.0) -> di
             if time.monotonic() - started > budget_seconds:
                 raise TimeoutError("opportunity profile budget exhausted")
             regions.append({"offset": offset, "bytes": length, "sha256": sha(data), "profile": profile_region(data)})
-    result = {"schema": "cix-wikipedia-body-opportunities-v1", "status": "PROFILE_ONLY_NOT_COMPRESSION",
+    result = {"schema": "cix-wikipedia-body-opportunities-v2", "status": "PROFILE_ONLY_NOT_COMPRESSION",
               "input": str(input_path.resolve()), "ranges": [{"offset": offset, "bytes": length} for offset, length in RANGES],
               "holdouts_read": False, "backend": "NONE", "paq": "NOT_RUN", "budget_seconds": budget_seconds,
               "actual_cpu_affinity": sorted(os.sched_getaffinity(0)), "elapsed_seconds": time.monotonic() - started,
               "definitions": DEFINITIONS, "proposed_mechanisms": MECHANISMS,
-              "metadata_cost": "NOT_MEASURED", "incremental_paq_gain": "NOT_MEASURED",
+              "metadata_cost": "NOT_MEASURED", "residual_token_bytes": None, "residual_token_rules": "NOT_MEASURED",
+              "incremental_paq_gain": "NOT_MEASURED",
               "regions": regions,
               "limitations": ["Approximate byte detectors; no XML/wikitext parser or reserialization.", "No compressed asset, entropy estimate, or comparability claim.", "Coverage categories overlap and must not be summed.", "No numeric, relation, title, contributor or text coding was performed."]}
     output_path.parent.mkdir(parents=True, exist_ok=True)
