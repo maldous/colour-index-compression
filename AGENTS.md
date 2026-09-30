@@ -1,5 +1,20 @@
 # CIX Hutter research — controlling directive 2026-09-30
 
+## Projection-only extension — current highest priority
+
+Read `docs/research/2026-09-30-wikipedia-projections/freeze.json` and its
+README. Preserve the legacy matrix and completed/pending evidence; do not
+reopen its Cartesian search. New research varies only complete reversible
+projections P1/P2/P3, with one frozen CIXV1 mode-5 lossless-JXL-9 path and
+fixed original-byte PAQ v216 -4 AVX2 controls. Project every input byte.
+The matrix adapter supplies explicit dimensions; no format detector, portfolio
+selection or PAQ fallback runs in the projection path. Attribute any gain to
+projection plus the actual fixed backend, not automatically to CIX rank coding.
+All projection jobs use the existing global WaveScheduler, share the same
+four-core / decimal 12 GB RAM / 4 GB temporary cap, and cannot swap. No new
+full-enwik9, Actions, publication or baseline restart. Keep pushing completed
+additions privately. Frozen recipes change only through new experiment IDs.
+
 ## Shared opportunity matrix — latest direction
 
 The input-grounded extension is now authoritative: read matrix

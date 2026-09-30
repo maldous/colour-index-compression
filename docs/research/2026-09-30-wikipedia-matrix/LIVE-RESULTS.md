@@ -58,6 +58,7 @@ Ranks are only within the same input, opportunity strength, evidence stratum and
 
 | Candidate / input | Complete bytes | vs matched PAQ | Independent SHA decode | Encode / decode seconds | Cgroup memory sampled high-water | Next decision |
 |---|---:|---:|---|---:|---:|---|
+| [line-4096 / repeated_body_families structurally_selected / 520093696+4194304](../../../docs/research/2026-09-30-wikipedia-matrix/runs/units-5bc2a4fa3ae8bb485f3e71e5/15c58866c467c32a6916f82d2f94d5eb54b6c59d9b8b3cf52413a3abc3b425d2/size-rejected.json) | 165765 | 6969 | SIZE_REJECTED_UNVERIFIED | 319.55 / — | 850059264 | retain negative |
 | [original / repeated_body_families structurally_selected / 520093696+4194304](../../../docs/research/2026-09-30-wikipedia-matrix/runs/units-b2c44e27547dae66f8a879f7/803ec09cc0c8fc28e3920d352e44effcafa924f49dcf1f04212fdbcfcd99ebf8/receipt.json) | 158796 | 0 | PASS | 377.40 / 376.78 | 511393792 | matched control |
 | [paragraph-16384 / repeated_body_families structurally_selected / 520093696+4194304](../../../docs/research/2026-09-30-wikipedia-matrix/runs/units-fbe31e95ef72db0bc181a57b/5ee5193b34eb980c254bf720fcb5f33b09f94044ab1dff85490f513912e792d7/receipt.json) | 166476 | 7680 | PASS | 364.90 / 366.91 | 850337792 | retain negative |
 | [B / legacy  / 100000000+32768](../../../docs/research/2026-09-30-wikipedia-structure/results/1f9091f9d1b0097203ebcd07e86c7021a06a9a53c0240064df27ec226590c28a/receipt.json) | 9623 | MISSING | PASS | 3.21 / 3.17 | 492093440 | development/holdout gate required |
@@ -105,7 +106,7 @@ Ranks are only within the same input, opportunity strength, evidence stratum and
 | paragraph-unit-correctness-v1 | original | /root/paragraph_trials | VERIFIED_SCREENING |
 | paragraph-unit-correctness-v1 | paragraph-16384 | /root/paragraph_trials | VERIFIED_SCREENING |
 | paragraph-unit-correctness-v1 | line-4096 | /root/paragraph_trials | VERIFIED_SCREENING |
-| census-target-v2-line4096 | line-4096 | /root/paragraph_trials | DECLARED_NOT_STARTED |
+| census-target-v2-line4096 | line-4096 | /root/paragraph_trials | SIZE_REJECTED_UNVERIFIED |
 | census-target-v2-4MiB | original | /root/paragraph_trials | VERIFIED_SCREENING |
 | census-target-v2-4MiB | paragraph-16384 | /root/paragraph_trials | VERIFIED_SCREENING |
 
