@@ -93,7 +93,7 @@ struct Opt {
     flush_interval: Option<std::time::Duration>,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|predictor|bwt|stride|phrases|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, predictor, BWT/MTF, stride transforms, phrases and raw DEFLATE. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|bwt|stride|phrases|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, LZ, predictor, BWT/MTF, stride transforms, phrases and raw DEFLATE. LZ requires at least 16 MiB --memory. CIXG1 frames are limited to 65536 bytes.");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -781,6 +781,7 @@ fn encode_route(route: u8, data: &[u8], level: u8) -> Result<Vec<u8>, String> {
         0 => Ok(data.to_vec()),
         1 => Ok(rle(data)),
         2 => stream_encode(data, level, "cix"),
+        3 => lz_encode(data, level),
         4 => stream_encode(&predictor_residual(data, false), level, "hybrid"),
         5 => bwt_encode(data, level),
         6 => stride_encode(data, level),
@@ -979,6 +980,132 @@ fn bwt_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
     out.extend_from_slice(&streams);
     Ok(out)
 }
+
+fn lz_insert(table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>, data: &[u8], pos: usize) {
+    if pos + 4 > data.len() {
+        return;
+    }
+    let key = [data[pos], data[pos + 1], data[pos + 2], data[pos + 3]];
+    let candidates = table.entry(key).or_default();
+    candidates.push(pos);
+    if candidates.len() > 8 {
+        candidates.remove(0);
+    }
+}
+
+fn lz_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+    use std::collections::HashMap;
+    let mut table: HashMap<[u8; 4], Vec<usize>> = HashMap::new();
+    let mut tags = Vec::new();
+    let mut literals = Vec::new();
+    let mut lengths = Vec::new();
+    let mut distances = Vec::new();
+    let mut position = 0usize;
+    while position < data.len() {
+        let mut best_length = 0usize;
+        let mut best_distance = 0usize;
+        if position + 4 <= data.len() {
+            let key = [
+                data[position],
+                data[position + 1],
+                data[position + 2],
+                data[position + 3],
+            ];
+            if let Some(candidates) = table.get(&key) {
+                let limit = 65535.min(data.len() - position);
+                let mut best_score = i64::MIN;
+                for &candidate in candidates.iter().rev().take(8) {
+                    let distance = position - candidate;
+                    if distance == 0 || distance > 65536 {
+                        continue;
+                    }
+                    let mut length = 4usize;
+                    while length < limit
+                        && data[position - distance + length] == data[position + length]
+                    {
+                        length += 1;
+                    }
+                    if length < 4 {
+                        continue;
+                    }
+                    let score = (length * 8) as i64
+                        - (usize::BITS - distance.leading_zeros()) as i64
+                        - (usize::BITS - length.leading_zeros()) as i64
+                        - 3;
+                    if score > best_score || (score == best_score && length > best_length) {
+                        best_score = score;
+                        best_length = length;
+                        best_distance = distance;
+                    }
+                }
+            }
+        }
+        if best_length >= 4 {
+            tags.push(1);
+            put_varint(best_length - 4, &mut lengths);
+            put_varint(best_distance, &mut distances);
+            let stop = data.len().min(position + best_length);
+            for p in position..stop {
+                lz_insert(&mut table, data, p);
+            }
+            position += best_length;
+        } else {
+            tags.push(0);
+            literals.push(data[position]);
+            lz_insert(&mut table, data, position);
+            position += 1;
+        }
+    }
+    let owned = vec![tags, literals, lengths, distances];
+    let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
+    streams_encode(&refs, level, "hybrid")
+}
+
+fn lz_decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
+    let parts = streams_decode(blob, n.saturating_mul(4))?;
+    if parts.len() != 4 {
+        return Err("LZ stream count mismatch".into());
+    }
+    let (tags, literals, lengths, distances) = (&parts[0], &parts[1], &parts[2], &parts[3]);
+    let (mut literal_pos, mut length_pos, mut distance_pos) = (0usize, 0usize, 0usize);
+    let mut out = Vec::with_capacity(n);
+    for &tag in tags {
+        match tag {
+            0 if literal_pos < literals.len() => {
+                out.push(literals[literal_pos]);
+                literal_pos += 1;
+            }
+            1 => {
+                let length = unvar(lengths, &mut length_pos)?
+                    .checked_add(4)
+                    .ok_or("LZ match length overflow")?;
+                let distance = unvar(distances, &mut distance_pos)?;
+                if distance == 0
+                    || distance > out.len().min(65536)
+                    || out.len().checked_add(length).filter(|&v| v <= n).is_none()
+                {
+                    return Err("invalid LZ match descriptor".into());
+                }
+                for _ in 0..length {
+                    let byte = out[out.len() - distance];
+                    out.push(byte);
+                }
+            }
+            _ => return Err("invalid LZ tag/literal".into()),
+        }
+        if out.len() > n {
+            return Err("LZ output overflow".into());
+        }
+    }
+    if out.len() != n
+        || literal_pos != literals.len()
+        || length_pos != lengths.len()
+        || distance_pos != distances.len()
+    {
+        return Err("LZ stream lengths mismatch".into());
+    }
+    Ok(out)
+}
 fn inflate(b: &[u8], n: usize) -> Result<Vec<u8>, String> {
     let mut d = Decompress::new(false);
     let mut out = Vec::with_capacity(n.saturating_add(1));
@@ -1057,6 +1184,7 @@ fn encode<R: Read, W: Write>(
                 "raw" => 0,
                 "runs" => 1,
                 "composition" => 2,
+                "lz" => 3,
                 "bwt" => 5,
                 "predictor" => 4,
                 "stride" => 6,
@@ -1144,6 +1272,7 @@ fn decode<R: Read, W: Write>(
             }
             1 => unrle(&b, n as usize)?,
             2 => stream_decode(&b, n as usize)?,
+            3 => lz_decode(&b, n as usize)?,
             4 => {
                 let residual = stream_decode(&b, n as usize)?;
                 predictor_residual(&residual, true)
@@ -1278,6 +1407,11 @@ fn run() -> Result<(), String> {
     if o.memory < 128 * 1024 {
         return Err("--memory must be at least 128 KiB for a CIXG1 frame".into());
     }
+    if o.route.as_deref() == Some("lz") && o.memory < 16 * 1024 * 1024 {
+        return Err(
+            "--route lz requires --memory of at least 16 MiB for its bounded match index".into(),
+        );
+    }
     if o.history != 0 {
         if o.independent_blocks {
             return Err("--history conflicts with --independent-blocks".into());
@@ -1296,6 +1430,7 @@ fn run() -> Result<(), String> {
             "raw",
             "runs",
             "composition",
+            "lz",
             "predictor",
             "bwt",
             "stride",

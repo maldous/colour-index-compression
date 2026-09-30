@@ -3,8 +3,9 @@
 ## Subsequent code update (correctness checked, not performance measured)
 
 The native encoder/decoder now supports CIXG1 route IDs 2 (composition), 4
-(predictor), 5 (BWT), 6 (stride), and 7 (phrases), in addition to raw, runs
-and DEFLATE.
+(predictor), 5 (BWT), 6 (stride), and 7 (phrases), in addition to raw, runs,
+LZ (3), and DEFLATE. The native LZ route uses the frozen 4-byte key, 8-candidate
+chain and 65,536-byte window; it requires a 16 MiB working-memory allowance.
 Arbitrary-precision `BigUint` ranks are used for alphabet-set, histogram, and
 permutation ranks; composition tiles are limited to 1024 symbols as in the
 reference implementation. Five fixture classes cross-decode both ways and
