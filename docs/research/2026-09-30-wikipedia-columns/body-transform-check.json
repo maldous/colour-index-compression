@@ -1,0 +1,89 @@
+{
+  "backend": "NONE",
+  "budget_seconds": 30,
+  "code_path": "benchmarks/hutter_wikipedia_body_lines.py",
+  "code_sha256": "385236e51027e50d47e62f6154e496aeb57295c050a54d7aa137d0cd0fc6d57b",
+  "cpu_affinity": [
+    18
+  ],
+  "holdouts_read": false,
+  "input": "/home/user/src/cix-baseline-data/inputs/enwik9",
+  "limitations": [
+    "The archive is a physical reversible transform frame, not a PAQ result or a compression-gain claim.",
+    "No holdout, full enwik9, backend comparison or Hutter qualification was performed.",
+    "Selected source coverage is a strict subset of the v2 observational profile."
+  ],
+  "paq": "NOT_RUN",
+  "policy": {
+    "body": "complete <text...>...</text> spans only",
+    "dictionary": "global first-seen deterministic, selected in complete first pass",
+    "family_minimum_body_records": 2,
+    "family_minimum_distinct_raw_lines": 2,
+    "family_minimum_members": 3,
+    "holes": [
+      "LINK",
+      "URL",
+      "NUMBER"
+    ],
+    "line": "newline-terminated, core 48..512 bytes",
+    "literal_minimum_bytes": 24
+  },
+  "results": [
+    {
+      "accounting_components_sum": 4189418,
+      "bytes": 4194304,
+      "decoder_sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77",
+      "descriptor_bytes": 4188133,
+      "dictionary_bytes": 1165,
+      "elapsed_seconds": 0.13108538137748837,
+      "framing_bytes": 9,
+      "hole_payload_bytes": 6708,
+      "input_sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77",
+      "literal_payload_bytes": 4180062,
+      "offset": 0,
+      "physical_bytes": 4189418,
+      "rules_bytes": 111,
+      "selected_family_count": 23,
+      "selected_member_count": 210,
+      "selected_source_bytes": 14242
+    },
+    {
+      "accounting_components_sum": 4152657,
+      "bytes": 4194304,
+      "decoder_sha256": "fd30602741222df957545a821556c8428bb8c3e4ed45634367ae8470d901c6ec",
+      "descriptor_bytes": 4138602,
+      "dictionary_bytes": 13935,
+      "elapsed_seconds": 0.19718184880912304,
+      "framing_bytes": 9,
+      "hole_payload_bytes": 87422,
+      "input_sha256": "fd30602741222df957545a821556c8428bb8c3e4ed45634367ae8470d901c6ec",
+      "literal_payload_bytes": 4033019,
+      "offset": 100000000,
+      "physical_bytes": 4152657,
+      "rules_bytes": 111,
+      "selected_family_count": 320,
+      "selected_member_count": 2190,
+      "selected_source_bytes": 161285
+    },
+    {
+      "accounting_components_sum": 4114833,
+      "bytes": 4194304,
+      "decoder_sha256": "a07035d4de761fc30cee70f4528156e8128abf7430222cfd63c2311168ea7f17",
+      "descriptor_bytes": 4110834,
+      "dictionary_bytes": 3879,
+      "elapsed_seconds": 0.14465270610526204,
+      "framing_bytes": 9,
+      "hole_payload_bytes": 31125,
+      "input_sha256": "a07035d4de761fc30cee70f4528156e8128abf7430222cfd63c2311168ea7f17",
+      "literal_payload_bytes": 4071927,
+      "offset": 400000000,
+      "physical_bytes": 4114833,
+      "rules_bytes": 111,
+      "selected_family_count": 29,
+      "selected_member_count": 679,
+      "selected_source_bytes": 122377
+    }
+  ],
+  "schema": "cix-hutter-body-transform-check-v1",
+  "status": "TRANSFORM_ONLY_NOT_COMPRESSION_RESULT"
+}
