@@ -277,7 +277,9 @@ def run(manifest_path: Path, results: Path, root: Path) -> dict:
     except BlockingIOError as error:
         lease.close()
         raise RuntimeError(f"CPU {cpu} already leased by another bounded experiment") from error
-    materialized = work / "input.range"
+    # A stable decoder-reproducible filename avoids a representation-specific
+    # source-name signal; all candidates receive the same `source.bin` path.
+    materialized = work / "source.bin"
     with Path(source["path"]).open("rb") as incoming, materialized.open("wb") as outgoing:
         incoming.seek(source["offset"]); copied_bytes = outgoing.write(incoming.read(source["length"]))
     if copied_bytes != source["length"] or sha256(materialized) != source["sha256"]:
