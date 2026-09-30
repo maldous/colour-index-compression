@@ -1,0 +1,179 @@
+{
+  "captured_at": "2026-09-30T07:29:33.579970+00:00",
+  "dataset": {
+    "length": 32768,
+    "offset": 0,
+    "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+    "sha256": "de91bc4727fadadb7abfa3af752e8d7ac6cfb24c87b7cf4078858088dcd4e5c7"
+  },
+  "configuration": {
+    "PAQ": "v216",
+    "options": "-4 -simd AVX2",
+    "binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+    "cpu": 6,
+    "memory_cap_bytes": 3221225472,
+    "swap": 0,
+    "wall_budget_seconds": 300,
+    "warmup": "none"
+  },
+  "all_candidates_before_selection": [
+    {
+      "candidate": "A original PAQ",
+      "total_bytes": 8792,
+      "delta_vs_control_bytes": 0,
+      "paq_payload_bytes": 8712,
+      "outer_metadata_bytes": 51,
+      "outer_framing_bytes": 29,
+      "selector_in_header": true,
+      "transform_pre_paq_accounting": {
+        "mode": "original",
+        "transform_metadata_bytes": 0
+      },
+      "transform_bytes": 32768,
+      "compression_seconds": 3.153358617797494,
+      "decompression_seconds": 3.146512716077268,
+      "compression_cpu_seconds": 2.796917,
+      "decompression_cpu_seconds": 2.777979,
+      "sampled_memory_high_water_bytes": 485158912,
+      "peak_temporary_bytes": 83040,
+      "verification": {
+        "matched": true,
+        "restored_sha256": "de91bc4727fadadb7abfa3af752e8d7ac6cfb24c87b7cf4078858088dcd4e5c7",
+        "source_sha256": "de91bc4727fadadb7abfa3af752e8d7ac6cfb24c87b7cf4078858088dcd4e5c7"
+      },
+      "archive_sha256": "7e9f01be0e54eebb11051042b9fcb1eabab4bcd1dcc5bd81406b95fadb2a7ea3",
+      "immutable_build": {
+        "benchmarks/hutter_bounded_runner.py": "bd52cfb3a0ab922806beee10ecfc9d4ea498a0c42c566dd86ace08742ac531fb",
+        "benchmarks/hutter_structure_probe.py": "77e8cc7192b2d2641ab4d885f2c017967e277e7d09e4a11f648029dcd75ee49b"
+      },
+      "receipt": "docs/research/2026-09-30-wikipedia-structure/results/b24c151bdebebe6f9029093fb90c85641560c5f576519b95f1d1b8a804ccd3aa/receipt.json"
+    },
+    {
+      "candidate": "B order-stack",
+      "total_bytes": 8901,
+      "delta_vs_control_bytes": 109,
+      "paq_payload_bytes": 8708,
+      "outer_metadata_bytes": 164,
+      "outer_framing_bytes": 29,
+      "selector_in_header": true,
+      "transform_pre_paq_accounting": {
+        "eligible": true,
+        "forced_closing_tags": 96,
+        "literal_fallback_bytes": 0,
+        "mode": 1,
+        "original_bytes": 32768,
+        "removed_tag_bytes": 610,
+        "transformed_bytes": 32166
+      },
+      "transform_bytes": 32166,
+      "compression_seconds": 3.1447195671498775,
+      "decompression_seconds": 3.127577238250524,
+      "compression_cpu_seconds": 2.764448,
+      "decompression_cpu_seconds": 2.769797,
+      "sampled_memory_high_water_bytes": 490860544,
+      "peak_temporary_bytes": 79049,
+      "verification": {
+        "matched": true,
+        "restored_sha256": "de91bc4727fadadb7abfa3af752e8d7ac6cfb24c87b7cf4078858088dcd4e5c7",
+        "source_sha256": "de91bc4727fadadb7abfa3af752e8d7ac6cfb24c87b7cf4078858088dcd4e5c7"
+      },
+      "archive_sha256": "dbf416594ef108d4ce083c6b1a6bd7851a94a585da5526dbd516b3e53ab312cc",
+      "immutable_build": {
+        "benchmarks/hutter_bounded_runner.py": "bd52cfb3a0ab922806beee10ecfc9d4ea498a0c42c566dd86ace08742ac531fb",
+        "benchmarks/hutter_structure.py": "a507c5d8513c189b45c1a19b736c85ddc607eb60ab46d180391376bba4cfc1f8",
+        "benchmarks/hutter_structure_order.py": "5115d61bd615de90990eabd57c16a3df56f94a717cdf7349f342a38026fc616b",
+        "benchmarks/hutter_structure_probe.py": "9f7e329b6564c4ea2952eb857bc069ec3855c42785f5a3117b8ecd2a48caa627",
+        "benchmarks/markup_columns.py": "f596472bbe8a4368e3b89f26dfd67e868ac4485f13e58f9e8f1027f60c6abe45",
+        "cix/__init__.py": "60e8b37e0530d6b7b8e9d2ae61f9187ac9f8620fbe5d9a26291be857edfb4fa6",
+        "cix/multinomial.py": "c778e1abb15fc869f2d740ccb1cdb518940f92d0caad7bda71342903cf215729"
+      },
+      "receipt": "docs/research/2026-09-30-wikipedia-structure/results/f9d0dd795b557bbbb6e131bb90275b8c6f7a6801b77edc2e8f34c8d52a855d97/receipt.json"
+    },
+    {
+      "candidate": "C typed streams",
+      "total_bytes": 9023,
+      "delta_vs_control_bytes": 231,
+      "paq_payload_bytes": 8867,
+      "outer_metadata_bytes": 127,
+      "outer_framing_bytes": 29,
+      "selector_in_header": true,
+      "transform_pre_paq_accounting": {
+        "descriptor_bytes": 815,
+        "framing_bytes": 17,
+        "physical_bytes": 33600,
+        "records": 406,
+        "tag_bytes": 2356,
+        "text_bytes": 30412
+      },
+      "transform_bytes": 33600,
+      "compression_seconds": 3.4111675447784364,
+      "decompression_seconds": 3.380674317944795,
+      "compression_cpu_seconds": 2.998293,
+      "decompression_cpu_seconds": 2.967774,
+      "sampled_memory_high_water_bytes": 806129664,
+      "peak_temporary_bytes": 83426,
+      "verification": {
+        "matched": true,
+        "restored_sha256": "de91bc4727fadadb7abfa3af752e8d7ac6cfb24c87b7cf4078858088dcd4e5c7",
+        "source_sha256": "de91bc4727fadadb7abfa3af752e8d7ac6cfb24c87b7cf4078858088dcd4e5c7"
+      },
+      "archive_sha256": "297975e48f85ef0fd59adb7842f1a17932cb0058058796e5101f14f6f0761126",
+      "immutable_build": {
+        "benchmarks/hutter_bounded_runner.py": "bd52cfb3a0ab922806beee10ecfc9d4ea498a0c42c566dd86ace08742ac531fb",
+        "benchmarks/hutter_structure.py": "a507c5d8513c189b45c1a19b736c85ddc607eb60ab46d180391376bba4cfc1f8",
+        "benchmarks/hutter_structure_probe.py": "dabaa1bc9656bddda41fe7c4fb4243c6a984c430f49055f32a985d427de27fa8",
+        "benchmarks/markup_columns.py": "f596472bbe8a4368e3b89f26dfd67e868ac4485f13e58f9e8f1027f60c6abe45",
+        "cix/__init__.py": "60e8b37e0530d6b7b8e9d2ae61f9187ac9f8620fbe5d9a26291be857edfb4fa6",
+        "cix/multinomial.py": "c778e1abb15fc869f2d740ccb1cdb518940f92d0caad7bda71342903cf215729"
+      },
+      "receipt": "docs/research/2026-09-30-wikipedia-structure/results/8695e38089d58d4fbec5b7142527efa106f507be5211a072ad2ffe6c3ea019b8/receipt.json"
+    },
+    {
+      "candidate": "D page skeletons",
+      "total_bytes": 9108,
+      "delta_vs_control_bytes": 316,
+      "paq_payload_bytes": 8898,
+      "outer_metadata_bytes": 181,
+      "outer_framing_bytes": 29,
+      "selector_in_header": true,
+      "transform_pre_paq_accounting": {
+        "descriptor_bytes": 29,
+        "dictionary_bytes": 955,
+        "framing_bytes": 18,
+        "literal_bytes": 30447,
+        "literal_records": 7,
+        "page_records": 6,
+        "physical_bytes": 32721,
+        "value_bytes": 1272
+      },
+      "transform_bytes": 32721,
+      "compression_seconds": 3.3887802050448954,
+      "decompression_seconds": 3.3945384067483246,
+      "compression_cpu_seconds": 3.006874,
+      "decompression_cpu_seconds": 2.998445,
+      "sampled_memory_high_water_bytes": 808013824,
+      "peak_temporary_bytes": 83495,
+      "verification": {
+        "matched": true,
+        "restored_sha256": "de91bc4727fadadb7abfa3af752e8d7ac6cfb24c87b7cf4078858088dcd4e5c7",
+        "source_sha256": "de91bc4727fadadb7abfa3af752e8d7ac6cfb24c87b7cf4078858088dcd4e5c7"
+      },
+      "archive_sha256": "636df7130adfd9c8054496eaaa5f8004d1b304dc020dec18b7d2827a9f281940",
+      "immutable_build": {
+        "benchmarks/hutter_bounded_runner.py": "bd52cfb3a0ab922806beee10ecfc9d4ea498a0c42c566dd86ace08742ac531fb",
+        "benchmarks/hutter_structure.py": "a507c5d8513c189b45c1a19b736c85ddc607eb60ab46d180391376bba4cfc1f8",
+        "benchmarks/hutter_structure_probe.py": "dabaa1bc9656bddda41fe7c4fb4243c6a984c430f49055f32a985d427de27fa8",
+        "benchmarks/markup_columns.py": "f596472bbe8a4368e3b89f26dfd67e868ac4485f13e58f9e8f1027f60c6abe45",
+        "cix/__init__.py": "60e8b37e0530d6b7b8e9d2ae61f9187ac9f8620fbe5d9a26291be857edfb4fa6",
+        "cix/multinomial.py": "c778e1abb15fc869f2d740ccb1cdb518940f92d0caad7bda71342903cf215729"
+      },
+      "receipt": "docs/research/2026-09-30-wikipedia-structure/results/5c74def522e72805fc59bd3c1eabc1ebef76ba8a1014839af11faace3144515b/receipt.json"
+    }
+  ],
+  "selected": "A original PAQ",
+  "selection": "min complete physical bytes; all totals retained, no hidden fallback",
+  "memory_limitation": "sampled cgroup high-water is a lower bound, not peak RSS",
+  "holdouts": "600M and900M withheld fromcompression; acquisitionhashesrecorded, noadaptiveevaluation",
+  "qualification": false,
+  "next": "Unchanged other2developmentregions andsynthetic; noheldoutpromotion yet"
+}
