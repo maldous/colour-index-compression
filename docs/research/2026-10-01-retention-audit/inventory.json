@@ -1,0 +1,232 @@
+{
+  "baseline_commit": "1302bd7bec130c3105181e6a23ee82c6f2a04838",
+  "baseline_pipeline_sha256": "4ee5b59cafddb285223f0a5c6ddac88e2404295ef7238a1568a703c210def2b5",
+  "pipeline_routes": {
+    "0": "raw",
+    "1": "runs",
+    "2": "composition",
+    "3": "lz",
+    "4": "predictor",
+    "5": "bwt",
+    "6": "stride",
+    "7": "phrases",
+    "8": "ppm",
+    "9": "mixture",
+    "10": "deflate"
+  },
+  "pipeline_efforts": {
+    "fast": {
+      "block_bytes": 32768,
+      "sample_bytes": 2048,
+      "candidate_limit": 4,
+      "search_seconds": 0.75,
+      "trial_seconds": 0.3,
+      "worker_memory_mib": 256
+    },
+    "balanced": {
+      "block_bytes": 32768,
+      "sample_bytes": 4096,
+      "candidate_limit": 7,
+      "search_seconds": 3.0,
+      "trial_seconds": 1.0,
+      "worker_memory_mib": 384
+    },
+    "maximum": {
+      "block_bytes": 65536,
+      "sample_bytes": 8192,
+      "candidate_limit": 10,
+      "search_seconds": 12.0,
+      "trial_seconds": 4.0,
+      "worker_memory_mib": 512
+    }
+  },
+  "native_cix_inventory": [
+    {
+      "format": "CIXG1",
+      "status": "PORTFOLIO_INTEGRATED",
+      "profiles": {
+        "fast": "fast",
+        "current": "balanced",
+        "size": "maximum"
+      },
+      "routes": [
+        "raw",
+        "runs",
+        "composition",
+        "lz",
+        "predictor",
+        "bwt",
+        "stride",
+        "phrases",
+        "ppm",
+        "mixture",
+        "deflate"
+      ],
+      "backends": [
+        "raw",
+        "runs",
+        "cix-exact-1024",
+        "deflate",
+        "adaptive-range",
+        "same-count-range-1024"
+      ]
+    },
+    {
+      "format": "CIXM6",
+      "status": "AVAILABLE_STANDALONE_NOT_INTEGRATED",
+      "profiles": {
+        "fast": "level 1",
+        "current": "level 5",
+        "size": "level 9"
+      },
+      "reason": "CIXM6 is a separate 21-mode stream format; this bounded change leaves its established selector untouched."
+    }
+  ],
+  "pending_backend_coverage": [
+    {
+      "codec": "gzip",
+      "available_inside_cix": true,
+      "profile_eligibility": {
+        "fast": "ELIGIBLE",
+        "current": "ELIGIBLE",
+        "size": "ELIGIBLE"
+      },
+      "integration_gap": null,
+      "decoder_requirements": "RFC 1952 gzip decoder; benchmark bytes produced by Python gzip.compress with mtime=0"
+    },
+    {
+      "codec": "bzip2",
+      "available_inside_cix": true,
+      "profile_eligibility": {
+        "fast": "SHORTLISTED_OUT",
+        "current": "ELIGIBLE",
+        "size": "ELIGIBLE"
+      },
+      "integration_gap": null,
+      "decoder_requirements": "bzip2-compatible decoder; benchmark bytes produced by Python bz2"
+    },
+    {
+      "codec": "xz",
+      "available_inside_cix": true,
+      "profile_eligibility": {
+        "fast": "SHORTLISTED_OUT",
+        "current": "ELIGIBLE",
+        "size": "ELIGIBLE"
+      },
+      "integration_gap": null,
+      "decoder_requirements": "XZ/LZMA2-compatible decoder; benchmark bytes produced by Python lzma/liblzma"
+    },
+    {
+      "codec": "zstd",
+      "available_inside_cix": true,
+      "profile_eligibility": {
+        "fast": "ELIGIBLE",
+        "current": "ELIGIBLE",
+        "size": "ELIGIBLE"
+      },
+      "integration_gap": null,
+      "decoder_requirements": {
+        "format": "Zstandard frame",
+        "binary_sha256": "7c5468b370f7c47eda07281e3437fafc568f95d10420051e3aa522709f9342c5",
+        "version": "*** Zstandard CLI (64-bit) v1.5.5, by Yann Collet ***",
+        "runtime_path_required": false,
+        "runtime_binary": "zstd"
+      }
+    },
+    {
+      "codec": "brotli",
+      "available_inside_cix": true,
+      "profile_eligibility": {
+        "fast": "ELIGIBLE_QUALITY_0_DICTIONARY_FREE",
+        "current": "POLICY_EXCLUDED_STATIC_DICTIONARY",
+        "size": "POLICY_EXCLUDED_STATIC_DICTIONARY"
+      },
+      "integration_gap": "Brotli qualities 6 and 11 can use RFC 7932's built-in static word dictionary and are outside the generic-input policy.  Quality 0 is separately eligible because upstream v1.2.0 routes it through the dictionary-free BrotliCompressFragmentFast path.",
+      "decoder_requirements": {
+        "version": "1.2.0",
+        "python_wrapper_sha256": "813610bf0d74a6998d7b47d912e8892c3896e6eac19cb7b22575e04fc294b63f",
+        "extension_sha256": "ba62b6a5823ee9832364171021d27f5f93cb423d38ae090ce84a7b696f688169",
+        "source_evidence": [
+          "https://raw.githubusercontent.com/google/brotli/v1.2.0/c/enc/quality.h",
+          "https://raw.githubusercontent.com/google/brotli/v1.2.0/c/enc/encode.c",
+          "https://raw.githubusercontent.com/google/brotli/v1.2.0/c/enc/compress_fragment.c"
+        ],
+        "runtime_path_required": false
+      }
+    },
+    {
+      "codec": "paq8px",
+      "available_inside_cix": false,
+      "profile_eligibility": {
+        "fast": "POLICY_EXCLUDED",
+        "current": "POLICY_EXCLUDED",
+        "size": "POLICY_EXCLUDED_AND_MEMORY_EXCLUDED_29GB_GT_12GB"
+      },
+      "integration_gap": "The ranked PAQ presets use content-specific models, which are outside the generic backend policy.  Their pinned AVX2 setting is an implementation choice and is not, by itself, the exclusion reason.",
+      "decoder_requirements": null
+    }
+  ],
+  "exact_reference_presets": {
+    "fast": {
+      "gzip": {
+        "level": 1
+      },
+      "bzip2": {
+        "level": 1
+      },
+      "xz": {
+        "level": 0
+      },
+      "zstd": {
+        "level": -131072
+      },
+      "brotli": {
+        "level": 0
+      }
+    },
+    "current": {
+      "gzip": {
+        "level": 9
+      },
+      "bzip2": {
+        "level": 9
+      },
+      "xz": {
+        "level": 6
+      },
+      "zstd": {
+        "level": 3
+      },
+      "brotli": {
+        "level": 6
+      }
+    },
+    "size": {
+      "gzip": {
+        "level": 9
+      },
+      "bzip2": {
+        "level": 9
+      },
+      "xz": {
+        "level": 9,
+        "extreme": true
+      },
+      "zstd": {
+        "level": 22
+      },
+      "brotli": {
+        "level": 11
+      }
+    }
+  },
+  "generic_policy": "No filename/corpus/hash/MIME/language/ISA-specific models; AVX2 execution acceleration is not itself a content model.",
+  "status": "Integration measured:36 16KiB portfolios and12 64KiB portfolios; raw andallcompleted eligible direct routes verified",
+  "aggregate_limits": {
+    "cores": 4,
+    "ram_bytes": 12000000000,
+    "temp_bytes": 4000000000,
+    "job_swap_bytes": 0
+  },
+  "integration_commit": "ceb41d6442da8454c247fd3aed2b31d50c452ada"
+}
