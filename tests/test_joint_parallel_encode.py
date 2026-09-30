@@ -4,7 +4,7 @@ import random
 import pytest
 
 from benchmarks import joint_bounded
-from benchmarks.joint_parallel_encode import encode
+from benchmarks.joint_parallel_encode import _CpuLeases, encode
 from benchmarks.native_ppm import enable
 
 
@@ -53,3 +53,16 @@ def test_parallel_rejects_reserved_or_out_of_affinity_cpus():
         encode(b"x", block_size=16, jobs=1, cpus=(8,))
     with pytest.raises(ValueError, match="outside caller affinity"):
         encode(b"x", block_size=16, jobs=1, cpus=(999999,))
+
+
+def test_skewed_completion_reuses_only_the_completed_tasks_cpu_lease():
+    # Simulate block 0 on CPU 16 still running while block 1 on CPU 17 wins
+    # the race.  A third block must wait for and reuse 17, never overlap 16.
+    leases = _CpuLeases((16, 17))
+    assert leases.claim() == 16
+    assert leases.claim() == 17
+    assert leases.claim() is None
+    leases.release(17)
+    assert leases.claim() == 17
+    with pytest.raises(RuntimeError, match="not leased"):
+        leases.release(99)

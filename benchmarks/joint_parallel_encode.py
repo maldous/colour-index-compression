@@ -95,6 +95,32 @@ def _validate(block_size, jobs, cpus):
     return jobs, selected
 
 
+class _CpuLeases:
+    """Assign a CPU only after the previous task using it has completed."""
+
+    def __init__(self, cpus):
+        self._free = list(cpus)
+        self._leased = set()
+
+    def claim(self):
+        if not self._free:
+            return None
+        cpu = self._free.pop(0)
+        self._leased.add(cpu)
+        return cpu
+
+    @property
+    def available(self):
+        return bool(self._free)
+
+    def release(self, cpu):
+        if cpu not in self._leased:
+            raise RuntimeError("released CPU was not leased")
+        self._leased.remove(cpu)
+        self._free.append(cpu)
+        self._free.sort()
+
+
 def encode(data, *, block_size=BLOCK_SIZE, jobs=None, cpus=None):
     """Encode a ``joint_bounded`` frame using a bounded process work queue.
 
@@ -119,37 +145,47 @@ def encode(data, *, block_size=BLOCK_SIZE, jobs=None, cpus=None):
     running = {}
     next_submit = 0
     next_write = 0
+    leases = _CpuLeases(selected[:jobs])
 
     def submit(pool, index):
         offset = index * block_size
         block = data[offset:offset + block_size]
         history = data[max(0, offset - HISTORY_BYTES):offset]
-        # Futures are bounded to ``jobs`` and CPU choice follows submission
-        # order.  Recycling a worker does not change this per-task affinity.
-        future = pool.submit(_encode_block, block, history, selected[index % jobs])
-        running[future] = index
+        cpu = leases.claim()
+        if cpu is None:
+            raise RuntimeError("parallel scheduler submitted without a CPU lease")
+        # Each submitted task owns this CPU until its future completes.
+        # Recycling a process does not change per-task affinity.
+        future = pool.submit(_encode_block, block, history, cpu)
+        running[future] = (index, cpu)
 
     with concurrent.futures.ProcessPoolExecutor(
         max_workers=jobs, mp_context=context, initializer=_worker_init
     ) as pool:
-        while next_submit < count and len(running) < jobs:
+        while (next_submit < count and leases.available
+               and len(running) + len(finished) < jobs):
             submit(pool, next_submit)
             next_submit += 1
         while running:
             done, _ = concurrent.futures.wait(
                 running, return_when=concurrent.futures.FIRST_COMPLETED
             )
-            for future in done:
-                index = running.pop(future)
+            for future in sorted(done, key=lambda item: running[item][0]):
+                index, cpu = running.pop(future)
                 finished[index] = future.result()
-            while next_submit < count and len(running) < jobs:
-                submit(pool, next_submit)
-                next_submit += 1
+                leases.release(cpu)
             while next_write in finished:
                 payload = finished.pop(next_write)
                 result.extend(vencode(len(payload)))
                 result.extend(payload)
                 next_write += 1
+            # The reorder buffer and live tasks share one bounded window.  If
+            # an early block is slow, later completed payloads cannot grow to
+            # the entire output while waiting for it.
+            while (next_submit < count and leases.available
+                   and len(running) + len(finished) < jobs):
+                submit(pool, next_submit)
+                next_submit += 1
     if next_write != count:
         raise RuntimeError("parallel block scheduler lost a result")
     return bytes(result)
