@@ -32,7 +32,7 @@ Parameter sweeps cover actual repetition distance, dictionary cardinality and fr
 
 The fixed development ranges remain 0, 100,000,000 and 400,000,000, each 4,194,304 bytes. These are not a probability sample. The locator records exact structural examples inside these already-exposed ranges; targeted analysis is kept separate from fixed-range results. No examples are chosen by compressed size. Numerical tokens are an opportunity marker, not proof of a predictive dependency.
 
-600M/900M remain reserved from adaptive structural tuning. Earlier whole-corpus reads prevent describing them as never seen. They are not profiled or compressed by this matrix initialization. Successful configurations must be frozen before those real holdouts are evaluated, and their exposure events must be recorded. Older 700M/850M exposures remain historical evidence.
+The original 600M/900M start ranges were exposed by a broad-profiler boundary bug; see `exposure-correction.json`. Replacement 4–16 MiB reservations at 620M/920M remain withheld from adaptive structural tuning. Earlier whole-corpus reads prevent describing them as never seen. The replacement interiors are hash-only and have not been profiled or compressed by this programme; the historical manifest remains immutable. Successful configurations must be frozen before those real holdouts are evaluated, and their exposure events must be recorded. Older 700M/850M exposures remain historical evidence.
 
 ## Controls, costs and ranking
 

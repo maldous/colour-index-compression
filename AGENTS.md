@@ -2,6 +2,17 @@
 
 ## Shared opportunity matrix — latest direction
 
+The input-grounded extension is now authoritative: read matrix
+`INPUT-GROUNDING.md`, `eligibility-audit.json`, `targeted-eligibility.json`
+and `revised-priorities.json`. Broad-profiler v1 had boundary and classifier
+bugs; preserve it as INVALID_FOR_SELECTION. Its exposed strips mean old
+600M/900M starts are no longer unexposed structural holdouts. Replacement
+4–16 MiB reservations at 620M/920M are in `holdout-reservations-v2.json`;
+they are hash-only and historically read, not profiled by this programme.
+Target census 520093696+4194304 was selected by corrected structural counts
+before compression. Compare original, paragraph-16384 and line-4096 with
+identical CIXWUNT1 framing and pinned PAQ. No full-dataset scores from this.
+
 Use `benchmarks/hutter_wikipedia_matrix.py` and
 `docs/research/2026-09-30-wikipedia-matrix/README.md` as the shared registry,
 matrix and evidence entry point. Each opportunity input is shared by several
@@ -28,7 +39,8 @@ a full-size candidate, not an unknown-file fallback. Compare original PAQ,
 order-preserving structural prediction, shared typed streams and shared skeletons.
 Use identical pinned PAQ settings and charge all representation/selection bytes.
 Only combine count feedback after individual structural gains are established.
-New structural holdouts are 600M/900M; old 700M/850M are exposed. No new full
+Historical structural holdouts were 600M/900M; profiling exposure supersedes
+those reservations with 620M/920M above. Old 700M/850M are exposed. No new full
 enwik9, Sites publication, Actions or public repository change is authorized.
 
 

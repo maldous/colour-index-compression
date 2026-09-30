@@ -46,6 +46,9 @@ Ranks are only within the same input, opportunity strength, evidence stratum and
 | [body-lines-v1 / repeated_body_families absent / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-f4a5c926a00c9a671aa16c93/9f8dcab05d0847bc7e388bc2283ba5f604d68202fd8849e3e519804745b9e70e/receipt.json) | 2254 | MISSING | PASS | 4.62 / 4.68 | 801751040 | development/holdout gate required |
 | [original / repeated_body_families strong / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-f8a170a56aee1f33aa2c4614/c17715c60319505d0b5ab1d5e67f5ae04dc8c369a4eb811ead76e8ca3595a744/receipt.json) | 1709 | MISSING | PASS | 4.41 / 4.37 | 482168832 | matched control |
 | [remaining / field_dictionary_composition strong / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-ff4a1b725dd45d1b4f6e7094/327dd722d57d7ec3e255023379d4d834251f7c05ec161fa32a80231b5ad5eda9/receipt.json) | 1564 | MISSING | PASS | 4.46 / 4.44 | 680390656 | development/holdout gate required |
+| [original / repeated_body_families correctness / 0+37253](../../../docs/research/2026-09-30-wikipedia-matrix/runs/units-1cfc4625a9ee0230f8f3c9d2/3036a22ad5c4be3f82fc801bee470577715687b806263b0d2e53f207e00d4bfb/receipt.json) | 350 | 0 | PASS | 3.09 / 2.73 | 469057536 | matched control |
+| [paragraph-16384 / repeated_body_families correctness / 0+37253](../../../docs/research/2026-09-30-wikipedia-matrix/runs/units-25c257ba270e84f8fac09318/711fc892bc53a9a94f3146d6d2dad7fd072153fe82ce41ceb7bb2afe091d1a5a/receipt.json) | 465 | 115 | PASS | 1.34 / 1.35 | 657534976 | retain negative |
+| [line-4096 / repeated_body_families correctness / 0+37253](../../../docs/research/2026-09-30-wikipedia-matrix/runs/units-2b71b307364060779ef691f0/a1a0b8c1bbbf4e7e1f8a36300c927ae3ec467a01a969e1e06c58d688d0e359af/receipt.json) | 464 | 114 | PASS | 1.18 / 1.18 | 656904192 | retain negative |
 | [D / legacy  / 0+29564](../../../docs/research/2026-09-30-wikipedia-structure/results/075da7da054d601477ab145da1876e747b36cbf9525e238bbd00961716d5067c/receipt.json) | 440 | MISSING | PASS | 2.32 / 2.27 | 658010112 | development/holdout gate required |
 | [original / legacy  / 0+29564](../../../docs/research/2026-09-30-wikipedia-structure/results/18ffbf9160025a8672c15c5746a1831164ec08626a9eacd417d9c609ff3ac08b/receipt.json) | 258 | MISSING | PASS | 2.25 / 2.29 | 460185600 | matched control |
 | [B / legacy  / 0+29564](../../../docs/research/2026-09-30-wikipedia-structure/results/9b0859268675dcc0acc3f99670912ec5e527c8520251f0a2f2b14f1fb27bff77/receipt.json) | 387 | MISSING | PASS | 2.01 / 2.05 | 463810560 | development/holdout gate required |
@@ -97,11 +100,11 @@ Ranks are only within the same input, opportunity strength, evidence stratum and
 | repeated_body_families-absent | body-lines-v1 | /root/opportunity_trials | VERIFIED_SCREENING |
 | repeated_body_families-strong | original | /root/opportunity_trials | VERIFIED_SCREENING |
 | field_dictionary_composition-strong | remaining | /root/bounded_track_a | VERIFIED_SCREENING |
-| paragraph-unit-correctness-v1 | original | /root/paragraph_trials | DECLARED_NOT_STARTED |
-| paragraph-unit-correctness-v1 | paragraph-16384 | /root/paragraph_trials | DECLARED_NOT_STARTED |
-| paragraph-unit-correctness-v1 | line-4096 | /root/paragraph_trials | DECLARED_NOT_STARTED |
-| census-target-v2-4MiB | original | /root/paragraph_trials | DECLARED_NOT_STARTED |
-| census-target-v2-4MiB | paragraph-16384 | /root/paragraph_trials | DECLARED_NOT_STARTED |
+| paragraph-unit-correctness-v1 | original | /root/paragraph_trials | VERIFIED_SCREENING |
+| paragraph-unit-correctness-v1 | paragraph-16384 | /root/paragraph_trials | VERIFIED_SCREENING |
+| paragraph-unit-correctness-v1 | line-4096 | /root/paragraph_trials | VERIFIED_SCREENING |
+| census-target-v2-4MiB | original | /root/paragraph_trials | RUNNING_OR_UNFINISHED |
+| census-target-v2-4MiB | paragraph-16384 | /root/paragraph_trials | RUNNING_OR_UNFINISHED |
 
 ## Cost and qualification boundaries
 
