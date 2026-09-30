@@ -1,0 +1,27 @@
+[package]
+name = "cix-native"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "cix"
+path = "src/main.rs"
+
+[[bin]]
+name = "uncix"
+path = "src/uncix.rs"
+
+[[bin]]
+name = "cixcat"
+path = "src/cixcat.rs"
+
+[dependencies]
+sha2 = "0.10"
+flate2 = { version = "1", default-features = false, features = ["zlib"] }
+libc = "0.2"
+ctrlc = "3"
+
+[profile.release-lto]
+inherits = "release"
+lto = true
+codegen-units = 1
