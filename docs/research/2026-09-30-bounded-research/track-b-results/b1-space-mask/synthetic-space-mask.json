@@ -1,0 +1,63 @@
+{
+  "accounting": {
+    "framing_bytes": 11,
+    "literal_bytes": 294000,
+    "mask_bytes": 38150,
+    "metadata_bytes": 0,
+    "payload_bytes": 1331,
+    "transformed_bytes": 332150
+  },
+  "backend": "zstandard",
+  "backend_level": 19,
+  "completed_at": "2026-09-30T06:55:58.389366+00:00",
+  "encode_seconds": 0.06901577906683087,
+  "expected_mechanism": "Compressed bit plane plus non-space literal stream is more stationary",
+  "hutter_specific": true,
+  "hypothesis": "Separating ASCII-space membership reduces structural text representation cost",
+  "immutable_build": {
+    "script_sha256": "59c352823a21e409e366f510c8597f3f8dfd244f1e0f2e97b5f57a09e10c1bbc",
+    "zstandard_module_sha256": "5dd909e0b60a946a0b08deaf57545d17dc044f5df4040beec55f7ef6c6fecd11",
+    "zstandard_version": "0.25.0"
+  },
+  "input": {
+    "bytes": 305200,
+    "generator": "repeated-records-v1",
+    "kind": "synthetic",
+    "seed": 7302026,
+    "sha256": "5129eb948f782e98cefdfb71f70a164ab14809ad377da2493e6f4d5bbb1a3925"
+  },
+  "matched_control": "HTB1 control: same zstandard 0.25.0 level and self-contained framing, direct input",
+  "mode": "space-mask",
+  "output": {
+    "archive": "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/synthetic-space-mask.htb",
+    "archive_bytes": 1342,
+    "archive_sha256": "0da24c35c0d48c5b52836b815e441d44018166b5a85a3e638a042748fe2ec00b",
+    "decoder_returncode": 0,
+    "decoder_stderr": "",
+    "independent_decoder_command": [
+      "/home/user/src/colour-index-compression/.venv/bin/python",
+      "-m",
+      "benchmarks.hutter_track_b",
+      "decode",
+      "--archive",
+      "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/synthetic-space-mask.htb",
+      "--output",
+      "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/synthetic-space-mask.restored"
+    ],
+    "restored": "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/synthetic-space-mask.restored",
+    "restored_sha256": "5129eb948f782e98cefdfb71f70a164ab14809ad377da2493e6f4d5bbb1a3925",
+    "round_trip_verified": true
+  },
+  "process_peak_rss_bytes": 570732544,
+  "promotion_criteria": "Two of three development regions and aggregate at least 0.25 percent smaller than control",
+  "resource_budget": {
+    "cpu_cores": 4,
+    "rss_bytes": 3221225472,
+    "temporary_disk_bytes": 1073741824,
+    "wall_seconds": 300
+  },
+  "schema": "cix-hutter-track-b-v1",
+  "status": "COMPLETE",
+  "track": "B",
+  "trial_id": "b1-synthetic-space-mask"
+}

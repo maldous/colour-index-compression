@@ -1,0 +1,64 @@
+{
+  "accounting": {
+    "framing_bytes": 14,
+    "literal_bytes": 226083,
+    "mask_bytes": 32768,
+    "metadata_bytes": 0,
+    "payload_bytes": 105119,
+    "transformed_bytes": 258851
+  },
+  "backend": "zstandard",
+  "backend_level": 19,
+  "completed_at": "2026-09-30T06:56:15.836842+00:00",
+  "encode_seconds": 0.06599589390680194,
+  "expected_mechanism": "Compressed bit plane plus non-space literal stream is more stationary",
+  "hutter_specific": true,
+  "hypothesis": "Separating ASCII-space membership reduces structural text representation cost",
+  "immutable_build": {
+    "script_sha256": "59c352823a21e409e366f510c8597f3f8dfd244f1e0f2e97b5f57a09e10c1bbc",
+    "zstandard_module_sha256": "5dd909e0b60a946a0b08deaf57545d17dc044f5df4040beec55f7ef6c6fecd11",
+    "zstandard_version": "0.25.0"
+  },
+  "input": {
+    "bytes": 262144,
+    "kind": "file-range",
+    "length": 262144,
+    "offset": 100000000,
+    "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+    "sha256": "5251848741deca0c97ca86664b46d7f61d11ee69b59964bc6b9b3828c7452600"
+  },
+  "matched_control": "HTB1 control: same zstandard 0.25.0 level and self-contained framing, direct input",
+  "mode": "space-mask",
+  "output": {
+    "archive": "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/dev-100000000-space-mask.htb",
+    "archive_bytes": 105133,
+    "archive_sha256": "df1318e50dfa6f2026e59935b6211af2446300b5898dff654109893bab9f68f4",
+    "decoder_returncode": 0,
+    "decoder_stderr": "",
+    "independent_decoder_command": [
+      "/home/user/src/colour-index-compression/.venv/bin/python",
+      "-m",
+      "benchmarks.hutter_track_b",
+      "decode",
+      "--archive",
+      "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/dev-100000000-space-mask.htb",
+      "--output",
+      "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/dev-100000000-space-mask.restored"
+    ],
+    "restored": "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/dev-100000000-space-mask.restored",
+    "restored_sha256": "5251848741deca0c97ca86664b46d7f61d11ee69b59964bc6b9b3828c7452600",
+    "round_trip_verified": true
+  },
+  "process_peak_rss_bytes": 570732544,
+  "promotion_criteria": "Two of three development regions and aggregate at least 0.25 percent smaller than control",
+  "resource_budget": {
+    "cpu_cores": 4,
+    "rss_bytes": 3221225472,
+    "temporary_disk_bytes": 1073741824,
+    "wall_seconds": 300
+  },
+  "schema": "cix-hutter-track-b-v1",
+  "status": "COMPLETE",
+  "track": "B",
+  "trial_id": "b1-dev-100m-space-mask"
+}

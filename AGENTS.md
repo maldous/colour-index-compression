@@ -21,6 +21,10 @@ Retain Canterbury/Calgary/Artificial gate before renewed Silesia qualification.
 
 No GitHub Actions or workflow changes. Keep repository private. Publication/submission
 requires a separate user decision; do not update/deploy Sites without that decision.
+The user subsequently authorized pushing all project work to its existing PRIVATE
+GitHub repository for review, then continuing research. Actions are disabled at
+repository level; verify they remain disabled before each push. This does not
+authorize public release, Sites publication or Prize submission.
 Hutter research-specific representations are allowed, clearly labelled. Qualification
 requires actual current official formulas, complete program/model/options accounting,
 canonical full encode and independent decode and measured resource limits. Concurrent

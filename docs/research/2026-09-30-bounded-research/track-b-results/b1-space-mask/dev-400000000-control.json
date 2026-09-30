@@ -1,0 +1,62 @@
+{
+  "accounting": {
+    "framing_bytes": 11,
+    "metadata_bytes": 0,
+    "payload_bytes": 79285,
+    "transformed_bytes": 262144
+  },
+  "backend": "zstandard",
+  "backend_level": 19,
+  "completed_at": "2026-09-30T06:56:23.616987+00:00",
+  "encode_seconds": 0.06273669097572565,
+  "expected_mechanism": "None; direct pinned backend reference",
+  "hutter_specific": true,
+  "hypothesis": "Direct matched control for fixed-space structure separation",
+  "immutable_build": {
+    "script_sha256": "59c352823a21e409e366f510c8597f3f8dfd244f1e0f2e97b5f57a09e10c1bbc",
+    "zstandard_module_sha256": "5dd909e0b60a946a0b08deaf57545d17dc044f5df4040beec55f7ef6c6fecd11",
+    "zstandard_version": "0.25.0"
+  },
+  "input": {
+    "bytes": 262144,
+    "kind": "file-range",
+    "length": 262144,
+    "offset": 400000000,
+    "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+    "sha256": "3039132283ccdb7bfded56d07e132bed0ea9466f54247aac4913b08711ac3c14"
+  },
+  "matched_control": "HTB1 control: same zstandard 0.25.0 level and self-contained framing, direct input",
+  "mode": "control",
+  "output": {
+    "archive": "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/dev-400000000-control.htb",
+    "archive_bytes": 79296,
+    "archive_sha256": "10af8df83ee803aadb26fdf98937ea8f965bd5f884e374f3d35da47a8e53fc8a",
+    "decoder_returncode": 0,
+    "decoder_stderr": "",
+    "independent_decoder_command": [
+      "/home/user/src/colour-index-compression/.venv/bin/python",
+      "-m",
+      "benchmarks.hutter_track_b",
+      "decode",
+      "--archive",
+      "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/dev-400000000-control.htb",
+      "--output",
+      "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/dev-400000000-control.restored"
+    ],
+    "restored": "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b1-space-mask/dev-400000000-control.restored",
+    "restored_sha256": "3039132283ccdb7bfded56d07e132bed0ea9466f54247aac4913b08711ac3c14",
+    "round_trip_verified": true
+  },
+  "process_peak_rss_bytes": 570732544,
+  "promotion_criteria": "Two of three development regions and aggregate at least 0.25 percent smaller than control",
+  "resource_budget": {
+    "cpu_cores": 4,
+    "rss_bytes": 3221225472,
+    "temporary_disk_bytes": 1073741824,
+    "wall_seconds": 300
+  },
+  "schema": "cix-hutter-track-b-v1",
+  "status": "COMPLETE",
+  "track": "B",
+  "trial_id": "b1-dev-400m-control"
+}
