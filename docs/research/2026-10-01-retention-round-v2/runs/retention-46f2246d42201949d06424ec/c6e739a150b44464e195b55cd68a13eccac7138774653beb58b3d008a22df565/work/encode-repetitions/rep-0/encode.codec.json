@@ -1,0 +1,185 @@
+{
+  "format": "CIXG1",
+  "effort": "balanced",
+  "backend": "hybrid",
+  "history_bytes": 0,
+  "block_bytes": 32768,
+  "disable": [
+    "stride"
+  ],
+  "force": null,
+  "offline": false,
+  "source_bytes": 16384,
+  "compressed_bytes": 500,
+  "source_sha256": "c4ca7d17e2de606d3aa778c0c0e11ebbe1c93685e666b8cb84aba2aa13f9c059",
+  "encode_seconds": 0.23010436492040753,
+  "blocks": [
+    {
+      "offset": 0,
+      "source_bytes": 16384,
+      "route": "lz",
+      "complete_block_bytes": 446,
+      "features": {
+        "sample_bytes": 4096,
+        "entropy": 1.8447592434001834,
+        "symbols": 160,
+        "run_fraction": 0.5764907135874878,
+        "repeat_fraction": 0.9191968658178257,
+        "lag_entropy": {
+          "1": 2.368717887414034,
+          "2": 2.3499496623202543,
+          "4": 2.3432827680009467,
+          "8": 0.8360686188897528,
+          "16": 0.8766286629739906,
+          "32": 0.9036293869492944,
+          "64": 0.9222999529212537
+        },
+        "predictability": 0.7445967316816026,
+        "regional_entropy_range": 2.529873037021053
+      },
+      "accounting": {
+        "framing_bytes": 41,
+        "structural_bytes": 0,
+        "stream_descriptor_bytes": 42,
+        "count_table_bytes": 80,
+        "coded_payload_bytes": 283,
+        "coders": [
+          "cix-exact-1024",
+          "cix-exact-1024",
+          "raw",
+          "raw"
+        ]
+      },
+      "profiling_seconds": 0.005339713301509619,
+      "selection_seconds": 0.22969023697078228,
+      "selected_trial_compute_seconds": 0.022766292095184326,
+      "trials": [
+        {
+          "route": "runs",
+          "bytes": 13165,
+          "payload_bytes": 13124,
+          "compute_seconds": 0.003046753816306591,
+          "wall_seconds": 0.011884779669344425,
+          "peak_rss_kib": 20940,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 0,
+            "stream_descriptor_bytes": 0,
+            "count_table_bytes": 0,
+            "coded_payload_bytes": 13124,
+            "coders": []
+          }
+        },
+        {
+          "route": "deflate",
+          "bytes": 510,
+          "payload_bytes": 469,
+          "compute_seconds": 0.003254128620028496,
+          "wall_seconds": 0.007240047678351402,
+          "peak_rss_kib": 21452,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 0,
+            "stream_descriptor_bytes": 10,
+            "count_table_bytes": 0,
+            "coded_payload_bytes": 459,
+            "coders": [
+              "deflate"
+            ]
+          }
+        },
+        {
+          "route": "lz",
+          "bytes": 446,
+          "payload_bytes": 405,
+          "compute_seconds": 0.022766292095184326,
+          "wall_seconds": 0.024973319843411446,
+          "peak_rss_kib": 23244,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 0,
+            "stream_descriptor_bytes": 42,
+            "count_table_bytes": 80,
+            "coded_payload_bytes": 283,
+            "coders": [
+              "cix-exact-1024",
+              "cix-exact-1024",
+              "raw",
+              "raw"
+            ]
+          }
+        },
+        {
+          "route": "predictor",
+          "bytes": 590,
+          "payload_bytes": 549,
+          "compute_seconds": 0.05300488090142608,
+          "wall_seconds": 0.05511907022446394,
+          "peak_rss_kib": 21964,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 0,
+            "stream_descriptor_bytes": 10,
+            "count_table_bytes": 0,
+            "coded_payload_bytes": 539,
+            "coders": [
+              "deflate"
+            ]
+          }
+        },
+        {
+          "route": "composition",
+          "bytes": 3204,
+          "payload_bytes": 3163,
+          "compute_seconds": 0.024098808877170086,
+          "wall_seconds": 0.02590700378641486,
+          "peak_rss_kib": 21708,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 0,
+            "stream_descriptor_bytes": 58,
+            "count_table_bytes": 335,
+            "coded_payload_bytes": 2770,
+            "coders": [
+              "cix-exact-1024"
+            ]
+          }
+        },
+        {
+          "route": "bwt",
+          "bytes": 488,
+          "payload_bytes": 447,
+          "compute_seconds": 0.08920875610783696,
+          "wall_seconds": 0.09746150719001889,
+          "peak_rss_kib": 24524,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 4,
+            "stream_descriptor_bytes": 33,
+            "count_table_bytes": 92,
+            "coded_payload_bytes": 318,
+            "coders": [
+              "deflate",
+              "cix-exact-1024",
+              "cix-exact-1024"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "block_count": 1,
+  "route_usage_source_bytes": {
+    "lz": 16384
+  },
+  "selection_total_seconds": 0.22969023697078228,
+  "search_and_launch_overhead_seconds": 0.20692394487559795,
+  "blocks_truncated": false,
+  "all_block_trace": "/home/user/src/colour-index-compression/docs/research/2026-10-01-retention-round-v2/runs/retention-46f2246d42201949d06424ec/c6e739a150b44464e195b55cd68a13eccac7138774653beb58b3d008a22df565/work/encode-repetitions/rep-0/blocks.jsonl"
+}
