@@ -2,10 +2,10 @@
   "hypothesis":"Matched original-byte PAQ v216 -4 physical-frame control for later structure candidates.",
   "matched_control":"Same PAQ v216 -4 and CIXSTR1 outer framing for every candidate.",
   "input":{"path":"/home/user/src/cix-baseline-data/inputs/enwik9","offset":0,"length":32768,"sha256":"de91bc4727fadadb7abfa3af752e8d7ac6cfb24c87b7cf4078858088dcd4e5c7"},
-  "configuration":{"mode":"original","paq_version":"v216","paq_options":"-4","paq_binary_sha256":"4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc","source_filename":"source.bin","fx2":"NOT_RUN: global article-order dependency"},
+  "configuration":{"mode":"C","paq_version":"v216","paq_options":"-4","paq_binary_sha256":"4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc","source_filename":"source.bin","fx2":"NOT_RUN: global article-order dependency"},
   "mechanism":"Raw PAQ control only; no transform.","budget":{"wall_seconds":300,"max_rss_bytes":3000000000,"max_temp_bytes":1000000000,"cpu":6},"promotion_criteria":"Baseline receipt only; later modes must beat complete physical frame and decode exactly.",
-  "build_paths":["benchmarks/hutter_structure_probe.py","benchmarks/hutter_bounded_runner.py"],
-  "encode_command":["/home/user/src/colour-index-compression/.venv/bin/python","/home/user/src/colour-index-compression/benchmarks/hutter_structure_probe.py","encode","{source}","{workdir}/candidate.cixstr","--paq-binary","/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px","--paq-sha256","4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"],
+  "build_paths":["benchmarks/hutter_structure_probe.py","benchmarks/hutter_bounded_runner.py","benchmarks/hutter_structure.py","benchmarks/markup_columns.py","cix/__init__.py","cix/multinomial.py"],
+  "encode_command":["/home/user/src/colour-index-compression/.venv/bin/python","/home/user/src/colour-index-compression/benchmarks/hutter_structure_probe.py","encode","{source}","{workdir}/candidate.cixstr","--mode","C","--paq-binary","/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px","--paq-sha256","4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"],
   "decode_command":["/home/user/src/colour-index-compression/.venv/bin/python","/home/user/src/colour-index-compression/benchmarks/hutter_structure_probe.py","decode","{workdir}/candidate.cixstr","{workdir}/restored.bin","--paq-binary","/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px","--paq-sha256","4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"],
   "artifacts":{"archive":"{workdir}/candidate.cixstr","restored":"{workdir}/restored.bin"}
 }

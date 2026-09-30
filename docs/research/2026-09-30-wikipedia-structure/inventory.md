@@ -38,6 +38,7 @@ new bounded structure experiment; it makes no compression claim.
   predictor experiment, not evidence that CIX rank is better.
 
 The first bounded B hypothesis is deliberately narrow: on locally recognized
-balanced markup fragments, removing only stack-predicted closing-tag identities
-may give the unchanged PAQ backend an easier byte stream. The inverse emits the
-original bytes exactly; unmatched or incomplete fragments remain literal.
+markup tokens, removing only locally stack-predicted closing-tag identities may
+give the unchanged PAQ backend an easier byte stream. The inverse emits the
+original bytes exactly; unmatched boundary tags remain literal and malformed
+lexical fragments take a byte-identical fallback.

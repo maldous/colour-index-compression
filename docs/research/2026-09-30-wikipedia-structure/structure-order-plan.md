@@ -1,11 +1,12 @@
 # Bounded structure-order PAQ screen
 
 Predeclared before execution. The candidate uses the existing CIXV3 text-safe
-stack transform only on lexically complete, balanced XML-like fragments. It
-replaces an expected close tag with a marker while retaining every other byte in
-order. Comments, CDATA, entities, attributes, whitespace and numeric text are
-carried byte-for-byte. A malformed quote, literal unrecognized `<`, mismatched
-close or unclosed stack selects a byte-identical literal fallback.
+stack transform only on lexically complete XML-like tokens. It replaces a local
+stack-top close tag with a marker while retaining every other byte in order.
+Comments, CDATA, entities, attributes, whitespace and numeric text are carried
+byte-for-byte. Boundary tags that cannot be predicted locally remain literal.
+A malformed quote or literal unrecognized `<` selects a byte-identical literal
+fallback.
 
 Both arms use PAQ8PX v215 with `-4`. The control consumes original bytes. The
 candidate consumes the reversible transformed byte stream. The completed outer
