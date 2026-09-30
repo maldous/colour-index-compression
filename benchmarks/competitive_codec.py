@@ -6,6 +6,9 @@ the exact backend version. This changes no arithmetic payload and adds no bytes.
 PAQ is credited as a backend, not presented as a new CIX model.
 """
 import hashlib
+import concurrent.futures
+import multiprocessing
+import os
 import struct
 import subprocess
 import tempfile
@@ -99,6 +102,138 @@ def has_fixed_star_records(data):
     _,_,count,numbering,motion,magnitudes,width=struct.unpack_from('<7i',data)
     return (numbering==0 and motion==1 and abs(magnitudes)==1 and width==28
             and count!=0 and 28+28*abs(count)==len(data))
+
+
+def _parallel_legacy(data):
+    """Run the legacy candidate in an isolated worker process."""
+    from benchmarks.native_ppm import enable
+    from benchmarks import rounded_mixer,mixer_rounded_bounded
+    from benchmarks.joint_bounded import encode as original
+    enable();mixer_rounded_bounded.encode_mixer=rounded_mixer.native_encoder()
+    return original(data)
+
+
+def _parallel_candidate(spec, data):
+    """Build one self-contained candidate.
+
+    ``cpu`` is deliberately applied inside the worker.  ProcessPool workers
+    are reused opportunistically, so setting affinity in an initializer would
+    not guarantee a distinct CPU for a particular submitted candidate.
+    """
+    cpu=spec.get('cpu')
+    if cpu is not None:
+        os.sched_setaffinity(0,{cpu})
+    kind=spec['kind']
+    if kind=='legacy':
+        return _parallel_legacy(data)
+    if kind=='image':
+        return spatial.encode_region(data,spec['region'],spec['backend'],spec['effort'])
+    if kind=='volume':
+        return volume.encode(data,spec['region'],spec['mode'],spec['effort'])
+    if kind=='grid':
+        return grid.encode(data,spec['mode'],spec['backend'])[0]
+    if kind=='paq':
+        cached=spec['cache']
+        return wrap_paq(cached,spec['version']) if cached is not None else encode_paq(data,spec['version'],spec['options'])
+    raise ValueError('unknown parallel candidate')
+
+
+def _candidate_specs(data, *, legacy_cache=None, paq=None, paq_cache=None):
+    """Return the ordinary portfolio's candidates in its serial tie order."""
+    specs=[dict(name='joint-ppm-mixer',kind='legacy',cache_used=legacy_cache is not None,
+                cached=legacy_cache)]
+    for index,region in enumerate(spatial.regions(data)):
+        for backend,effort in (('jxl',7),('jxl',10),('jls',0),('j2k',0)):
+            specs.append(dict(name=f'image-{index}-{backend}-{effort}',kind='image',region=region,
+                              backend=backend,effort=effort))
+        if region['height']>region['slice_height']:
+            for mode,effort in [(m,9) for m in range(6)]+[(3,10)]:
+                specs.append(dict(name=f'volume-{index}-{mode}-{effort}',kind='volume',region=region,
+                                  mode=mode,effort=effort))
+    if has_fixed_star_records(data):
+        for mode in (1,2,3):
+            for backend in (0,1,2):
+                specs.append(dict(name=f'float-grid-{mode}-{backend}',kind='grid',mode=mode,backend=backend))
+    if paq is not None:
+        version,options=paq
+        specs.append(dict(name=f'paq-{version}-{options}',kind='paq',version=version,options=options,
+                          cache=paq_cache,cache_used=paq_cache is not None))
+    elif paq_cache is not None:
+        raise ValueError('PAQ cache requires a configured version and options')
+    return specs
+
+
+def _validate_parallelism(workers, cpus):
+    if not isinstance(workers,int) or workers<1:
+        raise ValueError('workers must be a positive integer')
+    allowed=os.sched_getaffinity(0)
+    if cpus is None:
+        cpus=tuple(sorted(allowed))
+    else:
+        cpus=tuple(cpus)
+    if not cpus or len(cpus)!=len(set(cpus)) or not set(cpus)<=allowed:
+        raise ValueError('cpus must be distinct CPUs in the caller affinity mask')
+    if workers>len(cpus):
+        raise ValueError('workers cannot exceed the number of requested CPUs')
+    return cpus
+
+
+def encode_parallel(data, *, workers, cpus=None, legacy_cache=None, paq=None, paq_cache=None):
+    """Encode the ordinary candidate portfolio concurrently without changing it.
+
+    This is a *candidate* parallelism facility.  Each candidate still receives
+    the whole input and is returned to the parent before physical-size
+    selection in the exact serial order.  Consequently it never chunks an
+    adaptive PAQ stream, changes its options, or changes tie breaking.  PAQ is
+    a sequential model inside one candidate; a single PAQ candidate occupies
+    one worker rather than being split across workers.
+
+    Callers must set an appropriate memory budget before selecting ``workers``:
+    a full input is materialised by every live worker.  The routine does not
+    make a resource-limit claim and is intended for bounded local research,
+    never for a contended Prize timing measurement.
+    """
+    cpus=_validate_parallelism(workers,cpus)
+    raw=RAW+vencode(len(data))+zlib.crc32(data).to_bytes(4,'big')+data
+    specs=_candidate_specs(data,legacy_cache=legacy_cache,paq=paq,paq_cache=paq_cache)
+    trials=[dict(name='raw',size=len(raw),encode_seconds=0)]
+    if not specs:
+        return raw,dict(selected='raw',trials=trials)
+
+    # A cache is already the exact physical candidate.  Keeping that one in the
+    # parent avoids copying a potentially large archive to a worker and retains
+    # the serial cache semantics exactly.
+    ready={}
+    submitted=[spec for spec in specs if not (spec['kind']=='legacy' and spec['cached'] is not None)]
+    for spec in specs:
+        if spec['kind']=='legacy' and spec['cached'] is not None:
+            ready[spec['name']]=(spec['cached'],0.0)
+
+    context=multiprocessing.get_context('spawn')
+    with concurrent.futures.ProcessPoolExecutor(max_workers=workers,mp_context=context,
+                                                 max_tasks_per_child=1) as pool:
+        # Submit in bounded waves.  Every concurrently running task receives a
+        # distinct requested CPU, even if a process was recycled between waves.
+        for start in range(0,len(submitted),workers):
+            wave=submitted[start:start+workers]
+            futures={}
+            for offset,spec in enumerate(wave):
+                task=dict(spec,cpu=cpus[offset])
+                began=time.perf_counter()
+                futures[pool.submit(_parallel_candidate,task,data)]=(spec,began)
+            for future,(spec,began) in futures.items():
+                ready[spec['name']]=(future.result(),time.perf_counter()-began)
+
+    best=raw;selected='raw'
+    for spec in specs:
+        candidate,elapsed=ready[spec['name']]
+        row=dict(name=spec['name'],size=len(candidate),encode_seconds=elapsed)
+        if spec.get('cache_used') is not None:
+            row['cache_used']=spec['cache_used']
+        trials.append(row)
+        if len(candidate)<len(best):
+            best,selected=candidate,spec['name']
+    return best,dict(selected=selected,trials=trials)
 
 
 def encode(data,*,legacy_cache=None,paq=None,paq_cache=None):
