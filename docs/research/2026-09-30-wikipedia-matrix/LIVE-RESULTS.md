@@ -58,6 +58,8 @@ Ranks are only within the same input, opportunity strength, evidence stratum and
 
 | Candidate / input | Complete bytes | vs matched PAQ | Independent SHA decode | Encode / decode seconds | Cgroup memory sampled high-water | Next decision |
 |---|---:|---:|---|---:|---:|---|
+| [original / repeated_body_families structurally_selected / 520093696+4194304](../../../docs/research/2026-09-30-wikipedia-matrix/runs/units-b2c44e27547dae66f8a879f7/803ec09cc0c8fc28e3920d352e44effcafa924f49dcf1f04212fdbcfcd99ebf8/receipt.json) | 158796 | 0 | PASS | 377.40 / 376.78 | 511393792 | matched control |
+| [paragraph-16384 / repeated_body_families structurally_selected / 520093696+4194304](../../../docs/research/2026-09-30-wikipedia-matrix/runs/units-fbe31e95ef72db0bc181a57b/5ee5193b34eb980c254bf720fcb5f33b09f94044ab1dff85490f513912e792d7/receipt.json) | 166476 | 7680 | PASS | 364.90 / 366.91 | 850337792 | retain negative |
 | [B / legacy  / 100000000+32768](../../../docs/research/2026-09-30-wikipedia-structure/results/1f9091f9d1b0097203ebcd07e86c7021a06a9a53c0240064df27ec226590c28a/receipt.json) | 9623 | MISSING | PASS | 3.21 / 3.17 | 492093440 | development/holdout gate required |
 | [original / legacy  / 100000000+32768](../../../docs/research/2026-09-30-wikipedia-structure/results/1fadfb7d9497c1797f7c4a232ca451f0e8f26da4d6f8ecbf5f78843f25665ca1/receipt.json) | 9487 | 0 | PASS | 3.20 / 3.17 | 486658048 | matched control |
 | [D / legacy  / 400000000+32768](../../../docs/research/2026-09-30-wikipedia-structure/results/5948f5544e44205c84772e4a743f1c5353a07960f476568b3b55e9d1285f9169/receipt.json) | 8879 | MISSING | PASS | 3.45 / 3.40 | 808796160 | development/holdout gate required |
@@ -103,8 +105,9 @@ Ranks are only within the same input, opportunity strength, evidence stratum and
 | paragraph-unit-correctness-v1 | original | /root/paragraph_trials | VERIFIED_SCREENING |
 | paragraph-unit-correctness-v1 | paragraph-16384 | /root/paragraph_trials | VERIFIED_SCREENING |
 | paragraph-unit-correctness-v1 | line-4096 | /root/paragraph_trials | VERIFIED_SCREENING |
-| census-target-v2-4MiB | original | /root/paragraph_trials | RUNNING_OR_UNFINISHED |
-| census-target-v2-4MiB | paragraph-16384 | /root/paragraph_trials | RUNNING_OR_UNFINISHED |
+| census-target-v2-line4096 | line-4096 | /root/paragraph_trials | DECLARED_NOT_STARTED |
+| census-target-v2-4MiB | original | /root/paragraph_trials | VERIFIED_SCREENING |
+| census-target-v2-4MiB | paragraph-16384 | /root/paragraph_trials | VERIFIED_SCREENING |
 
 ## Cost and qualification boundaries
 
