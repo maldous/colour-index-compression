@@ -100,7 +100,7 @@ def load_manifest(path: Path) -> tuple[dict, str]:
             raise ValueError("manifest budget missing: " + key)
     wall_seconds = int(budget["wall_seconds"])
     if not 0 < wall_seconds <= MAX_SCREENING_SECONDS:
-        if not (wall_seconds <= MAX_MODERATE_CONTIGUOUS_SECONDS
+        if not (MAX_SCREENING_SECONDS < wall_seconds <= MAX_MODERATE_CONTIGUOUS_SECONDS
                 and manifest.get("stage") == "moderate_contiguous"
                 and isinstance(manifest.get("longer_budget_justification"), str)
                 and manifest["longer_budget_justification"].strip()

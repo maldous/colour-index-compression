@@ -119,3 +119,13 @@ def test_cached_artifact_tamper_is_refused(tmp_path):
     archive = Path(first["artifacts"]["archive"]); archive.write_bytes(archive.read_bytes() + b"!")
     with pytest.raises(ValueError, match="existing receipt"):
         run(path, tmp_path / "results", tmp_path)
+
+
+@pytest.mark.parametrize("seconds", [-1, 0, 1201])
+def test_moderate_budget_refuses_invalid_boundaries(tmp_path, seconds):
+    source = tmp_path / "input"; source.write_bytes(b"abc")
+    script = tmp_path / "copy.py"; write_copy(script)
+    path = manifest(tmp_path, source, script, budget={"wall_seconds": seconds, "max_rss_bytes": 1_000_000_000, "max_temp_bytes": 1_000_000, "cpu": runner_cpu()})
+    row = json.loads(path.read_text()); row["stage"] = "moderate_contiguous"; row["longer_budget_justification"] = "boundary guard"; path.write_text(json.dumps(row))
+    with pytest.raises(ValueError, match="1..300"):
+        load_manifest(path)
