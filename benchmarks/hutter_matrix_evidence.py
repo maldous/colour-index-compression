@@ -21,6 +21,7 @@ MAGICS = {
     b"CIXSTR1\0": {0, 1, 2, 3},
     b"CIXWCOL1": {0, 1, 2},
     b"CIXWBOD1": {0},
+    b"CIXWUNT1": {0, 1, 2},
 }
 TERMINAL_FILES = ("receipt.json", "size-rejected.json", "failed.json")
 EVIDENCE_ROOTS = (

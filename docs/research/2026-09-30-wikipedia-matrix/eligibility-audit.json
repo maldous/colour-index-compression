@@ -1,0 +1,555 @@
+{
+  "actual_cpu_affinity": [
+    0
+  ],
+  "audit_dependencies_sha256": {
+    "benchmarks/hutter_structure_columns.py": "5d55a3956a0f3566d9001961fc66eb0f43b3d9477a59464827504363c03f16e2",
+    "benchmarks/hutter_wikipedia_body_lines.py": "385236e51027e50d47e62f6154e496aeb57295c050a54d7aa137d0cd0fc6d57b",
+    "benchmarks/hutter_wikipedia_eligibility.py": "cad878ba3639e41b951f6caaa7362b2a9d135a61835604e2d2d6cee1ba8937a4"
+  },
+  "backend": "NONE",
+  "budget_seconds": 300,
+  "elapsed_seconds": 1.4210079498589039,
+  "holdouts_read": false,
+  "input": "/home/user/src/cix-baseline-data/inputs/enwik9",
+  "limitations": [
+    "No encoder, PAQ backend, archive, entropy estimate or compression claim was produced.",
+    "The 4KiB/16KiB rows are static eligibility observations, not codec performance.",
+    "This audit reads only fixed exposed development regions."
+  ],
+  "paq": "NOT_RUN",
+  "ranges": [
+    {
+      "bytes": 4194304,
+      "offset": 0
+    },
+    {
+      "bytes": 4194304,
+      "offset": 100000000
+    },
+    {
+      "bytes": 4194304,
+      "offset": 400000000
+    }
+  ],
+  "regions": [
+    {
+      "bytes": 4194304,
+      "offset": 0,
+      "profile": {
+        "body_16384_equivalent": {
+          "candidate_family_count": 9480,
+          "candidate_line_bytes": 3115361,
+          "candidate_line_count": 9964,
+          "complete_body_bytes": 4002936,
+          "complete_body_count": 506,
+          "incomplete_boundary_excluded_bytes": 126,
+          "line_limit": 16384,
+          "line_policy_exclusions": {
+            "line_lt48": 27478,
+            "line_lt48_bytes": 450669,
+            "literal_lt24": 1378,
+            "literal_lt24_bytes": 106634,
+            "no_holes": 1504,
+            "no_holes_bytes": 318383,
+            "unterminated_line_bytes": 11889,
+            "unterminated_lines": 443
+          },
+          "note": "Family exclusions are disjoint by first failed criterion; secondary simultaneous failures are counted separately. Lines excluded by length, termination, missing holes or literal budget never enter a family.",
+          "overlapping_secondary_reasons": {
+            "family_lt2bodies|family_lt2distinct_raw": 7,
+            "family_lt3members|family_lt2bodies": 9384,
+            "family_lt3members|family_lt2distinct_raw": 9339
+          },
+          "primary_family_exclusions": {
+            "family_lt2bodies": 43,
+            "family_lt3members": 9414
+          },
+          "selected_family_count": 23,
+          "selected_family_distance_bytes": {
+            "count": 187,
+            "max": 1986563,
+            "mean": 87572.49732620321,
+            "median": 99,
+            "min": 52
+          },
+          "selected_line_sizes": {
+            "count": 210,
+            "max": 184,
+            "mean": 67.81904761904762,
+            "median": 60.0,
+            "min": 49
+          },
+          "selected_source_bytes": 14242
+        },
+        "body_4096_equivalent": {
+          "candidate_family_count": 9480,
+          "candidate_line_bytes": 3115361,
+          "candidate_line_count": 9964,
+          "complete_body_bytes": 4002936,
+          "complete_body_count": 506,
+          "incomplete_boundary_excluded_bytes": 126,
+          "line_limit": 4096,
+          "line_policy_exclusions": {
+            "line_lt48": 27478,
+            "line_lt48_bytes": 450669,
+            "literal_lt24": 1378,
+            "literal_lt24_bytes": 106634,
+            "no_holes": 1504,
+            "no_holes_bytes": 318383,
+            "unterminated_line_bytes": 11889,
+            "unterminated_lines": 443
+          },
+          "note": "Family exclusions are disjoint by first failed criterion; secondary simultaneous failures are counted separately. Lines excluded by length, termination, missing holes or literal budget never enter a family.",
+          "overlapping_secondary_reasons": {
+            "family_lt2bodies|family_lt2distinct_raw": 7,
+            "family_lt3members|family_lt2bodies": 9384,
+            "family_lt3members|family_lt2distinct_raw": 9339
+          },
+          "primary_family_exclusions": {
+            "family_lt2bodies": 43,
+            "family_lt3members": 9414
+          },
+          "selected_family_count": 23,
+          "selected_family_distance_bytes": {
+            "count": 187,
+            "max": 1986563,
+            "mean": 87572.49732620321,
+            "median": 99,
+            "min": 52
+          },
+          "selected_line_sizes": {
+            "count": 210,
+            "max": 184,
+            "mean": 67.81904761904762,
+            "median": 60.0,
+            "min": 49
+          },
+          "selected_source_bytes": 14242
+        },
+        "body_512": {
+          "candidate_family_count": 7388,
+          "candidate_line_bytes": 1461079,
+          "candidate_line_count": 7872,
+          "complete_body_bytes": 4002936,
+          "complete_body_count": 506,
+          "incomplete_boundary_excluded_bytes": 126,
+          "line_limit": 512,
+          "line_policy_exclusions": {
+            "line_gt_limit": 2205,
+            "line_gt_limit_bytes": 1734715,
+            "line_lt48": 27478,
+            "line_lt48_bytes": 450669,
+            "literal_lt24": 1377,
+            "literal_lt24_bytes": 105893,
+            "no_holes": 1392,
+            "no_holes_bytes": 238691,
+            "unterminated_line_bytes": 11889,
+            "unterminated_lines": 443
+          },
+          "note": "Family exclusions are disjoint by first failed criterion; secondary simultaneous failures are counted separately. Lines excluded by length, termination, missing holes or literal budget never enter a family.",
+          "overlapping_secondary_reasons": {
+            "family_lt2bodies|family_lt2distinct_raw": 7,
+            "family_lt3members|family_lt2bodies": 7292,
+            "family_lt3members|family_lt2distinct_raw": 7247
+          },
+          "primary_family_exclusions": {
+            "family_lt2bodies": 43,
+            "family_lt3members": 7322
+          },
+          "selected_family_count": 23,
+          "selected_family_distance_bytes": {
+            "count": 187,
+            "max": 1986563,
+            "mean": 87572.49732620321,
+            "median": 99,
+            "min": 52
+          },
+          "selected_line_sizes": {
+            "count": 210,
+            "max": 184,
+            "mean": 67.81904761904762,
+            "median": 60.0,
+            "min": 49
+          },
+          "selected_source_bytes": 14242
+        },
+        "body_codec_never_reaches": [
+          "incomplete <text> boundary material",
+          "unterminated final body lines",
+          "lines shorter than 48 bytes",
+          "lines longer than 512 bytes",
+          "lines without LINK/URL/NUMBER holes",
+          "lines with fewer than 24 literal bytes",
+          "families failing member/body/distinct-raw thresholds",
+          "paragraph structures spanning blank-line boundaries",
+          "arbitrary bounded token sequences not confined to a complete line"
+        ],
+        "columns": {
+          "all_raw_column_table_bytes": 4104769,
+          "all_raw_columns": 271,
+          "articletext_excluded_columns": 12,
+          "articletext_excluded_raw_column_bytes": 4003859,
+          "count_rank_max_block_values": 1024,
+          "count_rank_max_palette": 256,
+          "count_rank_min4_columns": 194,
+          "count_rank_min_values": 4,
+          "nonarticle_raw_column_bytes": 100910,
+          "nonarticle_raw_columns": 259,
+          "note": "Raw columns include all exact D2 value tables. Count/rank screening excludes article text, values >256 bytes, palettes >256 and columns with fewer than four values; block processing is bounded to 1,024 values and is not encoded here.",
+          "palette_le_256_columns": 259,
+          "value_le_256_columns": 259
+        },
+        "scope_note": "4096/16384 are eligibility-equivalent observations only. No long-line frame was built or encoded."
+      },
+      "sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77"
+    },
+    {
+      "bytes": 4194304,
+      "offset": 100000000,
+      "profile": {
+        "body_16384_equivalent": {
+          "candidate_family_count": 14676,
+          "candidate_line_bytes": 3148613,
+          "candidate_line_count": 17094,
+          "complete_body_bytes": 4023313,
+          "complete_body_count": 377,
+          "incomplete_boundary_excluded_bytes": 0,
+          "line_limit": 16384,
+          "line_policy_exclusions": {
+            "line_lt48": 26910,
+            "line_lt48_bytes": 474160,
+            "literal_lt24": 2969,
+            "literal_lt24_bytes": 208675,
+            "no_holes": 877,
+            "no_holes_bytes": 181723,
+            "unterminated_line_bytes": 10142,
+            "unterminated_lines": 364
+          },
+          "note": "Family exclusions are disjoint by first failed criterion; secondary simultaneous failures are counted separately. Lines excluded by length, termination, missing holes or literal budget never enter a family.",
+          "overlapping_secondary_reasons": {
+            "family_lt3members|family_lt2bodies": 13982,
+            "family_lt3members|family_lt2distinct_raw": 13914
+          },
+          "primary_family_exclusions": {
+            "family_lt2bodies": 23,
+            "family_lt2distinct_raw": 3,
+            "family_lt3members": 14330
+          },
+          "selected_family_count": 320,
+          "selected_family_distance_bytes": {
+            "count": 1870,
+            "max": 3046254,
+            "mean": 336307.47647058824,
+            "median": 141695.0,
+            "min": 54
+          },
+          "selected_line_sizes": {
+            "count": 2190,
+            "max": 278,
+            "mean": 73.64611872146119,
+            "median": 64.0,
+            "min": 49
+          },
+          "selected_source_bytes": 161285
+        },
+        "body_4096_equivalent": {
+          "candidate_family_count": 14676,
+          "candidate_line_bytes": 3148613,
+          "candidate_line_count": 17094,
+          "complete_body_bytes": 4023313,
+          "complete_body_count": 377,
+          "incomplete_boundary_excluded_bytes": 0,
+          "line_limit": 4096,
+          "line_policy_exclusions": {
+            "line_lt48": 26910,
+            "line_lt48_bytes": 474160,
+            "literal_lt24": 2969,
+            "literal_lt24_bytes": 208675,
+            "no_holes": 877,
+            "no_holes_bytes": 181723,
+            "unterminated_line_bytes": 10142,
+            "unterminated_lines": 364
+          },
+          "note": "Family exclusions are disjoint by first failed criterion; secondary simultaneous failures are counted separately. Lines excluded by length, termination, missing holes or literal budget never enter a family.",
+          "overlapping_secondary_reasons": {
+            "family_lt3members|family_lt2bodies": 13982,
+            "family_lt3members|family_lt2distinct_raw": 13914
+          },
+          "primary_family_exclusions": {
+            "family_lt2bodies": 23,
+            "family_lt2distinct_raw": 3,
+            "family_lt3members": 14330
+          },
+          "selected_family_count": 320,
+          "selected_family_distance_bytes": {
+            "count": 1870,
+            "max": 3046254,
+            "mean": 336307.47647058824,
+            "median": 141695.0,
+            "min": 54
+          },
+          "selected_line_sizes": {
+            "count": 2190,
+            "max": 278,
+            "mean": 73.64611872146119,
+            "median": 64.0,
+            "min": 49
+          },
+          "selected_source_bytes": 161285
+        },
+        "body_512": {
+          "candidate_family_count": 13186,
+          "candidate_line_bytes": 1946029,
+          "candidate_line_count": 15603,
+          "complete_body_bytes": 4023313,
+          "complete_body_count": 377,
+          "incomplete_boundary_excluded_bytes": 0,
+          "line_limit": 512,
+          "line_policy_exclusions": {
+            "line_gt_limit": 1564,
+            "line_gt_limit_bytes": 1257544,
+            "line_lt48": 26910,
+            "line_lt48_bytes": 474160,
+            "literal_lt24": 2969,
+            "literal_lt24_bytes": 208675,
+            "no_holes": 804,
+            "no_holes_bytes": 126763,
+            "unterminated_line_bytes": 10142,
+            "unterminated_lines": 364
+          },
+          "note": "Family exclusions are disjoint by first failed criterion; secondary simultaneous failures are counted separately. Lines excluded by length, termination, missing holes or literal budget never enter a family.",
+          "overlapping_secondary_reasons": {
+            "family_lt3members|family_lt2bodies": 12493,
+            "family_lt3members|family_lt2distinct_raw": 12424
+          },
+          "primary_family_exclusions": {
+            "family_lt2bodies": 23,
+            "family_lt2distinct_raw": 3,
+            "family_lt3members": 12840
+          },
+          "selected_family_count": 320,
+          "selected_family_distance_bytes": {
+            "count": 1870,
+            "max": 3046254,
+            "mean": 336307.47647058824,
+            "median": 141695.0,
+            "min": 54
+          },
+          "selected_line_sizes": {
+            "count": 2190,
+            "max": 278,
+            "mean": 73.64611872146119,
+            "median": 64.0,
+            "min": 49
+          },
+          "selected_source_bytes": 161285
+        },
+        "body_codec_never_reaches": [
+          "incomplete <text> boundary material",
+          "unterminated final body lines",
+          "lines shorter than 48 bytes",
+          "lines longer than 512 bytes",
+          "lines without LINK/URL/NUMBER holes",
+          "lines with fewer than 24 literal bytes",
+          "families failing member/body/distinct-raw thresholds",
+          "paragraph structures spanning blank-line boundaries",
+          "arbitrary bounded token sequences not confined to a complete line"
+        ],
+        "columns": {
+          "all_raw_column_table_bytes": 4100336,
+          "all_raw_columns": 203,
+          "articletext_excluded_columns": 9,
+          "articletext_excluded_raw_column_bytes": 4024109,
+          "count_rank_max_block_values": 1024,
+          "count_rank_max_palette": 256,
+          "count_rank_min4_columns": 170,
+          "count_rank_min_values": 4,
+          "nonarticle_raw_column_bytes": 76227,
+          "nonarticle_raw_columns": 194,
+          "note": "Raw columns include all exact D2 value tables. Count/rank screening excludes article text, values >256 bytes, palettes >256 and columns with fewer than four values; block processing is bounded to 1,024 values and is not encoded here.",
+          "palette_le_256_columns": 194,
+          "value_le_256_columns": 194
+        },
+        "scope_note": "4096/16384 are eligibility-equivalent observations only. No long-line frame was built or encoded."
+      },
+      "sha256": "fd30602741222df957545a821556c8428bb8c3e4ed45634367ae8470d901c6ec"
+    },
+    {
+      "bytes": 4194304,
+      "offset": 400000000,
+      "profile": {
+        "body_16384_equivalent": {
+          "candidate_family_count": 9688,
+          "candidate_line_bytes": 2792002,
+          "candidate_line_count": 11016,
+          "complete_body_bytes": 3740456,
+          "complete_body_count": 1190,
+          "incomplete_boundary_excluded_bytes": 4339,
+          "line_limit": 16384,
+          "line_policy_exclusions": {
+            "line_lt48": 27352,
+            "line_lt48_bytes": 475050,
+            "literal_lt24": 2891,
+            "literal_lt24_bytes": 200049,
+            "no_holes": 1406,
+            "no_holes_bytes": 244499,
+            "unterminated_line_bytes": 28856,
+            "unterminated_lines": 1027
+          },
+          "note": "Family exclusions are disjoint by first failed criterion; secondary simultaneous failures are counted separately. Lines excluded by length, termination, missing holes or literal budget never enter a family.",
+          "overlapping_secondary_reasons": {
+            "family_lt2bodies|family_lt2distinct_raw": 3,
+            "family_lt3members|family_lt2bodies": 9536,
+            "family_lt3members|family_lt2distinct_raw": 9393
+          },
+          "primary_family_exclusions": {
+            "family_lt2bodies": 83,
+            "family_lt2distinct_raw": 5,
+            "family_lt3members": 9570
+          },
+          "selected_family_count": 30,
+          "selected_family_distance_bytes": {
+            "count": 692,
+            "max": 2809136,
+            "mean": 57779.29046242774,
+            "median": 3980.5,
+            "min": 131
+          },
+          "selected_line_sizes": {
+            "count": 722,
+            "max": 811,
+            "mean": 217.21052631578948,
+            "median": 96.0,
+            "min": 49
+          },
+          "selected_source_bytes": 156826
+        },
+        "body_4096_equivalent": {
+          "candidate_family_count": 9688,
+          "candidate_line_bytes": 2792002,
+          "candidate_line_count": 11016,
+          "complete_body_bytes": 3740456,
+          "complete_body_count": 1190,
+          "incomplete_boundary_excluded_bytes": 4339,
+          "line_limit": 4096,
+          "line_policy_exclusions": {
+            "line_lt48": 27352,
+            "line_lt48_bytes": 475050,
+            "literal_lt24": 2891,
+            "literal_lt24_bytes": 200049,
+            "no_holes": 1406,
+            "no_holes_bytes": 244499,
+            "unterminated_line_bytes": 28856,
+            "unterminated_lines": 1027
+          },
+          "note": "Family exclusions are disjoint by first failed criterion; secondary simultaneous failures are counted separately. Lines excluded by length, termination, missing holes or literal budget never enter a family.",
+          "overlapping_secondary_reasons": {
+            "family_lt2bodies|family_lt2distinct_raw": 3,
+            "family_lt3members|family_lt2bodies": 9536,
+            "family_lt3members|family_lt2distinct_raw": 9393
+          },
+          "primary_family_exclusions": {
+            "family_lt2bodies": 83,
+            "family_lt2distinct_raw": 5,
+            "family_lt3members": 9570
+          },
+          "selected_family_count": 30,
+          "selected_family_distance_bytes": {
+            "count": 692,
+            "max": 2809136,
+            "mean": 57779.29046242774,
+            "median": 3980.5,
+            "min": 131
+          },
+          "selected_line_sizes": {
+            "count": 722,
+            "max": 811,
+            "mean": 217.21052631578948,
+            "median": 96.0,
+            "min": 49
+          },
+          "selected_source_bytes": 156826
+        },
+        "body_512": {
+          "candidate_family_count": 8199,
+          "candidate_line_bytes": 1604314,
+          "candidate_line_count": 9483,
+          "complete_body_bytes": 3740456,
+          "complete_body_count": 1190,
+          "incomplete_boundary_excluded_bytes": 4339,
+          "line_limit": 512,
+          "line_policy_exclusions": {
+            "line_gt_limit": 1611,
+            "line_gt_limit_bytes": 1246959,
+            "line_lt48": 27352,
+            "line_lt48_bytes": 475050,
+            "literal_lt24": 2891,
+            "literal_lt24_bytes": 200049,
+            "no_holes": 1328,
+            "no_holes_bytes": 185228,
+            "unterminated_line_bytes": 28856,
+            "unterminated_lines": 1027
+          },
+          "note": "Family exclusions are disjoint by first failed criterion; secondary simultaneous failures are counted separately. Lines excluded by length, termination, missing holes or literal budget never enter a family.",
+          "overlapping_secondary_reasons": {
+            "family_lt2bodies|family_lt2distinct_raw": 3,
+            "family_lt3members|family_lt2bodies": 8050,
+            "family_lt3members|family_lt2distinct_raw": 7907
+          },
+          "primary_family_exclusions": {
+            "family_lt2bodies": 83,
+            "family_lt2distinct_raw": 5,
+            "family_lt3members": 8082
+          },
+          "selected_family_count": 29,
+          "selected_family_distance_bytes": {
+            "count": 650,
+            "max": 2809136,
+            "mean": 56901.49076923077,
+            "median": 3787.0,
+            "min": 131
+          },
+          "selected_line_sizes": {
+            "count": 679,
+            "max": 441,
+            "mean": 180.23122238586157,
+            "median": 96,
+            "min": 49
+          },
+          "selected_source_bytes": 122377
+        },
+        "body_codec_never_reaches": [
+          "incomplete <text> boundary material",
+          "unterminated final body lines",
+          "lines shorter than 48 bytes",
+          "lines longer than 512 bytes",
+          "lines without LINK/URL/NUMBER holes",
+          "lines with fewer than 24 literal bytes",
+          "families failing member/body/distinct-raw thresholds",
+          "paragraph structures spanning blank-line boundaries",
+          "arbitrary bounded token sequences not confined to a complete line"
+        ],
+        "columns": {
+          "all_raw_column_table_bytes": 3974323,
+          "all_raw_columns": 201,
+          "articletext_excluded_columns": 9,
+          "articletext_excluded_raw_column_bytes": 3742473,
+          "count_rank_max_block_values": 1024,
+          "count_rank_max_palette": 256,
+          "count_rank_min4_columns": 114,
+          "count_rank_min_values": 4,
+          "nonarticle_raw_column_bytes": 231850,
+          "nonarticle_raw_columns": 192,
+          "note": "Raw columns include all exact D2 value tables. Count/rank screening excludes article text, values >256 bytes, palettes >256 and columns with fewer than four values; block processing is bounded to 1,024 values and is not encoded here.",
+          "palette_le_256_columns": 182,
+          "value_le_256_columns": 192
+        },
+        "scope_note": "4096/16384 are eligibility-equivalent observations only. No long-line frame was built or encoded."
+      },
+      "sha256": "a07035d4de761fc30cee70f4528156e8128abf7430222cfd63c2311168ea7f17"
+    }
+  ],
+  "schema": "cix-hutter-wikipedia-eligibility-audit-v1",
+  "status": "READ_ONLY_PROFILE_NOT_COMPRESSION"
+}

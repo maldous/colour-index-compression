@@ -97,6 +97,11 @@ Ranks are only within the same input, opportunity strength, evidence stratum and
 | repeated_body_families-absent | body-lines-v1 | /root/opportunity_trials | VERIFIED_SCREENING |
 | repeated_body_families-strong | original | /root/opportunity_trials | VERIFIED_SCREENING |
 | field_dictionary_composition-strong | remaining | /root/bounded_track_a | VERIFIED_SCREENING |
+| paragraph-unit-correctness-v1 | original | /root/paragraph_trials | DECLARED_NOT_STARTED |
+| paragraph-unit-correctness-v1 | paragraph-16384 | /root/paragraph_trials | DECLARED_NOT_STARTED |
+| paragraph-unit-correctness-v1 | line-4096 | /root/paragraph_trials | DECLARED_NOT_STARTED |
+| census-target-v2-4MiB | original | /root/paragraph_trials | DECLARED_NOT_STARTED |
+| census-target-v2-4MiB | paragraph-16384 | /root/paragraph_trials | DECLARED_NOT_STARTED |
 
 ## Cost and qualification boundaries
 
