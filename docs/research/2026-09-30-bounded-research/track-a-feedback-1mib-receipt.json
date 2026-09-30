@@ -1,0 +1,67 @@
+{
+  "causal_bytes": 602638,
+  "elapsed_seconds": 26.934174379799515,
+  "feedback_bytes": 601805,
+  "feedback_minus_causal_bytes": -833,
+  "frozen_codec_sha256": "83ca9555da293cf1666b353232724891040e1935abfdf24cb260410814876174",
+  "hypothesis": {
+    "configuration": "Frozen Track A feedback encoder; no parameter changes after development/holdout validation.",
+    "hypothesis": "The frozen paid composition-feedback benefit persists on a longer contiguous Wikipedia region after all count metadata is charged.",
+    "matched_control": "Unchanged causal range codec with the same high-nibble predecessor context.",
+    "promotion_criteria": "Both physical streams independently decode and feedback is smaller; 8 MiB only if the 1 MiB observed elapsed time makes it feasible within its separately predeclared 300-second budget.",
+    "resource_budget": {
+      "cpu": "logical CPU 2",
+      "ram_bytes": 2147483648,
+      "swap_bytes": 0,
+      "temporary_disk_bytes": 1073741824,
+      "wall_seconds": 300,
+      "warmup": "none"
+    }
+  },
+  "input": {
+    "bytes": 1048576,
+    "offset": 0,
+    "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+    "sha256": "4fb5efa9f35df431737731bf3c8f38a467b69731940ff82a4ee0e218aae58834"
+  },
+  "peak_rss_kib": 25640,
+  "phase": "completed",
+  "result": {
+    "input_bytes": 1048576,
+    "input_sha256": "4fb5efa9f35df431737731bf3c8f38a467b69731940ff82a4ee0e218aae58834",
+    "name": "enwik9-contiguous-offset-0-1MiB",
+    "rows": [
+      {
+        "composition_metadata_bytes": 0,
+        "contexts_used": 14,
+        "first_literal_bytes": 1,
+        "frame_sha256": "31fd7146cb465e228b333eff4d744520663efad1d56722bafe904e2853794da1",
+        "framing_bytes": 14,
+        "independent_decode_sha256": "4fb5efa9f35df431737731bf3c8f38a467b69731940ff82a4ee0e218aae58834",
+        "method": "causal",
+        "payload_bits": 4820945,
+        "payload_bytes": 602619,
+        "physical_bytes": 602638,
+        "restored_sha256": "4fb5efa9f35df431737731bf3c8f38a467b69731940ff82a4ee0e218aae58834",
+        "round_trip": true
+      },
+      {
+        "composition_metadata_bytes": 2138,
+        "contexts_used": 14,
+        "first_literal_bytes": 1,
+        "frame_sha256": "2a4f376aab902007899395d9e6ecb7ff8faf59b766f74faa02771e4d036f08e9",
+        "framing_bytes": 14,
+        "independent_decode_sha256": "4fb5efa9f35df431737731bf3c8f38a467b69731940ff82a4ee0e218aae58834",
+        "method": "feedback",
+        "payload_bits": 4797184,
+        "payload_bytes": 599648,
+        "physical_bytes": 601805,
+        "restored_sha256": "4fb5efa9f35df431737731bf3c8f38a467b69731940ff82a4ee0e218aae58834",
+        "round_trip": true
+      }
+    ]
+  },
+  "schema": "cix-bounded-track-a-feedback-scale-v1",
+  "throughput_mib_s": 0.03712755349018586,
+  "verification": "independent child decoder SHA-256 equals input for both physical streams"
+}

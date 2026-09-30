@@ -1,0 +1,108 @@
+{
+  "canonical_input": "/home/user/src/cix-baseline-data/inputs/enwik9",
+  "causal_total_bytes": 76263,
+  "dataset_role": "heldout",
+  "development_regions": [
+    {
+      "input_bytes": 65536,
+      "input_sha256": "43fbd7caa473ba38b9a7c345b8a14c710b9c6f3850df9b07171e7199b396c373",
+      "name": "enwik9-offset-700000000",
+      "rows": [
+        {
+          "composition_metadata_bytes": 0,
+          "contexts_used": 14,
+          "first_literal_bytes": 1,
+          "frame_sha256": "df75d01cec4ce836c65cad5a6be107bc41f914d6ffcb09ff78202738f4e16ca6",
+          "framing_bytes": 14,
+          "independent_decode_sha256": "43fbd7caa473ba38b9a7c345b8a14c710b9c6f3850df9b07171e7199b396c373",
+          "method": "causal",
+          "payload_bits": 306067,
+          "payload_bytes": 38259,
+          "physical_bytes": 38277,
+          "restored_sha256": "43fbd7caa473ba38b9a7c345b8a14c710b9c6f3850df9b07171e7199b396c373",
+          "round_trip": true
+        },
+        {
+          "composition_metadata_bytes": 1133,
+          "contexts_used": 14,
+          "first_literal_bytes": 1,
+          "frame_sha256": "73c9f6bcf90b99bac7610ca1f787fe21893bad6d8cccc7dc95031e8df80fa6ac",
+          "framing_bytes": 14,
+          "independent_decode_sha256": "43fbd7caa473ba38b9a7c345b8a14c710b9c6f3850df9b07171e7199b396c373",
+          "method": "feedback",
+          "payload_bits": 294580,
+          "payload_bytes": 36823,
+          "physical_bytes": 37974,
+          "restored_sha256": "43fbd7caa473ba38b9a7c345b8a14c710b9c6f3850df9b07171e7199b396c373",
+          "round_trip": true
+        }
+      ]
+    },
+    {
+      "input_bytes": 65536,
+      "input_sha256": "3025e20ba4d9a5553faf61a98b5680743dc7f1644de3a5f00599f231e3d3f403",
+      "name": "enwik9-offset-850000000",
+      "rows": [
+        {
+          "composition_metadata_bytes": 0,
+          "contexts_used": 13,
+          "first_literal_bytes": 1,
+          "frame_sha256": "44975465e993bafda045e513f1d8c4ba60083d9ece03134088719843d608a088",
+          "framing_bytes": 14,
+          "independent_decode_sha256": "3025e20ba4d9a5553faf61a98b5680743dc7f1644de3a5f00599f231e3d3f403",
+          "method": "causal",
+          "payload_bits": 303738,
+          "payload_bytes": 37968,
+          "physical_bytes": 37986,
+          "restored_sha256": "3025e20ba4d9a5553faf61a98b5680743dc7f1644de3a5f00599f231e3d3f403",
+          "round_trip": true
+        },
+        {
+          "composition_metadata_bytes": 1137,
+          "contexts_used": 13,
+          "first_literal_bytes": 1,
+          "frame_sha256": "01832c0c926ade5041c5142e0bf461f9be5077c53f30c3337dea9b7a58161dee",
+          "framing_bytes": 14,
+          "independent_decode_sha256": "3025e20ba4d9a5553faf61a98b5680743dc7f1644de3a5f00599f231e3d3f403",
+          "method": "feedback",
+          "payload_bits": 292401,
+          "payload_bytes": 36551,
+          "physical_bytes": 37706,
+          "restored_sha256": "3025e20ba4d9a5553faf61a98b5680743dc7f1644de3a5f00599f231e3d3f403",
+          "round_trip": true
+        }
+      ]
+    }
+  ],
+  "feedback_minus_causal_bytes": -583,
+  "feedback_total_bytes": 75680,
+  "hypothesis": {
+    "expected_mechanism": "Known successor deficits reduce the candidate alphabet and force late context symbols.",
+    "heldout_ranges_untouched": [
+      {
+        "bytes": 65536,
+        "offset": 700000000
+      },
+      {
+        "bytes": 65536,
+        "offset": 850000000
+      }
+    ],
+    "hypothesis": "Paid context successor compositions may improve a causal predictor enough to repay their physical metadata.",
+    "matched_control": "Causal high-nibble context arithmetic with no future composition; feedback uses the same arithmetic backend after paying its complete composition vector.",
+    "promotion_criteria": "feedback smaller by >=0.5% on two disjoint development regions, all child-process decodes exact; otherwise do not read holdouts.",
+    "resource_budget": {
+      "cpu": "logical CPU 2",
+      "ram_bytes": 2147483648,
+      "swap_bytes": 0,
+      "temporary_disk_bytes": 1073741824,
+      "wall_seconds": 300,
+      "warmup": "none"
+    }
+  },
+  "implementation_sha256": "83ca9555da293cf1666b353232724891040e1935abfdf24cb260410814876174",
+  "peak_rss_kib": 20736,
+  "phase": "completed",
+  "schema": "cix-bounded-track-a-feedback-v1",
+  "verification": "independent child decoder SHA-256 equals input for every physical frame"
+}

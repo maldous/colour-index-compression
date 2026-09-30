@@ -24,3 +24,23 @@ Do not interpret this commit as completion of all harness acceptance requirement
 
 Original full-enwik9 jobs were cancelled; no Hutter score or eligibility exists.
 The generic portfolio remains unchanged. Full replacement runs are forbidden.
+
+## Subsequent completed measurements
+
+Paid composition-feedback using arithmetic coding passed the reserved 64 KiB
+Wikipedia holdouts against its weak causal high-nibble control: 38,277 to
+37,974 and 37,986 to 37,706 bytes. The unchanged model then saved 833 bytes
+on 1 MiB (602,638 to 601,805) and 1,527 bytes on 8 MiB (4,798,139 to
+4,796,612). Relative benefit falls to 0.032%. This does not justify larger
+promotion or replacement of the CIX incumbent. It does not beat the independently
+verified zstd control (23,182 bytes on the first 64 KiB, versus feedback 38,086).
+The long-trial elapsed/throughput fields cover a complete comparison pair and
+verification work; they are not standalone compressor-throughput measurements.
+
+Track C fixes identified above are now implemented: separate encode/decode,
+decoder input hidden, immutable snapshots, shared deadline, CPU leases, cgroup
+RAM/swap bounds, child cleanup, cancellation tombstones and artifact-rehashed
+reuse. Six focused tests and an actual 64 KiB zstd encode/decode control pass.
+Memory samples remain explicitly lower bounds, not reliable peak RSS for short
+processes. Root independently redecoded 24 retained earlier frames and rechecked
+physical accounting in a process with canonical input access blocked.
