@@ -46,3 +46,7 @@ canonical full encode and independent decode and measured resource limits. Concu
 research timings are not qualification timings. No score or rank from samples.
 Agents own disjoint files; no revert/reset/clean, preserve untracked evidence. Root commits
 shared changes. See docs/research/2026-09-30-bounded-research/ for current plans/results.
+
+Latest GitHub steering: after each completed addition, root commits and pushes to
+private review branch research/silesia-competitive. Keep Actions disabled and
+verify remote SHA. Do not expose partial files or silently hold completed work.
