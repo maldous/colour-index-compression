@@ -45,7 +45,7 @@ def export(site, commit):
     backend_public = []
     reference_comparison = []
     for row in backend['rows']:
-        item = {k: row[k] for k in ('cell_id', 'label', 'matrix_stage', 'configuration', 'status', 'archive_bytes', 'archive_sha256', 'verification', 'encode', 'decode', 'selected')}
+        item = {k: row[k] for k in ('cell_id', 'label', 'matrix_stage', 'configuration', 'budget', 'status', 'archive_bytes', 'archive_sha256', 'verification', 'encode', 'decode', 'selected')}
         item['input'] = by_label[row['label']]
         item['receipt'] = 'data/receipts/' + row['cell_id'] + '.json'
         for key in ('portfolio_reports', 'adaptive_reports', 'diagnostic_reports', 'minimum_selection_assertion'):
@@ -75,7 +75,7 @@ def export(site, commit):
         for stale in ('accounting','search_overhead_seconds','completed_at'):
             old.pop(stale, None)
         old.update(compressed_bytes=size, ratio=n/size, compressed_percent=100*size/n, saving_percent=100*(1-size/n),
-                   bits_per_byte=8*size/n, completed_at=backend['collected_at'],
+                   bits_per_byte=8*size/n, completed_at=backend['collected_at'], cpu=row['budget']['cpu'],
                    encode_seconds=enc, decode_seconds=dec, encode_mib_s=n/1048576/enc, decode_mib_s=n/1048576/dec,
                    encode_rss_mib=row['encode']['peak_rss_kib']/1024, decode_rss_mib=row['decode']['peak_rss_kib']/1024,
                    repetitions=3, preset=f"Integrated CIX · {profile} · {row['selected']}", configuration=row['configuration'],
