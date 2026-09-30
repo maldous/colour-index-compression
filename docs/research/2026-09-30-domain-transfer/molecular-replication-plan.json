@@ -1,0 +1,11 @@
+{
+  "schema": "cix-molecular-replication-panel-plan-v1",
+  "purpose": "fixed non-overlapping convenience replication panel after the frozen 2-D first result; not a representative molecular population",
+  "cids": [176, 180, 239, 280, 6276, 6322, 784, 887],
+  "selection_reason": "predeclared non-overlap with the original eight-CID panel; convenience panel only, no statistical population claim",
+  "request_template": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/record/SDF/?record_type=2d",
+  "response_policy": "retain every returned raw SDF response; record a failed CID without substitution or omission",
+  "preparation": "literal concatenation of successful response bytes in declared CID order; no reformatting, coordinate conversion, hydrogen generation, transform or inspection",
+  "measurement": "NOT_RUN; root scheduler alone may run frozen original-vs-hydrogen_slots_v1 matched PAQ later",
+  "download_limit_bytes": 204800
+}

@@ -1,0 +1,39 @@
+{
+  "schema": "cix-numerical-replication-provenance-v1",
+  "status": "ASSET_PREPARED_MEASUREMENT_NOT_RUN",
+  "retrieved_at": "2026-09-30T20:10:01+10:00",
+  "asset": {
+    "path": "docs/research/2026-09-30-domain-transfer/assets/noaa-water-level-202401-seattle.csv",
+    "bytes": 288330,
+    "sha256": "628cbe421f90e9f8453e87fba1ef6cc16a981c94475093b1f42f8bb8a3b2fa4f",
+    "line_count_including_header": 7441,
+    "file_mode": "0444",
+    "stored_representation": "literal API response; no reformatting, transform, inspection pass, compression, or screening compression was run during acquisition"
+  },
+  "source": {
+    "authority": "NOAA National Ocean Service, Center for Operational Oceanographic Products and Services",
+    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=20240101&end_date=20240131&station=9447130&product=water_level&datum=MLLW&time_zone=gmt&units=metric&format=csv",
+    "station": "9447130",
+    "station_name": "Seattle, WA",
+    "product": "water_level",
+    "datum": "MLLW",
+    "time_zone": "gmt",
+    "units": "metric",
+    "date_interval": "2024-01-01 through 2024-01-31"
+  },
+  "compatibility": {
+    "header_literal_match": true,
+    "full_adapter_validation": "NOT_RUN",
+    "policy_if_unsupported": "Record UNSUPPORTED and do not substitute, reformat, or run screening compression."
+  },
+  "measurement": {
+    "frozen_adapter": "numeric-delta-columns-v1",
+    "control_backend": "PAQ v216 -4 AVX2",
+    "candidate_backend": "identical PAQ v216 -4 AVX2",
+    "transform_runs": 0,
+    "paq_runs": 0,
+    "scheduler": "root shared scheduler only",
+    "status": "NOT_RUN"
+  },
+  "interpretation_limit": "This is one geographic convenience replication. It cannot establish a general numerical-domain or water-level-class compression claim."
+}
