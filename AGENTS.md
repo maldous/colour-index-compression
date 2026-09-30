@@ -35,6 +35,18 @@ Read `docs/research/2026-09-29-hutter-prize-eligibility.md` and
   not create or modify workflow files. Preserve external-source licenses and
   do not invent a project license.
 
+## Latest steering — parallel implementation during baseline
+
+On 30 September the user explicitly authorized parallelising CIX code while
+waiting for the current baseline. This supersedes the earlier prohibition on
+implementation and small verification experiments before baseline publication.
+Preserve the running frozen service and its runtime unchanged; do not duplicate
+the full enwik9 encode. Develop and verify bounded parallel execution on other
+CPUs, reserving CPU 8 and its sibling 9. Record overlapping workload intervals:
+remaining baseline timings may be affected by shared hardware contention.
+Never claim that parallel candidate execution accelerates the already-running
+sequential PAQ stream or that a changed chunked profile is the same baseline.
+
 ## Immediate priority — full existing-CIX enwik9 baseline
 
 As of 29 September 2026, the user explicitly requires a complete baseline of
