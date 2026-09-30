@@ -25,6 +25,8 @@ from datetime import datetime, timezone
 
 PROGRESS_SECONDS = 30.0
 MAX_SCREENING_SECONDS = 300
+MAX_MODERATE_CONTIGUOUS_SECONDS = 1200
+MAX_MODERATE_CONTIGUOUS_INPUT_BYTES = 16 * 1024 * 1024
 REQUIRED = ("hypothesis", "matched_control", "input", "configuration", "mechanism",
             "budget", "promotion_criteria", "encode_command", "decode_command", "artifacts", "build_paths")
 
@@ -96,8 +98,14 @@ def load_manifest(path: Path) -> tuple[dict, str]:
     for key in ("wall_seconds", "max_rss_bytes", "max_temp_bytes", "cpu"):
         if key not in budget:
             raise ValueError("manifest budget missing: " + key)
-    if not 0 < int(budget["wall_seconds"]) <= MAX_SCREENING_SECONDS:
-        raise ValueError("screening wall_seconds must be 1..300")
+    wall_seconds = int(budget["wall_seconds"])
+    if not 0 < wall_seconds <= MAX_SCREENING_SECONDS:
+        if not (wall_seconds <= MAX_MODERATE_CONTIGUOUS_SECONDS
+                and manifest.get("stage") == "moderate_contiguous"
+                and isinstance(manifest.get("longer_budget_justification"), str)
+                and manifest["longer_budget_justification"].strip()
+                and int(inp["length"]) <= MAX_MODERATE_CONTIGUOUS_INPUT_BYTES):
+            raise ValueError("screening wall_seconds must be 1..300; 301..1200 requires moderate_contiguous stage, justification, and input <=16MiB")
     if int(inp["length"]) >= 1_000_000_000:
         raise ValueError("full enwik9 runs are forbidden by the screening runner")
     return manifest, hashlib.sha256(canonical(manifest)).hexdigest()
@@ -216,6 +224,10 @@ def execute_phase(*, unit: str, command: list[str], work: Path, destination: Pat
                 exit_code = unit_int(props, "ExecMainStatus") if props else 1
                 if props.get("Result", "success") != "success": exit_code = exit_code or 1
                 if props.get("Result") == "timeout": reason = "wall_budget_exhausted"
+                # RuntimeMaxSec is the same declared wall budget; if systemd
+                # has already ended the unit at that exact boundary, preserve
+                # the supervisor cause without guessing from an early failure.
+                if reason is None and exit_code and elapsed >= wall: reason = "wall_budget_exhausted"
                 break
             if elapsed >= wall or peak_temp > max_temp or peak_memory > max_memory:
                 reason = "wall_budget_exhausted" if elapsed >= wall else ("temp_budget_exhausted" if peak_temp > max_temp else "memory_budget_exhausted")
@@ -224,11 +236,15 @@ def execute_phase(*, unit: str, command: list[str], work: Path, destination: Pat
     finally:
         stop_unit(unit)
     elapsed = time.monotonic() - started
+    completed = exit_code == 0 and reason is None
+    processed = input_bytes if completed else None
     with progress.open("a") as log:
-        log.write(json.dumps({"at": utcnow(), "phase": unit, "processed_bytes": input_bytes,
-            "elapsed_seconds": elapsed, "throughput_bytes_per_second": input_bytes / elapsed if elapsed else None,
+        log.write(json.dumps({"at": utcnow(), "phase": unit, "processed_bytes": processed,
+            "elapsed_seconds": elapsed, "throughput_bytes_per_second": processed / elapsed if processed and elapsed else None,
             "cgroup_memory_high_water_bytes": peak_memory, "temp_bytes": peak_temp, "cpu": cpu,
-            "completed": True}) + "\n")
+            "cpu_usage_seconds": cpu_usage / 1_000_000_000,
+            "cpu_utilization": (cpu_usage / 1_000_000_000) / elapsed if elapsed else None,
+            "completed": completed, "phase_ended": True}) + "\n")
     return {"phase": unit, "command": command, "exit_code": exit_code, "stop_reason": reason,
             "elapsed_seconds": elapsed, "sampled_cgroup_memory_high_water_bytes": peak_memory,
             "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",

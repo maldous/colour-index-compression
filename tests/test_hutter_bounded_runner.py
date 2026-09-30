@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from benchmarks.hutter_bounded_runner import run
+from benchmarks.hutter_bounded_runner import load_manifest, run
 
 
 def runner_cpu():
@@ -65,6 +65,8 @@ def test_timeout_kills_child_process_group_and_writes_failure(tmp_path):
     assert result["status"] == "FAILED" and result["phases"][0]["stop_reason"] == "wall_budget_exhausted"
     child_pid = int(next((tmp_path / "results").glob("*/work/childpid")).read_text())
     assert not Path(f"/proc/{child_pid}").exists()
+    progress = [json.loads(line) for line in next((tmp_path / "results").glob("*/progress.jsonl")).read_text().splitlines()]
+    assert progress[-1]["completed"] is False and progress[-1]["processed_bytes"] is None
 
 
 def test_unverified_receipt_is_not_reused_and_build_change_is_a_new_identity(tmp_path):
@@ -86,6 +88,27 @@ def test_temp_budget_stops_run(tmp_path):
     path = manifest(tmp_path, source, script, budget={"wall_seconds": 3, "max_rss_bytes": 1_000_000_000, "max_temp_bytes": 100, "cpu": runner_cpu()})
     result = run(path, tmp_path / "results", tmp_path)
     assert result["phases"][0]["stop_reason"] == "temp_budget_exhausted"
+
+
+def test_moderate_contiguous_budget_requires_all_explicit_guards(tmp_path):
+    source = tmp_path / "input"; source.write_bytes(b"abc")
+    script = tmp_path / "copy.py"; write_copy(script)
+    path = manifest(tmp_path, source, script, budget={"wall_seconds": 1200, "max_rss_bytes": 1_000_000_000, "max_temp_bytes": 1_000_000, "cpu": runner_cpu()})
+    with pytest.raises(ValueError, match="moderate_contiguous"):
+        load_manifest(path)
+    row = json.loads(path.read_text()); row["stage"] = "moderate_contiguous"; row["longer_budget_justification"] = "contiguous 4 MiB context screen"; path.write_text(json.dumps(row))
+    assert load_manifest(path)[0]["budget"]["wall_seconds"] == 1200
+    row["input"]["length"] = 16 * 1024 * 1024 + 1; path.write_text(json.dumps(row))
+    with pytest.raises(ValueError, match="input <=16MiB"):
+        load_manifest(path)
+
+
+def test_regular_budget_limit_remains_300_seconds(tmp_path):
+    source = tmp_path / "input"; source.write_bytes(b"abc")
+    script = tmp_path / "copy.py"; write_copy(script)
+    path = manifest(tmp_path, source, script, budget={"wall_seconds": 301, "max_rss_bytes": 1_000_000_000, "max_temp_bytes": 1_000_000, "cpu": runner_cpu()})
+    with pytest.raises(ValueError, match="1..300"):
+        load_manifest(path)
 
 
 def test_cached_artifact_tamper_is_refused(tmp_path):

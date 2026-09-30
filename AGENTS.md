@@ -50,3 +50,5 @@ shared changes. See docs/research/2026-09-30-bounded-research/ for current plans
 Latest GitHub steering: after each completed addition, root commits and pushes to
 private review branch research/silesia-competitive. Keep Actions disabled and
 verify remote SHA. Do not expose partial files or silently hold completed work.
+
+Moderate-scale decision update: read docs/research/2026-09-30-wikipedia-structure/moderate/plan.json. Test unchanged A/B/C/D at 4 MiB on three fixed development regions with pinned PAQv216 -4 AVX2. Tiny-region losses alone do not reject reuse mechanisms. Four jobs maximum, distinct physical cores, 3GB each, swap disabled, shared encode/decode ceiling1200s predeclared. No holdout or full-enwik9 launch. Report every candidate complete size before selection.
