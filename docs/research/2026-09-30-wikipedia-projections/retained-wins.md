@@ -1,14 +1,14 @@
 # Retained compression wins and boundaries
 
-The strongest retained result is still **Silesia portfolio 26: 25,481,891 bytes**, exact across all 12 selected streams and 2,343,620 bytes below the historical 27,825,511-byte comparison leader. It is a Silesia result, not a Wikipedia or Hutter score.
+The strongest retained result is still **Silesia portfolio 26: 25,481,891 bytes**, exact across all 12 selected streams and 2,343,620 bytes below the historical 27,825,511-byte comparison leader. Its preserved implementation revision is `77615c7e4f3aeadf84c0a7397436acc420df91f3`. It is a Silesia result, not a Wikipedia or Hutter score.
 
-Portfolio 25’s complete pipeline was 25,502,494 bytes, 3,301,285 bytes (11.46%) below its local PAQ v216 `-8` total. Its major attributable replacements were São grouped prediction/corrections (1,624,760 B), Mozilla executable constraints (642,346 B), NCI geometry/hydrogen slots (361,713 B), OSDB field palettes plus remaining-count arithmetic (319,094 B), and MR volume representation (149,560 B). Webster’s 203,812 B change is a PAQ backend/settings change. These are complete pipeline outcomes; they do **not** prove that CIX rank coding beat PAQ with identical information.
+Portfolio 25’s complete pipeline was 25,502,494 bytes, 3,301,285 bytes (11.46%) below its local PAQ v216 `-8` total. Its source revision was `f26d32836c15cb1a5e37ebfddd5826c4b33ff8a6` (source-bundle SHA-256 `82057df6eb217602cbb3e5b10538f00e30acedd791c88dbe9cef2f81b9e7414e`). Its major attributable replacements were São grouped quantized-coordinate prediction with raw correction IDs before PAQ (1,624,760 B), Mozilla executable constraints (642,346 B), NCI geometry/hydrogen slots (361,713 B), OSDB field palettes plus remaining-count arithmetic (319,094 B), and MR volume representation (149,560 B). Webster’s 203,812 B change is a PAQ backend/settings change. These are complete pipeline outcomes; they do **not** prove that CIX rank coding beat PAQ with identical information.
 
 The most credible bounded Wikipedia mechanism result is paid successor-composition feedback with arithmetic coding. It saved 833 B (0.138%) on a 1 MiB contiguous region, 1,527 B (0.0318%) on 8 MiB, and 583 B (0.764%) across two pre-frozen 64 KiB holdouts. Every frame had an independent exact decode. This is not a PAQ comparison and the shrinking percentage argues against extrapolation.
 
 | Evidence class | Result | Meaning |
 | --- | --- | --- |
-| Synthetic matched rank/arithmetic | 1 of 80 matched conditioned-arithmetic cases favored rank; all round-trip | A narrow mechanism result, not generic superiority |
+| Controlled rank/arithmetic diagnostics | 1 of 80 synthetic tournament cases favored rank; the separate 1-byte exact winner is a 256-byte Silesia-derived OSDB projection | Narrow mechanism diagnostics, not generic superiority or Wikipedia evidence |
 | Wikipedia structure, fixed 4 MiB development | All completed transformations larger than the 799,638 B raw PAQ control | Retained negative evidence |
 | Wikipedia paragraph, selected 4 MiB target | 166,476 B vs 158,796 B raw PAQ, +7,680 B | Verified targeted-real negative |
 | Wikipedia line-4096, selected 4 MiB target | 165,765 B vs 158,796 B, +6,969 B | Completed size-rejected archive; decode intentionally skipped, so unverified |
