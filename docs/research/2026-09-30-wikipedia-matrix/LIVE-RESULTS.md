@@ -28,8 +28,24 @@ Ranks are only within the same input, opportunity strength, evidence stratum and
 | [rank / legacy  / 0+42174](../../../docs/research/2026-09-30-wikipedia-columns/runs/77c85af67720c6cfff311a939e8f437b01358bec90f9701c7b2e8c3e627f539f/receipt.json) | 509 | MISSING | PASS | 1.42 / 1.38 | 780951552 | development/holdout gate required |
 | [raw / legacy  / 0+42174](../../../docs/research/2026-09-30-wikipedia-columns/runs/9afdd46bc8a0cc1ce0790a7f0bbb36e3a6bd57611d3808bf4d3f908a5575acf5/receipt.json) | 434 | MISSING | PASS | 2.56 / 2.25 | 784084992 | development/holdout gate required |
 | [remaining / legacy  / 0+42174](../../../docs/research/2026-09-30-wikipedia-columns/runs/d2c9241c2c1ac8c694c684265b37674fe706d3bb9cf93f163978a1676528c90f/receipt.json) | 516 | MISSING | PASS | 1.42 / 1.39 | 780353536 | development/holdout gate required |
+| [original / field_dictionary_composition absent / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-017121b50ebd3eb6218c4f33/f15b1e676b70601f61acdd08193c950614f4ae7b8d09b03da34355de3a64e7c9/receipt.json) | 1099 | MISSING | PASS | 4.50 / 4.50 | 480415744 | matched control |
+| [original / field_dictionary_composition weak / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-065adb6e44b58d16d0685e90/bfc75fe39fa193df108a499525aff7eafaeddee9ced11bb24cfff97ece7d9c2f/receipt.json) | 1305 | MISSING | PASS | 4.59 / 4.61 | 480694272 | matched control |
+| [body-lines-v1 / repeated_body_families weak / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-0d062f2e02c85a6b76ff9a63/6aef0bb68462540158cc9e5d509d97c82d4313dfb762fd6103302badfbee1a6b/receipt.json) | 2241 | MISSING | PASS | 4.95 / 4.92 | 806006784 | development/holdout gate required |
+| [original / field_dictionary_composition strong / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-1069aa815e8088426e909966/1dea187996c7ec7a8e9154fb49f624f5949dfd58e19a5530748391f8807e2985/receipt.json) | 1199 | MISSING | PASS | 4.56 / 4.53 | 480272384 | matched control |
+| [raw / field_dictionary_composition weak / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-3c49489c3ddda5a5a7f9d84d/14cff665749871a4c1249216daf22894b882fbabbbed8b7ef24719831e6fc669/receipt.json) | 1561 | MISSING | PASS | 4.78 / 4.73 | 800464896 | development/holdout gate required |
+| [original / repeated_body_families absent / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-47b9c1a3e3a323bdb8a63577/e426c7b85173417ab876e1c845f0ff8ba7fa958893662965fc3a5dba85ce6db2/receipt.json) | 2148 | MISSING | PASS | 4.57 / 4.60 | 482803712 | matched control |
 | [body-lines-v1 / repeated_body_families strong / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-67614223434d5e72ed17609c/062e414fce9381a047e1adf95e01fbf89404da555c3641c2d3e61c28e0e9a6b3/receipt.json) | 1926 | MISSING | PASS | 5.83 / 5.57 | 805269504 | development/holdout gate required |
+| [rank / field_dictionary_composition weak / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-7671081b25bb0c7f2e575a75/d892dc627036b39b1d82314da551717f649b238bc1ee9866eb09b11431f58733/receipt.json) | 1673 | MISSING | PASS | 4.35 / 4.33 | 680333312 | development/holdout gate required |
+| [remaining / field_dictionary_composition absent / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-7962aace5f17c43d36b6a392/f9a27e9fe9f1d7d5e7ae6b8fec52f65b21f91877c109160aa15235e1a3bf990c/receipt.json) | 1360 | MISSING | PASS | 4.77 / 4.73 | 679796736 | development/holdout gate required |
+| [raw / field_dictionary_composition strong / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-8e0f794d2f221f81d2480eb4/e31919df90dfb72d981af844a6c60dda209353a7da162f90ca7c8e45014c8b8a/receipt.json) | 1444 | MISSING | PASS | 4.75 / 4.72 | 800215040 | development/holdout gate required |
+| [remaining / field_dictionary_composition weak / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-916387e6f7826866c4dde0cf/d64445bcc4b8533e394178df89df81f9709cb817462c784dbbbece9aebb18a1c/receipt.json) | 1682 | MISSING | PASS | 4.44 / 4.38 | 680275968 | development/holdout gate required |
+| [original / repeated_body_families weak / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-967725b7e4966e00639940af/4305a6652e3e9dda87b56f2e6b55eeb97d28a08a6026c1873c2198ee084a26c9/receipt.json) | 2005 | MISSING | PASS | 4.59 / 4.68 | 482414592 | matched control |
+| [rank / field_dictionary_composition absent / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-bf85bd22eceffff10c4cf49f/60841f12cf8e460a37ef12b959413af562f2b568e3d80199ac47d4faa3a7b03c/receipt.json) | 1355 | MISSING | PASS | 4.69 / 4.68 | 679407616 | development/holdout gate required |
+| [rank / field_dictionary_composition strong / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-c71a32dfda1c2e35c021d5ec/5adf794c365cc8ddfdf13f971e8a8fa5020279e73195bb70674005c96f1cfbd7/receipt.json) | 1562 | MISSING | PASS | 4.34 / 4.42 | 680296448 | development/holdout gate required |
+| [raw / field_dictionary_composition absent / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-d30d0219f7ce2a979cecc562/1f89349f6c958e3fdc8481301d1f511e09d7134e8493b057f9bf999ff3fd5fb8/receipt.json) | 1288 | MISSING | PASS | 4.79 / 4.77 | 800235520 | development/holdout gate required |
+| [body-lines-v1 / repeated_body_families absent / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-f4a5c926a00c9a671aa16c93/9f8dcab05d0847bc7e388bc2283ba5f604d68202fd8849e3e519804745b9e70e/receipt.json) | 2254 | MISSING | PASS | 4.62 / 4.68 | 801751040 | development/holdout gate required |
 | [original / repeated_body_families strong / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-f8a170a56aee1f33aa2c4614/c17715c60319505d0b5ab1d5e67f5ae04dc8c369a4eb811ead76e8ca3595a744/receipt.json) | 1709 | MISSING | PASS | 4.41 / 4.37 | 482168832 | matched control |
+| [remaining / field_dictionary_composition strong / 0+49152](../../../docs/research/2026-09-30-wikipedia-matrix/runs/op-ff4a1b725dd45d1b4f6e7094/327dd722d57d7ec3e255023379d4d834251f7c05ec161fa32a80231b5ad5eda9/receipt.json) | 1564 | MISSING | PASS | 4.46 / 4.44 | 680390656 | development/holdout gate required |
 | [D / legacy  / 0+29564](../../../docs/research/2026-09-30-wikipedia-structure/results/075da7da054d601477ab145da1876e747b36cbf9525e238bbd00961716d5067c/receipt.json) | 440 | MISSING | PASS | 2.32 / 2.27 | 658010112 | development/holdout gate required |
 | [original / legacy  / 0+29564](../../../docs/research/2026-09-30-wikipedia-structure/results/18ffbf9160025a8672c15c5746a1831164ec08626a9eacd417d9c609ff3ac08b/receipt.json) | 258 | MISSING | PASS | 2.25 / 2.29 | 460185600 | matched control |
 | [B / legacy  / 0+29564](../../../docs/research/2026-09-30-wikipedia-structure/results/9b0859268675dcc0acc3f99670912ec5e527c8520251f0a2f2b14f1fb27bff77/receipt.json) | 387 | MISSING | PASS | 2.01 / 2.05 | 463810560 | development/holdout gate required |
@@ -54,6 +70,33 @@ Ranks are only within the same input, opportunity strength, evidence stratum and
 | [original / legacy  / 400000000+32768](../../../docs/research/2026-09-30-wikipedia-structure/results/c56f66033a746be66a957b6bdd16926c99749b15aad445f256d8a0d32fcdde87/receipt.json) | 8402 | MISSING | PASS | 3.12 / 3.14 | 486031360 | matched control |
 | [C / legacy  / 100000000+32768](../../../docs/research/2026-09-30-wikipedia-structure/results/ec65df8dbbea63fa5d9cd1caba688bf5c406ed8ffdd856412f9cda8048c5b31d/receipt.json) | 9668 | MISSING | PASS | 3.31 / 3.32 | 805859328 | development/holdout gate required |
 | [B / legacy  / 0+32768](../../../docs/research/2026-09-30-wikipedia-structure/results/f9d0dd795b557bbbb6e131bb90275b8c6f7a6801b77edc2e8f34c8d52a855d97/receipt.json) | 8901 | 109 | PASS | 3.14 / 3.13 | 490860544 | retain negative |
+
+## untouched_holdout
+
+**NOT MEASURED.** This evidence stratum cannot be substituted by synthetic or targeted wins.
+
+## Declared worker cells
+
+| Input | Candidate | Owner | State |
+|---|---|---|---|
+| field_dictionary_composition-absent | original | /root/bounded_track_a | VERIFIED_SCREENING |
+| field_dictionary_composition-weak | original | /root/bounded_track_a | VERIFIED_SCREENING |
+| repeated_body_families-weak | body-lines-v1 | /root/opportunity_trials | VERIFIED_SCREENING |
+| field_dictionary_composition-strong | original | /root/bounded_track_a | VERIFIED_SCREENING |
+| field_dictionary_composition-weak | raw | /root/bounded_track_a | VERIFIED_SCREENING |
+| repeated_body_families-absent | original | /root/opportunity_trials | VERIFIED_SCREENING |
+| repeated_body_families-strong | body-lines-v1 | /root/opportunity_trials | VERIFIED_SCREENING |
+| field_dictionary_composition-weak | rank | /root/bounded_track_a | VERIFIED_SCREENING |
+| field_dictionary_composition-absent | remaining | /root/bounded_track_a | VERIFIED_SCREENING |
+| field_dictionary_composition-strong | raw | /root/bounded_track_a | VERIFIED_SCREENING |
+| field_dictionary_composition-weak | remaining | /root/bounded_track_a | VERIFIED_SCREENING |
+| repeated_body_families-weak | original | /root/opportunity_trials | VERIFIED_SCREENING |
+| field_dictionary_composition-absent | rank | /root/bounded_track_a | VERIFIED_SCREENING |
+| field_dictionary_composition-strong | rank | /root/bounded_track_a | VERIFIED_SCREENING |
+| field_dictionary_composition-absent | raw | /root/bounded_track_a | VERIFIED_SCREENING |
+| repeated_body_families-absent | body-lines-v1 | /root/opportunity_trials | VERIFIED_SCREENING |
+| repeated_body_families-strong | original | /root/opportunity_trials | VERIFIED_SCREENING |
+| field_dictionary_composition-strong | remaining | /root/bounded_track_a | VERIFIED_SCREENING |
 
 ## Cost and qualification boundaries
 

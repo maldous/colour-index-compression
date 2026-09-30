@@ -144,6 +144,45 @@ def prepare(input_name, mode, owner, cpu, root=ROOT):
     return cell
 
 
+def register_sweeps(root=ROOT):
+    """Materialize bounded cross-cutting controls; never launch compression."""
+    from benchmarks.hutter_opportunity_inputs import one_factor_sweep_specs, generate, provenance, CLASSES
+    area = root / REL; registry = Registry(area / "registry")
+    specs = one_factor_sweep_specs()
+    baselines = []
+    for index, opportunity in enumerate(CLASSES):
+        baseline = {"opportunity": opportunity, "strength": "strong", "target_bytes": 32768,
+                    "repetition": 8, "variation": 3, "distance": 5, "noise": 2,
+                    "dictionary_cardinality": 7, "frequency": "uniform", "variation_type": "mixed",
+                    "exception_rate_permille": 25, "prose_mixture_permille": 150, "seed": 7000 + index}
+        baselines.append(baseline)
+    rows, by_opportunity = [], {}
+    for is_base, spec in [(True, spec) for spec in baselines] + [(False, spec) for spec in specs]:
+        prov = provenance(spec); data = generate(spec)
+        identifier = registry.register_input(prov["input_sha256"], 0, len(data), prov["input_sha256"])
+        path = area / "inputs" / (prov["input_sha256"] + ".bin")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists() and sha(path) != prov["input_sha256"]: raise ValueError("changed sweep input")
+        if not path.exists():
+            with path.open("xb") as stream: stream.write(data)
+            path.chmod(0o444)
+        if is_base: by_opportunity[spec["opportunity"]] = {"input_id": identifier, "spec": spec}
+        control = by_opportunity[spec["opportunity"]]
+        changed = [key for key in spec if spec[key] != control["spec"][key]]
+        if (is_base and changed) or (not is_base and len(changed) != 1):
+            raise ValueError("sweep is not a matched one-factor contrast")
+        label = {"opportunity_class": spec["opportunity"], "evidence_stratum": "synthetic",
+                 "strength": "strong", "scale": "correctness", "suite": "one_factor_sweep",
+                 "expected_mechanism": spec["opportunity"], "base_input_id": control["input_id"],
+                 "changed_parameters": changed, "eligible_comparisons": list(MODES), "compression_status": "NOT_RUN"}
+        classification = registry.record_classification(identifier, label, prov)
+        event(registry, identifier, "development", [str(REL / "registry/classifications" / (classification + ".json"))])
+        rows.append({"input_id": identifier, "classification_id": classification, "path": str(path), **label})
+    immutable(area / "input-sweeps-v2.json", {"schema": 2, "inputs": rows,
+          "note": "Synthetic bytes and diagnostics materialized and hashed; no compression measurement is implied."})
+    return rows
+
+
 def report(root=ROOT):
     from benchmarks.hutter_experiment_matrix import define_matrix, opportunity_cells
     from benchmarks.hutter_matrix_evidence import collect
@@ -176,15 +215,31 @@ def report(root=ROOT):
                          "backend": list(key[4:]), "verified_size_order": [r["evidence_id"] for r in eligible],
                          "unranked": [r["evidence_id"] for r in rows if r not in eligible],
                          "promotion": "NONE_AUTOMATIC: requires consistent disjoint real development, frozen holdouts, bounded scaling and practical resources"})
+    trials = []
+    for path in sorted((area / "cells").glob("*.json")):
+        cell = json.loads(path.read_text())
+        prefix = str(Path(cell["output_dir"]).relative_to(root)) + "/"
+        matched = [row for row in evidence if row["receipt_path"].startswith(prefix)]
+        current = None
+        for progress in sorted(Path(cell["output_dir"]).glob("*/progress.jsonl")):
+            records = progress.read_text().splitlines()
+            if records:
+                try: current = json.loads(records[-1])
+                except json.JSONDecodeError: pass  # writer may be appending
+        trials.append({**cell, "status": matched[0]["status"] if matched else "RUNNING_OR_UNFINISHED" if current else "DECLARED_NOT_STARTED",
+                       "evidence_ids": [row["evidence_id"] for row in matched], "last_progress": current})
     content = {"schema": 1, "input_registry": str(REL / "registry"), "coverage": opportunity_cells(),
-               "research_backlog_cells": define_matrix(), "results": evidence, "rankings": rankings,
+               "research_backlog_cells": define_matrix(), "results": evidence, "rankings": rankings, "owned_trials": trials,
                "limits": {"full_enwik9_score": None, "holdout_status": "NOT_RUN",
                           "program_runtime_closure": "INCOMPLETE; not a Prize package size",
                           "interpretation": "Synthetic mechanism, targeted application, representative holdout are separate evidence strata. Regional wins are never added into a full-file score."}}
     (area / "live-results.json").write_text(json.dumps(content, indent=2) + "\n")
     lines = ["# Wikipedia opportunity experiment matrix", "", "Generated by `python -m benchmarks.hutter_wikipedia_matrix report`. Every physical candidate is shown before selection. Lower delta is better; missing values remain missing.", "",
              "Ranks are only within the same input, opportunity strength, evidence stratum and pinned backend. Fixed development offsets are not a probability sample. No full-enwik9 or Prize score is implied.", ""]
-    for stratum in sorted({r["evidence_stratum"] for r in evidence}):
+    for stratum in sorted({r["evidence_stratum"] for r in evidence} | {"synthetic", "targeted_real", "fixed_development", "untouched_holdout"}):
+        if not any(r["evidence_stratum"] == stratum for r in evidence):
+            lines += [f"## {stratum}", "", "**NOT MEASURED.** This evidence stratum cannot be substituted by synthetic or targeted wins.", ""]
+            continue
         lines += [f"## {stratum}", "", "| Candidate / input | Complete bytes | vs matched PAQ | Independent SHA decode | Encode / decode seconds | Cgroup memory sampled high-water | Next decision |", "|---|---:|---:|---|---:|---:|---|"]
         for row in [r for r in evidence if r["evidence_stratum"] == stratum]:
             cfg, archive, phases = row["configuration"], row["archive"], row["phases"]
@@ -196,6 +251,10 @@ def report(root=ROOT):
             link = Path("../../..") / row["receipt_path"]
             lines.append(f"| [{name}]({link}) | {archive['total_bytes'] if archive else 'NOT COMPLETE'} | {delta if delta is not None else 'MISSING'} | {'PASS' if row['verification'] else row['status']} | {' / '.join('—' if t is None else format(t,'.2f') for t in times)} | {memory or 'MISSING'} | {decision} |")
         lines.append("")
+    lines += ["## Declared worker cells", "", "| Input | Candidate | Owner | State |", "|---|---|---|---|"]
+    for cell in trials:
+        lines.append(f"| {cell['input_name']} | {cell['mode']} | {cell['owner']} | {cell['status']} |")
+    lines.append("")
     lines += ["## Cost and qualification boundaries", "", "`live-results.json` includes each archive's payload, outer metadata and framing; transform rules, dictionaries, boundaries, counts, holes and literals are charged inside that payload. Diagnostic transform costs are pre-PAQ and are not added twice. Program source and binary inventory is separate; runtime/model package closure remains incomplete.", "", "Memory is a sampled cgroup high-water lower bound, not exact process peak RSS. Research timings are single bounded trials, with declared concurrency; they are not Prize qualification timings.", "", "Synthetic mechanism evidence, targeted Wikipedia application evidence and representative/withheld validation are separate. No current structural configuration has cleared the full promotion funnel.", ""]
     (area / "LIVE-RESULTS.md").write_text("\n".join(lines))
     return content
@@ -204,12 +263,13 @@ def report(root=ROOT):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("initialize"); sub.add_parser("report")
+    sub.add_parser("initialize"); sub.add_parser("report"); sub.add_parser("register-sweeps")
     p = sub.add_parser("prepare")
     p.add_argument("input_name"); p.add_argument("mode", choices=MODES); p.add_argument("--owner", required=True); p.add_argument("--cpu", type=int, required=True)
     p = sub.add_parser("run-wave"); p.add_argument("cells", nargs="+")
     args = parser.parse_args()
     if args.command == "initialize": result = {"input_count": len(initialize())}
+    elif args.command == "register-sweeps": result = {"input_count": len(register_sweeps())}
     elif args.command == "prepare": result = prepare(args.input_name, args.mode, args.owner, args.cpu)
     elif args.command == "report": result = {"result_count": len(report()["results"])}
     else:

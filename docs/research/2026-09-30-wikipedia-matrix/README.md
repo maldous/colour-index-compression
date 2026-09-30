@@ -8,6 +8,7 @@ Run from the repository with its Python environment:
 
 ```sh
 .venv/bin/python -m benchmarks.hutter_wikipedia_matrix initialize
+.venv/bin/python -m benchmarks.hutter_wikipedia_matrix register-sweeps
 .venv/bin/python -m benchmarks.hutter_wikipedia_matrix report
 .venv/bin/python -m benchmarks.hutter_wikipedia_matrix prepare repeated_body_families-strong original --owner /root/opportunity_trials --cpu 4
 taskset -c 4,6 .venv/bin/python -m benchmarks.hutter_wikipedia_matrix run-wave <cell.json> <other-cell.json>
@@ -26,6 +27,8 @@ The seven opportunity classes are repeated body families; field dictionaries/com
 Strong/weak/absent cases describe the particular relationship being tested, not overall compressibility. A normal XML container and unrelated repetition can remain in an absent control. Mechanistic diagnostics, raw uniqueness, observed dictionary frequencies, recurrence gaps and literal variation must support each label. All parameters, PRNG/seed, exact size and generator hash are recorded. Unrelated generated prose is explicitly synthetic rather than a claim of natural-language representativeness.
 
 Parameter sweeps cover actual repetition distance, dictionary cardinality and frequencies, amount/type of variation, noise and exceptions, unrelated-prose mixture, and input size. Initial screens are small; 4–16 MiB and larger contiguous trials require a separate declared budget and evidence-based promotion. One-factor sweeps establish effects before compatible interactions are combined.
+
+`input-sweeps-v2.json` records 140 materialized one-factor variants plus seven matched baselines, with exact hashes and provenance in the same registry. These are uncompressed test inputs, not compression results. Initial materialized sizes are 32/64/128 KiB. Generator support through 16 MiB does not imply those runs or measurements exist. The distance control inserts unrelated records between relationship bursts; same-family recurrence also varies with cardinality and frequencies. Actual observed gaps and distributions are recorded, so the distance label alone is not interpreted as a measured byte distance.
 
 The fixed development ranges remain 0, 100,000,000 and 400,000,000, each 4,194,304 bytes. These are not a probability sample. The locator records exact structural examples inside these already-exposed ranges; targeted analysis is kept separate from fixed-range results. No examples are chosen by compressed size. Numerical tokens are an opportunity marker, not proof of a predictive dependency.
 

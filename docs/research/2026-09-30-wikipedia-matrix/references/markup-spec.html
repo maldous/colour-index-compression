@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html class="client-nojs vector-feature-language-in-header-disabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard" lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Markup spec - MediaWiki</title>
+<script>(function(){var className="client-js vector-feature-language-in-header-disabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard";var cookie=document.cookie.match(/(?:^|; )mediawikiwikimwclientpreferences=([^;]+)/);if(cookie){cookie[1].split('%2C').forEach(function(pref){className=className.replace(new RegExp('(^| )'+pref.replace(/-clientpref-\w+$|[^\w-]+/g,'')+'-clientpref-\\w+( |$)'),'$1'+pref+'$2');});}document.documentElement.className=className;}());RLCONF={"wgBreakFrames":false,"wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgRequestId":"b93b80f1-5b93-418d-84ac-6a9287901879","wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"Markup_spec","wgTitle":"Markup spec","wgCurRevisionId":6656596,"wgRevisionId":6656596,"wgArticleId":5900,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":["Pages kept for historical interest","Parser","MediaWiki development","Wikitext"],"wgPageViewLanguage":"en","wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgRelevantPageName":"Markup_spec","wgRelevantArticleId":5900,"wgTempUserName":null,"wgIsProbablyEditable":true,"wgRelevantPageIsProbablyEditable":true,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgNoticeProject":"mediawiki","wgConfirmEditCaptchaNeededForGenericEdit":"hcaptcha","wgConfirmEditForceShowCaptcha":false,"wgConfirmEditHCaptchaSiteKey":"5d0c670e-a5f4-4258-ad16-1f42792c9c62","wgMediaViewerOnClick":true,"wgMediaViewerEnabledByDefault":true,"wgMediaViewerMobileBeta":false,"wgVisualEditor":{"pageLanguageCode":"en","pageLanguageDir":"ltr","pageVariantFallbacks":"en"},"wgMFDisplayWikibaseDescriptions":{"search":true,"watchlist":true,"tagline":false,"nearby":true},"wgWMESchemaEditAttemptStepOversample":false,"wgWMEPageLength":20000,"wgTestKitchenUserExperiments":{"overrides":[],"enrolled":[],"assigned":[],"subject_ids":[]},"wgEditSubmitButtonLabelPublish":true,"wgVisualEditorPageIsDisambiguation":false,"wgDiscussionToolsFeaturesEnabled":{"replytool":true,"newtopictool":true,"sourcemodetoolbar":true,"topicsubscription":false,"autotopicsub":false,"visualenhancements":false},"wgDiscussionToolsFallbackEditMode":"visual","wgULSPosition":"personal","wgULSisCompactLinksEnabled":true,"wgVector2022LanguageInHeader":false,"wgULSisLanguageSelectorEmpty":false,"wgULSLanguageSelectorV2Enabled":true,"wgCheckUserClientHintsHeadersJsApi":["brands","architecture","bitness","fullVersionList","mobile","model","platform","platformVersion"],"wgCheckUserClientHintsInEditRequest":true,"wgSiteNoticeId":"2.16"};
+RLSTATE={"ext.globalCssJs.user.styles":"ready","site.styles":"ready","user.styles":"ready","ext.globalCssJs.user":"ready","user":"ready","user.options":"loading","ext.pygments":"ready","ext.discussionTools.init.styles":"ready","ext.wikimediamessages.styles":"ready","oojs-ui-core.styles":"ready","oojs-ui.styles.indicators":"ready","mediawiki.widgets.styles":"ready","oojs-ui-core.icons":"ready","skins.vector.search.codex.styles":"ready","skins.vector.styles":"ready","skins.vector.icons":"ready","ext.visualEditor.desktopArticleTarget.noscript":"ready","ext.uls.pt":"ready","wikibase.client.init":"ready","ext.dismissableSiteNotice.styles":"ready"};RLPAGEMODULES=["ext.pygments.view","site","mediawiki.page.ready","mediawiki.toc","skins.vector.js","ext.centralNotice.geoIP","ext.centralNotice.startUp","ext.urlShortener.toolbar","ext.centralauth.centralautologin","ext.testKitchen","ext.wikimediaCustomizations.donorAccountCreation","mmv.bootstrap","ext.visualEditor.desktopArticleTarget.init","ext.echo.centralauth","ext.discussionTools.init","ext.eventLogging","ext.wikimediaEvents","ext.navigationTiming","ext.uls.compactlinks","ext.uls.interface","wikibase.databox.fromWikidata","ext.checkUser.clientHints","ext.dismissableSiteNotice"];</script>
+<script>(RLQ=window.RLQ||[]).push(function(){mw.loader.impl(function(){return["user.options@12s5i",function($,jQuery,require,module){mw.user.tokens.set({"patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});
+}];});});</script>
+<link rel="stylesheet" href="/w/load.php?lang=en&amp;modules=ext.discussionTools.init.styles%7Cext.dismissableSiteNotice.styles%7Cext.pygments%7Cext.uls.pt%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediamessages.styles%7Cmediawiki.widgets.styles%7Coojs-ui-core.icons%2Cstyles%7Coojs-ui.styles.indicators%7Cskins.vector.icons%2Cstyles%7Cskins.vector.search.codex.styles%7Cwikibase.client.init&amp;only=styles&amp;skin=vector-2022">
+<script async="" src="/w/load.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=vector-2022"></script>
+<meta name="ResourceLoaderDynamicStyles" content="">
+<link rel="stylesheet" href="/w/load.php?lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=vector-2022">
+<meta name="generator" content="MediaWiki 1.47.0-wmf.22">
+<meta name="referrer" content="origin">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="robots" content="max-image-preview:standard">
+<meta name="format-detection" content="telephone=no">
+<meta name="viewport" content="width=1120">
+<meta property="og:site_name" content="MediaWiki">
+<meta property="og:title" content="Markup spec - MediaWiki">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="//thumb.wikimedia.org">
+<link rel="alternate" type="application/x-wiki" title="Edit" href="/w/index.php?title=Markup_spec&amp;action=edit">
+<link rel="apple-touch-icon" href="/static/apple-touch/mediawiki.png">
+<link rel="icon" href="/static/favicon/mediawiki.ico">
+<link rel="search" type="application/opensearchdescription+xml" href="/w/rest.php/v1/search" title="MediaWiki (en)">
+<link rel="EditURI" type="application/rsd+xml" href="//www.mediawiki.org/w/api.php?action=rsd">
+<link rel="canonical" href="https://www.mediawiki.org/wiki/Markup_spec">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
+<link rel="alternate" type="application/atom+xml" title="MediaWiki Atom feed" href="/w/index.php?title=Special:RecentChanges&amp;feed=atom">
+<link rel="dns-prefetch" href="//meta.wikimedia.org" />
+<link rel="dns-prefetch" href="auth.wikimedia.org">
+</head>
+<body class="ext-discussiontools-replytool-enabled ext-discussiontools-newtopictool-enabled ext-discussiontools-sourcemodetoolbar-enabled skin--responsive skin-vector skin-vector-search-vue mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject mw-editable page-Markup_spec rootpage-Markup_spec skin-vector-2022 action-view">
+<div id="mw-aria-live-region" class="mw-aria-live-region" aria-live="polite"></div><a class="mw-jump-link" href="#bodyContent">Jump to content</a>
+<div class="vector-header-container">
+	<header class="vector-header mw-header no-font-mode-scale">
+		<div class="vector-header-start">
+			<nav class="vector-main-menu-landmark" aria-label="Site">
+				
+<div id="vector-main-menu-dropdown" class="vector-dropdown vector-main-menu-dropdown vector-button-flush-left vector-button-flush-right"  title="Main menu" >
+	<input type="checkbox" id="vector-main-menu-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-main-menu-dropdown" class="vector-dropdown-checkbox "  aria-label="Main menu"   >
+	<label id="vector-main-menu-dropdown-label" for="vector-main-menu-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-menu mw-ui-icon-wikimedia-menu cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Main menu</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+				<div id="vector-main-menu-unpinned-container" class="vector-unpinned-container">
+		
+<div id="vector-main-menu" class="vector-main-menu vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-main-menu-pinnable-header vector-pinnable-header-unpinned"
+	data-feature-name="main-menu-pinned"
+	data-pinnable-element-id="vector-main-menu"
+	data-pinned-container-id="vector-main-menu-pinned-container"
+	data-unpinned-container-id="vector-main-menu-unpinned-container"
+>
+	<div class="vector-pinnable-header-label">Main menu</div>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-main-menu.pin" aria-label="Move Main menu to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-main-menu.unpin" aria-label="Hide Main menu">hide</button>
+</div>
+
+	
+<div id="p-navigation" class="vector-menu mw-portlet mw-portlet-navigation"  >
+	<div class="vector-menu-heading">
+		Navigation
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="n-mainpage-description" class="mw-list-item"><a href="/wiki/MediaWiki" title="Visit the main page [z]" accesskey="z"><span>Main page</span></a></li><li id="n-mw-download" class="mw-list-item"><a href="/wiki/Download"><span>Get MediaWiki</span></a></li><li id="n-mw-extensions" class="mw-list-item"><a href="/wiki/Special:MyLanguage/Category:Extensions"><span>Get extensions</span></a></li><li id="n-blog-text" class="mw-list-item"><a href="https://diff.wikimedia.org/tech-blog/"><span>Tech blog</span></a></li><li id="n-mw-contribute" class="mw-list-item"><a href="/wiki/Special:MyLanguage/How_to_contribute"><span>Contribute</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+	
+<div id="p-support" class="vector-menu mw-portlet mw-portlet-support"  >
+	<div class="vector-menu-heading">
+		Support
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="n-help" class="mw-list-item"><a href="/wiki/Special:MyLanguage/Help:Contents" title="The place to find out"><span>User help</span></a></li><li id="n-mw-faq" class="mw-list-item"><a href="/wiki/Special:MyLanguage/Manual:FAQ"><span>FAQ</span></a></li><li id="n-mw-manual" class="mw-list-item"><a href="/wiki/Special:MyLanguage/Manual:Contents"><span>Technical manual</span></a></li><li id="n-mw-supportdesk" class="mw-list-item"><a href="/wiki/Project:Support_desk"><span>Support desk</span></a></li><li id="n-mw-communication" class="mw-list-item"><a href="/wiki/Special:MyLanguage/Communication"><span>Communication</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+<div id="p-development" class="vector-menu mw-portlet mw-portlet-development"  >
+	<div class="vector-menu-heading">
+		Development
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="n-mw-developerportal" class="mw-list-item"><a href="https://developer.wikimedia.org/"><span>Developer portal</span></a></li><li id="n-svn_statistics" class="mw-list-item"><a href="/wiki/Special:MyLanguage/Development_statistics"><span>Code statistics</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+<div id="p-mediawiki.org" class="vector-menu mw-portlet mw-portlet-mediawiki_org"  >
+	<div class="vector-menu-heading">
+		mediawiki.org
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="n-portal" class="mw-list-item"><a href="/wiki/Project:Help" title="About the project, what you can do, where to find things"><span>Community portal</span></a></li><li id="n-recentchanges" class="mw-list-item"><a href="/wiki/Special:RecentChanges" title="A list of recent changes in the wiki [r]" accesskey="r"><span>Recent changes</span></a></li><li id="n-mw-translate" class="mw-list-item"><a href="/wiki/Special:LanguageStats"><span>Translate content</span></a></li><li id="n-specialpages" class="mw-list-item"><a href="/wiki/Special:SpecialPages" title="A list of all special pages [q]" accesskey="q"><span>Special pages</span></a></li><li id="n-randompage" class="mw-list-item"><a href="/wiki/Special:Random" title="Load a random page [x]" accesskey="x"><span>Random page</span></a></li><li id="n-mw-discussion" class="mw-list-item"><a href="/wiki/Project:Village_Pump"><span>Village pump</span></a></li><li id="n-sandboxlink-portlet-label" class="mw-list-item"><a href="/wiki/Project:Sandbox"><span>Sandbox</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+	
+<div id="p-lang" class="vector-menu mw-portlet mw-portlet-lang"  >
+	<div class="vector-menu-heading">
+		In other languages
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		<div class="after-portlet after-portlet-lang"><span class="wb-langlinks-add wb-langlinks-link"><a href="https://www.wikidata.org/wiki/Special:NewItem?site=mediawikiwiki&amp;page=Markup+spec" title="Add interlanguage links" class="wbc-editpage">Add links</a></span></div>
+	</div>
+</div>
+
+</div>
+
+				</div>
+
+	</div>
+</div>
+
+		</nav>
+			
+<a href="/wiki/MediaWiki" class="mw-logo">
+	<img class="mw-logo-icon" src="/static/images/icons/mediawikiwiki.svg" alt="" aria-hidden="true" height="50" width="50">
+	<span class="mw-logo-container skin-invert">
+		<img class="mw-logo-wordmark" alt="MediaWiki" src="/static/images/mobile/copyright/mediawikiwiki-wordmark.svg" style="width: 7.5em; height: 1.125em;">
+	</span>
+</a>
+
+		</div>
+		<div class="vector-header-end">
+			
+<div id="p-search" role="search" class="vector-search-box-vue  vector-search-box-collapses vector-search-box-show-thumbnail vector-search-box-auto-expand-width vector-search-box">
+	<a href="/wiki/Special:Search" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only search-toggle" title="Search MediaWiki [f]" accesskey="f"><span class="vector-icon mw-ui-icon-search mw-ui-icon-wikimedia-search cdx-button__icon"></span>
+
+<span>Search</span>
+	</a>
+	<div class="vector-typeahead-search-container">
+		<div class="cdx-typeahead-search cdx-typeahead-search--show-thumbnail cdx-typeahead-search--auto-expand-width">
+			<form action="/w/index.php" id="searchform" class="cdx-search-input cdx-search-input--has-end-button">
+				<div id="simpleSearch" class="cdx-search-input__input-wrapper"  data-search-loc="header-moved">
+					<div class="cdx-text-input cdx-text-input--has-start-icon">
+						<input
+							class="cdx-text-input__input mw-searchInput" autocomplete="off"
+							 type="search" name="search" placeholder="Search mediawiki.org" aria-label="Search mediawiki.org" autocapitalize="none" spellcheck="false" title="Search MediaWiki [f]" accesskey="f" id="searchInput"
+							>
+						<span class="cdx-text-input__icon cdx-text-input__start-icon"></span>
+					</div>
+					<input type="hidden" name="title" value="Special:Search">
+				</div>
+				<button class="cdx-button cdx-search-input__end-button">Search</button>
+			</form>
+		</div>
+	</div>
+</div>
+
+			<nav class="vector-user-links vector-user-links-wide" aria-label="Personal tools">
+	<div class="vector-user-links-main">
+	
+<div id="p-vector-user-menu-preferences" class="vector-menu mw-portlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="ca-uls" class="mw-list-item active vector-menu-item--collapsible"><a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet uls-trigger" id=""><span class="vector-icon mw-ui-icon-wikimedia-language mw-ui-icon-wikimedia-wikimedia-language cdx-button__icon"></span>
+
+<span>English</span>
+</a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+	
+<div id="p-vector-user-menu-userpage" class="vector-menu mw-portlet emptyPortlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+	<nav class="vector-appearance-landmark" aria-label="Appearance">
+		
+<div id="vector-appearance-dropdown" class="vector-dropdown "  title="Change the appearance of the page&#039;s font size, width, and color" >
+	<input type="checkbox" id="vector-appearance-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-appearance-dropdown" class="vector-dropdown-checkbox "  aria-label="Appearance"   >
+	<label id="vector-appearance-dropdown-label" for="vector-appearance-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-appearance mw-ui-icon-wikimedia-appearance cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Appearance</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+			<div id="vector-appearance-unpinned-container" class="vector-unpinned-container">
+				
+			</div>
+		
+	</div>
+</div>
+
+	</nav>
+	
+<div id="p-vector-user-menu-notifications" class="vector-menu mw-portlet emptyPortlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+	
+<div id="p-vector-user-menu-overflow" class="vector-menu mw-portlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="pt-sitesupport-2" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=www.mediawiki.org&amp;uselang=en" data-mw-donate-attempt="top_link" class=""><span>Donate</span></a>
+</li>
+<li id="pt-createaccount-2" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Markup+spec" title="You are encouraged to create an account and log in; however, it is not mandatory" class=""><span>Create account</span></a>
+</li>
+<li id="pt-login-2" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Markup+spec" title="You are encouraged to log in; however, it is not mandatory [o]" accesskey="o" class=""><span>Log in</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+	</div>
+	
+<div id="vector-user-links-dropdown" class="vector-dropdown vector-user-menu vector-button-flush-right vector-user-menu-logged-out vector-user-links-dropdown--collapsible"  title="More options" >
+	<input type="checkbox" id="vector-user-links-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-user-links-dropdown" class="vector-dropdown-checkbox "  aria-label="Personal tools"   >
+	<label id="vector-user-links-dropdown-label" for="vector-user-links-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-userAvatar mw-ui-icon-wikimedia-userAvatar cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Personal tools</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+		
+<div id="p-personal" class="vector-menu mw-portlet mw-portlet-personal"  title="User menu" >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="pt-sitesupport" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=www.mediawiki.org&amp;uselang=en" data-mw-donate-attempt="top_link" class=""><span class="vector-icon mw-ui-icon-heart mw-ui-icon-wikimedia-heart cdx-button__icon"></span>
+
+<span>Donate</span></a>
+</li>
+<li id="pt-createaccount" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Markup+spec" title="You are encouraged to create an account and log in; however, it is not mandatory" class=""><span class="vector-icon mw-ui-icon-userAvatar mw-ui-icon-wikimedia-userAvatar cdx-button__icon"></span>
+
+<span>Create account</span></a>
+</li>
+<li id="pt-login" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Markup+spec" title="You are encouraged to log in; however, it is not mandatory [o]" accesskey="o" class=""><span class="vector-icon mw-ui-icon-logIn mw-ui-icon-wikimedia-logIn cdx-button__icon"></span>
+
+<span>Log in</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+	
+	</div>
+</div>
+
+</nav>
+
+		</div>
+	</header>
+</div>
+<div class="mw-page-container">
+	<div class="mw-page-container-inner">
+		<div class="vector-sitenotice-container">
+			<div id="siteNotice"><div id="mw-dismissablenotice-anonplace"></div><script>(function(){var node=document.getElementById("mw-dismissablenotice-anonplace");if(node){node.outerHTML="\u003Cdiv class=\"mw-dismissable-notice\"\u003E\u003Cdiv class=\"mw-dismissable-notice-close\"\u003E[\u003Ca tabindex=\"0\" role=\"button\"\u003Edismiss\u003C/a\u003E]\u003C/div\u003E\u003Cdiv class=\"mw-dismissable-notice-body\"\u003E\u003C!-- CentralNotice --\u003E\u003Cdiv id=\"localNotice\" data-nosnippet=\"\"\u003E\u003Cdiv class=\"sitenotice\" lang=\"en\" dir=\"ltr\"\u003E\u003Cp\u003EThe \u003Ca href=\"/wiki/Special:MyLanguage/MediaWiki_Users_and_Developers_Conference_Fall_2026\" title=\"Special:MyLanguage/MediaWiki Users and Developers Conference Fall 2026\"\u003EConferência de Usuários e Desenvolvedores do MediaWiki Primavera 2026\u003C/a\u003E\u003Cspan style=\"display:none\"\u003E\u003Ca href=\"/wiki/MediaWiki_Users_and_Developers_Conference_Fall_2026\" title=\"MediaWiki Users and Developers Conference Fall 2026\"\u003E \u003C/a\u003E\u003C/span\u003E will take place November 11-13 in \u003Ca href=\"https://en.wikipedia.org/wiki/Ljubljana\" class=\"extiw\" title=\"w:Ljubljana\"\u003ELjubljana\u003C/a\u003E, \u003Ca href=\"https://en.wikipedia.org/wiki/Slovenia\" class=\"extiw\" title=\"w:Slovenia\"\u003ESlovenia\u003C/a\u003E.\n\u003C/p\u003E\u003Cp\u003E\u003Cb\u003E\u003Ca href=\"/wiki/MediaWiki_Users_and_Developers_Conference/Scholarships\" title=\"MediaWiki Users and Developers Conference/Scholarships\"\u003EScholarships\u003C/a\u003E\u003C/b\u003E are available. The deadline to \u003Ca rel=\"nofollow\" class=\"external text\" href=\"https://mwstake.org/wiki/Scholarships\"\u003Eapply on MWStake.org\u003C/a\u003E is September 30 at 11:59pm U.S. EDT.\n\u003C/p\u003E\u003C/div\u003E\u003C/div\u003E\u003C/div\u003E\u003C/div\u003E";}}());</script></div>
+		</div>
+		<div class="vector-column-start">
+			<div class="vector-main-menu-container">
+		<div id="mw-navigation">
+			<nav id="mw-panel" class="vector-main-menu-landmark" aria-label="Site">
+				<div id="vector-main-menu-pinned-container" class="vector-pinned-container">
+				
+				</div>
+		</nav>
+		</div>
+	</div>
+	<div class="vector-sticky-pinned-container">
+				<nav id="mw-panel-toc" aria-label="Contents" data-event-name="ui.sidebar-toc" class="mw-table-of-contents-container vector-toc-landmark">
+					<div id="vector-toc-pinned-container" class="vector-pinned-container">
+					<div id="vector-toc" class="vector-toc vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-toc-pinnable-header vector-pinnable-header-pinned"
+	data-feature-name="toc-pinned"
+	data-pinnable-element-id="vector-toc"
+	data-pinned-container-id="vector-toc-pinned-container"
+	data-unpinned-container-id="vector-toc-unpinned-container"
+>
+	<h2 class="vector-pinnable-header-label">Contents</h2>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-toc.pin" aria-label="Move Contents to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-toc.unpin" aria-label="Hide Contents">hide</button>
+</div>
+
+
+	<ul class="vector-toc-contents" id="mw-panel-toc-list">
+		<li id="toc-mw-content-text"
+			class="vector-toc-list-item vector-toc-level-1">
+			<a href="#" class="vector-toc-link">
+				<div class="vector-toc-text">Beginning</div>
+			</a>
+		</li>
+		<li id="toc-Goals"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Goals">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">1</span>
+				<span>Goals</span>
+			</div>
+		</a>
+		
+		<ul id="toc-Goals-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-Feasibility_study"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Feasibility_study">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">2</span>
+				<span>Feasibility study</span>
+			</div>
+		</a>
+		
+			<button aria-controls="toc-Feasibility_study-sublist" class="cdx-button cdx-button--weight-quiet cdx-button--icon-only vector-toc-toggle">
+				<span class="vector-icon mw-ui-icon-wikimedia-expand"></span>
+				<span>Toggle Feasibility study subsection</span>
+			</button>
+		
+		<ul id="toc-Feasibility_study-sublist" class="vector-toc-list">
+			<li id="toc-Language_generation_and_grammar_type"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Language_generation_and_grammar_type">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">2.1</span>
+					<span>Language generation and grammar type</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Language_generation_and_grammar_type-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Ambiguities_in_the_language"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Ambiguities_in_the_language">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">2.2</span>
+					<span>Ambiguities in the language</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Ambiguities_in_the_language-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Language_recognition"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Language_recognition">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">2.3</span>
+					<span>Language recognition</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Language_recognition-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-Current_efforts"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Current_efforts">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">3</span>
+				<span>Current efforts</span>
+			</div>
+		</a>
+		
+		<ul id="toc-Current_efforts-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-Resources"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Resources">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">4</span>
+				<span>Resources</span>
+			</div>
+		</a>
+		
+		<ul id="toc-Resources-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-The_Markup_Language"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#The_Markup_Language">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">5</span>
+				<span>The Markup Language</span>
+			</div>
+		</a>
+		
+			<button aria-controls="toc-The_Markup_Language-sublist" class="cdx-button cdx-button--weight-quiet cdx-button--icon-only vector-toc-toggle">
+				<span class="vector-icon mw-ui-icon-wikimedia-expand"></span>
+				<span>Toggle The Markup Language subsection</span>
+			</button>
+		
+		<ul id="toc-The_Markup_Language-sublist" class="vector-toc-list">
+			<li id="toc-v1.6_markup_tokens"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#v1.6_markup_tokens">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.1</span>
+					<span>v1.6 markup tokens</span>
+				</div>
+			</a>
+			
+			<ul id="toc-v1.6_markup_tokens-sublist" class="vector-toc-list">
+				<li id="toc-Unary"
+			class="vector-toc-list-item vector-toc-level-3">
+			<a class="vector-toc-link" href="#Unary">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.1.1</span>
+					<span>Unary</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Unary-sublist" class="vector-toc-list">
+				<li id="toc-Start_of_line_only"
+			class="vector-toc-list-item vector-toc-level-4">
+			<a class="vector-toc-link" href="#Start_of_line_only">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.1.1.1</span>
+					<span>Start of line only</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Start_of_line_only-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Can_be_used_anywhere"
+			class="vector-toc-list-item vector-toc-level-4">
+			<a class="vector-toc-link" href="#Can_be_used_anywhere">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.1.1.2</span>
+					<span>Can be used anywhere</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Can_be_used_anywhere-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+	</ul>
+		</li>
+		<li id="toc-Binary"
+			class="vector-toc-list-item vector-toc-level-3">
+			<a class="vector-toc-link" href="#Binary">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.1.2</span>
+					<span>Binary</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Binary-sublist" class="vector-toc-list">
+				<li id="toc-Beginning_of_a_line"
+			class="vector-toc-list-item vector-toc-level-4">
+			<a class="vector-toc-link" href="#Beginning_of_a_line">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.1.2.1</span>
+					<span>Beginning of a line</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Beginning_of_a_line-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Anywhere"
+			class="vector-toc-list-item vector-toc-level-4">
+			<a class="vector-toc-link" href="#Anywhere">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.1.2.2</span>
+					<span>Anywhere</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Anywhere-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+	</ul>
+		</li>
+		<li id="toc-Namespaces"
+			class="vector-toc-list-item vector-toc-level-3">
+			<a class="vector-toc-link" href="#Namespaces">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.1.3</span>
+					<span>Namespaces</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Namespaces-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+	</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-MetaWiki_markup_description"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#MetaWiki_markup_description">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">6</span>
+				<span>MetaWiki markup description</span>
+			</div>
+		</a>
+		
+			<button aria-controls="toc-MetaWiki_markup_description-sublist" class="cdx-button cdx-button--weight-quiet cdx-button--icon-only vector-toc-toggle">
+				<span class="vector-icon mw-ui-icon-wikimedia-expand"></span>
+				<span>Toggle MetaWiki markup description subsection</span>
+			</button>
+		
+		<ul id="toc-MetaWiki_markup_description-sublist" class="vector-toc-list">
+			<li id="toc-Document_element_declaration"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Document_element_declaration">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">6.1</span>
+					<span>Document element declaration</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Document_element_declaration-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Basic_Markup"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Basic_Markup">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">6.2</span>
+					<span>Basic Markup</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Basic_Markup-sublist" class="vector-toc-list">
+				<li id="toc-Either"
+			class="vector-toc-list-item vector-toc-level-3">
+			<a class="vector-toc-link" href="#Either">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">6.2.1</span>
+					<span>Either</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Either-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+	</ul>
+		</li>
+		<li id="toc-Parser_outline"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Parser_outline">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">6.3</span>
+					<span>Parser outline</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Parser_outline-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+	</ul>
+	</li>
+</ul>
+</div>
+
+					</div>
+		</nav>
+			</div>
+		</div>
+		<div class="mw-content-container">
+			<main id="content" class="mw-body">
+				<header class="mw-body-header vector-page-titlebar no-font-mode-scale">
+					<nav aria-label="Contents" class="vector-toc-landmark">
+						
+<div id="vector-page-titlebar-toc" class="vector-dropdown vector-page-titlebar-toc vector-button-flush-left"  title="Table of Contents" >
+	<input type="checkbox" id="vector-page-titlebar-toc-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-page-titlebar-toc" class="vector-dropdown-checkbox "  aria-label="Toggle the table of contents"   >
+	<label id="vector-page-titlebar-toc-label" for="vector-page-titlebar-toc-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-listBullet mw-ui-icon-wikimedia-listBullet cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Toggle the table of contents</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+							<div id="vector-page-titlebar-toc-unpinned-container" class="vector-unpinned-container">
+			</div>
+		
+	</div>
+</div>
+
+					</nav>
+					<h1 id="firstHeading" class="firstHeading mw-first-heading"><span lang="en" dir="ltr"><span class="mw-page-title-main">Markup spec</span></span></h1>
+		<div class="mw-indicators">
+	</div>
+</header>
+				<div class="vector-page-toolbar">
+					<div class="vector-page-toolbar-container">
+						<div id="left-navigation">
+							<nav aria-label="Namespaces">
+								
+<div id="p-associated-pages" class="vector-menu vector-menu-tabs mw-portlet mw-portlet-associated-pages"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="ca-nstab-main" class="selected mw-list-item vector-tab-noicon"><a data-mw-interface  href="/wiki/Markup_spec" title="View the content page [c]" accesskey="c" class=""><span>Page</span></a>
+</li>
+<li id="ca-talk" class="mw-list-item vector-tab-noicon"><a data-mw-interface  href="/wiki/Talk:Markup_spec" rel="discussion" title="Discussion about the content page [t]" accesskey="t" class=""><span>Discussion</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+								
+<div id="vector-variants-dropdown" class="vector-dropdown emptyPortlet"  >
+	<input type="checkbox" id="vector-variants-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-variants-dropdown" class="vector-dropdown-checkbox " aria-label="Change language variant"    >
+	<label id="vector-variants-dropdown-label" for="vector-variants-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet" aria-hidden="true"  ><span class="vector-dropdown-label-text">English</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+					
+<div id="p-variants" class="vector-menu mw-portlet mw-portlet-variants emptyPortlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+				
+	</div>
+</div>
+
+							</nav>
+						</div>
+						<div id="right-navigation" class="vector-collapsible">
+							<nav aria-label="Views">
+			    
+<div id="p-views" class="vector-menu vector-menu-tabs mw-portlet mw-portlet-views"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="ca-view" class="selected mw-list-item vector-menu-item--collapsible vector-tab-noicon"><a data-mw-interface  href="/wiki/Markup_spec" class=""><span>Read</span></a>
+</li>
+<li id="ca-edit" class="mw-list-item vector-menu-item--collapsible vector-tab-noicon"><a data-mw-interface  href="/w/index.php?title=Markup_spec&amp;action=edit" title="Edit the source code of this page [e]" accesskey="e" class=""><span>Edit</span></a>
+</li>
+<li id="ca-history" class="mw-list-item vector-menu-item--collapsible vector-tab-noicon"><a data-mw-interface  href="/w/index.php?title=Markup_spec&amp;action=history" title="Past revisions of this page [h]" accesskey="h" class=""><span>View history</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+			</nav>
+
+							<nav class="vector-page-tools-landmark" aria-label="Page tools">
+								
+<div id="vector-page-tools-dropdown" class="vector-dropdown vector-page-tools-dropdown"  >
+	<input type="checkbox" id="vector-page-tools-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-page-tools-dropdown" class="vector-dropdown-checkbox "  aria-label="Tools"   >
+	<label id="vector-page-tools-dropdown-label" for="vector-page-tools-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-verticalEllipsis mw-ui-icon-wikimedia-verticalEllipsis cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Tools</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+									<div id="vector-page-tools-unpinned-container" class="vector-unpinned-container">
+						
+<div id="vector-page-tools" class="vector-page-tools vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-page-tools-pinnable-header vector-pinnable-header-unpinned"
+	data-feature-name="page-tools-pinned"
+	data-pinnable-element-id="vector-page-tools"
+	data-pinned-container-id="vector-page-tools-pinned-container"
+	data-unpinned-container-id="vector-page-tools-unpinned-container"
+>
+	<div class="vector-pinnable-header-label">Tools</div>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-page-tools.pin" aria-label="Move Tools to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-page-tools.unpin" aria-label="Hide Tools">hide</button>
+</div>
+
+	
+<div id="p-cactions" class="vector-menu mw-portlet mw-portlet-cactions emptyPortlet vector-has-collapsible-items"  >
+	<div class="vector-menu-heading">
+		Actions
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="ca-view-more" class="selected mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/wiki/Markup_spec" class=""><span class="vector-icon mw-ui-icon-eye mw-ui-icon-wikimedia-eye cdx-button__icon"></span>
+
+<span>Read</span></a>
+</li>
+<li id="ca-edit-more" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Markup_spec&amp;action=edit" title="Edit the source code of this page [e]" accesskey="e" class=""><span class="vector-icon mw-ui-icon-edit mw-ui-icon-wikimedia-edit cdx-button__icon"></span>
+
+<span>Edit</span></a>
+</li>
+<li id="ca-history-more" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Markup_spec&amp;action=history" title="Past revisions of this page [h]" accesskey="h" class=""><span class="vector-icon mw-ui-icon-history mw-ui-icon-wikimedia-history cdx-button__icon"></span>
+
+<span>View history</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+<div id="p-tb" class="vector-menu mw-portlet mw-portlet-tb"  >
+	<div class="vector-menu-heading">
+		General
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="t-whatlinkshere" class="mw-list-item"><a href="/wiki/Special:WhatLinksHere/Markup_spec" title="A list of all wiki pages that link here [j]" accesskey="j"><span>What links here</span></a></li><li id="t-recentchangeslinked" class="mw-list-item"><a href="/wiki/Special:RecentChangesLinked/Markup_spec" rel="nofollow" title="Recent changes in pages linked from this page [k]" accesskey="k"><span>Related changes</span></a></li><li id="t-upload" class="mw-list-item"><a href="//commons.wikimedia.org/wiki/Special:UploadWizard" title="Upload files [u]" accesskey="u"><span>Upload file</span></a></li><li id="t-permalink" class="mw-list-item"><a href="/w/index.php?title=Markup_spec&amp;oldid=6656596" title="Permanent link to this revision of this page"><span>Permanent link</span></a></li><li id="t-info" class="mw-list-item"><a href="/w/index.php?title=Markup_spec&amp;action=info" title="More information about this page"><span>Page information</span></a></li><li id="t-cite" class="mw-list-item"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=Markup_spec&amp;id=6656596&amp;wpFormIdentifier=titleform" title="Information on how to cite this page"><span>Cite this page</span></a></li><li id="t-urlshortener" class="mw-list-item"><a href="/w/index.php?title=Special:UrlShortener&amp;url=https%3A%2F%2Fwww.mediawiki.org%2Fwiki%2FMarkup_spec"><span>Get shortened URL</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+<div id="p-coll-print_export" class="vector-menu mw-portlet mw-portlet-coll-print_export"  >
+	<div class="vector-menu-heading">
+		Print/export
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="coll-create_a_book" class="mw-list-item"><a href="/w/index.php?title=Special:Book&amp;bookcmd=book_creator&amp;referer=Markup+spec"><span>Create a book</span></a></li><li id="coll-download-as-rl" class="mw-list-item"><a href="/w/index.php?title=Special:DownloadAsPdf&amp;page=Markup_spec&amp;action=show-download-screen"><span>Download as PDF</span></a></li><li id="t-print" class="mw-list-item"><a href="/w/index.php?title=Markup_spec&amp;printable=yes" title="Printable version of this page [p]" accesskey="p"><span>Printable version</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+<div id="p-wikibase-otherprojects" class="vector-menu mw-portlet mw-portlet-wikibase-otherprojects emptyPortlet"  >
+	<div class="vector-menu-heading">
+		In other projects
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+</div>
+
+									</div>
+				
+	</div>
+</div>
+
+							</nav>
+						</div>
+					</div>
+				</div>
+				<div class="vector-column-end no-font-mode-scale">
+					<div class="vector-sticky-pinned-container">
+						<nav class="vector-page-tools-landmark" aria-label="Page tools">
+							<div id="vector-page-tools-pinned-container" class="vector-pinned-container">
+				
+							</div>
+		</nav>
+						<nav class="vector-appearance-landmark" aria-label="Appearance">
+							<div id="vector-appearance-pinned-container" class="vector-pinned-container">
+				<div id="vector-appearance" class="vector-appearance vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-appearance-pinnable-header vector-pinnable-header-pinned"
+	data-feature-name="appearance-pinned"
+	data-pinnable-element-id="vector-appearance"
+	data-pinned-container-id="vector-appearance-pinned-container"
+	data-unpinned-container-id="vector-appearance-unpinned-container"
+>
+	<div class="vector-pinnable-header-label">Appearance</div>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-appearance.pin" aria-label="Move Appearance to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-appearance.unpin" aria-label="Hide Appearance">hide</button>
+</div>
+
+
+</div>
+
+							</div>
+		</nav>
+					</div>
+				</div>
+				<div id="bodyContent" class="vector-body" aria-labelledby="firstHeading" data-mw-ve-target-container>
+					<div class="vector-body-before-content">
+					
+						<div id="siteSub" class="noprint">From mediawiki.org</div>
+						<div id="contentSub"><div id="mw-content-subtitle"></div></div>
+						
+					</div>
+					
+					<div id="mw-content-text" class="mw-body-content"><div class="mw-content-ltr mw-parser-output" lang="en" dir="ltr"><style data-mw-deduplicate="TemplateStyles:r7217283">.mw-parser-output table.ambox{margin:0 10%;width:unset;border:1px solid var(--border-color-base,#a2a9b1);border-left:10px solid var(--border-color-progressive,#36c);background-color:var(--background-color-neutral-subtle,#f8f9fa);box-sizing:border-box}.mw-parser-output table.ambox+table.ambox,.mw-parser-output table.ambox+link+table.ambox,.mw-parser-output table.ambox+style+table.ambox{margin-top:-1px}.mw-parser-output .ambox td.mbox-empty-cell{border:none;padding:0;width:1px}.mw-parser-output .ambox th.mbox-text,.mw-parser-output .ambox td.mbox-text{border:none;padding:0.25em 0.5em;width:100%}.mw-parser-output .ambox td.mbox-image{padding:2px 0 2px 0.5em}.mw-parser-output .ambox td.mbox-imageright{padding:2px 0.5em 2px 0}.mw-parser-output table.ambox-notice{border-left-color:var(--border-color-progressive,#36c)}.mw-parser-output table.ambox-speedy{background-color:var(--background-color-error-subtle,#fee7e6)}.mw-parser-output table.ambox-delete,.mw-parser-output table.ambox-speedy{border-left-color:var(--background-color-error--active,#b32424)}.mw-parser-output table.ambox-content{border-left-color:#f28500}.mw-parser-output table.ambox-style{border-left-color:#fc3}.mw-parser-output table.ambox-move{border-left-color:#9932cc}.mw-parser-output table.ambox-protection{border-left-color:var(--border-color-base,#a2a9b1)}html body.mediawiki .mw-parser-output .ambox.mbox-small{clear:right;float:right;margin:4px 0 4px 1em;box-sizing:border-box;width:238px;font-size:88%;line-height:1.25em}html body.mediawiki .mw-parser-output .ambox.mbox-small-left{margin:4px 1em 4px 0;box-sizing:border-box;overflow:hidden;width:238px;border-collapse:collapse;font-size:88%;line-height:1.25em}</style><table class="ambox-protection ambox plainlinks metadata" role="presentation"><tbody><tr><td class="mbox-image"><div style="width:52px"><span typeof="mw:File"><span title="Notice"><img alt="" src="//thumb.wikimedia.org/wikipedia/commons/thumb/5/56/Historical.svg/60px-Historical.svg.png?utm_source=www.mediawiki.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" width="45" height="57" class="mw-file-element" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/5/56/Historical.svg/120px-Historical.svg.png?utm_source=www.mediawiki.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" data-file-width="140" data-file-height="177"></span></span></div></td><td class="mbox-text"><div class="mbox-text-span"><b>This page is obsolete. It is being retained for archival purposes.</b> It may document extensions or features that are obsolete and/or no longer supported. Do not rely on the information here being up-to-date.<br>
+<hr style="margin-top:0.5em;">
+<div style="margin-top:0.3em; color: var(--color-subtle, #54595d);">This page was mainly active from 2006-2010, and is now no longer current.  Please refer to <a href="/wiki/Wikitext" title="Wikitext">Wikitext</a> to find more recent information about MediaWiki markup.</div></div></td></tr></tbody></table>
+<div style="float:right; padding:5px">
+<div style="border: 1px solid; padding:5px;">
+<p><b>EBNF grammar project</b>
+</p><p><b><a href="/wiki/Special:MyLanguage/Markup_spec" title="Special:MyLanguage/Markup spec">Markup spec</a></b><span style="display:none"><a class="mw-selflink selflink"> </a></span>
+</p>
+<ul><li><a href="/wiki/Special:MyLanguage/Markup_spec/ANTLR" title="Special:MyLanguage/Markup spec/ANTLR">ANTLR</a><span style="display:none"><a href="/wiki/Markup_spec/ANTLR" title="Markup spec/ANTLR"> </a></span></li>
+<li><a href="/wiki/Special:MyLanguage/Markup_spec/BNF" title="Special:MyLanguage/Markup spec/BNF">BNF</a><span style="display:none"><a href="/wiki/Markup_spec/BNF" title="Markup spec/BNF"> </a></span>
+<ul><li><a href="/wiki/Special:MyLanguage/Markup_spec/BNF/Article_title" title="Special:MyLanguage/Markup spec/BNF/Article title">Article title</a><span style="display:none"><a href="/wiki/Markup_spec/BNF/Article_title" title="Markup spec/BNF/Article title"> </a></span></li>
+<li><a href="/wiki/Special:MyLanguage/Markup_spec/BNF/Article" title="Special:MyLanguage/Markup spec/BNF/Article">Article</a><span style="display:none"><a href="/wiki/Markup_spec/BNF/Article" title="Markup spec/BNF/Article"> </a></span></li>
+<li><a href="/wiki/Special:MyLanguage/Markup_spec/BNF/Noparse-block" title="Special:MyLanguage/Markup spec/BNF/Noparse-block">Noparse-block</a><span style="display:none"><a href="/wiki/Markup_spec/BNF/Noparse-block" title="Markup spec/BNF/Noparse-block"> </a></span></li>
+<li><a href="/wiki/Special:MyLanguage/Markup_spec/BNF/Links" title="Special:MyLanguage/Markup spec/BNF/Links">Links</a><span style="display:none"><a href="/wiki/Markup_spec/BNF/Links" title="Markup spec/BNF/Links"> </a></span></li>
+<li><a href="/wiki/Special:MyLanguage/Markup_spec/BNF/Magic_links" title="Special:MyLanguage/Markup spec/BNF/Magic links">Magic links</a><span style="display:none"><a href="/wiki/Markup_spec/BNF/Magic_links" title="Markup spec/BNF/Magic links"> </a></span></li>
+<li><a href="/wiki/Special:MyLanguage/Markup_spec/BNF/Special_block" title="Special:MyLanguage/Markup spec/BNF/Special block">Special block</a><span style="display:none"><a href="/wiki/Markup_spec/BNF/Special_block" title="Markup spec/BNF/Special block"> </a></span></li>
+<li><a href="/wiki/Special:MyLanguage/Markup_spec/BNF/Inline_text" title="Special:MyLanguage/Markup spec/BNF/Inline text">Inline text</a><span style="display:none"><a href="/wiki/Markup_spec/BNF/Inline_text" title="Markup spec/BNF/Inline text"> </a></span></li>
+<li><a href="/wiki/Special:MyLanguage/Markup_spec/BNF/Fundamental_elements" title="Special:MyLanguage/Markup spec/BNF/Fundamental elements">Fundamental elements</a><span style="display:none"><a href="/wiki/Markup_spec/BNF/Fundamental_elements" title="Markup spec/BNF/Fundamental elements"> </a></span></li></ul></li></ul>
+</div>
+</div>
+<p>There are many documents aiming at creating a formal representation of the <a href="/wiki/Wikitext" title="Wikitext">MediaWiki markup</a> and the parser behaviour. So far, none of them are complete, but there are a number of drafts in different syntaxes such as <a href="https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form" class="extiw" title="en:Backus–Naur form">BNF</a>, <a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form" class="extiw" title="en:Extended Backus–Naur form">EBNF</a> or <a href="https://en.wikipedia.org/wiki/ANTLR" class="extiw" title="en:ANTLR">ANTLR</a>. In this document all of these efforts are collected, discussed and coordinated.
+</p>
+<meta property="mw:PageProp/toc">
+<div class="mw-heading mw-heading2 ext-discussiontools-init-section"><h2 id="Goals" data-mw-thread-id="h-Goals"><span data-mw-comment-start="" id="h-Goals"></span>Goals<span data-mw-comment-end="h-Goals"></span></h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=1" title="Edit section: Goals"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>Produce a specification of MediaWiki's markup format that is sufficiently complete and consistent. Future parser implementations can be built from it. Also, features that are currently either Not Possible or Very Hard (e.g. WYSIWYG editing) could benefit from such a specification.
+</p><p>Specification might include both grammar description and parser behaviour.
+</p><p>Concerning the grammar description, the specification might use a standard notation such as <a href="https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form" class="extiw" title="en:Backus–Naur Form">BNF</a> or <a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form" class="extiw" title="en:Extended Backus–Naur form">EBNF</a>.
+</p><p>In order to avoid breaking existent pages, the specification should preserve present parser behavior that is reasonable and well-defined. Adding requirements for new behaviour must be well-considered in that respect. Where the current parser's behavior is undefined or obviously buggy, the specification may define new behavior which is different. The parser might be described using tools such as <a href="https://en.wikipedia.org/wiki/ANTLR" class="extiw" title="en:ANTLR">ANTLR</a>.
+</p><p>Also a data model for a parse tree can be defined. The data model should be representable in XML. An official XML schema for such a representation may or may not be defined. Round-trip conversion between source code and the data should be also possible with a data model. There might be a many-to-one relationship between source code and parse trees, but the canonical transformation from parse tree to source code should always parse back to the same parse tree.
+</p>
+<div class="mw-heading mw-heading2 ext-discussiontools-init-section"><h2 id="Feasibility_study" data-mw-thread-id="h-Feasibility_study"><span data-mw-comment-start="" id="h-Feasibility_study"></span>Feasibility study<span data-mw-comment-end="h-Feasibility_study"></span></h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=2" title="Edit section: Feasibility study"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>It has been broadly asserted that the Wiki Markup is a <a href="https://en.wikipedia.org/wiki/en:Context-sensitive_language" class="extiw" title="w:en:Context-sensitive language">context-sensitive language</a>, and therefore that it cannot be expressed with a context-free grammar (such as the those defined with <a href="https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form" class="extiw" title="en:Backus–Naur form">BNF</a> or <a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form" class="extiw" title="en:Extended Backus–Naur form">EBNF</a>). To put some light on the topic, it would be useful to first define some concepts:
+</p>
+<ul><li><a href="https://en.wikipedia.org/wiki/en:Formal_grammar" class="extiw" title="w:en:Formal grammar">Formal grammar</a>: it is a set of rules to form strings in a language. According to the <a href="https://en.wikipedia.org/wiki/en:Chomsky_hierarchy" class="extiw" title="w:en:Chomsky hierarchy">Chomsky hierarchy</a> a grammar can be:
+<ul><li><a href="https://en.wikipedia.org/wiki/en:regular_grammar" class="extiw" title="w:en:regular grammar">type 3 (or regular)</a>: when all the rules are of the form <i>A</i> → <i>a</i> or <i>A</i> → <i>aB</i> (being <i>A</i> and <i>B</i> single nonterminal symbols and <i>a</i> a terminal symbol);</li>
+<li><a href="https://en.wikipedia.org/wiki/en:context-free_grammar" class="extiw" title="w:en:context-free grammar">type 2 (or context-free)</a>: when all the rules are of the form <i>A</i> → <i>γ</i> (being <i>γ</i> any combination of terminal and nonterminal symbols);</li>
+<li><a href="https://en.wikipedia.org/wiki/en:context-sensitive_grammar" class="extiw" title="w:en:context-sensitive grammar">type 1 (or context-sensitive)</a>: when all the rules are of the form <i>αAβ</i> → <i>αγβ</i> (being <i>α</i> and <i>β</i> any combination of terminal and nonterminal symbols); or</li>
+<li><a href="https://en.wikipedia.org/wiki/en:unrestricted_grammar" class="extiw" title="w:en:unrestricted grammar">type 0 (or unrestricted)</a>: when there are no restrictions in the production rules (<i>α</i> → <i>β</i>).</li></ul></li>
+<li><a href="https://en.wikipedia.org/wiki/en:Syntactic_analysis" class="extiw" title="w:en:Syntactic analysis">Syntactic analysis</a>: it is the process of analyzing a text to determine its grammatical structure with respect to a given formal grammar.</li>
+<li><a href="https://en.wikipedia.org/wiki/en:Syntactic_analysis#Parser" class="extiw" title="w:en:Syntactic analysis">Parser</a>: it is the program performing this syntactic analysis.</li>
+<li><a href="https://en.wikipedia.org/wiki/en:context-free_language" class="extiw" title="w:en:context-free language">Context-free language</a>: that which can be generated with a <a href="https://en.wikipedia.org/wiki/en:context-free_grammar" class="extiw" title="w:en:context-free grammar">context-free grammar</a>.</li>
+<li><a href="https://en.wikipedia.org/wiki/en:context-sensitive_language" class="extiw" title="w:en:context-sensitive language">Context-sensitive language</a>: that which can be generated with a <a href="https://en.wikipedia.org/wiki/en:context-sensitive_grammar" class="extiw" title="w:en:context-sensitive grammar">context-sensitive grammar</a>.</li>
+<li><a href="https://en.wikipedia.org/wiki/en:Ambiguous_grammar" class="extiw" title="w:en:Ambiguous grammar">Ambiguous grammar</a>: that grammar producing any string so that it can be generated in more than one way.</li>
+<li><a href="https://en.wikipedia.org/wiki/en:Ambiguous_grammar" class="extiw" title="w:en:Ambiguous grammar">Inherently ambiguous language</a>: that language that can only be generated by ambiguous grammar.</li></ul>
+<div class="mw-heading mw-heading3"><h3 id="Language_generation_and_grammar_type" data-mw-thread-id="h-Language_generation_and_grammar_type-Feasibility_study"><span data-mw-comment-start="" id="h-Language_generation_and_grammar_type-Feasibility_study"></span>Language generation and grammar type<span data-mw-comment-end="h-Language_generation_and_grammar_type-Feasibility_study"></span></h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=3" title="Edit section: Language generation and grammar type"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>As it can be seen in the rule description of each one of the grammars, regular grammars have very <i>relaxed</i> rules, whereas unrestricted grammars are allowed to describe very <i>restraining</i> rules. <i>Relaxed</i> in this context means that symbols can be generated in regular grammars without taking into account what has been produced so far. More on the contrary, context-sensitive grammars' and unrestricted grammars' rules might need some already-generated strings in order to apply certain rules.
+</p><p>Contrary to what could be intuitive, context-sensitive grammars can have more <i>restrictive</i> rules. Not in vain, Chomsky conceived context-sensitive grammars as a way to describe <a href="https://en.wikipedia.org/wiki/en:natural_language" class="extiw" title="w:en:natural language">natural language</a>. Natural languages are clearly more restrictive than classical context-free computer languages (such as C or Java), for it is true that a word may or may not be appropriate in a certain place depending upon the context.
+</p><p>Wikicode is, as many other computer languages, a context-free language. The Wikicode is composed of many tokens for formatting, title description, text linking or list representation. Some of the tokens need to be placed in a certain place (such as those which need to go at the beginning of a line), but otherwise tokens may appear in any place of the document, regardless of the context. Considering that, it could be argued that Wikicode is indeed a regular language. However, a regular grammar can only express nesting if it also defines a known maximum nesting level, while Wikicode does not have one.
+</p><p>In short, Wikicode does not need context-sensitive grammar rules, for any token can be placed anywhere (with few restrictions such as #REDIRECT, include modes and similar structures). It cannot be however expressed with regular grammar rules, as nested structures with an arbitrary depth cannot be described in type 3 grammars. Therefore, a context-free grammar suffices for Wikicode description.
+</p>
+<div class="mw-heading mw-heading3"><h3 id="Ambiguities_in_the_language" data-mw-thread-id="h-Ambiguities_in_the_language-Feasibility_study"><span data-mw-comment-start="" id="h-Ambiguities_in_the_language-Feasibility_study"></span>Ambiguities in the language<span data-mw-comment-end="h-Ambiguities_in_the_language-Feasibility_study"></span></h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=4" title="Edit section: Ambiguities in the language"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>The fact that Wikicode uses the same characters for different tokens leads to strings that can be interpreted in many different ways. This does not mean, however, that the language is not context-free, but instead that there are many different combinations of rules in the grammar that reach to the same final string. Consider the following string of Wikicode:
+</p><p>The '''''dog''''''s bone
+</p><p>Being the word <i>dog</i> enclosed in cursive marks (two apostrophes) and bold marks (three apostrophes), with an additional apostrophe to indicate a saxon genitive. This does not necessarily mean that the language is inherently ambiguous either, as there might be a grammar which can generate that structure without ambiguity. In terms of language recognition, this can be easily avoided just considering a precedence in the rules (pretty much like the precedence rules in computer language's mathematical expressions).
+</p>
+<div class="mw-heading mw-heading3"><h3 id="Language_recognition" data-mw-thread-id="h-Language_recognition-Feasibility_study"><span data-mw-comment-start="" id="h-Language_recognition-Feasibility_study"></span>Language recognition<span data-mw-comment-end="h-Language_recognition-Feasibility_study"></span></h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=5" title="Edit section: Language recognition"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>Parsers normally use grammars to analyze or recognize strings of a certain language. When a mismatch (or error) is found, the parser needs to figure out what to do with the unexpected input, and a way to recover from the error in order to further analyze the string.
+</p><p>Whereas the grammar description is quite easy to describe, the parser behaviour is somewhat complex. This is due to the fact that every input string should derive to the most-likely result, even if it contains syntax errors. MediaWiki's parser does a complex error recovery, like for instance when dealing with wrongly nested structures such as:
+</p><p>''The '''quick'' brown''' fox
+</p><p>where the opening bold mark is inside an italics structure, and the closed bold mark is outside. For a valid output to be produced, the parser closes the italics structure and opens it again, producing an output where the two structures are properly nested. Also, should a tag mismatching occur, such as in the following example:
+</p><p>The quick ''brown fox 
+</p><p>the parser will add the mismatched closing tags. The huge number of recovery rules make the language recognizer hard to describe, for every single rule should be reflected in the specification. Since there is not such thing as <i>right</i> or <i>wrong</i> Wikicode, an extensive list of recovery rules is as important as the own grammar when aiming at creating a complete description of the wiki language interpretation.
+</p>
+<div class="mw-heading mw-heading2 ext-discussiontools-init-section"><h2 id="Current_efforts" data-mw-thread-id="h-Current_efforts"><span data-mw-comment-start="" id="h-Current_efforts"></span>Current efforts<span data-mw-comment-end="h-Current_efforts"></span></h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=6" title="Edit section: Current efforts"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>So far progress has been made in both grammar definition and parser behaviour. Although none of the descriptions seems to be complete, some have achieved to describe a good part of the language.
+</p><p>Current parser descriptions tried to do its best to follow the MediaWiki's parser behaviour. It is however very hard to properly describe all the error recovery and rule precedence performed by the MediaWiki's parser, for there are a number of different cases of grammar mismatch (i.e.: unclosed tags) or operator precedence, considering the ambiguity that symbols such as <code>'</code> or <code>|</code> brings.
+</p>
+<ul><li>Grammar descriptions:
+<ul><li><a href="/wiki/Markup_spec/DTD" title="Markup spec/DTD">DTD</a></li>
+<li><a href="/wiki/Markup_spec/EBNF" title="Markup spec/EBNF">EBNF</a></li></ul></li>
+<li>Parser description:
+<ul><li><a href="/wiki/Preprocessor_ABNF" title="Preprocessor ABNF">ABNF plus natural language</a></li>
+<li><a href="/wiki/Markup_spec/BNF" title="Markup spec/BNF">BNF plus natural language</a></li>
+<li><a href="/wiki/Markup_spec/ANTLR" title="Markup spec/ANTLR">ANTLR</a></li>
+<li><a href="/wiki/Markup_spec/OCaml" title="Markup spec/OCaml">OCaml</a></li>
+<li><a href="/wiki/Markup_spec/flex" title="Markup spec/flex">flex</a></li>
+<li><a href="/wiki/Markup_spec/bison" title="Markup spec/bison">bison</a></li></ul></li></ul>
+<div class="mw-heading mw-heading2 ext-discussiontools-init-section"><h2 id="Resources" data-mw-thread-id="h-Resources"><span data-mw-comment-start="" id="h-Resources"></span>Resources<span data-mw-comment-end="h-Resources"></span></h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=7" title="Edit section: Resources"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<ul><li><a href="/wiki/Alternative_parsers" title="Alternative parsers">Alternative parsers</a></li>
+<li><a href="/wiki/Help:Editing_pages" title="Help:Editing pages">Help:Editing pages</a></li>
+<li><a href="/wiki/Help:Magic_words#Transclusion_modifiers" title="Help:Magic words">Help:Magic words#Transclusion modifiers</a></li>
+<li><a href="/wiki/User:HappyDog/WikiText_parsing" title="User:HappyDog/WikiText parsing">User:HappyDog/WikiText parsing</a> - some observations based on 1.3.10 by HappyDog</li>
+<li><a href="https://lists.wikimedia.org/postorius/lists/wikitext-l.lists.wikimedia.org/" class="extiw" title="mail:wikitext-l">mail:wikitext-l</a> - Wikitext-l maillist</li>
+<li><a rel="nofollow" class="external text" href="http://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html">EBNF help</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.garshol.priv.no/download/text/bnf.html">More EBNF help</a></li>
+<li><a rel="nofollow" class="external text" href="http://code.pediapress.com/">Python parser for MediaWiki articles</a></li>
+<li><a rel="nofollow" class="external text" href="http://jamwiki.org/wiki/en/StartingPoints">JamWiki</a> claims to have Mediawiki compatible syntax - see <a rel="nofollow" class="external text" href="http://svn.sourceforge.net/viewvc/jamwiki/wiki/trunk/src/lex/">the code</a> for an attempt to write a parser.</li>
+<li><a rel="nofollow" class="external text" href="https://github.com/acunote/mediacloth">MediaCloth</a> Is a <a href="https://en.wikipedia.org/wiki/Ruby_(programming_language)" class="extiw" title="wikipedia:Ruby (programming language)">Ruby</a> library for parsing Mediawiki compatible syntax to <a href="/wiki/XHTML" title="XHTML">XHTML</a>.</li>
+<li><a rel="nofollow" class="external text" href="https://github.com/nricciar/wikicloth">WikiCloth</a> is another <a href="https://en.wikipedia.org/wiki/Ruby_(programming_language)" class="extiw" title="wikipedia:Ruby (programming language)">Ruby</a> library for Mediawiki markup.</li>
+<li><a rel="nofollow" class="external text" href="https://github.com/molybdenum-99/infoboxer">Infoboxer</a> is <a href="https://en.wikipedia.org/wiki/Ruby_(programming_language)" class="extiw" title="wikipedia:Ruby (programming language)">Ruby</a> MediaWiki client and parser, aiming (mostly successfully) to successfully parse and navigate any page of any WikiMedia project, including Wikipedia.</li>
+<li>Raid Magnus's wiki2xml work for some starting points; examine how his parser works (and how it differs from the main one) and the intermediate XML format he uses</li>
+<li>Riehle et al.'s work on an EBNF grammar for <a rel="nofollow" class="external text" href="http://www.wikicreole.org">Wiki Creole</a> (a subset of MediaWiki syntax), XML interchange and XSLT transformations: <a rel="nofollow" class="external free" href="http://dirkriehle.com/publications/2008/wiki-creole/">http://dirkriehle.com/publications/2008/wiki-creole/</a></li></ul>
+<div class="mw-heading mw-heading2 ext-discussiontools-init-section"><h2 id="The_Markup_Language" data-mw-thread-id="h-The_Markup_Language"><span data-mw-comment-start="" id="h-The_Markup_Language"></span>The Markup Language<span data-mw-comment-end="h-The_Markup_Language"></span></h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=8" title="Edit section: The Markup Language"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>The MediaWiki markup language (commonly referred to within the MediaWiki community as <i><a href="/wiki/Wikitext" title="Wikitext">wikitext</a></i>, though this usage is ambiguous within the larger wiki community) uses sometimes paired non-textual ASCII characters to indicate to the parser how the editor wishes an item or section of text to be displayed.  The parser translates these tokens into (X)HTML as closely as semantically possible.
+</p>
+<div class="mw-heading mw-heading3"><h3 id="v1.6_markup_tokens" data-mw-thread-id="h-v1.6_markup_tokens-The_Markup_Language"><span data-mw-comment-start="" id="h-v1.6_markup_tokens-The_Markup_Language"></span>v1.6 markup tokens<span data-mw-comment-end="h-v1.6_markup_tokens-The_Markup_Language"></span></h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=9" title="Edit section: v1.6 markup tokens"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>The markup tokens fall into two broad categories: unary tokens (like&nbsp;: or * used at the beginning of a line), which stand alone, and binary tokens (like those for italic or boldface) which must be used in matched pairs.  Unary tokens may only be preceded by comments or whitespace; otherwise, they will not be interpreted.
+</p>
+<div class="mw-heading mw-heading4"><h4 id="Unary" data-mw-thread-id="h-Unary-v1.6_markup_tokens"><span data-mw-comment-start="" id="h-Unary-v1.6_markup_tokens"></span>Unary<span data-mw-comment-end="h-Unary-v1.6_markup_tokens"></span></h4><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=10" title="Edit section: Unary"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<div class="mw-heading mw-heading5"><h5 id="Start_of_line_only" data-mw-thread-id="h-Start_of_line_only-Unary"><span data-mw-comment-start="" id="h-Start_of_line_only-Unary"></span>Start of line only<span data-mw-comment-end="h-Start_of_line_only-Unary"></span></h5><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=11" title="Edit section: Start of line only"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<ul><li>blank line: paragraph break (HTML &lt;p&gt;)</li>
+<li>Horizontal line: <b>----</b> (4 or more hyphens), specified in <a href="/wiki/Markup_spec/BNF/Article#Horizontal_rule" title="Markup spec/BNF/Article">/BNF/Article#Horizontal rule</a></li>
+<li>Pre-formatted text: <b>(space)</b></li>
+<li>Lists
+<ul><li>Bulleted: <b>*</b></li>
+<li>Numbered: <b>#</b></li>
+<li>Indent with no marking: <b>:</b></li>
+<li>Definition list: <b>;</b></li></ul>
+<dl><dd>Notes:
+<ul><li>These may be combined at the start of the line to create nested lists, e.g. *** to give a bulleted list three levels deep, or **# to have a numbered list within two-levels of bulleted list nesting.</li></ul></dd></dl></li>
+<li>Redirects: <b>#redirect</b> or <b>#REDIRECT</b> (followed by wikilink)</li>
+<li>The whole quagmire that is <a href="/wiki/Help:Table" class="mw-redirect" title="Help:Table">table formatting</a>: <code>{| ... |}</code> with in between <code>|- |+ || |&nbsp;!!&nbsp;!</code> .</li></ul>
+<div class="mw-heading mw-heading5"><h5 id="Can_be_used_anywhere" data-mw-thread-id="h-Can_be_used_anywhere-Unary"><span data-mw-comment-start="" id="h-Can_be_used_anywhere-Unary"></span>Can be used anywhere<span data-mw-comment-end="h-Can_be_used_anywhere-Unary"></span></h5><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=12" title="Edit section: Can be used anywhere"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<ul><li>"Magic words", e.g. <code>__FORCETOC__</code>, <code>__NOEDITSECTION__</code> (see <a href="/wiki/Help:Magic_words" title="Help:Magic words">Help:Magic words</a>)</li>
+<li>Signatures:
+<ul><li><b> ~~~ </b> Replaced with your username</li>
+<li><b> ~~~~ </b> Replaced with your username and the date</li>
+<li><b> ~~~~~ </b> Replaced with the date.</li></ul>
+<dl><dd>Notes:
+<ul><li>These tags are replaced at the point the edit is saved.</li></ul></dd></dl></li>
+<li>Magic links: <b>ISBN ...</b>, <b>RFC ...</b>, <b>PMID ...</b>  <i>(see <a href="/wiki/Markup_spec/BNF/Magic_links" title="Markup spec/BNF/Magic links">BNF/Magic links</a>)</i></li></ul>
+<div class="mw-heading mw-heading4"><h4 id="Binary" data-mw-thread-id="h-Binary-v1.6_markup_tokens"><span data-mw-comment-start="" id="h-Binary-v1.6_markup_tokens"></span>Binary<span data-mw-comment-end="h-Binary-v1.6_markup_tokens"></span></h4><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=13" title="Edit section: Binary"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>The ellipses (<b>...</b>) are used to indicate where the content goes and are not part of the markup.
+</p>
+<div class="mw-heading mw-heading5"><h5 id="Beginning_of_a_line" data-mw-thread-id="h-Beginning_of_a_line-Binary"><span data-mw-comment-start="" id="h-Beginning_of_a_line-Binary"></span>Beginning of a line<span data-mw-comment-end="h-Beginning_of_a_line-Binary"></span></h5><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=14" title="Edit section: Beginning of a line"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<ul><li>Equals signs are used for headings (must be at start of line)
+<ul><li>1st level heading: <b> = ... =  </b></li>
+<li>2nd level heading: <b> == ... ==  </b></li>
+<li>3rd level heading: <b> === ... ===  </b></li>
+<li>4th level heading: <b> ==== ... ====  </b></li>
+<li>5th level heading: <b> ===== ... =====  </b></li>
+<li>6th level heading: <b> ====== ... ====== </b></li>
+<li>Specified in <a href="/wiki/Markup_spec/BNF/Article#Heading" title="Markup spec/BNF/Article">/BNF/Article#Heading</a></li></ul></li></ul>
+<div class="mw-heading mw-heading5"><h5 id="Anywhere" data-mw-thread-id="h-Anywhere-Binary"><span data-mw-comment-start="" id="h-Anywhere-Binary"></span>Anywhere<span data-mw-comment-end="h-Anywhere-Binary"></span></h5><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=15" title="Edit section: Anywhere"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<ul><li>Square brackets are used for links:
+<ul><li>Internal/interwiki link + language links + category links + images: <b> [[ ... ]] </b> (see also <b><a href="#Namespaces">Namespaces</a></b> below)
+<dl><dd>vertical bars separate optional parameters, which are:
+<ul><li>link: first parameter: display text (also defaulted using "<a href="https://en.wikipedia.org/wiki/Help:Pipe_trick" class="extiw" title="wikipedia:Help:Pipe trick">pipe trick</a>") (also trailing concatenated text included in display, e.g. <i>s</i> for plural)</li>
+<li>image: many parameters; see <a href="https://en.wikipedia.org/wiki/Wikipedia:Extended_image_syntax" class="extiw" title="w:Wikipedia:Extended image syntax">w:Wikipedia:Extended image syntax</a>; may contain nested links (and images!) in caption text.</li>
+<li>category: first parameter: sort order in category list</li></ul></dd>
+<dd>link contents have to be parsed for whether they're dates if <a href="/wiki/Manual:$wgUseDynamicDates" title="Manual:$wgUseDynamicDates">$wgUseDynamicDates</a> is on</dd></dl></li>
+<li>External link: <b> [ ... ] </b>
+<dl><dd>space separates optional second parameter, which is display text</dd></dl></li>
+<li>undecorated URLs are also recognized and hotlinked</li>
+<li>Specified in <a href="/wiki/Markup_spec/BNF/Links" title="Markup spec/BNF/Links">/BNF/Links</a></li></ul></li>
+<li>Apostrophes are used for formatting:
+<ul><li>Italic: <b> '' ... '' </b></li>
+<li>Bold: <b> ''' ... ''' </b></li>
+<li>Bold + Italic: <b> ''''' ... ''''' </b></li>
+<li>Note that improper nesting of bold and italics is currently permitted.</li></ul></li>
+<li>Curly braces are used for transclusion:
+<ul><li>Include template: <b> {{ ... }} </b> (see also <b><a href="#Namespaces">Namespaces</a></b> below)
+<ul><li>Unlimited number of optional pipe-delimited parameters, each of which may optionally start with a parameter name preceding an equals sign</li></ul></li>
+<li>Include template parameter: <b> {{{ ... }}} </b>
+<ul><li>Optionally including a pipe followed by the parameter default: {{{1|Bob}}} will use the first passed in parameter, and if none is received, will insert "Bob" instead.</li></ul></li>
+<li>Use a built-in variable: <b> {{PAGENAME}} </b> (see <a href="/wiki/Help:Variable" class="mw-redirect" title="Help:Variable">Help:Variable</a>)</li>
+<li>Call a <a href="/wiki/Help:Parser_function" class="mw-redirect" title="Help:Parser function">parser function</a>: <b> {{ ... }} </b></li></ul></li>
+<li>Various <a href="/wiki/Help:XML-style_tags" title="Help:XML-style tags">XML style tags</a>:
+<ul><li>Inline and text elements:
+<ul><li><code class="mw-highlight mw-highlight-lang-html mw-content-ltr" dir="ltr"><span class="cm">&lt;!-- ... --&gt;</span></code> HTML-style comments (filtered out)</li>
+<li><style data-mw-deduplicate="TemplateStyles:r7217505">.mw-parser-output .nowrap,.mw-parser-output .nowrap a:before,.mw-parser-output .nowrap .selflink:before{white-space:nowrap}</style><code class="mw-highlight nowrap"><span class="p">‎&lt;</span><span class="nt">nowiki</span><span class="p">&gt;</span></code> do not interpret wiki markup, do allow newline in list and indent elements (but still flow text, still allow SGML entities)</li>
+<li><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r7217505"><code class="mw-highlight nowrap"><span class="p">‎&lt;</span><span class="nt">onlyinclude</span><span class="p">&gt;</span></code> <link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r7217505"><code class="mw-highlight nowrap"><span class="p">‎&lt;</span><span class="nt">noinclude</span><span class="p">&gt;</span></code> <link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r7217505"><code class="mw-highlight nowrap"><span class="p">‎&lt;</span><span class="nt">includeonly</span><span class="p">&gt;</span></code></li>
+<li>SGML entities: <code>&amp;...;</code> (converted to Unicode characters where appropriate, otherwise to numeric entities)</li>
+<li><a href="/w/index.php?title=Parser_extension_tag&amp;action=edit&amp;redlink=1" class="new" title="Parser extension tag (page does not exist)">Parser extension tags</a>, like <link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r7217505"><code class="mw-highlight nowrap"><span class="p">‎&lt;</span><span class="nt">ref</span><span class="p">&gt;</span></code> (using Cite.php)</li>
+<li><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r7217505"><code class="mw-highlight nowrap"><span class="p">‎&lt;</span><span class="nt">math</span><span class="p">&gt;</span></code> if $wgUseTeX is set</li>
+<li>Plus most <i>non-dangerous</i> HTML styling inline elements: 'font' (deprecated), 'bdo', 'b', 'i', 'u', 's', 'strike', 'big', 'small', 'tt', 'span'</li>
+<li>Plus most <i>non-dangerous</i> HTML semantic inline elements: 'br', 'abbr', 'cite', 'del', 'ins', 'sub', 'sup', 'em', 'strong', 'var', 'code', 'ruby', 'rb', 'rt', 'rp'
+<dl><dd><dl><dd>The following <i>non-dangerous</i> semantic inline elements are still not recognized (or were forgotten): 'acronym', 'q', 'address', 'dfn', 'samp', 'kbd'.</dd>
+<dd>The following <i>potentially dangerous</i> inline elements are forbidden: 'bgsound', 'style', 'a', 'image', 'map', 'area', 'embed', 'noembed', 'applet', 'object', 'param', 'script', 'noscript', 'iframe'</dd></dl></dd></dl></li></ul></li>
+<li>Block elements (most of them are semantic):
+<ul><li><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r7217505"><code class="mw-highlight nowrap"><span class="p">‎&lt;</span><span class="nt">html</span><span class="p">&gt;</span></code> if $wgRawHtml is set
+<dl><dd><dl><dd>The following document-structure declarative elements are forbidden in the wiki source code: 'head', 'title', 'base', 'meta', 'link', 'body', 'frameset', 'frame'</dd></dl></dd></dl></li>
+<li><link rel="mw-deduplicated-inline-style" href="mw-data:TemplateStyles:r7217505"><code class="mw-highlight nowrap"><span class="p">‎&lt;</span><span class="nt">pre</span><span class="p">&gt;</span></code> do not interpret wiki markup, do not flow text (but still allow SGML entities)</li>
+<li><code><a href="/wiki/Help:Images#Gallery_of_images" title="Help:Images">&lt;gallery&gt;</a></code>
+<dl><dd><dl><dd>Note: the non-dangerous standard tags for column groups or column definitions ('colgroup', 'col') are still not supported (not even with their HTML/XHTML syntax) despite they would help saving lots of CSS duplication or complexities in tables and would offer additional usability features, plus adding semantics (notably for row groups).</dd></dl></dd></dl></li>
+<li>Plus most <i>non-dangerous</i> HTML block elements: 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'hr', 'div', 'center' (presentational, deprecated), 'blockquote', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'table', 'caption', 'tr', 'td', 'th'
+<dl><dd><dl><dd>Form elements are also not accepted in wiki source code: 'form', 'input', 'button', 'textarea', 'label' (as well as old <i>gopher</i>-like menu elements)</dd>
+<dd>Note: MediaWiki enforces the HTML DOM (and not the XHTML DOM), which restricts the recursive inclusion of some block element types (for example 'div' in the middle of a paragraph will break it, independently of its CSS 'display:' attribute which may be specified in a separate stylesheet, and not in the wiki source code). It will then close some elements implicitly and convert XHTML syntax to valid HTML/SGML, recognizing also elements that can't have no content in the HTML DOM (such as 'br').</dd></dl></dd></dl></li></ul></li></ul></li></ul>
+<div class="mw-heading mw-heading4"><h4 id="Namespaces" data-mw-thread-id="h-Namespaces-v1.6_markup_tokens"><span data-mw-comment-start="" id="h-Namespaces-v1.6_markup_tokens"></span>Namespaces<span data-mw-comment-end="h-Namespaces-v1.6_markup_tokens"></span></h4><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=16" title="Edit section: Namespaces"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>In wikilinks and template inclusions, colons set off namespaces and other modifiers:
+</p>
+<ul><li>proper namespaces: <code>Talk:</code>, <code>User:</code>, <code>Project:</code>, etc.</li>
+<li>"special" namespaces: <code>File:</code> (was <code>Image:</code>), <code>Category:</code>, <code>Template:</code></li>
+<li>pseudo-namespaces: <code>Special:</code>, <code>Media:</code></li>
+<li>lone/leading <code>:</code>
+<ul><li>lone <code>:</code> forces main namespace</li>
+<li>leading <code>:</code> allows link to image page rather than inline image, or similarly to category or template page</li></ul></li>
+<li>interwiki links:
+<ul><li>same project, different language: code of two or more letters</li>
+<li>different project, same language: <code>w:</code> for Wikipedia, <code>wikt:</code> for Wiktionary, <code>m:</code> for Meta, etc. -- see <a href="/w/index.php?title=Help:Interwiki_linking_on_Wikimedia_wikis&amp;action=edit&amp;redlink=1" class="new" title="Help:Interwiki linking on Wikimedia wikis (page does not exist)">Help:Interwiki_linking on Wikimedia wikis</a> for more information (especially when using in templates; transwiki transclusion, iw_trans)</li></ul></li>
+<li><code>subst:</code> force one-time template substitution upon edit, rather than dynamic expansion on each view</li>
+<li><code>int:</code>, <code>msg:</code>, <code>msgnw:</code>, <code>raw:</code> -- see <a href="/wiki/Help:Magic_words#Template_modifiers" title="Help:Magic words">Help:Magic words#Template modifiers</a></li>
+<li><code>MediaWiki:</code> magically access mediawiki formatting and boilerplate text (e.g. <a href="/wiki/MediaWiki:Copyrightwarning" title="MediaWiki:Copyrightwarning">MediaWiki:copyrightwarning</a>)</li>
+<li>Standard parser functions: <code>UC:</code>, <code>LC:</code>, etc. (see <a href="/wiki/Help:Parser_function" class="mw-redirect" title="Help:Parser function">Help:Parser function</a>)</li>
+<li><a href="/wiki/Help:Extension:ParserFunctions" title="Help:Extension:ParserFunctions">Additional parser functions</a>: <code>#expr:</code>, <code>#if:</code>, <code>#switch:</code>, etc.</li>
+<li>other extensions?</li></ul>
+<p>Several combinations of the above are possible, e.g. <a href="https://meta.wikimedia.org/wiki/Help:Contents" class="extiw" title="m:Help:Contents">m:Help:Contents</a> -- help namespace within Meta project.
+</p>
+<div class="mw-heading mw-heading2 ext-discussiontools-init-section"><h2 id="MetaWiki_markup_description" data-mw-thread-id="h-MetaWiki_markup_description"><span data-mw-comment-start="" id="h-MetaWiki_markup_description"></span>MetaWiki markup description<span data-mw-comment-end="h-MetaWiki_markup_description"></span></h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=17" title="Edit section: MetaWiki markup description"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>The following text was at <a href="https://meta.wikimedia.org/wiki/Wikitext_Metasyntax" class="extiw" title="m:Wikitext Metasyntax">m:Wikitext Metasyntax</a> and needs to be merged with the description above.
+</p>
+<div class="mw-heading mw-heading3"><h3 id="Document_element_declaration" data-mw-thread-id="h-Document_element_declaration-MetaWiki_markup_description"><span data-mw-comment-start="" id="h-Document_element_declaration-MetaWiki_markup_description"></span>Document element declaration<span data-mw-comment-end="h-Document_element_declaration-MetaWiki_markup_description"></span></h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=18" title="Edit section: Document element declaration"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<div class="mw-highlight mw-highlight-lang-ebnf mw-content-ltr" dir="ltr"><pre><span></span><span class="k">AnyText </span><span class="o">=</span> <span class="k">InlineText </span><span class="p">|</span> <span class="k">BlockText </span><span class="p">;</span>
+<span class="k">InlineText </span><span class="o">=</span> <span class="k">Line </span><span class="p">|</span> <span class="k">InlineTextNormal </span><span class="p">|</span> <span class="k">InlineTextExtra </span><span class="p">|</span> <span class="k">EitherText </span><span class="p">;</span>
+<span class="k">InlineTextNormal </span><span class="o">=</span> <span class="k">Line </span><span class="p">|</span> <span class="k">Bold </span><span class="p">|</span> <span class="k">Italic </span><span class="p">|</span> <span class="k">BoldItalic </span><span class="p">;</span>
+<span class="k">InlineTextExtra </span><span class="o">=</span> <span class="k">Line </span><span class="p">|</span> <span class="k">InternalLink </span><span class="p">|</span> <span class="k">ExternalLink </span><span class="p">|</span> <span class="k">InlineHTML </span><span class="p">;</span>
+<span class="k">BlockText </span><span class="o">=</span> <span class="k">Text </span><span class="p">|</span> <span class="k">Image </span><span class="p">|</span> <span class="k">Media </span><span class="p">|</span> <span class="k">Table </span><span class="p">|</span> <span class="k">Heading </span><span class="p">|</span> <span class="k">Separator </span><span class="p">|</span> <span class="k">Gallery </span><span class="p">|</span> <span class="k">List </span><span class="p">|</span> <span class="k">BlockHTML </span><span class="p">|</span> <span class="k">EitherText </span><span class="p">;</span>
+<span class="k">EitherText </span><span class="o">=</span> <span class="k">Extension </span><span class="p">|</span> <span class="k">Template </span><span class="p">|</span> <span class="k">NoWiki </span><span class="p">|</span> <span class="k">Parameter </span><span class="p">|</span> <span class="k">Comment </span><span class="p">;</span>
+</pre></div>
+<div class="mw-heading mw-heading3"><h3 id="Basic_Markup" data-mw-thread-id="h-Basic_Markup-MetaWiki_markup_description"><span data-mw-comment-start="" id="h-Basic_Markup-MetaWiki_markup_description"></span>Basic Markup<span data-mw-comment-end="h-Basic_Markup-MetaWiki_markup_description"></span></h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=19" title="Edit section: Basic Markup"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>Define markups
+</p>
+<div class="mw-heading mw-heading4"><h4 id="Either" data-mw-thread-id="h-Either-Basic_Markup"><span data-mw-comment-start="" id="h-Either-Basic_Markup"></span>Either<span data-mw-comment-end="h-Either-Basic_Markup"></span></h4><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=20" title="Edit section: Either"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<div class="mw-highlight mw-highlight-lang-ebnf mw-content-ltr" dir="ltr"><pre><span></span><span class="k">Template </span><span class="o">=</span> <span class="s2">"{{"</span> <span class="p">[</span> <span class="s2">"msg:"</span> <span class="p">|</span> <span class="s2">"msgnw:"</span> <span class="p">]</span> <span class="k">PageName </span><span class="p">{</span> <span class="s2">"|"</span> <span class="p">[</span> <span class="k">ParameterName </span><span class="s2">"="</span> <span class="k">AnyText </span><span class="p">|</span> <span class="k">AnyText </span><span class="p">]</span> <span class="p">}</span> <span class="s2">"}}"</span> <span class="p">;</span>
+<span class="k">Extension </span><span class="o">=</span> <span class="s2">"&lt;"</span> <span class="ni">? extension&nbsp;?</span> <span class="s2">"&gt;"</span> <span class="k">AnyText </span><span class="s2">"&lt;/"</span> <span class="ni">? extension&nbsp;?</span> <span class="s2">"&gt;"</span> <span class="p">;</span>
+<span class="k">NoWiki </span><span class="o">=</span> <span class="s2">"&lt;nowiki /&gt;"</span> <span class="p">|</span> <span class="s2">"&lt;nowiki&gt;"</span> <span class="p">(</span> <span class="k">InlineText </span><span class="p">|</span> <span class="k">BlockText </span><span class="p">)</span> <span class="s2">"&lt;/nowiki&gt;"</span> <span class="p">;</span>
+<span class="k">Parameter </span><span class="o">=</span> <span class="s2">"{{{"</span> <span class="k">ParameterName </span><span class="p">{</span> <span class="k">Parameter </span><span class="p">}</span> <span class="p">[</span> <span class="s2">"|"</span> <span class="p">{</span> <span class="k">AnyText </span><span class="p">|</span> <span class="k">Parameter </span><span class="p">}</span> <span class="p">]</span> <span class="s2">"}}}"</span> <span class="p">;</span>
+<span class="k">Comment </span><span class="o">=</span> <span class="s2">"&lt;!--"</span> <span class="k">InlineText </span><span class="s2">"--&gt;"</span> <span class="p">|</span> <span class="s2">"&lt;!--"</span> <span class="k">BlockText </span><span class="s2">"//--&gt;"</span> <span class="p">;</span>
+</pre></div>
+<div class="mw-highlight mw-highlight-lang-bnf mw-content-ltr" dir="ltr"><pre><span></span>ParameterName =&nbsp;? uppercase, lowercase, numbers, no spaces, some special chars&nbsp;?&nbsp;;
+</pre></div>
+<div class="mw-heading mw-heading3"><h3 id="Parser_outline" data-mw-thread-id="h-Parser_outline-MetaWiki_markup_description"><span data-mw-comment-start="" id="h-Parser_outline-MetaWiki_markup_description"></span>Parser outline<span data-mw-comment-end="h-Parser_outline-MetaWiki_markup_description"></span></h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Markup_spec&amp;action=edit&amp;section=21" title="Edit section: Parser outline"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>Another way to check whether we've covered everything in the grammar is to look at the steps the parser actually goes through:
+</p>
+<dl><dt>The preprocessor does</dt>
+<dd></dd></dl>
+<ol><li>Strip (hooks before/after)</li>
+<li>Remove HTML-like comments</li>
+<li>Replace variables
+<ol><li>Subst</li>
+<li>MSG, MSGNW, RAW</li>
+<li>Parser functions</li>
+<li>Templates</li></ol></li></ol>
+<dl><dt>The parser does</dt>
+<dd></dd></dl>
+<ol><li>Strip (hooks before, after)
+<ol><li>treats <a href="/wiki/Markup_spec/BNF/Nowiki" class="mw-redirect" title="Markup spec/BNF/Nowiki">nowiki, pre, math</a> and possibly other with "userfunc tag hooks" hiero)</li>
+<li>Removes HTML-like comments
+<ul><li>HTML comments are removed. (this text by <a href="/wiki/User:HappyDog/WikiText_parsing" title="User:HappyDog/WikiText parsing">HappyDog</a>)</li>
+<li>Any tags that are not allowed by the software (e.g. &lt;script&gt; tags) are replaced by HTML entitities, so they display as literals and are not treated as HTML by the browser.</li>
+<li>Any badly formed tags (e.g. nested tags that shouldn't be nested, &lt;tr&gt; tags outside a &lt;table&gt; tag, etc.) are also replaced by HTML entitities so they are not treated as HTML.</li>
+<li>Any attributes that are not allowed by the software (e.g. onMouseOver) are removed from otherwise valid tags.</li>
+<li>A small amount of minor source formatting is applied (basically, the removal of unnecessary whitespace).</li>
+<li>A closing tag is added at the end for all tags that are not closed properly.  Note that some tags (e.g. &lt;br&gt;) don't need to be closed.</li></ul></li></ol></li>
+<li>Internal parse
+<ol><li>Noinclude/onlyinclude/includeonly sections</li>
+<li>Remove HTML tags</li>
+<li>Replace variables
+<ol><li>Hooks: Internalparsebeforelinks</li></ol></li>
+<li>Tables</li>
+<li>Magic words
+<ol><li>Strip TOC (__NOTOC__, __TOC__)</li>
+<li>Strip no gallery (__NOGALLERY__)</li></ol></li>
+<li>do headings</li>
+<li>Do dynamic dates</li>
+<li>Do quotes ('' and ''')</li>
+<li>Replace internal links
+<ol><li>Process images (do the caption recursively as it might contain links, or even other images...)</li>
+<li>Process categories</li></ol></li>
+<li>Replace external links</li>
+<li>Re-replace masked internal links</li>
+<li>Do magic links (ISBN, RFC...)</li>
+<li>Format headings (__NEWSECTIONLINK__, __FORCETOC__...)</li></ol></li>
+<li>Unstrip general</li>
+<li>Fix tags (french spaces, guillemet)</li>
+<li>Blocks (lists etc)</li>
+<li>Replace link holders</li>
+<li>Language converter:
+<ol><li>Normal text converted on a word by word basis(?) if autoconvert is enabled</li>
+<li>Text in -{code1:text1;code2:text2;...}- blocks converted manually</li>
+<li>Text in -{...}- not converted at all.</li></ol></li>
+<li>Unstrip no wiki</li>
+<li>Extra tags and params</li>
+<li>User funcs?</li>
+<li>Un strip general</li>
+<li>Normalise char references</li>
+<li>Tidy + hook</li></ol>
+<dl><dt>The save parser does</dt>
+<dd></dd></dl>
+<ol><li>Convert newlines</li>
+<li>Strips</li>
+<li>Pass 2
+<ol><li>Substs</li>
+<li>Strip again? gallery something.</li>
+<li>Signatures</li>
+<li><a href="/wiki/Pipe_trick" class="mw-disambig" title="Pipe trick">Pipe tricks</a></li>
+<li>Trim trailing whitespace</li></ol></li>
+<li>Unstrips</li></ol>
+<!-- 
+NewPP limit report
+Parsed by mw‐web.eqiad.main‐d7b74dd99‐kbn8p
+Cached time: 20260905073504
+Cache expiry: 2592000
+Reduced expiry: false
+Complications: [show‐toc]
+CPU time usage: 0.130 seconds
+Real time usage: 0.166 seconds
+Preprocessor visited node count: 1806/1000000
+Revision size: 24381/2097152 bytes
+Post‐expand include size: 11404/2097152 bytes
+Template argument size: 2003/2097152 bytes
+Highest expansion depth: 12/100
+Expensive parser function count: 5/500
+Unstrip recursion depth: 0/20
+Unstrip post‐expand size: 8817/5000000 bytes
+Lua time usage: 0.036/10.000 seconds
+Lua memory usage: 1971419/52428800 bytes
+Number of Wikibase entities loaded: 0/500
+-->
+<!--
+Transclusion expansion time report (%,ms,calls,template)
+100.00%  109.553      1 -total
+ 43.24%   47.368      1 Template:Grammar_nav
+ 42.25%   46.284      1 Template:Historical
+ 38.27%   41.929      1 Template:Ambox
+ 33.32%   36.507     11 Template:Ll
+ 20.95%   22.955     22 Template:Translatable
+ 19.56%   21.428     12 Template:Pagelang
+ 12.92%   14.158      8 Template:Tag
+  7.51%    8.229      1 Template:Dir
+  4.75%    5.203     32 Template:Yesno
+-->
+
+<!-- Render ID 4f3fceab-a8fc-11f1-a95f-1d5ed792bf72 -->
+
+<!-- Saved in parser cache with key mediawikiwiki:pcache:5900:|#|:idhash:canonical and timestamp 20260905073504 and revision id 6656596. Rendering was triggered because: diff-page
+ -->
+</div><!--
+Post‐processing cache key mediawikiwiki:postproc‐pcache:5900:|#|:idhash:injectTOC=0!postproc=1!skin=vector‐2022!visibleLinks=single, generated at 20260905074044
+--><noscript><img src="https://www.mediawiki.org/wiki/Special:CentralAutoLogin/start?useformat=desktop&amp;type=1x1&amp;usesul3=1" alt="" width="1" height="1" style="border: none; position: absolute;"></noscript>
+<div class="printfooter" data-nosnippet="">Retrieved from "<a dir="ltr" href="https://www.mediawiki.org/w/index.php?title=Markup_spec&amp;oldid=6656596">https://www.mediawiki.org/w/index.php?title=Markup_spec&amp;oldid=6656596</a>"</div></div>
+					<div id="catlinks" class="catlinks" data-mw-interface=""><div id="mw-normal-catlinks" class="mw-normal-catlinks"><a href="/wiki/Special:Categories" title="Special:Categories">Categories</a>: <ul><li><a href="/wiki/Category:Pages_kept_for_historical_interest" title="Category:Pages kept for historical interest">Pages kept for historical interest</a></li><li><a href="/wiki/Category:Parser" title="Category:Parser">Parser</a></li><li><a href="/wiki/Category:MediaWiki_development" title="Category:MediaWiki development">MediaWiki development</a></li><li><a href="/wiki/Category:Wikitext" title="Category:Wikitext">Wikitext</a></li></ul></div></div>
+				</div>
+			</main>
+			
+		</div>
+		<div class="mw-footer-container">
+			<footer id="footer" class="mw-footer" >
+				<ul id="footer-info" class="mw-portlet mw-portlet-footer-info">
+	<li id="footer-info-lastmod"> This page was last edited on 20 July 2024, at 19:36.</li>
+	<li id="footer-info-copyright">Text is available under the <a rel="nofollow" class="external text" href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike License</a>; additional terms may apply. Text in <a class="external text" href="https://www.mediawiki.org/wiki/Special:MyLanguage/Help:Contents">the Help: namespace</a> is available under the <a rel="nofollow" class="external text" href="https://creativecommons.org/publicdomain/zero/1.0/">Creative Commons CC0 License</a>.
+By using this site, you agree to the <a class="external text" data-mw-original-href="//foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Terms_of_Use" href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Terms_of_Use">Terms of Use</a> and <a class="external text" data-mw-original-href="//foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy" href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy Policy</a>.</li>
+</ul>
+
+				<ul id="footer-places" class="mw-portlet mw-portlet-footer-places">
+	<li id="footer-places-privacy"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy policy</a></li>
+	<li id="footer-places-about"><a href="/wiki/Project:About">About mediawiki.org</a></li>
+	<li id="footer-places-disclaimers"><a href="/wiki/Project:General_disclaimer">Disclaimers</a></li>
+	<li id="footer-places-legal-safety-contacts"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Legal:Wikimedia_Foundation_Legal_and_Safety_Contact_Information">Legal &amp; safety contacts</a></li>
+	<li id="footer-places-wm-codeofconduct"><a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Code_of_Conduct">Code of Conduct</a></li>
+	<li id="footer-places-developers"><a href="https://developer.wikimedia.org">Developers</a></li>
+	<li id="footer-places-statslink"><a href="https://stats.wikimedia.org/#/www.mediawiki.org">Statistics</a></li>
+	<li id="footer-places-cookiestatement"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Cookie_statement">Cookie statement</a></li>
+	<li id="footer-places-mobileview"><a href="//www.mediawiki.org/w/index.php?title=Markup_spec&amp;mobileaction=toggle_view_mobile" class="noprint stopMobileRedirectToggle">Mobile view</a></li>
+</ul>
+
+				<ul id="footer-icons" class="mw-portlet mw-portlet-footer-icons noprint">
+	<li id="footer-copyrightico"><a href="https://www.wikimedia.org/" class="cdx-button cdx-button--fake-button cdx-button--size-large cdx-button--fake-button--enabled"><picture><source media="(min-width: 500px)" srcset="/static/images/footer/wikimedia-button.svg" width="84" height="29"><img src="/static/images/footer/wikimedia.svg" width="25" height="25" alt="Wikimedia Foundation" lang="en" loading="lazy"></picture></a></li>
+	<li id="footer-poweredbyico"><a href="https://www.mediawiki.org/" class="cdx-button cdx-button--fake-button cdx-button--size-large cdx-button--fake-button--enabled"><picture><source media="(min-width: 500px)" srcset="/w/resources/assets/poweredby_mediawiki.svg" width="88" height="31"><img src="/w/resources/assets/mediawiki_compact.svg" alt="Powered by MediaWiki" lang="en" width="25" height="25" loading="lazy"></picture></a></li>
+</ul>
+
+			</footer>
+		</div>
+	</div> 
+</div> 
+<div class="vector-header-container vector-sticky-header-container no-font-mode-scale">
+	<div id="vector-sticky-header" class="vector-sticky-header">
+		<div class="vector-sticky-header-start">
+			<div class="vector-sticky-header-icon-start vector-button-flush-left" aria-hidden="true">
+				<button class="cdx-button cdx-button--weight-quiet cdx-button--icon-only vector-sticky-header-search-toggle" tabindex="-1" data-event-name="ui.vector-sticky-search-form.icon"><span class="vector-icon mw-ui-icon-search mw-ui-icon-wikimedia-search cdx-button__icon"></span>
+
+<span>Search</span>
+			</button>
+		</div>
+			
+		<div role="search" class="vector-search-box-vue  vector-search-box-show-thumbnail vector-search-box">
+			<div class="vector-typeahead-search-container">
+				<div class="cdx-typeahead-search cdx-typeahead-search--show-thumbnail">
+					<form action="/w/index.php" id="vector-sticky-search-form" class="cdx-search-input cdx-search-input--has-end-button">
+						<div  class="cdx-search-input__input-wrapper"  data-search-loc="header-moved">
+							<div class="cdx-text-input cdx-text-input--has-start-icon">
+								<input
+									class="cdx-text-input__input mw-searchInput" autocomplete="off"
+									
+									type="search" name="search" placeholder="Search mediawiki.org">
+								<span class="cdx-text-input__icon cdx-text-input__start-icon"></span>
+							</div>
+							<input type="hidden" name="title" value="Special:Search">
+						</div>
+						<button class="cdx-button cdx-search-input__end-button">Search</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="vector-sticky-header-context-bar">
+				<nav aria-label="Contents" class="vector-toc-landmark">
+						
+					<div id="vector-sticky-header-toc" class="vector-dropdown mw-portlet mw-portlet-sticky-header-toc vector-sticky-header-toc vector-button-flush-left"  >
+						<input type="checkbox" id="vector-sticky-header-toc-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-sticky-header-toc" class="vector-dropdown-checkbox "  aria-label="Toggle the table of contents"   >
+						<label id="vector-sticky-header-toc-label" for="vector-sticky-header-toc-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-listBullet mw-ui-icon-wikimedia-listBullet cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Toggle the table of contents</span>
+						</label>
+						<div class="vector-dropdown-content">
+					
+						<div id="vector-sticky-header-toc-unpinned-container" class="vector-unpinned-container">
+						</div>
+					
+						</div>
+					</div>
+			</nav>
+				<div class="vector-sticky-header-context-bar-primary" aria-hidden="true" ><span lang="en" dir="ltr"><span class="mw-page-title-main">Markup spec</span></span></div>
+			</div>
+		</div>
+		<div class="vector-sticky-header-end" aria-hidden="true">
+			<div class="vector-sticky-header-icons">
+				<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-talk-sticky-header" tabindex="-1" data-event-name="talk-sticky-header"><span class="vector-icon mw-ui-icon-speechBubbles mw-ui-icon-wikimedia-speechBubbles cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-subject-sticky-header" tabindex="-1" data-event-name="subject-sticky-header"><span class="vector-icon mw-ui-icon-article mw-ui-icon-wikimedia-article cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-history-sticky-header" tabindex="-1" data-event-name="history-sticky-header"><span class="vector-icon mw-ui-icon-wikimedia-history mw-ui-icon-wikimedia-wikimedia-history cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only mw-watchlink" id="ca-watchstar-sticky-header" tabindex="-1" data-event-name="watch-sticky-header"><span class="vector-icon mw-ui-icon-wikimedia-star mw-ui-icon-wikimedia-wikimedia-star cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-edit-sticky-header" tabindex="-1" data-event-name="wikitext-edit-sticky-header"><span class="vector-icon mw-ui-icon-wikimedia-wikiText mw-ui-icon-wikimedia-wikimedia-wikiText cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-ve-edit-sticky-header" tabindex="-1" data-event-name="ve-edit-sticky-header"><span class="vector-icon mw-ui-icon-wikimedia-edit mw-ui-icon-wikimedia-wikimedia-edit cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-viewsource-sticky-header" tabindex="-1" data-event-name="ve-edit-protected-sticky-header"><span class="vector-icon mw-ui-icon-wikimedia-editLock mw-ui-icon-wikimedia-wikimedia-editLock cdx-button__icon"></span>
+
+<span></span>
+			</a>
+		</div>
+			<div class="vector-sticky-header-buttons">
+				<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--action-progressive" id="ca-addsection-sticky-header" tabindex="-1" data-event-name="addsection-sticky-header"><span class="vector-icon mw-ui-icon-speechBubbleAdd-progressive mw-ui-icon-wikimedia-speechBubbleAdd-progressive cdx-button__icon"></span>
+
+<span>Add topic</span>
+			</a>
+		</div>
+			<div class="vector-sticky-header-icon-end">
+				<div class="vector-user-links">
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="mw-portlet mw-portlet-dock-bottom emptyPortlet" id="p-dock-bottom">
+	<ul>
+		
+	</ul>
+</div>
+<script>(RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgHostname":"mw-web.codfw.main-d4466454c-w77hg","wgBackendResponseTime":82,"wgDiscussionToolsPageThreads":[{"headingLevel":2,"name":"h-","type":"heading","level":0,"id":"h-Goals","replies":[]},{"headingLevel":2,"name":"h-","type":"heading","level":0,"id":"h-Feasibility_study","replies":[{"headingLevel":3,"name":"h-","type":"heading","level":0,"id":"h-Language_generation_and_grammar_type-Feasibility_study","replies":[]},{"headingLevel":3,"name":"h-","type":"heading","level":0,"id":"h-Ambiguities_in_the_language-Feasibility_study","replies":[]},{"headingLevel":3,"name":"h-","type":"heading","level":0,"id":"h-Language_recognition-Feasibility_study","replies":[]}]},{"headingLevel":2,"name":"h-","type":"heading","level":0,"id":"h-Current_efforts","replies":[]},{"headingLevel":2,"name":"h-","type":"heading","level":0,"id":"h-Resources","replies":[]},{"headingLevel":2,"name":"h-","type":"heading","level":0,"id":"h-The_Markup_Language","replies":[{"headingLevel":3,"name":"h-","type":"heading","level":0,"id":"h-v1.6_markup_tokens-The_Markup_Language","replies":[{"headingLevel":4,"name":"h-","type":"heading","level":0,"id":"h-Unary-v1.6_markup_tokens","replies":[{"headingLevel":5,"name":"h-","type":"heading","level":0,"id":"h-Start_of_line_only-Unary","replies":[]},{"headingLevel":5,"name":"h-","type":"heading","level":0,"id":"h-Can_be_used_anywhere-Unary","replies":[]}]},{"headingLevel":4,"name":"h-","type":"heading","level":0,"id":"h-Binary-v1.6_markup_tokens","replies":[{"headingLevel":5,"name":"h-","type":"heading","level":0,"id":"h-Beginning_of_a_line-Binary","replies":[]},{"headingLevel":5,"name":"h-","type":"heading","level":0,"id":"h-Anywhere-Binary","replies":[]}]},{"headingLevel":4,"name":"h-","type":"heading","level":0,"id":"h-Namespaces-v1.6_markup_tokens","replies":[]}]}]},{"headingLevel":2,"name":"h-","type":"heading","level":0,"id":"h-MetaWiki_markup_description","replies":[{"headingLevel":3,"name":"h-","type":"heading","level":0,"id":"h-Document_element_declaration-MetaWiki_markup_description","replies":[]},{"headingLevel":3,"name":"h-","type":"heading","level":0,"id":"h-Basic_Markup-MetaWiki_markup_description","replies":[{"headingLevel":4,"name":"h-","type":"heading","level":0,"id":"h-Either-Basic_Markup","replies":[]}]},{"headingLevel":3,"name":"h-","type":"heading","level":0,"id":"h-Parser_outline-MetaWiki_markup_description","replies":[]}]}],"wgPageParseReport":{"limitreport":{"cputime":"0.130","walltime":"0.166","ppvisitednodes":{"value":1806,"limit":1000000},"revisionsize":{"value":24381,"limit":2097152},"postexpandincludesize":{"value":11404,"limit":2097152},"templateargumentsize":{"value":2003,"limit":2097152},"expansiondepth":{"value":12,"limit":100},"expensivefunctioncount":{"value":5,"limit":500},"unstrip-depth":{"value":0,"limit":20},"unstrip-size":{"value":8817,"limit":5000000},"entityaccesscount":{"value":0,"limit":500},"timingprofile":["100.00%  109.553      1 -total"," 43.24%   47.368      1 Template:Grammar_nav"," 42.25%   46.284      1 Template:Historical"," 38.27%   41.929      1 Template:Ambox"," 33.32%   36.507     11 Template:Ll"," 20.95%   22.955     22 Template:Translatable"," 19.56%   21.428     12 Template:Pagelang"," 12.92%   14.158      8 Template:Tag","  7.51%    8.229      1 Template:Dir","  4.75%    5.203     32 Template:Yesno"]},"scribunto":{"limitreport-timeusage":{"value":"0.036","limit":"10.000"},"limitreport-memusage":{"value":1971419,"limit":52428800}},"cachereport":{"origin":"mw-web.eqiad.main-d7b74dd99-kbn8p","timestamp":"20260905073504","ttl":2592000,"transientcontent":false},"discussiontools":{"limitreport-timeusage":"0.016"}}});});</script>
+</body>
+</html>
