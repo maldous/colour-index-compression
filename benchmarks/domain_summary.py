@@ -39,7 +39,7 @@ def main():
         'formula': 'delta_bytes = complete_bytes - matched_control_bytes; saving_percent = -delta_bytes / matched_control_bytes * 100',
         'rows': rows}, indent=2) + '\n')
     with (area / 'results.csv').open('w', newline='') as out:
-        writer = csv.DictWriter(out, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(out, fieldnames=list(rows[0]), lineterminator='\n')
         writer.writeheader(); writer.writerows(rows)
     text = ['# All domain candidates before selection', '',
             'Control: PAQ v216 `-4 -simd AVX2`, one CPU, identical input bytes and paid outer framing. '

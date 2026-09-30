@@ -1,0 +1,857 @@
+"""Native LZ match model whose outputs are CIX substreams."""
+
+from __future__ import annotations
+
+from collections import defaultdict
+from dataclasses import dataclass
+
+from .multinomial import (
+    ContextModel,
+    _approx_typeclass_bytes_from_counts,
+    _context_bucket,
+    _counts,
+    decode_type_class_known_n,
+    encode_type_class_known_n,
+    vdecode,
+    vencode,
+)
+from .substreams import (
+    decode_bucketed_type_classes,
+    decode_bytes,
+    decode_distances,
+    decode_distances_best,
+    decode_uints,
+    encode_bucketed_type_classes,
+    encode_bytes,
+    encode_distances,
+    encode_distances_best,
+    encode_uints,
+)
+
+LZ_VERSION = 3
+SA_HISTORY_LIMIT = 1 << 17
+DEFAULT_MIN_MATCH = 4
+DEFAULT_MAX_MATCH = 65535
+
+
+@dataclass
+class LZParse:
+    tags: bytes
+    literals: bytes
+    literal_positions: list[int]
+    lengths: list[int]
+    distances: list[int]
+
+
+def _context_tail(prefix: bytes, data: bytes | bytearray, pos: int, order: int) -> bytes:
+    if order <= 0:
+        return b""
+    if pos >= order:
+        return bytes(data[pos - order : pos])
+    missing = order - pos
+    return prefix[-missing:] + bytes(data[:pos])
+
+
+def parse_lz(
+    data: bytes,
+    *,
+    prefix_history: bytes = b"",
+    min_match: int = DEFAULT_MIN_MATCH,
+    max_match: int = DEFAULT_MAX_MATCH,
+    window: int = 1 << 20,
+    chain: int = 32,
+    key_len: int = 4,
+    lazy: bool = False,
+) -> LZParse:
+    if key_len < 3:
+        raise ValueError("key_len must be at least 3")
+    if min_match < key_len:
+        min_match = key_len
+
+    history = prefix_history[-window:]
+    base = history + data
+    history_len = len(history)
+    end = len(base)
+    table: dict[bytes, list[int]] = defaultdict(list)
+
+    seed_start = max(0, history_len - window)
+    seed_end = max(seed_start, history_len - key_len + 1)
+    for position in range(seed_start, seed_end):
+        key = base[position : position + key_len]
+        entries = table[key]
+        entries.append(position)
+        if len(entries) > chain:
+            del entries[0]
+
+    tags = bytearray()
+    literals = bytearray()
+    literal_positions = []
+    lengths = []
+    distances = []
+
+    def find_match(at: int) -> tuple[int, int]:
+        if at + key_len > end:
+            return 0, 0
+        key = base[at : at + key_len]
+        best_length = 0
+        best_distance = 0
+        best_score = -1
+
+        for candidate in reversed(table.get(key, ())[-chain:]):
+            distance = at - candidate
+            if not 0 < distance <= window:
+                continue
+
+            limit = min(max_match, end - at)
+            match_length = key_len
+            while (
+                match_length < limit
+                and base[at - distance + match_length]
+                == base[at + match_length]
+            ):
+                match_length += 1
+
+            if match_length < min_match:
+                continue
+
+            # Approximate token gain. A slightly shorter nearby match can be
+            # cheaper than a distant longest match once distance classes are coded.
+            score = (
+                match_length * 8
+                - distance.bit_length()
+                - match_length.bit_length()
+                - 3
+            )
+            if score > best_score or (
+                score == best_score and match_length > best_length
+            ):
+                best_score = score
+                best_length = match_length
+                best_distance = distance
+
+        return best_length, best_distance
+
+    position = history_len
+    while position < end:
+        best_length, best_distance = find_match(position)
+
+        if best_length >= min_match and lazy and position + 1 < end:
+            if position + key_len <= end:
+                key = base[position : position + key_len]
+                entries = table[key]
+                entries.append(position)
+                if len(entries) > chain:
+                    del entries[0]
+
+            next_length, _ = find_match(position + 1)
+            if next_length > best_length + 1:
+                tags.append(0)
+                literals.append(base[position])
+                literal_positions.append(position - history_len)
+                position += 1
+                continue
+
+        if best_length >= min_match:
+            tags.append(1)
+            lengths.append(best_length - min_match)
+            distances.append(best_distance)
+
+            stop = min(end, position + best_length)
+            for p in range(position, stop):
+                if p + key_len <= end:
+                    key = base[p : p + key_len]
+                    entries = table[key]
+                    entries.append(p)
+                    if len(entries) > chain:
+                        del entries[0]
+            position += best_length
+
+        else:
+            tags.append(0)
+            literals.append(base[position])
+            literal_positions.append(position - history_len)
+
+            if position + key_len <= end:
+                key = base[position : position + key_len]
+                entries = table[key]
+                entries.append(position)
+                if len(entries) > chain:
+                    del entries[0]
+            position += 1
+
+    return LZParse(
+        bytes(tags),
+        bytes(literals),
+        literal_positions,
+        lengths,
+        distances,
+    )
+
+
+def _suffix_lpf_state(
+    data: bytes,
+    prefix_history: bytes,
+    window: int,
+):
+    """Compute LPF once in native code when pydivsufsort is available."""
+    try:
+        from pydivsufsort import longest_previous_factor  # type: ignore
+    except Exception:
+        return None
+
+    history_limit = min(window, SA_HISTORY_LIMIT)
+    history = prefix_history[-history_limit:]
+    base = history + data
+    try:
+        lpf = longest_previous_factor(base)
+    except Exception:
+        return None
+    return base, len(history), lpf
+
+
+def _suffix_source(
+    base: bytes,
+    position: int,
+    length: int,
+    window: int,
+    key_len: int,
+    max_candidates: int = 32,
+) -> int | None:
+    search_start = max(0, position - window)
+    target = base[position : position + length]
+
+    # Preserve valid overlapping LZ matches with tiny periods.
+    for distance in range(1, min(key_len, position - search_start + 1)):
+        candidate = position - distance
+        if base[candidate : candidate + length] == target:
+            return candidate
+
+    if position + key_len > len(base):
+        return None
+    key = base[position : position + key_len]
+    search_end = position
+    for _ in range(max_candidates):
+        candidate = base.rfind(key, search_start, search_end)
+        if candidate < 0:
+            break
+        if base[candidate : candidate + length] == target:
+            return candidate
+        search_end = candidate
+    return None
+
+
+def parse_lz_suffix(
+    data: bytes,
+    *,
+    state,
+    min_match: int,
+    max_match: int,
+    window: int,
+    key_len: int = 4,
+    lazy: bool = False,
+) -> LZParse:
+    base, history_len, lpf = state
+    end = len(base)
+    tags = bytearray()
+    literals = bytearray()
+    literal_positions = []
+    lengths = []
+    distances = []
+
+    position = history_len
+    while position < end:
+        best_length = min(int(lpf[position]), max_match, end - position)
+
+        if best_length >= min_match and lazy and position + 1 < end:
+            next_length = min(
+                int(lpf[position + 1]),
+                max_match,
+                end - position - 1,
+            )
+            if next_length > best_length + 1:
+                tags.append(0)
+                literals.append(base[position])
+                literal_positions.append(position - history_len)
+                position += 1
+                continue
+
+        source = None
+        if best_length >= min_match:
+            source = _suffix_source(
+                base,
+                position,
+                best_length,
+                window,
+                key_len,
+            )
+
+        if source is not None:
+            tags.append(1)
+            lengths.append(best_length - min_match)
+            distances.append(position - source)
+            position += best_length
+        else:
+            tags.append(0)
+            literals.append(base[position])
+            literal_positions.append(position - history_len)
+            position += 1
+
+    return LZParse(
+        bytes(tags),
+        bytes(literals),
+        literal_positions,
+        lengths,
+        distances,
+    )
+
+
+def parse_lz_optimal_suffix(
+    data: bytes,
+    *,
+    state,
+    min_match: int,
+    max_match: int,
+    window: int,
+    key_len: int = 4,
+) -> LZParse:
+    """Bounded dynamic-programming LZ parse over suffix-array match lengths.
+
+    The objective is deliberately generic: estimated literal/tag/length/distance
+    description cost. The resulting parse still has to win after exact physical
+    CIX substream encoding, so a poor estimate cannot worsen final output size.
+    """
+    base, history_len, lpf = state
+    n = len(data)
+    inf = 1 << 60
+    cost = [0] * (n + 1)
+    choice: list[tuple[int, int] | None] = [None] * n
+
+    useful_lengths = (8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024)
+
+    for i in range(n - 1, -1, -1):
+        # One tag decision plus an approximately byte-like literal.
+        best_cost = 9 + cost[i + 1]
+        best_choice: tuple[int, int] | None = None
+
+        position = history_len + i
+        longest = min(int(lpf[position]), max_match, n - i)
+        if longest >= min_match:
+            source = _suffix_source(
+                base,
+                position,
+                longest,
+                window,
+                key_len,
+                max_candidates=8,
+            )
+            if source is not None:
+                distance = position - source
+                lengths = {min_match, longest}
+                lengths.update(
+                    length for length in useful_lengths
+                    if min_match <= length <= longest
+                )
+
+                for length in lengths:
+                    # Approximate universal-code cost for tag + length class +
+                    # distance class. Exact substream coding is evaluated later.
+                    length_code = (length - min_match + 1).bit_length()
+                    distance_code = distance.bit_length()
+                    token_cost = 1 + 2 * length_code + 2 * distance_code
+                    candidate_cost = token_cost + cost[i + length]
+                    if candidate_cost < best_cost:
+                        best_cost = candidate_cost
+                        best_choice = (length, distance)
+
+        cost[i] = best_cost
+        choice[i] = best_choice
+
+    tags = bytearray()
+    literals = bytearray()
+    literal_positions = []
+    lengths = []
+    distances = []
+
+    i = 0
+    while i < n:
+        selected = choice[i]
+        if selected is None:
+            tags.append(0)
+            literals.append(data[i])
+            literal_positions.append(i)
+            i += 1
+            continue
+
+        length, distance = selected
+        tags.append(1)
+        lengths.append(length - min_match)
+        distances.append(distance)
+        i += length
+
+    return LZParse(
+        bytes(tags),
+        bytes(literals),
+        literal_positions,
+        lengths,
+        distances,
+    )
+
+
+def _encode_tags(tags: bytes) -> bytes:
+    plain = bytes((0,)) + encode_type_class_known_n(tags)
+    local = bytes((2,)) + encode_bytes(tags)
+    if not tags:
+        return min((plain, local), key=len)
+
+    runs = []
+    current = tags[0]
+    length = 1
+    for tag in tags[1:]:
+        if tag == current:
+            length += 1
+        else:
+            runs.append(length - 1)
+            current = tag
+            length = 1
+    runs.append(length - 1)
+
+    run_blob = encode_uints(runs)
+    encoded_runs = bytes((1, tags[0])) + vencode(len(runs)) + run_blob
+    return min((plain, local, encoded_runs), key=len)
+
+
+def _decode_tags(blob: bytes, count: int) -> bytes:
+    if not blob:
+        raise ValueError("empty LZ tag stream")
+    mode = blob[0]
+    if mode == 0:
+        tags, used = decode_type_class_known_n(blob, 1, count)
+        if used != len(blob):
+            raise ValueError("unused LZ tag bytes")
+        return tags
+    if mode == 1:
+        if len(blob) < 2 or blob[1] not in (0, 1):
+            raise ValueError("invalid LZ run tag stream")
+        run_count, pos = vdecode(blob, 2)
+        runs = decode_uints(blob[pos:], run_count)
+        out = bytearray()
+        tag = blob[1]
+        for encoded_length in runs:
+            out.extend(bytes((tag,)) * (encoded_length + 1))
+            tag ^= 1
+        if len(out) != count:
+            raise ValueError("LZ run tags length mismatch")
+        return bytes(out)
+    if mode == 2:
+        return decode_bytes(blob[1:], count)
+    raise ValueError("unknown LZ tag mode")
+
+
+def _encode_literals(
+    parse: LZParse,
+    source: bytes,
+    prefix_history: bytes,
+    context_models: tuple[ContextModel, ...],
+    *,
+    allow_fixed_mix: bool = False,
+) -> tuple[bytes, str]:
+    plain = bytes((0,)) + encode_type_class_known_n(parse.literals)
+    local = bytes((2,)) + encode_bytes(parse.literals)
+    candidates = [
+        (plain, "literal-multinomial"),
+        (local, "literal-local-multinomial"),
+    ]
+
+    profiled = []
+    for model in context_models:
+        bucket_count = 1 << model.bucket_bits
+        buckets: dict[int, bytearray] = {}
+
+        for literal, position in zip(parse.literals, parse.literal_positions):
+            tail = _context_tail(prefix_history, source, position, model.order)
+            bucket = _context_bucket(tail, model.order, model.bucket_bits)
+            buckets.setdefault(bucket, bytearray()).append(literal)
+
+        # Cheap MDL estimate: exact per-bucket type-class cost plus a conservative
+        # allowance for sparse bucket IDs/lengths. Only the best two are materialized.
+        estimate = 3.0 + len(buckets) * 2.0
+        for values in buckets.values():
+            raw = bytes(values)
+            estimate += _approx_typeclass_bytes_from_counts(_counts(raw), len(raw))
+        profiled.append((estimate, model.order, model.bucket_bits, model, buckets))
+
+    for _, _, _, model, buckets in sorted(profiled)[:2]:
+        payload = (
+            bytes((1, model.order, model.bucket_bits))
+            + encode_bucketed_type_classes(
+                buckets,
+                bucket_count=1 << model.bucket_bits,
+                total_items=len(parse.literals),
+            )
+        )
+        candidates.append(
+            (
+                payload,
+                f"literal-context-o{model.order}-b{model.bucket_bits}",
+            )
+        )
+
+    if len(parse.literals) >= 64:
+        try:
+            from .ppm import encode_ppm, estimate_ppm_bits
+
+            profiled = sorted(
+                (
+                    estimate_ppm_bits(parse.literals, max_order=order),
+                    order,
+                )
+                for order in (1, 2, 3, 4)
+            )
+            estimate, order = profiled[0]
+            current_best = min(len(payload) for payload, _ in candidates)
+            if estimate / 8.0 <= current_best * 1.08 + 16:
+                payload = bytes((3,)) + encode_ppm(
+                    parse.literals,
+                    max_order=order,
+                )
+                candidates.append(
+                    (payload, f"literal-ppm-o{order}")
+                )
+        except Exception:
+            pass
+
+    if allow_fixed_mix and 64 <= len(parse.literals) <= 16384:
+        try:
+            from .fixedmix import encode_fixed_mix
+
+            payload = bytes((4,)) + encode_fixed_mix(parse.literals)
+            candidates.append((payload, "literal-fixed-mix"))
+        except Exception:
+            pass
+
+    return min(candidates, key=lambda item: len(item[0]))
+
+
+@dataclass
+class LiteralDecoder:
+    mode: int
+    plain: bytes | None = None
+    streams: dict[int, bytes] | None = None
+    cursors: dict[int, int] | None = None
+    order: int = 0
+    bucket_bits: int = 0
+    plain_pos: int = 0
+
+    def next(self, prefix: bytes, produced: bytearray) -> int:
+        if self.mode == 0:
+            assert self.plain is not None
+            if self.plain_pos >= len(self.plain):
+                raise ValueError("literal stream exhausted")
+            value = self.plain[self.plain_pos]
+            self.plain_pos += 1
+            return value
+
+        assert self.streams is not None and self.cursors is not None
+        tail = _context_tail(prefix, produced, len(produced), self.order)
+        bucket = _context_bucket(tail, self.order, self.bucket_bits)
+        stream = self.streams.get(bucket)
+        if stream is None:
+            raise ValueError("literal context selected absent bucket")
+        cursor = self.cursors[bucket]
+        if cursor >= len(stream):
+            raise ValueError("literal context bucket exhausted")
+        self.cursors[bucket] = cursor + 1
+        return stream[cursor]
+
+
+def _decode_literals(blob: bytes, count: int) -> LiteralDecoder:
+    if not blob:
+        raise ValueError("empty literal stream")
+    mode = blob[0]
+
+    if mode == 0:
+        plain, pos = decode_type_class_known_n(blob, 1, count)
+        if pos != len(blob):
+            raise ValueError("unused literal bytes")
+        return LiteralDecoder(mode=0, plain=plain)
+
+    if mode == 1:
+        if len(blob) < 3:
+            raise ValueError("truncated literal context parameters")
+        order = blob[1]
+        bucket_bits = blob[2]
+        streams, pos = decode_bucketed_type_classes(
+            blob,
+            3,
+            bucket_count=1 << bucket_bits,
+            total_items=count,
+        )
+        if pos != len(blob):
+            raise ValueError("unused literal-context bytes")
+        return LiteralDecoder(
+            mode=1,
+            streams=streams,
+            cursors={bucket: 0 for bucket in streams},
+            order=order,
+            bucket_bits=bucket_bits,
+        )
+
+    if mode == 2:
+        return LiteralDecoder(mode=0, plain=decode_bytes(blob[1:], count))
+
+    if mode == 3:
+        from .ppm import decode_ppm
+
+        return LiteralDecoder(
+            mode=0,
+            plain=decode_ppm(blob[1:], source_length=count),
+        )
+
+    if mode == 4:
+        from .fixedmix import decode_fixed_mix
+
+        return LiteralDecoder(
+            mode=0,
+            plain=decode_fixed_mix(blob[1:], source_length=count),
+        )
+
+    raise ValueError(f"unknown literal mode {mode}")
+
+
+def _encode_parse(
+    parse: LZParse,
+    data: bytes,
+    prefix_history: bytes,
+    context_models: tuple[ContextModel, ...],
+    min_match: int,
+    description_suffix: str,
+    *,
+    allow_fixed_mix: bool = False,
+) -> tuple[bytes, str]:
+    tags = _encode_tags(parse.tags)
+    literals, literal_name = _encode_literals(
+        parse,
+        data,
+        prefix_history,
+        context_models,
+        allow_fixed_mix=allow_fixed_mix,
+    )
+    lengths = encode_uints(parse.lengths)
+    distances = encode_distances_best(parse.distances)
+
+    out = bytearray((LZ_VERSION, min_match))
+    out += vencode(len(parse.tags))
+    out += vencode(len(parse.literals))
+    out += vencode(len(parse.lengths))
+
+    for stream in (tags, literals, lengths, distances):
+        out += vencode(len(stream))
+        out += stream
+
+    return bytes(out), f"lz-{literal_name}-{description_suffix}"
+
+
+def encode_lz_block(
+    data: bytes,
+    *,
+    prefix_history: bytes = b"",
+    context_models: tuple[ContextModel, ...] = (),
+    window: int = 1 << 20,
+    chain: int = 32,
+    min_match: int = DEFAULT_MIN_MATCH,
+) -> tuple[bytes, str]:
+    variants = [(min_match, False)]
+
+    if chain >= 24 and len(data) >= 128:
+        variants.append((min_match, True))
+        variants.append((max(min_match + 1, 5), True))
+
+    # At maximum effort, explicitly test the sparse-long-match regime. Once
+    # literals have strong PPM/mixer coding, many traditional 4-byte matches
+    # cost more metadata than the bytes they replace. Powers-of-two-style
+    # thresholds plus 48 cover the broad physical minima found by the generic
+    # tournament without any format knowledge.
+    if chain >= 96 and len(data) >= 1024:
+        for candidate_min in (8, 16, 32, 48, 64):
+            if all(existing[0] != candidate_min for existing in variants):
+                variants.append((candidate_min, True))
+
+    suffix_state = (
+        _suffix_lpf_state(data, prefix_history, window)
+        if len(data) >= 1024
+        else None
+    )
+
+    parse_candidates: list[tuple[LZParse, int, str]] = []
+    for candidate_min, lazy in variants:
+        if suffix_state is not None:
+            parse = parse_lz_suffix(
+                data,
+                state=suffix_state,
+                min_match=candidate_min,
+                max_match=DEFAULT_MAX_MATCH,
+                window=min(window, SA_HISTORY_LIMIT),
+                lazy=lazy,
+            )
+            parser_suffix = "-sa"
+        else:
+            parse = parse_lz(
+                data,
+                prefix_history=prefix_history,
+                min_match=candidate_min,
+                window=window,
+                chain=chain,
+                lazy=lazy,
+            )
+            parser_suffix = ""
+
+        description_suffix = (
+            f"m{candidate_min}-w{window}-c{chain}"
+            + ("-lazy" if lazy else "")
+            + parser_suffix
+        )
+        parse_candidates.append(
+            (parse, candidate_min, description_suffix)
+        )
+
+    # The earlier DP "optimal" parse is intentionally not promoted here.
+    # Physical tournaments showed its proxy cost was consistently worse than
+    # simple lazy parses once literal substreams gained PPM/mixer models.
+
+    # First rank every parse using the cheaper exact substream portfolio.
+    # Fixed-point mixing is deliberately deferred: materializing it for every
+    # parse multiplied high-effort CPU with little benefit.
+    ranked = []
+    for parse, candidate_min, description_suffix in parse_candidates:
+        encoded = _encode_parse(
+            parse,
+            data,
+            prefix_history,
+            context_models,
+            candidate_min,
+            description_suffix,
+            allow_fixed_mix=False,
+        )
+        ranked.append(
+            (
+                len(encoded[0]),
+                encoded,
+                parse,
+                candidate_min,
+                description_suffix,
+            )
+        )
+
+    candidates = [item[1] for item in ranked]
+
+    # At high effort, let the mixer refine only the two most promising parses.
+    # The final decision still uses exact physical bytes, so this cannot force a
+    # worse representation.
+    if chain >= 48:
+        for _, _, parse, candidate_min, description_suffix in sorted(
+            ranked, key=lambda item: item[0]
+        )[:2]:
+            candidates.append(
+                _encode_parse(
+                    parse,
+                    data,
+                    prefix_history,
+                    context_models,
+                    candidate_min,
+                    description_suffix,
+                    allow_fixed_mix=True,
+                )
+            )
+
+    return min(candidates, key=lambda item: len(item[0]))
+
+
+def decode_lz_block(
+    blob: bytes,
+    *,
+    source_length: int,
+    prefix_history: bytes = b"",
+) -> bytes:
+    if len(blob) < 2 or blob[0] not in (1, LZ_VERSION):
+        raise ValueError("unknown LZ block version")
+
+    version = blob[0]
+    min_match = blob[1]
+    pos = 2
+    token_count, pos = vdecode(blob, pos)
+    literal_count, pos = vdecode(blob, pos)
+    match_count, pos = vdecode(blob, pos)
+
+    streams = []
+    for _ in range(4):
+        length, pos = vdecode(blob, pos)
+        end = pos + length
+        if end > len(blob):
+            raise ValueError("truncated LZ substream")
+        streams.append(blob[pos:end])
+        pos = end
+    if pos != len(blob):
+        raise ValueError("trailing LZ block bytes")
+
+    if version == 1:
+        tags, consumed = decode_type_class_known_n(streams[0], 0, token_count)
+        if consumed != len(streams[0]):
+            raise ValueError("unused LZ tag bytes")
+    else:
+        tags = _decode_tags(streams[0], token_count)
+
+    literals = _decode_literals(streams[1], literal_count)
+    lengths = decode_uints(streams[2], match_count)
+    distances = (
+        decode_distances_best(streams[3], match_count)
+        if version >= 3
+        else decode_distances(streams[3], match_count)
+    )
+
+    produced = bytearray()
+    literal_used = 0
+    match_used = 0
+
+    for tag in tags:
+        if tag == 0:
+            produced.append(literals.next(prefix_history, produced))
+            literal_used += 1
+        elif tag == 1:
+            if match_used >= match_count:
+                raise ValueError("LZ match stream exhausted")
+            length = lengths[match_used] + min_match
+            distance = distances[match_used]
+            match_used += 1
+
+            for _ in range(length):
+                available = len(prefix_history) + len(produced)
+                source = available - distance
+                if source < 0:
+                    raise ValueError("LZ distance before available history")
+                if source < len(prefix_history):
+                    value = prefix_history[source]
+                else:
+                    value = produced[source - len(prefix_history)]
+                produced.append(value)
+                if len(produced) > source_length:
+                    raise ValueError("LZ block expands beyond source length")
+        else:
+            raise ValueError("invalid LZ tag")
+
+    if len(produced) != source_length:
+        raise ValueError("LZ decoded length mismatch")
+    if literal_used != literal_count or match_used != match_count:
+        raise ValueError("unused LZ tokens")
+
+    if literals.mode == 0:
+        if literals.plain_pos != literal_count:
+            raise ValueError("unused literal symbols")
+    else:
+        assert literals.streams is not None and literals.cursors is not None
+        if any(
+            literals.cursors[bucket] != len(stream)
+            for bucket, stream in literals.streams.items()
+        ):
+            raise ValueError("unused literal-context symbols")
+
+    return bytes(produced)

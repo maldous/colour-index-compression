@@ -29,6 +29,16 @@ and pushes finished additions. Keep repository private, Actions disabled, and
 do not publish or launch full-enwik9 jobs. Agents own disjoint NEW adapters and
 evidence files, preserving all incumbent implementations.
 
+The first forward-transfer checkpoint completed 22 independently verified
+archives. Read `docs/research/2026-09-30-domain-transfer/FINDINGS.md` and its
+complete candidate table before new work. Numerical delta columns repeated
+gains on two NOAA assets; molecular hydrogen constraints repeated gains on two
+2D PubChem panels. Preserve the database/address/spatial-residual negatives
+and the concrete mixed-radix packing losses. Native JXL is a measured volume
+speed/memory tradeoff, not a size win on that input. Prioritize bounded scaling
+and new-asset replication of the two positive configurations; do not restart
+completed immutable cells or expand a speculative Cartesian tournament.
+
 ## Projection-only extension — current highest priority
 
 Read `docs/research/2026-09-30-wikipedia-projections/freeze.json` and its
