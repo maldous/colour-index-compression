@@ -30,7 +30,10 @@ def inverse(data: bytes, mode: int, metadata: dict) -> bytes:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     if mode == 3:
         from benchmarks import hutter_structure_order
-        return hutter_structure_order.decode(data, 1, metadata)
+        metadata_mode = metadata.get("mode") if isinstance(metadata, dict) else None
+        if metadata_mode not in (0, 1):
+            raise ValueError("invalid B transform metadata mode")
+        return hutter_structure_order.decode(data, metadata_mode, metadata)
     from benchmarks import hutter_structure
     return hutter_structure.decode(data, mode, metadata)
 
