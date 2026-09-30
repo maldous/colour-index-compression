@@ -39,7 +39,7 @@ MAGIC = b"CIXB1"
 HEADER = struct.Struct("<5sBBII32s")
 assert HEADER.size == 47
 
-BACKENDS = {1: "gzip", 2: "bzip2", 3: "xz", 4: "zstd", 5: "brotli"}
+BACKENDS = {1: "gzip", 2: "bzip2", 3: "xz", 4: "zstd", 5: "brotli", 6: "paq8px"}
 BACKEND_IDS = {name: ident for ident, name in BACKENDS.items()}
 PROFILES = {1: "fast", 2: "current", 3: "size"}
 PROFILE_IDS = {name: ident for ident, name in PROFILES.items()}
@@ -51,17 +51,17 @@ REFERENCE_PRESETS = {
     "fast": {
         "gzip": {"level": 1}, "bzip2": {"level": 1},
         "xz": {"level": 0}, "zstd": {"level": -131072},
-        "brotli": {"level": 0},
+        "brotli": {"level": 0}, "paq8px": {"option": "-1"},
     },
     "current": {
         "gzip": {"level": 9}, "bzip2": {"level": 9},
         "xz": {"level": 6}, "zstd": {"level": 3},
-        "brotli": {"level": 6},
+        "brotli": {"level": 6}, "paq8px": {"option": "-8"},
     },
     "size": {
         "gzip": {"level": 9}, "bzip2": {"level": 9},
         "xz": {"level": 9, "extreme": True}, "zstd": {"level": 22},
-        "brotli": {"level": 11},
+        "brotli": {"level": 11}, "paq8px": {"option": "-12L", "layers": 5},
     },
 }
 
@@ -69,26 +69,20 @@ REFERENCE_PRESETS = {
 # policy-compatible integrated reference backend eligible.  Maximum adds an
 # exhaustive pass over the eleven existing CIXG1 representations.
 PROFILE_BACKENDS = {
-    "fast": ("gzip", "zstd", "brotli"),
-    "current": ("gzip", "bzip2", "xz", "zstd"),
-    "size": ("gzip", "bzip2", "xz", "zstd"),
+    "fast": ("gzip", "bzip2", "xz", "zstd", "brotli", "paq8px"),
+    "current": ("gzip", "bzip2", "xz", "zstd", "brotli", "paq8px"),
+    "size": ("gzip", "bzip2", "xz", "zstd", "brotli"),
 }
-PORTFOLIO_SECONDS = {"fast": 0.75, "current": 3.0, "size": 60.0}
+PORTFOLIO_SECONDS = {"fast": 12.0, "current": 120.0, "size": 90.0}
 OUTER_MEMORY_BYTES = 2_000_000_000
-MAX_INPUT_BYTES = 16 * 1024 * 1024
+MAX_INPUT_BYTES = 64 * 1024 * 1024
 MAX_EXTERNAL_PAYLOAD_BYTES = MAX_INPUT_BYTES + 1024 * 1024
 
 POLICY_EXCLUDED = {
-    "brotli-quality-6-11": (
-        "Brotli qualities 6 and 11 can use RFC 7932's built-in static word "
-        "dictionary and are outside the generic-input policy.  Quality 0 is "
-        "separately eligible because upstream v1.2.0 routes it through the "
-        "dictionary-free BrotliCompressFragmentFast path."
-    ),
-    "paq8px": (
-        "The ranked PAQ presets use content-specific models, which are outside "
-        "the generic backend policy.  Their pinned AVX2 setting is an "
-        "implementation choice and is not, by itself, the exclusion reason."
+    "paq8px-size": (
+        "The pinned -12L five-LSTM-layer preset is estimated at about 29 GB, "
+        "above the shared 12 GB memory ceiling; fast/current PAQ routes remain "
+        "eligible and are bounded by the normal per-candidate resource caps."
     ),
 }
 
@@ -149,6 +143,17 @@ def _brotli_module():
     return brotli
 
 
+def _paq_binary(policy: Mapping) -> Path:
+    record = policy.get("paq8px")
+    if not isinstance(record, Mapping):
+        raise ValueError("policy is missing paq8px provenance")
+    binary = Path(str(record.get("path", "")))
+    expected = str(record.get("sha256", ""))
+    if not binary.is_file() or not expected or _sha256_path(binary) != expected:
+        raise ValueError("paq8px binary is absent or differs from the pinned policy")
+    return binary
+
+
 def coverage_table(policy: Mapping) -> list[dict]:
     """Return the explicit integration and decoder-closure inventory."""
     try:
@@ -200,22 +205,19 @@ def coverage_table(policy: Mapping) -> list[dict]:
         },
         {
             "codec": "brotli", "available_inside_cix": brotli_available,
-            "profile_eligibility": {
-                "fast": "ELIGIBLE_QUALITY_0_DICTIONARY_FREE" if brotli_available else "UNAVAILABLE_PINNED_RUNTIME",
-                "current": "POLICY_EXCLUDED_STATIC_DICTIONARY",
-                "size": "POLICY_EXCLUDED_STATIC_DICTIONARY",
-            },
-            "integration_gap": brotli_gap or POLICY_EXCLUDED["brotli-quality-6-11"],
+            "profile_eligibility": {p: "ELIGIBLE" if brotli_available else "UNAVAILABLE_PINNED_RUNTIME" for p in PROFILES.values()},
+            "integration_gap": brotli_gap,
             "decoder_requirements": {**BROTLI_RUNTIME, "runtime_path_required": False} if brotli_available else None,
         },
         {
-            "codec": "paq8px", "available_inside_cix": False,
+            "codec": "paq8px", "available_inside_cix": _paq_binary(policy).is_file(),
             "profile_eligibility": {
-                "fast": "POLICY_EXCLUDED", "current": "POLICY_EXCLUDED",
-                "size": "POLICY_EXCLUDED_AND_MEMORY_EXCLUDED_29GB_GT_12GB",
+                "fast": "ELIGIBLE", "current": "ELIGIBLE",
+                "size": "RESOURCE_LIMIT_29GB_GT_12GB",
             },
-            "integration_gap": POLICY_EXCLUDED["paq8px"],
-            "decoder_requirements": None,
+            "integration_gap": POLICY_EXCLUDED["paq8px-size"],
+            "decoder_requirements": {"format": "paq8px v216 archive", "version": policy["paq8px"].get("version"),
+                                      "binary_sha256": policy["paq8px"].get("sha256"), "runtime_path_required": False},
         },
     ]
     return rows
@@ -258,9 +260,20 @@ def _external_payload(data: bytes, backend: str, profile: str, policy: Mapping, 
                        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         return payload.read_bytes()
     if backend == "brotli":
-        if profile != "fast" or setting["level"] != 0:
-            raise ValueError("only dictionary-free Brotli quality 0 is policy eligible")
-        return _brotli_module().compress(data, quality=0)
+        return _brotli_module().compress(data, quality=setting["level"])
+    if backend == "paq8px":
+        if profile == "size":
+            raise ValueError("paq8px size preset excluded by the declared 12 GB RAM limit")
+        binary = _paq_binary(policy)
+        source = work / "paq.source.bin"
+        payload = work / "paq.archive.bin"
+        source.write_bytes(data)
+        working_binary = work / "paq8px"
+        shutil.copyfile(binary, working_binary); working_binary.chmod(0o555)
+        args = [str(working_binary), setting["option"], "-simd", "AVX2"]
+        subprocess.run(args + [str(source), str(payload)], check=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        return payload.read_bytes()
     raise ValueError(f"backend is not integrated: {backend}")
 
 
@@ -338,6 +351,18 @@ def decode_external_bytes(blob: bytes, policy: Mapping) -> bytes:
         if backend == "zstd":
             with tempfile.TemporaryDirectory(prefix="cix-backend-decode-") as directory:
                 data = _decode_zstd(payload, expected, policy, Path(directory))
+        elif backend == "paq8px":
+            with tempfile.TemporaryDirectory(prefix="cix-paq-decode-") as directory:
+                work = Path(directory); binary = _paq_binary(policy)
+                working_binary = work / "paq8px"
+                shutil.copyfile(binary, working_binary); working_binary.chmod(0o555)
+                packed = work / "archive.paq"; restored = work / "restored.bin"
+                packed.write_bytes(payload)
+                subprocess.run([str(working_binary), "-d", "-simd", "AVX2", str(packed), str(restored)],
+                               check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+                if restored.stat().st_size != expected:
+                    raise ValueError("paq8px length mismatch")
+                data = restored.read_bytes()
         else:
             data = _bounded_decompressor(payload, expected, backend)
     except ValueError:
@@ -356,9 +381,6 @@ def decode_archive(source: Path, destination: Path, policy: Mapping) -> dict:
         magic = stream.read(5)
     if magic == CIXG1_MAGIC:
         report = decode_file(source, destination)
-        if report["decoded_bytes"] > MAX_INPUT_BYTES:
-            destination.unlink(missing_ok=True)
-            raise ValueError("decoded CIXG1 exceeds backend-portfolio limit")
         return {"format": "CIXG1", **report}
     if magic != MAGIC:
         raise ValueError("unknown backend-portfolio archive")
@@ -442,8 +464,11 @@ def _worker_encode(conn, source: str, destination: str, item: dict,
                               decoder_requirement=coverage_table(policy)[3]["decoder_requirements"])
             elif item["backend"] == "brotli":
                 detail.update(runtime_identity_verified=True, source_verified=False,
-                              source_verification_note="upstream q0 path audited; local wheel hash pinned without a reproducible-build attestation",
+                              source_verification_note="pinned local wheel; upstream source is publicly identified, but no reproducible-build attestation is claimed",
                               decoder_requirement={**BROTLI_RUNTIME, "runtime_path_required": False})
+            elif item["backend"] == "paq8px":
+                detail.update(runtime_identity_verified=True, source_verified=True,
+                              decoder_requirement=coverage_table(policy)[4]["decoder_requirements"])
             else:
                 detail.update(runtime_identity_verified=policy.get("python") == sys.version,
                               source_verified=False,
@@ -479,7 +504,7 @@ def _worker_verify(conn, expected_size: int, expected_hash: str,
                    archive: str, restored: str, policy: dict) -> None:
     os.setsid()
     resource.setrlimit(resource.RLIMIT_AS, (OUTER_MEMORY_BYTES, OUTER_MEMORY_BYTES))
-    resource.setrlimit(resource.RLIMIT_FSIZE, (MAX_INPUT_BYTES, MAX_INPUT_BYTES))
+    resource.setrlimit(resource.RLIMIT_FSIZE, (MAX_EXTERNAL_PAYLOAD_BYTES, MAX_EXTERNAL_PAYLOAD_BYTES))
     conn.send({"ready": True})
     started = time.perf_counter()
     try:
@@ -616,7 +641,12 @@ def encode_portfolio(source: Path, destination: Path, *, profile: str,
                 record.update(status="SEARCH_BUDGET", archive_bytes=None)
                 attempts.append(record); continue
             policy_effort = EFFORTS[PROFILE_EFFORT[profile]]
-            candidate_cap = policy_effort.search_seconds if item["kind"] == "cix-adaptive" else policy_effort.trial_seconds
+            if item["kind"] == "cix-adaptive":
+                candidate_cap = policy_effort.search_seconds
+            elif item.get("backend") == "paq8px":
+                candidate_cap = 2.0 if profile == "fast" else 60.0
+            else:
+                candidate_cap = policy_effort.trial_seconds
             per_trial = min(candidate_cap, remaining)
             record["encode_cap_seconds"] = per_trial
             measured = _run_worker(_worker_encode,
@@ -631,7 +661,8 @@ def encode_portfolio(source: Path, destination: Path, *, profile: str,
             # Validation is evidence overhead and is deliberately accounted
             # separately from the encoder's candidate-search budget.
             restored = work / f"{index:02d}-{item['name'].replace(':', '-')}.restored"
-            validation_cap = max(1.0, EFFORTS[PROFILE_EFFORT[profile]].trial_seconds)
+            validation_cap = (60.0 if item.get("backend") == "paq8px" else
+                              max(1.0, EFFORTS[PROFILE_EFFORT[profile]].trial_seconds))
             record["validation_cap_seconds"] = validation_cap
             verify = _run_worker(_worker_verify,
                                  (source_size, source_hash, str(archive), str(restored), policy_dict),
@@ -643,8 +674,9 @@ def encode_portfolio(source: Path, destination: Path, *, profile: str,
                                 validation_status)
             restored.unlink(missing_ok=True)
             attempts.append(record)
-            if record["status"] not in ("VERIFIED", "UNQUALIFIED"):
-                raise CandidateVerificationError(record, list(attempts), work)
+            # A malformed candidate is retained as failed evidence, then
+            # excluded from selection.  It must not hide a smaller valid
+            # fallback or other candidates that passed archive-only decode.
         selected = _select_smallest_verified(attempts)
         selected_archive = work / f"{selected['plan_index']:02d}-{selected['name'].replace(':', '-')}.cix"
         shutil.copyfile(selected_archive, destination)

@@ -27,7 +27,7 @@ def policy():
 
 def test_presets_are_the_ranked_reference_settings():
     expected = {
-        profile: {name: SETTINGS[profile][name] for name in ("gzip", "bzip2", "xz", "zstd", "brotli")}
+        profile: {name: SETTINGS[profile][name] for name in ("gzip", "bzip2", "xz", "zstd", "brotli", "paq8px")}
         for profile in ("fast", "current", "size")
     }
     assert REFERENCE_PRESETS == expected
@@ -53,8 +53,9 @@ def test_fast_brotli_quality_zero_round_trip():
     data = bytes(range(256)) * 9
     archive = encode_external_bytes(data, "brotli", "fast", policy())
     assert decode_external_bytes(archive, policy()) == data
-    with pytest.raises(ValueError, match="not eligible"):
-        encode_external_bytes(data, "brotli", "current", policy())
+    for profile in ("current", "size"):
+        archive = encode_external_bytes(data, "brotli", profile, policy())
+        assert decode_external_bytes(archive, policy()) == data
 
 
 def test_envelope_rejects_corruption_and_limits():
@@ -71,7 +72,7 @@ def test_size_plan_has_all_four_backends_and_all_eleven_routes():
     plan = candidate_plan("size")
     names = [item["name"] for item in plan]
     assert [name for name in names if name.endswith(":direct")] == [
-        "gzip:direct", "bzip2:direct", "xz:direct", "zstd:direct"
+        "gzip:direct", "bzip2:direct", "xz:direct", "zstd:direct", "brotli:direct"
     ]
     assert {name.removeprefix("cix-route:") for name in names if name.startswith("cix-route:")} == {
         "raw", "runs", "composition", "lz", "predictor", "bwt", "stride",
@@ -84,7 +85,8 @@ def test_size_plan_has_all_four_backends_and_all_eleven_routes():
 
 def test_fast_shortlist_and_disabled_controls_are_explicit():
     names = [item["name"] for item in candidate_plan("fast")]
-    assert names == ["cix-route:raw", "gzip:direct", "zstd:direct", "brotli:direct", "cix-adaptive"]
+    assert names == ["cix-route:raw", "gzip:direct", "bzip2:direct", "xz:direct", "zstd:direct",
+                     "brotli:direct", "paq8px:direct", "cix-adaptive"]
     disabled = [item["name"] for item in candidate_plan("current", disabled=("zstd", "cix-adaptive"))]
     assert "zstd:direct" not in disabled
     assert "cix-adaptive" not in disabled
@@ -93,7 +95,7 @@ def test_fast_shortlist_and_disabled_controls_are_explicit():
 
 def test_every_ablation_keeps_the_raw_original_byte_fallback():
     names = [item["name"] for item in candidate_plan(
-        "size", disabled=("cix", "cix-route:raw", "gzip", "bzip2", "xz", "zstd"),
+        "size", disabled=("cix", "cix-route:raw", "gzip", "bzip2", "xz", "zstd", "brotli"),
         routes=(),
     )]
     assert names == ["cix-route:raw"]
@@ -112,13 +114,12 @@ def test_selection_uses_complete_verified_bytes_only():
 def test_coverage_records_policy_and_memory_exclusions():
     rows = {row["codec"]: row for row in coverage_table(policy())}
     assert rows["zstd"]["available_inside_cix"]
-    assert rows["brotli"]["profile_eligibility"]["fast"] == "ELIGIBLE_QUALITY_0_DICTIONARY_FREE"
-    assert rows["brotli"]["profile_eligibility"]["size"] == "POLICY_EXCLUDED_STATIC_DICTIONARY"
-    assert "dictionary" in rows["brotli"]["integration_gap"].lower()
-    assert rows["paq8px"]["profile_eligibility"]["size"].startswith("POLICY_EXCLUDED_AND_MEMORY_EXCLUDED")
-    assert "content-specific" in rows["paq8px"]["integration_gap"]
-    assert "not, by itself" in rows["paq8px"]["integration_gap"]
-    assert set(POLICY_EXCLUDED) == {"brotli-quality-6-11", "paq8px"}
+    assert all(v == "ELIGIBLE" for v in rows["brotli"]["profile_eligibility"].values())
+    assert rows["brotli"]["integration_gap"] is None
+    assert rows["paq8px"]["profile_eligibility"]["fast"] == "ELIGIBLE"
+    assert rows["paq8px"]["profile_eligibility"]["current"] == "ELIGIBLE"
+    assert rows["paq8px"]["profile_eligibility"]["size"] == "RESOURCE_LIMIT_29GB_GT_12GB"
+    assert set(POLICY_EXCLUDED) == {"paq8px-size"}
 
 
 def test_native_inventory_does_not_conflate_cixg1_and_cixm6():
@@ -136,7 +137,7 @@ def test_portfolio_raw_fallback_is_complete_and_dispatches(tmp_path):
     source.write_bytes(data)
     report = encode_portfolio(
         source, archive, profile="fast", policy=policy(),
-        disabled=("gzip", "zstd", "brotli", "cix-adaptive"),
+        disabled=("gzip", "bzip2", "xz", "zstd", "brotli", "paq8px", "cix-adaptive"),
     )
     assert report["selected"] == "cix-route:raw"
     assert report["attempts"][0]["status"] == "VERIFIED"
@@ -146,31 +147,37 @@ def test_portfolio_raw_fallback_is_complete_and_dispatches(tmp_path):
     assert restored.read_bytes() == data
 
 
-def test_unexpected_verification_failure_stops_and_preserves_archive(tmp_path, monkeypatch):
-    source = tmp_path / "source.bin"; source.write_bytes(b"verification-failure")
+def test_verification_failure_is_retained_but_does_not_hide_verified_fallback(tmp_path, monkeypatch):
+    source = tmp_path / "source.bin"; data=b"verification-failure"; source.write_bytes(data)
     attempts = tmp_path / "attempts"
 
     def fake_worker(target, args, timeout):
         if target is portfolio._worker_encode:
-            archive = Path(args[1]); archive.parent.mkdir(parents=True, exist_ok=True)
-            archive.write_bytes(b"invalid-completed-archive")
+            item = args[2]; archive = Path(args[1]); archive.parent.mkdir(parents=True, exist_ok=True)
+            payload = b"valid-fallback" if item["name"] == "cix-route:raw" else b"invalid-completed-archive"
+            archive.write_bytes(payload)
             return {"status": "COMPLETE", "archive_bytes": archive.stat().st_size,
                     "archive_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
                     "wall_seconds": 0.01, "encode_seconds": 0.01,
                     "peak_rss_kib": 1, "detail": {"standalone_payload_bytes": 25, "wrapper_bytes": 0}}
+        archive = Path(args[2])
+        if archive.read_bytes() == b"valid-fallback":
+            return {"status": "VERIFIED", "wall_seconds": 0.01, "decode_seconds": 0.01,
+                    "restored_bytes": len(data), "restored_sha256": hashlib.sha256(data).hexdigest()}
         return {"status": "VERIFY_FAILED", "error": "ValueError: deliberate corruption",
                 "wall_seconds": 0.01, "decode_seconds": 0.01}
 
     monkeypatch.setattr(portfolio, "_run_worker", fake_worker)
-    with pytest.raises(portfolio.CandidateVerificationError) as failure:
-        portfolio.encode_portfolio(
-            source, tmp_path / "selected.cix", profile="fast", policy=policy(),
-            disabled=("gzip", "zstd", "brotli", "cix-adaptive"),
-            attempt_directory=attempts,
-        )
-    assert failure.value.attempt["status"] == "VERIFY_FAILED"
-    assert (attempts / failure.value.attempt["archive_name"]).read_bytes() == b"invalid-completed-archive"
-    assert not (tmp_path / "selected.cix").exists()
+    report = portfolio.encode_portfolio(
+        source, tmp_path / "selected.cix", profile="fast", policy=policy(),
+        disabled=("bzip2", "xz", "zstd", "brotli", "paq8px", "cix-adaptive"),
+        attempt_directory=attempts,
+    )
+    assert report["attempts"][0]["status"] == "VERIFIED"
+    assert report["attempts"][1]["status"] == "VERIFY_FAILED"
+    assert (attempts / report["attempts"][1]["archive_name"]).read_bytes() == b"invalid-completed-archive"
+    assert report["selected"] == "cix-route:raw"
+    assert (tmp_path / "selected.cix").read_bytes() == b"valid-fallback"
 
 
 def test_validation_timeout_is_unqualified_and_does_not_hide_next_verified_candidate(tmp_path, monkeypatch):

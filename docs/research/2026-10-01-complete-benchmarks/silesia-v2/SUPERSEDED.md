@@ -1,0 +1,3 @@
+# Silesia v2 freeze superseded before completion
+
+The first execution exposed two issues. Direct codec encode commands omitted the source argument, so those rows did not produce the declared archive and failed verification. CIX tried PAQ v216 -8 under its 2 GB per-cell address-space cap; PAQ returned an incomplete archive, which the independent decoder rejected. CIX previously aborted rather than retaining its verified fallback. One standalone zstd fast cell completed exactly; 11 cells failed; 228 remaining rows were cancelled. All statuses and logs remain here. The corrected direct command, fallback retention behavior, and six-codec integration are frozen under v3; do not merge v2 records into v3 rankings.
