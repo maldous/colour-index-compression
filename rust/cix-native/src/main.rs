@@ -980,6 +980,16 @@ fn selector_effort_name(level: u8) -> &'static str {
     }
 }
 
+/// Names shown to users describe the compression objective. The selector's
+/// historical profile names remain internal implementation identifiers.
+fn effort_display_name(level: u8) -> &'static str {
+    match level {
+        0..=2 => "fast",
+        3..=8 => "default",
+        _ => "best",
+    }
+}
+
 #[derive(Default)]
 struct AutoSelectionStats {
     blocks: u64,
@@ -2029,7 +2039,7 @@ fn encode_candidates<R: Read, W: Write>(
             .join(",");
         eprintln!(
             "cix: effort={} format={} route={} blocks={} candidates={} memory_skips={} budget_skips={} analyse_seconds={:.3} candidate_seconds={:.3} search_seconds={:.3} archive_bytes={} selected_source_bytes=[{}]",
-            selector_effort_name(level),
+            effort_display_name(level),
             std::str::from_utf8(archive_magic).unwrap_or("CIXG?"),
             forced.unwrap_or("auto"),
             selection_stats.blocks,
@@ -3541,8 +3551,11 @@ fn decode<R: Read, W: Write>(
             .ok_or("decoded length overflow")?;
         if list {
             eprintln!(
-                "CIXG1 block: route={}, source={} bytes, payload={} bytes",
-                r[0], n, s
+                "{} block: route={}, source={} bytes, payload={} bytes",
+                std::str::from_utf8(&archive_magic).unwrap_or("CIXG?"),
+                r[0],
+                n,
+                s
             )
         }
         if !verify_only {

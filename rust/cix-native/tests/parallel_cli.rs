@@ -4,12 +4,50 @@
 //! These use forced routes so scheduling cannot legitimately alter a selector
 //! decision; a changed archive would therefore be a framing/order regression.
 
+use std::fs;
 use std::io::{Read, Write};
-use std::process::{Command, Stdio};
+use std::path::{Path, PathBuf};
+use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+
+struct ChildGuard {
+    child: Child,
+}
+
+impl Drop for ChildGuard {
+    fn drop(&mut self) {
+        if self.child.try_wait().ok().flatten().is_none() {
+            let _ = self.child.kill();
+            let _ = self.child.wait();
+        }
+    }
+}
+
+struct TestDir {
+    path: PathBuf,
+}
+
+impl TestDir {
+    fn new() -> Self {
+        let stamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock before Unix epoch")
+            .as_nanos();
+        let path =
+            std::env::temp_dir().join(format!("cix-parallel-cli-{}-{stamp}", std::process::id()));
+        fs::create_dir(&path).expect("create test directory");
+        Self { path }
+    }
+}
+
+impl Drop for TestDir {
+    fn drop(&mut self) {
+        let _ = fs::remove_dir_all(&self.path);
+    }
+}
 
 fn encode(input: &[u8], route: &str, threads: usize) -> Vec<u8> {
     let threads = threads.to_string();
@@ -103,6 +141,33 @@ fn has_complete_end_frame(archive: &[u8]) -> bool {
         pos = end;
     }
     false
+}
+
+fn temporary_archive_has_frame(parent: &Path, target_name: &str) -> bool {
+    fs::read_dir(parent)
+        .expect("read test directory")
+        .filter_map(Result::ok)
+        .any(|entry| {
+            let name = entry.file_name();
+            let name = name.to_string_lossy();
+            name.starts_with(&format!(".{target_name}.cix-tmp-"))
+                && entry
+                    .metadata()
+                    .map(|metadata| metadata.len() >= 54)
+                    .unwrap_or(false)
+        })
+}
+
+fn no_temporary_archives(parent: &Path, target_name: &str) -> bool {
+    fs::read_dir(parent)
+        .expect("read test directory")
+        .filter_map(Result::ok)
+        .all(|entry| {
+            !entry
+                .file_name()
+                .to_string_lossy()
+                .starts_with(&format!(".{target_name}.cix-tmp-"))
+        })
 }
 
 #[test]
@@ -216,5 +281,85 @@ fn sigint_with_stalled_stdout_exits_without_a_complete_footer() {
     assert!(
         !has_complete_end_frame(&archive),
         "interrupted stream must not publish a complete integrity footer"
+    );
+}
+
+#[test]
+fn sigterm_removes_atomic_temporary_output_and_never_publishes_target() {
+    let directory = TestDir::new();
+    let target = directory.path.join("archive.cix");
+    let target_text = target.to_str().expect("temporary path is UTF-8");
+    let mut process = ChildGuard {
+        child: Command::new(env!("CARGO_BIN_EXE_cix"))
+            .args([
+                "--stream",
+                "--threads",
+                "2",
+                "--parallelism",
+                "blocks",
+                "--route",
+                "raw",
+                "--block-size",
+                "4KiB",
+                "-f",
+                "-o",
+                target_text,
+                "-",
+            ])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("spawn cix"),
+    };
+    let mut stdin = process.child.stdin.take().expect("cix stdin");
+    stdin
+        .write_all(&vec![b'Q'; 8192])
+        .expect("write framed input");
+    stdin.flush().expect("flush framed input");
+
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !temporary_archive_has_frame(&directory.path, "archive.cix") && Instant::now() < deadline
+    {
+        thread::sleep(Duration::from_millis(10));
+    }
+    assert!(
+        temporary_archive_has_frame(&directory.path, "archive.cix"),
+        "CIX did not produce framed temporary output before SIGTERM"
+    );
+    assert!(!target.exists(), "atomic target appeared before completion");
+    unsafe {
+        assert_eq!(
+            libc::kill(process.child.id() as i32, libc::SIGTERM),
+            0,
+            "send SIGTERM"
+        );
+    }
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let status = loop {
+        match process.child.try_wait().expect("poll terminated cix") {
+            Some(status) => break status,
+            None if Instant::now() < deadline => thread::sleep(Duration::from_millis(10)),
+            None => panic!("cix did not terminate after SIGTERM"),
+        }
+    };
+    drop(stdin);
+    let mut stderr = String::new();
+    process
+        .child
+        .stderr
+        .take()
+        .expect("cix stderr")
+        .read_to_string(&mut stderr)
+        .expect("read SIGTERM diagnostic");
+    assert!(!status.success(), "SIGTERM encoding unexpectedly succeeded");
+    assert!(!stderr.is_empty(), "SIGTERM produced no diagnostic");
+    assert!(
+        !target.exists(),
+        "SIGTERM published the final atomic target"
+    );
+    assert!(
+        no_temporary_archives(&directory.path, "archive.cix"),
+        "SIGTERM left a temporary archive behind"
     );
 }

@@ -441,7 +441,13 @@ pub fn profile(data: &[u8], cap: usize) -> Features {
     }
 }
 
-/// Return the frozen, ordered candidate route names for an effort profile.
+/// Return the ordered candidate route names for an effort profile.
+///
+/// The DEFAULT PPM promotion is native selector experiment
+/// `cixg1-ppm-predictability-v1`: a measured causal two-byte prediction
+/// signal makes the affordable bounded PPM route eligible before the default
+/// candidate cap.  It is deliberately input-derived and leaves FAST and the
+/// complete BEST route set unchanged.
 pub fn shortlist(features: &Features, effort_name: &str) -> Result<Vec<&'static str>, String> {
     let config = effort(effort_name)
         .ok_or_else(|| format!("unknown CIXG1 effort profile: {effort_name}"))?;
@@ -465,6 +471,9 @@ pub fn shortlist(features: &Features, effort_name: &str) -> Result<Vec<&'static 
     }
     if features.predictability > 0.1 {
         priorities.push("predictor");
+        if effort_name == "balanced" {
+            priorities.push("ppm");
+        }
     }
     if features.symbols < 96 || features.entropy < 5.5 {
         priorities.push("composition");
@@ -553,7 +562,10 @@ mod tests {
     }
 
     #[test]
-    fn shortlist_fallback_order_and_limits_match_frozen_python() {
+    fn unpredictable_default_fallback_retains_frozen_order() {
+        // This vector has no bounded prediction signal, so the native
+        // `cixg1-ppm-predictability-v1` promotion does not apply.  It remains
+        // a frozen-order regression only for that fallback case.
         let features = Features {
             sample_bytes: 256,
             entropy: 8.0,
