@@ -23,9 +23,11 @@ Build/host: Rust `1.98.1`, Cargo `1.98.1`, system zlib `1.3`, Linux x86_64. Buil
 
 ## Verified native subset
 
+A bounded CIXB1 direct-backend path has now been added in Rust. It writes and reads the frozen 47-byte envelope for policy-eligible gzip, bzip2, xz, zstd, and Brotli settings (11 backend/profile combinations total). The new synthetic fixture verifier checks both decode directions plus truncation, envelope trailing bytes, and checksum damage. CIXB1 direct routes are currently limited to 16 MiB and do not implement the reference portfolio selector. They are not a substitute for CIXM6.
+
 The current supported CIXG1 route set and explicit remaining gaps are documented in the compatibility matrix below; the performance results that follow are from the earlier raw/run/DEFLATE-only build. Correctness fixtures include all currently ported routes.
 
-The compatibility matrix and unsupported paths are in [`rust/cix-native/README.md`](../../../rust/cix-native/README.md). Legacy CIXF1/CIXM6 and CIXB1 portfolio selection remain unsupported by the Rust CLI and are reported as unavailable. A native Squash 0.8 plugin (upstream quixdb/squash commit `713eeca85cccadde39bf57f8b59ea663a085a347`) was built and smoke-tested through its file API: empty, tiny and mixed inputs round-tripped at Squash levels 1 and 9. This is integration correctness evidence only; it is not a compression data comparison or performance benchmark.
+The compatibility matrix and unsupported paths are in [`rust/cix-native/README.md`](../../../rust/cix-native/README.md). Legacy CIXF1/CIXM6 and CIXB1 portfolio selection remain unsupported by the Rust CLI and are reported as unavailable. CIXB1 direct single-backend encoding/decoding is supported for the eligible preset combinations documented in the CLI README. A native Squash 0.8 plugin (upstream quixdb/squash commit `713eeca85cccadde39bf57f8b59ea663a085a347`) was built and smoke-tested through its file API: empty, tiny and mixed inputs round-tripped at Squash levels 1 and 9. This is integration correctness evidence only; it is not a compression data comparison or performance benchmark.
 
 ## Streaming checks
 

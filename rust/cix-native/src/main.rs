@@ -11,6 +11,7 @@ use std::{
 };
 
 mod adaptive;
+mod external;
 mod fixedmix;
 mod ppm;
 mod rank;
@@ -92,6 +93,9 @@ struct Opt {
     output: Option<String>,
     route: Option<String>,
     backend: String,
+    external_backend: Option<String>,
+    profile: String,
+    profile_set: bool,
     block: Option<u32>,
     stream: bool,
     history: usize,
@@ -99,7 +103,7 @@ struct Opt {
     flush_interval: Option<std::time::Duration>,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--backend cix|deflate|hybrid|range|count-range] [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|bwt|stride|phrases|ppm|mixture|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, LZ, predictor, PPM, fixed mixer, BWT/MTF, stride transforms, phrases and raw DEFLATE. Adaptive-range and count-range coding are available with the predictor route's --backend option. LZ requires 16 MiB, PPM 64 MiB and mixture uses a block-scaled model-memory bound. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--external gzip|bzip2|xz|zstd|brotli --profile fast|current|size] [--backend cix|deflate|hybrid|range|count-range] [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|bwt|stride|phrases|ppm|mixture|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported stream routes: raw, runs, exact-rank composition, LZ, predictor, PPM, fixed mixer, BWT/MTF, stride transforms, phrases and raw DEFLATE. Adaptive-range and count-range coding are available with the predictor route's --backend option. --external writes bounded CIXB1 (max 16 MiB); ordinary operation writes CIXG1. CIXG1 frames are limited to 65536 bytes.");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -107,6 +111,7 @@ fn parse() -> Result<Opt, String> {
         threads: 1,
         memory: 512 * 1024 * 1024,
         backend: "hybrid".into(),
+        profile: "current".into(),
         ..Opt::default()
     };
     let args: Vec<String> = env::args().collect();
@@ -161,6 +166,8 @@ fn parse() -> Result<Opt, String> {
             || a == "--output"
             || a == "--route"
             || a == "--backend"
+            || a == "--external"
+            || a == "--profile"
             || a == "--block"
             || a == "--block-size"
             || a == "--history"
@@ -182,6 +189,11 @@ fn parse() -> Result<Opt, String> {
                     ) {
                         return Err("unsupported backend".into());
                     }
+                }
+                "--external" => o.external_backend = Some(args[i].clone()),
+                "--profile" => {
+                    o.profile = args[i].clone();
+                    o.profile_set = true;
                 }
                 "--block" => o.block = Some(args[i].parse().map_err(|_| "invalid block size")?),
                 "--block-size" => {
@@ -1240,6 +1252,34 @@ fn encode<R: Read, W: Write>(
     dst.flush().map_err(ioerr)?;
     Ok(())
 }
+
+fn encode_external<R: Read, W: Write>(
+    src: R,
+    mut dst: W,
+    backend: &str,
+    profile: &str,
+    memory: usize,
+) -> Result<(), String> {
+    let required = external::MAX_INPUT
+        .saturating_mul(2)
+        .saturating_add(external::MAX_PAYLOAD)
+        .saturating_add(47);
+    if memory < required {
+        return Err(format!(
+            "CIXB1 external encoding requires about {required} bytes of --memory"
+        ));
+    }
+    let mut data = Vec::with_capacity(external::MAX_INPUT);
+    src.take((external::MAX_INPUT + 1) as u64)
+        .read_to_end(&mut data)
+        .map_err(ioerr)?;
+    if data.len() > external::MAX_INPUT {
+        return Err("CIXB1 external input exceeds 16 MiB".into());
+    }
+    let archive = external::encode(backend, profile, &data)?;
+    dst.write_all(&archive).map_err(ioerr)?;
+    dst.flush().map_err(ioerr)
+}
 fn decode<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
@@ -1248,8 +1288,50 @@ fn decode<R: Read, W: Write>(
     input_fd: i32,
     memory: usize,
 ) -> Result<(), String> {
+    let mut archive_magic = [0u8; 5];
+    read_exact_poll(&mut src, &mut archive_magic, input_fd)?;
+    if &archive_magic == b"CIXB1" {
+        let mut fields = [0u8; 42];
+        read_exact_poll(&mut src, &mut fields, input_fd)?;
+        let payload_size = u32::from_le_bytes(fields[6..10].try_into().unwrap()) as usize;
+        let expected = u32::from_le_bytes(fields[2..6].try_into().unwrap()) as usize;
+        if payload_size > external::MAX_PAYLOAD
+            || expected > external::MAX_INPUT
+            || HEADER.saturating_add(expected).saturating_add(payload_size) > memory
+        {
+            return Err("CIXB1 archive exceeds --memory or format limit".into());
+        }
+        let mut archive = Vec::with_capacity(47 + payload_size);
+        archive.extend_from_slice(&archive_magic);
+        archive.extend_from_slice(&fields);
+        archive.resize(47 + payload_size, 0);
+        read_exact_poll(&mut src, &mut archive[47..], input_fd)?;
+        let data = external::decode(&archive, memory)?;
+        loop {
+            let mut extra = [0u8; 1];
+            match read_poll(&mut src, &mut extra, input_fd, None)? {
+                Some(0) => break,
+                Some(_) => return Err("trailing bytes after CIXB1 archive".into()),
+                None => continue,
+            }
+        }
+        if list {
+            eprintln!(
+                "CIXB1 stream: backend={}, profile={}, decoded {} bytes",
+                archive[5],
+                archive[6],
+                data.len()
+            );
+        }
+        if !verify_only {
+            dst.write_all(&data).map_err(ioerr)?;
+            dst.flush().map_err(ioerr)?;
+        }
+        return Ok(());
+    }
     let mut h = [0; HEADER];
-    read_exact_poll(&mut src, &mut h, input_fd)?;
+    h[..5].copy_from_slice(&archive_magic);
+    read_exact_poll(&mut src, &mut h[5..], input_fd)?;
     if &h[..5] != MAGIC {
         return Err("unsupported archive (expected CIXG1)".into());
     }
@@ -1537,6 +1619,28 @@ fn run() -> Result<(), String> {
     if o.memory < 128 * 1024 {
         return Err("--memory must be at least 128 KiB for a CIXG1 frame".into());
     }
+    if o.profile_set && o.external_backend.is_none() {
+        return Err("--profile requires --external".into());
+    }
+    if o.external_backend.is_some() {
+        if o.decode || o.test || o.list {
+            return Err("--external is an encoding option".into());
+        }
+        if o.stream || o.flush_interval.is_some() {
+            return Err(
+                "bounded CIXB1 external encoding conflicts with --stream/--flush-interval".into(),
+            );
+        }
+        if o.input == "-" {
+            return Err("CIXB1 external profiles require a named, bounded input file".into());
+        }
+        if o.route.is_some() {
+            return Err("--external conflicts with --route".into());
+        }
+        if !matches!(o.profile.as_str(), "fast" | "current" | "size") {
+            return Err("--profile accepts fast, current or size".into());
+        }
+    }
     if o.route.as_deref() == Some("lz") && o.memory < 16 * 1024 * 1024 {
         return Err(
             "--route lz requires --memory of at least 16 MiB for its bounded match index".into(),
@@ -1625,6 +1729,8 @@ fn run() -> Result<(), String> {
         let mut lock = dst.lock();
         if o.decode {
             decode(src, &mut lock, false, false, fd, o.memory)
+        } else if let Some(backend) = o.external_backend.as_deref() {
+            encode_external(src, &mut lock, backend, &o.profile, o.memory)
         } else {
             encode(
                 src,
@@ -1646,6 +1752,8 @@ fn run() -> Result<(), String> {
             let fd = input_fd(&src);
             if o.decode {
                 decode(src, dst, false, false, fd, o.memory)
+            } else if let Some(backend) = o.external_backend.as_deref() {
+                encode_external(src, dst, backend, &o.profile, o.memory)
             } else {
                 encode(
                     src,
