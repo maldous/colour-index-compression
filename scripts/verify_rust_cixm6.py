@@ -34,11 +34,15 @@ def main():
  from cix.fileformat import _footer, split_file_wrapper
  from cix.runs import encode_run_block
  from cix.adaptive import encode_adaptive
+ from cix.bitplanes import encode_bitplanes
+ from cix.multinomial import encode_context_type_classes
  from cix.fixedmix import encode_fixed_mix
  from cix.sparse import encode_sparse_block
  from cix.ppm import encode_ppm
  from cix.record import encode_record_block
  import cix.numeric as numeric
+ from cix.histogram import type_class_candidate, decode_type_class
+ from cix.multinomial import encode_type_class_known_n
  from cix.multinomial import vencode
  rng=random.Random(112)
  cases=[b"",b"abc",b"A"*2000,random.Random(112).randbytes(3072),bytes(rng.choices(range(8),weights=[50,20,10,8,5,3,2,1],k=6000))]
@@ -69,6 +73,17 @@ def main():
   bytes([10])+vencode(len(adaptive_data))+vencode(len(adaptive_payload))+adaptive_payload+
   bytes([255])+vencode(len(prefix)+len(adaptive_data))+struct.pack("<I",zlib.crc32(prefix+adaptive_data)))
  assert run(str(BIN/"uncix"),"-c","-",input=adaptive_archive).stdout==prefix+adaptive_data
+ context_prefix=b"prior context: "*100
+ context_data=(b"prior context: context coding round trips "*100)
+ context_payload=encode_context_type_classes(context_data,order=2,bucket_bits=8,prefix_history=context_prefix)
+ context_archive=(b"CIXM6"+vencode(1<<20)+bytes([0])+vencode(len(context_prefix))+vencode(len(context_prefix))+context_prefix+
+  bytes([2])+vencode(len(context_data))+vencode(len(context_payload))+context_payload+
+  bytes([255])+vencode(len(context_prefix)+len(context_data))+struct.pack("<I",zlib.crc32(context_prefix+context_data)))
+ assert run(str(BIN/"uncix"),"-c","-",input=context_archive).stdout==context_prefix+context_data
+ bitplane_data=(bytes(range(32))*160)+b"\0"*1024
+ bitplane_payload,_=encode_bitplanes(bitplane_data)
+ bitplane_archive=b"CIXM6"+vencode(1<<20)+bytes([6])+vencode(len(bitplane_data))+vencode(len(bitplane_payload))+bitplane_payload+bytes([255])+vencode(len(bitplane_data))+struct.pack("<I",zlib.crc32(bitplane_data))
+ assert run(str(BIN/"uncix"),"-c","-",input=bitplane_archive).stdout==bitplane_data
  sparse_data=bytearray(b"\0"*5000)
  for i in range(0,len(sparse_data),97): sparse_data[i]=(i//97+1)&255
  sparse_data=bytes(sparse_data);sparse_payload,_=encode_sparse_block(sparse_data)
@@ -93,6 +108,12 @@ def main():
  record_archive=b"CIXM6"+vencode(1<<20)+bytes([14])+vencode(len(record_data))+vencode(len(record_payload))+record_payload+bytes([255])+vencode(len(record_data))+struct.pack("<I",zlib.crc32(record_data))
  assert decompress(record_archive)==record_data
  assert run(str(BIN/"uncix"),"-c","-",input=record_archive).stdout==record_data
+ histogram_data=bytes(range(256))*32
+ incumbent=encode_type_class_known_n(histogram_data)
+ histogram_payload=type_class_candidate(histogram_data,incumbent)
+ assert histogram_payload is not None and decode_type_class(histogram_payload,len(histogram_data))==histogram_data
+ histogram_archive=b"CIXM6"+vencode(1<<20)+bytes([20])+vencode(len(histogram_data))+vencode(len(histogram_payload))+histogram_payload+bytes([255])+vencode(len(histogram_data))+struct.pack("<I",zlib.crc32(histogram_data))
+ assert run(str(BIN/"uncix"),"-c","-",input=histogram_archive).stdout==histogram_data
  spec=numeric.WordSpec(2,"little");tail=b"Z"
  numeric_cases=[]
  for method,values in ((numeric._encode_for,[100+i%9 for i in range(400)]),
@@ -121,5 +142,5 @@ def main():
    run(str(BIN/"uncix"),"-c","-",input=archive,ok=False)
  unsupported=b"CIXM6"+vencode(1<<20)+bytes([2])+vencode(1)+vencode(0)+bytes([255])+vencode(0)+struct.pack("<I",0)
  run(str(BIN/"uncix"),"-c","-",input=unsupported,ok=False)
- print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, sparse, record, numeric, PPM, fixed-mixer, and block-reference paths; verified Rust raw/multinomial encode in Python")
+ print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, context, bit-plane, sparse, record, histogram, numeric, PPM, fixed-mixer, and block-reference paths; verified Rust raw/multinomial encode in Python")
 if __name__=="__main__":main()

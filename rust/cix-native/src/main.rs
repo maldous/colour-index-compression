@@ -11,8 +11,10 @@ use std::{
 };
 
 mod adaptive;
+mod bitplane;
 mod external;
 mod fixedmix;
+mod histogram;
 mod numeric;
 mod ppm;
 mod rank;
@@ -1747,6 +1749,8 @@ fn decode_m6<R: Read, W: Write>(
         let payload_len = read_stream_varint(&mut src, fd)?;
         let model_budget = match mode[0] {
             10 => source_len.saturating_mul(64),
+            2 => source_len.saturating_mul(32),
+            6 => source_len.saturating_mul(8),
             8 => source_len.saturating_mul(16),
             16 => source_len.saturating_mul(128),
             19 => source_len.saturating_mul(1024),
@@ -1781,12 +1785,15 @@ fn decode_m6<R: Read, W: Write>(
                 }
                 out
             }
+            2 => rank::decode_context_type_classes(&payload, source_len, &history)?,
+            6 => bitplane::decode(&payload, source_len)?,
             10 => adaptive::decode_general(&payload, source_len, &history, memory / 4096)?,
             11 => rank::decode_sparse_blob(&payload, source_len)?,
             12 => m6_decode_runs(&payload, source_len, memory / 4096)?,
             14 => m6_decode_record(&payload, source_len, memory / 4096)?,
             8 => numeric::decode(&payload, source_len)?,
             16 => ppm::decode_with_history(&payload, source_len, &history)?,
+            20 => histogram::decode_type_class(&payload, source_len)?,
             19 => fixedmix::decode_with_history(&payload, source_len, &history)?,
             9 => {
                 let mut pos = 0;

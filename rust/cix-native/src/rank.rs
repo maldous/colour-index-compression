@@ -654,3 +654,121 @@ pub fn decode_colex_positions(
     let width = fixed_width(&(choose(universe, count) - BigUint::one()));
     colex_unrank(read_fixed(data, pos, width)?, count, universe)
 }
+
+/// Decode an existing type-class sequence after rebuilding its explicit count header.
+pub fn decode_type_class_with_counts(
+    sequence: &[u8],
+    n: usize,
+    counts: &[usize],
+) -> Result<Vec<u8>, String> {
+    if counts.len() != 256 || counts.iter().sum::<usize>() != n {
+        return Err("invalid supplied type-class counts".into());
+    }
+    let active: Vec<usize> = counts
+        .iter()
+        .enumerate()
+        .filter_map(|(s, &c)| (c > 0).then_some(s))
+        .collect();
+    let m = active.len();
+    let mut header = Vec::new();
+    varint(m, &mut header);
+    if m < 256 {
+        let width = fixed_width(&(choose(256, m) - BigUint::one()));
+        header.extend(fixed_bytes(&colex_rank(&active), width));
+    }
+    if m > 1 {
+        let parts: Vec<usize> = active.iter().map(|&s| counts[s]).collect();
+        let width = fixed_width(&(choose(n - 1, m - 1) - BigUint::one()));
+        header.extend(fixed_bytes(&composition_rank(&parts)?, width));
+    }
+    header.extend_from_slice(sequence);
+    let mut pos = 0;
+    let out = decode_type_class(&header, &mut pos, n)?;
+    if pos != header.len() {
+        return Err("unused histogram sequence bytes".into());
+    }
+    Ok(out)
+}
+
+/// Decode CIXM6 context-conditioned type classes (mode 2).
+pub fn decode_context_type_classes(
+    data: &[u8],
+    n: usize,
+    prefix_history: &[u8],
+) -> Result<Vec<u8>, String> {
+    if data.len() < 3 {
+        return Err("truncated context type-class header".into());
+    }
+    let order = data[0] as usize;
+    let bucket_bits = data[1] as usize;
+    if !(1..=16).contains(&order) || !(1..=16).contains(&bucket_bits) {
+        return Err("invalid context type-class parameters".into());
+    }
+    let bucket_count = 1usize << bucket_bits;
+    let mut pos = 2;
+    let q = read_varint(data, &mut pos)?;
+    if q == 0 || q > bucket_count.min(n) {
+        return Err("invalid active context count".into());
+    }
+    let ids = if q == bucket_count {
+        (0..bucket_count).collect()
+    } else {
+        let width = fixed_width(&(choose(bucket_count, q) - BigUint::one()));
+        colex_unrank(read_fixed(data, &mut pos, width)?, q, bucket_count)?
+    };
+    let lengths = if q == 1 {
+        vec![n]
+    } else {
+        let width = fixed_width(&(choose(n - 1, q - 1) - BigUint::one()));
+        composition_unrank(read_fixed(data, &mut pos, width)?, n, q)?
+    };
+    let mut lanes = Vec::with_capacity(q);
+    for count in lengths {
+        let lane = decode_type_class(data, &mut pos, count)?;
+        lanes.push(lane);
+    }
+    if pos != data.len() {
+        return Err("trailing context type-class bytes".into());
+    }
+    let lookup: std::collections::HashMap<usize, usize> =
+        ids.iter().enumerate().map(|(i, &id)| (id, i)).collect();
+    let mut cursors = vec![0usize; q];
+    let mut tail = if order <= prefix_history.len() {
+        prefix_history[prefix_history.len() - order..].to_vec()
+    } else {
+        prefix_history.to_vec()
+    };
+    let mut out = Vec::with_capacity(n);
+    for _ in 0..n {
+        let bucket = if order == 1 && bucket_bits >= 8 {
+            tail.last().copied().unwrap_or(0) as usize
+        } else {
+            let mut h = 1469598103934665603u64;
+            for &b in &tail {
+                h ^= b as u64;
+                h = h.wrapping_mul(1099511628211);
+            }
+            (h & ((1u64 << bucket_bits) - 1)) as usize
+        };
+        let lane = *lookup
+            .get(&bucket)
+            .ok_or("context bucket absent from stream")?;
+        let value = *lanes[lane]
+            .get(cursors[lane])
+            .ok_or("context lane exhausted")?;
+        cursors[lane] += 1;
+        out.push(value);
+        tail.push(value);
+        if tail.len() > order {
+            tail.remove(0);
+        }
+    }
+    if cursors
+        .iter()
+        .zip(&lanes)
+        .any(|(&used, lane)| used != lane.len())
+    {
+        return Err("unused context lane symbols".into());
+    }
+    Ok(out)
+}
