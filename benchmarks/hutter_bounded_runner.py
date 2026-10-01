@@ -234,12 +234,14 @@ def unit_int(properties: dict[str, str], key: str) -> int:
 
 
 def execute_phase(*, unit: str, command: list[str], work: Path, destination: Path, budget: dict,
-                  cpu: int, inaccessible: list[Path], input_bytes: int) -> dict:
+                  cpu: int | list[int], inaccessible: list[Path], input_bytes: int) -> dict:
     """Execute one phase in a transient cgroup and retain only measured facts."""
     wall, max_memory, max_temp = (int(budget[k]) for k in ("wall_seconds", "max_rss_bytes", "max_temp_bytes"))
+    cpu_list = cpu if isinstance(cpu, list) else [cpu]
+    cpu_set = ",".join(map(str, cpu_list))
     properties = ["--property=MemoryMax=" + str(max_memory), "--property=MemorySwapMax=0",
-                  "--property=KillMode=control-group", "--property=AllowedCPUs=" + str(cpu),
-                  "--property=CPUAffinity=" + str(cpu), "--property=User=user", "--property=Group=user",
+                  "--property=KillMode=control-group", "--property=AllowedCPUs=" + cpu_set,
+                  "--property=CPUAffinity=" + cpu_set, "--property=User=user", "--property=Group=user",
                   "--property=NoNewPrivileges=yes", "--property=PrivateNetwork=yes", "--property=RemainAfterExit=yes",
                   "--property=Environment=OMP_NUM_THREADS=1", "--property=Environment=OPENBLAS_NUM_THREADS=1",
                   "--property=Environment=MKL_NUM_THREADS=1",
@@ -331,19 +333,30 @@ def run(manifest_path: Path, results: Path, root: Path) -> dict:
         shutil.copy2(original, copied)
         if sha256(copied) != build[name]:
             raise RuntimeError("immutable build snapshot hash mismatch")
-        copied.chmod(0o444)
+        # Freeze snapshots while preserving the executable bit for declared
+        # native binaries; read-only non-executables stay non-executable.
+        copied.chmod(0o555 if original.stat().st_mode & 0o111 else 0o444)
     budget = manifest["budget"]
-    cpu = int(budget["cpu"])
-    if cpu not in os.sched_getaffinity(0):
-        raise ValueError(f"requested CPU {cpu} is unavailable")
+    cpu = budget["cpu"] if isinstance(budget["cpu"], list) else [budget["cpu"]]
+    cpu = [int(item) for item in cpu]
+    unavailable = set(cpu) - os.sched_getaffinity(0)
+    if not cpu or len(set(cpu)) != len(cpu) or unavailable:
+        raise ValueError(f"requested CPU set is invalid or unavailable: {cpu}")
     # The non-blocking lease prevents two independently launched runner
     # processes from silently oversubscribing the same declared experiment CPU.
-    lease = Path(f"/tmp/cix-bounded-cpu-{cpu}.lock").open("w")
+    leases = []
     try:
-        fcntl.flock(lease, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        for item in cpu:
+            lease = Path(f"/tmp/cix-bounded-cpu-{item}.lock").open("w")
+            try:
+                fcntl.flock(lease, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                lease.close()
+                raise
+            leases.append(lease)
     except BlockingIOError as error:
-        lease.close()
-        raise RuntimeError(f"CPU {cpu} already leased by another bounded experiment") from error
+        for lease in leases: lease.close()
+        raise RuntimeError(f"one of CPUs {cpu} is already leased by another bounded experiment") from error
     # A stable decoder-reproducible filename avoids a representation-specific
     # source-name signal; all candidates receive the same `source.bin` path.
     materialized = work / "source.bin"
@@ -382,7 +395,7 @@ def run(manifest_path: Path, results: Path, root: Path) -> dict:
         raise
     finally:
         signal.signal(signal.SIGTERM, old_sigterm)
-        lease.close()
+        for lease in leases: lease.close()
     verification = {"matched": False, "source_sha256": source["sha256"], "restored_sha256": None}
     if encoded["exit_code"] == 0 and decoded and decoded["exit_code"] == 0 and archive.is_file() and restored.is_file():
         restored_hash = sha256(restored)

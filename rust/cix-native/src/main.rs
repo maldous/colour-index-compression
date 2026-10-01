@@ -24,6 +24,7 @@ mod numeric;
 mod ppm;
 mod rank;
 mod record_periodic;
+mod selection;
 mod sparse_runs;
 mod stateful;
 mod transform;
@@ -107,9 +108,11 @@ struct Opt {
     output: Option<String>,
     route: Option<String>,
     backend: String,
+    backend_set: bool,
     external_backend: Option<String>,
     profile: String,
     profile_set: bool,
+    level_set: bool,
     portfolio: Option<String>,
     format: String,
     block: Option<u32>,
@@ -117,9 +120,11 @@ struct Opt {
     history: usize,
     independent_blocks: bool,
     flush_interval: Option<std::time::Duration>,
+    explain: bool,
+    verbose: bool,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--external gzip|bzip2|xz|zstd|brotli --profile fast|current|size | --portfolio fast|current|size] [--format cixg1|cixm6] [--backend cix|deflate|hybrid|range|count-range] [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|bwt|stride|phrases|ppm|mixture|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported stream routes: raw, runs, exact-rank composition, LZ, predictor, PPM, fixed mixer, BWT/MTF, stride transforms, phrases and raw DEFLATE. Adaptive-range and count-range coding are available with the predictor route's --backend option. --external writes bounded CIXB1 (max 16 MiB); `--format cixm6` writes bounded raw/multinomial CIXM6 blocks and `--format cixf1` adds the source basename wrapper; ordinary operation writes CIXG1. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] FILE...\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] FILE...\n       cixcat FILE...\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best. Input files are kept by default. Use '-' for standard input or output. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format cixg1|cixm6|cixf1  Select a specific container\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Set the maximum CIXG1 block\n  --memory SIZE               Bound working memory\n  --threads N                 Set bounded candidate workers (1..4)\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Emit partial CIXG1 blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -127,7 +132,7 @@ fn parse() -> Result<Opt, String> {
         threads: 1,
         memory: 512 * 1024 * 1024,
         backend: "hybrid".into(),
-        profile: "current".into(),
+        profile: "default".into(),
         format: "cixg1".into(),
         ..Opt::default()
     };
@@ -165,6 +170,16 @@ fn parse() -> Result<Opt, String> {
         } else if a == "-l" {
             o.list = true;
             o.decode = true
+        } else if a == "--fast" {
+            o.level = 1;
+            o.level_set = true;
+        } else if a == "--best" {
+            o.level = 9;
+            o.level_set = true;
+        } else if a == "--explain" {
+            o.explain = true;
+        } else if a == "--verbose" {
+            o.verbose = true;
         } else if a == "-1"
             || a == "-2"
             || a == "-3"
@@ -175,7 +190,8 @@ fn parse() -> Result<Opt, String> {
             || a == "-8"
             || a == "-9"
         {
-            o.level = a[1..].parse().unwrap()
+            o.level = a[1..].parse().unwrap();
+            o.level_set = true;
         } else if a == "--stream" {
             o.stream = true
         } else if a == "--independent-blocks" {
@@ -205,6 +221,7 @@ fn parse() -> Result<Opt, String> {
                 "--route" => o.route = Some(args[i].clone()),
                 "--backend" => {
                     o.backend = args[i].clone();
+                    o.backend_set = true;
                     if !matches!(
                         o.backend.as_str(),
                         "cix" | "deflate" | "hybrid" | "range" | "count-range"
@@ -711,7 +728,7 @@ fn select_stride(sample: &[u8]) -> Result<u8, String> {
         .ok_or("empty stride candidate set".into())
 }
 
-fn phrase_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+fn phrase_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
     use std::collections::HashMap;
     let mut counts: HashMap<[u8; 2], (usize, usize)> = HashMap::new();
     for i in 0..data.len().saturating_sub(1) {
@@ -752,7 +769,7 @@ fn phrase_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
     }
     let owned = vec![tags, literals, indices];
     let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-    let streams = streams_encode(&refs, level, "hybrid")?;
+    let streams = streams_encode(&refs, level, backend)?;
     let mut out = Vec::with_capacity(1 + 2 * dictionary.len() + streams.len());
     out.push(dictionary.len() as u8);
     for key in dictionary {
@@ -804,7 +821,7 @@ fn phrase_decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-fn stride_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+fn stride_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
     let id = select_stride(&data[..data.len().min(4096)])?;
     let transformed = apply_stride(data, id)?;
     let (width, _, _) = stride_spec(id)?;
@@ -815,7 +832,7 @@ fn stride_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
     }
     owned.push(transformed[(width - 1) * plane..].to_vec());
     let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-    let streams = streams_encode(&refs, level, "hybrid")?;
+    let streams = streams_encode(&refs, level, backend)?;
     let mut out = Vec::with_capacity(1 + streams.len());
     out.push(id);
     out.extend_from_slice(&streams);
@@ -835,21 +852,308 @@ fn join_streams(blob: &[u8], limit: usize) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-fn encode_route(route: u8, data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
+fn encode_route(
+    route: u8,
+    data: &[u8],
+    level: u8,
+    backend: &str,
+    parameter: Option<u8>,
+) -> Result<Vec<u8>, String> {
     match route {
         0 => Ok(data.to_vec()),
         1 => Ok(rle(data)),
-        2 => stream_encode(data, level, "cix"),
-        3 => lz_encode(data, level),
+        2 => stream_encode(data, level, backend),
+        3 => lz_encode(data, level, backend),
         4 => stream_encode(&predictor_residual(data, false), level, backend),
-        5 => bwt_encode(data, level),
-        6 => stride_encode(data, level),
-        7 => phrase_encode(data, level),
-        8 => ppm::encode(data, 3),
+        5 => bwt_encode(data, level, backend),
+        6 => stride_encode(data, level, backend),
+        7 => phrase_encode(data, level, backend),
+        8 => ppm::encode(data, usize::from(parameter.unwrap_or(3))),
         9 => Ok(fixedmix::encode(data)),
         10 => stream_encode(data, level, "deflate"),
         _ => Err(format!("unsupported native route ID {route}")),
     }
+}
+
+fn selector_effort_name(level: u8) -> &'static str {
+    match level {
+        0..=2 => "fast",
+        3..=8 => "balanced",
+        _ => "maximum",
+    }
+}
+
+#[derive(Default)]
+struct AutoSelectionStats {
+    blocks: u64,
+    profile_seconds: f64,
+    search_seconds: f64,
+    candidate_seconds: f64,
+    candidate_attempts: u64,
+    memory_skips: u64,
+    budget_skips: u64,
+    selected_source_bytes: [u64; 11],
+}
+
+fn route_minimum_memory(route: u8) -> usize {
+    match route {
+        3 | 9 => 16 * 1024 * 1024,
+        8 => 64 * 1024 * 1024,
+        _ => 0,
+    }
+}
+
+/// Evaluate candidates in bounded batches. Only the current winner and at
+/// most `workers` transient payloads are resident, and ordered joins retain
+/// the historical first-candidate-wins rule for equal sizes.
+fn consider_cixg_candidates_parallel(
+    candidates: &[selection::Candidate],
+    data: &[u8],
+    memory: usize,
+    workers: usize,
+    search_budget_seconds: f64,
+    trial_budget_seconds: f64,
+    worker_memory_mib: usize,
+    stats: &mut AutoSelectionStats,
+    best_route: &mut u8,
+    best_backend: &mut String,
+    best_payload: &mut Vec<u8>,
+    evaluated: &mut Vec<String>,
+) -> Result<(), String> {
+    let workers = workers.max(1).min(candidates.len().max(1));
+    let worker_memory = (memory / workers).min(worker_memory_mib.saturating_mul(1024 * 1024));
+    let search_started = Instant::now();
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let failed = AtomicBool::new(false);
+    let first_error = std::sync::Mutex::new(None::<String>);
+    let winner = std::sync::Mutex::new((
+        None::<usize>,
+        *best_route,
+        best_backend.clone(),
+        std::mem::take(best_payload),
+    ));
+    let records = std::sync::Mutex::new(
+        std::iter::repeat_with(|| None::<String>)
+            .take(candidates.len())
+            .collect::<Vec<_>>(),
+    );
+    let totals = std::sync::Mutex::new((0.0f64, 0u64, 0u64, 0u64));
+    thread::scope(|scope| {
+        for _ in 0..workers {
+            scope.spawn(|| loop {
+                if failed.load(Ordering::Relaxed) {
+                    break;
+                }
+                if let Err(error) = check_interrupted() {
+                    *first_error.lock().unwrap() = Some(error);
+                    failed.store(true, Ordering::Relaxed);
+                    break;
+                }
+                if search_started.elapsed().as_secs_f64() >= search_budget_seconds {
+                    break;
+                }
+                let index = next.fetch_add(1, Ordering::Relaxed);
+                let Some(candidate_spec) = candidates.get(index) else {
+                    break;
+                };
+                let route = candidate_spec.route;
+                let backend = candidate_spec.backend.as_str();
+                let label = match candidate_spec.parameter {
+                    Some(parameter) if route == 8 => {
+                        format!(
+                            "{}:{backend}:order-{parameter}",
+                            selection::ROUTES[route as usize]
+                        )
+                    }
+                    _ => format!("{}:{backend}", selection::ROUTES[route as usize]),
+                };
+                if worker_memory < route_minimum_memory(route) {
+                    records.lock().unwrap()[index] =
+                        Some(format!("{label}=skipped(memory-per-worker)"));
+                    totals.lock().unwrap().2 += 1;
+                    continue;
+                }
+                let started = Instant::now();
+                let result = encode_route(route, data, 6, backend, candidate_spec.parameter);
+                let seconds = started.elapsed().as_secs_f64();
+                match result {
+                    Err(error) => {
+                        *first_error.lock().unwrap() = Some(error);
+                        failed.store(true, Ordering::Relaxed);
+                        break;
+                    }
+                    Ok(payload) => {
+                        let size = payload.len();
+                        let within_trial_budget = seconds <= trial_budget_seconds;
+                        {
+                            let mut current = winner.lock().unwrap();
+                            let wins = within_trial_budget
+                                && (size < current.3.len()
+                                    || (size == current.3.len()
+                                        && current.0.is_some_and(|old_index| index < old_index)));
+                            if wins {
+                                *current = (Some(index), route, backend.to_owned(), payload);
+                            }
+                        }
+                        records.lock().unwrap()[index] = Some(if within_trial_budget {
+                            format!("{label}={size}B/{seconds:.3}s")
+                        } else {
+                            format!("{label}=skipped(trial-budget,{seconds:.3}s)")
+                        });
+                        let mut total = totals.lock().unwrap();
+                        total.0 += seconds;
+                        total.1 += 1;
+                        if !within_trial_budget {
+                            total.3 += 1;
+                        }
+                    }
+                }
+            });
+        }
+    });
+    if let Some(error) = first_error.into_inner().unwrap() {
+        return Err(error);
+    }
+    let (seconds, attempts, skips, budget_skips) = totals.into_inner().unwrap();
+    stats.candidate_seconds += seconds;
+    stats.candidate_attempts += attempts;
+    stats.memory_skips += skips;
+    stats.budget_skips += budget_skips;
+    let records = records.into_inner().unwrap();
+    stats.budget_skips += records.iter().filter(|record| record.is_none()).count() as u64;
+    evaluated.extend(records.into_iter().enumerate().map(|(index, record)| {
+        record.unwrap_or_else(|| {
+            format!(
+                "{}:{}=skipped(search-budget)",
+                selection::ROUTES[candidates[index].route as usize],
+                candidates[index].backend
+            )
+        })
+    }));
+    let (_, route, backend, payload) = winner.into_inner().unwrap();
+    *best_route = route;
+    *best_backend = backend;
+    *best_payload = payload;
+    Ok(())
+}
+
+/// Keep an explicit route fixed while the effort policy still searches its
+/// compatible nested coders. An explicit backend narrows only that dimension.
+fn select_cixg_fixed_route(
+    route: u8,
+    data: &[u8],
+    backend_override: Option<&str>,
+    effort_name: &str,
+    memory: usize,
+    workers: usize,
+    stats: &mut AutoSelectionStats,
+    explain: bool,
+) -> Result<(u8, Vec<u8>), String> {
+    let search_started = Instant::now();
+    let profile_started = Instant::now();
+    let effort = selection::effort(effort_name).ok_or("invalid selector effort")?;
+    let features = selection::profile(data, effort.sample_bytes);
+    stats.profile_seconds += profile_started.elapsed().as_secs_f64();
+    let mut best_backend = "hybrid".to_owned();
+    let mut best_payload = data.to_vec();
+    let mut evaluated: Vec<String> = Vec::new();
+    let candidates =
+        selection::generate_candidates(&features, effort_name, Some(route), backend_override)?;
+    let mut selected_route = route;
+    let candidates: Vec<_> = candidates
+        .into_iter()
+        .filter(|candidate| candidate.route == route)
+        .filter(|candidate| candidate.backend != "raw")
+        .collect();
+    consider_cixg_candidates_parallel(
+        &candidates,
+        data,
+        memory,
+        workers,
+        effort.search_seconds,
+        effort.trial_seconds,
+        effort.worker_memory_mib,
+        stats,
+        &mut selected_route,
+        &mut best_backend,
+        &mut best_payload,
+        &mut evaluated,
+    )?;
+    if explain {
+        eprintln!(
+            "cix: region={} source_bytes={} candidates=[{}] selected_route={} backend={} payload_bytes={} (route explicitly constrained)",
+            stats.blocks + 1, data.len(), evaluated.join(","),
+            selection::ROUTES[route as usize], best_backend, best_payload.len()
+        );
+    }
+    stats.blocks += 1;
+    stats.selected_source_bytes[route as usize] += data.len() as u64;
+    stats.search_seconds += search_started.elapsed().as_secs_f64();
+    Ok((selected_route, best_payload))
+}
+
+/// Select a CIXG1 route from the bounded profile's ordered route set.
+///
+/// Raw is always the incumbent. Every candidate is self-identifying within
+/// its framed payload, so its complete physical block cost differs only by
+/// payload length; the 41-byte frame is equal for all candidates.
+fn select_cixg_auto(
+    data: &[u8],
+    level: u8,
+    backend_override: Option<&str>,
+    memory: usize,
+    workers: usize,
+    stats: &mut AutoSelectionStats,
+    explain: bool,
+) -> Result<(u8, Vec<u8>), String> {
+    let effort_name = selector_effort_name(level);
+    let effort = selection::effort(effort_name).ok_or("invalid selector effort")?;
+    let search_started = Instant::now();
+    let profile_started = Instant::now();
+    let features = selection::profile(data, effort.sample_bytes);
+    stats.profile_seconds += profile_started.elapsed().as_secs_f64();
+    let candidates =
+        selection::generate_candidates(&features, effort_name, None, backend_override)?;
+    let mut best_route = 0u8;
+    let mut best_backend = "raw".to_string();
+    let mut best_payload = data.to_vec();
+    let mut evaluated = Vec::new();
+    // The raw candidate is already materialized as the initial incumbent.
+    evaluated.push(format!("raw:raw={}B", data.len()));
+    let candidates: Vec<_> = candidates
+        .into_iter()
+        .filter(|candidate| candidate.route != 0)
+        .collect();
+    consider_cixg_candidates_parallel(
+        &candidates,
+        data,
+        memory,
+        workers,
+        effort.search_seconds,
+        effort.trial_seconds,
+        effort.worker_memory_mib,
+        stats,
+        &mut best_route,
+        &mut best_backend,
+        &mut best_payload,
+        &mut evaluated,
+    )?;
+    stats.search_seconds += search_started.elapsed().as_secs_f64();
+    stats.blocks += 1;
+    stats.selected_source_bytes[best_route as usize] += data.len() as u64;
+    if explain {
+        eprintln!(
+            "cix: region={} source_bytes={} candidates=[{}] selected_route={} backend={} payload_bytes={} block_bytes={}",
+            stats.blocks,
+            data.len(),
+            evaluated.join(","),
+            selection::ROUTES[best_route as usize],
+            best_backend,
+            best_payload.len(),
+            data.len(),
+        );
+    }
+    Ok((best_route, best_payload))
 }
 
 fn bwt_transform(data: &[u8]) -> Result<(usize, Vec<u8>), String> {
@@ -1030,12 +1334,12 @@ fn bwt_inverse(primary: usize, transformed: &[u8]) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-fn bwt_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+fn bwt_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
     let (primary, transformed) = bwt_transform(data)?;
     let (tags, literals, lengths) = mtf_runs(&transformed);
     let owned = vec![tags, literals, lengths];
     let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-    let streams = streams_encode(&refs, level, "hybrid")?;
+    let streams = streams_encode(&refs, level, backend)?;
     let mut out = Vec::with_capacity(4 + streams.len());
     out.extend_from_slice(&(primary as u32).to_le_bytes());
     out.extend_from_slice(&streams);
@@ -1054,7 +1358,7 @@ fn lz_insert(table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>, data: &
     }
 }
 
-fn lz_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+fn lz_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
     use std::collections::HashMap;
     let mut table: HashMap<[u8; 4], Vec<usize>> = HashMap::new();
     let mut tags = Vec::new();
@@ -1119,7 +1423,7 @@ fn lz_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
     }
     let owned = vec![tags, literals, lengths, distances];
     let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-    streams_encode(&refs, level, "hybrid")
+    streams_encode(&refs, level, backend)
 }
 
 fn lz_decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
@@ -1185,16 +1489,23 @@ fn encode<R: Read, W: Write>(
     level: u8,
     forced: Option<&str>,
     backend: &str,
+    backend_set: bool,
     input_fd: i32,
     flush_interval: Option<std::time::Duration>,
+    memory: usize,
+    workers: usize,
+    explain: bool,
+    verbose: bool,
 ) -> Result<(), String> {
     dst.write_all(MAGIC).map_err(ioerr)?;
     dst.write_all(&block.to_le_bytes()).map_err(ioerr)?;
     dst.write_all(&0u32.to_le_bytes()).map_err(ioerr)?;
     let mut whole = Sha256::new();
     let mut total_bytes = 0u64;
+    let mut archive_bytes = HEADER as u64;
     let mut buf = vec![0; block as usize];
     let mut eof = false;
+    let mut selection_stats = AutoSelectionStats::default();
     loop {
         let mut got = 0;
         let mut symbol_counts = [0u32; 256];
@@ -1256,14 +1567,30 @@ fn encode<R: Read, W: Write>(
                 "deflate" => 10,
                 _ => return Err(format!("unsupported route: {f}")),
             };
-            (id, encode_route(id, data, level, backend)?)
+            select_cixg_fixed_route(
+                id,
+                data,
+                if backend_set { Some(backend) } else { None },
+                selector_effort_name(level),
+                memory,
+                workers,
+                &mut selection_stats,
+                explain,
+            )?
         } else {
-            let mut candidates = vec![(0u8, data.to_vec()), (1, rle(data))];
-            candidates.push((2, encode_route(2, data, level, backend)?));
-            candidates.push((10, encode_route(10, data, level, backend)?));
-            candidates.sort_by_key(|x| x.1.len());
-            candidates.remove(0)
+            select_cixg_auto(
+                data,
+                level,
+                if backend_set { Some(backend) } else { None },
+                memory,
+                workers,
+                &mut selection_stats,
+                explain,
+            )?
         };
+        archive_bytes = archive_bytes
+            .checked_add(41 + payload.len() as u64)
+            .ok_or("archive length overflow")?;
         put_frame(&mut dst, route, got as u32, payload.len() as u32, &rh).map_err(ioerr)?;
         dst.write_all(&payload).map_err(ioerr)?;
         dst.flush().map_err(ioerr)?;
@@ -1273,7 +1600,34 @@ fn encode<R: Read, W: Write>(
     }
     let h: [u8; 32] = whole.finalize().into();
     put_frame(&mut dst, END, 0, 0, &h).map_err(ioerr)?;
+    archive_bytes = archive_bytes
+        .checked_add(41)
+        .ok_or("archive length overflow")?;
     dst.flush().map_err(ioerr)?;
+    if verbose || explain {
+        let route_bytes = selection_stats
+            .selected_source_bytes
+            .iter()
+            .enumerate()
+            .filter(|(_, bytes)| **bytes != 0)
+            .map(|(route, bytes)| format!("{}:{bytes}", selection::ROUTES[route]))
+            .collect::<Vec<_>>()
+            .join(",");
+        eprintln!(
+            "cix: effort={} format=CIXG1 route={} blocks={} candidates={} memory_skips={} budget_skips={} analyse_seconds={:.3} candidate_seconds={:.3} search_seconds={:.3} archive_bytes={} selected_source_bytes=[{}]",
+            selector_effort_name(level),
+            forced.unwrap_or("auto"),
+            selection_stats.blocks,
+            selection_stats.candidate_attempts,
+            selection_stats.memory_skips,
+            selection_stats.budget_skips,
+            selection_stats.profile_seconds,
+            selection_stats.candidate_seconds,
+            selection_stats.search_seconds,
+            archive_bytes,
+            route_bytes,
+        );
+    }
     Ok(())
 }
 
@@ -1622,13 +1976,13 @@ fn cixg_candidate(data: &[u8], route: Option<u8>, level: u8) -> Result<Vec<u8>, 
     let mut whole = Sha256::new();
     for block in data.chunks(MAX_BLOCK as usize) {
         let (selected, payload) = if let Some(id) = route {
-            (id, encode_route(id, block, level, "hybrid")?)
+            (id, encode_route(id, block, level, "hybrid", None)?)
         } else {
             let candidates = [
                 (0, block.to_vec()),
                 (1, rle(block)),
-                (2, encode_route(2, block, level, "hybrid")?),
-                (10, encode_route(10, block, level, "hybrid")?),
+                (2, encode_route(2, block, level, "hybrid", None)?),
+                (10, encode_route(10, block, level, "hybrid", None)?),
             ];
             candidates.into_iter().min_by_key(|(_, p)| p.len()).unwrap()
         };
@@ -1655,8 +2009,13 @@ fn encode_portfolio<R: Read, W: Write>(
     profile: &str,
     memory: usize,
 ) -> Result<(), String> {
-    if !matches!(profile, "fast" | "current" | "size") {
-        return Err("--portfolio accepts fast, current or size".into());
+    let profile = if profile == "current" {
+        "default"
+    } else {
+        profile
+    };
+    if !matches!(profile, "fast" | "default" | "size") {
+        return Err("--portfolio accepts fast, default or size".into());
     }
     let required = if profile == "size" {
         384 * 1024 * 1024
@@ -1674,11 +2033,17 @@ fn encode_portfolio<R: Read, W: Write>(
         .read_to_end(&mut data)
         .map_err(ioerr)?;
     if data.len() > external::MAX_INPUT {
-        return Err("native portfolio input exceeds 16 MiB".into());
+        return Err("native portfolio input exceeds 64 MiB".into());
     }
+    let total_search_seconds = match profile {
+        "fast" => 60,
+        "size" => 240,
+        _ => 120,
+    };
+    let search_deadline = Instant::now() + Duration::from_secs(total_search_seconds);
     let level = match profile {
         "fast" => 1,
-        "current" => 5,
+        "default" => 5,
         _ => 9,
     };
     // Establish a complete, valid archive before any search. The Python
@@ -1700,12 +2065,38 @@ fn encode_portfolio<R: Read, W: Write>(
             winner_name = format!("{backend}:direct");
         }
     }
-    let candidate_seconds = if profile == "size" { 12 } else { 4 };
+    if profile == "size" && memory >= 768 * 1024 * 1024 {
+        let candidate = external::encode_xz_dictionary("size", &data, 128 * 1024 * 1024)?;
+        if candidate.len() < winner.len() && portfolio_candidate_matches(&candidate, &data, memory)
+        {
+            winner = candidate;
+            winner_name = "xz:direct-dict128".into();
+        }
+        let tuned = external::encode_xz_dictionary_preset("size", &data, 128 * 1024 * 1024, 6)?;
+        if tuned.len() < winner.len() && portfolio_candidate_matches(&tuned, &data, memory) {
+            winner = tuned;
+            winner_name = "xz:dict128-preset6".into();
+        }
+    }
+    // Give size routes more time than the default profile while retaining an
+    // explicit whole-search ceiling. Earlier 4s/12s limits cut off CIX routes
+    // before they could complete on full Silesia files.
+    let candidate_seconds = match profile {
+        "fast" => 12,
+        "size" => 180,
+        _ => 90,
+    };
     let mut omitted = Vec::new();
     // Candidate encoders run in child processes so each route has a real
     // deadline. Joining a Rust thread after a timeout would leave the route
     // consuming CPU, defeating the bounded portfolio contract.
-    if let Some(candidate) = portfolio_cix_candidate(&data, level, memory, None, candidate_seconds)?
+    let remaining = search_deadline
+        .saturating_duration_since(Instant::now())
+        .as_secs();
+    if remaining == 0 {
+        omitted.push("cix-adaptive:overall-budget".to_string());
+    } else if let Some(candidate) =
+        portfolio_cix_candidate(&data, level, memory, None, candidate_seconds.min(remaining))?
     {
         if candidate.len() < winner.len() && portfolio_candidate_matches(&candidate, &data, memory)
         {
@@ -1731,8 +2122,20 @@ fn encode_portfolio<R: Read, W: Write>(
         ];
         for route in routes {
             check_interrupted()?;
-            if let Some(candidate) = portfolio_cix_candidate(&data, level, memory, Some(route), 4)?
-            {
+            let remaining = search_deadline
+                .saturating_duration_since(Instant::now())
+                .as_secs();
+            if remaining == 0 {
+                omitted.push(format!("cix-route:{route}:overall-budget"));
+                continue;
+            }
+            if let Some(candidate) = portfolio_cix_candidate(
+                &data,
+                level,
+                memory,
+                Some(route),
+                candidate_seconds.min(remaining),
+            )? {
                 if candidate.len() < winner.len()
                     && portfolio_candidate_matches(&candidate, &data, memory)
                 {
@@ -1747,7 +2150,7 @@ fn encode_portfolio<R: Read, W: Write>(
     dst.write_all(&winner).map_err(ioerr)?;
     dst.flush().map_err(ioerr)?;
     eprintln!(
-        "cix: portfolio profile={profile}, selected={winner_name}, archive_bytes={}, time_budget_omitted={}",
+        "cix: portfolio profile={profile}, selected={winner_name}, archive_bytes={}, search_budget_seconds={total_search_seconds}, time_budget_omitted={}",
         winner.len(),
         if omitted.is_empty() { "none".to_string() } else { omitted.join(",") }
     );
@@ -1865,7 +2268,7 @@ fn encode_external<R: Read, W: Write>(
         .read_to_end(&mut data)
         .map_err(ioerr)?;
     if data.len() > external::MAX_INPUT {
-        return Err("CIXB1 external input exceeds 16 MiB".into());
+        return Err("CIXB1 external input exceeds 64 MiB".into());
     }
     let archive = external::encode(backend, profile, &data)?;
     dst.write_all(&archive).map_err(ioerr)?;
@@ -2567,9 +2970,21 @@ pub unsafe extern "C" fn cix_squash_splice(
                 user,
             };
             match direction {
-                1 if (1..=9).contains(&level) => {
-                    encode(src, dst, 32768, level as u8, None, "hybrid", -1, None)
-                }
+                1 if (1..=9).contains(&level) => encode(
+                    src,
+                    dst,
+                    32768,
+                    level as u8,
+                    None,
+                    "hybrid",
+                    false,
+                    -1,
+                    None,
+                    512 * 1024 * 1024,
+                    1,
+                    false,
+                    false,
+                ),
                 1 => Err("invalid Squash CIX compression level".into()),
                 2 => decode(src, dst, false, false, -1, 512 * 1024 * 1024),
                 _ => Err("invalid Squash stream direction".into()),
@@ -2695,17 +3110,34 @@ fn block_min(o: &Opt) -> usize {
 }
 
 fn run() -> Result<(), String> {
-    let o = parse()?;
-    if o.threads != 1 {
-        return Err(
-            "this portable build supports --threads 1; parallel coding is not implemented".into(),
-        );
+    let mut o = parse()?;
+    if o.profile_set && o.level_set {
+        return Err("--profile and -1..-9/--fast/--best specify the same effort; use one".into());
+    }
+    if o.profile_set && o.external_backend.is_none() && o.portfolio.is_none() {
+        if o.format != "cixg1" {
+            return Err("native --profile currently applies to CIXG1 auto selection".into());
+        }
+        o.level = match o.profile.as_str() {
+            "fast" => 1,
+            "default" | "current" => 6,
+            "size" => 9,
+            _ => return Err("native --profile accepts fast, default or size".into()),
+        };
+    }
+    if o.threads > 4 {
+        return Err("--threads is limited to 4 workers by the current memory policy".into());
+    }
+    if o.threads > 1
+        && (o.decode
+            || o.format != "cixg1"
+            || o.portfolio.is_some()
+            || o.external_backend.is_some())
+    {
+        return Err("--threads >1 applies only to CIXG1 route/backend candidate selection".into());
     }
     if o.memory < 128 * 1024 {
         return Err("--memory must be at least 128 KiB for a CIXG1 frame".into());
-    }
-    if o.profile_set && o.external_backend.is_none() {
-        return Err("--profile requires --external".into());
     }
     if !matches!(o.format.as_str(), "cixg1" | "cixm6" | "cixf1") {
         return Err("--format accepts cixg1, cixm6 or cixf1".into());
@@ -2751,8 +3183,8 @@ fn run() -> Result<(), String> {
                 "bounded portfolio selection conflicts with --stream/--flush-interval".into(),
             );
         }
-        if !matches!(p, "fast" | "current" | "size") {
-            return Err("--portfolio accepts fast, current or size".into());
+        if !matches!(p, "fast" | "default" | "current" | "size") {
+            return Err("--portfolio accepts fast, default or size".into());
         }
     }
     if o.external_backend.is_some() {
@@ -2770,8 +3202,8 @@ fn run() -> Result<(), String> {
         if o.route.is_some() {
             return Err("--external conflicts with --route".into());
         }
-        if !matches!(o.profile.as_str(), "fast" | "current" | "size") {
-            return Err("--profile accepts fast, current or size".into());
+        if !matches!(o.profile.as_str(), "fast" | "default" | "current" | "size") {
+            return Err("--profile accepts fast, default or size".into());
         }
     }
     if o.route.as_deref() == Some("lz") && o.memory < 16 * 1024 * 1024 {
@@ -2839,7 +3271,9 @@ fn run() -> Result<(), String> {
     if requested_block > MAX_BLOCK {
         eprintln!("cix: CIXG1 limits frames to 65536 bytes; effective block size is 65536 bytes");
     }
-    let estimated_working = block as usize * 8 + 65536;
+    let estimated_working = (block as usize)
+        .saturating_mul(8usize.saturating_mul(o.threads.max(1)))
+        .saturating_add(65536usize.saturating_mul(o.threads.max(1)));
     if estimated_working > o.memory {
         return Err(format!("block needs about {estimated_working} bytes working memory; reduce --block-size or raise --memory"));
     }
@@ -2894,8 +3328,13 @@ fn run() -> Result<(), String> {
                 o.level,
                 forced,
                 &o.backend,
+                o.backend_set,
                 fd,
                 o.flush_interval,
+                o.memory,
+                o.threads,
+                o.explain,
+                o.verbose,
             )
         }?
     } else {
@@ -2936,8 +3375,13 @@ fn run() -> Result<(), String> {
                     o.level,
                     forced,
                     &o.backend,
+                    o.backend_set,
                     fd,
                     o.flush_interval,
+                    o.memory,
+                    o.threads,
+                    o.explain,
+                    o.verbose,
                 )
             }
         })?;
