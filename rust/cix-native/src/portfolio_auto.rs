@@ -567,27 +567,28 @@ mod tests {
 
     #[test]
     fn validation_accepts_a_large_native_mixer_that_fits_the_budget() {
+        use sha2::{Digest, Sha256};
         let data = vec![b'x'; MAX_BLOCK as usize];
         let cap = archive_cap(data.len());
         let mut output = CappedWriter::new(cap);
-        encode_with_strategy(
-            io::Cursor::new(&data),
+        // Materialize this bounded model directly: a debug selector can
+        // legitimately time out the trial and choose raw, which would not
+        // exercise the decoder's large-model admission being tested.
+        let payload = super::super::fixedmix::encode_with_history_eta(&data, &[], 6).unwrap();
+        let hash: [u8; 32] = Sha256::digest(&data).into();
+        output.write_all(super::super::MAGIC_V2).unwrap();
+        output.write_all(&MAX_BLOCK.to_le_bytes()).unwrap();
+        output.write_all(&0u32.to_le_bytes()).unwrap();
+        super::super::put_frame(
             &mut output,
-            MAX_BLOCK,
             9,
-            Some("mixture"),
-            "hybrid",
-            false,
-            "cixg2",
-            -1,
-            None,
-            512 << 20,
-            1,
-            false,
-            false,
-            "blocks",
+            data.len() as u32,
+            payload.len() as u32,
+            &hash,
         )
         .unwrap();
+        output.write_all(&payload).unwrap();
+        super::super::put_frame(&mut output, 255, 0, 0, &hash).unwrap();
         let archive = output.into_inner();
         assert_eq!(archive[13], 9, "fixture actually uses the mixer");
         validate(&archive, archive.capacity(), &data, 1 << 20, 512 << 20).unwrap();
