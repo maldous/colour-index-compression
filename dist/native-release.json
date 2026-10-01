@@ -1,36 +1,36 @@
 {
-  "source_revision": "ee6b4396df760d19005c4e0800783fef58d52334",
-  "host": "Linux 6.8.0-138-generic x86_64",
+  "source_revision": "08101079c71a07ef9f268da7058a76802c1dbde3",
+  "host": "Linux-6.8.0-138-generic-x86_64-with-glibc2.39",
   "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
-  "build_command": "CARGO_BUILD_JOBS=2 cargo build --profile release-lto --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib",
-  "profile": "release-lto (full LTO, codegen-units=1)",
+  "profile": "release-lto full LTO codegen-units=1",
+  "build_command": "taskset -c 16-19 env CARGO_BUILD_JOBS=2 cargo build --offline --locked --profile release-lto --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib",
   "binaries": {
     "cix": {
-      "sha256": "71d2919c4d5b93939aa1ee0358516629edcca84bfcfa13f9ef4e8e214f7843e3",
-      "bytes": 1910480
+      "sha256": "836d8913a7eef9bfd76b366a198ea1c96f886ce15abbb0f3ceab6e3cc61a144c",
+      "bytes": 1975600
     },
     "uncix": {
-      "sha256": "ae55bbc538db68e6c7b2ab7ac39cd06035cd0d5e2d194316855adfa2610fde5a",
-      "bytes": 1911800
+      "sha256": "5326cdd8ebc8cdd3cbae153cda25e22576c5d52aa0be29ec4fa8cf23748fe68e",
+      "bytes": 1976984
     },
     "cixcat": {
-      "sha256": "ee898d5502a4e9d179ba145be8c42b17b07d82bd93ae3caee7a01643cba572fc",
-      "bytes": 1912456
+      "sha256": "58f589221603a018528cf4d66e4c40998ebd34bbfa24f35b2dbffab6a2a9aebb",
+      "bytes": 1977672
     },
     "libcix_native.so": {
-      "sha256": "d7918dfc8f9a550beff20aafe0610b8f34dc9f2266329738e351de4e3485de8d",
-      "bytes": 1194112
+      "sha256": "a75ee0e5bf645aa25394c8e0343267467b4da2b840f8a378a9d1ec1979c70903",
+      "bytes": 1197432
     }
   },
-  "other_platforms_verified": false,
   "no_python_runtime": true,
-  "reproduce_command": "CARGO_BUILD_JOBS=2 cargo build --profile release-lto --locked --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib",
+  "other_platforms_verified": false,
+  "original_python_reference_commit": "80b95427725ecf59d626b2982d50f6349abd56e1",
+  "reproduce_command": "CARGO_BUILD_JOBS=2 cargo build --offline --locked --profile release-lto --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib",
   "native_codec_versions": {
     "zlib": "1.3",
     "liblzma": "5.4.5",
     "zstd": "1.5.5",
     "brotli": "1.1.0"
   },
-  "cargo_lock_sha256": "2c08743627d6092a0312719ce688bea2829c98e1cf3bc785c9a5ba3927068507",
-  "original_python_reference_commit": "80b95427725ecf59d626b2982d50f6349abd56e1"
+  "compatibility_reference_role": "historical validation only; no runtime dependency or new-model restriction"
 }
