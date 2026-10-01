@@ -1,0 +1,25 @@
+{
+  "build_source_revision": "d66739120c40fc409f2bf011b165389fc1062c2b",
+  "candidate_source_revision": "d5e7d4ba148f234cd5fd42ecfe6a6cbb2c369fea",
+  "all_four_artifacts_byte_identical": true,
+  "binaries": {
+    "cix": {
+      "sha256": "c1ce98c218207cd1b9b9b4aac3efa04ec133e9d716e3fe288d52c0dac910f65a",
+      "bytes": 1978768
+    },
+    "uncix": {
+      "sha256": "acd2764a2184f000f6147c29372e793765787b8bc4d5b3fdcf4522cd916753de",
+      "bytes": 1980152
+    },
+    "cixcat": {
+      "sha256": "e6852dfbaa5d9bfe07ed451097db2900b4bf3181f8f58a4af49afda67002b37c",
+      "bytes": 1980848
+    },
+    "libcix_native.so": {
+      "sha256": "c14abd9c0549ba09ebefd4eb2f904da58a9d78f4b6b3c9d1994108d024dd5d7a",
+      "bytes": 1201208
+    }
+  },
+  "build_command": "taskset -c 16,17 env CARGO_BUILD_JOBS=2 cargo build --offline --locked --profile release-lto --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib",
+  "evidence_reuse": "Byte-identical executables/library; existing immutable CCA, full MR FAST/BEST, FFI, prior decoder and latency receipts continue to identify the original producing build. No repeated benchmark required for identical artifact."
+}

@@ -173,9 +173,15 @@ int main(int argc, char **argv) {
   if (argc == 3 && strcmp(argv[1], "make") == 0) return make_input(argv[2]);
   if (argc == 4 && strcmp(argv[1], "encode") == 0)
     return splice_file(1, 6, argv[2], argv[3]);
+  if (argc == 5 && strcmp(argv[1], "encode-level") == 0) {
+    char *end = NULL;
+    long level = strtol(argv[2], &end, 10);
+    if (end == argv[2] || *end != '\0' || level < 1 || level > 9) return 2;
+    return splice_file(1, (int)level, argv[3], argv[4]);
+  }
   if (argc == 4 && strcmp(argv[1], "decode") == 0)
     return splice_file(2, 6, argv[2], argv[3]);
   if (argc == 2 && strcmp(argv[1], "errors") == 0) return error_smoke();
-  fprintf(stderr, "usage: %s make INPUT | encode INPUT ARCHIVE | decode ARCHIVE OUTPUT | errors\n", argv[0]);
+  fprintf(stderr, "usage: %s make INPUT | encode INPUT ARCHIVE | encode-level 1..9 INPUT ARCHIVE | decode ARCHIVE OUTPUT | errors\n", argv[0]);
   return 2;
 }

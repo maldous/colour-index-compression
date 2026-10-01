@@ -1,6 +1,6 @@
 # CIX/Rust codec-principle coverage matrix
 
-Scope: source and selector audit for the CIXG1 encoder under `rust/cix-native/`, with CIXM6 research modules called out separately. This is implementation coverage, not a claim of equivalent compression performance. All local size comparisons in this programme use the already verified Silesia Dickens member only. The upstream Squash import is an inventory/provenance source; its published sizes and CPU times are not ranked against local measurements.
+Scope: source and selector audit for the CIXG1 encoder under `rust/cix-native/`, with CIXM6 research modules called out separately. This is implementation coverage, not a claim of equivalent compression performance. The initial comparisons used the already verified Silesia Dickens member. The 2026-10-02 MR follow-up uses the existing verified MR input after the preserved Canterbury/Calgary/Artificial gate; see the dated update below. The upstream Squash import is an inventory/provenance source; its published sizes and CPU times are not ranked against local measurements.
 
 ## Status key
 
@@ -158,3 +158,28 @@ passed. The corrected ABBA DEFAULT v2 run verified eight cells and retained
 the exact 6.30%/6.27% complete-size improvements on the two exposed ranges;
 see [current evidence](adversarial-parallel-results.md). This does not close
 the broad model/transform/coder, PGO or corpus-qualification queue.
+
+
+## 2026-10-02: qualified native FAST follow-up
+
+The new source changes are at `8ffa2c391` (implementation), with the pipe
+regression at `d66739120c40fc409f2bf011b165389fc1062c2b`. A build from that exact
+integration revision produces binaries/library byte-identical to the frozen
+`d5e7d4ba` candidate used in the local cells. See the
+[new evidence ledger](../2026-10-02-fast-opportunity/README.md) and
+[build attestation](../2026-10-02-fast-opportunity/release-build-attestation.json).
+
+| Principle | Current status | Actual deployed behavior / qualification |
+|---|---|---|
+| Gipfeli/Snappy-style compact bounded match discovery | Partial, production FAST | `src/fast_lz.rs`: fixed 256 KiB table, one recent candidate, adaptive probe skipping, safe 64-bit match extension and four boundary insertions; same CIXG1 route-3 grammar. No Gipfeli codec wire format or compact literal/command entropy representation. |
+| Low-latency selection | Implemented FAST | Automatic nested raw/RLE/DEFLATE trials exclude exact rank. Explicit advanced coder overrides remain honored. On MR accumulated candidate time fell from 22.388 s to 0.464 s. FAST complete size grew 3.45%; no universal Pareto win. |
+| Fast native CLI / Squash ABI alignment | Implemented; ABI verified | Both share default blocks: FAST 64 KiB, DEFAULT 32 KiB, BEST 64 KiB. Squash is one worker; CLI normally up to four. Fresh partial callback encoding/decoding/error tests pass; external Squash SDK plugin build/load remains unverified because SDK is absent. |
+| CIXG1 decoder compatibility | Verified native | The previous `938e8805` native decoder freshly restored the complete new FAST MR archive exactly. Existing route, coder IDs and framing remain unchanged. |
+| Idle pipe flushing and memory bounds | Verified for declared cases | Actual release pipe first complete frame/data ~151 ms at 100 ms idle flush. A new integration test restores 20 MiB+313 through an 8 MiB worker budget with irregular chunks, producer held open and partial flush. Persistent FAST LZ dictionary history is not added. |
+| Gipfeli backend | Not deployed | Successful local buffered diagnostic is 4,702,538 B after decoder-copy-only repair. Stream controls remain failed. No demonstrated size advantage; the imported 1,885,645-B Peltast row remains unreplicated, with cause unresolved. |
+| Maximum historical compatibility | Verified MR BEST | The complete Rust BEST 2,441,327-B CIXB1/bzip2-level-9 archive is byte-identical to the rehashed historical Python size result. No Python codec process ran. |
+
+This dated update supersedes the historical FAST implementation descriptions
+above. Native Gipfeli command/literal coding, word-16 lane relationships and
+persistent FAST LZ history remain separate unqualified hypotheses. No new
+backend was admitted, no source-identity dispatch added, and no Actions ran.

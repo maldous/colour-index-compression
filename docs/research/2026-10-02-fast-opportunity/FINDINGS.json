@@ -1,0 +1,335 @@
+{
+  "schema": 1,
+  "scope": "narrow local native FAST and Gipfeli-control evidence; no imported timing comparison or corpus ranking",
+  "integration_head": "d66739120c40fc409f2bf011b165389fc1062c2b",
+  "input": {
+    "path": "benchmark-work/silesia/mr",
+    "bytes": 9970564,
+    "sha256": "68637ed52e3e4860174ed2dc0840ac77d5f1a60abbcb13770d5754e3774d53e6"
+  },
+  "local_budget": {
+    "cpus": [
+      16,
+      17,
+      18,
+      19
+    ],
+    "max_rss_bytes": 3000000000,
+    "max_temp_bytes": 512000000,
+    "swap_bytes": 0,
+    "timing": "/usr/bin/time -v plus bounded-runner cgroup CPU/wall records"
+  },
+  "builds": {
+    "incumbent": {
+      "source_revision": "938e88054adef5b9c33bfe2022b73fc6546074e9",
+      "cix_sha256": "68e973770700ca8a4178c94bca0d95733fd0a79eb26bed4d4ce2a8668ec29a0e",
+      "uncix_sha256": "8abd3b65d36d91ac54ca3ff60ef647ac1f7d59c40cfd50507e5e6842c462ba20"
+    },
+    "fast_candidate": {
+      "source_revision": "d5e7d4ba148f234cd5fd42ecfe6a6cbb2c369fea",
+      "cix_sha256": "c1ce98c218207cd1b9b9b4aac3efa04ec133e9d716e3fe288d52c0dac910f65a",
+      "uncix_sha256": "acd2764a2184f000f6147c29372e793765787b8bc4d5b3fdcf4522cd916753de"
+    },
+    "gipfeli_control": {
+      "source_revision": "65b9721308a357f6aa261c11d0af291d10d0b96c",
+      "verified_copy_only_binary_sha256": "b4c96b723952cc0317f7c5540c9559a1f143b0b456b642976721c5a13e002cd1"
+    }
+  },
+  "mr_local_results": [
+    {
+      "name": "incumbent-fast",
+      "variant": "cix --fast",
+      "repetitions": 2,
+      "archive_bytes": 3258331,
+      "archive_sha256": "3fd0d43cab71a38120801fb5e4dbbec37c2d06e21e14977a46b989de3816d288",
+      "encode_wall_seconds": [
+        5.94,
+        5.82
+      ],
+      "encode_cpu_seconds_user_plus_system": [
+        21.58,
+        21.46
+      ],
+      "decode_wall_seconds": [
+        1.42,
+        1.43
+      ],
+      "decode_cpu_seconds_user_plus_system": [
+        1.4,
+        1.4
+      ],
+      "encode_rss_kib": [
+        16788,
+        16960
+      ],
+      "decode_rss_kib": [
+        4352,
+        4352
+      ],
+      "evidence": "mr-release-fast-v2/summary.json",
+      "receipts": [
+        "mr-release-fast-v2/runs/r1/4a688f4f1d7fe209abed85dc31890b6123533ff9cc84c13ea9ef4f96d04dd436/receipt.json",
+        "mr-release-fast-v2/runs/r2/885443a405ae301652984564878f4f8e6d46b41f9d9b683b723f7e3d08eceb9f/receipt.json"
+      ],
+      "status": "VERIFIED_SCREENING"
+    },
+    {
+      "name": "candidate-fast",
+      "variant": "cix --fast",
+      "repetitions": 2,
+      "archive_bytes": 3370778,
+      "archive_sha256": "baa8d52d473587e09b157bd43a3bd7b11e2cdf57cc9e21f084c4d762dce7ca1a",
+      "encode_wall_seconds": [
+        0.17,
+        0.17
+      ],
+      "encode_cpu_seconds_user_plus_system": [
+        0.5,
+        0.51
+      ],
+      "decode_wall_seconds": [
+        0.09,
+        0.08
+      ],
+      "decode_cpu_seconds_user_plus_system": [
+        0.07,
+        0.07
+      ],
+      "encode_rss_kib": [
+        7088,
+        7092
+      ],
+      "decode_rss_kib": [
+        4096,
+        4096
+      ],
+      "size_delta_from_incumbent_bytes": 112447,
+      "size_delta_from_incumbent_ratio": 0.034511,
+      "evidence": "mr-rust-fast-candidate-v1/summary.json",
+      "receipts": [
+        "mr-rust-fast-candidate-v1/runs/r1/11c5d7b3a8b23f40a0b07cdcd7deb0cb02ca63eb2dba1b5bfe0fc1fe98b2b88d/receipt.json",
+        "mr-rust-fast-candidate-v1/runs/r2/7b7678adffda9bac5dda5e1e338b94359f3f9c886aa1706891527a3994bf4af7/receipt.json"
+      ],
+      "status": "VERIFIED_SCREENING"
+    },
+    {
+      "name": "candidate-best",
+      "variant": "cix --best",
+      "route_result": "complete CIXB1 direct bzip2 level 9",
+      "repetitions": 1,
+      "archive_bytes": 2441327,
+      "archive_sha256": "ddecc67e6759785a9104d898adc09e0ee1c7742aee52fb75df93257a4a75e557",
+      "encode_wall_seconds": [
+        226.68
+      ],
+      "encode_cpu_seconds_user_plus_system": [
+        509.57
+      ],
+      "decode_wall_seconds": [
+        0.27
+      ],
+      "decode_cpu_seconds_user_plus_system": [
+        0.25
+      ],
+      "encode_rss_kib": [
+        224120
+      ],
+      "decode_rss_kib": [
+        19200
+      ],
+      "evidence": "mr-rust-best-v1/summary.json",
+      "receipts": [
+        "mr-rust-best-v1/runs/r1/1e1448202f106e1e83f93f1b975d68b18c9846c185f5162b77fc5bda657a1eb7/receipt.json"
+      ],
+      "status": "VERIFIED_SCREENING_ONE_SCREEN_NOT_RANKING"
+    },
+    {
+      "name": "local-gipfeli-copy-only-control",
+      "variant": "pinned Gipfeli buffered control",
+      "repetitions": 2,
+      "archive_bytes": 4702538,
+      "archive_sha256": "4cc7e3d04ca7d57ca0c62fd8ae1c38b0560d71ec10873431e951e9483aa79656",
+      "encode_wall_seconds": [
+        0.07,
+        0.07
+      ],
+      "encode_cpu_seconds_user_plus_system": [
+        0.06,
+        0.07
+      ],
+      "decode_wall_seconds": [
+        0.04,
+        0.04
+      ],
+      "decode_cpu_seconds_user_plus_system": [
+        0.04,
+        0.03
+      ],
+      "encode_rss_kib": [
+        25180,
+        25180
+      ],
+      "decode_rss_kib": [
+        17992,
+        17988
+      ],
+      "evidence": "mr-gipfeli-copy-only-v1/summary.json",
+      "receipts": [
+        "mr-gipfeli-copy-only-v1/runs/r1/826af7b05ce74addffb6318f0c5868983a55d404ba432dce175bd624f288aa33/receipt.json",
+        "mr-gipfeli-copy-only-v1/runs/r2/5b75a3971c56d7e37fd24efb89146b347be7e00d5590f9db8fc33f2e5d148f4f/receipt.json"
+      ],
+      "status": "VERIFIED_SCREENING_CONTROL_NOT_CIX_ROUTE"
+    }
+  ],
+  "historical_python_archive_comparison": {
+    "evidence": "historical-python-mr-comparison.json",
+    "python_codec_executed": false,
+    "historical_size_archive": {
+      "archive_bytes": 2441327,
+      "archive_sha256": "ddecc67e6759785a9104d898adc09e0ee1c7742aee52fb75df93257a4a75e557",
+      "rust_best_byte_identical": true
+    },
+    "historical_current_archive": {
+      "archive_bytes": 2441327,
+      "archive_sha256": "74dcde25e503da8a026670dbeffe7070e45e2e39e712eadd8f2e917755eb0d72",
+      "rust_best_byte_identical": false,
+      "difference": "CIXB1 header effort byte current=02, Rust BEST/size=03"
+    }
+  },
+  "gipfeli_controls": {
+    "pristine_buffered_and_readbits_guard": {
+      "archive_sha256": "4cc7e3d04ca7d57ca0c62fd8ae1c38b0560d71ec10873431e951e9483aa79656",
+      "restored_sha256": "2cd8c5bfdc4cf89cf1ddb7367243799f37e87ee04d0fbbacc30187a7c7c76b89",
+      "status": "FAILED",
+      "evidence": [
+        "mr-gipfeli-buffer-v1/summary.json",
+        "mr-gipfeli-readbits-guard-v1/summary.json"
+      ]
+    },
+    "two_incremental_copy_branches": {
+      "archive_sha256": "4cc7e3d04ca7d57ca0c62fd8ae1c38b0560d71ec10873431e951e9483aa79656",
+      "exact_restoration": true,
+      "status": "VERIFIED_SCREENING",
+      "evidence": "mr-gipfeli-copy-only-v1/summary.json"
+    },
+    "latest_04fe241_stream": {
+      "archive_sha256": "6c5f332e6710d92e0bbb97f091faa52491ed7cfd67e6953130d1d8371e715bec",
+      "restored_sha256": "2cd8c5bfdc4cf89cf1ddb7367243799f37e87ee04d0fbbacc30187a7c7c76b89",
+      "status": "FAILED",
+      "evidence": "mr-gipfeli-latest-stream-v1/summary.json"
+    },
+    "other_current_summaries": [
+      "mr-gipfeli-reference-v1/summary.json",
+      "mr-gipfeli-reference-v2/summary.json",
+      "mr-gipfeli-reference-v3/summary.json",
+      "mr-gipfeli-safe-scalar-v1/summary.json"
+    ]
+  },
+  "imported_squash_rows": {
+    "evidence": "published-mr-gipfeli-rows.json",
+    "eight_hosts_archive_bytes": 4702538,
+    "peltast_archive_bytes": 1885645,
+    "peltast_compress_cpu_seconds": 0.024767,
+    "peltast_status": "UNREPLICATED; imported CPU time is not compared with local wall time"
+  },
+  "cca_gate": {
+    "evidence": "fast-lz-cca-v2/results.json",
+    "inputs": 33,
+    "exact_candidate_and_incumbent_decodes": 33,
+    "new_verified_cells": 50,
+    "rehash_verified_v1_cells": 16,
+    "candidate_complete_bytes": 2077582,
+    "incumbent_complete_bytes": 2027529,
+    "delta_bytes": 50053,
+    "outcomes": {
+      "wins": 8,
+      "losses": 20,
+      "ties": 5
+    },
+    "timing_status": "per-input retained; no precise timing conclusion from small-file gate"
+  },
+  "native_abi_and_streaming": {
+    "ffi_evidence": "native-release-validation.json",
+    "ffi": {
+      "input_bytes": 131071,
+      "input_sha256": "a21b2e46717cd64e0f6637a5e6b9e234cdba72c7bccaa55ba658e7df1812d921",
+      "archive_bytes": 2382,
+      "archive_sha256": "c53892e4579500995f08cfc92b6f1550bd32526a2322dafd3f6e38355b6ae8a0",
+      "exact_restore": true,
+      "partial_callbacks": {
+        "encode_read": 98,
+        "encode_write": 24,
+        "decode_read": 28,
+        "decode_write": 208
+      },
+      "errors": [
+        "read",
+        "write",
+        "truncated_decode",
+        "invalid_level"
+      ]
+    },
+    "previous_uncix_decodes_candidate_fast": {
+      "uncix_source_revision": "938e88054adef5b9c33bfe2022b73fc6546074e9",
+      "uncix_sha256": "8abd3b65d36d91ac54ca3ff60ef647ac1f7d59c40cfd50507e5e6842c462ba20",
+      "archive_sha256": "baa8d52d473587e09b157bd43a3bd7b11e2cdf57cc9e21f084c4d762dce7ca1a",
+      "exact_restore": true
+    },
+    "pipe_latency_evidence": "native-latency.json",
+    "pipe_latency": {
+      "input_bytes": 1048576,
+      "input_sha256": "470f6baf5a1e97e0003e84ab6bebfa9ca680145630504b09c22d8653de91a4ac",
+      "commands": [
+        "cix --stream --fast --threads 2 --parallelism blocks --block-size 64KiB --flush-interval 100ms --memory 16MiB -c -",
+        "uncix --stream -c -"
+      ],
+      "idle_prefix_bytes": 2048,
+      "idle_flush_seconds": 0.1,
+      "first_complete_frame_wall_seconds": 0.1511526727117598,
+      "first_decoded_bytes_wall_seconds": 0.15124430088326335,
+      "observed_before_input_eof": true,
+      "exact_restore": true,
+      "not_a_cpu_qualification_or_rank": true
+    }
+  },
+  "implementation": {
+    "fast_change": [
+      "fixed 256 KiB LZ table",
+      "no hidden exact-rank FAST trials",
+      "existing format and decoder wire grammar"
+    ],
+    "preserved": [
+      "DEFAULT selection",
+      "BEST selection"
+    ],
+    "profiled_selection_cpu_seconds": {
+      "incumbent_fast": 22.388,
+      "candidate_fast": 0.464
+    },
+    "measured_interpretation": "profile accounting establishes selection work as a major measured mechanism in this FAST path",
+    "not_isolated": "an ablation has not assigned remaining speedup among matching, coding and allocation changes",
+    "fast_history": "dictionary state resets at independent block boundaries; persistent FAST LZ history is not implemented or qualified"
+  },
+  "remaining_gaps": [
+    "no production Gipfeli backend",
+    "persistent FAST LZ history not implemented or qualified; independent block boundaries reset the dictionary",
+    "word-16 and retained-history hypotheses pending",
+    "native Squash FFI verified but SDK shim loading not verified",
+    "pipe/streaming ABI latency and release evidence maintained separately"
+  ],
+  "delivered_release": {
+    "source_revision": "d66739120c40fc409f2bf011b165389fc1062c2b",
+    "all_four_artifacts_byte_identical_to_measured_candidate": true,
+    "paths": [
+      "dist/cix",
+      "dist/uncix",
+      "dist/cixcat",
+      "dist/libcix_native.so"
+    ],
+    "metadata": "release-native-metadata.json",
+    "build_attestation": "release-build-attestation.json",
+    "test_summary": "release-tests.json",
+    "future_benchmark_adapter": "benchmarks/silesia_rust_client.py",
+    "squash_sdk_plugin_build_loaded": false
+  }
+}

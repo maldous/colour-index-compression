@@ -1,0 +1,92 @@
+{
+  "source_revision": "d5e7d4ba148f234cd5fd42ecfe6a6cbb2c369fea",
+  "ffi": {
+    "input_sha256": "a21b2e46717cd64e0f6637a5e6b9e234cdba72c7bccaa55ba658e7df1812d921",
+    "archive_sha256": "c53892e4579500995f08cfc92b6f1550bd32526a2322dafd3f6e38355b6ae8a0",
+    "archive_bytes": 2382,
+    "restored_sha256": "a21b2e46717cd64e0f6637a5e6b9e234cdba72c7bccaa55ba658e7df1812d921",
+    "exact_restore": true,
+    "level": 1,
+    "partial_callbacks": true,
+    "errors_propagated": true
+  },
+  "previous_native_decoder": {
+    "source_revision": "938e88054adef5b9c33bfe2022b73fc6546074e9",
+    "binary_sha256": "8abd3b65d36d91ac54ca3ff60ef647ac1f7d59c40cfd50507e5e6842c462ba20",
+    "archive_sha256": "baa8d52d473587e09b157bd43a3bd7b11e2cdf57cc9e21f084c4d762dce7ca1a",
+    "restored_sha256": "68637ed52e3e4860174ed2dc0840ac77d5f1a60abbcb13770d5754e3774d53e6",
+    "exact_restore": true
+  },
+  "commands": [
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/native-ffi-smoke",
+        "make",
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/qualification/ffi-input.bin"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/native-ffi-smoke",
+        "encode-level",
+        "1",
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/qualification/ffi-input.bin",
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/qualification/ffi.cix"
+      ],
+      "returncode": 0,
+      "stdout": "direction=1 level=1 status=1 input=131071 output=2382 read_callbacks=98 write_callbacks=24\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/native-ffi-smoke",
+        "decode",
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/qualification/ffi.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/qualification/ffi-restored.bin"
+      ],
+      "returncode": 0,
+      "stdout": "direction=2 level=6 status=1 input=2382 output=131071 read_callbacks=28 write_callbacks=208\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/native-ffi-smoke",
+        "errors"
+      ],
+      "returncode": 0,
+      "stdout": "error_statuses read=-1 write=-1 truncated_decode=-1 invalid_level=-1\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/cix-qualified-release/final/uncix",
+        "-c",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-rust-fast-candidate-v1/runs/r1/11c5d7b3a8b23f40a0b07cdcd7deb0cb02ca63eb2dba1b5bfe0fc1fe98b2b88d/work/archive.cix"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python",
+        "benchmarks/cix_stream_latency.py",
+        "--source",
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/qualification/latency-source.bin",
+        "--archive",
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/qualification/latency.cix",
+        "--evidence",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/native-latency.json",
+        "--cix",
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/final/cix",
+        "--uncix",
+        "/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/final/uncix"
+      ],
+      "returncode": 0,
+      "stdout": "{\"archive\": {\"bytes\": 401907, \"sha256\": \"9b92bcb8c03d554a567e9cef96e6a86d9551b9055fc10de4eb6b332c528b9867\"}, \"binaries\": {\"cix\": {\"path\": \"/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/final/cix\", \"sha256\": \"c1ce98c218207cd1b9b9b4aac3efa04ec133e9d716e3fe288d52c0dac910f65a\"}, \"source_revision\": \"d66739120c40fc409f2bf011b165389fc1062c2b\", \"uncix\": {\"path\": \"/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/final/uncix\", \"sha256\": \"acd2764a2184f000f6147c29372e793765787b8bc4d5b3fdcf4522cd916753de\"}}, \"commands\": {\"cix\": [\"/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/final/cix\", \"--stream\", \"--fast\", \"--threads\", \"2\", \"--parallelism\", \"blocks\", \"--block-size\", \"64KiB\", \"--flush-interval\", \"100ms\", \"--memory\", \"16MiB\", \"-c\", \"-\"], \"uncix\": [\"/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/final/uncix\", \"--stream\", \"-c\", \"-\"]}, \"environment\": {\"cpu_model\": \"13th Gen Intel(R) Core(TM) i9-13900K\", \"logical_cpus\": 32, \"machine\": \"x86_64\", \"platform\": \"Linux-6.8.0-138-generic-x86_64-with-glibc2.39\", \"python\": \"3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]\"}, \"input\": {\"bytes\": 1048576, \"path\": \"/home/user/src/colour-index-compression/benchmark-work/cix-fast-candidate/d5e7d4ba1/qualification/latency-source.bin\", \"sha256\": \"470f6baf5a1e97e0003e84ab6bebfa9ca680145630504b09c22d8653de91a4ac\"}, \"kind\": \"local_streaming_correctness_latency\", \"not_a_cpu_qualification_or_rank\": true, \"stream\": {\"both_observed_before_input_eof\": true, \"first_complete_frame_wall_seconds\": 0.1511526727117598, \"first_decoded_bytes_wall_seconds\": 0.15124430088326335, \"first_send_bytes\": 65536, \"idle_flush_seconds\": 0.1, \"prefix_before_idle_bytes\": 2048}, \"verification\": {\"exact_restore\": true, \"fresh_decoder_process\": true, \"restored_sha256\": \"470f6baf5a1e97e0003e84ab6bebfa9ca680145630504b09c22d8653de91a4ac\"}}\n",
+      "stderr": ""
+    }
+  ]
+}

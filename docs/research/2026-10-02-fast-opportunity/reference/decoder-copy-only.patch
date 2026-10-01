@@ -1,0 +1,48 @@
+diff --git a/decompress.cc b/decompress.cc
+index 5946f0e..6bf74f2 100644
+--- a/decompress.cc
++++ b/decompress.cc
+@@ -246,18 +246,10 @@ bool Gipfeli::InternalRawUncompress(
+             return false;
+           }
+ 
+-          if (len <= 16 && offset >= 8 && space_left >= 16) {
+-            // Fast path, used for the majority (70-80%) of dynamic invocations.
+-            UNALIGNED_STORE64(op, UNALIGNED_LOAD64(op - offset));
+-            UNALIGNED_STORE64(op + 8, UNALIGNED_LOAD64(op - offset + 8));
+-          } else if (space_left >= len + kMaxIncrementCopyOverflow) {
+-            IncrementalCopyFastPath(op - offset, op, len);
+-          } else {
+-            if (PREDICT_FALSE(space_left < len)) {
+-              return false;
+-            }
+-            IncrementalCopy(op - offset, op, len);
++          if (PREDICT_FALSE(space_left < len)) {
++            return false;
+           }
++          IncrementalCopy(op - offset, op, len);
+           op += len;
+         }
+       }
+@@ -302,18 +294,10 @@ bool Gipfeli::InternalRawUncompress(
+             return false;
+           }
+ 
+-          if (len <= 16 && offset >= 8 && space_left >= 16) {
+-            // Fast path, used for the majority (70-80%) of dynamic invocations.
+-            UNALIGNED_STORE64(op, UNALIGNED_LOAD64(op - offset));
+-            UNALIGNED_STORE64(op + 8, UNALIGNED_LOAD64(op - offset + 8));
+-          } else if (space_left >= len + kMaxIncrementCopyOverflow) {
+-            IncrementalCopyFastPath(op - offset, op, len);
+-          } else {
+-            if (PREDICT_FALSE(space_left < len)) {
+-              return false;
+-            }
+-            IncrementalCopy(op - offset, op, len);
++          if (PREDICT_FALSE(space_left < len)) {
++            return false;
+           }
++          IncrementalCopy(op - offset, op, len);
+           op += len;
+         }
+       }

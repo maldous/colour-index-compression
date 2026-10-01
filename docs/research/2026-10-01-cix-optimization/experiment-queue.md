@@ -79,3 +79,40 @@ passed. The corrected ABBA DEFAULT v2 run verified eight cells and retained
 the exact 6.30%/6.27% complete-size improvements on the two exposed ranges;
 see [current evidence](adversarial-parallel-results.md). This does not close
 the broad model/transform/coder, PGO or corpus-qualification queue.
+
+
+## 2026-10-02 bounded FAST closure and remaining follow-ups
+
+The Gipfeli lead led to a frozen native implementation and complete local
+qualification record, not an additional production backend:
+
+- FAST compact match discovery and cheap nested-coder selection are implemented
+  and gated by effort. The 33-pair CCA gate restored every input exactly; size
+  was 50,053 B larger in aggregate (8 wins, 20 losses, 5 ties). Subsequent MR
+  repetitions establish a latency win with a 3.45% larger FAST archive.
+- Exact native ABI partial reads/writes, error propagation, previous native
+  decoder compatibility and real-pipe idle flush are verified. A stream larger
+  than the 8 MiB working budget passes the low-memory integration regression.
+- Native BEST reproduces the exact historical Python maximum MR archive. The
+  Peltast Gipfeli 1,885,645-B row remains unreplicated; original archive/build
+  evidence is absent. Local successful buffered Gipfeli yields 4,702,538 B.
+- Release code and all measurements retain distinct immutable identities;
+  [release attestation](../2026-10-02-fast-opportunity/release-build-attestation.json)
+  records exact artifact equality with the code build used for the measurements.
+
+Next independent hypotheses, in order, with no claimed improvement:
+
+1. Input-derived two-byte lane separation and delta/XOR residuals, including
+   short/odd/wraparound cases. Charge every transform ID/tail and nested coder.
+   G1/G2 currently cannot represent all proposed word-16 transform choices;
+   any extension needs an explicit version gate and prior decoding retained.
+2. Persistent bounded FAST LZ history and compact literal/copy-command coding.
+   Compare against identical independent 64 KiB blocks, explicitly serialize
+   resets, and measure backpressure, partial flush and worker-memory costs.
+3. Controlled FAST ablations isolating parser, nested coder and block-size
+   contributions; the current automatic MR winner is mainly stride, so the
+   total speedup must not be attributed solely to the LZ parser.
+
+Full records and rejected/failed controls are in
+[the FAST evidence area](../2026-10-02-fast-opportunity/README.md). This closes
+this narrow delivery; it does not close the broad R&D/model/coder/PGO queue.
