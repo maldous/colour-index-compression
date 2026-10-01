@@ -27,6 +27,9 @@ PROGRESS_SECONDS = 30.0
 MAX_SCREENING_SECONDS = 300
 MAX_MODERATE_CONTIGUOUS_SECONDS = 1200
 MAX_MODERATE_CONTIGUOUS_INPUT_BYTES = 16 * 1024 * 1024
+MAX_NATIVE_CATALOG_SECONDS = 7200
+MAX_NATIVE_CATALOG_INPUT_BYTES = 100_000_000
+NATIVE_CATALOG_AUTHORIZATION = "2026-10-02-user-full-cix-catalog-benchmark"
 REQUIRED = ("hypothesis", "matched_control", "input", "configuration", "mechanism",
             "budget", "promotion_criteria", "encode_command", "decode_command", "artifacts", "build_paths")
 
@@ -85,6 +88,35 @@ def canonical(value) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
 
 
+def validate_native_catalog_registry(manifest: dict) -> None:
+    """Bind the new long-budget permission to this study's frozen inputs.
+
+    This changes experiment admission only, never the codec's dispatch. The
+    registry contains the requested catalog and the preserved CCA gate, not
+    arbitrary source ranges or a replacement full-enwik9 baseline.
+    """
+    spec = manifest.get("qualification_registry", {})
+    registry_path = Path(spec.get("path", "")).resolve()
+    permitted = Path(__file__).resolve().parents[1] / "docs/research/2026-10-02-rust-full-catalog"
+    if (permitted not in registry_path.parents or not registry_path.is_file()
+            or registry_path.stat().st_size > 1_000_000
+            or spec.get("sha256") != sha256(registry_path)):
+        raise ValueError("native catalog qualification requires its frozen input registry")
+    root = Path(__file__).resolve().parents[1]
+    if not any((root / name).resolve() == registry_path for name in manifest.get("build_paths", [])):
+        raise ValueError("native catalog registry must be part of the immutable build identity")
+    registry = json.loads(registry_path.read_text())
+    if registry.get("authorization") != NATIVE_CATALOG_AUTHORIZATION:
+        raise ValueError("native catalog registry authorization mismatch")
+    inp = manifest["input"]
+    matches = [entry for entry in registry.get("inputs", [])
+               if entry.get("label") == inp.get("label")
+               and Path(entry.get("path", "")).resolve() == Path(inp.get("path", "")).resolve()
+               and all(entry.get(key) == inp.get(key) for key in ("offset", "length", "sha256"))]
+    if len(matches) != 1:
+        raise ValueError("native catalog input is not a unique frozen registry entry")
+
+
 def load_manifest(path: Path) -> tuple[dict, str]:
     manifest = json.loads(path.read_text())
     missing = [key for key in REQUIRED if key not in manifest]
@@ -99,13 +131,25 @@ def load_manifest(path: Path) -> tuple[dict, str]:
         if key not in budget:
             raise ValueError("manifest budget missing: " + key)
     wall_seconds = int(budget["wall_seconds"])
+    if manifest.get("stage") == "native_catalog_qualification":
+        if manifest.get("authorization") != NATIVE_CATALOG_AUTHORIZATION:
+            raise ValueError("native catalog authorization mismatch")
+        validate_native_catalog_registry(manifest)
     if not 0 < wall_seconds <= MAX_SCREENING_SECONDS:
-        if not (MAX_SCREENING_SECONDS < wall_seconds <= MAX_MODERATE_CONTIGUOUS_SECONDS
+        moderate = (MAX_SCREENING_SECONDS < wall_seconds <= MAX_MODERATE_CONTIGUOUS_SECONDS
                 and manifest.get("stage") == "moderate_contiguous"
                 and isinstance(manifest.get("longer_budget_justification"), str)
                 and manifest["longer_budget_justification"].strip()
-                and int(inp["length"]) <= MAX_MODERATE_CONTIGUOUS_INPUT_BYTES):
-            raise ValueError("screening wall_seconds must be 1..300; 301..1200 requires moderate_contiguous stage, justification, and input <=16MiB")
+                and int(inp["length"]) <= MAX_MODERATE_CONTIGUOUS_INPUT_BYTES)
+        native_catalog = (MAX_SCREENING_SECONDS < wall_seconds <= MAX_NATIVE_CATALOG_SECONDS
+                and manifest.get("stage") == "native_catalog_qualification"
+                and manifest.get("authorization") == NATIVE_CATALOG_AUTHORIZATION
+                and isinstance(manifest.get("longer_budget_justification"), str)
+                and manifest["longer_budget_justification"].strip()
+                and int(inp["offset"]) == 0
+                and 0 < int(inp["length"]) <= MAX_NATIVE_CATALOG_INPUT_BYTES)
+        if not (moderate or native_catalog):
+            raise ValueError("screening wall_seconds must be 1..300; longer trials require the bounded moderate_contiguous policy or the explicitly authorized whole-file native catalog policy")
     if int(inp["length"]) >= 1_000_000_000:
         raise ValueError("full enwik9 runs are forbidden by the screening runner")
     return manifest, hashlib.sha256(canonical(manifest)).hexdigest()
@@ -128,6 +172,12 @@ def input_identity(manifest: dict) -> dict:
         raise ValueError("input offset must be nonnegative and length positive")
     if int(spec["offset"]) + int(spec["length"]) > path.stat().st_size:
         raise ValueError("input range exceeds source file")
+    if manifest.get("stage") == "native_catalog_qualification":
+        if (manifest.get("authorization") != NATIVE_CATALOG_AUTHORIZATION
+                or int(spec["offset"]) != 0
+                or int(spec["length"]) != path.stat().st_size
+                or int(spec["length"]) > MAX_NATIVE_CATALOG_INPUT_BYTES):
+            raise ValueError("native catalog qualification requires an authorized complete file <=100,000,000 bytes")
     actual = sha256(path, int(spec["offset"]), int(spec["length"]))
     if actual != spec["sha256"]:
         raise ValueError("input range hash mismatch")
