@@ -17,33 +17,33 @@ The levels below are those present in the pinned Squash CSV import. `default` me
 | Squash plugin / codec and recorded level settings | Distinct method or core principle | Rust CIX coverage | Remaining gap / evidence |
 |---|---|---|---|
 | brieflz / brieflz (default) | Greedy LZ77-style matches and literals | **Partial** — CIXG1 LZ route | CIX uses a bounded hash-chain parser and generic substream coders, not BriefLZ parse/token choices or framing; `main.rs::lz_encode`. |
-| brotli / brotli (1–11) | LZ77, static dictionary, context-dependent literals, Huffman coding | **Backend-only** — Brotli CIXB1 direct payload | Not a CIXG1 candidate inside per-block route/backend selection; CIXB1 eligibility is profile-gated (`external.rs::eligible`). No Brotli dictionary/context model in native routes. |
-| bsc / bsc (default) | Large-block BWT family, MTF/run preprocessing, entropy coding and parallel block work | **Partial** — BWT + MTF + zero-run streams | CIX has a suffix-sort BWT and MTF zero-run route (`main.rs::bwt_transform`, `bwt_encode`), but no libbsc block parser, entropy stack, or tuned parallel block format. |
-| bzip2 / bzip2 (1–9) | BWT, MTF, run-length coding and canonical Huffman | **Partial** — BWT/MTF and separate bzip2 CIXB1 backend | The direct bzip2 payload does not establish that the CIX BWT route has bzip2's RLE/Huffman decisions. It is not an inner CIXG1 coder. |
+| brotli / brotli (1–11) | LZ77, static dictionary, context-dependent literals, Huffman coding; quality 1–11 and generic/text/font modes | **Backend-only** — Brotli CIXB1 direct payload | Not a CIXG1 candidate inside per-block route/backend selection; CIXB1 eligibility is profile-gated (`external.rs::eligible`). No Brotli dictionary/context model in native routes. See [Brotli plugin options](https://quixdb.github.io/squash/api/c/md_plugins_brotli_brotli.html). |
+| bsc / bsc (default) | Large-block BWT family, optional LZP prepass, MTF/run preprocessing, qflc static/adaptive entropy coding, optional threads/large pages/CUDA | **Partial** — BWT + MTF + zero-run streams | CIX has a suffix-sort BWT and MTF zero-run route (`main.rs::bwt_transform`, `bwt_encode`), but no libbsc LZP, qflc coder, block parser, or tuned parallel block format. See [bsc plugin options](https://quixdb.github.io/squash/api/c/md_plugins_bsc_bsc.html). |
+| bzip2 / bzip2 (1–9) | BWT, MTF, run-length coding and canonical Huffman; level selects 100–900 KiB blocks and work-factor changes fallback sorting | **Partial** — BWT/MTF and separate bzip2 CIXB1 backend | The direct bzip2 payload does not establish that the CIX BWT route has bzip2's RLE/Huffman decisions. It is not an inner CIXG1 coder. The upstream plugin also cannot provide reliable flush semantics. See [bzip2 plugin options](https://quixdb.github.io/squash/api/c/md_plugins_bzip2_bzip2.html). |
 | copy / copy (default) | Store source bytes verbatim | **Implemented** — raw route and raw fallback | Complete raw route is always retained; route ID 0 and stream raw coder. |
 | crush / crush (0–2) | CRUSH's own LZ/match and entropy decisions | **Untested / absent** | Squash interface and level range are recorded; no native CRUSH parser/coder or CIXB1 backend exists. |
-| csc / csc (1–5) | CSC codec-specific parsing and entropy coding | **Untested / absent** | Plugin name resolves to the CSC library, but the CIX tree has no CSC implementation/backend. Its options are not inferred from CIX routes. |
-| density / density (1, 7, 9) | Chameleon dictionary matching; Cheetah double-dictionary lookup/prediction; Lion adds multiple predictions and symbol/form-rank entropy coding | **Partial** — LZ, predictor, and composition building blocks | No swapped double-dictionary predictor, Density format, or joint symbol/form rank model. This is a high-value measured follow-up. |
-| fari / fari (default) | Arithmetic coding | **Partial** — adaptive range and count/rank coders | Arithmetic/range coding is present, but no FARI implementation, probability update, bitstream or speed result. |
+| csc / csc (1–5) | CSC adaptive coding with 32 KiB–1 GiB dictionary and optional delta, executable, and text filters | **Untested / absent** | Plugin name resolves to the CSC library, but the CIX tree has no CSC implementation/backend. The v0.7.0 docs conflict: option range says 1–5 while prose says 6 is highest; CSV records 1–5. See [CSC plugin options](https://quixdb.github.io/squash/api/c/md_plugins_csc_csc.html). |
+| density / density (1, 7, 9) | Chameleon dictionary matching; Cheetah swapped double-dictionary lookup/prediction; Lion adds multiple predictions, shifting subword lookup, and symbol/form-rank entropy coding | **Partial** — LZ, predictor, and composition building blocks | No swapped double-dictionary predictor, Density format, or joint symbol/form rank model. Optional SpookyHash checksum is not represented. This is a high-value measured follow-up. See [DENSITY plugin options](https://quixdb.github.io/squash/api/c/md_plugins_density_density.html). |
+| fari / fari (default) | FastARI standalone arithmetic coding with its own probability/update and bitstream implementation | **Partial** — adaptive range and count/rank coders | Arithmetic/range coding is present, but no FARI implementation, probability update, bitstream or speed result. See [FARI plugin](https://quixdb.github.io/squash/api/c/md_plugins_fari_fari.html). |
 | fastlz / fastlz (1–2) | Low-cost LZ77 match parsing | **Partial** — CIXG1 LZ route | Different match finder, token costs, and framing; no FastLZ parity fixture. |
 | gipfeli / gipfeli (default) | Snappy-family LZ parsing with optimized fast paths | **Partial** — LZ token/match concept | No Gipfeli parser, vectorized implementation, or framing. |
-| lz4 / lz4 (1–14), lz4f / lz4f (0–16) | Fast LZ matching, literal/match tokens; optional LZ4 frame format | **Partial** — LZ route; separate XZ/LZ4 is not implemented | No LZ4 parser or LZ4F frame support. CIXG1 frames are CIX frames. |
+| lz4 / lz4 (CSV 1–14), lz4f / lz4f (0–16) | Fast LZ matching, literal/match tokens; optional LZ4 frame format with 64 KiB–4 MiB blocks and xxHash checksum | **Partial** — LZ route; no LZ4 wire format | No LZ4 parser or LZ4F frame support. v0.7.0 docs describe raw lz4 levels 7–14, while the CSV contains 1–14; preserve this historical settings discrepancy. CIXG1 frames are CIX frames. See [LZ4 plugin options](https://quixdb.github.io/squash/api/c/md_plugins_lz4_lz4.html). |
 | lzf / lzf (default) | Small-window LZ match/literal coding | **Partial** — LZ route | No LZF match finder or raw-LZF format. |
 | lzg / lzg (1–9) | LZ parsing with codec-specific fast/ratio settings | **Partial** — LZ route | No LZG token costs, settings, or decoder. |
-| lzham / lzham (0–4) | LZ parsing with adaptive binary arithmetic/context coding | **Partial** — LZ matches plus independent adaptive/range coder | No integrated LZHAM contexts, match/literal probability model, or exact LZHAM wire format. |
+| lzham / lzham (0–4) | LZ parsing with adaptive binary arithmetic/context coding; optional extreme parse graph, deterministic parse, and decompression-rate-for-ratio modes | **Partial** — LZ matches plus independent adaptive/range coder | No integrated LZHAM contexts, match/literal probability model, or exact LZHAM wire format. See [LZHAM plugin options](https://quixdb.github.io/squash/api/c/md_plugins_lzham_lzham.html). |
 | lzjb / lzjb (default) | Simple fixed-window LZ matching and compact tags | **Partial** — LZ route | No LZJB parser/token format. |
-| lzma / lzma, lzma1, lzma2, xz (1–9 each) | LZ77 with range coding, large dictionaries, configurable literal/context models and optional filters | **Backend-only** — liblzma XZ payload in CIXB1 | CIXB1 wraps XZ only; no native LZMA1/2 routes, filter search, LZMA dictionary parameter search, or XZ framing as CIXG1 substreams. |
-| lzo / lzo1b, 1c, 1f, 1x, 1y, 1z (recorded variant levels) | Several low-latency LZ parsers and token formats | **Partial** — LZ route | No variant-specific parse/token implementation; recorded levels are in the settings JSON. |
-| ms-compress / lznt1, xpress, xpress-huffman (default) | LZNT1 and XPRESS match parsing; XPRESS-Huffman literal/match coding | **Partial** — LZ plus Huffman/DEFLATE building blocks | No Microsoft-format parser, code tables, or decoder. |
+| lzma / lzma, lzma1, lzma2, xz (1–9 each) | LZ77 with range coding, large dictionaries, configurable lc/lp/pb literal contexts, and optional filters; xz/lzma/lzma1/lzma2 are distinct wire formats | **Backend-only** — liblzma XZ payload in CIXB1 | CIXB1 wraps XZ only; no native LZMA1/2 routes, filter search, dictionary parameter search, or XZ framing as CIXG1 substreams. See [LZMA plugin formats/options](https://quixdb.github.io/squash/api/c/md_plugins_lzma_lzma.html). |
+| lzo / lzo1b, 1c, 1f, 1x, 1y, 1z (recorded variant levels) | Several low-latency LZ parsers and token formats; levels 1–9, 99, 999 express increasing memory/search effort | **Partial** — LZ route | No variant-specific parse/token implementation; recorded levels are in the settings JSON. Unsafe lzo1/lzo1a are intentionally disabled upstream because safe decoders are unavailable. See [LZO plugin options](https://quixdb.github.io/squash/api/c/md_plugins_lzo_lzo.html). |
+| ms-compress / lznt1, xpress, xpress-huffman (default) | Three distinct Microsoft formats: LZNT1, XPRESS, and XPRESS-Huffman | **Partial** — LZ plus Huffman/DEFLATE building blocks | No Microsoft-format parser, code tables, or decoder; do not collapse XPRESS-Huffman into generic DEFLATE. See [ms-compress plugin](https://quixdb.github.io/squash/api/c/md_plugins_ms-compress_ms-compress.html). |
 | ncompress / compress (default) | Adaptive-width LZW dictionary coding | **Untested / absent** | No LZW encoder/decoder or `.Z` framing. |
 | pithy / pithy (0–9) | Snappy-derived parsing with Pithy-specific match finder and token decisions | **Partial** — LZ route | No Pithy parser or byte-compatible stream. |
 | quicklz / quicklz (default) | High-speed LZ77 parsing with codec-specific match/literal coding | **Partial** — LZ route | No QuickLZ token stream or parsing heuristics. |
-| snappy / snappy, snappy-framed (default) | LZ match/literal tags; optional chunk framing and checksums | **Partial** — LZ route and independent CIX framing | No Snappy raw token codec or Snappy-framed stream; CIX framing is not Snappy framing. |
-| wflz / wflz, wflz-chunked (1–2) | Fast LZ match parsing; optional chunked stream | **Partial** — LZ route | No wfLZ tokens or chunked format. |
+| snappy / snappy, snappy-framed (default) | LZ match/literal tags; optional chunk framing and per-chunk checksums | **Partial** — LZ route and independent CIX framing | No Snappy raw token codec or Snappy-framed stream; CIX framing is not Snappy framing. See [Snappy plugin](https://quixdb.github.io/squash/api/c/md_plugins_snappy_snappy.html). |
+| wflz / wflz, wflz-chunked (1–2) | Fast LZ match parsing; optional chunked stream, chunk size, and little/big-endian output | **Partial** — LZ route | No wfLZ tokens or chunked format; CIX does not search wfLZ's level, chunk-size, or endianness settings. See [wfLZ plugin](https://quixdb.github.io/squash/api/c/md_plugins_wflz_wflz.html). |
 | yalz77 / yalz77 (default) | Naive LZ77 longest-match search | **Partial** — LZ route | CIX's bounded hash-chain parser has different match search and costs; no YALZ77 decoder. |
-| zlib / deflate, gzip, zlib (1–9) | DEFLATE LZ77 plus Huffman; gzip/zlib wrappers add checksums and headers | **Implemented / partial by representation** — CIXG1 DEFLATE coder/route; gzip not CIXG1 | Native raw DEFLATE substream is present. gzip and zlib wrapper compatibility is not the CIX format; only direct gzip CIXB1 is available. |
-| zlib-ng / deflate, gzip, zlib (1–9) | Same DEFLATE coding family with a separate optimized implementation | **Partial** — zlib DEFLATE family; gzip direct wrapper | Rust links system zlib through flate2, not zlib-ng. No zlib-ng runtime dispatch or independent performance qualification. |
-| zpaq / zpaq (1–5) | PAQ-style adaptive context mixing, recurrence-distance and periodic models, embedded ZPAQL model | **Untested / absent in Rust** | Direct ZPAQ 7.05/7.15 Dickens reproduction is measured in this programme, but it is not a Rust CIX backend or a native CIX model. See [results.md](results.md). |
+| zlib / deflate, gzip, zlib (1–9) | DEFLATE LZ77 plus Huffman; raw, zlib, and gzip wrappers; level, window-bits, mem-level and strategy are independent settings | **Implemented / partial by representation** — CIXG1 DEFLATE coder/route; gzip not CIXG1 | Native raw DEFLATE substream is present. gzip and zlib wrapper compatibility is not the CIX format; only direct gzip CIXB1 is available. See [zlib plugin options](https://quixdb.github.io/squash/api/c/md_plugins_zlib_zlib.html). |
+| zlib-ng / deflate, gzip, zlib (1–9) | Same DEFLATE wire families with a separate performance-oriented implementation | **Partial** — zlib DEFLATE family; gzip direct wrapper | Rust links system zlib through flate2, not zlib-ng. No zlib-ng runtime dispatch or independent performance qualification. See [zlib-ng plugin](https://quixdb.github.io/squash/api/c/md_plugins_zlib-ng_zlib-ng.html). |
+| zpaq / zpaq (1–5) | PAQ-style adaptive context mixing, recurrence-distance and periodic models, embedded ZPAQL model | **Partial model concepts; no ZPAQ backend** | CIXM6 `fixedmix`/`expertmix`, PPM and periodic modules overlap only in broad principle. They lack ZPAQ's recurrence-selected contexts, ISSE/MATCH graph and SSE calibration. Local ZPAQ is an external reference; see [results.md](results.md). |
 | zstd / zstd (default) | LZ parsing, Huffman literals, FSE/ANS sequence coding, block modes and dictionaries | **Backend-only** — Zstandard CIXB1 payload | No CIXG1 inner FSE/ANS coder, Zstd parser, block-mode selection or dictionary. |
 
 ## Additional distinct methods in the pinned Squash inventory
@@ -65,16 +65,27 @@ These were present in Squash's 28-codec benchmark inventory even though not all 
 | Exact combinatorial rank / multinomial coding | **Implemented, route-limited** | `rank.rs` uses `BigUint`; no exact rank is narrowed to a fixed-width integer. Composition is a route/coder candidate, not a universal cost-minimal path. |
 | DEFLATE coding | **Implemented, backend-limited** | `flate2`/system zlib raw DEFLATE is an inner coder. It does not provide all zlib-ng build/runtime variants. |
 | Adaptive range coding and count-range | **Partial** | Byte models exist in `adaptive.rs`; count-range uses exact composition coding. No ANS/FSE coder and no verified common-frame comparison against each Squash entropy method. |
+| Context-conditioned range substreams | **Implemented experimentally; not size-qualified** | New CIXG2 coder ID 6 uses the existing adaptive byte model with bounded context buckets. Tiny round-trip and manual Rust/Python cross-decode passed; the automatic predictor trial chose DEFLATE on the tested synthetic block, so this is not a measured win. See [CIXG2 extension](format/CIXG2-extension.md). |
 | BWT / MTF / zero runs | **Partial** | Rust BWT+MTF route exists; current transform sorts suffixes and adds metadata. No bzip2/BSC block heuristics or joint parallel transform. |
 | LZ matching | **Partial** | `lz_encode` uses a bounded hash table retaining up to eight recent positions per key. It is not a cost-optimal parser and does not reproduce any listed library's tokens. |
-| Prediction, periodicity, recurrence distances | **Partial** | Predictor, stride, fixed mixture, record/periodic and CIXM6 adaptive modules exist. CIXG1 BEST does not yet integrate the CIXM6 candidate families, ZPAQ recurrence search, or shared cross-block state. |
-| Entropy backends | **Partial** | raw, RLE, exact composition, adaptive range, count-range and DEFLATE are present. Huffman exists only inside DEFLATE; standalone Huffman, ANS/FSE, universal integer code comparisons and substream-specific model choice remain absent. |
+| Prediction, periodicity, recurrence distances | **Partial** | Predictor, stride, fixed mixture, record/periodic and CIXM6 adaptive modules exist. Fixed-mix recurrence v3 now serializes a saturated configuration and uses causal saved features; v2 decoder semantics remain preserved for archive compatibility. It is not admitted by the production selector, and period-model ablations or cross-block state are unqualified. |
+| Entropy backends | **Partial** | raw, RLE, exact composition, adaptive range, count-range, DEFLATE and deterministic canonical Huffman (CIXG2 coder 7) are present. ANS/FSE, universal integer-code comparisons and measured per-substream coder choice remain absent/unqualified. |
 | Context mixing / calibration | **Partial / unqualified** | `fixedmix` and `expertmix` implementations are research routes in CIXM6. They are not a ZPAQ port; no calibrated mixer integration into CIXG1 BEST is verified. |
 | Transforms and compositions | **Partial** | BWT/MTF, stride, predictor residual and phrase representations exist. Composition order/depth is narrow; no all-order two-transform tournament or complete metadata-aware region segmentation. |
-| Packaging and block-size search | **Untested in the selector** | CIXG1 charges its full frame/footer size, but current BEST fixes the format and uses fixed 65,536-byte frames; it does not search CIXG1 vs CIXM6 packaging or a segmentation lattice. |
-| Streaming, bounds, and backpressure | **Implemented with caveats** | One input block is held at a time, output is framed/flushed, and decode emits frame by frame. CIXG1 frames are independent; CIXM6 stateful routes are separate. Candidate workers are bounded to 1–4 and memory is divided per worker. |
-| FAST/DEFAULT/BEST candidate budget | **Partial** | A deterministic profile shortlist and candidate-level work queue exist. `candidate_limit`, soft per-trial time, soft per-frame search dispatch, and per-worker memory gates are now enforced; over-budget trials and undispatched candidates are visible/countable. The search budget waits for in-flight work and is therefore soft. BEST remains broad finite search, not argmin over every legal encoding. |
-| Selector overhead / exhaustive oracle | **Untested at this report point** | Rust BEST's wall/CPU cost is measured below. A dedicated verbose trial is in progress to record candidate count, summed trial time and route distribution. No small-block exhaustive-oracle miss analysis is complete. |
+| Packaging and block-size search | **Partial, package search absent** | Automatic FAST/DEFAULT/BEST currently produced CIXG1 for fast/default and CIXG2 for best in the frozen 1 MiB profile screen. Each active path charges its own full frame/footer, but the selector does not materialize CIXG1 versus CIXG2 versus CIXM6/CIXF1 packaging, block-size alternatives, or a segmentation lattice and compare complete archive cost. |
+| Streaming, bounds, and backpressure | **Implemented with caveats** | One input block is held at a time, output is framed/flushed, and decode emits frame by frame. CIXG1 frames are independent; CIXM6 stateful routes are separate. Ordered block workers and shared memory permits are bounded. Real pipe tests cover idle flush, pre-EOF frame/output, slow consumer, corruption and truncation; latency distributions, sustained throughput/RSS, and persistent-history/reset tradeoffs remain unmeasured. |
+| FAST/DEFAULT/BEST candidate budget | **Implemented bounded policies; not exhaustive** | The frozen 1 MiB automatic-profile screen has two exact-decoded repetitions per effort with zero memory/budget skips: FAST selected LZ, DEFAULT BWT, and BEST PPM. Candidate limits, per-trial deadlines, shared admission and visible skip accounting are enforced. BEST remains a finite native search, not argmin over all transforms, segmentation, history, packaging, or external codecs. |
+| Selector overhead / exhaustive oracle | **Measured partially; bounded payload and CLI archive oracles** | `oracle.rs` materializes and fresh-decodes its declared payload universe; the CLI oracle additionally enumerates 35 CIXG1 route/backend constraints and complete archives on two tiny fixtures. Both explicitly exclude package competition, general transforms, segmentation/history, external codecs and some parameters. The eight-cell forced-PPM parallel study retained one archive hash: four block workers used 2.56–2.57 s versus 8.10–8.16 s for one worker, with higher RSS. This is not automatic BEST scaling or universal throughput evidence. |
+
+## CIXM6 production-selector coverage
+
+CIXM6 implements a selector portfolio separate from CIXG1. In the current
+integration tree, `encode_m6` offers modes 3 (legacy LZ), 4 (BWT), and 5
+(transforms), and the decoder dispatch handles those modes. Candidate gates,
+model beams, framing and state history still differ from the frozen Python
+selector; qualification therefore requires canonical payload parity where
+defined and independent exact archive decoding. Selector coverage should not
+be confused with global CIXG1/CIXM6/CIXF1 packaging selection.
 
 ## Controlled reasons for rejecting ideas
 
@@ -88,3 +99,62 @@ The following mathematical constraint limits another experiment: applying BWT to
 - Squash plugin docs reviewed from `quixdb/squash` v0.7.0. The per-plugin source/version and options carried by the actual historical benchmarks are incompletely recorded by the CSV; see the settings JSON caveat.
 - Frozen CIXG1 profiler/shortlist reference: Python commit `80b95427725ecf59d626b2982d50f6349abd56e1` as recorded in `selection.rs`.
 - Dickens source: 10,192,446 bytes, SHA-256 `b24c37886142e11d0ee687db6ab06f936207aa7f2ea1fd1d9a36763c7a507e6a`.
+
+## Resolved plugin names, option dimensions, and other inventory methods
+
+The Squash UI name is not itself a complete codec identity. The pinned CSV
+records the plugin, codec selector, and level list in
+[`squash-settings-inventory.json`](squash-settings-inventory.json); options not
+recorded in that CSV remain **unknown**, not defaulted by this report. The
+Squash v0.7.0 plugin interfaces reveal these additional method-specific
+settings and distinctions:
+
+| Plugin | Concrete method/option distinctions that must remain separate | Current CIX treatment |
+|---|---|---|
+| Brotli | Quality 1–11; generic, text, and font modes | Direct Brotli wrapper only; mode selection and dictionary decisions are not inner CIX candidates. |
+| BSC | BWT or no-sort path, LZP hash/minimum length, qflc static/adaptive coders, fast mode, threads, large pages, optional CUDA | Only BWT/MTF/zero-run principles overlap; no LZP or qflc coder. |
+| CSC | Dictionary 32 KiB–1 GiB; delta, executable, and text filters; docs conflict on maximum level (table says 1–5 while prose says 6) | No CSC route/backend. Preserve settings ambiguity. |
+| Density | Level 1 Chameleon dictionary; level 7 Cheetah swapped double-dictionary prediction; level 9 Lion multi-prediction and symbol/form-rank coding; optional SpookyHash checksum defaults off | Generic LZ/predictor/rank pieces are only partial; no paired dictionary or joint symbol/form coder. |
+| FARI | Standalone FastARI arithmetic coder | CIX adaptive arithmetic exists; no FastARI probability model or canonical payload. |
+| LZ4 | Raw lz4 versus lz4f; raw levels in docs 7–14, frame levels 0–16; frame block 64 KiB–4 MiB and optional xxHash | CIX LZ is only a principle overlap. CSV has raw levels 1–14, inconsistent with the inspected docs; historical settings are not normalized. |
+| LZMA | XZ, legacy LZMA, raw LZMA1, raw LZMA2 are distinct; raw streams need dictionary and lc/lp/pb | CIXB1 currently wraps XZ only; no native filter/dictionary search. |
+| LZO | Safe variants 1b/1c/1f/1x/1y/1z; levels 1–9, 99, 999 express different speed/memory intent; unsafe 1/1a decoders disabled upstream | CIX LZ only; no variant tokens or level parity. |
+| LZHAM | Levels 0–4; extreme/deterministic parsing and decompression-rate-for-ratio options | LZ plus adaptive coder are separate components only; no LZHAM parse graph or joint probability model. |
+| MS Compress | LZNT1, XPRESS, XPRESS-Huffman are different wire methods | LZ/DEFLATE principles only; no Microsoft framing or decoder. |
+| Snappy | Raw stream and `snappy-framed` with chunk checksums are separate | CIX framing is not Snappy framing; no Snappy token implementation. |
+| wfLZ | Raw/chunked; levels 1–2; chunk size 4 KiB–UINT32_MAX in multiples of 16; endian choice | Generic LZ only; none of those option dimensions are searched. |
+| zlib | Raw DEFLATE, zlib, gzip wrappers; strategy, memory level, and window bits vary | Inner raw DEFLATE exists; wrappers are separate candidates only in CIXB1. |
+| zlib-ng | Same format family as zlib but separate optimized implementation/build | Current Rust uses system zlib via flate2, not zlib-ng; no equivalent-speed claim. |
+| ZPAQ | Plugin level 1–5 (default 1); v0.7.0 docs conflict by describing level 3 as highest ratio while CSV includes level 5 | Local libzpaq 7.05/7.15 level-5 outputs are matched; Rust native model coverage remains partial. |
+
+Documentation and settings references are the Squash plugin API pages linked
+from the [v0.7.0 plugin index](https://quixdb.github.io/squash/) and the
+[Squash benchmark codec details](https://quixdb.github.io/squash-benchmark/).
+The latter records historical version, level, threading/flushing support and
+build flags (`-O3 -flto -march=native -mtune=native`); its published metric is
+CPU time (not published wall time or memory). These upstream measurements are
+not compared with local wall-time results.
+
+Other already-present benchmark inventories add Brotli mode, XZ/LZMA2,
+Zstandard dictionary/block modes, gzip strategy, and PAQ v216 mixer/LSTM
+profiles. These are represented in the local codec-profile evidence under
+`docs/research/2026-09-30-codec-profiles/`; PAQ profiles above the shared RAM
+ceiling remain excluded and unranked. Across inventories, additional distinct
+mechanisms requiring explicit principle coverage are LZW dictionary growth,
+ANS/FSE sequence coding, static versus adaptive Huffman, delta/filter chains,
+match-length/distance parsing, dictionary-trained transforms, chunk checksums,
+and CPU/SIMD implementation effects. They are not separate “wins” merely
+because an inventory lists another codec.
+
+The concrete settings/method map for the other already-pinned local inventory
+is in [other-inventory-methods.md](other-inventory-methods.md). It records the
+90-cell exposed 16 KiB profile screen and its PAQ memory exclusion without
+promoting those rows to qualification evidence.
+
+Current follow-up: source `ee6b4396df760d19005c4e0800783fef58d52334` adds implicit
+stdin workflows, dash-prefixed names, output contradiction rejection and a
+64-opportunity minimum for DEFAULT PPM admission. All 178 final release tests
+passed. The corrected ABBA DEFAULT v2 run verified eight cells and retained
+the exact 6.30%/6.27% complete-size improvements on the two exposed ranges;
+see [current evidence](adversarial-parallel-results.md). This does not close
+the broad model/transform/coder, PGO or corpus-qualification queue.

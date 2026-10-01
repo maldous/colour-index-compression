@@ -305,6 +305,10 @@ pub struct Features {
     /// Entropies correspond positionally to [`LAGS`].
     pub lag_entropy: [f64; LAGS.len()],
     pub predictability: f64,
+    /// Number of causal two-byte context predictions observed in the bounded
+    /// profile.  This distinguishes a stable prediction signal from a tiny
+    /// sample with one accidental hit.
+    pub prediction_opportunities: usize,
     pub regional_entropy_range: f64,
 }
 
@@ -437,11 +441,18 @@ pub fn profile(data: &[u8], cap: usize) -> Features {
         repeat_fraction: repeats as f64 / keys.max(1) as f64,
         lag_entropy,
         predictability: hits as f64 / opportunities.max(1) as f64,
+        prediction_opportunities: opportunities,
         regional_entropy_range: maximum_regional_entropy - minimum_regional_entropy,
     }
 }
 
-/// Return the frozen, ordered candidate route names for an effort profile.
+/// Return the ordered candidate route names for an effort profile.
+///
+/// The DEFAULT PPM promotion is native selector experiment
+/// `cixg1-ppm-predictability-v2`: a measured causal two-byte prediction
+/// signal with at least 64 opportunities makes the affordable bounded PPM
+/// route eligible before the default candidate cap.  It is deliberately
+/// input-derived and leaves FAST and the complete BEST route set unchanged.
 pub fn shortlist(features: &Features, effort_name: &str) -> Result<Vec<&'static str>, String> {
     let config = effort(effort_name)
         .ok_or_else(|| format!("unknown CIXG1 effort profile: {effort_name}"))?;
@@ -465,6 +476,9 @@ pub fn shortlist(features: &Features, effort_name: &str) -> Result<Vec<&'static 
     }
     if features.predictability > 0.1 {
         priorities.push("predictor");
+        if effort_name == "balanced" && features.prediction_opportunities >= 64 {
+            priorities.push("ppm");
+        }
     }
     if features.symbols < 96 || features.entropy < 5.5 {
         priorities.push("composition");
@@ -510,6 +524,7 @@ mod tests {
         assert_eq!(features.repeat_fraction, 0.0);
         assert_eq!(features.lag_entropy, [0.0; LAGS.len()]);
         assert_eq!(features.predictability, 0.0);
+        assert_eq!(features.prediction_opportunities, 0);
         assert_eq!(features.regional_entropy_range, 0.0);
     }
 
@@ -525,6 +540,7 @@ mod tests {
         assert_near(features.lag_entropy[1], 1.0);
         assert_eq!(&features.lag_entropy[2..], &[0.0; 5]);
         assert_near(features.predictability, 1.0);
+        assert_eq!(features.prediction_opportunities, 4);
         assert_near(features.regional_entropy_range, 0.0);
     }
 
@@ -553,7 +569,10 @@ mod tests {
     }
 
     #[test]
-    fn shortlist_fallback_order_and_limits_match_frozen_python() {
+    fn unpredictable_default_fallback_retains_frozen_order() {
+        // This vector has no bounded prediction signal, so the native
+        // `cixg1-ppm-predictability-v1` promotion does not apply.  It remains
+        // a frozen-order regression only for that fallback case.
         let features = Features {
             sample_bytes: 256,
             entropy: 8.0,
@@ -562,6 +581,7 @@ mod tests {
             repeat_fraction: 0.0,
             lag_entropy: [8.0; LAGS.len()],
             predictability: 0.0,
+            prediction_opportunities: 0,
             regional_entropy_range: 0.0,
         };
         assert_eq!(

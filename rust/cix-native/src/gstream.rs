@@ -276,7 +276,7 @@ pub(super) fn encode<R: Read, W: Write>(
                 .collect::<Vec<_>>()
                 .join(",");
             eprintln!("cix: effort={} format={} parallelism=blocks workers={} queue_capacity={} peak_outstanding={} reserved_buffers={} peak_scratch_reserved={} source_bytes={} blocks={} candidates={} memory_skips={} budget_skips={} analyse_seconds={:.3} candidate_seconds={:.3} search_seconds={:.3} archive_bytes={} selected_source_bytes=[{}]",
-            selector_effort_name(level), resolved_format, workers, workers, peak_outstanding, retained,
+            effort_display_name(level), resolved_format, workers, workers, peak_outstanding, retained,
             budget.stats().peak_reserved_bytes, source_bytes, totals.blocks, totals.candidate_attempts,
             totals.memory_skips, totals.budget_skips, totals.profile_seconds, totals.candidate_seconds,
             totals.search_seconds, archive_bytes, routes);

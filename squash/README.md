@@ -34,3 +34,15 @@ uses independent 32 KiB CIXG1 frames and preserves normal Squash file/pipe
 backpressure through its splice callbacks. Test dataset fixtures used to
 validate the plugin are correctness inputs only. Compression data comparisons
 remain restricted to Silesia.
+
+## Current host status
+
+The Rust shared library and its `cix_squash_splice` callbacks passed a fresh-process
+partial-read/write round trip and error checks at source
+`ee6b4396df760d19005c4e0800783fef58d52334`. The checked-in host library is
+`dist/libcix_native.so`; its binary identity is in `dist/native-release.json`.
+The Squash 0.8 development SDK is absent on this host, so the shim/plugin has
+not been built or loaded in this checkpoint. The ABI currently uses one worker
+and 32 KiB blocks, whereas the ordinary CLI defaults to up to four block workers
+and uses larger BEST blocks. Plugin and ordinary CLI measurements must record
+those differences. See the [ABI evidence](../docs/research/2026-10-01-cix-optimization/native-ffi-final-smoke.md).
