@@ -267,10 +267,9 @@ fn decode_budget(
         .checked_sub(source_capacity)
         .and_then(|rest| rest.checked_sub(incumbent_capacity))
         .and_then(|rest| rest.checked_sub(archive_capacity))
-        // CIXB1's XZ decoder may retain an output buffer *and* an LZMA
-        // decoder allocation.  Give decode no more than half of aggregate
-        // free memory so the two allocations cannot exceed the remainder.
-        .map(|rest| rest / 2)
+        // Both CIXG and CIXB1 decoding now charge their retained buffers and
+        // native state against this remainder. A second arbitrary halving
+        // would exclude valid model archives that fit the aggregate budget.
         .filter(|rest| *rest >= 128 * 1024)
         .ok_or_else(|| "whole-archive validation memory/resource limit exceeded".into())
 }
@@ -551,4 +550,46 @@ pub(super) fn encode<W: Write>(o: &Opt, mut dst: W) -> Result<(), String> {
         );
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn validation_uses_the_charged_aggregate_remainder() {
+        assert_eq!(
+            decode_budget(512 << 20, 1 << 20, 2 << 20, 3 << 20).unwrap(),
+            506 << 20
+        );
+        assert!(decode_budget(5 << 20, 1 << 20, 2 << 20, 3 << 20).is_err());
+    }
+
+    #[test]
+    fn validation_accepts_a_large_native_mixer_that_fits_the_budget() {
+        let data = vec![b'x'; MAX_BLOCK as usize];
+        let cap = archive_cap(data.len());
+        let mut output = CappedWriter::new(cap);
+        encode_with_strategy(
+            io::Cursor::new(&data),
+            &mut output,
+            MAX_BLOCK,
+            9,
+            Some("mixture"),
+            "hybrid",
+            false,
+            "cixg2",
+            -1,
+            None,
+            512 << 20,
+            1,
+            false,
+            false,
+            "blocks",
+        )
+        .unwrap();
+        let archive = output.into_inner();
+        assert_eq!(archive[13], 9, "fixture actually uses the mixer");
+        validate(&archive, archive.capacity(), &data, 1 << 20, 512 << 20).unwrap();
+    }
 }
