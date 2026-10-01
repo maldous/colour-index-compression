@@ -1,9 +1,14 @@
+#[path = "../src/limits.rs"]
+mod limits;
 #[allow(dead_code)]
 #[path = "../src/fixedmix.rs"]
 mod fixedmix;
 #[allow(dead_code)]
 #[path = "../src/rank.rs"]
 mod rank;
+#[allow(dead_code)]
+#[path = "../src/zpaq_context.rs"]
+mod zpaq_context;
 
 use std::io::{self, Read, Write};
 

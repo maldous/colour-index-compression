@@ -31,27 +31,95 @@ pub struct Candidate {
     pub route: u8,
     pub backend: String,
     /// Route-specific, self-describing parameter carried inside the payload.
-    /// PPM order is stored in its payload header; candidates remain limited
-    /// to orders accepted by the frozen Python reference decoder.
+    /// PPM order is stored in its payload header and checked against the
+    /// decoder's versioned order bound.
     pub parameter: Option<u8>,
 }
 
 fn baseline_backend(route: u8) -> &'static str {
     match route {
+        0 => "raw",
+        1 => "runs",
         2 => "cix",
         8 => "ppm",
+        9 => "mixture",
         10 => "deflate",
         _ => "hybrid",
     }
 }
 
+/// Backends that encode the generic byte substreams used by routes 2 through
+/// 7.  These names must never be attached to an intrinsic route: those
+/// encoders do not consume a nested byte-stream backend, so doing so would
+/// make `--explain` and archive-selection records lie about what was written.
+fn is_nested_backend(backend: &str) -> bool {
+    matches!(
+        backend,
+        "cix"
+            | "deflate"
+            | "hybrid"
+            | "range"
+            | "count-range"
+            | "context-range-o1-b4"
+            | "context-range-o1-b8"
+            | "context-range-o2-b8"
+            | "huffman"
+    )
+}
+
+/// The name recorded for each intrinsic route is part of the selector's
+/// observable decision.  `deflate` is also a legal nested backend, but is
+/// intrinsic only for route 10.
+fn route_supports_backend(route: u8, backend: &str) -> bool {
+    match route {
+        0 => backend == "raw",
+        1 => backend == "runs",
+        2..=7 => is_nested_backend(backend),
+        8 => backend == "ppm",
+        9 => backend == "mixture",
+        10 => backend == "deflate",
+        _ => false,
+    }
+}
+
+fn is_known_backend(backend: &str) -> bool {
+    is_nested_backend(backend) || matches!(backend, "raw" | "runs" | "ppm" | "mixture")
+}
+
+fn intrinsic_route_for_backend(backend: &str) -> Option<u8> {
+    match backend {
+        "raw" => Some(0),
+        "runs" => Some(1),
+        "ppm" => Some(8),
+        "mixture" => Some(9),
+        // Deflate has both an intrinsic route and a nested byte-stream use.
+        "deflate" => Some(10),
+        _ => None,
+    }
+}
+
 fn nested_backends(route: u8, effort_name: &str) -> &'static [&'static str] {
-    if !(2..=7).contains(&route) || effort_name == "fast" {
+    if !(2..=7).contains(&route) {
         &[]
-    } else if effort_name == "balanced" {
-        &["hybrid", "cix", "deflate"]
     } else {
-        &["cix", "deflate", "hybrid", "range", "count-range"]
+        match (route, effort_name) {
+            (4, "fast") => &[],
+            (4, "balanced") => &["hybrid", "cix", "deflate"],
+            (4, _) => &[
+                "cix",
+                "deflate",
+                "hybrid",
+                "range",
+                "count-range",
+                "context-range-o1-b4",
+                "context-range-o1-b8",
+                "context-range-o2-b8",
+                "huffman",
+            ],
+            (_, "fast") => &[],
+            (_, "balanced") => &["hybrid", "cix", "deflate"],
+            _ => &["cix", "deflate", "hybrid", "range", "count-range"],
+        }
     }
 }
 
@@ -65,6 +133,31 @@ pub fn generate_candidates(
     forced_route: Option<u8>,
     forced_backend: Option<&str>,
 ) -> Result<Vec<Candidate>, String> {
+    // Validate every externally supplied dimension here, rather than relying
+    // on a caller's CLI parser.  Library callers and future frontends must
+    // get the same compatibility errors and cannot manufacture a mislabeled
+    // candidate.
+    if effort(effort_name).is_none() {
+        return Err(format!("unknown CIXG1 effort profile: {effort_name}"));
+    }
+    if let Some(route) = forced_route {
+        if usize::from(route) >= ROUTES.len() {
+            return Err(format!("unsupported native route ID {route}"));
+        }
+    }
+    if let Some(backend) = forced_backend {
+        if !is_known_backend(backend) {
+            return Err(format!("unsupported CIXG1 backend override: {backend}"));
+        }
+        if let Some(route) = forced_route {
+            if !route_supports_backend(route, backend) {
+                return Err(format!(
+                    "backend {backend} is incompatible with intrinsic route {}",
+                    ROUTES[route as usize]
+                ));
+            }
+        }
+    }
     let mut routes = if let Some(route) = forced_route {
         vec![route]
     } else {
@@ -79,13 +172,21 @@ pub fn generate_candidates(
             })
             .collect::<Result<Vec<_>, _>>()?
     };
-    if forced_route == Some(8) && forced_backend.is_some_and(|backend| backend != "ppm") {
-        return Err("the PPM route does not support a nested backend override".into());
-    }
-    // A global nested-backend override excludes representations whose coder
-    // is intrinsic (PPM); never mislabel their payload as the requested coder.
-    if forced_backend.is_some_and(|backend| backend != "ppm") {
-        routes.retain(|&route| route != 8);
+    if let Some(backend) = forced_backend {
+        // An intrinsic backend identifies a single route.  Add it even when
+        // a cheap automatic probe did not shortlist that route: the explicit
+        // override is still entitled to evaluate its compatible encoder.
+        if forced_route.is_none() {
+            if let Some(route) = intrinsic_route_for_backend(backend) {
+                if !routes.contains(&route) {
+                    routes.push(route);
+                }
+            }
+        }
+        // Global backend overrides constrain the backend dimension for every
+        // non-raw candidate.  Intrinsic routes that cannot encode through the
+        // requested backend are excluded rather than being mislabeled.
+        routes.retain(|&route| route_supports_backend(route, backend));
     }
     let mut candidates = vec![Candidate {
         route: 0,
@@ -94,11 +195,12 @@ pub fn generate_candidates(
     }];
     let mut base = Vec::new();
     for &route in &routes {
-        let backend = if route == 8 {
-            "ppm"
-        } else {
-            forced_backend.unwrap_or_else(|| baseline_backend(route))
-        };
+        // Route 0 is already present as the universal raw fallback.  Do not
+        // add a duplicate when `--route raw` or `--backend raw` is explicit.
+        if route == 0 {
+            continue;
+        }
+        let backend = forced_backend.unwrap_or_else(|| baseline_backend(route));
         base.push(Candidate {
             route,
             backend: backend.into(),
@@ -120,13 +222,13 @@ pub fn generate_candidates(
             }
         }
     }
-    // PPM's order is independently serialized in its payload. The frozen
-    // Python decoder accepts orders 0..=3; the baseline stays first for stable
-    // ties and effort widens only within that compatibility range.
+    // PPM order is independently serialized and the current CIXG1 decoder
+    // supports orders 0..=8. Broader profiles include the complete legal
+    // native order range; the execution budget decides how much is evaluated.
     let ppm_orders: &[u8] = match effort_name {
         "fast" => &[2],
-        "balanced" => &[1, 2],
-        "maximum" => &[1, 2],
+        "balanced" => &[1, 2, 3],
+        "maximum" => &[0, 1, 2, 3, 4, 5, 6, 7, 8],
         _ => return Err(format!("unknown CIXG1 effort profile: {effort_name}")),
     };
     for &route in &routes {
@@ -134,11 +236,14 @@ pub fn generate_candidates(
             continue;
         }
         for &order in ppm_orders {
-            candidates.push(Candidate {
+            let candidate = Candidate {
                 route,
                 backend: "ppm".into(),
                 parameter: Some(order),
-            });
+            };
+            if !candidates.contains(&candidate) {
+                candidates.push(candidate);
+            }
         }
     }
     Ok(candidates)
@@ -488,7 +593,19 @@ mod tests {
             .filter(|item| item.route == 8)
             .filter_map(|item| item.parameter)
             .collect();
-        assert_eq!(ppm_orders, [3, 1, 2]);
+        assert_eq!(ppm_orders, [3, 0, 1, 2, 4, 5, 6, 7, 8]);
+        assert!(best
+            .iter()
+            .any(|item| item.route == 4 && item.backend == "context-range-o1-b4"));
+        assert!(best
+            .iter()
+            .any(|item| item.route == 4 && item.backend == "huffman"));
+
+        let balanced = generate_candidates(&features, "balanced", None, None).unwrap();
+        assert!(!balanced
+            .iter()
+            .any(|item| item.backend.starts_with("context-range-")));
+        assert!(!balanced.iter().any(|item| item.backend == "huffman"));
 
         let route_locked = generate_candidates(&features, "maximum", Some(4), None).unwrap();
         assert!(route_locked

@@ -4,7 +4,9 @@ use sha2::{Digest, Sha256};
 use std::ffi::{c_char, c_int, c_uint, c_void, CStr};
 use std::io::{Cursor, Read, Write};
 
-pub const MAX_INPUT: usize = 16 * 1024 * 1024;
+// Match the existing Python CIXB1 envelope limit. The payload length is
+// stored as u32, so this remains comfortably within the on-disk format.
+pub const MAX_INPUT: usize = 64 * 1024 * 1024;
 pub const MAX_PAYLOAD: usize = MAX_INPUT + 1024 * 1024;
 const HEADER: usize = 47;
 
@@ -42,16 +44,11 @@ struct BzStream {
 #[link(name = "lzma")]
 unsafe extern "C" {
     fn lzma_stream_buffer_bound(uncompressed_size: usize) -> usize;
-    fn lzma_easy_buffer_encode(
-        preset: u32,
-        check: u32,
-        allocator: *const c_void,
-        input: *const u8,
-        input_size: usize,
-        output: *mut u8,
-        output_pos: *mut usize,
-        output_size: usize,
-    ) -> u32;
+    fn lzma_easy_encoder(stream: *mut LzmaStream, preset: u32, check: u32) -> c_int;
+    fn lzma_stream_encoder(stream: *mut LzmaStream, filters: *mut LzmaFilter, check: u32) -> c_int;
+    fn lzma_lzma_preset(options: *mut LzmaOptionsLzma, preset: u32) -> c_int;
+    fn lzma_code(stream: *mut LzmaStream, action: c_int) -> c_int;
+    fn lzma_end(stream: *mut LzmaStream);
     fn lzma_stream_buffer_decode(
         memlimit: *mut u64,
         flags: u32,
@@ -63,6 +60,64 @@ unsafe extern "C" {
         output_pos: *mut usize,
         output_size: usize,
     ) -> u32;
+}
+
+// ABI layout from liblzma's lzma_stream. Streaming encode leaves the XZ block
+// size unknown, matching Python's canonical liblzma stream output.
+#[repr(C)]
+struct LzmaStream {
+    next_in: *const u8,
+    avail_in: usize,
+    total_in: u64,
+    next_out: *mut u8,
+    avail_out: usize,
+    total_out: u64,
+    allocator: *const c_void,
+    internal: *mut c_void,
+    reserved_ptr1: *mut c_void,
+    reserved_ptr2: *mut c_void,
+    reserved_ptr3: *mut c_void,
+    reserved_ptr4: *mut c_void,
+    seek_pos: u64,
+    reserved_int2: u64,
+    reserved_int3: usize,
+    reserved_int4: usize,
+    reserved_enum1: c_int,
+    reserved_enum2: c_int,
+}
+
+#[repr(C)]
+struct LzmaOptionsLzma {
+    dict_size: u32,
+    preset_dict: *const u8,
+    preset_dict_size: u32,
+    lc: u32,
+    lp: u32,
+    pb: u32,
+    mode: c_int,
+    nice_len: u32,
+    mf: c_int,
+    depth: u32,
+    ext_flags: u32,
+    ext_size_low: u32,
+    ext_size_high: u32,
+    reserved_int4: u32,
+    reserved_int5: u32,
+    reserved_int6: u32,
+    reserved_int7: u32,
+    reserved_int8: u32,
+    reserved_enum1: c_int,
+    reserved_enum2: c_int,
+    reserved_enum3: c_int,
+    reserved_enum4: c_int,
+    reserved_ptr1: *mut c_void,
+    reserved_ptr2: *mut c_void,
+}
+
+#[repr(C)]
+struct LzmaFilter {
+    id: u64,
+    options: *mut c_void,
 }
 
 #[link(name = "zstd")]
@@ -122,7 +177,7 @@ fn backend_id(name: &str) -> Result<u8, String> {
 fn profile_id(name: &str) -> Result<u8, String> {
     match name {
         "fast" => Ok(1),
-        "current" => Ok(2),
+        "default" | "current" => Ok(2),
         "size" => Ok(3),
         _ => Err(format!("unsupported CIXB1 profile: {name}")),
     }
@@ -130,7 +185,7 @@ fn profile_id(name: &str) -> Result<u8, String> {
 fn check_eligible(backend: &str, profile: &str) -> Result<(), String> {
     let valid = match profile {
         "fast" => matches!(backend, "gzip" | "zstd" | "brotli"),
-        "current" | "size" => matches!(backend, "gzip" | "bzip2" | "xz" | "zstd"),
+        "default" | "current" | "size" => matches!(backend, "gzip" | "bzip2" | "xz" | "zstd"),
         _ => false,
     };
     if valid {
@@ -152,7 +207,7 @@ fn zstd_error(code: usize) -> String {
 pub fn encode(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>, String> {
     check_eligible(backend, profile)?;
     if input.len() > MAX_INPUT {
-        return Err("CIXB1 input exceeds 16 MiB limit".into());
+        return Err("CIXB1 input exceeds 64 MiB limit".into());
     }
     let payload = match backend {
         "gzip" => {
@@ -193,35 +248,47 @@ pub fn encode(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>, Str
         "xz" => {
             let base = match profile {
                 "fast" => 0,
-                "current" => 6,
+                "default" | "current" => 6,
                 _ => 9,
             };
             let preset = base | if profile == "size" { 1u32 << 31 } else { 0 };
             let cap = unsafe { lzma_stream_buffer_bound(input.len()) };
-            let mut out = vec![0u8; cap];
-            let mut pos = 0;
-            let rc = unsafe {
-                lzma_easy_buffer_encode(
-                    preset,
-                    4,
-                    std::ptr::null(),
-                    input.as_ptr(),
-                    input.len(),
-                    out.as_mut_ptr(),
-                    &mut pos,
-                    out.len(),
-                )
-            };
-            if rc != 0 {
-                return Err(format!("xz encoder returned {rc}"));
+            let mut stream: LzmaStream = unsafe { std::mem::zeroed() };
+            stream.next_in = input.as_ptr();
+            stream.avail_in = input.len();
+            let init = unsafe { lzma_easy_encoder(&mut stream, preset, 4) };
+            if init != 0 {
+                return Err(format!("xz encoder initialization returned {init}"));
             }
-            out.truncate(pos);
+            let mut out = Vec::with_capacity(cap);
+            let mut chunk = [0u8; 65536];
+            loop {
+                stream.next_out = chunk.as_mut_ptr();
+                stream.avail_out = chunk.len();
+                let before_in = stream.avail_in;
+                let rc = unsafe { lzma_code(&mut stream, 3) }; // LZMA_FINISH
+                let written = chunk.len() - stream.avail_out;
+                out.extend_from_slice(&chunk[..written]);
+                if rc == 1 {
+                    // LZMA_STREAM_END
+                    break;
+                }
+                if rc != 0 {
+                    unsafe { lzma_end(&mut stream) };
+                    return Err(format!("xz encoder returned {rc}"));
+                }
+                if written == 0 && stream.avail_in == before_in {
+                    unsafe { lzma_end(&mut stream) };
+                    return Err("xz encoder made no progress".into());
+                }
+            }
+            unsafe { lzma_end(&mut stream) };
             out
         }
         "zstd" => {
             let level = match profile {
                 "fast" => -131072,
-                "current" => 3,
+                "default" | "current" => 3,
                 _ => 22,
             };
             let cap = unsafe { ZSTD_compressBound(input.len()) };
@@ -276,6 +343,95 @@ pub fn encode(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>, Str
     out.extend_from_slice(&Sha256::digest(input));
     out.extend_from_slice(&payload);
     Ok(out)
+}
+
+/// Encode an xz preset with a larger self-describing dictionary. The Python
+/// preset remains available through `encode`; this is an additional measured
+/// size candidate whose settings are carried inside the XZ stream itself.
+pub fn encode_xz_dictionary(
+    profile: &str,
+    input: &[u8],
+    dictionary_bytes: u32,
+) -> Result<Vec<u8>, String> {
+    check_eligible("xz", profile)?;
+    if input.len() > MAX_INPUT {
+        return Err("CIXB1 input exceeds 64 MiB limit".into());
+    }
+    let base = match profile {
+        "fast" => 0,
+        "default" | "current" => 6,
+        _ => 9,
+    };
+    let preset = base | if profile == "size" { 1u32 << 31 } else { 0 };
+    encode_xz_dictionary_preset(profile, input, dictionary_bytes, preset)
+}
+
+pub fn encode_xz_dictionary_preset(
+    profile: &str,
+    input: &[u8],
+    dictionary_bytes: u32,
+    preset: u32,
+) -> Result<Vec<u8>, String> {
+    check_eligible("xz", profile)?;
+    if input.len() > MAX_INPUT {
+        return Err("CIXB1 input exceeds 64 MiB limit".into());
+    }
+    let mut options: LzmaOptionsLzma = unsafe { std::mem::zeroed() };
+    if unsafe { lzma_lzma_preset(&mut options, preset) } != 0 {
+        return Err("liblzma rejected the requested preset".into());
+    }
+    options.dict_size = dictionary_bytes;
+    let mut filters = [
+        LzmaFilter {
+            id: 0x21,
+            options: (&mut options as *mut LzmaOptionsLzma).cast(),
+        },
+        LzmaFilter {
+            id: u64::MAX,
+            options: std::ptr::null_mut(),
+        },
+    ];
+    let mut stream: LzmaStream = unsafe { std::mem::zeroed() };
+    stream.next_in = input.as_ptr();
+    stream.avail_in = input.len();
+    let init = unsafe { lzma_stream_encoder(&mut stream, filters.as_mut_ptr(), 4) };
+    if init != 0 {
+        return Err(format!("xz encoder initialization returned {init}"));
+    }
+    let mut payload = Vec::new();
+    let mut chunk = [0u8; 65536];
+    loop {
+        stream.next_out = chunk.as_mut_ptr();
+        stream.avail_out = chunk.len();
+        let before_in = stream.avail_in;
+        let rc = unsafe { lzma_code(&mut stream, 3) };
+        let written = chunk.len() - stream.avail_out;
+        payload.extend_from_slice(&chunk[..written]);
+        if rc == 1 {
+            break;
+        }
+        if rc != 0 {
+            unsafe { lzma_end(&mut stream) };
+            return Err(format!("xz encoder returned {rc}"));
+        }
+        if written == 0 && stream.avail_in == before_in {
+            unsafe { lzma_end(&mut stream) };
+            return Err("xz encoder made no progress".into());
+        }
+    }
+    unsafe { lzma_end(&mut stream) };
+    if payload.len() > MAX_PAYLOAD {
+        return Err("CIXB1 payload exceeds bounded limit".into());
+    }
+    let mut archive = Vec::with_capacity(HEADER + payload.len());
+    archive.extend_from_slice(b"CIXB1");
+    archive.push(backend_id("xz")?);
+    archive.push(profile_id(profile)?);
+    archive.extend_from_slice(&(input.len() as u32).to_le_bytes());
+    archive.extend_from_slice(&(payload.len() as u32).to_le_bytes());
+    archive.extend_from_slice(&Sha256::digest(input));
+    archive.extend_from_slice(&payload);
+    Ok(archive)
 }
 
 pub fn decode(archive: &[u8], memory_limit: usize) -> Result<Vec<u8>, String> {
@@ -413,4 +569,16 @@ pub fn decode(archive: &[u8], memory_limit: usize) -> Result<Vec<u8>, String> {
         return Err("CIXB1 SHA-256 checksum mismatch".into());
     }
     Ok(output)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{decode, encode_xz_dictionary};
+
+    #[test]
+    fn xz_larger_dictionary_archive_round_trips() {
+        let input = b"CIX xz dictionary fixture: abcdef0123456789 ".repeat(8192);
+        let archive = encode_xz_dictionary("size", &input, 128 * 1024 * 1024).unwrap();
+        assert_eq!(decode(&archive, 1024 * 1024 * 1024).unwrap(), input);
+    }
 }

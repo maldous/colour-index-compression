@@ -1,3 +1,5 @@
+#[path = "../src/limits.rs"]
+mod limits;
 #[path = "../src/rank.rs"]
 mod rank;
 

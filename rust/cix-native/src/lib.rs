@@ -2,7 +2,16 @@
 pub mod adaptive;
 #[path = "main.rs"]
 mod cli;
-mod fixedmix;
+pub mod fixedmix;
+pub mod huffman;
 pub mod legacy_lz;
-mod ppm;
-mod rank;
+// The CLI and public codecs share exactly one deadline/cancellation state.
+pub use cli::limits;
+pub mod parallel;
+pub mod resources;
+pub mod oracle;
+pub mod ppm;
+pub mod rank;
+pub mod zpaq_context;
+
+pub mod stdout_writer;

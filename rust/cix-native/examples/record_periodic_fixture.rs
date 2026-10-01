@@ -1,3 +1,5 @@
+#[path = "../src/limits.rs"]
+mod limits;
 #[allow(dead_code)]
 #[path = "../src/bitplane.rs"]
 mod bitplane;

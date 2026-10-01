@@ -113,7 +113,10 @@ pub fn encode_general(
     };
     let mut models = std::collections::HashMap::<usize, Model>::new();
     let mut coder = ArithmeticEncoder::new();
-    for &symbol in data {
+    for (index, &symbol) in data.iter().enumerate() {
+        if index & 15 == 0 {
+            crate::limits::check()?;
+        }
         let bucket = bucket(&tail, order, bucket_bits);
         if !models.contains_key(&bucket) && models.len() >= model_limit {
             return Err("adaptive model count exceeds --memory budget".into());
@@ -152,7 +155,10 @@ pub fn decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
     let mut model = Model::new();
     let mut coder = ArithmeticDecoder::new(&blob[pos..], bits);
     let mut out = Vec::with_capacity(n);
-    for _ in 0..n {
+    for index in 0..n {
+        if index & 15 == 0 {
+            crate::limits::check()?;
+        }
         let target = coder.target(2 * model.seen as usize + 256);
         let (symbol, low, high, total) = model.select(target)?;
         coder.update(low, high, total);
@@ -191,7 +197,10 @@ pub fn decode_general(
     let mut models = std::collections::HashMap::<usize, Model>::new();
     let mut decoder = ArithmeticDecoder::new(&blob[pos..], bits);
     let mut out = Vec::with_capacity(n);
-    for _ in 0..n {
+    for index in 0..n {
+        if index & 15 == 0 {
+            crate::limits::check()?;
+        }
         let bucket = bucket(&tail, order, bucket_bits);
         if !models.contains_key(&bucket) && models.len() >= model_limit {
             return Err("adaptive model count exceeds --memory budget".into());

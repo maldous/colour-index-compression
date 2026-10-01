@@ -237,12 +237,15 @@ impl<'a> ArithmeticDecoder<'a> {
     }
 }
 
-fn encode_sequence_range(data: &[u8], counts: &[usize]) -> (Vec<u8>, usize) {
+fn encode_sequence_range(data: &[u8], counts: &[usize]) -> Result<(Vec<u8>, usize), String> {
     let mut mutable = counts.to_vec();
     let mut fenwick = Fenwick::new(&mutable);
     let mut remaining = data.len();
     let mut encoder = ArithmeticEncoder::new();
-    for &symbol in data {
+    for (index, &symbol) in data.iter().enumerate() {
+        if index & 255 == 0 {
+            crate::limits::check()?;
+        }
         let i = symbol as usize;
         let low = fenwick.prefix(i);
         let high = low + mutable[i];
@@ -251,16 +254,22 @@ fn encode_sequence_range(data: &[u8], counts: &[usize]) -> (Vec<u8>, usize) {
         fenwick.add(i, -1);
         remaining -= 1;
     }
-    encoder.finish()
+    Ok(encoder.finish())
 }
 
 /// Python CIXG1's matched-information count-range control (coder 5).
 pub fn encode_count_range(data: &[u8]) -> Result<Vec<u8>, String> {
     let mut out = Vec::new();
-    for tile in data.chunks(1024) {
+    for (tile_index, tile) in data.chunks(1024).enumerate() {
+        if tile_index & 3 == 0 {
+            crate::limits::check()?;
+        }
         let exact = encode_type_class(tile)?;
         let mut counts = [0usize; 256];
-        for &value in tile {
+        for (index, &value) in tile.iter().enumerate() {
+            if index & 255 == 0 {
+                crate::limits::check()?;
+            }
             counts[value as usize] += 1;
         }
         let ways = cardinality(&counts);
@@ -270,7 +279,7 @@ pub fn encode_count_range(data: &[u8]) -> Result<Vec<u8>, String> {
             .len()
             .checked_sub(sequence_bytes + 1)
             .ok_or("invalid exact-rank header")?;
-        let (payload, bit_length) = encode_sequence_range(tile, &counts);
+        let (payload, bit_length) = encode_sequence_range(tile, &counts)?;
         let mut encoded = exact[..header_end].to_vec();
         encoded.push(1);
         varint(bit_length, &mut encoded);
@@ -292,6 +301,9 @@ fn decode_sequence_range(
     let mut decoder = ArithmeticDecoder::new(payload, bit_length);
     let mut out = Vec::with_capacity(remaining);
     while remaining > 0 {
+        if remaining & 255 == 0 {
+            crate::limits::check()?;
+        }
         let target = decoder.target(remaining);
         let symbol = fenwick.select(target)?;
         let low = fenwick.prefix(symbol);
@@ -319,8 +331,13 @@ fn colex_unrank(mut rank: BigUint, k: usize, universe: usize) -> Result<Vec<usiz
     }
     let mut result = Vec::with_capacity(k);
     let mut x = universe.saturating_sub(1);
+    let mut polls = 0usize;
     for i in (1..=k).rev() {
         while choose(x, i) > rank {
+            polls += 1;
+            if polls & 255 == 0 {
+                crate::limits::check()?;
+            }
             if x == 0 {
                 return Err("invalid combination rank".into());
             }
@@ -449,7 +466,10 @@ fn permutation_rank(data: &[u8], counts: &[usize]) -> Result<BigUint, String> {
     let mut remaining = data.len();
     let mut ways = cardinality(counts);
     let mut rank = BigUint::zero();
-    for &symbol in data {
+    for (index, &symbol) in data.iter().enumerate() {
+        if index & 255 == 0 {
+            crate::limits::check()?;
+        }
         let i = symbol as usize;
         let before = fenwick.prefix(i);
         if before > 0 {
@@ -477,6 +497,9 @@ fn permutation_unrank(mut rank: BigUint, counts: &[usize]) -> Result<Vec<u8>, St
     }
     let mut output = Vec::with_capacity(remaining);
     while remaining > 0 {
+        if remaining & 255 == 0 {
+            crate::limits::check()?;
+        }
         let order = ((&rank * remaining) / &ways)
             .try_into()
             .map_err(|_| "CIX rank selection overflow")?;
@@ -495,7 +518,10 @@ fn permutation_unrank(mut rank: BigUint, counts: &[usize]) -> Result<Vec<u8>, St
 
 pub fn encode_type_class(data: &[u8]) -> Result<Vec<u8>, String> {
     let mut counts = [0usize; 256];
-    for &byte in data {
+    for (index, &byte) in data.iter().enumerate() {
+        if index & 255 == 0 {
+            crate::limits::check()?;
+        }
         counts[byte as usize] += 1;
     }
     let active: Vec<usize> = counts
@@ -521,7 +547,7 @@ pub fn encode_type_class(data: &[u8]) -> Result<Vec<u8>, String> {
     let ways = cardinality(&counts);
     let width = fixed_width(&(&ways - BigUint::one()));
     if data.len() >= 2048 && ways > BigUint::one() {
-        let (payload, bit_length) = encode_sequence_range(data, &counts);
+        let (payload, bit_length) = encode_sequence_range(data, &counts)?;
         out.push(1);
         varint(bit_length, &mut out);
         out.extend_from_slice(&payload);
@@ -587,7 +613,10 @@ pub fn decode_type_class(data: &[u8], pos: &mut usize, n: usize) -> Result<Vec<u
 
 pub fn encode_composition_tiles(data: &[u8]) -> Result<Vec<u8>, String> {
     let mut out = Vec::new();
-    for tile in data.chunks(1024) {
+    for (tile_index, tile) in data.chunks(1024).enumerate() {
+        if tile_index & 3 == 0 {
+            crate::limits::check()?;
+        }
         let encoded = encode_type_class(tile)?;
         varint(encoded.len(), &mut out);
         out.extend_from_slice(&encoded);
@@ -599,6 +628,7 @@ pub fn decode_composition_tiles(data: &[u8], n: usize) -> Result<Vec<u8>, String
     let mut pos = 0;
     let mut output = Vec::with_capacity(n);
     while output.len() < n {
+        crate::limits::check()?;
         let size = read_varint(data, &mut pos)?;
         let end = pos.checked_add(size).ok_or("CIX tile length overflow")?;
         if end > data.len() {
@@ -745,7 +775,10 @@ pub fn decode_context_type_classes(
         prefix_history.to_vec()
     };
     let mut out = Vec::with_capacity(n);
-    for _ in 0..n {
+    for index in 0..n {
+        if index & 255 == 0 {
+            crate::limits::check()?;
+        }
         let bucket = if order == 1 && bucket_bits >= 8 {
             tail.last().copied().unwrap_or(0) as usize
         } else {
@@ -805,7 +838,10 @@ pub fn encode_context_type_classes(
         prefix_history.to_vec()
     };
 
-    for &symbol in data {
+    for (index, &symbol) in data.iter().enumerate() {
+        if index & 255 == 0 {
+            crate::limits::check()?;
+        }
         let bucket = if order == 1 && bucket_bits >= 8 {
             tail.last().copied().unwrap_or(0) as usize
         } else {

@@ -1,0 +1,220 @@
+#![cfg(unix)]
+
+//! Byte-level equivalence between the serial and ordered-block CLI paths.
+//! These use forced routes so scheduling cannot legitimately alter a selector
+//! decision; a changed archive would therefore be a framing/order regression.
+
+use std::io::{Read, Write};
+use std::process::{Command, Stdio};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
+use std::thread;
+use std::time::{Duration, Instant};
+
+fn encode(input: &[u8], route: &str, threads: usize) -> Vec<u8> {
+    let threads = threads.to_string();
+    let mut child = Command::new(env!("CARGO_BIN_EXE_cix"))
+        .args([
+            "--stream",
+            "--format",
+            "cixg1",
+            "--route",
+            route,
+            "--block-size",
+            "4KiB",
+            "--threads",
+            threads.as_str(),
+            "--parallelism",
+            "blocks",
+            "-c",
+            "-",
+        ])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn cix");
+    child
+        .stdin
+        .take()
+        .expect("cix stdin")
+        .write_all(input)
+        .expect("write input");
+    let output = child.wait_with_output().expect("wait cix");
+    assert!(
+        output.status.success(),
+        "cix {route} threads={threads} failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    output.stdout
+}
+
+fn decode(archive: &[u8]) -> Vec<u8> {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_uncix"))
+        .args(["--stream", "-c", "-"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn uncix");
+    child
+        .stdin
+        .take()
+        .expect("uncix stdin")
+        .write_all(archive)
+        .expect("write archive");
+    let output = child.wait_with_output().expect("wait uncix");
+    assert!(
+        output.status.success(),
+        "uncix failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    output.stdout
+}
+
+fn run_heavy_input() -> Vec<u8> {
+    let mut input = Vec::with_capacity(48 * 1024);
+    for block in 0..12 {
+        input.extend(std::iter::repeat((block % 3) as u8 + b'A').take(2048));
+        input.extend(std::iter::repeat((block % 5) as u8 + b'K').take(2048));
+    }
+    input
+}
+
+fn has_complete_end_frame(archive: &[u8]) -> bool {
+    if archive.len() < 13 || !matches!(&archive[..5], b"CIXG1" | b"CIXG2") {
+        return false;
+    }
+    let mut pos = 13usize;
+    while pos.saturating_add(41) <= archive.len() {
+        let route = archive[pos];
+        let source = u32::from_le_bytes(archive[pos + 1..pos + 5].try_into().unwrap());
+        let payload = u32::from_le_bytes(archive[pos + 5..pos + 9].try_into().unwrap()) as usize;
+        let end = match pos
+            .checked_add(41)
+            .and_then(|offset| offset.checked_add(payload))
+        {
+            Some(end) if end <= archive.len() => end,
+            _ => return false,
+        };
+        if route == 255 && source == 0 && payload == 0 {
+            return true;
+        }
+        pos = end;
+    }
+    false
+}
+
+#[test]
+fn forced_raw_and_runs_are_byte_identical_across_block_workers() {
+    for (route, input, expected_route) in [
+        ("raw", run_heavy_input(), 0u8),
+        ("runs", vec![b'R'; 48 * 1024], 1u8),
+    ] {
+        let serial = encode(&input, route, 1);
+        assert_eq!(
+            serial[13], expected_route,
+            "forced {route} first frame route"
+        );
+        assert_eq!(decode(&serial), input, "serial {route} round trip");
+        for workers in [2, 4] {
+            let parallel = encode(&input, route, workers);
+            assert_eq!(
+                parallel, serial,
+                "forced {route} archive differed with {workers} block workers"
+            );
+            assert_eq!(decode(&parallel), input, "parallel {route} round trip");
+        }
+    }
+}
+
+#[test]
+fn sigint_with_stalled_stdout_exits_without_a_complete_footer() {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_cix"))
+        .args([
+            "--stream",
+            "--threads",
+            "2",
+            "--parallelism",
+            "blocks",
+            "--route",
+            "raw",
+            "--block-size",
+            "4KiB",
+            "-c",
+            "-",
+        ])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn cix");
+    let written = Arc::new(AtomicUsize::new(0));
+    let producer_written = Arc::clone(&written);
+    let mut stdin = child.stdin.take().expect("cix stdin");
+    thread::spawn(move || {
+        let chunk = [b'X'; 8192];
+        for _ in 0..2048 {
+            if stdin.write_all(&chunk).is_err() {
+                break;
+            }
+            producer_written.fetch_add(chunk.len(), Ordering::Release);
+        }
+    });
+
+    // Deliberately do not read stdout: CIX must be able to leave a blocked
+    // application write when interrupted rather than publish a footer later.
+    let ready_by = Instant::now() + Duration::from_secs(2);
+    while written.load(Ordering::Acquire) == 0 && Instant::now() < ready_by {
+        thread::yield_now();
+    }
+    assert!(
+        written.load(Ordering::Acquire) != 0,
+        "producer never reached cix"
+    );
+    thread::sleep(Duration::from_millis(150));
+    assert!(
+        child.try_wait().expect("poll cix").is_none(),
+        "cix ended before SIGINT"
+    );
+    unsafe {
+        assert_eq!(
+            libc::kill(child.id() as i32, libc::SIGINT),
+            0,
+            "send SIGINT"
+        );
+    }
+
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let status = loop {
+        match child.try_wait().expect("poll interrupted cix") {
+            Some(status) => break status,
+            None if Instant::now() < deadline => thread::sleep(Duration::from_millis(10)),
+            None => {
+                let _ = child.kill();
+                let _ = child.wait();
+                panic!("cix did not leave stalled stdout after SIGINT");
+            }
+        }
+    };
+    let mut archive = Vec::new();
+    child
+        .stdout
+        .take()
+        .expect("cix stdout")
+        .read_to_end(&mut archive)
+        .expect("read interrupted archive");
+    let mut stderr = String::new();
+    child
+        .stderr
+        .take()
+        .expect("cix stderr")
+        .read_to_string(&mut stderr)
+        .expect("read interrupted diagnostic");
+    assert!(!status.success(), "SIGINT archive unexpectedly succeeded");
+    assert!(!stderr.is_empty(), "SIGINT produced no diagnostic");
+    assert!(
+        !has_complete_end_frame(&archive),
+        "interrupted stream must not publish a complete integrity footer"
+    );
+}
