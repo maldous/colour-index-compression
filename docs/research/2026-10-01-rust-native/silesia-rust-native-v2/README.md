@@ -42,3 +42,25 @@ claimed cell; failures remain recorded and require a new experiment identity.
 All rows use Silesia only. These are exposed measurements, not holdout results
 or claims about other data classes. No acquisition, Actions, or publication is
 part of this wave.
+
+## Dickens screening trial
+
+The six predeclared Dickens cells were run locally. Four completed: all three
+CIXG1 profiles and CIXM6 fast. Each Rust archive restored the exact 10,192,446
+source bytes, passed the bounded Rust decoder, and was independently decoded
+by Python with the same source SHA-256. The CIXM6 current and size profiles
+reached their predeclared 300-second encode-phase limit and remain failures;
+they were not retried. The remaining 66 cells were not launched. These are
+screening results on one Silesia member, not a completed matrix.
+
+| Format/profile | Archive bytes | Encode MiB/s | Decode MiB/s | Peak RSS (KiB) |
+|---|---:|---:|---:|---:|
+| CIXG1 fast | 4,777,286 | 0.775 | 29.46 | 19,712 |
+| CIXG1 current | 4,256,837 | 0.755 | 37.39 | 19,712 |
+| CIXG1 size | 4,071,223 | 0.717 | 40.50 | 19,712 |
+| CIXM6 fast | 3,846,946 | 0.040 | 4.63 | 19,712 |
+
+The measured throughput uses the 10,192,446-byte input. Peak RSS is the
+runner's sampled process peak. Cell results and scheduler receipts are recorded
+in `results.json` and `trial-evidence/`; archives and restored copies are kept
+out of Git.
