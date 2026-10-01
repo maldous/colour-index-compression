@@ -1,0 +1,144 @@
+//! Legacy CIXM6 bit-plane block codec (exact-rank v1 decode and arithmetic v2).
+use crate::rank::{self, ArithmeticDecoder, ArithmeticEncoder};
+
+fn read_v(data: &[u8], p: &mut usize) -> Result<usize, String> {
+    let mut value = 0usize;
+    for shift in (0..usize::BITS as usize).step_by(7) {
+        let byte = *data.get(*p).ok_or("truncated bit-plane varint")?;
+        *p += 1;
+        value |= ((byte & 0x7f) as usize)
+            .checked_shl(shift as u32)
+            .ok_or("bit-plane varint overflow")?;
+        if byte < 128 {
+            return Ok(value);
+        }
+    }
+    Err("oversized bit-plane varint".into())
+}
+
+fn put_v(mut value: usize, out: &mut Vec<u8>) {
+    while value >= 128 {
+        out.push((value as u8 & 0x7f) | 0x80);
+        value >>= 7;
+    }
+    out.push(value as u8);
+}
+
+/// Encode the canonical version-2 bit-plane payload used by the frozen Python
+/// reference. Effort is fixed: eight counting and eight coding passes over the
+/// caller's already bounded block, with no candidate search or retained model.
+pub fn encode(data: &[u8]) -> Vec<u8> {
+    let n = data.len();
+    let mut out = Vec::with_capacity(18);
+    out.push(2);
+    let mut plane_counts = [0usize; 8];
+
+    for (plane, shift) in (0..8).rev().enumerate() {
+        let ones = data
+            .iter()
+            .map(|byte| ((byte >> shift) & 1) as usize)
+            .sum::<usize>();
+        let majority = ones > n / 2;
+        out.push(majority as u8);
+        put_v(if majority { n - ones } else { ones }, &mut out);
+        plane_counts[plane] = ones;
+    }
+
+    let mut encoder = ArithmeticEncoder::new();
+    for (plane, shift) in (0..8).rev().enumerate() {
+        let mut remaining_ones = plane_counts[plane];
+        let mut remaining_zeros = n - remaining_ones;
+        for &byte in data {
+            let total = remaining_zeros + remaining_ones;
+            if (byte >> shift) & 1 != 0 {
+                encoder.encode(remaining_zeros, total, total);
+                remaining_ones -= 1;
+            } else {
+                encoder.encode(0, remaining_zeros, total);
+                remaining_zeros -= 1;
+            }
+        }
+    }
+    let (payload, bit_length) = encoder.finish();
+    put_v(bit_length, &mut out);
+    out.extend_from_slice(&payload);
+    out
+}
+
+pub fn decode(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
+    if data.is_empty() || !matches!(data[0], 1 | 2) {
+        return Err("unknown bit-plane version".into());
+    }
+    let version = data[0];
+    let mut p = 1;
+    let mut out = vec![0u8; n];
+    if version == 1 {
+        for shift in (0..8).rev() {
+            let majority = *data.get(p).ok_or("truncated bit-plane header")?;
+            p += 1;
+            if majority > 1 {
+                return Err("invalid bit-plane majority".into());
+            }
+            let k = read_v(data, &mut p)?;
+            if k > n {
+                return Err("invalid bit-plane minority".into());
+            }
+            let positions = rank::decode_colex_positions(data, &mut p, n, k)?;
+            if majority == 1 {
+                for b in &mut out {
+                    *b |= 1 << shift;
+                }
+                for i in positions {
+                    out[i] &= !(1 << shift);
+                }
+            } else {
+                for i in positions {
+                    out[i] |= 1 << shift;
+                }
+            }
+        }
+        if p != data.len() {
+            return Err("trailing bit-plane data".into());
+        }
+        return Ok(out);
+    }
+    let mut ones = Vec::with_capacity(8);
+    for _ in 0..8 {
+        let majority = *data.get(p).ok_or("truncated bit-plane header")?;
+        p += 1;
+        if majority > 1 {
+            return Err("invalid bit-plane majority".into());
+        }
+        let minority = read_v(data, &mut p)?;
+        if minority > n {
+            return Err("invalid bit-plane minority".into());
+        }
+        ones.push(if majority == 1 {
+            n - minority
+        } else {
+            minority
+        });
+    }
+    let bit_length = read_v(data, &mut p)?;
+    if p + (bit_length + 7) / 8 != data.len() {
+        return Err("bit-plane arithmetic payload length mismatch".into());
+    }
+    let mut decoder = ArithmeticDecoder::new(&data[p..], bit_length);
+    for (plane, &one_count) in ones.iter().enumerate() {
+        let mut one = one_count;
+        let mut zero = n - one_count;
+        for i in 0..n {
+            let total = one + zero;
+            let target = decoder.target(total);
+            if target < zero {
+                decoder.update(0, zero, total);
+                zero -= 1;
+            } else {
+                decoder.update(zero, total, total);
+                one -= 1;
+                out[i] |= 1 << (7 - plane);
+            }
+        }
+    }
+    Ok(out)
+}
