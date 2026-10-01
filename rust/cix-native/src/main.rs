@@ -6,8 +6,9 @@ use std::{
     fs::{self, File, OpenOptions},
     io::{self, Read, Seek, SeekFrom, Write},
     path::Path,
-    process,
-    time::{SystemTime, UNIX_EPOCH},
+    process::{self, Command, Stdio},
+    thread,
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 mod adaptive;
@@ -1680,8 +1681,11 @@ fn encode_portfolio<R: Read, W: Write>(
         "current" => 5,
         _ => 9,
     };
-    let mut winner = cixg_candidate(&data, None, level)?;
-    let mut winner_name = "cix-adaptive".to_string();
+    // Establish a complete, valid archive before any search. The Python
+    // selector does this first too; otherwise one expensive model can prevent
+    // the caller from receiving even a usable fallback.
+    let mut winner = cixg_candidate(&data, Some(0), level)?;
+    let mut winner_name = "cix-route:raw".to_string();
     let backends: &[&str] = if profile == "fast" {
         &["gzip", "zstd", "brotli"]
     } else {
@@ -1690,28 +1694,154 @@ fn encode_portfolio<R: Read, W: Write>(
     for backend in backends {
         check_interrupted()?;
         let candidate = external::encode(backend, profile, &data)?;
-        if candidate.len() < winner.len() {
+        if candidate.len() < winner.len() && portfolio_candidate_matches(&candidate, &data, memory)
+        {
             winner = candidate;
             winner_name = format!("{backend}:direct");
         }
     }
+    let candidate_seconds = if profile == "size" { 12 } else { 4 };
+    let mut omitted = Vec::new();
+    // Candidate encoders run in child processes so each route has a real
+    // deadline. Joining a Rust thread after a timeout would leave the route
+    // consuming CPU, defeating the bounded portfolio contract.
+    if let Some(candidate) = portfolio_cix_candidate(&data, level, memory, None, candidate_seconds)?
+    {
+        if candidate.len() < winner.len() && portfolio_candidate_matches(&candidate, &data, memory)
+        {
+            winner = candidate;
+            winner_name = "cix-adaptive".into();
+        }
+    } else {
+        omitted.push("cix-adaptive".to_string());
+    }
     if profile == "size" {
-        for route in 0u8..=10 {
+        let routes = [
+            "raw",
+            "runs",
+            "composition",
+            "lz",
+            "predictor",
+            "bwt",
+            "stride",
+            "phrases",
+            "ppm",
+            "mixture",
+            "deflate",
+        ];
+        for route in routes {
             check_interrupted()?;
-            let candidate = cixg_candidate(&data, Some(route), level)?;
-            if candidate.len() < winner.len() {
-                winner = candidate;
-                winner_name = format!("cix-route:{route}");
+            if let Some(candidate) = portfolio_cix_candidate(&data, level, memory, Some(route), 4)?
+            {
+                if candidate.len() < winner.len()
+                    && portfolio_candidate_matches(&candidate, &data, memory)
+                {
+                    winner = candidate;
+                    winner_name = format!("cix-route:{route}");
+                }
+            } else {
+                omitted.push(format!("cix-route:{route}"));
             }
         }
     }
     dst.write_all(&winner).map_err(ioerr)?;
     dst.flush().map_err(ioerr)?;
     eprintln!(
-        "cix: portfolio profile={profile}, selected={winner_name}, archive_bytes={}",
-        winner.len()
+        "cix: portfolio profile={profile}, selected={winner_name}, archive_bytes={}, time_budget_omitted={}",
+        winner.len(),
+        if omitted.is_empty() { "none".to_string() } else { omitted.join(",") }
     );
     Ok(())
+}
+
+fn portfolio_candidate_matches(archive: &[u8], source: &[u8], memory: usize) -> bool {
+    let mut restored = Vec::with_capacity(source.len());
+    decode(
+        io::Cursor::new(archive),
+        &mut restored,
+        false,
+        false,
+        -1,
+        memory,
+    )
+    .is_ok()
+        && restored == source
+}
+
+fn portfolio_cix_candidate(
+    data: &[u8],
+    level: u8,
+    memory: usize,
+    route: Option<&str>,
+    timeout_seconds: u64,
+) -> Result<Option<Vec<u8>>, String> {
+    let executable = env::current_exe().map_err(ioerr)?;
+    let mut command = Command::new(executable);
+    command
+        .arg(format!("-{level}"))
+        .args(["--format", "cixg1", "--stream", "--block-size", "65536B"])
+        .arg("--memory")
+        .arg(format!("{memory}B"))
+        .args(["--threads", "1", "-c"]);
+    if let Some(route) = route {
+        command.args(["--route", route]);
+    }
+    command
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null());
+    let mut child = command.spawn().map_err(ioerr)?;
+    let input_len = data.len();
+    let mut child_stdin = child
+        .stdin
+        .take()
+        .ok_or("portfolio child stdin unavailable")?;
+    let input = data.to_vec();
+    let writer = thread::spawn(move || child_stdin.write_all(&input));
+    let child_stdout = child
+        .stdout
+        .take()
+        .ok_or("portfolio child stdout unavailable")?;
+    let output_cap = input_len.saturating_mul(2).saturating_add(2 * 1024 * 1024);
+    let reader = thread::spawn(move || {
+        let mut out = Vec::with_capacity(input_len.saturating_add(1024));
+        child_stdout
+            .take(output_cap as u64)
+            .read_to_end(&mut out)
+            .map(|_| out)
+    });
+    let deadline = Instant::now() + Duration::from_secs(timeout_seconds);
+    let status = loop {
+        if let Err(error) = check_interrupted() {
+            let _ = child.kill();
+            let _ = child.wait();
+            let _ = writer.join();
+            let _ = reader.join();
+            return Err(error);
+        }
+        if let Some(status) = child.try_wait().map_err(ioerr)? {
+            break Some(status);
+        }
+        if Instant::now() >= deadline {
+            let _ = child.kill();
+            let _ = child.wait();
+            break None;
+        }
+        thread::sleep(Duration::from_millis(10));
+    };
+    let _ = writer.join();
+    let output = reader
+        .join()
+        .map_err(|_| "portfolio child output thread panicked")?
+        .map_err(ioerr)?;
+    match status {
+        Some(status) if status.success() && !output.is_empty() && output.len() < output_cap => {
+            Ok(Some(output))
+        }
+        Some(_) => Ok(None),
+        None => Ok(None),
+    }
 }
 
 fn encode_external<R: Read, W: Write>(
