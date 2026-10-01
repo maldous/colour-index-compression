@@ -1,6 +1,6 @@
-//! Frozen CIXG1 byte profiler and bounded route shortlist.
+//! CIXG byte profiler and bounded effort-controlled route shortlist.
 //!
-//! This module mirrors `cix.pipeline` at reference commit
+//! The original byte features mirror `cix.pipeline` at reference commit
 //! `80b95427725ecf59d626b2982d50f6349abd56e1`. Probe adjacency is local to
 //! each sampled region, while repeat and context state are shared between
 //! regions, matching the Python implementation.
@@ -200,7 +200,16 @@ pub fn generate_candidates(
         if route == 0 {
             continue;
         }
-        let backend = forced_backend.unwrap_or_else(|| baseline_backend(route));
+        // FAST evaluates cheap materialized coders rather than exact-rank
+        // trials hidden inside the historical hybrid backend. Explicit
+        // overrides still constrain only the requested coder dimension.
+        let backend = forced_backend.unwrap_or_else(|| {
+            if effort_name == "fast" && (2..=7).contains(&route) {
+                "deflate"
+            } else {
+                baseline_backend(route)
+            }
+        });
         base.push(Candidate {
             route,
             backend: backend.into(),
@@ -260,7 +269,7 @@ pub struct Effort {
 }
 
 pub const FAST: Effort = Effort {
-    block_bytes: 32_768,
+    block_bytes: 65_536,
     sample_bytes: 2_048,
     candidate_limit: 4,
     search_seconds: 0.75,

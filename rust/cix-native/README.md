@@ -37,6 +37,16 @@ uncix --stream -c < output.cix > restored.bin
 
 `--fast` minimizes compression latency, no effort flag uses balanced DEFAULT, and `--best` expands the bounded candidate search for complete archive size. `-1`, `-6` and `-9` are aliases. `--explain` reports decisions and omissions; `--verbose` reports totals. Explicit route/backend overrides constrain their own dimension and retain compatible searches. Intrinsic coders reject contradictory pairs.
 
+FAST uses bounded greedy matching with a fixed 256 KiB index and cheap
+raw/run/DEFLATE substream comparisons. Automatic FAST selection does not run
+exact composition-rank trials. Explicit expert backend choices remain
+available. FAST defaults to 64 KiB blocks; DEFAULT retains 32 KiB, and BEST
+uses 64 KiB. The CLI and Squash splice entry point share this block policy.
+Larger FAST blocks retain more opportunities and reduce frame overhead, but
+can increase first-frame latency on a slow producer. Use `--block-size` or
+`--flush-interval` to bound that delay. Route 3's wire grammar is unchanged;
+existing CIXG1 decoders read the new FAST output.
+
 `-f` permits replacing an output. File output uses a same-directory temporary file and atomic replacement. Inputs are retained by default; `-k` is accepted. Omitting FILE defaults to stdin and stdout, and `--` permits dash-prefixed names. `-c` with a named `-o` is rejected. Streaming is the default, with `--stream` available to state the requirement explicitly. The source is read once without seeking or spooling; only bounded blocks are buffered. Compression and decoding emit complete frames incrementally.
 
 `--threads N` accepts 1 through 4. Native CIXG compression defaults to up to four available CPUs, reducing that default when the memory budget cannot accommodate the worker buffers. `--parallelism blocks` (default) runs independent blocks through one persistent worker pool. Results are written in input order; the outstanding queue is capped at the worker count. Slow output prevents further input admission. `--parallelism candidates` is an expert alternative that runs trials within one block concurrently. Workers share one scratch-memory reservation ledger. Heavy trials wait for permits; impossible requests are reported as omissions. There is no nested worker pool.

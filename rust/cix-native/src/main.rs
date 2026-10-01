@@ -17,6 +17,7 @@ mod bwt_legacy;
 mod chain;
 mod expertmix;
 mod external;
+mod fast_lz;
 mod fixedmix;
 mod gstream;
 mod histogram;
@@ -1029,6 +1030,22 @@ fn route_minimum_memory(route: u8, length: usize) -> usize {
     }
 }
 
+fn candidate_memory(route: u8, length: usize, level: u8, backend: &str) -> usize {
+    if route == 3 && level <= 2 && backend == "deflate" {
+        // Fixed 256 KiB index, bounded raw/RLE/deflate substreams and zlib
+        // workspace. Keep expert coders on their conservative old bound.
+        length.saturating_mul(24).saturating_add(1 << 20)
+    } else {
+        route_minimum_memory(route, length)
+    }
+}
+
+fn default_block(level: u8) -> u32 {
+    selection::effort(selector_effort_name(level))
+        .expect("all numeric efforts have a selector policy")
+        .block_bytes as u32
+}
+
 /// Evaluate candidates in bounded batches. Only the current winner and at
 /// most `workers` transient payloads are resident, and ordered joins retain
 /// the historical first-candidate-wins rule for equal sizes.
@@ -1100,7 +1117,7 @@ fn consider_cixg_candidates_parallel(
             }
             _ => format!("{}:{backend}", selection::ROUTES[route as usize]),
         };
-        let needed = route_minimum_memory(route, data.len());
+        let needed = candidate_memory(route, data.len(), level, backend);
         if worker_memory < needed {
             records.lock().unwrap()[index] = Some(format!("{label}=skipped(memory-per-worker)"));
             totals.lock().unwrap().2 += 1;
@@ -1621,6 +1638,11 @@ fn lz_insert(table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>, data: &
 }
 
 fn lz_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
+    if level <= 2 {
+        let parts = fast_lz::parse(data)?;
+        let refs: Vec<&[u8]> = parts.iter().map(Vec::as_slice).collect();
+        return streams_encode(&refs, level, backend);
+    }
     use std::collections::HashMap;
     let mut table: HashMap<[u8; 4], Vec<usize>> = HashMap::new();
     let mut tags = Vec::new();
@@ -3651,7 +3673,7 @@ pub unsafe extern "C" fn cix_squash_splice(
                 1 if (1..=9).contains(&level) => encode(
                     src,
                     dst,
-                    32768,
+                    default_block(level as u8),
                     level as u8,
                     None,
                     "hybrid",
@@ -3784,7 +3806,7 @@ fn atomic_file(
 }
 fn block_min(o: &Opt) -> usize {
     o.block
-        .unwrap_or(if o.level == 9 { MAX_BLOCK } else { 32768 })
+        .unwrap_or(default_block(o.level))
         .min(MAX_BLOCK) as usize
 }
 
@@ -3921,7 +3943,10 @@ fn run() -> Result<(), String> {
             return Err("--profile accepts fast, default or size".into());
         }
     }
-    if o.route.as_deref() == Some("lz") && o.memory < 16 * 1024 * 1024 {
+    if o.route.as_deref() == Some("lz")
+        && !(o.level <= 2 && (!o.backend_set || o.backend == "deflate"))
+        && o.memory < 16 * 1024 * 1024
+    {
         return Err(
             "--route lz requires --memory of at least 16 MiB for its bounded match index".into(),
         );
@@ -3968,7 +3993,7 @@ fn run() -> Result<(), String> {
     }
     let requested_block = o
         .block
-        .unwrap_or(if o.level == 9 { MAX_BLOCK } else { 32768 });
+        .unwrap_or(default_block(o.level));
     if requested_block == 0 {
         return Err("--block-size must be positive".into());
     }
@@ -4150,6 +4175,44 @@ fn main() {
     if let Err(e) = run() {
         eprintln!("cix: {e}");
         process::exit(2)
+    }
+}
+
+#[cfg(test)]
+mod fast_path_tests {
+    use super::*;
+
+    #[test]
+    fn fast_lz_uses_production_substreams_and_decoder() {
+        let mut random = Vec::new();
+        let mut state = 0x1367_ac48u32;
+        for _ in 0..MAX_BLOCK {
+            state = state.wrapping_mul(1664525).wrapping_add(1013904223);
+            random.push((state >> 24) as u8);
+        }
+        let mut mixed = random[..16384].to_vec();
+        mixed.extend_from_slice(&b"generic repeated dictionary records ".repeat(1200));
+        let cases = [Vec::new(), b"a".to_vec(), b"abcde".to_vec(),
+            vec![0x42; MAX_BLOCK as usize], random, mixed];
+        for input in cases {
+            for backend in ["deflate", "cix", "range", "huffman"] {
+                let payload = lz_encode(&input, 1, backend).unwrap();
+                assert_eq!(lz_decode(&payload, input.len(), true).unwrap(), input);
+            }
+            // Existing parser/wire representation remains readable.
+            let old = lz_encode(&input, 6, "deflate").unwrap();
+            assert_eq!(lz_decode(&old, input.len(), false).unwrap(), input);
+        }
+    }
+
+    #[test]
+    fn cli_and_squash_share_default_block_and_fast_admission() {
+        assert_eq!(default_block(1), 65536);
+        assert_eq!(default_block(6), 32768);
+        assert_eq!(default_block(9), 65536);
+        assert!(candidate_memory(3, 65536, 1, "deflate") < 3 << 20);
+        assert_eq!(candidate_memory(3, 65536, 6, "deflate"),
+            route_minimum_memory(3, 65536));
     }
 }
 
