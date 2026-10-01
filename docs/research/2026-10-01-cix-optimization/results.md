@@ -1,5 +1,18 @@
 # Verified results and rejected attempts
 
+## Current native review and optimization checkpoint
+
+See [adversarial parallel results](adversarial-parallel-results.md) for source
+90/2b/087/ee6 identities, all fresh-decoder evidence and tradeoffs. The fixed PPM
+control achieved an observed 3.16x encoding speedup with four ordered block
+workers, identical 354,023-byte archives, and higher CPU work/RSS. Actual DEFAULT
+v2 improved complete size by 6.30% and 6.27% on two exposed 1 MiB ranges;
+interleaved local replication observed 12.9–13.9% faster encoding and 52.6–55.1%
+faster decoding. Fixed-mix allocation removal preserved exact bytes but showed
+no reliable throughput improvement. Final native release rerun: 178 tests passed.
+Native callback ABI passed; Squash shim still needs the local SDK.
+These are bounded development results, not full Silesia qualification or ranks.
+
 All input-specific numbers below use the existing official Silesia Dickens file only (10,192,446 bytes; SHA-256 `b24c37886142e11d0ee687db6ab06f936207aa7f2ea1fd1d9a36763c7a507e6a`). This is a targeted screening comparison, not renewed Silesia qualification. No Squash CPU times are ranked against these local measurements.
 
 ## ZPAQ lead reproduction
@@ -25,20 +38,41 @@ The release Rust command was `cix --best --route auto --threads 4 --memory 2GiB`
 |---|---:|
 | Complete CIXG1 archive, including all frames/footer | **3,506,980 bytes** |
 | Archive SHA-256 | `4e02d23f43c48ef2812138a945d650bf9093b42e80cabfd8151258cbe23741d8` |
-| Encode wall / CPU | **331.56s / 545.19s** |
-| Decode wall / CPU (fresh Rust `uncix`) | **5.34s / 5.37s** |
-| GNU `time` max RSS | **46.8 MiB encode / 5.8 MiB decode** |
+| Encode wall / CPU | **331.56s / 546.02s** |
+| Decode wall / CPU (fresh Rust `uncix`) | **5.34s / 5.32s** |
+| GNU `time` max RSS | **41.5 MiB encode / 5.8 MiB decode** |
 | Sampled cgroup high-water | 40.4 MiB encode / 13.0 MiB decode (lower bound) |
 | Exact restore | 10,192,446 bytes; source SHA-256 matched |
 | Python cross-decode | Passed using frozen Python reference checkout commit `0d835c98040a197e37b7432f2ec7a8688116dae6`; all CIX Python module hashes are in the cross-decode manifest. |
 
 The separate verbose repeat produced the same archive size and SHA. Its selector counters were 5,304 candidates, 555.970 candidate-seconds summed across workers, 330.983 seconds total search, 0.113 seconds profiling, and 3,506,980 complete archive bytes. The candidate-seconds sum exceeds wall time because candidate evaluations overlap. The output is deterministic across those two BEST runs.
 
+An evidence audit found that an older version of this summary mixed v3
+wall-time with v4 encode CPU and RSS. The figures above now use v3's own
+GNU `time` artifacts (CPU 540.01+6.01s; max RSS 42,496 KiB encode and
+5,976 KiB decode); scheduler receipt CPU/wall and sampled cgroup values are
+reported separately in the immutable receipt and ledger. The manifest also
+contains an erroneous 32 KiB block-size field despite omitting that option;
+the actual frozen default was 65,536 bytes. See [evidence errata](evidence-errata.md).
+
 ### PPM order parameter search (no size gain)
 
 The frozen Python decoder accepts PPM payload orders 0 through 3. An initial 256 KiB interoperability smoke using the Rust encoder's higher orders was rejected: Python raised `ValueError("unbounded PPM order")`. That archive, source sample and encoder log are retained in [`runs/ppm-order-search-dickens-v1/rejected-unsupported-ppm-orders`](runs/ppm-order-search-dickens-v1/rejected-unsupported-ppm-orders/). Automatic exploration is now restricted to orders 1, 2 and the original order 3.
 
+This paragraph describes the historical CIXG1 trial only. The later CIXG2
+compatibility extension supports PPM orders 0–8 in Rust and the Python
+decoder; orders 4–8 have correctness support but no Dickens size/performance
+qualification yet.
+
 On the same Dickens bytes, CIXG1 BEST evaluated 5,616 candidates (312 more than the matched fixed-order run), with zero memory/search-budget skips. It emitted **3,506,980 bytes**, exactly the control size and archive SHA-256, so neither order 1 nor 2 changed any selected encoded bytes on this input. Encode took 327.95s wall / 548.22s CPU; GNU `time` peak RSS was 43,744 KiB. A fresh Rust `uncix` restored the exact source in 5.23s wall / 5.22s CPU at 5,972 KiB max RSS. The frozen Python decoder independently restored the same hash in 98.69s. The runner's equal-size gate marked the attempt `SIZE_REJECTED_UNVERIFIED` and skipped its own decode phase; both decoder checks were then performed manually and verified. The immutable manifest, scheduler claim/terminal, output and cross-decoder artifacts are in [`runs/ppm-order-search-dickens-v1`](runs/ppm-order-search-dickens-v1/).
+
+The order-4+ failure was an implementation gate in the frozen Python
+`route_decode()` wrapper, not a limitation of the PPM payload syntax: the
+underlying frozen `decode_ppm()` accepts orders through 8, matching Rust's
+decoder. An isolated Python compatibility branch now removes that narrower
+wrapper gate. Maximum-effort Rust search is being widened to orders 1–8 and
+will use the versioned CIXG2 magic; the former trial remains valid historical
+evidence for orders 1/2 only. No extended-order Dickens benchmark has run.
 
 ### Four-worker dispatch-order experiment (not promoted)
 
@@ -74,11 +108,43 @@ The longer successful dynamic-queue trial was predeclared with a 600-second tota
 
 ## Next experiments, ordered by expected value
 
-1. **Matched ZPAQ representations:** feed original bytes and each frozen CIX representation to the same ZPAQ 7.15 method-5 stream, then decode ZPAQ followed by the representation decoder. Charge all representation bytes, metadata and decoder steps. Attribute any gain to represented input plus ZPAQ, never to a native CIX model.
+1. **Matched ZPAQ representations:** feed original bytes and each frozen Rust-native reversible CIX representation to the same ZPAQ 7.15 method-5 stream, then decode ZPAQ followed by the representation decoder. Charge all representation-generation time/bytes, metadata and decoder steps. Attribute any gain to represented input plus ZPAQ, never to a native CIX model. Python is a decoder validator only.
 2. **Native lightweight prediction:** add one small order-0/1/2 adaptive bit/byte model and recurrence/periodic probes as independently framed CIX candidates; first compare against the same raw, composition, PPM and DEFLATE blocks. Avoid importing PAQ/ZPAQ model complexity until an incremental win is measured.
-3. **PPM cost/profile:** break out encode cost inside the CIX PPM route and compare Python-compatible orders 1–3 under exact complete-frame cost. The order-1/2 search did not improve Dickens over order 3. Orders above 3 require a versioned compatibility change or coordinated decoder support; they are not eligible in the existing format today.
-4. **Coder ablations:** hold frozen representations fixed and compare CIX exact-rank, adaptive range, count/rank, DEFLATE, standalone Huffman, and a native FSE/ANS implementation where its dependency/build is available. Include all coder and route identifiers in the measured cost.
+3. **PPM cost/profile:** break out encode cost inside the CIX PPM route and compare CIXG2 orders 0–8 under exact complete-frame cost. The historical CIXG1 order-1/2 search did not improve Dickens over order 3. Orders 4–8 now have decoder compatibility but remain unqualified.
+4. **Coder ablations:** hold frozen representations fixed and compare CIX exact-rank, adaptive range, count/rank, DEFLATE, implemented CIXG2 canonical Huffman, and a native FSE/ANS implementation where its dependency/build is available. Include all coder and route identifiers in measured cost.
 5. **Transform combinations and parsing:** measure both orders for BWT/MTF/run coding, stride/residual and prediction; compare lazy/cost-aware LZ parse decisions against the current bounded hash chain. Use small blocks plus an exact exhaustive oracle before any larger trial.
 6. **Selection scoring:** record shortlist omissions against the finite exhaustive oracle on small blocks; repair route feature misses separately from cost estimator errors. Do not call the present BEST search exhaustive.
 
-Promote a method only after a fixed candidate setting restores exactly in a fresh Rust and Python process, includes complete framing, and survives a held-back Dickens region/configuration. No broader source acquisition or non-Silesia local result comparison is authorized by this programme.
+Promote a method only after a frozen candidate setting restores exactly in a fresh native process, includes complete framing, and survives disjoint replication. Retain historical Python compatibility validation for existing formats; it is not a runtime or new-format research gate. No broader source acquisition or non-Silesia local result comparison is authorized by this programme.
+
+## ZPAQ 7.15 method-5 model audit
+
+Local source inspection confirmed that method 5 is a dynamically generated model,
+not just a fixed higher-order PPM. In
+`/home/user/src/cix-baseline-tools/zpaq715/libzpaq.cpp`, the method-5 path
+builds the base configuration `w1i1,c256ci1,1,1,1,1,1,2a`, scans the input for
+last-occurrence positions and a 4,096-bin recurrence-gap histogram, chooses up
+to two periodic models under its score threshold, then appends contexts and
+mixers including `c0,2`, `c0,3`, `c0,4`, `mm16`, `ts19`, and `t0`. Since the
+Dickens invocation is method 5 (`type=512`), it does not take the text-specific
+`w2...` branch.
+
+The resulting model graph uses adaptive CM/ICM, ISSE transforms, a rotating
+history MATCH model, MIX/MIX2 adaptive probability mixing, and SSE calibration.
+`libzpaq.h` documents ordinary/masked history, periodic offsets, and distance
+since last byte occurrence as context features. The dynamic context generator,
+context hashing, ISSE chains, and MATCH model are implemented around
+`libzpaq.cpp` lines 7394–7499; the level-5 selection path is around lines
+7646–7705. Source versions and complete model behavior are not inferred from
+Squash timing rows.
+
+Rust overlap is partial and distinct: `adaptive.rs` codes bytes with
+multinomial context buckets; `fixedmix.rs` is a bitwise adaptive mixer with
+fixed lags and a bounded four-byte exact-match predictor; `expertmix.rs` selects
+byte-context count tables; `stateful.rs` carries selected count-model state.
+None reproduces ZPAQ's dynamic recurrence scan, ISSE chain, rotating MATCH,
+MIX/MIX2 graph, or SSE calibration. The next native hypotheses are therefore
+(1) bounded recurrence-distance context features, (2) up to two input-selected
+periods, (3) an ISSE-like fixed-point chain, (4) a bounded rolling MATCH
+predictor, and (5) post-mixer calibration, each added and ablated separately.
+These are proposed native models, not a port or a ZPAQ backend result.

@@ -1,6 +1,7 @@
 {
   "schema": 1,
   "scope": "Existing official Silesia Dickens only; screening, not Silesia qualification. Squash public CPU figures are not ranked against local results.",
+  "errata": "See evidence-errata.md for immutable v3 manifest block-size discrepancy; v3 timing/RSS fields use GNU time artifacts, while scheduler receipt metrics are retained separately.",
   "input": {
     "bytes": 10192446,
     "sha256": "b24c37886142e11d0ee687db6ab06f936207aa7f2ea1fd1d9a36763c7a507e6a",
@@ -57,9 +58,9 @@
       "bytes": 3506980,
       "sha256": "4e02d23f43c48ef2812138a945d650bf9093b42e80cabfd8151258cbe23741d8",
       "encode_wall_s": 331.56,
-      "encode_cpu_s": 545.19,
+      "encode_cpu_s": 546.02,
       "decode_wall_s": 5.34,
-      "decode_cpu_s": 5.37,
+      "decode_cpu_s": 5.32,
       "max_rss_kib": {
         "encode": 42496,
         "decode": 5976
@@ -280,5 +281,94 @@
       "artifacts": "runs/ppm-dispatch-priority-dickens-v1/",
       "interpretation": "Priority average is 325.67 seconds, 0.7% below one FIFO control, while the replicate is slower than FIFO. This is inconclusive and not a promoted optimization; FIFO dispatch remains in the encoder."
     }
-  ]
+  ],
+  "adversarial_parallel_checkpoint": {
+    "source_revisions": [
+      "90e457277dcb80b1ff713413b07a8c904bb660df",
+      "2b26cc074370c4db9c13c4dd0471a2f37f16443e",
+      "08711c49659ddddb73e5f19b34bf29d50845e3d2",
+      "ee6b4396df760d19005c4e0800783fef58d52334"
+    ],
+    "scope": "Local frozen Dickens ranges and native correctness fixtures, not renewed Silesia qualification or ranking.",
+    "report": "adversarial-parallel-results.md",
+    "provenance_erratum": "adversarial-parallel-evidence/CONTROL-REVISION-ERRATA.md",
+    "experiments": [
+      {
+        "id": "cix-parallel-qualification",
+        "summary": "adversarial-parallel-evidence/cix-parallel-qualification/qualification-summary.json",
+        "verified_cells": 8,
+        "all_fresh_restoration_matched": true,
+        "complete_archive_bytes": [
+          354023,
+          354023,
+          354023,
+          354023,
+          354023,
+          354023,
+          354023,
+          354023
+        ]
+      },
+      {
+        "id": "cix-profile-qualification",
+        "summary": "adversarial-parallel-evidence/cix-profile-qualification/profile-summary.json",
+        "verified_cells": 6,
+        "all_fresh_restoration_matched": true,
+        "complete_archive_bytes": [
+          476034,
+          476034,
+          407643,
+          407643,
+          354023,
+          354023
+        ]
+      },
+      {
+        "id": "cix-default-model-qualification",
+        "summary": "adversarial-parallel-evidence/cix-default-model-qualification/default-model-summary.json",
+        "verified_cells": 8,
+        "all_fresh_restoration_matched": true,
+        "complete_archive_bytes": [
+          407643,
+          407643,
+          381955,
+          381955,
+          423660,
+          423660,
+          397078,
+          397078
+        ]
+      },
+      {
+        "id": "cix-mixer-qualification-mixer-stack-scratch-v1",
+        "summary": "adversarial-parallel-evidence/cix-mixer-qualification-mixer-stack-scratch-v1/qualification-summary.json",
+        "verified_cells": 4,
+        "all_fresh_restoration_matched": true,
+        "complete_archive_bytes": [
+          52400,
+          52400,
+          52400,
+          52400
+        ]
+      },
+      {
+        "id": "cix-default-confidence-v2",
+        "summary": "adversarial-parallel-evidence/cix-default-confidence-v2/default-model-summary.json",
+        "verified_cells": 8,
+        "all_fresh_restoration_matched": true,
+        "complete_archive_bytes": [
+          407643,
+          381955,
+          381955,
+          407643,
+          423660,
+          397078,
+          397078,
+          423660
+        ],
+        "order": "ABBA per range",
+        "implementation_provenance": "Recovered control receipt bound to source90 and binary hash; candidate source ee6."
+      }
+    ]
+  }
 }

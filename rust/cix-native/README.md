@@ -1,19 +1,19 @@
 # CIX (pronounced “six”) native command-line tools
 
-This private research build supports CIXG1 and its versioned CIXG2 extension, plus the legacy CIXM6/CIXF1 containers. `.cix` means a CIX stream archive; it is not ZIP or gzip. It is native Rust and does not launch Python. The DEFLATE route links system zlib.
+This private research build supports CIXG1 and its versioned CIXG2 extension, plus the legacy CIXM6/CIXF1 containers. `.cix` means a CIX stream archive; it is not ZIP or gzip. It is native Rust and does not launch Python. Native linking uses system zlib, bzip2, liblzma, Zstd and Brotli libraries. Explicit external/backend facilities remain separate from native route selection.
 
 ## Build and install (Linux x86_64 verified)
 
-Install Rust stable, a C compiler and zlib development headers, then from the repository root run:
+Install Rust stable, a C compiler and the development/linker packages for zlib, bzip2, liblzma, Zstd and Brotli (on Debian/Ubuntu: `zlib1g-dev libbz2-dev liblzma-dev libzstd-dev libbrotli-dev`). From the repository root run:
 
 ```sh
-cargo build --release --manifest-path rust/cix-native/Cargo.toml
+cargo build --release --locked --manifest-path rust/cix-native/Cargo.toml
 install -Dm755 rust/cix-native/target/release/cix ~/.local/bin/cix
 install -Dm755 rust/cix-native/target/release/uncix ~/.local/bin/uncix
 install -Dm755 rust/cix-native/target/release/cixcat ~/.local/bin/cixcat
 ```
 
-The checked-in `Cargo.lock` pins Rust dependencies. For an LTO build use `cargo build --profile release-lto --manifest-path rust/cix-native/Cargo.toml`. No other operating system or architecture has been built or verified.
+The checked-in `Cargo.lock` pins Rust dependencies. For the delivered LTO build use `CARGO_BUILD_JOBS=2 cargo build --profile release-lto --locked --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib`. Checked-in host binaries are in `dist/`; source, binary hashes and native-library versions are in [native-release.json](../../dist/native-release.json). No other operating system or architecture has been built or verified.
 
 ## Examples
 
@@ -37,7 +37,7 @@ uncix --stream -c < output.cix > restored.bin
 
 `--fast` minimizes compression latency, no effort flag uses balanced DEFAULT, and `--best` expands the bounded candidate search for complete archive size. `-1`, `-6` and `-9` are aliases. `--explain` reports decisions and omissions; `--verbose` reports totals. Explicit route/backend overrides constrain their own dimension and retain compatible searches. Intrinsic coders reject contradictory pairs.
 
-`-f` permits replacing an output. File output uses a same-directory temporary file and atomic replacement. Inputs are retained by default; `-k` is accepted. Streaming is the default, with `--stream` available to state the requirement explicitly. The source is read once without seeking or spooling; only bounded blocks are buffered. Compression and decoding emit complete frames incrementally.
+`-f` permits replacing an output. File output uses a same-directory temporary file and atomic replacement. Inputs are retained by default; `-k` is accepted. Omitting FILE defaults to stdin and stdout, and `--` permits dash-prefixed names. `-c` with a named `-o` is rejected. Streaming is the default, with `--stream` available to state the requirement explicitly. The source is read once without seeking or spooling; only bounded blocks are buffered. Compression and decoding emit complete frames incrementally.
 
 `--threads N` accepts 1 through 4. Native CIXG compression defaults to up to four available CPUs, reducing that default when the memory budget cannot accommodate the worker buffers. `--parallelism blocks` (default) runs independent blocks through one persistent worker pool. Results are written in input order; the outstanding queue is capped at the worker count. Slow output prevents further input admission. `--parallelism candidates` is an expert alternative that runs trials within one block concurrently. Workers share one scratch-memory reservation ledger. Heavy trials wait for permits; impossible requests are reported as omissions. There is no nested worker pool.
 
@@ -58,7 +58,7 @@ Automatic format selection currently chooses CIXG1 for FAST/DEFAULT and CIXG2 fo
 | Python decode of Rust output | Yes; canonical fixed-route fixtures are byte-identical | Yes; Python cross-decodes tested backend/profile fixtures | N/A | Frozen Python decodes every implemented mode's canonical Rust payloads; CIXF1 wrapper round trips on tested fixtures |
 | Exact original-byte restoration | Verified across empty, tiny, random, repetitive and mixed fixtures | Verified for every currently eligible backend/profile pair | N/A | Verified on frozen Python-produced CIXM5/CIXM6 fixtures for every mode 0–20, including nested PPM v2–v5 and malformed/truncated frames |
 
-The frozen Python implementation remains available for historical compatibility checks; native Rust round trips and fresh decoder processes qualify new Rust features. Exact arbitrary-precision combinatorial ranks are implemented without narrowing exact ranks to machine integers. Fixed CIXM6 payload routes target Python's canonical bytes; Rust's bounded per-block selector charges complete frame size and uses `-1` through `-9` as an effort budget. Fixed routes are deterministic; bounded automatic search can omit candidates at time/resource limits and is not an exact reproduction of Python's timing-dependent route selection, and the LZ route uses a bounded hash-chain parser rather than Python's optional suffix-array parser on large blocks. Candidates exceeding the shared configured memory allowance are explicitly omitted with a stderr diagnostic. CIXM5/CIXM6 decoding covers the frozen modes 0–20 and rejects unknown modes. The CIXB1 portfolio and external-backend behavior is unchanged: it uses finite candidates, is limited to 16 MiB, rejects streaming, and charges complete archive bytes. `--memory` bounds estimated codec working allocations, not executable/shared-library RSS; peak RSS is measured separately. The CLI handles one input path per invocation. Use tar pipelines for directories. SIGINT returns nonzero and removes incomplete file output; nonblocking Unix stdout writes make stalled pipe consumers interruptible; this is verified on the current Unix host.
+The frozen Python implementation remains available for historical compatibility checks; native Rust round trips and fresh decoder processes qualify new Rust features. Exact arbitrary-precision combinatorial ranks are implemented without narrowing exact ranks to machine integers. Fixed CIXM6 payload routes target Python's canonical bytes; Rust's bounded per-block selector charges complete frame size and uses `-1` through `-9` as an effort budget. Fixed routes are deterministic; bounded automatic search can omit candidates at time/resource limits and is not an exact reproduction of Python's timing-dependent route selection, and the LZ route uses a bounded hash-chain parser rather than Python's optional suffix-array parser on large blocks. Candidates exceeding the shared configured memory allowance are explicitly omitted with a stderr diagnostic. CIXM5/CIXM6 decoding covers the frozen modes 0–20 and rejects unknown modes. The CIXB1 portfolio and external-backend behavior is unchanged: it uses finite candidates, is limited to 16 MiB, rejects streaming, and charges complete archive bytes. `--memory` bounds estimated codec working allocations, not executable/shared-library RSS; peak RSS is measured separately. The CLI handles one input path per invocation. Use tar pipelines for directories. SIGINT and SIGTERM return nonzero and remove incomplete file output; nonblocking Unix stdout writes make stalled pipe consumers interruptible; this is verified on the current Unix host.
 
 ## Verification
 
@@ -68,3 +68,5 @@ Run `python3 scripts/verify_rust_native.py`, `python3 scripts/verify_rust_stream
 The [Squash plugin](../../squash/README.md) registers the codec through Squash 0.8 splice callbacks and streams directly through the Rust C ABI.
 
 Local Rust tests: `CARGO_BUILD_JOBS=2 cargo test --release --manifest-path rust/cix-native/Cargo.toml`. Process tests exercise explicit two-worker pre-EOF output, idle flushing, slow consumers, stream length beyond the memory budget, fixed-route archive identity across worker counts, decoder model admission and stalled-output SIGINT. See the [adversarial review](../../docs/research/2026-10-01-cix-optimization/adversarial-parallel-review.md) for findings and remaining scope gaps.
+
+The [current local optimization evidence](../../docs/research/2026-10-01-cix-optimization/adversarial-parallel-results.md) reports the measured scheduling and DEFAULT selector improvements, losses and remaining scope. DEFAULT PPM eligibility uses an input-derived prediction rate above 0.1 plus at least 64 prediction opportunities; tiny blocks retain the cheap shortlist. This policy does not affect FAST or BEST breadth.

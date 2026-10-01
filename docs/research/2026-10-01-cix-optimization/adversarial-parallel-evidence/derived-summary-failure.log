@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home/user/src/cix-rust-benchmark-integration/benchmarks/cix_default_model_qualification.py", line 333, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/user/src/cix-rust-benchmark-integration/benchmarks/cix_default_model_qualification.py", line 323, in main
+    rows = summarize(args.area.resolve(), dispatched)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/cix-rust-benchmark-integration/benchmarks/cix_default_model_qualification.py", line 291, in summarize
+    replicate_archive_bytes = validate_complete_archive_replicates(rows)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/cix-rust-benchmark-integration/benchmarks/cix_default_model_qualification.py", line 255, in validate_complete_archive_replicates
+    raise RuntimeError(f"{row.get('cell_id', 'unknown cell')} lacks implementation/range provenance")
+RuntimeError: default-ppm-confidence-v2-native-ee6b4396df760d19005c4e0800783fef58d52334-development-control-r1 lacks implementation/range provenance
