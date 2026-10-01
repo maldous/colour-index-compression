@@ -407,3 +407,23 @@ fn parallel_stream_can_exceed_its_working_memory_budget() {
     let archive = collect(&stdout, Duration::from_secs(30));
     assert_eq!(decode_all(&archive), input);
 }
+
+#[test]
+fn fast_lz_low_memory_stream_emits_before_eof_and_exceeds_budget() {
+    let input = synthetic(20 * 1024 * 1024 + 313);
+    let mut process = cix(&[
+        "--stream", "--fast", "--threads", "1", "--route", "lz",
+        "--memory", "8MiB", "--flush-interval", "50ms", "-c", "-",
+    ]);
+    let mut stdin = take_stdin(&mut process);
+    let stdout = drain(take_stdout(&mut process), Duration::ZERO);
+    // A partial FAST block must cross the pipe while the producer stays open.
+    write_irregular(&mut stdin, &input[..2048]);
+    let mut archive = first_complete_frame(&stdout, STARTUP);
+    write_irregular(&mut stdin, &input[2048..]);
+    drop(stdin);
+    let (status, stderr) = wait(&mut process, Duration::from_secs(30));
+    assert!(status.success(), "FAST bounded LZ failed: {stderr}");
+    archive.extend_from_slice(&collect(&stdout, Duration::from_secs(30)));
+    assert_eq!(decode_all(&archive), input);
+}
