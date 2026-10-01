@@ -25,6 +25,7 @@ mod legacy_lz;
 pub mod limits;
 mod numeric;
 mod parallel;
+mod portfolio_auto;
 mod ppm;
 mod rank;
 mod record_periodic;
@@ -161,6 +162,7 @@ fn parse() -> Result<Opt, String> {
             files.push(a.clone())
         } else if a == "--help" || a == "-h" {
             usage();
+            println!("\nBEST automatically compares eligible complete native CIXG2 and CIXB1 backend archives for named regular files within --memory. Pipes, --stream, and expert framing constraints retain bounded CIXG streaming; use --verbose or --explain to see the selection or exclusion reason.");
             process::exit(0)
         } else if a == "--version" {
             println!(
@@ -3238,7 +3240,7 @@ fn decode<R: Read, W: Write>(
         let expected = u32::from_le_bytes(fields[2..6].try_into().unwrap()) as usize;
         if payload_size > external::MAX_PAYLOAD
             || expected > external::MAX_INPUT
-            || HEADER.saturating_add(expected).saturating_add(payload_size) > memory
+            || 47usize.saturating_add(expected).saturating_add(payload_size) > memory
         {
             return Err("CIXB1 archive exceeds --memory or format limit".into());
         }
@@ -3247,7 +3249,9 @@ fn decode<R: Read, W: Write>(
         archive.extend_from_slice(&fields);
         archive.resize(47 + payload_size, 0);
         read_exact_poll(&mut src, &mut archive[47..], input_fd)?;
-        let data = external::decode(&archive, memory)?;
+        let decoder_memory = memory.checked_sub(archive.capacity())
+            .ok_or("CIXB1 archive exceeds --memory or format limit")?;
+        let data = external::decode(&archive, decoder_memory)?;
         loop {
             let mut extra = [0u8; 1];
             match read_poll(&mut src, &mut extra, input_fd, None)? {
@@ -4027,12 +4031,20 @@ fn run() -> Result<(), String> {
         eprintln!("archive OK");
         return Ok(());
     }
+    let automatic_best = portfolio_auto::eligible(&o);
+    if (o.explain || o.verbose) && !automatic_best {
+        if let Some(reason) = portfolio_auto::exclusion_reason(&o) {
+            eprintln!("cix: effort=best whole_archive=no reason={reason}");
+        }
+    }
     if o.stdout || out == "-" {
         let src = open_input(&o.input)?;
         let fd = input_fd(&src);
         let mut lock = stdout_writer::StdoutWriter::new().map_err(ioerr)?;
         if o.decode {
             decode(src, &mut lock, false, false, fd, o.memory)
+        } else if automatic_best {
+            portfolio_auto::encode(&o, &mut lock)
         } else if o.format == "cixm6" || o.format == "cixf1" {
             let name = if o.format == "cixf1" {
                 Path::new(&o.input)
@@ -4082,6 +4094,8 @@ fn run() -> Result<(), String> {
             let fd = input_fd(&src);
             if o.decode {
                 decode(src, dst, false, false, fd, o.memory)
+            } else if automatic_best {
+                portfolio_auto::encode(&o, dst)
             } else if o.format == "cixm6" || o.format == "cixf1" {
                 let name = if o.format == "cixf1" {
                     Path::new(&o.input)
