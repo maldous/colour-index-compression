@@ -119,16 +119,25 @@ class WaveScheduler:
         else:
             actual_build = None
         budget = manifest["budget"]
-        cpu, memory, temp = int(budget["cpu"]), int(budget["max_rss_bytes"]), int(budget["max_temp_bytes"])
+        cpus = budget["cpu"] if isinstance(budget["cpu"], list) else [budget["cpu"]]
+        cpus = [int(cpu) for cpu in cpus]
+        if not cpus or len(set(cpus)) != len(cpus):
+            raise ValueError("manifest CPU list must be non-empty and unique")
+        memory, temp = int(budget["max_rss_bytes"]), int(budget["max_temp_bytes"])
+        cpu = cpus[0] if len(cpus) == 1 else cpus
         if cell.get("cpu", cpu) != cpu:
             raise ValueError("cell CPU must match immutable manifest budget")
-        if cpu not in os.sched_getaffinity(0):
-            raise ValueError(f"manifest CPU {cpu} is unavailable")
+        unavailable = set(cpus) - os.sched_getaffinity(0)
+        if unavailable:
+            raise ValueError(f"manifest CPUs {sorted(unavailable)} are unavailable")
+        cores = [_core(cpu) for cpu in cpus]
+        if len(set(cores)) != len(cores):
+            raise ValueError("a cell cannot lease multiple logical CPUs from one physical core")
         if memory < 1 or temp < 1:
             raise ValueError("manifest resource limits must be positive")
         return dict(cell_id=cell["cell_id"], owner=cell["owner"], manifest_path=manifest_path,
                     output_dir=output_dir, manifest=manifest, manifest_sha256=manifest_sha, cpu=cpu,
-                    physical_core=_core(cpu), memory=memory, temp=temp,
+                    physical_core=cores, memory=memory, temp=temp,
                     fresh_justification=cell.get("fresh_justification"), build_sha256=actual_build)
 
     def _validate(self, cells):
@@ -139,7 +148,8 @@ class WaveScheduler:
         plans = [self._plan(cell) for cell in cells]
         if len({plan["cell_id"] for plan in plans}) != len(plans):
             raise ValueError("wave has duplicate cell IDs")
-        if len({plan["physical_core"] for plan in plans}) != len(plans):
+        leased_cores = [core for plan in plans for core in plan["physical_core"]]
+        if len(set(leased_cores)) != len(leased_cores):
             raise ValueError("wave has overlapping physical CPU cores")
         memory, temp = sum(plan["memory"] for plan in plans), sum(plan["temp"] for plan in plans)
         if memory > self.max_memory_bytes or temp > self.max_temp_bytes:
@@ -238,20 +248,21 @@ class WaveScheduler:
         handles = []
         try:
             for plan in plans:
-                package, core = plan["physical_core"]
-                handle = (self.core_locks / f"package-{package}-core-{core}.lock").open("a+")
-                try:
-                    fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                except BlockingIOError as error:
-                    handle.close(); raise RuntimeError(f"physical core {package}:{core} is already leased") from error
-                handles.append(handle)
+                for package, core in plan["physical_core"]:
+                    handle = (self.core_locks / f"package-{package}-core-{core}.lock").open("a+")
+                    try:
+                        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    except BlockingIOError as error:
+                        handle.close(); raise RuntimeError(f"physical core {package}:{core} is already leased") from error
+                    handles.append(handle)
             return handles
         except BaseException:
             for handle in handles: handle.close()
             raise
 
     def _command(self, plan):
-        return [self.taskset_command, "-c", str(plan["cpu"]), *self.runner_command,
+        cpus = plan["cpu"] if isinstance(plan["cpu"], list) else [plan["cpu"]]
+        return [self.taskset_command, "-c", ",".join(map(str, cpus)), *self.runner_command,
                 "--manifest", str(plan["manifest_path"]), "--results", str(plan["output_dir"]), "--root", str(self.root)]
 
     def _run(self, plan):

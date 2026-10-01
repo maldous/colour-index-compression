@@ -1,3 +1,5 @@
+#[path = "../limits.rs"]
+mod limits;
 #[path = "../rank.rs"]
 mod rank;
 #[path = "../sparse_runs.rs"]

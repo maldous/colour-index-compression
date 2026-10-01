@@ -93,17 +93,20 @@ fn prime(
     source_length: usize,
     max_order: usize,
     update_exclusion: bool,
-) -> (Tables, Vec<u8>) {
+) -> Result<(Tables, Vec<u8>), String> {
     let mut tables = Tables::new();
     let mut history = Vec::with_capacity(max_order);
     if prefix_history.is_empty() {
-        return (tables, history);
+        return Ok((tables, history));
     }
     let start = training_start(prefix_history.len(), source_length);
     if max_order > 0 && start > 0 {
         history.extend_from_slice(&prefix_history[start.saturating_sub(max_order)..start]);
     }
-    for &symbol in &prefix_history[start..] {
+    for (index, &symbol) in prefix_history[start..].iter().enumerate() {
+        if index & 31 == 0 {
+            crate::limits::check()?;
+        }
         let floor = if update_exclusion {
             update_floor(&tables, &history, symbol, max_order)
         } else {
@@ -111,7 +114,7 @@ fn prime(
         };
         observe_from(&mut tables, &mut history, symbol, max_order, floor);
     }
-    (tables, history)
+    Ok((tables, history))
 }
 
 fn escape_mass(symbols: &[(u8, u32)], method: u8) -> Result<usize, String> {
@@ -167,18 +170,21 @@ fn prime_see(
     source_length: usize,
     max_order: usize,
     update_exclusion: bool,
-) -> (Tables, Vec<u8>, SeeStates) {
+) -> Result<(Tables, Vec<u8>, SeeStates), String> {
     let mut tables = Tables::new();
     let mut history = Vec::with_capacity(max_order);
     let mut states = SeeStates::new();
     if prefix_history.is_empty() {
-        return (tables, history, states);
+        return Ok((tables, history, states));
     }
     let start = training_start(prefix_history.len(), source_length);
     if max_order > 0 && start > 0 {
         history.extend_from_slice(&prefix_history[start.saturating_sub(max_order)..start]);
     }
-    for &symbol in &prefix_history[start..] {
+    for (index, &symbol) in prefix_history[start..].iter().enumerate() {
+        if index & 31 == 0 {
+            crate::limits::check()?;
+        }
         let mut excluded = [false; 256];
         let mut matched_order = 0;
         let highest = max_order.min(history.len());
@@ -212,7 +218,7 @@ fn prime_see(
             if update_exclusion { matched_order } else { 0 },
         );
     }
-    (tables, history, states)
+    Ok((tables, history, states))
 }
 
 fn put_varint(mut value: usize, out: &mut Vec<u8>) {
@@ -256,7 +262,7 @@ pub fn encode_fixed(
     if escape_method > 3 {
         return Err("unsupported PPM escape method".into());
     }
-    let (tables, history) = prime(prefix_history, data.len(), max_order, update_exclusion);
+    let (tables, history) = prime(prefix_history, data.len(), max_order, update_exclusion)?;
     encode_fixed_from_state(
         data,
         max_order,
@@ -276,7 +282,10 @@ fn encode_fixed_from_state(
     mut history: Vec<u8>,
 ) -> Result<Vec<u8>, String> {
     let mut encoder = ArithmeticEncoder::new();
-    for &symbol in data {
+    for (index, &symbol) in data.iter().enumerate() {
+        if index & 31 == 0 {
+            crate::limits::check()?;
+        }
         let mut excluded = [false; 256];
         let mut coded = false;
         let mut matched_order = 0;
@@ -350,9 +359,12 @@ pub fn encode_secondary(
         return Err("PPM order exceeds supported maximum".into());
     }
     let (mut tables, mut history, mut states) =
-        prime_see(prefix_history, data.len(), max_order, update_exclusion);
+        prime_see(prefix_history, data.len(), max_order, update_exclusion)?;
     let mut encoder = ArithmeticEncoder::new();
-    for &symbol in data {
+    for (index, &symbol) in data.iter().enumerate() {
+        if index & 31 == 0 {
+            crate::limits::check()?;
+        }
         let mut excluded = [false; 256];
         let mut coded = false;
         let mut matched_order = 0;
@@ -454,7 +466,7 @@ pub fn encode_best(
     let mut best: Option<Vec<u8>> = None;
     if secondary_escape != Some(true) {
         for &variant in variants {
-            let (tables, history) = prime(prefix_history, data.len(), max_order, variant);
+            let (tables, history) = prime(prefix_history, data.len(), max_order, variant)?;
             for &method in methods {
                 let candidate = encode_fixed_from_state(
                     data,
@@ -500,7 +512,10 @@ pub fn estimate_bits(data: &[u8], max_order: usize) -> Result<f64, String> {
     let mut tables = Tables::new();
     let mut history = Vec::with_capacity(max_order);
     let mut bits = 0.0f64;
-    for &symbol in &data[..sample_length] {
+    for (index, &symbol) in data[..sample_length].iter().enumerate() {
+        if index & 31 == 0 {
+            crate::limits::check()?;
+        }
         let mut excluded = [false; 256];
         let mut coded = false;
         let highest = max_order.min(history.len());
@@ -592,11 +607,14 @@ pub fn decode_with_history(
             prefix_history[prefix_history.len().saturating_sub(max_order)..].to_vec(),
         )
     } else {
-        prime(prefix_history, source_length, max_order, update_exclusion)
+        prime(prefix_history, source_length, max_order, update_exclusion)?
     };
     let mut decoder = ArithmeticDecoder::new(&blob[pos..end], bit_length);
     let mut out = Vec::with_capacity(source_length);
-    for _ in 0..source_length {
+    for index in 0..source_length {
+        if index & 31 == 0 {
+            crate::limits::check()?;
+        }
         let mut excluded = [false; 256];
         let mut symbol = None;
         let mut matched_order = 0;
@@ -673,10 +691,13 @@ fn decode_see(
     update_exclusion: bool,
 ) -> Result<Vec<u8>, String> {
     let (mut tables, mut history, mut states) =
-        prime_see(prefix_history, source_length, max_order, update_exclusion);
+        prime_see(prefix_history, source_length, max_order, update_exclusion)?;
     let mut decoder = ArithmeticDecoder::new(payload, bit_length);
     let mut out = Vec::with_capacity(source_length);
-    for _ in 0..source_length {
+    for index in 0..source_length {
+        if index & 31 == 0 {
+            crate::limits::check()?;
+        }
         let mut excluded = [false; 256];
         let mut symbol = None;
         let mut matched_order = 0;

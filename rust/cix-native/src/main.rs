@@ -6,8 +6,9 @@ use std::{
     fs::{self, File, OpenOptions},
     io::{self, Read, Seek, SeekFrom, Write},
     path::Path,
-    process,
-    time::{SystemTime, UNIX_EPOCH},
+    process::{self, Command, Stdio},
+    thread,
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 mod adaptive;
@@ -17,29 +18,34 @@ mod chain;
 mod expertmix;
 mod external;
 mod fixedmix;
+mod gstream;
 mod histogram;
+mod huffman;
 mod legacy_lz;
+pub mod limits;
 mod numeric;
+mod parallel;
 mod ppm;
 mod rank;
 mod record_periodic;
+mod resources;
+mod selection;
 mod sparse_runs;
 mod stateful;
+mod stdout_writer;
 mod transform;
 mod wavelet;
+mod zpaq_context;
 
 const MAGIC: &[u8; 5] = b"CIXG1";
+const MAGIC_V2: &[u8; 5] = b"CIXG2";
 const HEADER: usize = 13;
 const END: u8 = 255;
 const MAX_BLOCK: u32 = 65536;
 const EXPERT_CONTEXT_MEMORY_ESTIMATE: usize = 8192;
-static INTERRUPTED: AtomicBool = AtomicBool::new(false);
+use crate::limits::INTERRUPTED;
 fn check_interrupted() -> Result<(), String> {
-    if INTERRUPTED.load(Ordering::Relaxed) {
-        Err("interrupted".into())
-    } else {
-        Ok(())
-    }
+    crate::limits::check()
 }
 fn read_poll<R: Read>(
     src: &mut R,
@@ -101,14 +107,18 @@ struct Opt {
     list: bool,
     level: u8,
     threads: usize,
+    threads_set: bool,
+    parallelism: String,
     memory: usize,
     input: String,
     output: Option<String>,
     route: Option<String>,
     backend: String,
+    backend_set: bool,
     external_backend: Option<String>,
     profile: String,
     profile_set: bool,
+    level_set: bool,
     portfolio: Option<String>,
     format: String,
     block: Option<u32>,
@@ -116,18 +126,21 @@ struct Opt {
     history: usize,
     independent_blocks: bool,
     flush_interval: Option<std::time::Duration>,
+    explain: bool,
+    verbose: bool,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--external gzip|bzip2|xz|zstd|brotli --profile fast|current|size | --portfolio fast|current|size] [--format cixg1|cixm6] [--backend cix|deflate|hybrid|range|count-range] [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|bwt|stride|phrases|ppm|mixture|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported stream routes: raw, runs, exact-rank composition, LZ, predictor, PPM, fixed mixer, BWT/MTF, stride transforms, phrases and raw DEFLATE. Adaptive-range and count-range coding are available with the predictor route's --backend option. --external writes bounded CIXB1 (max 16 MiB); `--format cixm6` writes bounded raw/multinomial CIXM6 blocks and `--format cixf1` adds the source basename wrapper; ordinary operation writes CIXG1. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] FILE...\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] FILE...\n       cixcat FILE...\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best. Input files are kept by default. Use '-' for standard input or output. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format auto|cixg1|cixg2|cixm6|cixf1  Select or constrain the container version\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Set the maximum CIXG1/CIXG2 block\n  --memory SIZE               Bound working memory\n  --threads N                 Bound CPU workers (1..4; default up to 4)\n  --parallelism blocks|candidates  Choose ordered blocks or within-block trials\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Emit partial CIXG1/CIXG2 blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
         level: 6,
-        threads: 1,
+        threads: thread::available_parallelism().map_or(1, |n| n.get().min(4)),
+        parallelism: "blocks".into(),
         memory: 512 * 1024 * 1024,
         backend: "hybrid".into(),
-        profile: "current".into(),
-        format: "cixg1".into(),
+        profile: "default".into(),
+        format: "auto".into(),
         ..Opt::default()
     };
     let args: Vec<String> = env::args().collect();
@@ -146,7 +159,7 @@ fn parse() -> Result<Opt, String> {
             process::exit(0)
         } else if a == "--version" {
             println!(
-                "cix-native {} (CIXG1/CIXM6/CIXF1)",
+                "cix-native {} (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1)",
                 env!("CARGO_PKG_VERSION")
             );
             process::exit(0)
@@ -164,6 +177,16 @@ fn parse() -> Result<Opt, String> {
         } else if a == "-l" {
             o.list = true;
             o.decode = true
+        } else if a == "--fast" {
+            o.level = 1;
+            o.level_set = true;
+        } else if a == "--best" {
+            o.level = 9;
+            o.level_set = true;
+        } else if a == "--explain" {
+            o.explain = true;
+        } else if a == "--verbose" {
+            o.verbose = true;
         } else if a == "-1"
             || a == "-2"
             || a == "-3"
@@ -174,12 +197,14 @@ fn parse() -> Result<Opt, String> {
             || a == "-8"
             || a == "-9"
         {
-            o.level = a[1..].parse().unwrap()
+            o.level = a[1..].parse().unwrap();
+            o.level_set = true;
         } else if a == "--stream" {
             o.stream = true
         } else if a == "--independent-blocks" {
             o.independent_blocks = true
         } else if a == "--threads"
+            || a == "--parallelism"
             || a == "--memory"
             || a == "-o"
             || a == "--output"
@@ -199,14 +224,31 @@ fn parse() -> Result<Opt, String> {
                 return Err(format!("{a} requires a value"));
             }
             match a.as_str() {
-                "--threads" => o.threads = args[i].parse().map_err(|_| "invalid thread count")?,
+                "--threads" => {
+                    o.threads = args[i].parse().map_err(|_| "invalid thread count")?;
+                    o.threads_set = true;
+                }
+                "--parallelism" => o.parallelism = args[i].clone(),
                 "--memory" => o.memory = parse_size(&args[i])?,
                 "--route" => o.route = Some(args[i].clone()),
                 "--backend" => {
                     o.backend = args[i].clone();
+                    o.backend_set = true;
                     if !matches!(
                         o.backend.as_str(),
-                        "cix" | "deflate" | "hybrid" | "range" | "count-range"
+                        "cix"
+                            | "raw"
+                            | "runs"
+                            | "ppm"
+                            | "mixture"
+                            | "deflate"
+                            | "hybrid"
+                            | "range"
+                            | "count-range"
+                            | "context-range-o1-b4"
+                            | "context-range-o1-b8"
+                            | "context-range-o2-b8"
+                            | "huffman"
                     ) {
                         return Err("unsupported backend".into());
                     }
@@ -338,7 +380,11 @@ fn wait_input(_fd: i32, _timeout: std::time::Duration) -> io::Result<bool> {
 #[cfg(unix)]
 fn input_fd(file: &File) -> i32 {
     use std::os::fd::AsRawFd;
-    file.as_raw_fd()
+    if file.metadata().is_ok_and(|m| m.is_file()) {
+        -1
+    } else {
+        file.as_raw_fd()
+    }
 }
 #[cfg(not(unix))]
 fn input_fd(_file: &File) -> i32 {
@@ -422,6 +468,32 @@ fn entropy(b: &[u8]) -> f64 {
 }
 
 fn stream_payload(data: &[u8], level: u8, backend: &str) -> Result<(u8, Vec<u8>), String> {
+    if backend == "huffman" {
+        // Huffman has its own complete, versioned substream framing. Raw is
+        // still the exact fallback, and an explicit override never quietly
+        // evaluates or reports an unrelated coder.
+        let encoded = huffman::encode(data).map_err(|error| error.to_string())?;
+        return [(0, data.to_vec()), (7, encoded)]
+            .into_iter()
+            .min_by_key(|(_, payload)| payload.len())
+            .ok_or_else(|| "no CIX substream candidates".into());
+    }
+    if let Some((order, bits)) = match backend {
+        "context-range-o1-b4" => Some((1, 4)),
+        "context-range-o1-b8" => Some((1, 8)),
+        "context-range-o2-b8" => Some((2, 8)),
+        _ => None,
+    } {
+        // An explicit backend override constrains the coder dimension. Keep
+        // raw as the lossless fallback, but do not silently compare unrelated
+        // backends and report their result as this backend.
+        let context = adaptive::encode_general(data, order, bits, &[], 1usize << bits)?;
+        let candidates = [(0, data.to_vec()), (6, context)];
+        return candidates
+            .into_iter()
+            .min_by_key(|(_, payload)| payload.len())
+            .ok_or_else(|| "no CIX substream candidates".into());
+    }
     let mut candidates: Vec<(u8, Vec<u8>)> = vec![(0, data.to_vec()), (1, rle(data))];
     if matches!(backend, "cix" | "hybrid") && entropy(&data[..data.len().min(8192)]) < 7.5 {
         candidates.push((2, rank::encode_composition_tiles(data)?));
@@ -450,6 +522,7 @@ fn streams_encode(parts: &[&[u8]], level: u8, backend: &str) -> Result<Vec<u8>, 
     let mut out = Vec::new();
     out.push(parts.len() as u8);
     for part in parts {
+        limits::check()?;
         let (coder, payload) = stream_payload(part, level, backend)?;
         out.push(coder);
         out.extend_from_slice(&(part.len() as u32).to_le_bytes());
@@ -459,7 +532,11 @@ fn streams_encode(parts: &[&[u8]], level: u8, backend: &str) -> Result<Vec<u8>, 
     Ok(out)
 }
 
-fn streams_decode(blob: &[u8], limit: usize) -> Result<Vec<Vec<u8>>, String> {
+fn streams_decode(
+    blob: &[u8],
+    limit: usize,
+    allow_extended_coders: bool,
+) -> Result<Vec<Vec<u8>>, String> {
     if blob.is_empty() || blob[0] == 0 || blob[0] > 8 {
         return Err("invalid CIX substream count".into());
     }
@@ -496,6 +573,35 @@ fn streams_decode(blob: &[u8], limit: usize) -> Result<Vec<Vec<u8>>, String> {
             3 => inflate(payload, n)?,
             4 => adaptive::decode(payload, n)?,
             5 => rank::decode_composition_tiles(payload, n)?,
+            6 => {
+                if !allow_extended_coders {
+                    return Err("CIXG1 cannot contain versioned context-range substreams".into());
+                }
+                if payload.len() < 4 || payload[0] != 1 {
+                    return Err("invalid context-range substream header".into());
+                }
+                let order = payload[1] as usize;
+                let bits = payload[2] as usize;
+                if !(1..=16).contains(&order) || !(1..=8).contains(&bits) {
+                    return Err("context-range parameters exceed version-1 bounds".into());
+                }
+                adaptive::decode_general(payload, n, &[], 1usize << bits)?
+            }
+            7 => {
+                if !allow_extended_coders {
+                    return Err("CIXG1 cannot contain versioned Huffman substreams".into());
+                }
+                if payload.len() < 11
+                    || u64::from_le_bytes(payload[3..11].try_into().unwrap()) != n as u64
+                {
+                    return Err("Huffman substream decoded length mismatch".into());
+                }
+                let decoded = huffman::decode(payload).map_err(|error| error.to_string())?;
+                if decoded.len() != n {
+                    return Err("Huffman substream decoded length mismatch".into());
+                }
+                decoded
+            }
             _ => return Err(format!("unsupported CIX substream coder {coder}")),
         };
         parts.push(decoded);
@@ -511,8 +617,12 @@ fn stream_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, Strin
     streams_encode(&[data], level, backend)
 }
 
-fn stream_decode(blob: &[u8], expected: usize) -> Result<Vec<u8>, String> {
-    let mut parts = streams_decode(blob, expected)?;
+fn stream_decode(
+    blob: &[u8],
+    expected: usize,
+    allow_extended_coders: bool,
+) -> Result<Vec<u8>, String> {
+    let mut parts = streams_decode(blob, expected, allow_extended_coders)?;
     if parts.len() != 1 || parts[0].len() != expected {
         return Err("expected exactly one CIX byte substream".into());
     }
@@ -710,10 +820,13 @@ fn select_stride(sample: &[u8]) -> Result<u8, String> {
         .ok_or("empty stride candidate set".into())
 }
 
-fn phrase_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+fn phrase_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
     use std::collections::HashMap;
     let mut counts: HashMap<[u8; 2], (usize, usize)> = HashMap::new();
     for i in 0..data.len().saturating_sub(1) {
+        if i & 255 == 0 {
+            limits::check()?;
+        }
         let key = [data[i], data[i + 1]];
         let entry = counts.entry(key).or_insert((0, i));
         entry.0 += 1;
@@ -737,6 +850,9 @@ fn phrase_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
     let mut indices = Vec::new();
     let mut i = 0;
     while i < data.len() {
+        if i & 255 == 0 {
+            limits::check()?;
+        }
         if i + 1 < data.len() {
             if let Some(&index) = lookup.get(&[data[i], data[i + 1]]) {
                 tags.push(1);
@@ -751,7 +867,7 @@ fn phrase_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
     }
     let owned = vec![tags, literals, indices];
     let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-    let streams = streams_encode(&refs, level, "hybrid")?;
+    let streams = streams_encode(&refs, level, backend)?;
     let mut out = Vec::with_capacity(1 + 2 * dictionary.len() + streams.len());
     out.push(dictionary.len() as u8);
     for key in dictionary {
@@ -761,7 +877,7 @@ fn phrase_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-fn phrase_decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
+fn phrase_decode(blob: &[u8], n: usize, allow_extended_coders: bool) -> Result<Vec<u8>, String> {
     if blob.is_empty() || blob[0] > 32 {
         return Err("invalid phrase dictionary size".into());
     }
@@ -774,7 +890,7 @@ fn phrase_decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
         .chunks_exact(2)
         .map(|p| [p[0], p[1]])
         .collect();
-    let parts = streams_decode(&blob[start..], n.saturating_mul(2))?;
+    let parts = streams_decode(&blob[start..], n.saturating_mul(2), allow_extended_coders)?;
     if parts.len() != 3 {
         return Err("phrase stream count mismatch".into());
     }
@@ -803,26 +919,25 @@ fn phrase_decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-fn stride_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+fn stride_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
     let id = select_stride(&data[..data.len().min(4096)])?;
     let transformed = apply_stride(data, id)?;
     let (width, _, _) = stride_spec(id)?;
     let plane = transformed.len() / width;
-    let mut owned = Vec::with_capacity(width);
+    let mut refs: Vec<&[u8]> = Vec::with_capacity(width);
     for lane in 0..width - 1 {
-        owned.push(transformed[lane * plane..(lane + 1) * plane].to_vec());
+        refs.push(&transformed[lane * plane..(lane + 1) * plane]);
     }
-    owned.push(transformed[(width - 1) * plane..].to_vec());
-    let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-    let streams = streams_encode(&refs, level, "hybrid")?;
+    refs.push(&transformed[(width - 1) * plane..]);
+    let streams = streams_encode(&refs, level, backend)?;
     let mut out = Vec::with_capacity(1 + streams.len());
     out.push(id);
     out.extend_from_slice(&streams);
     Ok(out)
 }
 
-fn join_streams(blob: &[u8], limit: usize) -> Result<Vec<u8>, String> {
-    let parts = streams_decode(blob, limit)?;
+fn join_streams(blob: &[u8], limit: usize, allow_extended_coders: bool) -> Result<Vec<u8>, String> {
+    let parts = streams_decode(blob, limit, allow_extended_coders)?;
     let total = parts.iter().map(Vec::len).sum();
     if total > limit {
         return Err("decoded CIX stream length exceeds limit".into());
@@ -834,21 +949,450 @@ fn join_streams(blob: &[u8], limit: usize) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-fn encode_route(route: u8, data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
+fn encode_route(
+    route: u8,
+    data: &[u8],
+    level: u8,
+    backend: &str,
+    parameter: Option<u8>,
+) -> Result<Vec<u8>, String> {
     match route {
         0 => Ok(data.to_vec()),
         1 => Ok(rle(data)),
-        2 => stream_encode(data, level, "cix"),
-        3 => lz_encode(data, level),
+        2 => stream_encode(data, level, backend),
+        3 => lz_encode(data, level, backend),
         4 => stream_encode(&predictor_residual(data, false), level, backend),
-        5 => bwt_encode(data, level),
-        6 => stride_encode(data, level),
-        7 => phrase_encode(data, level),
-        8 => ppm::encode(data, 3),
-        9 => Ok(fixedmix::encode(data)),
+        5 => bwt_encode(data, level, backend),
+        6 => stride_encode(data, level, backend),
+        7 => phrase_encode(data, level, backend),
+        8 => ppm::encode(data, usize::from(parameter.unwrap_or(3))),
+        9 => fixedmix::encode_with_history_eta(data, &[], 6),
         10 => stream_encode(data, level, "deflate"),
         _ => Err(format!("unsupported native route ID {route}")),
     }
+}
+
+fn selector_effort_name(level: u8) -> &'static str {
+    match level {
+        0..=2 => "fast",
+        3..=8 => "balanced",
+        _ => "maximum",
+    }
+}
+
+#[derive(Default)]
+struct AutoSelectionStats {
+    blocks: u64,
+    profile_seconds: f64,
+    search_seconds: f64,
+    candidate_seconds: f64,
+    candidate_attempts: u64,
+    memory_skips: u64,
+    budget_skips: u64,
+    selected_source_bytes: [u64; 11],
+    explanations: Vec<String>,
+}
+
+fn route_minimum_memory(route: u8, length: usize) -> usize {
+    // Conservative maximum allocation admission from the bounded block's
+    // table insertion opportunities. These include allocator/table slack;
+    // executable and shared-library mappings are measured separately by RSS.
+    match route {
+        0 => 0,
+        1 => length.saturating_mul(3).saturating_add(4096),
+        9 => length.saturating_mul(4096).saturating_add(8 << 20),
+        8 => length.saturating_mul(2048).saturating_add(8 << 20),
+        3 => length.saturating_mul(128).saturating_add(16 << 20),
+        _ => length.saturating_mul(128).saturating_add(1 << 20),
+    }
+}
+
+/// Evaluate candidates in bounded batches. Only the current winner and at
+/// most `workers` transient payloads are resident, and ordered joins retain
+/// the historical first-candidate-wins rule for equal sizes.
+fn consider_cixg_candidates_parallel(
+    candidates: &[selection::Candidate],
+    data: &[u8],
+    level: u8,
+    budget: &resources::MemoryBudget,
+    workers: usize,
+    search_budget_seconds: f64,
+    trial_budget_seconds: f64,
+    worker_memory_mib: usize,
+    stats: &mut AutoSelectionStats,
+    best_route: &mut u8,
+    best_backend: &mut String,
+    best_payload: &mut Vec<u8>,
+    evaluated: &mut Vec<String>,
+) -> Result<(), String> {
+    let workers = workers.max(1).min(candidates.len().max(1));
+    let worker_memory = budget
+        .capacity_bytes()
+        .min(worker_memory_mib.saturating_mul(1024 * 1024));
+    let search_started = Instant::now();
+    let search_deadline =
+        search_started.checked_add(Duration::from_secs_f64(search_budget_seconds));
+    let trial_budget = Duration::from_secs_f64(trial_budget_seconds);
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let failed = AtomicBool::new(false);
+    let first_error = std::sync::Mutex::new(None::<String>);
+    let winner = std::sync::Mutex::new((
+        None::<usize>,
+        *best_route,
+        best_backend.clone(),
+        std::mem::take(best_payload),
+    ));
+    let records = std::sync::Mutex::new(
+        std::iter::repeat_with(|| None::<String>)
+            .take(candidates.len())
+            .collect::<Vec<_>>(),
+    );
+    let totals = std::sync::Mutex::new((0.0f64, 0u64, 0u64, 0u64));
+    let evaluate_worker = || loop {
+        if failed.load(Ordering::Relaxed) {
+            break;
+        }
+        if let Err(error) = check_interrupted() {
+            let mut first = first_error.lock().unwrap();
+            if first.is_none() {
+                *first = Some(error);
+            }
+            failed.store(true, Ordering::Relaxed);
+            break;
+        }
+        if search_started.elapsed().as_secs_f64() >= search_budget_seconds {
+            break;
+        }
+        let index = next.fetch_add(1, Ordering::Relaxed);
+        let Some(candidate_spec) = candidates.get(index) else {
+            break;
+        };
+        let route = candidate_spec.route;
+        let backend = candidate_spec.backend.as_str();
+        let label = match candidate_spec.parameter {
+            Some(parameter) if route == 8 => {
+                format!(
+                    "{}:{backend}:order-{parameter}",
+                    selection::ROUTES[route as usize]
+                )
+            }
+            _ => format!("{}:{backend}", selection::ROUTES[route as usize]),
+        };
+        let needed = route_minimum_memory(route, data.len());
+        if worker_memory < needed {
+            records.lock().unwrap()[index] = Some(format!("{label}=skipped(memory-per-worker)"));
+            totals.lock().unwrap().2 += 1;
+            continue;
+        }
+        let permit = match budget.acquire(needed, search_deadline, || {
+            crate::limits::check().is_err() || failed.load(Ordering::Relaxed)
+        }) {
+            Ok(permit) => permit,
+            Err(resources::MemoryError::DeadlineExceeded) => {
+                records.lock().unwrap()[index] = Some(format!("{label}=skipped(search-budget)"));
+                totals.lock().unwrap().3 += 1;
+                continue;
+            }
+            Err(error) => {
+                let mut first = first_error.lock().unwrap();
+                if first.is_none() {
+                    *first = Some(error.to_string());
+                }
+                failed.store(true, Ordering::Relaxed);
+                break;
+            }
+        };
+        // Acquire can itself wait behind another candidate. Recompute
+        // after admission so that wait time is charged to the same
+        // whole-search budget as encoding time.
+        let remaining_search = match search_deadline {
+            Some(deadline) => match deadline.checked_duration_since(Instant::now()) {
+                Some(remaining) if !remaining.is_zero() => remaining,
+                _ => {
+                    records.lock().unwrap()[index] =
+                        Some(format!("{label}=skipped(search-budget)"));
+                    totals.lock().unwrap().3 += 1;
+                    break;
+                }
+            },
+            // Preserve the prior behaviour for an unrepresentable
+            // Instant: the resource acquire still has no deadline,
+            // while each candidate retains its finite trial limit.
+            None => trial_budget,
+        };
+        let started = Instant::now();
+        // A trial may never consume more than the time still left in
+        // this block's search budget.  DeadlineGuard also composes
+        // with an outer deadline installed by a streaming worker.
+        let effective_trial_budget = trial_budget.min(remaining_search);
+        let deadline_guard = crate::limits::DeadlineGuard::new(effective_trial_budget);
+        let result = encode_route(route, data, level, backend, candidate_spec.parameter);
+        drop(deadline_guard);
+        let seconds = started.elapsed().as_secs_f64();
+        let exhausted_search = search_deadline.is_some_and(|deadline| Instant::now() >= deadline);
+        match result {
+            Err(error) if error == crate::limits::DEADLINE_ERROR => {
+                let reason = if exhausted_search {
+                    "search-budget"
+                } else {
+                    "trial-budget"
+                };
+                records.lock().unwrap()[index] =
+                    Some(format!("{label}=skipped({reason},{seconds:.3}s)"));
+                let mut total = totals.lock().unwrap();
+                total.0 += seconds;
+                total.1 += 1;
+                total.3 += 1;
+            }
+            Err(error) => {
+                let mut first = first_error.lock().unwrap();
+                if first.is_none() {
+                    *first = Some(error);
+                }
+                failed.store(true, Ordering::Relaxed);
+                break;
+            }
+            Ok(payload) => {
+                let size = payload.len();
+                // Cheap routes may not reach a polling point before their
+                // copy/allocation work completes. The wall-clock check keeps
+                // such a completed payload out of a search whose total
+                // budget expired during that work.
+                let within_trial_budget =
+                    seconds <= effective_trial_budget.as_secs_f64() && !exhausted_search;
+                {
+                    let mut current = winner.lock().unwrap();
+                    let wins = within_trial_budget
+                        && (size < current.3.len()
+                            || (size == current.3.len()
+                                && current.0.is_some_and(|old_index| index < old_index)));
+                    if wins {
+                        // Winning payload lives in the pre-reserved
+                        // block result slot; discard spare capacity.
+                        *current = (
+                            Some(index),
+                            route,
+                            backend.to_owned(),
+                            payload.into_boxed_slice().into_vec(),
+                        );
+                    }
+                }
+                records.lock().unwrap()[index] = Some(if within_trial_budget {
+                    format!("{label}={size}B/{seconds:.3}s")
+                } else if exhausted_search {
+                    format!("{label}=skipped(search-budget,{seconds:.3}s)")
+                } else {
+                    format!("{label}=skipped(trial-budget,{seconds:.3}s)")
+                });
+                let mut total = totals.lock().unwrap();
+                total.0 += seconds;
+                total.1 += 1;
+                if !within_trial_budget {
+                    total.3 += 1;
+                }
+            }
+        }
+        drop(permit);
+    };
+    if workers == 1 {
+        evaluate_worker();
+    } else {
+        thread::scope(|scope| {
+            for _ in 0..workers {
+                scope.spawn(&evaluate_worker);
+            }
+        });
+    }
+    if let Some(error) = first_error.into_inner().unwrap() {
+        return Err(error);
+    }
+    let (seconds, attempts, skips, budget_skips) = totals.into_inner().unwrap();
+    stats.candidate_seconds += seconds;
+    stats.candidate_attempts += attempts;
+    stats.memory_skips += skips;
+    stats.budget_skips += budget_skips;
+    let records = records.into_inner().unwrap();
+    stats.budget_skips += records.iter().filter(|record| record.is_none()).count() as u64;
+    evaluated.extend(records.into_iter().enumerate().map(|(index, record)| {
+        record.unwrap_or_else(|| {
+            format!(
+                "{}:{}=skipped(search-budget)",
+                selection::ROUTES[candidates[index].route as usize],
+                candidates[index].backend
+            )
+        })
+    }));
+    let (_, route, backend, payload) = winner.into_inner().unwrap();
+    *best_route = route;
+    *best_backend = backend;
+    *best_payload = payload;
+    Ok(())
+}
+
+/// Keep an explicit route fixed while the effort policy still searches its
+/// compatible nested coders. An explicit backend narrows only that dimension.
+fn select_cixg_fixed_route(
+    route: u8,
+    data: &[u8],
+    backend_override: Option<&str>,
+    format: &str,
+    effort_name: &str,
+    budget: &resources::MemoryBudget,
+    workers: usize,
+    stats: &mut AutoSelectionStats,
+    explain: bool,
+) -> Result<(u8, Vec<u8>), String> {
+    let search_started = Instant::now();
+    let profile_started = Instant::now();
+    let effort = selection::effort(effort_name).ok_or("invalid selector effort")?;
+    // A constrained representation does not use feature routing. Avoid
+    // duplicate analysis and its tables for explicit diagnostic controls.
+    let features = selection::profile(&[], 1);
+    stats.profile_seconds += profile_started.elapsed().as_secs_f64();
+    let mut best_backend = "raw".to_owned();
+    let mut best_payload = data.to_vec();
+    let mut evaluated: Vec<String> = Vec::new();
+    let mut candidates =
+        selection::generate_candidates(&features, effort_name, Some(route), backend_override)?;
+    if format == "cixg1" {
+        if candidates.iter().any(|candidate| {
+            (candidate.backend.starts_with("context-range-") || candidate.backend == "huffman")
+                && backend_override.is_some_and(|backend| {
+                    backend.starts_with("context-range-") || backend == "huffman"
+                })
+        }) {
+            return Err(
+                "versioned substream coder requires --format cixg2 or --format auto".into(),
+            );
+        }
+        candidates.retain(|candidate| {
+            !candidate.backend.starts_with("context-range-")
+                && candidate.backend != "huffman"
+                && !(candidate.route == 8 && candidate.parameter.is_some_and(|order| order > 3))
+        });
+    }
+    // A route override constrains the non-raw candidates.  Raw remains an
+    // unconditional valid fallback and must carry route ID 0 if it wins (or
+    // ties), otherwise raw bytes would be decoded as the forced route.
+    let mut selected_route = 0u8;
+    let candidates: Vec<_> = candidates
+        .into_iter()
+        .filter(|candidate| candidate.route == route)
+        .filter(|candidate| candidate.backend != "raw")
+        .collect();
+    consider_cixg_candidates_parallel(
+        &candidates,
+        data,
+        match effort_name {
+            "fast" => 1,
+            "maximum" => 9,
+            _ => 6,
+        },
+        budget,
+        workers,
+        effort.search_seconds,
+        effort.trial_seconds,
+        effort.worker_memory_mib,
+        stats,
+        &mut selected_route,
+        &mut best_backend,
+        &mut best_payload,
+        &mut evaluated,
+    )?;
+    if explain {
+        stats.explanations.push(format!(
+            "source_bytes={} candidates=[{}] selected_route={} backend={} payload_bytes={} (route explicitly constrained)",
+            data.len(), evaluated.join(","),
+            selection::ROUTES[selected_route as usize], best_backend, best_payload.len()
+        ));
+    }
+    stats.blocks += 1;
+    stats.selected_source_bytes[selected_route as usize] += data.len() as u64;
+    stats.search_seconds += search_started.elapsed().as_secs_f64();
+    Ok((selected_route, best_payload))
+}
+
+/// Select a CIXG1 route from the bounded profile's ordered route set.
+///
+/// Raw is always the incumbent. Every candidate is self-identifying within
+/// its framed payload, so its complete physical block cost differs only by
+/// payload length; the 41-byte frame is equal for all candidates.
+fn select_cixg_auto(
+    data: &[u8],
+    level: u8,
+    backend_override: Option<&str>,
+    format: &str,
+    budget: &resources::MemoryBudget,
+    workers: usize,
+    stats: &mut AutoSelectionStats,
+    explain: bool,
+) -> Result<(u8, Vec<u8>), String> {
+    let effort_name = selector_effort_name(level);
+    let effort = selection::effort(effort_name).ok_or("invalid selector effort")?;
+    let search_started = Instant::now();
+    let profile_started = Instant::now();
+    let features = selection::profile(data, effort.sample_bytes);
+    stats.profile_seconds += profile_started.elapsed().as_secs_f64();
+    let mut candidates =
+        selection::generate_candidates(&features, effort_name, None, backend_override)?;
+    if format == "cixg1" {
+        if backend_override
+            .is_some_and(|backend| backend.starts_with("context-range-") || backend == "huffman")
+        {
+            return Err(
+                "versioned substream coder requires --format cixg2 or --format auto".into(),
+            );
+        }
+        candidates.retain(|candidate| {
+            !candidate.backend.starts_with("context-range-")
+                && candidate.backend != "huffman"
+                && !(candidate.route == 8 && candidate.parameter.is_some_and(|order| order > 3))
+        });
+    }
+    let mut best_route = 0u8;
+    let mut best_backend = "raw".to_string();
+    let mut best_payload = data.to_vec();
+    let mut evaluated = Vec::new();
+    // The raw candidate is already materialized as the initial incumbent.
+    evaluated.push(format!("raw:raw={}B", data.len()));
+    let candidates: Vec<_> = candidates
+        .into_iter()
+        .filter(|candidate| candidate.route != 0)
+        .collect();
+    consider_cixg_candidates_parallel(
+        &candidates,
+        data,
+        match effort_name {
+            "fast" => 1,
+            "maximum" => 9,
+            _ => 6,
+        },
+        budget,
+        workers,
+        effort.search_seconds,
+        effort.trial_seconds,
+        effort.worker_memory_mib,
+        stats,
+        &mut best_route,
+        &mut best_backend,
+        &mut best_payload,
+        &mut evaluated,
+    )?;
+    stats.search_seconds += search_started.elapsed().as_secs_f64();
+    stats.blocks += 1;
+    stats.selected_source_bytes[best_route as usize] += data.len() as u64;
+    if explain {
+        stats.explanations.push(format!(
+            "source_bytes={} candidates=[{}] selected_route={} backend={} payload_bytes={} block_bytes={}",
+            data.len(),
+            evaluated.join(","),
+            selection::ROUTES[best_route as usize],
+            best_backend,
+            best_payload.len(),
+            data.len(),
+        ));
+    }
+    Ok((best_route, best_payload))
 }
 
 fn bwt_transform(data: &[u8]) -> Result<(usize, Vec<u8>), String> {
@@ -860,6 +1404,7 @@ fn bwt_transform(data: &[u8]) -> Result<(usize, Vec<u8>), String> {
     let mut ranks: Vec<i64> = data.iter().map(|&b| b as i64).collect();
     let mut width = 1usize;
     loop {
+        check_interrupted()?;
         suffixes.sort_unstable_by_key(|&i| {
             (ranks[i], if i + width < n { ranks[i + width] } else { -1 })
         });
@@ -1029,12 +1574,12 @@ fn bwt_inverse(primary: usize, transformed: &[u8]) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-fn bwt_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+fn bwt_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
     let (primary, transformed) = bwt_transform(data)?;
     let (tags, literals, lengths) = mtf_runs(&transformed);
     let owned = vec![tags, literals, lengths];
     let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-    let streams = streams_encode(&refs, level, "hybrid")?;
+    let streams = streams_encode(&refs, level, backend)?;
     let mut out = Vec::with_capacity(4 + streams.len());
     out.extend_from_slice(&(primary as u32).to_le_bytes());
     out.extend_from_slice(&streams);
@@ -1053,7 +1598,7 @@ fn lz_insert(table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>, data: &
     }
 }
 
-fn lz_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
+fn lz_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
     use std::collections::HashMap;
     let mut table: HashMap<[u8; 4], Vec<usize>> = HashMap::new();
     let mut tags = Vec::new();
@@ -1062,6 +1607,7 @@ fn lz_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
     let mut distances = Vec::new();
     let mut position = 0usize;
     while position < data.len() {
+        limits::check()?;
         let mut best_length = 0usize;
         let mut best_distance = 0usize;
         if position + 4 <= data.len() {
@@ -1118,11 +1664,11 @@ fn lz_encode(data: &[u8], level: u8) -> Result<Vec<u8>, String> {
     }
     let owned = vec![tags, literals, lengths, distances];
     let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-    streams_encode(&refs, level, "hybrid")
+    streams_encode(&refs, level, backend)
 }
 
-fn lz_decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
-    let parts = streams_decode(blob, n.saturating_mul(4))?;
+fn lz_decode(blob: &[u8], n: usize, allow_extended_coders: bool) -> Result<Vec<u8>, String> {
+    let parts = streams_decode(blob, n.saturating_mul(4), allow_extended_coders)?;
     if parts.len() != 4 {
         return Err("LZ stream count mismatch".into());
     }
@@ -1177,23 +1723,198 @@ fn inflate(b: &[u8], n: usize) -> Result<Vec<u8>, String> {
     }
     Ok(out)
 }
+fn route_id(name: &str) -> Result<u8, String> {
+    selection::ROUTES
+        .iter()
+        .position(|route| *route == name)
+        .map(|id| id as u8)
+        .ok_or_else(|| format!("unsupported route: {name}"))
+}
+
+fn native_magic(format: &str, level: u8, backend: &str, backend_set: bool) -> &'static [u8; 5] {
+    if format == "cixg2"
+        || format == "auto"
+            && (level >= 9
+                || backend_set && (backend.starts_with("context-range-") || backend == "huffman"))
+    {
+        MAGIC_V2
+    } else {
+        MAGIC
+    }
+}
+
+fn parallel_retained(block: u32, workers: usize) -> usize {
+    (block as usize)
+        .saturating_mul(2 * workers + 1)
+        .saturating_add((4 << 20usize) * workers)
+        .saturating_add(256 << 10)
+}
+
+fn automatic_workers(requested: usize, explicit: bool, block: u32, memory: usize) -> usize {
+    if explicit {
+        return requested;
+    }
+    let mut workers = requested.max(1);
+    while workers > 1 && parallel_retained(block, workers).saturating_add(64 << 10) >= memory {
+        workers -= 1;
+    }
+    workers
+}
+
 fn encode<R: Read, W: Write>(
+    src: R,
+    dst: W,
+    block: u32,
+    level: u8,
+    forced: Option<&str>,
+    backend: &str,
+    backend_set: bool,
+    format: &str,
+    input_fd: i32,
+    flush_interval: Option<Duration>,
+    memory: usize,
+    workers: usize,
+    explain: bool,
+    verbose: bool,
+) -> Result<(), String> {
+    encode_with_strategy(
+        src,
+        dst,
+        block,
+        level,
+        forced,
+        backend,
+        backend_set,
+        format,
+        input_fd,
+        flush_interval,
+        memory,
+        workers,
+        explain,
+        verbose,
+        "blocks",
+    )
+}
+
+fn encode_with_strategy<R: Read, W: Write>(
+    src: R,
+    dst: W,
+    block: u32,
+    level: u8,
+    forced: Option<&str>,
+    backend: &str,
+    backend_set: bool,
+    format: &str,
+    input_fd: i32,
+    flush_interval: Option<Duration>,
+    memory: usize,
+    workers: usize,
+    explain: bool,
+    verbose: bool,
+    strategy: &str,
+) -> Result<(), String> {
+    if block == 0 || block > MAX_BLOCK {
+        return Err("invalid CIXG block size".into());
+    }
+    if format == "cixg1"
+        && backend_set
+        && (backend.starts_with("context-range-") || backend == "huffman")
+    {
+        return Err("versioned substream coder requires --format cixg2 or --format auto".into());
+    }
+    selection::generate_candidates(
+        &selection::profile(&[], 1),
+        selector_effort_name(level),
+        forced.map(route_id).transpose()?,
+        backend_set.then_some(backend),
+    )?;
+    if workers > 1 && strategy == "blocks" {
+        gstream::encode(
+            src,
+            dst,
+            block,
+            level,
+            forced,
+            backend,
+            backend_set,
+            format,
+            input_fd,
+            flush_interval,
+            memory,
+            workers,
+            explain,
+            verbose,
+        )
+    } else {
+        encode_candidates(
+            src,
+            dst,
+            block,
+            level,
+            forced,
+            backend,
+            backend_set,
+            format,
+            input_fd,
+            flush_interval,
+            memory,
+            workers,
+            explain,
+            verbose,
+        )
+    }
+}
+
+fn encode_candidates<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
     block: u32,
     level: u8,
     forced: Option<&str>,
     backend: &str,
+    backend_set: bool,
+    format: &str,
     input_fd: i32,
     flush_interval: Option<std::time::Duration>,
+    memory: usize,
+    workers: usize,
+    explain: bool,
+    verbose: bool,
 ) -> Result<(), String> {
-    dst.write_all(MAGIC).map_err(ioerr)?;
+    if format == "cixg1"
+        && backend_set
+        && (backend.starts_with("context-range-") || backend == "huffman")
+    {
+        return Err("versioned substream coder requires --format cixg2 or --format auto".into());
+    }
+    // CIXG2 is required for versioned substream coder 6 and extended PPM
+    // orders. Existing efforts retain the byte-compatible CIXG1 header.
+    let archive_magic = if format == "cixg2"
+        || format == "auto"
+            && (level >= 9
+                || backend_set && (backend.starts_with("context-range-") || backend == "huffman"))
+    {
+        MAGIC_V2
+    } else {
+        MAGIC
+    };
+    dst.write_all(archive_magic).map_err(ioerr)?;
     dst.write_all(&block.to_le_bytes()).map_err(ioerr)?;
     dst.write_all(&0u32.to_le_bytes()).map_err(ioerr)?;
     let mut whole = Sha256::new();
     let mut total_bytes = 0u64;
+    let mut archive_bytes = HEADER as u64;
     let mut buf = vec![0; block as usize];
     let mut eof = false;
+    let mut selection_stats = AutoSelectionStats::default();
+    let retained = (block as usize)
+        .saturating_mul(3)
+        .saturating_add(if forced.is_some() { 64 << 10 } else { 2 << 20 })
+        .saturating_add(if workers > 1 { (2 << 20) * workers } else { 0 });
+    if retained >= memory {
+        return Err("input/profiler buffers exceed --memory; reduce --block-size".into());
+    }
+    let budget = resources::MemoryBudget::new(memory.saturating_sub(retained));
     loop {
         let mut got = 0;
         let mut symbol_counts = [0u32; 256];
@@ -1255,14 +1976,35 @@ fn encode<R: Read, W: Write>(
                 "deflate" => 10,
                 _ => return Err(format!("unsupported route: {f}")),
             };
-            (id, encode_route(id, data, level, backend)?)
+            select_cixg_fixed_route(
+                id,
+                data,
+                if backend_set { Some(backend) } else { None },
+                format,
+                selector_effort_name(level),
+                &budget,
+                workers,
+                &mut selection_stats,
+                explain,
+            )?
         } else {
-            let mut candidates = vec![(0u8, data.to_vec()), (1, rle(data))];
-            candidates.push((2, encode_route(2, data, level, backend)?));
-            candidates.push((10, encode_route(10, data, level, backend)?));
-            candidates.sort_by_key(|x| x.1.len());
-            candidates.remove(0)
+            select_cixg_auto(
+                data,
+                level,
+                if backend_set { Some(backend) } else { None },
+                format,
+                &budget,
+                workers,
+                &mut selection_stats,
+                explain,
+            )?
         };
+        for explanation in selection_stats.explanations.drain(..) {
+            eprintln!("cix: region={} {}", selection_stats.blocks, explanation);
+        }
+        archive_bytes = archive_bytes
+            .checked_add(41 + payload.len() as u64)
+            .ok_or("archive length overflow")?;
         put_frame(&mut dst, route, got as u32, payload.len() as u32, &rh).map_err(ioerr)?;
         dst.write_all(&payload).map_err(ioerr)?;
         dst.flush().map_err(ioerr)?;
@@ -1272,8 +2014,53 @@ fn encode<R: Read, W: Write>(
     }
     let h: [u8; 32] = whole.finalize().into();
     put_frame(&mut dst, END, 0, 0, &h).map_err(ioerr)?;
+    archive_bytes = archive_bytes
+        .checked_add(41)
+        .ok_or("archive length overflow")?;
     dst.flush().map_err(ioerr)?;
+    if verbose || explain {
+        let route_bytes = selection_stats
+            .selected_source_bytes
+            .iter()
+            .enumerate()
+            .filter(|(_, bytes)| **bytes != 0)
+            .map(|(route, bytes)| format!("{}:{bytes}", selection::ROUTES[route]))
+            .collect::<Vec<_>>()
+            .join(",");
+        eprintln!(
+            "cix: effort={} format={} route={} blocks={} candidates={} memory_skips={} budget_skips={} analyse_seconds={:.3} candidate_seconds={:.3} search_seconds={:.3} archive_bytes={} selected_source_bytes=[{}]",
+            selector_effort_name(level),
+            std::str::from_utf8(archive_magic).unwrap_or("CIXG?"),
+            forced.unwrap_or("auto"),
+            selection_stats.blocks,
+            selection_stats.candidate_attempts,
+            selection_stats.memory_skips,
+            selection_stats.budget_skips,
+            selection_stats.profile_seconds,
+            selection_stats.candidate_seconds,
+            selection_stats.search_seconds,
+            archive_bytes,
+            route_bytes,
+        );
+    }
     Ok(())
+}
+
+// Keep the contiguous causal history without extending beyond its capacity.
+fn append_bounded_history(history: &mut Vec<u8>, data: &[u8], limit: usize) {
+    if data.len() >= limit {
+        history.clear();
+        history.extend_from_slice(&data[data.len() - limit..]);
+        return;
+    }
+    let discard = history
+        .len()
+        .saturating_add(data.len())
+        .saturating_sub(limit);
+    if discard != 0 {
+        history.drain(..discard);
+    }
+    history.extend_from_slice(data);
 }
 
 fn m6_frame_size(source_len: usize, payload_len: usize) -> usize {
@@ -1292,24 +2079,33 @@ fn encode_m6<R: Read, W: Write>(
     memory: usize,
 ) -> Result<(), String> {
     const HISTORY_LIMIT: usize = 1 << 20;
+    let mut whole = 0usize;
+    let mut crc = crc32fast::Hasher::new();
+    let mut block = vec![0u8; block_size.min(MAX_BLOCK as usize).max(1)];
+    let fixed_reserve = HISTORY_LIMIT
+        .saturating_add(block.len().saturating_mul(3))
+        .saturating_add(256 * 1024);
+    if fixed_reserve > memory {
+        return Err("CIXM6 history, source and candidate buffers exceed --memory".into());
+    }
+    let reference_budget = memory
+        .saturating_div(8)
+        .min(16 * 1024 * 1024)
+        .min(memory.saturating_sub(fixed_reserve));
+    let persistent_reserve =
+        stateful::RETAINED_MEMORY_BOUND.saturating_add(stateful::WORKING_MEMORY_BOUND);
+    let persistent_enabled = fixed_reserve
+        .saturating_add(reference_budget)
+        .saturating_add(persistent_reserve)
+        <= memory;
     dst.write_all(b"CIXM6").map_err(ioerr)?;
     let mut header = Vec::new();
     put_varint(HISTORY_LIMIT, &mut header);
     dst.write_all(&header).map_err(ioerr)?;
-    let mut whole = 0usize;
-    let mut crc = crc32fast::Hasher::new();
-    let mut block = vec![0u8; block_size.min(MAX_BLOCK as usize).max(1)];
-    let reference_budget = memory.saturating_div(8).min(16 * 1024 * 1024);
-    let persistent_reserve =
-        stateful::RETAINED_MEMORY_BOUND.saturating_add(stateful::WORKING_MEMORY_BOUND);
-    let persistent_enabled = HISTORY_LIMIT
-        .saturating_add(block.len())
-        .saturating_add(reference_budget)
-        .saturating_add(persistent_reserve)
-        <= memory;
+
     let mut persistent_states = persistent_enabled.then(stateful::PersistentAdaptiveStates::new);
     let mut history = Vec::with_capacity(HISTORY_LIMIT);
-    let mut recent = Vec::<Vec<u8>>::new();
+    let mut recent = std::collections::VecDeque::<Vec<u8>>::new();
     let mut recent_bytes = 0usize;
     let mut budget_skips = std::collections::BTreeSet::<u8>::new();
     loop {
@@ -1343,9 +2139,23 @@ fn encode_m6<R: Read, W: Write>(
             }
         };
 
-        // Fixed raw and exact multinomial routes form the bounded fallback pair.
-        let multinomial = rank::encode_type_class(data)?;
-        consider(1, multinomial.clone());
+        let available = memory
+            .saturating_sub(fixed_reserve)
+            .saturating_sub(reference_budget)
+            .saturating_sub(if persistent_enabled {
+                persistent_reserve
+            } else {
+                0
+            });
+        // Raw always fits. Materialize rank coding only when scratch fits.
+        let multinomial = if available >= got.saturating_mul(32) {
+            let payload = rank::encode_type_class(data)?;
+            consider(1, payload.clone());
+            Some(payload)
+        } else {
+            budget_skips.insert(1);
+            None
+        };
 
         // Exact CIX context candidates. The beam is bounded by effort and by a
         // conservative working-memory estimate; each complete frame is charged.
@@ -1359,15 +2169,6 @@ fn encode_m6<R: Read, W: Write>(
             (4, 12),
             (6, 12),
         ];
-        let available = memory
-            .saturating_sub(HISTORY_LIMIT)
-            .saturating_sub(block.len())
-            .saturating_sub(reference_budget)
-            .saturating_sub(if persistent_enabled {
-                persistent_reserve
-            } else {
-                0
-            });
         let context_beam = usize::from(effort.min(4));
         if available >= got.saturating_mul(32) {
             for &(order, bucket_bits) in context_models.iter().take(context_beam) {
@@ -1489,8 +2290,12 @@ fn encode_m6<R: Read, W: Write>(
         }
         if data.len() >= 2 {
             if available >= got.saturating_mul(32) {
-                if let Some(payload) = histogram::type_class_candidate(data, &multinomial)? {
-                    consider(20, payload);
+                if let Some(multinomial) = multinomial.as_deref() {
+                    if let Some(payload) = histogram::type_class_candidate(data, multinomial)? {
+                        consider(20, payload);
+                    }
+                } else {
+                    budget_skips.insert(20);
                 }
             } else {
                 budget_skips.insert(20);
@@ -1512,7 +2317,11 @@ fn encode_m6<R: Read, W: Write>(
             }
         }
         if data.len() >= 512 && effort >= 4 {
-            if available >= got.saturating_mul(128) {
+            let trained = prefix
+                .len()
+                .min(65536)
+                .min(4096usize.max(got.saturating_mul(2)));
+            if available >= route_minimum_memory(8, got.saturating_add(trained)) {
                 let order = match effort {
                     0..=3 => 2,
                     4..=6 => 4,
@@ -1539,8 +2348,12 @@ fn encode_m6<R: Read, W: Write>(
             }
         }
         if data.len() >= 512 && data.len() <= 32768 && effort >= 7 {
-            if available >= got.saturating_mul(1024) {
-                consider(19, fixedmix::encode_with_history(data, prefix));
+            let trained = prefix
+                .len()
+                .min(65536)
+                .min(4096usize.max(got.saturating_mul(2)));
+            if available >= route_minimum_memory(9, got.saturating_add(trained)) {
+                consider(19, fixedmix::encode_with_history_eta(data, prefix, 6)?);
             } else {
                 budget_skips.insert(19);
             }
@@ -1566,17 +2379,14 @@ fn encode_m6<R: Read, W: Write>(
         whole = whole
             .checked_add(got)
             .ok_or("CIXM6 stream length overflow")?;
-        history.extend_from_slice(data);
-        if history.len() > HISTORY_LIMIT {
-            history.drain(..history.len() - HISTORY_LIMIT);
-        }
+        append_bounded_history(&mut history, data, HISTORY_LIMIT);
         recent_bytes = recent_bytes.saturating_add(got);
-        recent.push(data.to_vec());
+        recent.push_back(data.to_vec());
         while recent.len() > 1024 || recent_bytes > reference_budget {
             if recent.is_empty() {
                 break;
             }
-            recent_bytes = recent_bytes.saturating_sub(recent.remove(0).len());
+            recent_bytes = recent_bytes.saturating_sub(recent.pop_front().unwrap().len());
         }
         if got < block.len() {
             break;
@@ -1621,13 +2431,13 @@ fn cixg_candidate(data: &[u8], route: Option<u8>, level: u8) -> Result<Vec<u8>, 
     let mut whole = Sha256::new();
     for block in data.chunks(MAX_BLOCK as usize) {
         let (selected, payload) = if let Some(id) = route {
-            (id, encode_route(id, block, level, "hybrid")?)
+            (id, encode_route(id, block, level, "hybrid", None)?)
         } else {
             let candidates = [
                 (0, block.to_vec()),
                 (1, rle(block)),
-                (2, encode_route(2, block, level, "hybrid")?),
-                (10, encode_route(10, block, level, "hybrid")?),
+                (2, encode_route(2, block, level, "hybrid", None)?),
+                (10, encode_route(10, block, level, "hybrid", None)?),
             ];
             candidates.into_iter().min_by_key(|(_, p)| p.len()).unwrap()
         };
@@ -1654,8 +2464,13 @@ fn encode_portfolio<R: Read, W: Write>(
     profile: &str,
     memory: usize,
 ) -> Result<(), String> {
-    if !matches!(profile, "fast" | "current" | "size") {
-        return Err("--portfolio accepts fast, current or size".into());
+    let profile = if profile == "current" {
+        "default"
+    } else {
+        profile
+    };
+    if !matches!(profile, "fast" | "default" | "size") {
+        return Err("--portfolio accepts fast, default or size".into());
     }
     let required = if profile == "size" {
         384 * 1024 * 1024
@@ -1673,15 +2488,24 @@ fn encode_portfolio<R: Read, W: Write>(
         .read_to_end(&mut data)
         .map_err(ioerr)?;
     if data.len() > external::MAX_INPUT {
-        return Err("native portfolio input exceeds 16 MiB".into());
+        return Err("native portfolio input exceeds 64 MiB".into());
     }
+    let total_search_seconds = match profile {
+        "fast" => 60,
+        "size" => 240,
+        _ => 120,
+    };
+    let search_deadline = Instant::now() + Duration::from_secs(total_search_seconds);
     let level = match profile {
         "fast" => 1,
-        "current" => 5,
+        "default" => 5,
         _ => 9,
     };
-    let mut winner = cixg_candidate(&data, None, level)?;
-    let mut winner_name = "cix-adaptive".to_string();
+    // Establish a complete, valid archive before any search. The Python
+    // selector does this first too; otherwise one expensive model can prevent
+    // the caller from receiving even a usable fallback.
+    let mut winner = cixg_candidate(&data, Some(0), level)?;
+    let mut winner_name = "cix-route:raw".to_string();
     let backends: &[&str] = if profile == "fast" {
         &["gzip", "zstd", "brotli"]
     } else {
@@ -1690,28 +2514,192 @@ fn encode_portfolio<R: Read, W: Write>(
     for backend in backends {
         check_interrupted()?;
         let candidate = external::encode(backend, profile, &data)?;
-        if candidate.len() < winner.len() {
+        if candidate.len() < winner.len() && portfolio_candidate_matches(&candidate, &data, memory)
+        {
             winner = candidate;
             winner_name = format!("{backend}:direct");
         }
     }
+    if profile == "size" && memory >= 768 * 1024 * 1024 {
+        let candidate = external::encode_xz_dictionary("size", &data, 128 * 1024 * 1024)?;
+        if candidate.len() < winner.len() && portfolio_candidate_matches(&candidate, &data, memory)
+        {
+            winner = candidate;
+            winner_name = "xz:direct-dict128".into();
+        }
+        let tuned = external::encode_xz_dictionary_preset("size", &data, 128 * 1024 * 1024, 6)?;
+        if tuned.len() < winner.len() && portfolio_candidate_matches(&tuned, &data, memory) {
+            winner = tuned;
+            winner_name = "xz:dict128-preset6".into();
+        }
+    }
+    // Give size routes more time than the default profile while retaining an
+    // explicit whole-search ceiling. Earlier 4s/12s limits cut off CIX routes
+    // before they could complete on full Silesia files.
+    let candidate_seconds = match profile {
+        "fast" => 12,
+        "size" => 180,
+        _ => 90,
+    };
+    let mut omitted = Vec::new();
+    // Candidate encoders run in child processes so each route has a real
+    // deadline. Joining a Rust thread after a timeout would leave the route
+    // consuming CPU, defeating the bounded portfolio contract.
+    let remaining = search_deadline
+        .saturating_duration_since(Instant::now())
+        .as_secs();
+    if remaining == 0 {
+        omitted.push("cix-adaptive:overall-budget".to_string());
+    } else if let Some(candidate) =
+        portfolio_cix_candidate(&data, level, memory, None, candidate_seconds.min(remaining))?
+    {
+        if candidate.len() < winner.len() && portfolio_candidate_matches(&candidate, &data, memory)
+        {
+            winner = candidate;
+            winner_name = "cix-adaptive".into();
+        }
+    } else {
+        omitted.push("cix-adaptive".to_string());
+    }
     if profile == "size" {
-        for route in 0u8..=10 {
+        let routes = [
+            "raw",
+            "runs",
+            "composition",
+            "lz",
+            "predictor",
+            "bwt",
+            "stride",
+            "phrases",
+            "ppm",
+            "mixture",
+            "deflate",
+        ];
+        for route in routes {
             check_interrupted()?;
-            let candidate = cixg_candidate(&data, Some(route), level)?;
-            if candidate.len() < winner.len() {
-                winner = candidate;
-                winner_name = format!("cix-route:{route}");
+            let remaining = search_deadline
+                .saturating_duration_since(Instant::now())
+                .as_secs();
+            if remaining == 0 {
+                omitted.push(format!("cix-route:{route}:overall-budget"));
+                continue;
+            }
+            if let Some(candidate) = portfolio_cix_candidate(
+                &data,
+                level,
+                memory,
+                Some(route),
+                candidate_seconds.min(remaining),
+            )? {
+                if candidate.len() < winner.len()
+                    && portfolio_candidate_matches(&candidate, &data, memory)
+                {
+                    winner = candidate;
+                    winner_name = format!("cix-route:{route}");
+                }
+            } else {
+                omitted.push(format!("cix-route:{route}"));
             }
         }
     }
     dst.write_all(&winner).map_err(ioerr)?;
     dst.flush().map_err(ioerr)?;
     eprintln!(
-        "cix: portfolio profile={profile}, selected={winner_name}, archive_bytes={}",
-        winner.len()
+        "cix: portfolio profile={profile}, selected={winner_name}, archive_bytes={}, search_budget_seconds={total_search_seconds}, time_budget_omitted={}",
+        winner.len(),
+        if omitted.is_empty() { "none".to_string() } else { omitted.join(",") }
     );
     Ok(())
+}
+
+fn portfolio_candidate_matches(archive: &[u8], source: &[u8], memory: usize) -> bool {
+    let mut restored = Vec::with_capacity(source.len());
+    decode(
+        io::Cursor::new(archive),
+        &mut restored,
+        false,
+        false,
+        -1,
+        memory,
+    )
+    .is_ok()
+        && restored == source
+}
+
+fn portfolio_cix_candidate(
+    data: &[u8],
+    level: u8,
+    memory: usize,
+    route: Option<&str>,
+    timeout_seconds: u64,
+) -> Result<Option<Vec<u8>>, String> {
+    let executable = env::current_exe().map_err(ioerr)?;
+    let mut command = Command::new(executable);
+    command
+        .arg(format!("-{level}"))
+        .args(["--format", "cixg1", "--stream", "--block-size", "65536B"])
+        .arg("--memory")
+        .arg(format!("{memory}B"))
+        .args(["--threads", "1", "-c"]);
+    if let Some(route) = route {
+        command.args(["--route", route]);
+    }
+    command
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null());
+    let mut child = command.spawn().map_err(ioerr)?;
+    let input_len = data.len();
+    let mut child_stdin = child
+        .stdin
+        .take()
+        .ok_or("portfolio child stdin unavailable")?;
+    let input = data.to_vec();
+    let writer = thread::spawn(move || child_stdin.write_all(&input));
+    let child_stdout = child
+        .stdout
+        .take()
+        .ok_or("portfolio child stdout unavailable")?;
+    let output_cap = input_len.saturating_mul(2).saturating_add(2 * 1024 * 1024);
+    let reader = thread::spawn(move || {
+        let mut out = Vec::with_capacity(input_len.saturating_add(1024));
+        child_stdout
+            .take(output_cap as u64)
+            .read_to_end(&mut out)
+            .map(|_| out)
+    });
+    let deadline = Instant::now() + Duration::from_secs(timeout_seconds);
+    let status = loop {
+        if let Err(error) = check_interrupted() {
+            let _ = child.kill();
+            let _ = child.wait();
+            let _ = writer.join();
+            let _ = reader.join();
+            return Err(error);
+        }
+        if let Some(status) = child.try_wait().map_err(ioerr)? {
+            break Some(status);
+        }
+        if Instant::now() >= deadline {
+            let _ = child.kill();
+            let _ = child.wait();
+            break None;
+        }
+        thread::sleep(Duration::from_millis(10));
+    };
+    let _ = writer.join();
+    let output = reader
+        .join()
+        .map_err(|_| "portfolio child output thread panicked")?
+        .map_err(ioerr)?;
+    match status {
+        Some(status) if status.success() && !output.is_empty() && output.len() < output_cap => {
+            Ok(Some(output))
+        }
+        Some(_) => Ok(None),
+        None => Ok(None),
+    }
 }
 
 fn encode_external<R: Read, W: Write>(
@@ -1735,7 +2723,7 @@ fn encode_external<R: Read, W: Write>(
         .read_to_end(&mut data)
         .map_err(ioerr)?;
     if data.len() > external::MAX_INPUT {
-        return Err("CIXB1 external input exceeds 16 MiB".into());
+        return Err("CIXB1 external input exceeds 64 MiB".into());
     }
     let archive = external::encode(backend, profile, &data)?;
     dst.write_all(&archive).map_err(ioerr)?;
@@ -2034,7 +3022,7 @@ fn decode_m6<R: Read, W: Write>(
     }
     let mut history: Vec<u8> = Vec::with_capacity(history_limit);
     let mut persistent_states = stateful::PersistentAdaptiveStates::new();
-    let mut recent: Vec<Vec<u8>> = Vec::new();
+    let mut recent: std::collections::VecDeque<Vec<u8>> = std::collections::VecDeque::new();
     let mut recent_bytes = 0usize;
     let reference_budget = memory.saturating_div(8).min(16 * 1024 * 1024).max(1);
     if history_limit
@@ -2087,7 +3075,15 @@ fn decode_m6<R: Read, W: Write>(
             2 => source_len.saturating_mul(32),
             6 => source_len.saturating_mul(8),
             8 => source_len.saturating_mul(16),
-            16 => source_len.saturating_mul(128),
+            16 => route_minimum_memory(
+                8,
+                source_len.saturating_add(
+                    history
+                        .len()
+                        .min(65536)
+                        .min(4096usize.max(source_len.saturating_mul(2))),
+                ),
+            ),
             17 => source_len
                 .saturating_mul(9)
                 .saturating_mul(EXPERT_CONTEXT_MEMORY_ESTIMATE)
@@ -2095,7 +3091,15 @@ fn decode_m6<R: Read, W: Write>(
             7 => source_len.saturating_mul(128),
             3 | 4 => source_len.saturating_mul(128),
             18 => source_len.saturating_mul(4),
-            19 => source_len.saturating_mul(1024),
+            19 => route_minimum_memory(
+                9,
+                source_len.saturating_add(
+                    history
+                        .len()
+                        .min(65536)
+                        .min(4096usize.max(source_len.saturating_mul(2))),
+                ),
+            ),
             5 => source_len.saturating_mul(64),
             13 => stateful::WORKING_MEMORY_BOUND,
             _ => 0,
@@ -2107,6 +3111,7 @@ fn decode_m6<R: Read, W: Write>(
                 .saturating_add(payload_len)
                 .saturating_add(history_limit)
                 .saturating_add(reference_budget)
+                .saturating_add(stateful::RETAINED_MEMORY_BOUND)
                 .saturating_add(model_budget)
                 > memory
         {
@@ -2176,10 +3181,7 @@ fn decode_m6<R: Read, W: Write>(
         }
         persistent_states.observe(&block, &history)?;
         crc.update(&block);
-        history.extend_from_slice(&block);
-        if history.len() > history_limit {
-            history.drain(..history.len() - history_limit);
-        }
+        append_bounded_history(&mut history, &block, history_limit);
         total = total
             .checked_add(block.len())
             .ok_or("CIXM6 output length overflow")?;
@@ -2188,9 +3190,9 @@ fn decode_m6<R: Read, W: Write>(
             dst.flush().map_err(ioerr)?;
         }
         recent_bytes = recent_bytes.saturating_add(block.len());
-        recent.push(block);
+        recent.push_back(block);
         while recent.len() > 4096 || recent_bytes > reference_budget {
-            recent_bytes = recent_bytes.saturating_sub(recent.remove(0).len());
+            recent_bytes = recent_bytes.saturating_sub(recent.pop_front().unwrap().len());
         }
     }
     Ok(())
@@ -2251,17 +3253,14 @@ fn decode<R: Read, W: Write>(
     let mut h = [0; HEADER];
     h[..5].copy_from_slice(&archive_magic);
     read_exact_poll(&mut src, &mut h[5..], input_fd)?;
-    if &h[..5] != MAGIC {
-        return Err("unsupported archive (expected CIXG1)".into());
+    if &h[..5] != MAGIC && &h[..5] != MAGIC_V2 {
+        return Err("unsupported archive (expected CIXG1 or CIXG2)".into());
     }
     let block = u32::from_le_bytes(h[5..9].try_into().unwrap());
     let hist = u32::from_le_bytes(h[9..13].try_into().unwrap());
+    let allow_extended_coders = &h[..5] == MAGIC_V2;
     if block == 0 || block > MAX_BLOCK || hist != 0 && hist != 65536 {
-        return Err("invalid CIXG1 header".into());
-    }
-    let estimated_decode_working = block as usize * 8 + 65536;
-    if estimated_decode_working > memory {
-        return Err(format!("archive frame needs about {estimated_decode_working} bytes working memory; raise --memory"));
+        return Err("invalid CIXG header".into());
     }
     let mut whole = Sha256::new();
     let mut total_bytes = 0u64;
@@ -2288,18 +3287,207 @@ fn decode<R: Read, W: Write>(
                 dst.flush().map_err(ioerr)?;
             }
             if list {
-                eprintln!("CIXG1 stream: {} decoded bytes", total_bytes);
+                eprintln!(
+                    "{} stream: {} decoded bytes",
+                    std::str::from_utf8(&archive_magic).unwrap_or("CIXG?"),
+                    total_bytes
+                );
             }
             return Ok(());
         }
         if n == 0 || n > block || s as u64 > 8 * n as u64 + 4096 {
             return Err("invalid block descriptor".into());
         }
-        if r[0] == 8 && memory < 64 * 1024 * 1024 {
-            return Err("decoding this PPM block requires --memory of at least 64 MiB".into());
+        // The payload remains live while route decoders build their output.
+        // Charge both buffers before allocating the attacker-controlled
+        // payload.  Per-route state is added below before a route can create
+        // an unbounded context table.
+        let fixed_frame_bytes = (n as usize)
+            .checked_add(s as usize)
+            .ok_or("CIXG frame buffer size overflow")?;
+        if fixed_frame_bytes > memory {
+            return Err(format!(
+                "CIXG frame needs {fixed_frame_bytes} bytes for payload and output; raise --memory"
+            ));
         }
         let mut b = vec![0; s as usize];
         read_exact_poll(&mut src, &mut b, input_fd)?;
+        let source_bytes = n as usize;
+        let source_scratch = |multiple: usize, reserve: usize, route: &str| {
+            source_bytes
+                .checked_mul(multiple)
+                .and_then(|bytes| bytes.checked_add(reserve))
+                .ok_or_else(|| format!("{route} decode memory estimate overflow"))
+        };
+        // Inspect only self-describing CIX stream descriptors.  This happens
+        // before `streams_decode` allocates any substream output or coder
+        // model.  A stream processes coders serially, so reserve the largest
+        // single coder workspace; route scratch above separately covers the
+        // retained decoded parts.
+        let nested_stream_scratch = |offset: usize, limit: usize| -> Result<usize, String> {
+            let stream = b.get(offset..).ok_or("truncated CIX stream prefix")?;
+            if stream.is_empty() || stream[0] == 0 || stream[0] > 8 {
+                return Err("invalid CIX substream count".into());
+            }
+            let mut pos = 1usize;
+            let mut total = 0usize;
+            let mut maximum = 0usize;
+            for _ in 0..stream[0] {
+                let descriptor_end = pos
+                    .checked_add(9)
+                    .ok_or("CIX substream descriptor overflow")?;
+                if descriptor_end > stream.len() {
+                    return Err("truncated CIX substream descriptor".into());
+                }
+                let coder = stream[pos];
+                let decoded =
+                    u32::from_le_bytes(stream[pos + 1..pos + 5].try_into().unwrap()) as usize;
+                let encoded =
+                    u32::from_le_bytes(stream[pos + 5..pos + 9].try_into().unwrap()) as usize;
+                pos = descriptor_end;
+                total = total
+                    .checked_add(decoded)
+                    .ok_or("CIX substream length overflow")?;
+                let end = pos
+                    .checked_add(encoded)
+                    .ok_or("CIX substream payload overflow")?;
+                if total > limit || end > stream.len() {
+                    return Err("CIX substream resource/truncation limit".into());
+                }
+                let payload = &stream[pos..end];
+                let workspace = match coder {
+                    0 | 1 => 0,
+                    // Rank, adaptive order-0, DEFLATE and canonical Huffman
+                    // all have bounded temporary tables under this reserve.
+                    2 | 3 | 4 | 5 | 7 => 64 * 1024,
+                    6 => {
+                        if !allow_extended_coders {
+                            return Err(
+                                "CIXG1 cannot contain versioned context-range substreams".into()
+                            );
+                        }
+                        if payload.len() < 4 || payload[0] != 1 {
+                            return Err("invalid context-range substream header".into());
+                        }
+                        let order = payload[1] as usize;
+                        let bits = payload[2] as usize;
+                        if !(1..=16).contains(&order) || !(1..=8).contains(&bits) {
+                            return Err("context-range parameters exceed version-1 bounds".into());
+                        }
+                        let models = decoded.min(1usize << bits);
+                        models
+                            .checked_mul(4096)
+                            .and_then(|bytes| bytes.checked_add(64 * 1024))
+                            .ok_or("context-range model memory estimate overflow")?
+                    }
+                    _ => return Err(format!("unsupported CIX substream coder {coder}")),
+                };
+                maximum = maximum.max(workspace);
+                pos = end;
+            }
+            if pos != stream.len() {
+                return Err("trailing CIX substream bytes".into());
+            }
+            Ok(maximum)
+        };
+        let route_scratch = match r[0] {
+            // Stream decoding may hold decoded substreams while it validates
+            // descriptors and returns the final part.  Keep one source-sized
+            // temporary beyond the fixed payload/output frame buffers.
+            2 | 10 => source_scratch(1, 0, "CIX substream")?,
+            // LZ holds up to four decoded side streams and reconstructed
+            // output while parsing match descriptors.
+            3 => source_scratch(5, 0, "LZ")?,
+            // Predictor reconstruction retains its residual until the output
+            // is complete, plus two fixed 64 KiB context tables.
+            4 => source_scratch(1, 128 * 1024, "predictor")?,
+            // BWT materializes decoded streams and transformed bytes, then
+            // allocates `last` and `first` (u8, usize) tables and an inverse
+            // usize table.  48n + 64 KiB is deliberately conservative on
+            // supported 64-bit hosts, and is an admission estimate rather
+            // than an RSS claim.
+            5 => source_scratch(48, 64 * 1024, "BWT")?,
+            // Lane and phrase routes retain side streams and a reconstructed
+            // intermediate while producing the final bytes.
+            6 | 7 => source_scratch(3, 0, "structured stream")?,
+            8 => {
+                // Validate this fixed header before `ppm::decode` creates its
+                // context table.  The model estimate reserves 2 KiB/source
+                // byte plus 8 MiB for variable-size map/table allocation;
+                // order 8 needs 9 context-key/counter lanes and is charged
+                // at 9 * 256 bytes/source instead.  The reserve also covers
+                // the v5 SEE side table.
+                let (&version, &order) = match b.as_slice() {
+                    [version, order, ..] => (version, order),
+                    _ => return Err("truncated PPM payload header".into()),
+                };
+                if !matches!(version, 2..=5) {
+                    return Err("unsupported PPM payload version".into());
+                }
+                if order > 8 {
+                    return Err("unsupported PPM order".into());
+                }
+                if !allow_extended_coders && order > 3 {
+                    return Err("CIXG1 cannot contain extended PPM orders".into());
+                }
+                let bytes_per_source = 2048usize.max(
+                    usize::from(order)
+                        .checked_add(1)
+                        .and_then(|contexts| contexts.checked_mul(256))
+                        .ok_or("PPM order memory estimate overflow")?,
+                );
+                source_bytes
+                    .checked_mul(bytes_per_source)
+                    .and_then(|bytes| bytes.checked_add(8 * 1024 * 1024))
+                    .ok_or("PPM model memory estimate overflow")?
+            }
+            9 => {
+                if !allow_extended_coders && b.first() != Some(&1) {
+                    return Err("CIXG1 cannot contain extended mixture payloads".into());
+                }
+                // Fixed-mix has several adaptive maps; use the same dynamic
+                // reservation as the encoder, in addition to frame buffers.
+                source_bytes
+                    .checked_mul(4096)
+                    .and_then(|bytes| bytes.checked_add(8 * 1024 * 1024))
+                    .ok_or("mixture model memory estimate overflow")?
+            }
+            // Raw and RLE route output is already included in
+            // `fixed_frame_bytes`; they need no second route buffer.
+            0 | 1 => 0,
+            _ => return Err(format!("unsupported CIXG1 route ID {}", r[0])),
+        };
+        let nested_coder_scratch = match r[0] {
+            2 | 4 | 10 => nested_stream_scratch(0, source_bytes)?,
+            3 => nested_stream_scratch(0, source_bytes.saturating_mul(4))?,
+            5 => nested_stream_scratch(4, source_bytes.saturating_mul(4))?,
+            6 => nested_stream_scratch(1, source_bytes)?,
+            7 => {
+                let dictionary_entries = *b.first().ok_or("truncated phrase dictionary")? as usize;
+                if dictionary_entries > 32 {
+                    return Err("invalid phrase dictionary size".into());
+                }
+                let offset = 1usize
+                    .checked_add(
+                        dictionary_entries
+                            .checked_mul(2)
+                            .ok_or("phrase dictionary size overflow")?,
+                    )
+                    .ok_or("phrase dictionary size overflow")?;
+                nested_stream_scratch(offset, source_bytes.saturating_mul(2))?
+            }
+            _ => 0,
+        };
+        let total_live_bytes = fixed_frame_bytes
+            .checked_add(route_scratch)
+            .and_then(|bytes| bytes.checked_add(nested_coder_scratch))
+            .ok_or("CIXG decode memory estimate overflow")?;
+        if total_live_bytes > memory {
+            return Err(format!(
+                "CIXG {} block needs about {total_live_bytes} bytes including frame buffers and model state; raise --memory",
+                selection::ROUTES[r[0] as usize]
+            ));
+        }
         let data = match r[0] {
             0 => {
                 if b.len() != n as usize {
@@ -2308,10 +3496,10 @@ fn decode<R: Read, W: Write>(
                 b
             }
             1 => unrle(&b, n as usize)?,
-            2 => stream_decode(&b, n as usize)?,
-            3 => lz_decode(&b, n as usize)?,
+            2 => stream_decode(&b, n as usize, allow_extended_coders)?,
+            3 => lz_decode(&b, n as usize, allow_extended_coders)?,
             4 => {
-                let residual = stream_decode(&b, n as usize)?;
+                let residual = stream_decode(&b, n as usize, allow_extended_coders)?;
                 predictor_residual(&residual, true)
             }
             5 => {
@@ -2319,7 +3507,11 @@ fn decode<R: Read, W: Write>(
                     return Err("truncated BWT primary index".into());
                 }
                 let primary = u32::from_le_bytes(b[..4].try_into().unwrap()) as usize;
-                let parts = streams_decode(&b[4..], (n as usize).saturating_mul(4))?;
+                let parts = streams_decode(
+                    &b[4..],
+                    (n as usize).saturating_mul(4),
+                    allow_extended_coders,
+                )?;
                 let transformed = unmtf_runs(&parts, n as usize)?;
                 bwt_inverse(primary, &transformed)?
             }
@@ -2327,25 +3519,17 @@ fn decode<R: Read, W: Write>(
                 if b.is_empty() {
                     return Err("truncated stride descriptor".into());
                 }
-                let transformed = join_streams(&b[1..], n as usize)?;
+                let transformed = join_streams(&b[1..], n as usize, allow_extended_coders)?;
                 let restored = invert_stride(&transformed, b[0])?;
                 if restored.len() != n as usize {
                     return Err("stride output size mismatch".into());
                 }
                 restored
             }
-            7 => phrase_decode(&b, n as usize)?,
+            7 => phrase_decode(&b, n as usize, allow_extended_coders)?,
             8 => ppm::decode(&b, n as usize)?,
-            9 => {
-                let need = (n as usize)
-                    .saturating_mul(4096)
-                    .saturating_add(8 * 1024 * 1024);
-                if need > memory {
-                    return Err("decoding this mixture block exceeds --memory budget".into());
-                }
-                fixedmix::decode(&b, n as usize)?
-            }
-            10 => stream_decode(&b, n as usize)?,
+            9 => fixedmix::decode(&b, n as usize)?,
+            10 => stream_decode(&b, n as usize, allow_extended_coders)?,
             _ => return Err(format!("unsupported CIXG1 route ID {}", r[0])),
         };
         if <[u8; 32]>::from(Sha256::digest(&data)) != sum {
@@ -2437,9 +3621,22 @@ pub unsafe extern "C" fn cix_squash_splice(
                 user,
             };
             match direction {
-                1 if (1..=9).contains(&level) => {
-                    encode(src, dst, 32768, level as u8, None, "hybrid", -1, None)
-                }
+                1 if (1..=9).contains(&level) => encode(
+                    src,
+                    dst,
+                    32768,
+                    level as u8,
+                    None,
+                    "hybrid",
+                    false,
+                    "auto",
+                    -1,
+                    None,
+                    512 * 1024 * 1024,
+                    1,
+                    false,
+                    false,
+                ),
                 1 => Err("invalid Squash CIX compression level".into()),
                 2 => decode(src, dst, false, false, -1, 512 * 1024 * 1024),
                 _ => Err("invalid Squash stream direction".into()),
@@ -2522,7 +3719,7 @@ fn atomic_file(
         .create_new(true)
         .open(&tmp)
         .map_err(ioerr)?;
-    let result = run(&mut f);
+    let result = run(&mut f).and_then(|()| check_interrupted());
     if result.is_ok() {
         if let Err(e) = f.sync_all() {
             drop(f);
@@ -2565,20 +3762,71 @@ fn block_min(o: &Opt) -> usize {
 }
 
 fn run() -> Result<(), String> {
-    let o = parse()?;
-    if o.threads != 1 {
+    let mut o = parse()?;
+    if !matches!(o.parallelism.as_str(), "blocks" | "candidates") {
+        return Err("--parallelism accepts blocks or candidates".into());
+    }
+    if !o.threads_set
+        && (o.decode
+            || o.external_backend.is_some()
+            || o.portfolio.is_some()
+            || !matches!(o.format.as_str(), "auto" | "cixg1" | "cixg2"))
+    {
+        o.threads = 1;
+    }
+    if o.decode
+        && (o.route.is_some()
+            || o.backend_set
+            || o.block.is_some()
+            || o.independent_blocks
+            || o.level_set
+            || o.profile_set)
+    {
+        return Err("compression options cannot be used while decoding".into());
+    }
+    if matches!(o.format.as_str(), "cixm6" | "cixf1") && (o.independent_blocks || o.backend_set) {
+        return Err("CIXM6 does not support --independent-blocks or --backend overrides".into());
+    }
+    if (o.external_backend.is_some() || o.portfolio.is_some())
+        && (o.format != "auto" || o.backend_set || o.block.is_some() || o.independent_blocks)
+    {
+        return Err("external/portfolio encoding does not support --format, --backend, --block-size or --independent-blocks overrides".into());
+    }
+    if o.profile_set && o.level_set {
+        return Err("--profile and -1..-9/--fast/--best specify the same effort; use one".into());
+    }
+    if o.profile_set && o.external_backend.is_none() && o.portfolio.is_none() {
+        if !matches!(o.format.as_str(), "auto" | "cixg1" | "cixg2") {
+            return Err("native --profile currently applies to CIXG1 auto selection".into());
+        }
+        o.level = match o.profile.as_str() {
+            "fast" => 1,
+            "default" | "current" => 6,
+            "size" => 9,
+            _ => return Err("native --profile accepts fast, default or size".into()),
+        };
+    }
+    if o.threads > 4 {
+        return Err("--threads is limited to 4 workers by the current memory policy".into());
+    }
+    if o.threads > 1
+        && (o.decode
+            || !matches!(o.format.as_str(), "auto" | "cixg1" | "cixg2")
+            || o.portfolio.is_some()
+            || o.external_backend.is_some())
+    {
         return Err(
-            "this portable build supports --threads 1; parallel coding is not implemented".into(),
+            "--threads >1 applies to native CIXG1/CIXG2 block or candidate selection".into(),
         );
     }
     if o.memory < 128 * 1024 {
         return Err("--memory must be at least 128 KiB for a CIXG1 frame".into());
     }
-    if o.profile_set && o.external_backend.is_none() {
-        return Err("--profile requires --external".into());
-    }
-    if !matches!(o.format.as_str(), "cixg1" | "cixm6" | "cixf1") {
-        return Err("--format accepts cixg1, cixm6 or cixf1".into());
+    if !matches!(
+        o.format.as_str(),
+        "auto" | "cixg1" | "cixg2" | "cixm6" | "cixf1"
+    ) {
+        return Err("--format accepts auto, cixg1, cixg2, cixm6 or cixf1".into());
     }
     if matches!(o.format.as_str(), "cixm6" | "cixf1")
         && (o.decode
@@ -2599,9 +3847,11 @@ fn run() -> Result<(), String> {
     if matches!(o.format.as_str(), "cixm6" | "cixf1") && o.flush_interval.is_some() {
         return Err("--flush-interval is not available for the CIXM6 encoder".into());
     }
-    if matches!(o.format.as_str(), "cixm6" | "cixf1") && o.memory < (1 << 20) + block_min(&o) {
+    if matches!(o.format.as_str(), "cixm6" | "cixf1")
+        && o.memory < (1 << 20) + block_min(&o).saturating_mul(3) + (256 << 10)
+    {
         return Err(
-            "CIXM6 encoder needs --memory for its 1 MiB history declaration and block".into(),
+            "CIXM6 encoder needs --memory for history, source and candidate buffers".into(),
         );
     }
     if let Some(p) = o.portfolio.as_deref() {
@@ -2621,8 +3871,8 @@ fn run() -> Result<(), String> {
                 "bounded portfolio selection conflicts with --stream/--flush-interval".into(),
             );
         }
-        if !matches!(p, "fast" | "current" | "size") {
-            return Err("--portfolio accepts fast, current or size".into());
+        if !matches!(p, "fast" | "default" | "current" | "size") {
+            return Err("--portfolio accepts fast, default or size".into());
         }
     }
     if o.external_backend.is_some() {
@@ -2640,8 +3890,8 @@ fn run() -> Result<(), String> {
         if o.route.is_some() {
             return Err("--external conflicts with --route".into());
         }
-        if !matches!(o.profile.as_str(), "fast" | "current" | "size") {
-            return Err("--profile accepts fast, current or size".into());
+        if !matches!(o.profile.as_str(), "fast" | "default" | "current" | "size") {
+            return Err("--profile accepts fast, default or size".into());
         }
     }
     if o.route.as_deref() == Some("lz") && o.memory < 16 * 1024 * 1024 {
@@ -2709,11 +3959,37 @@ fn run() -> Result<(), String> {
     if requested_block > MAX_BLOCK {
         eprintln!("cix: CIXG1 limits frames to 65536 bytes; effective block size is 65536 bytes");
     }
-    let estimated_working = block as usize * 8 + 65536;
-    if estimated_working > o.memory {
+    o.threads = automatic_workers(o.threads, o.threads_set, block, o.memory);
+    let estimated_working = (block as usize)
+        .saturating_mul(8usize.saturating_mul(o.threads.max(1)))
+        .saturating_add(65536usize.saturating_mul(o.threads.max(1)));
+    if !o.decode && estimated_working > o.memory {
         return Err(format!("block needs about {estimated_working} bytes working memory; reduce --block-size or raise --memory"));
     }
     let forced = o.route.as_deref().filter(|r| *r != "auto");
+    if !o.decode
+        && o.external_backend.is_none()
+        && o.portfolio.is_none()
+        && matches!(o.format.as_str(), "auto" | "cixg1" | "cixg2")
+    {
+        let profile = selection::profile(&[], 1);
+        let route =
+            forced.map(|name| selection::ROUTES.iter().position(|r| *r == name).unwrap() as u8);
+        selection::generate_candidates(
+            &profile,
+            selector_effort_name(o.level),
+            route,
+            o.backend_set.then_some(o.backend.as_str()),
+        )?;
+        if o.format == "cixg1"
+            && o.backend_set
+            && (o.backend.starts_with("context-range-") || o.backend == "huffman")
+        {
+            return Err(
+                "versioned substream coder requires --format cixg2 or --format auto".into(),
+            );
+        }
+    }
     let out = o.output.clone().unwrap_or_else(|| {
         if o.decode {
             cixf1_original_name(&o.input).unwrap_or_else(|| default_output(&o.input, true))
@@ -2731,8 +4007,7 @@ fn run() -> Result<(), String> {
     if o.stdout || out == "-" {
         let src = open_input(&o.input)?;
         let fd = input_fd(&src);
-        let dst = io::stdout();
-        let mut lock = dst.lock();
+        let mut lock = stdout_writer::StdoutWriter::new().map_err(ioerr)?;
         if o.decode {
             decode(src, &mut lock, false, false, fd, o.memory)
         } else if o.format == "cixm6" || o.format == "cixf1" {
@@ -2757,15 +4032,22 @@ fn run() -> Result<(), String> {
         } else if let Some(backend) = o.external_backend.as_deref() {
             encode_external(src, &mut lock, backend, &o.profile, o.memory)
         } else {
-            encode(
+            encode_with_strategy(
                 src,
                 &mut lock,
                 block,
                 o.level,
                 forced,
                 &o.backend,
+                o.backend_set,
+                &o.format,
                 fd,
                 o.flush_interval,
+                o.memory,
+                o.threads,
+                o.explain,
+                o.verbose,
+                &o.parallelism,
             )
         }?
     } else {
@@ -2799,15 +4081,22 @@ fn run() -> Result<(), String> {
             } else if let Some(backend) = o.external_backend.as_deref() {
                 encode_external(src, dst, backend, &o.profile, o.memory)
             } else {
-                encode(
+                encode_with_strategy(
                     src,
                     dst,
                     block,
                     o.level,
                     forced,
                     &o.backend,
+                    o.backend_set,
+                    &o.format,
                     fd,
                     o.flush_interval,
+                    o.memory,
+                    o.threads,
+                    o.explain,
+                    o.verbose,
+                    &o.parallelism,
                 )
             }
         })?;
@@ -2824,5 +4113,140 @@ fn main() {
     if let Err(e) = run() {
         eprintln!("cix: {e}");
         process::exit(2)
+    }
+}
+
+#[cfg(test)]
+mod cixg_huffman_tests {
+    use super::*;
+    use std::io::Cursor;
+
+    #[test]
+    fn forced_route_raw_fallback_is_tagged_raw() {
+        let input: Vec<u8> = (0u8..64).collect();
+        let mut archive = Vec::new();
+        encode(
+            Cursor::new(input.clone()),
+            &mut archive,
+            1024,
+            9,
+            Some("runs"),
+            "hybrid",
+            false,
+            "cixg1",
+            -1,
+            None,
+            128 * 1024 * 1024,
+            1,
+            false,
+            false,
+        )
+        .unwrap();
+        // Header is 13 bytes; the next byte is the actual block route ID.
+        assert_eq!(
+            archive[HEADER], 0,
+            "raw fallback must not be mislabeled runs"
+        );
+        let mut restored = Vec::new();
+        decode(
+            Cursor::new(archive),
+            &mut restored,
+            false,
+            false,
+            -1,
+            128 * 1024 * 1024,
+        )
+        .unwrap();
+        assert_eq!(restored, input);
+    }
+
+    #[test]
+    fn cixg2_huffman_substream_round_trips_and_cixg1_rejects_it() {
+        let input = vec![b'Q'; 4096];
+        assert!(encode(
+            Cursor::new(input.clone()),
+            Vec::new(),
+            8192,
+            9,
+            Some("composition"),
+            "huffman",
+            true,
+            "cixg1",
+            -1,
+            None,
+            128 * 1024 * 1024,
+            1,
+            false,
+            false,
+        )
+        .unwrap_err()
+        .contains("requires --format cixg2"));
+        let mut archive = Vec::new();
+        encode(
+            Cursor::new(input.clone()),
+            &mut archive,
+            8192,
+            9,
+            Some("composition"),
+            "huffman",
+            true,
+            "cixg2",
+            -1,
+            None,
+            128 * 1024 * 1024,
+            1,
+            false,
+            false,
+        )
+        .unwrap();
+        assert_eq!(&archive[..5], MAGIC_V2);
+        // Header + CIXG frame + substream count, then its coder ID.
+        assert_eq!(archive[HEADER + 41 + 1], 7);
+        let mut restored = Vec::new();
+        decode(
+            Cursor::new(archive.clone()),
+            &mut restored,
+            false,
+            false,
+            -1,
+            128 * 1024 * 1024,
+        )
+        .unwrap();
+        assert_eq!(restored, input);
+
+        let mut invalid_v1 = archive;
+        invalid_v1[..5].copy_from_slice(MAGIC);
+        assert!(decode(
+            Cursor::new(invalid_v1),
+            Vec::new(),
+            false,
+            false,
+            -1,
+            128 * 1024 * 1024,
+        )
+        .is_err());
+    }
+}
+
+#[cfg(test)]
+mod bounded_history_tests {
+    use super::*;
+    #[test]
+    fn history_never_grows_past_reserved_capacity() {
+        let mut history = Vec::with_capacity(8);
+        let cap = history.capacity();
+        for input in [b"abcdef".as_slice(), b"ghijk", b"lmnopqrstuv"] {
+            append_bounded_history(&mut history, input, 8);
+            assert!(history.len() <= 8);
+            assert_eq!(history.capacity(), cap);
+        }
+        assert_eq!(history, b"opqrstuv");
+    }
+    #[test]
+    fn default_workers_shrink_to_fit_but_explicit_workers_do_not() {
+        let minimum = parallel_retained(4096, 2) + 65537;
+        assert_eq!(automatic_workers(4, false, 4096, minimum), 2);
+        assert_eq!(automatic_workers(4, true, 4096, minimum), 4);
+        assert_eq!(automatic_workers(4, false, 4096, 131072), 1);
     }
 }
