@@ -1,0 +1,188 @@
+   Compiling cix-native v0.1.0 (/home/user/src/cix-qualified-final/rust/cix-native)
+warning: function `encode_version` is never used
+    --> src/bwt_legacy.rs:1400:8
+     |
+1400 | pub fn encode_version(data: &[u8], version: u8) -> Result<Option<Vec<u8>>, String> {
+     |        ^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: fields `transform_id`, `inner_mode`, `bytes`, and `description` are never read
+  --> src/chain.rs:42:9
+   |
+41 | pub struct CandidateSize {
+   |            ------------- fields in this struct
+42 |     pub transform_id: u8,
+   |         ^^^^^^^^^^^^
+43 |     pub inner_mode: u8,
+   |         ^^^^^^^^^^
+44 |     pub bytes: usize,
+   |         ^^^^^
+45 |     pub description: String,
+   |         ^^^^^^^^^^^
+   |
+   = note: `CandidateSize` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: fields `description` and `candidates` are never read
+  --> src/chain.rs:52:9
+   |
+50 | pub struct EncodeResult {
+   |            ------------ fields in this struct
+51 |     pub payload: Vec<u8>,
+52 |     pub description: String,
+   |         ^^^^^^^^^^^
+53 |     pub candidates: Vec<CandidateSize>,
+   |         ^^^^^^^^^^
+   |
+   = note: `EncodeResult` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: function `encode_with_history` is never used
+   --> src/expertmix.rs:211:8
+    |
+211 | pub fn encode_with_history(
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `encode` is never used
+   --> src/expertmix.rs:219:8
+    |
+219 | pub fn encode(data: &[u8], orders: &[u8]) -> Result<Vec<u8>, String> {
+    |        ^^^^^^
+
+warning: function `decode_with_history` is never used
+   --> src/expertmix.rs:317:8
+    |
+317 | pub fn decode_with_history(
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `decode` is never used
+   --> src/expertmix.rs:325:8
+    |
+325 | pub fn decode(blob: &[u8], source_length: usize) -> Result<Vec<u8>, String> {
+    |        ^^^^^^
+
+warning: constant `ONE_SHOT_CANCELLATION_LIMITATION` is never used
+  --> src/external.rs:27:11
+   |
+27 | pub const ONE_SHOT_CANCELLATION_LIMITATION: &str =
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `experimental_candidates` is never used
+   --> src/external.rs:335:8
+    |
+335 | pub fn experimental_candidates() -> &'static [CandidateDescriptor] {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `encode_eta_with_recurrence` is never used
+   --> src/fixedmix.rs:504:4
+    |
+504 | fn encode_eta_with_recurrence(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `encode_with_recurrence_eta` is never used
+   --> src/fixedmix.rs:577:8
+    |
+577 | pub fn encode_with_recurrence_eta(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `encode_with_legacy_recurrence_eta` is never used
+   --> src/fixedmix.rs:605:8
+    |
+605 | pub fn encode_with_legacy_recurrence_eta(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `new` and `recv_next` are never used
+   --> src/parallel.rs:85:12
+    |
+ 82 | impl<T: Send + 'static, R: Send + 'static> OrderedPipeline<T, R> {
+    | ---------------------------------------------------------------- associated items in this implementation
+...
+ 85 |     pub fn new<F>(workers: usize, capacity: usize, encode: F) -> Result<Self, &'static str>
+    |            ^^^
+...
+268 |     pub fn recv_next(&mut self) -> Result<Option<R>, PipelineError> {
+    |            ^^^^^^^^^
+
+warning: methods `try_acquire` and `acquire_uninterruptibly` are never used
+   --> src/resources.rs:115:12
+    |
+ 80 | impl MemoryBudget {
+    | ----------------- methods in this implementation
+...
+115 |     pub fn try_acquire(&self, bytes: usize) -> Result<Option<MemoryPermit>, MemoryError> {
+    |            ^^^^^^^^^^^
+...
+171 |     pub fn acquire_uninterruptibly(&self, bytes: usize) -> Result<MemoryPermit, MemoryError> {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `bytes` is never used
+   --> src/resources.rs:196:12
+    |
+195 | impl MemoryPermit {
+    | ----------------- method in this implementation
+196 |     pub fn bytes(&self) -> usize {
+    |            ^^^^^
+
+warning: method `estimate_bits` is never used
+   --> src/stateful.rs:212:8
+    |
+124 | impl PersistentAdaptiveState {
+    | ---------------------------- method in this implementation
+...
+212 |     fn estimate_bits(
+    |        ^^^^^^^^^^^^^
+
+warning: methods `model_spec` and `estimate_bits` are never used
+   --> src/stateful.rs:353:12
+    |
+342 | impl PersistentAdaptiveStates {
+    | ----------------------------- methods in this implementation
+...
+353 |     pub fn model_spec(&self, model_id: usize) -> Option<(usize, usize)> {
+    |            ^^^^^^^^^^
+...
+359 |     pub fn estimate_bits(
+    |            ^^^^^^^^^^^^^
+
+warning: function `encode_id` is never used
+   --> src/transform.rs:387:8
+    |
+387 | pub fn encode_id(data: &[u8], id: u8) -> Result<Vec<u8>, String> {
+    |        ^^^^^^^^^
+
+warning: methods `to_bytes`, `to_saturated_bytes`, and `to_versioned_bytes` are never used
+  --> src/zpaq_context.rs:38:12
+   |
+23 | impl Config {
+   | ----------- methods in this implementation
+...
+38 |     pub fn to_bytes(self) -> Result<[u8; 7], String> {
+   |            ^^^^^^^^
+...
+45 |     pub fn to_saturated_bytes(self) -> Result<[u8; 7], String> {
+   |            ^^^^^^^^^^^^^^^^^^
+...
+49 |     fn to_versioned_bytes(self, version: u8) -> Result<[u8; 7], String> {
+   |        ^^^^^^^^^^^^^^^^^^
+
+warning: methods `config` and `position` are never used
+   --> src/zpaq_context.rs:129:12
+    |
+108 | impl Predictor {
+    | -------------- methods in this implementation
+...
+129 |     pub fn config(&self) -> Config {
+    |            ^^^^^^
+...
+133 |     pub fn position(&self) -> u64 {
+    |            ^^^^^^^^
+
+warning: function `extract` is never used
+   --> src/zpaq_context.rs:189:8
+    |
+189 | pub fn extract(data: &[u8], config: Config) -> Result<Vec<Feature>, String> {
+    |        ^^^^^^^
+
+warning: `cix-native` (bin "uncix") generated 21 warnings (21 duplicates)
+warning: `cix-native` (bin "cix") generated 21 warnings
+warning: `cix-native` (bin "cixcat") generated 21 warnings (21 duplicates)
+    Finished `release-lto` profile [optimized] target(s) in 1m 06s

@@ -1,9 +1,9 @@
 # Six capability audit and qualified release
 
-Release source: `08101079c71a07ef9f268da7058a76802c1dbde3`.
+Release source: `938e88054adef5b9c33bfe2022b73fc6546074e9`.
 Linux x86_64 binaries: repository `dist/cix`, `dist/uncix`, `dist/cixcat` and
 `dist/libcix_native.so`; exact hashes and build command are in
-[release metadata](qualified-release-evidence/native-release.json).
+[release metadata](qualified-release-evidence/final-native-release.json).
 Source was built from a clean detached worktree, excluding experimental edits
 in `cix-best-parity`. Review and implementation were divided among parallel agents.
 
@@ -57,15 +57,18 @@ bounded whole-archive wrapper, not an incremental streaming container.
 
 ## Current validation
 
-[Focused test evidence](qualified-release-evidence/focused-tests.summary.json):
-21/21 tests pass: automatic BEST registry/decode, native backend/archive admission,
-gzip expansion bounds, interruption/atomic-output handling and real-pipe streaming.
+[Final focused test evidence](qualified-release-evidence/final-tests.summary.json):
+23/23 tests pass: automatic BEST registry/decode, native backend/archive admission,
+gzip expansion bounds, interruption/atomic-output handling, real-pipe streaming,
+and aggregate-budget validation of an actual 64 KiB native mixer frame.
 Pipe tests verify pre-EOF compressed output and restored bytes, idle flush, irregular
 chunks, slow downstream consumption, empty/corrupt/truncated streams, and a stream
-larger than its working-memory budget. An additional [44 fresh native CLI round
-trips](qualified-release-evidence/native-capability-smoke.json) passed, with 88
-corrupt/truncated archives rejected. Raw fallback is legal; those smoke rows do
-not claim every requested route won.
+larger than its working-memory budget. An additional [55 fresh native CLI round
+trips](qualified-release-evidence/final-native-capability-smoke.json) passed at
+this final source, with 110 corrupt/truncated archives rejected. Every native
+route ID 0–10 was actually selected by at least one nonempty fixture; raw
+fallbacks and empty streams are identified separately. This is mechanism and
+restoration evidence, not a size or speed claim.
 
 Mechanism-specific preserved evidence:
 [implementation and canonical parity](implementation-smoke.md),
@@ -84,7 +87,12 @@ as a rerun at this source revision.
 - Native one-shot backend calls may delay interruption until the library returns.
 - Other platforms and a Squash SDK-loaded plugin remain unverified on this host.
 
-The full Dickens comparison runs separately with two repetitions per immutable
-binary pair, the same input hash, four physical CPUs and fresh archive-only
+The [full Dickens comparison](cix-dickens-qualified-best-v1/README.md) completed
+two repetitions per immutable binary pair, the same input hash, four physical CPUs and fresh archive-only
 decoding. The historical Python archive is a size comparator, not a timing control.
 No corpus rank, broad gate completion or experimental promotion is inferred from it.
+
+The two corrected runs matched the Python record byte for byte: 2,799,567 bytes.
+Their 20.16% size improvement over the old plain Rust client is a qualified
+backend/selector repair. A [separately frozen full-Dickens final-source cell](cix-dickens-final-best-v1/README.md)
+verified identical archive bytes and fresh restoration after the validation-budget correction.
