@@ -1,5 +1,28 @@
 # Native Rust implementation and measurements
 
+## CIXM6 encoder parity update (correctness only)
+
+The native CIXM6 encoder now has a deterministic, bounded per-block candidate
+selector for legacy modes 0–20. Each accepted candidate is compared using the
+complete mode/length/payload frame size; effort levels 1–9 bound the candidate
+set, and candidates that exceed the memory allowance are omitted with a
+diagnostic. Persistent mode-13 state observes every block, including blocks
+written using another mode. Block references retain a bounded recent-block
+queue. The frozen Python route selector is timing-dependent, so Rust's route
+choices are not claimed to match it. The canonical individual payload encoders
+are checked against Python independently; LZ uses a bounded native hash-chain
+parser and does not implement Python's optional large-block suffix-array
+search.
+
+Focused checks cover every mode encoder's canonical payload and Python decode,
+every legacy decoder mode, record/periodic nested byte modes, and 54 complete
+Rust archives across efforts 1–9 and empty, tiny, random, repetitive, mixed,
+and repeated-block inputs. Both Python and Rust restored all 54 exactly. This
+was correctness testing only. No performance comparison was run for this
+selector update; data-result comparisons remain restricted to the existing
+Silesia set. The earlier timing table below belongs to the earlier CIXG1
+implementation and must not be attributed to this CIXM6 selector.
+
 ## Subsequent code update (correctness checked, not performance measured)
 
 The native encoder/decoder now supports CIXG1 route IDs 2 (composition), 3

@@ -1,11 +1,11 @@
-//! Decoder for legacy CIXM6 mode 17 context-expert payloads.
+//! Encoder and decoder for legacy CIXM6 mode 17 context-expert payloads.
 //!
 //! The selected expert is derived from exponentially decayed log loss, so no
 //! selector stream is stored.  Keep the floating-point update order identical
 //! to the frozen Python reference: changing it can change the selected model
 //! and therefore the arithmetic-code intervals.
 
-use crate::rank::ArithmeticDecoder;
+use crate::rank::{ArithmeticDecoder, ArithmeticEncoder};
 use std::collections::HashMap;
 
 const VERSION: u8 = 1;
@@ -58,6 +58,44 @@ fn update_loss(loss: f64, counts: Option<&Counts>, symbol: u8) -> f64 {
     loss * DECAY + instantaneous
 }
 
+fn interval(counts: Option<&Counts>, symbol: u8) -> (usize, usize, usize) {
+    let mut low = symbol as usize;
+    let mut observed = 0usize;
+    if let Some(values) = counts {
+        for &(candidate, n) in values {
+            if candidate < symbol {
+                low += n as usize;
+            } else if candidate == symbol {
+                observed = n as usize;
+                break;
+            } else {
+                break;
+            }
+        }
+    }
+    (low, low + observed + 1, total(counts))
+}
+
+fn put_varint(mut value: usize, out: &mut Vec<u8>) {
+    while value >= 128 {
+        out.push((value as u8 & 0x7f) | 0x80);
+        value >>= 7;
+    }
+    out.push(value as u8);
+}
+
+fn validate_orders(orders: &[u8]) -> Result<(), String> {
+    if orders.is_empty()
+        || orders.len() > 9
+        || orders[0] != 0
+        || orders.last().copied().unwrap_or(9) > 8
+        || orders.windows(2).any(|pair| pair[0] >= pair[1])
+    {
+        return Err("invalid context-expert orders".into());
+    }
+    Ok(())
+}
+
 fn decode_symbol(
     decoder: &mut ArithmeticDecoder<'_>,
     counts: Option<&Counts>,
@@ -90,6 +128,98 @@ fn observe(counts: &mut Counts, symbol: u8) {
     }
 }
 
+/// Encode a frozen CIXM6 mode-17 payload while bounding allocated contexts.
+///
+/// Prefix bytes seed only the causal context window. As in the Python
+/// reference, every expert's count table starts empty for each payload.
+pub fn encode_bounded(
+    data: &[u8],
+    orders: &[u8],
+    prefix_history: &[u8],
+    max_contexts: usize,
+) -> Result<Vec<u8>, String> {
+    validate_orders(orders)?;
+
+    let max_order = orders[orders.len() - 1] as usize;
+    let history_start = prefix_history.len().saturating_sub(max_order);
+    let mut history = prefix_history[history_start..].to_vec();
+    let mut tables: Vec<Table> = (0..orders.len()).map(|_| HashMap::new()).collect();
+    let mut losses = vec![0.0f64; orders.len()];
+    let mut contexts = Vec::with_capacity(orders.len());
+    let mut context_count = 0usize;
+    let mut encoder = ArithmeticEncoder::new();
+
+    for &symbol in data {
+        contexts.clear();
+        for &order in orders {
+            let order = order as usize;
+            contexts.push(if order == 0 {
+                Vec::new()
+            } else {
+                history[history.len().saturating_sub(order)..].to_vec()
+            });
+        }
+
+        let mut selected = 0usize;
+        for index in 1..orders.len() {
+            if losses[index] < losses[selected] {
+                selected = index;
+            }
+        }
+        let (low, high, model_total) = interval(tables[selected].get(&contexts[selected]), symbol);
+        encoder.encode(low, high, model_total);
+
+        for index in 0..orders.len() {
+            losses[index] = update_loss(losses[index], tables[index].get(&contexts[index]), symbol);
+        }
+        for index in 0..orders.len() {
+            if !tables[index].contains_key(&contexts[index]) {
+                if context_count >= max_contexts {
+                    return Err("context-expert model exceeds memory budget".into());
+                }
+                tables[index].insert(contexts[index].clone(), Vec::new());
+                context_count += 1;
+            }
+            observe(
+                tables[index]
+                    .get_mut(&contexts[index])
+                    .expect("inserted context is present"),
+                symbol,
+            );
+        }
+
+        if max_order > 0 {
+            history.push(symbol);
+            if history.len() > max_order {
+                history.remove(0);
+            }
+        }
+    }
+
+    let (coded, bit_length) = encoder.finish();
+    let mut out = Vec::new();
+    out.try_reserve_exact(2 + orders.len() + 10 + coded.len())
+        .map_err(|_| "context-expert payload exceeds available memory")?;
+    out.push(VERSION);
+    out.push(orders.len() as u8);
+    out.extend_from_slice(orders);
+    put_varint(bit_length, &mut out);
+    out.extend_from_slice(&coded);
+    Ok(out)
+}
+
+pub fn encode_with_history(
+    data: &[u8],
+    orders: &[u8],
+    prefix_history: &[u8],
+) -> Result<Vec<u8>, String> {
+    encode_bounded(data, orders, prefix_history, usize::MAX)
+}
+
+pub fn encode(data: &[u8], orders: &[u8]) -> Result<Vec<u8>, String> {
+    encode_with_history(data, orders, &[])
+}
+
 /// Decode while enforcing a cap on the total number of allocated contexts.
 ///
 /// Prefix bytes seed only the causal context window.  The Python reference
@@ -108,12 +238,7 @@ pub fn decode_bounded(
         return Err("invalid context-expert order count".into());
     }
     let orders = &blob[2..2 + order_count];
-    if orders[0] != 0
-        || orders.last().copied().unwrap_or(9) > 8
-        || orders.windows(2).any(|pair| pair[0] >= pair[1])
-    {
-        return Err("invalid context-expert orders".into());
-    }
+    validate_orders(orders)?;
 
     let mut pos = 2 + order_count;
     let bit_length = read_varint(blob, &mut pos)?;

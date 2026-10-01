@@ -4,7 +4,9 @@
 //! of the legacy CIX inner codecs.  Decoding is deliberately self-contained so
 //! every length-delimited inner stream is checked before transform inversion.
 
-use super::{adaptive, bitplane, bwt_legacy, fixedmix, histogram, ppm, rank, wavelet};
+use super::{
+    adaptive, bitplane, bwt_legacy, fixedmix, histogram, legacy_lz, ppm, rank, transform, wavelet,
+};
 use num_bigint::BigUint;
 use num_traits::{One, Zero};
 use std::collections::HashMap;
@@ -17,6 +19,39 @@ const INNER_BWT: u8 = 4;
 const INNER_BITPLANE: u8 = 5;
 const INNER_SPARSE: u8 = 6;
 const INNER_RUNS: u8 = 7;
+const CHAIN_SPEC_IDS: [u8; 9] = [12, 13, 16, 20, 21, 29, 30, 31, 33];
+
+/// Bounded transform-chain selector controls.
+#[derive(Clone, Copy, Debug)]
+pub struct EncodeOptions {
+    /// Number of the nine frozen transforms admitted after cheap profiling.
+    pub beam: usize,
+    /// Effort 1..9. Higher values add inner codecs but never unbound the beam.
+    pub effort: u8,
+}
+
+impl Default for EncodeOptions {
+    fn default() -> Self {
+        Self { beam: 4, effort: 6 }
+    }
+}
+
+/// Complete chain-payload byte count for one materialized candidate.
+#[derive(Clone, Debug)]
+pub struct CandidateSize {
+    pub transform_id: u8,
+    pub inner_mode: u8,
+    pub bytes: usize,
+    pub description: String,
+}
+
+/// Selected chain payload plus exact sizes for every materialized candidate.
+#[derive(Clone, Debug)]
+pub struct EncodeResult {
+    pub payload: Vec<u8>,
+    pub description: String,
+    pub candidates: Vec<CandidateSize>,
+}
 
 #[derive(Clone, Copy)]
 enum Endian {
@@ -87,6 +122,29 @@ fn transform(id: u8) -> Option<Transform> {
         shuffle,
         byte_lag,
     })
+}
+
+fn transform_name(id: u8) -> &'static str {
+    match id {
+        12 => "word32le-delta2-shuffle",
+        13 => "word64le-delta2-shuffle",
+        16 => "word64be-delta2-shuffle",
+        20 => "byte-xor-12",
+        21 => "byte-xor-16",
+        29 => "word32le-delta2zz-shuffle",
+        30 => "word64le-delta2zz-shuffle",
+        31 => "word64be-delta2zz-shuffle",
+        33 => "matchxor4",
+        _ => "unknown-transform",
+    }
+}
+
+fn put_var(mut value: usize, out: &mut Vec<u8>) {
+    while value >= 128 {
+        out.push((value as u8 & 0x7f) | 0x80);
+        value >>= 7;
+    }
+    out.push(value as u8);
 }
 
 fn unvar(data: &[u8], pos: &mut usize) -> Result<usize, String> {
@@ -303,6 +361,26 @@ fn choose(n: usize, k: usize) -> BigUint {
         value /= i;
     }
     value
+}
+
+fn fixed_bytes(value: &BigUint, width: usize) -> Vec<u8> {
+    let size = width.div_ceil(8);
+    if size == 0 {
+        return Vec::new();
+    }
+    let bytes = value.to_bytes_be();
+    let mut out = vec![0u8; size.saturating_sub(bytes.len())];
+    out.extend_from_slice(&bytes);
+    out
+}
+
+fn colex_rank(values: &[usize]) -> BigUint {
+    values
+        .iter()
+        .enumerate()
+        .fold(BigUint::zero(), |sum, (index, &value)| {
+            sum + choose(value, index + 1)
+        })
 }
 
 fn fixed_width(value: &BigUint) -> usize {
@@ -734,6 +812,204 @@ fn decode_lz(data: &[u8], source_len: usize, model_limit: usize) -> Result<Vec<u
     Ok(output)
 }
 
+fn encode_uints_raw(values: &[usize]) -> Vec<u8> {
+    let mut out = vec![0];
+    for &value in values {
+        put_var(value, &mut out);
+    }
+    out
+}
+
+fn encode_sparse(data: &[u8]) -> Result<Vec<u8>, String> {
+    if data.is_empty() {
+        return Err("cannot sparse-encode an empty chain block".into());
+    }
+    let mut counts = [0usize; 256];
+    for &byte in data {
+        counts[byte as usize] += 1;
+    }
+    let dominant = counts
+        .iter()
+        .enumerate()
+        .max_by_key(|&(symbol, count)| (*count, std::cmp::Reverse(symbol)))
+        .map(|(symbol, _)| symbol)
+        .unwrap();
+    let mut positions = Vec::new();
+    let mut values = Vec::new();
+    for (index, &byte) in data.iter().enumerate() {
+        if byte as usize != dominant {
+            positions.push(index);
+            values.push(byte);
+        }
+    }
+    let width = fixed_width(&(choose(data.len(), positions.len()) - BigUint::one()));
+    let mut out = vec![1, dominant as u8];
+    put_var(positions.len(), &mut out);
+    out.extend(fixed_bytes(&colex_rank(&positions), width));
+    out.extend(rank::encode_type_class(&values)?);
+    Ok(out)
+}
+
+fn encode_runs(data: &[u8]) -> Result<Vec<u8>, String> {
+    if data.is_empty() {
+        return Err("cannot run-encode an empty chain block".into());
+    }
+    let mut symbols = Vec::new();
+    let mut lengths = Vec::new();
+    let mut current = data[0];
+    let mut length = 1usize;
+    for &byte in &data[1..] {
+        if byte == current {
+            length += 1;
+        } else {
+            symbols.push(current);
+            lengths.push(length - 1);
+            current = byte;
+            length = 1;
+        }
+    }
+    symbols.push(current);
+    lengths.push(length - 1);
+    let symbol_blob = rank::encode_type_class(&symbols)?;
+    let mut out = vec![1];
+    put_var(symbols.len(), &mut out);
+    put_var(symbol_blob.len(), &mut out);
+    out.extend(symbol_blob);
+    out.extend(encode_uints_raw(&lengths));
+    Ok(out)
+}
+
+fn typeclass_score(data: &[u8], log_factorials: &[f64]) -> f64 {
+    if data.is_empty() {
+        return 1.0;
+    }
+    let mut counts = [0usize; 256];
+    for &byte in data {
+        counts[byte as usize] += 1;
+    }
+    let active = counts.iter().filter(|&&count| count != 0).count();
+    let log_choose =
+        |n: usize, k: usize| log_factorials[n] - log_factorials[k] - log_factorials[n - k];
+    let mut bits = 8.0;
+    if active < 256 {
+        bits += log_choose(256, active);
+    }
+    if active > 1 {
+        bits += log_choose(data.len() - 1, active - 1);
+    }
+    bits += log_factorials[data.len()]
+        - counts
+            .iter()
+            .filter(|&&count| count != 0)
+            .map(|&count| log_factorials[count])
+            .sum::<f64>();
+    bits / 8.0
+}
+
+/// Materialize a bounded frozen transform-chain portfolio and select by complete
+/// payload bytes. The returned payload includes the three-byte chain header.
+pub fn encode(data: &[u8], options: EncodeOptions) -> Result<EncodeResult, String> {
+    if data.is_empty() {
+        return Err("cannot transform-chain encode an empty block".into());
+    }
+    if options.beam == 0 || options.beam > CHAIN_SPEC_IDS.len() {
+        return Err("transform-chain beam must be between 1 and 9".into());
+    }
+    if !(1..=9).contains(&options.effort) {
+        return Err("transform-chain effort must be between 1 and 9".into());
+    }
+    let factorial_limit = data.len().max(256);
+    let mut log_factorials = vec![0.0f64; factorial_limit + 1];
+    for value in 2..=factorial_limit {
+        log_factorials[value] = log_factorials[value - 1] + (value as f64).log2();
+    }
+    let mut profiled = Vec::with_capacity(CHAIN_SPEC_IDS.len());
+    for &id in &CHAIN_SPEC_IDS {
+        let transformed = transform::apply_id(data, id)?;
+        let score = typeclass_score(&transformed, &log_factorials);
+        profiled.push((score, id, transformed));
+    }
+    profiled.sort_by(|left, right| {
+        left.0
+            .total_cmp(&right.0)
+            .then_with(|| left.1.cmp(&right.1))
+    });
+    let mut best = None::<(Vec<u8>, String)>;
+    let mut measurements = Vec::new();
+    for (_, transform_id, transformed) in profiled.into_iter().take(options.beam) {
+        let mut consider =
+            |inner_mode: u8, inner: Vec<u8>, inner_name: &str| -> Result<(), String> {
+                let mut payload = vec![CHAIN_VERSION, transform_id, inner_mode];
+                payload.extend(inner);
+                let description = format!("{}->{inner_name}", transform_name(transform_id));
+                measurements.push(CandidateSize {
+                    transform_id,
+                    inner_mode,
+                    bytes: payload.len(),
+                    description: description.clone(),
+                });
+                if best
+                    .as_ref()
+                    .is_none_or(|(current, _)| payload.len() < current.len())
+                {
+                    best = Some((payload, description));
+                }
+                Ok(())
+            };
+        consider(
+            INNER_MULTINOMIAL,
+            rank::encode_type_class(&transformed)?,
+            "multinomial",
+        )?;
+        let context_models: &[(usize, usize)] = match options.effort {
+            0..=4 => &[],
+            5..=6 => &[(1, 8)],
+            7..=8 => &[(1, 8), (2, 8)],
+            _ => &[(1, 8), (2, 8), (2, 10)],
+        };
+        for &(order, bucket_bits) in context_models {
+            consider(
+                INNER_CONTEXT,
+                rank::encode_context_type_classes(&transformed, order, bucket_bits, &[])?,
+                &format!("context-o{order}-b{bucket_bits}"),
+            )?;
+        }
+        if options.effort >= 4 && transformed.len() >= 16 {
+            let candidate = legacy_lz::encode(&transformed, &[], options.effort)?;
+            consider(INNER_LZ, candidate.payload, &candidate.description)?;
+        }
+        if options.effort >= 6 && (32..=65_536).contains(&transformed.len()) {
+            let (payload, description) = bwt_legacy::encode(&transformed)?;
+            consider(INNER_BWT, payload, description)?;
+        }
+        if options.effort >= 3 && transformed.len() >= 2 {
+            consider(INNER_BITPLANE, bitplane::encode(&transformed), "bitplanes")?;
+        }
+        if options.effort >= 2 && transformed.len() >= 2 {
+            let mut counts = [0usize; 256];
+            for &byte in &transformed {
+                counts[byte as usize] += 1;
+            }
+            if counts.iter().copied().max().unwrap_or(0) * 4 >= transformed.len() {
+                consider(INNER_SPARSE, encode_sparse(&transformed)?, "sparse")?;
+            }
+            let run_count = 1 + transformed
+                .windows(2)
+                .filter(|pair| pair[0] != pair[1])
+                .count();
+            if run_count * 3 <= transformed.len() * 2 {
+                consider(INNER_RUNS, encode_runs(&transformed)?, "runs")?;
+            }
+        }
+    }
+    let (payload, description) = best.ok_or("no transform-chain candidates")?;
+    Ok(EncodeResult {
+        payload,
+        description,
+        candidates: measurements,
+    })
+}
+
 fn unshuffle(data: &[u8], width: usize) -> Vec<u8> {
     let usable = data.len() / width * width;
     let words = usable / width;
@@ -924,4 +1200,160 @@ pub fn decode(data: &[u8], source_len: usize, model_limit: usize) -> Result<Vec<
         return Err("transform-chain source length mismatch".into());
     }
     Ok(restored)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeSet;
+    use std::fs;
+    use std::path::PathBuf;
+
+    fn verify_and_write(
+        payload: Vec<u8>,
+        source: &[u8],
+        fixture_dir: Option<&PathBuf>,
+        index: &mut usize,
+    ) {
+        assert_eq!(decode(&payload, source.len(), 1 << 16).unwrap(), source);
+        if let Some(directory) = fixture_dir {
+            fs::write(directory.join(format!("{}.source", *index)), source).unwrap();
+            fs::write(directory.join(format!("{}.payload", *index)), payload).unwrap();
+        }
+        *index += 1;
+    }
+
+    #[test]
+    fn encoder_fixtures_cross_decode_in_rust() {
+        let mut words = Vec::new();
+        for value in 0..2048u32 {
+            words.extend_from_slice(&(value.wrapping_mul(value + 3)).to_le_bytes());
+        }
+        let repetitive = b"transform chain native encoder fixture::"
+            .repeat(180)
+            .into_iter()
+            .chain((0u8..=127).cycle().take(1024))
+            .collect::<Vec<_>>();
+        let mut state = 0x9e37_79b9u32;
+        let mixed = (0..8192)
+            .map(|_| {
+                state ^= state << 13;
+                state ^= state >> 17;
+                state ^= state << 5;
+                state as u8
+            })
+            .collect::<Vec<_>>();
+        let mut sparse = vec![0u8; 8192];
+        for index in (0..sparse.len()).step_by(127) {
+            sparse[index] = (index / 127 + 1) as u8;
+        }
+        let periodic = (0..8192)
+            .map(|index| ((index / 4 + index % 17) & 255) as u8)
+            .collect::<Vec<_>>();
+        let cases = [words, repetitive, mixed, sparse, periodic];
+        let fixture_dir = std::env::var_os("CIX_CHAIN_FIXTURE_DIR").map(PathBuf::from);
+        if let Some(directory) = &fixture_dir {
+            fs::create_dir_all(directory).unwrap();
+        }
+        let mut fixture_index = 0usize;
+        let mut inner_modes = BTreeSet::new();
+        for (index, source) in cases.iter().enumerate() {
+            let encoded = encode(source, EncodeOptions { beam: 9, effort: 9 }).unwrap();
+            assert!(!encoded.description.is_empty());
+            verify_and_write(
+                encoded.payload.clone(),
+                source,
+                fixture_dir.as_ref(),
+                &mut fixture_index,
+            );
+            assert_eq!(
+                encoded.candidates.iter().map(|item| item.bytes).min(),
+                Some(encoded.payload.len())
+            );
+            let transforms = encoded
+                .candidates
+                .iter()
+                .map(|item| item.transform_id)
+                .collect::<BTreeSet<_>>();
+            assert_eq!(
+                transforms,
+                CHAIN_SPEC_IDS.into_iter().collect::<BTreeSet<_>>()
+            );
+            inner_modes.extend(encoded.candidates.iter().map(|item| item.inner_mode));
+            if let Some(directory) = &fixture_dir {
+                let measurements = encoded
+                    .candidates
+                    .iter()
+                    .map(|item| {
+                        format!(
+                            "{}\t{}\t{}\t{}",
+                            item.transform_id, item.inner_mode, item.bytes, item.description
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                fs::write(
+                    directory.join(format!("{index}.candidates.tsv")),
+                    measurements,
+                )
+                .unwrap();
+            }
+        }
+        assert_eq!(inner_modes, (1u8..=7).collect::<BTreeSet<_>>());
+
+        let transform_source = &cases[0];
+        for transform_id in CHAIN_SPEC_IDS {
+            let transformed = transform::apply_id(transform_source, transform_id).unwrap();
+            let mut payload = vec![CHAIN_VERSION, transform_id, INNER_MULTINOMIAL];
+            payload.extend(rank::encode_type_class(&transformed).unwrap());
+            verify_and_write(
+                payload,
+                transform_source,
+                fixture_dir.as_ref(),
+                &mut fixture_index,
+            );
+        }
+
+        let transform_id = 20;
+        let spec = transform(transform_id).unwrap();
+        let direct_inners = [
+            (INNER_CONTEXT, b"context encoder fixture::".repeat(160)),
+            (INNER_LZ, b"native LZ chain encoder::".repeat(180)),
+            (INNER_BWT, b"banana_bandana::abracadabra::".repeat(150)),
+            (
+                INNER_BITPLANE,
+                (0u8..=63).cycle().take(4096).collect::<Vec<_>>(),
+            ),
+            (INNER_SPARSE, {
+                let mut value = vec![0u8; 4096];
+                for index in (0..value.len()).step_by(137) {
+                    value[index] = (index / 137 + 1) as u8;
+                }
+                value
+            }),
+            (INNER_RUNS, {
+                let mut value = vec![b'A'; 1600];
+                value.extend(vec![b'B'; 1200]);
+                value
+            }),
+        ];
+        for (inner_mode, transformed) in direct_inners {
+            let inner = match inner_mode {
+                INNER_CONTEXT => {
+                    rank::encode_context_type_classes(&transformed, 2, 8, &[]).unwrap()
+                }
+                INNER_LZ => legacy_lz::encode(&transformed, &[], 9).unwrap().payload,
+                INNER_BWT => bwt_legacy::encode(&transformed).unwrap().0,
+                INNER_BITPLANE => bitplane::encode(&transformed),
+                INNER_SPARSE => encode_sparse(&transformed).unwrap(),
+                INNER_RUNS => encode_runs(&transformed).unwrap(),
+                _ => unreachable!(),
+            };
+            let source = invert(&transformed, spec).unwrap();
+            let mut payload = vec![CHAIN_VERSION, transform_id, inner_mode];
+            payload.extend(inner);
+            verify_and_write(payload, &source, fixture_dir.as_ref(), &mut fixture_index);
+        }
+        assert_eq!(fixture_index, 20);
+    }
 }

@@ -1,11 +1,11 @@
-//! Frozen CIXM5/CIXM6 mode 13 persistent adaptive decoder.
+//! Frozen CIXM5/CIXM6 mode 13 persistent adaptive coder.
 //!
 //! All three models observe every reconstructed block.  A mode 13 block is
-//! decoded from a private working copy of the selected model; the caller must
-//! then call [`PersistentAdaptiveStates::observe`] once, just as it does for
-//! every other block mode.
+//! encoded or decoded from a private working copy of the selected model; the
+//! caller must then call [`PersistentAdaptiveStates::observe`] once, just as
+//! it does for every other block mode.
 
-use crate::rank::ArithmeticDecoder;
+use crate::rank::{ArithmeticDecoder, ArithmeticEncoder};
 
 const STATE_LIMIT: u32 = 16_384;
 const SPECS: [(usize, usize); 3] = [(0, 8), (1, 8), (2, 10)];
@@ -21,6 +21,9 @@ pub const RETAINED_MEMORY_BOUND: usize = (1 + 256 + 1024) * (COUNTS_BYTES + 32);
 
 /// Maximum private decode state when every bucket in one model is touched.
 pub const WORKING_MEMORY_BOUND: usize = 1024 * WORKING_BUCKET_BYTES + 16 * 1024;
+
+/// Number of frozen persistent model choices, in canonical selection order.
+pub const MODEL_COUNT: usize = SPECS.len();
 
 #[derive(Clone)]
 struct Model {
@@ -162,6 +165,103 @@ impl PersistentAdaptiveState {
         }
     }
 
+    fn working_bucket_limit(
+        &self,
+        source_length: usize,
+        memory_budget: usize,
+    ) -> Result<usize, String> {
+        let table_bytes = self
+            .buckets
+            .len()
+            .saturating_mul(std::mem::size_of::<Option<Box<Model>>>());
+        if source_length != 0 && memory_budget < table_bytes + WORKING_BUCKET_BYTES {
+            return Err("persistent adaptive working state exceeds --memory".into());
+        }
+        Ok(memory_budget
+            .saturating_sub(table_bytes)
+            .checked_div(WORKING_BUCKET_BYTES)
+            .unwrap_or(0)
+            .min(self.buckets.len()))
+    }
+
+    fn new_working_models(&self) -> Vec<Option<Box<Model>>> {
+        std::iter::repeat_with(|| None)
+            .take(self.buckets.len())
+            .collect()
+    }
+
+    fn working_model<'a>(
+        &'a self,
+        working: &'a mut [Option<Box<Model>>],
+        working_count: &mut usize,
+        bucket: usize,
+        bucket_limit: usize,
+    ) -> Result<&'a mut Model, String> {
+        if working[bucket].is_none() {
+            if *working_count >= bucket_limit {
+                return Err("persistent adaptive working state exceeds --memory".into());
+            }
+            let zero = [0u32; 256];
+            let counts = self.buckets[bucket].as_deref().unwrap_or(&zero);
+            working[bucket] = Some(Box::new(Model::from_counts(counts)?));
+            *working_count += 1;
+        }
+        Ok(working[bucket].as_deref_mut().unwrap())
+    }
+
+    fn estimate_bits(
+        &self,
+        data: &[u8],
+        prefix_history: &[u8],
+        memory_budget: usize,
+    ) -> Result<f64, String> {
+        let bucket_limit = self.working_bucket_limit(data.len(), memory_budget)?;
+        let mut working = self.new_working_models();
+        let mut working_count = 0usize;
+        let mut tail = self.initial_tail(prefix_history);
+        let mut bits = 0.0f64;
+
+        for &symbol in data {
+            let bucket = self.bucket(&tail);
+            let model =
+                self.working_model(&mut working, &mut working_count, bucket, bucket_limit)?;
+            let (low, high, total) = model.interval(symbol as usize);
+            bits += (total as f64).log2() - ((high - low) as f64).log2();
+            model.add(symbol as usize)?;
+            self.advance_tail(&mut tail, symbol);
+        }
+        Ok(bits)
+    }
+
+    fn encode(
+        &self,
+        data: &[u8],
+        prefix_history: &[u8],
+        memory_budget: usize,
+    ) -> Result<Vec<u8>, String> {
+        let bucket_limit = self.working_bucket_limit(data.len(), memory_budget)?;
+        let mut working = self.new_working_models();
+        let mut working_count = 0usize;
+        let mut tail = self.initial_tail(prefix_history);
+        let mut encoder = ArithmeticEncoder::new();
+
+        for &symbol in data {
+            let bucket = self.bucket(&tail);
+            let model =
+                self.working_model(&mut working, &mut working_count, bucket, bucket_limit)?;
+            let (low, high, total) = model.interval(symbol as usize);
+            encoder.encode(low, high, total);
+            model.add(symbol as usize)?;
+            self.advance_tail(&mut tail, symbol);
+        }
+
+        let (coded, bit_length) = encoder.finish();
+        let mut payload = Vec::with_capacity(varint_len(bit_length) + coded.len());
+        write_varint(bit_length, &mut payload);
+        payload.extend_from_slice(&coded);
+        Ok(payload)
+    }
+
     fn decode(
         &self,
         blob: &[u8],
@@ -179,22 +279,8 @@ impl PersistentAdaptiveState {
             return Err("persistent adaptive payload length mismatch".into());
         }
 
-        let table_bytes = self
-            .buckets
-            .len()
-            .saturating_mul(std::mem::size_of::<Option<Box<Model>>>());
-        if source_length != 0 && memory_budget < table_bytes + WORKING_BUCKET_BYTES {
-            return Err("persistent adaptive working state exceeds --memory".into());
-        }
-        let bucket_limit = memory_budget
-            .saturating_sub(table_bytes)
-            .checked_div(WORKING_BUCKET_BYTES)
-            .unwrap_or(0)
-            .min(self.buckets.len());
-
-        let mut working: Vec<Option<Box<Model>>> = std::iter::repeat_with(|| None)
-            .take(self.buckets.len())
-            .collect();
+        let bucket_limit = self.working_bucket_limit(source_length, memory_budget)?;
+        let mut working = self.new_working_models();
         let mut working_count = 0usize;
         let mut tail = self.initial_tail(prefix_history);
         let mut decoder = ArithmeticDecoder::new(&blob[pos..], bit_length);
@@ -202,16 +288,8 @@ impl PersistentAdaptiveState {
 
         for _ in 0..source_length {
             let bucket = self.bucket(&tail);
-            if working[bucket].is_none() {
-                if working_count >= bucket_limit {
-                    return Err("persistent adaptive working state exceeds --memory".into());
-                }
-                let zero = [0u32; 256];
-                let counts = self.buckets[bucket].as_deref().unwrap_or(&zero);
-                working[bucket] = Some(Box::new(Model::from_counts(counts)?));
-                working_count += 1;
-            }
-            let model = working[bucket].as_deref_mut().unwrap();
+            let model =
+                self.working_model(&mut working, &mut working_count, bucket, bucket_limit)?;
             let target = decoder.target(model.total());
             let (symbol, low, high, total) = model.select(target)?;
             decoder.update(low, high, total);
@@ -271,6 +349,70 @@ impl PersistentAdaptiveStates {
         }
     }
 
+    /// Return the frozen `(order, bucket_bits)` pair for a model ID.
+    pub fn model_spec(&self, model_id: usize) -> Option<(usize, usize)> {
+        SPECS.get(model_id).copied()
+    }
+
+    /// Estimate the arithmetic log loss for one model from the same private
+    /// working state used by Python's bounded candidate gate.
+    pub fn estimate_bits(
+        &self,
+        model_id: usize,
+        data: &[u8],
+        prefix_history: &[u8],
+        memory_budget: usize,
+    ) -> Result<f64, String> {
+        let state = self
+            .states
+            .get(model_id)
+            .ok_or("unknown persistent adaptive model ID")?;
+        state.estimate_bits(data, prefix_history, memory_budget)
+    }
+
+    /// Encode a complete mode 13 payload, including its leading model ID.
+    /// This does not commit the block: call [`Self::observe`] exactly once
+    /// after the winning block representation has been chosen.
+    pub fn encode(
+        &self,
+        model_id: usize,
+        data: &[u8],
+        prefix_history: &[u8],
+        memory_budget: usize,
+    ) -> Result<Vec<u8>, String> {
+        let state = self
+            .states
+            .get(model_id)
+            .ok_or("unknown persistent adaptive model ID")?;
+        let coded = state.encode(data, prefix_history, memory_budget)?;
+        let mut payload = Vec::with_capacity(1 + coded.len());
+        payload.push(model_id as u8);
+        payload.extend_from_slice(&coded);
+        Ok(payload)
+    }
+
+    /// Encode all frozen model choices and return the shortest complete mode
+    /// 13 payload. Equal lengths retain the lower model ID, matching Python's
+    /// strict-improvement candidate loop.
+    pub fn encode_best(
+        &self,
+        data: &[u8],
+        prefix_history: &[u8],
+        memory_budget: usize,
+    ) -> Result<(usize, Vec<u8>), String> {
+        let mut best: Option<(usize, Vec<u8>)> = None;
+        for model_id in 0..MODEL_COUNT {
+            let payload = self.encode(model_id, data, prefix_history, memory_budget)?;
+            if best
+                .as_ref()
+                .is_none_or(|(_, current)| payload.len() < current.len())
+            {
+                best = Some((model_id, payload));
+            }
+        }
+        best.ok_or_else(|| "no persistent adaptive models configured".into())
+    }
+
     /// Decode a complete mode 13 payload, including its leading model ID.
     /// `memory_budget` covers the private working models for this block.
     pub fn decode(
@@ -297,6 +439,23 @@ impl PersistentAdaptiveStates {
         }
         Ok(())
     }
+}
+
+fn varint_len(mut value: usize) -> usize {
+    let mut len = 1usize;
+    while value >= 128 {
+        value >>= 7;
+        len += 1;
+    }
+    len
+}
+
+fn write_varint(mut value: usize, out: &mut Vec<u8>) {
+    while value >= 128 {
+        out.push((value as u8 & 0x7f) | 0x80);
+        value >>= 7;
+    }
+    out.push(value as u8);
 }
 
 fn read_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {

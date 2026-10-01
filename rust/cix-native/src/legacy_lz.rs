@@ -4,7 +4,313 @@
 //! match lengths, and match distances. Exact-rank substreams retain arbitrary-
 //! precision combinatorial ranks through `rank`.
 
-use std::collections::HashMap;
+use num_bigint::BigUint;
+use num_traits::{One, Zero};
+use std::collections::{BTreeMap, HashMap};
+
+const LZ_VERSION: u8 = 3;
+const DEFAULT_MIN_MATCH: usize = 4;
+const DEFAULT_MAX_MATCH: usize = 65535;
+
+/// Literal-context candidate exposed to bounded selector integrations.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ContextSpec {
+    pub order: u8,
+    pub bucket_bits: u8,
+}
+
+/// One independently comparable mode-3 payload candidate.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EncodedCandidate {
+    pub payload: Vec<u8>,
+    pub description: String,
+}
+
+/// Fixed mode-3 candidate recipe. `version` may be 1 or 3.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EncodeConfig {
+    pub version: u8,
+    pub window: usize,
+    pub chain: usize,
+    pub min_match: usize,
+    pub lazy: bool,
+    pub context_models: Vec<ContextSpec>,
+    pub allow_fixed_mix: bool,
+}
+
+impl Default for EncodeConfig {
+    fn default() -> Self {
+        Self {
+            version: LZ_VERSION,
+            window: 1 << 20,
+            chain: 32,
+            min_match: DEFAULT_MIN_MATCH,
+            lazy: false,
+            context_models: vec![
+                ContextSpec {
+                    order: 1,
+                    bucket_bits: 8,
+                },
+                ContextSpec {
+                    order: 2,
+                    bucket_bits: 10,
+                },
+            ],
+            allow_fixed_mix: false,
+        }
+    }
+}
+
+#[derive(Clone)]
+struct LzParse {
+    tags: Vec<u8>,
+    literals: Vec<u8>,
+    literal_positions: Vec<usize>,
+    lengths: Vec<usize>,
+    distances: Vec<usize>,
+}
+
+fn put_varint(mut value: usize, out: &mut Vec<u8>) {
+    while value >= 128 {
+        out.push((value as u8 & 0x7f) | 0x80);
+        value >>= 7;
+    }
+    out.push(value as u8);
+}
+
+struct BitWriter {
+    data: Vec<u8>,
+    current: u8,
+    used: u8,
+}
+
+impl BitWriter {
+    fn new() -> Self {
+        Self {
+            data: Vec::new(),
+            current: 0,
+            used: 0,
+        }
+    }
+
+    fn bit(&mut self, value: u8) {
+        self.current = (self.current << 1) | (value & 1);
+        self.used += 1;
+        if self.used == 8 {
+            self.data.push(self.current);
+            self.current = 0;
+            self.used = 0;
+        }
+    }
+
+    fn bits(&mut self, value: usize, width: usize) {
+        for shift in (0..width).rev() {
+            self.bit(((value >> shift) & 1) as u8);
+        }
+    }
+
+    fn finish(mut self) -> Vec<u8> {
+        if self.used > 0 {
+            self.data.push(self.current << (8 - self.used));
+        }
+        self.data
+    }
+}
+
+fn choose(n: usize, k: usize) -> BigUint {
+    if k > n {
+        return BigUint::zero();
+    }
+    let k = k.min(n - k);
+    let mut value = BigUint::one();
+    for i in 1..=k {
+        value *= n - k + i;
+        value /= i;
+    }
+    value
+}
+
+fn fixed_bytes(value: &BigUint, width: usize) -> Vec<u8> {
+    let size = width.div_ceil(8);
+    let bytes = value.to_bytes_be();
+    let mut out = vec![0; size.saturating_sub(bytes.len())];
+    out.extend_from_slice(&bytes);
+    out
+}
+
+fn rank_width(cardinality: BigUint) -> usize {
+    if cardinality.is_zero() {
+        0
+    } else {
+        (cardinality - BigUint::one()).bits() as usize
+    }
+}
+
+fn colex_rank(values: &[usize]) -> BigUint {
+    values
+        .iter()
+        .enumerate()
+        .fold(BigUint::zero(), |sum, (i, &value)| {
+            sum + choose(value, i + 1)
+        })
+}
+
+fn composition_rank(parts: &[usize]) -> Result<BigUint, String> {
+    if parts.is_empty() || parts.iter().any(|&part| part == 0) {
+        return Err("invalid LZ composition".into());
+    }
+    let mut total = 0usize;
+    let mut cuts = Vec::with_capacity(parts.len().saturating_sub(1));
+    for &part in &parts[..parts.len() - 1] {
+        total = total.checked_add(part).ok_or("LZ composition overflow")?;
+        cuts.push(total - 1);
+    }
+    Ok(colex_rank(&cuts))
+}
+
+fn bit_length(value: usize) -> usize {
+    usize::BITS as usize - value.leading_zeros() as usize
+}
+
+fn insert_match(
+    table: &mut HashMap<[u8; 4], Vec<usize>>,
+    base: &[u8],
+    position: usize,
+    chain: usize,
+) {
+    if position + 4 > base.len() {
+        return;
+    }
+    let key = [
+        base[position],
+        base[position + 1],
+        base[position + 2],
+        base[position + 3],
+    ];
+    let entries = table.entry(key).or_default();
+    entries.push(position);
+    if entries.len() > chain {
+        entries.remove(0);
+    }
+}
+
+fn find_match(
+    table: &HashMap<[u8; 4], Vec<usize>>,
+    base: &[u8],
+    at: usize,
+    min_match: usize,
+    max_match: usize,
+    window: usize,
+    chain: usize,
+) -> (usize, usize) {
+    if at + 4 > base.len() {
+        return (0, 0);
+    }
+    let key = [base[at], base[at + 1], base[at + 2], base[at + 3]];
+    let Some(entries) = table.get(&key) else {
+        return (0, 0);
+    };
+    let mut best_length = 0usize;
+    let mut best_distance = 0usize;
+    let mut best_score = i64::MIN;
+    for &candidate in entries.iter().rev().take(chain) {
+        let distance = at - candidate;
+        if distance == 0 || distance > window {
+            continue;
+        }
+        let limit = max_match.min(base.len() - at);
+        let mut length = 4usize;
+        while length < limit && base[at - distance + length] == base[at + length] {
+            length += 1;
+        }
+        if length < min_match {
+            continue;
+        }
+        let score =
+            (length * 8) as i64 - bit_length(distance) as i64 - bit_length(length) as i64 - 3;
+        if score > best_score || (score == best_score && length > best_length) {
+            best_score = score;
+            best_length = length;
+            best_distance = distance;
+        }
+    }
+    (best_length, best_distance)
+}
+
+fn parse_lz(
+    data: &[u8],
+    prefix_history: &[u8],
+    min_match: usize,
+    max_match: usize,
+    window: usize,
+    chain: usize,
+    lazy: bool,
+) -> Result<LzParse, String> {
+    if window == 0 || chain == 0 {
+        return Err("LZ window and chain must be nonzero".into());
+    }
+    let min_match = min_match.max(4);
+    let history = &prefix_history[prefix_history.len().saturating_sub(window)..];
+    let mut base = Vec::with_capacity(history.len().saturating_add(data.len()));
+    base.extend_from_slice(history);
+    base.extend_from_slice(data);
+    let history_len = history.len();
+    let mut table = HashMap::<[u8; 4], Vec<usize>>::new();
+    let seed_start = history_len.saturating_sub(window);
+    let seed_end = history_len.saturating_sub(3).max(seed_start);
+    for position in seed_start..seed_end {
+        insert_match(&mut table, &base, position, chain);
+    }
+
+    let mut parsed = LzParse {
+        tags: Vec::new(),
+        literals: Vec::new(),
+        literal_positions: Vec::new(),
+        lengths: Vec::new(),
+        distances: Vec::new(),
+    };
+    let mut position = history_len;
+    while position < base.len() {
+        let (best_length, best_distance) =
+            find_match(&table, &base, position, min_match, max_match, window, chain);
+        if best_length >= min_match && lazy && position + 1 < base.len() {
+            insert_match(&mut table, &base, position, chain);
+            let (next_length, _) = find_match(
+                &table,
+                &base,
+                position + 1,
+                min_match,
+                max_match,
+                window,
+                chain,
+            );
+            if next_length > best_length + 1 {
+                parsed.tags.push(0);
+                parsed.literals.push(base[position]);
+                parsed.literal_positions.push(position - history_len);
+                position += 1;
+                continue;
+            }
+        }
+        if best_length >= min_match {
+            parsed.tags.push(1);
+            parsed.lengths.push(best_length - min_match);
+            parsed.distances.push(best_distance);
+            let stop = base.len().min(position + best_length);
+            for at in position..stop {
+                insert_match(&mut table, &base, at, chain);
+            }
+            position += best_length;
+        } else {
+            parsed.tags.push(0);
+            parsed.literals.push(base[position]);
+            parsed.literal_positions.push(position - history_len);
+            insert_match(&mut table, &base, position, chain);
+            position += 1;
+        }
+    }
+    Ok(parsed)
+}
 
 fn read_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {
     let mut value = 0usize;
@@ -39,6 +345,864 @@ impl<'a> BitReader<'a> {
         }
         Ok(value)
     }
+}
+
+fn context_bucket(tail: &[u8], order: usize, bucket_bits: usize) -> usize {
+    if order == 0 {
+        return 0;
+    }
+    let context = &tail[tail.len().saturating_sub(order)..];
+    if order == 1 && bucket_bits >= 8 {
+        return context.last().copied().unwrap_or(0) as usize;
+    }
+    let mut hash = 1469598103934665603u64;
+    for &byte in context {
+        hash ^= byte as u64;
+        hash = hash.wrapping_mul(1099511628211);
+    }
+    (hash & ((1u64 << bucket_bits) - 1)) as usize
+}
+
+fn encode_wavelet_node(values: &[u8], depth: usize, encoder: &mut crate::rank::ArithmeticEncoder) {
+    if values.is_empty() || depth == 8 {
+        return;
+    }
+    let shift = 7 - depth;
+    let bits: Vec<u8> = values.iter().map(|&value| (value >> shift) & 1).collect();
+    let ones = bits.iter().map(|&bit| bit as usize).sum::<usize>();
+    encoder.encode(ones, ones + 1, values.len() + 1);
+    let (mut zero, mut remaining) = (values.len() - ones, values.len());
+    for &bit in &bits {
+        if bit == 0 {
+            encoder.encode(0, zero, remaining);
+            zero -= 1;
+        } else {
+            encoder.encode(zero, remaining, remaining);
+        }
+        remaining -= 1;
+    }
+    if ones == 0 || ones == values.len() {
+        encode_wavelet_node(values, depth + 1, encoder);
+    } else {
+        let zeros: Vec<u8> = values
+            .iter()
+            .zip(&bits)
+            .filter_map(|(&value, &bit)| (bit == 0).then_some(value))
+            .collect();
+        let ones: Vec<u8> = values
+            .iter()
+            .zip(&bits)
+            .filter_map(|(&value, &bit)| (bit == 1).then_some(value))
+            .collect();
+        encode_wavelet_node(&zeros, depth + 1, encoder);
+        encode_wavelet_node(&ones, depth + 1, encoder);
+    }
+}
+
+fn encode_wavelet(data: &[u8]) -> Vec<u8> {
+    let mut encoder = crate::rank::ArithmeticEncoder::new();
+    encode_wavelet_node(data, 0, &mut encoder);
+    let (payload, bit_length) = encoder.finish();
+    let mut out = vec![1];
+    put_varint(bit_length, &mut out);
+    out.extend(payload);
+    out
+}
+
+fn log_factorials(n: usize) -> Vec<f64> {
+    let mut values = Vec::with_capacity(n + 1);
+    values.push(0.0);
+    for value in 1..=n {
+        values.push(values[value - 1] + (value as f64).log2());
+    }
+    values
+}
+
+fn log_choose(log_factorial: &[f64], n: usize, k: usize) -> f64 {
+    if k > n {
+        f64::NEG_INFINITY
+    } else {
+        log_factorial[n] - log_factorial[k] - log_factorial[n - k]
+    }
+}
+
+fn wavelet_estimate_node(
+    counts: &[usize; 256],
+    lo: usize,
+    hi: usize,
+    depth: usize,
+    log_factorial: &[f64],
+) -> f64 {
+    let n = counts[lo..hi].iter().sum::<usize>();
+    if n == 0 || depth == 8 {
+        return 0.0;
+    }
+    let middle = (lo + hi) / 2;
+    let ones = counts[middle..hi].iter().sum::<usize>();
+    let arrangement = if ones == 0 || ones == n {
+        0.0
+    } else {
+        log_choose(log_factorial, n, ones)
+    };
+    ((n + 1) as f64).log2()
+        + arrangement
+        + wavelet_estimate_node(counts, lo, middle, depth + 1, log_factorial)
+        + wavelet_estimate_node(counts, middle, hi, depth + 1, log_factorial)
+}
+
+fn wavelet_estimate_bits(data: &[u8]) -> f64 {
+    let mut counts = [0usize; 256];
+    for &value in data {
+        counts[value as usize] += 1;
+    }
+    let log_factorial = log_factorials(data.len());
+    wavelet_estimate_node(&counts, 0, 256, 0, &log_factorial) + 24.0
+}
+
+fn conditional_bits(values: &[u8], order: usize) -> f64 {
+    if values.is_empty() {
+        return 0.0;
+    }
+    let mut contexts = HashMap::<Vec<u8>, [usize; 256]>::new();
+    let mut history = Vec::<u8>::with_capacity(order);
+    for &value in values {
+        let key = if order == 0 {
+            Vec::new()
+        } else {
+            history.clone()
+        };
+        contexts.entry(key).or_insert([0; 256])[value as usize] += 1;
+        if order > 0 {
+            history.push(value);
+            if history.len() > order {
+                history.remove(0);
+            }
+        }
+    }
+    contexts
+        .values()
+        .map(|counts| {
+            let n = counts.iter().sum::<usize>();
+            (n as f64) * (n as f64).log2()
+                - counts
+                    .iter()
+                    .filter(|&&count| count > 0)
+                    .map(|&count| (count as f64) * (count as f64).log2())
+                    .sum::<f64>()
+        })
+        .sum()
+}
+
+fn zigzag(value: i128) -> Result<usize, String> {
+    let encoded = if value >= 0 {
+        value.checked_mul(2)
+    } else {
+        value
+            .checked_neg()
+            .and_then(|v| v.checked_mul(2))
+            .and_then(|v| v.checked_sub(1))
+    }
+    .ok_or("LZ histogram zigzag overflow")?;
+    usize::try_from(encoded).map_err(|_| "LZ histogram zigzag overflow".into())
+}
+
+fn active_prefix(active: &[usize]) -> Vec<u8> {
+    let mut out = Vec::new();
+    put_varint(active.len(), &mut out);
+    if active.len() < 256 {
+        out.extend(fixed_bytes(
+            &colex_rank(active),
+            rank_width(choose(256, active.len())),
+        ));
+    }
+    out
+}
+
+fn histogram_candidates(counts: &[usize; 256]) -> Result<Vec<(String, Vec<u8>)>, String> {
+    let total = counts.iter().sum::<usize>();
+    if total == 0 {
+        return Err("empty LZ histogram".into());
+    }
+    let active: Vec<usize> = counts
+        .iter()
+        .enumerate()
+        .filter_map(|(symbol, &count)| (count > 0).then_some(symbol))
+        .collect();
+    let active_counts: Vec<usize> = active.iter().map(|&symbol| counts[symbol]).collect();
+    let prefix = active_prefix(&active);
+    let active_center = total / active.len();
+    let dense_center = total / 256;
+
+    let mut active_delta = Vec::with_capacity(active.len().saturating_sub(1));
+    let mut previous = 0i128;
+    for &count in &active_counts[..active_counts.len() - 1] {
+        active_delta.push(zigzag(count as i128 - previous)?);
+        previous = count as i128;
+    }
+    let mut dense_delta = Vec::with_capacity(255);
+    previous = 0;
+    for &count in &counts[..255] {
+        dense_delta.push(zigzag(count as i128 - previous)?);
+        previous = count as i128;
+    }
+    let active_uint: Vec<usize> = active_counts[..active_counts.len() - 1]
+        .iter()
+        .map(|&count| count - 1)
+        .collect();
+    let active_centered: Vec<usize> = active_counts[..active_counts.len() - 1]
+        .iter()
+        .map(|&count| zigzag(count as i128 - active_center as i128))
+        .collect::<Result<_, _>>()?;
+    let dense_centered: Vec<usize> = counts[..255]
+        .iter()
+        .map(|&count| zigzag(count as i128 - dense_center as i128))
+        .collect::<Result<_, _>>()?;
+
+    let mut out = Vec::new();
+    for (name, mode, values, sparse) in [
+        ("active-centered", 4u8, active_centered, true),
+        ("active-delta", 1, active_delta, true),
+        ("active-uint", 0, active_uint, true),
+        ("dense-centered", 5, dense_centered, false),
+        ("dense-delta", 3, dense_delta, false),
+        ("dense-uint", 2, counts[..255].to_vec(), false),
+    ] {
+        let mut candidate = vec![1, mode];
+        if sparse {
+            candidate.extend_from_slice(&prefix);
+        }
+        candidate.extend(encode_uints(&values)?);
+        out.push((name.to_string(), candidate));
+    }
+    Ok(out)
+}
+
+fn histogram_typeclass_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option<Vec<u8>>, String> {
+    if data.len() < 512 {
+        return Ok(None);
+    }
+    let mut counts = [0usize; 256];
+    for &value in data {
+        counts[value as usize] += 1;
+    }
+    let active: Vec<usize> = counts
+        .iter()
+        .enumerate()
+        .filter_map(|(symbol, &count)| (count > 0).then_some(symbol))
+        .collect();
+    if active.len() < 2 {
+        return Ok(None);
+    }
+    let mut header_size = active_prefix(&active).len();
+    header_size += rank_width(choose(data.len() - 1, active.len() - 1)).div_ceil(8);
+    if header_size < 64 || header_size > incumbent.len() {
+        return Ok(None);
+    }
+    let candidates = histogram_candidates(&counts)?;
+    let histogram = &candidates
+        .iter()
+        .min_by(|left, right| (left.1.len(), &left.0).cmp(&(right.1.len(), &right.0)))
+        .ok_or("no LZ histogram candidate")?
+        .1;
+    let mut prefix = Vec::new();
+    put_varint(histogram.len(), &mut prefix);
+    prefix.extend_from_slice(histogram);
+    if prefix.len() >= header_size {
+        return Ok(None);
+    }
+    prefix.extend_from_slice(&incumbent[header_size..]);
+    Ok(Some(prefix))
+}
+
+fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
+    if values.is_empty() {
+        return Ok(vec![0]);
+    }
+    let mut raw = vec![0];
+    for &value in values {
+        put_varint(value, &mut raw);
+    }
+    let mut best = raw;
+    for k in 0..=16usize {
+        let payload_limit = best.len().saturating_sub(2) * 8;
+        let mut cost = 0usize;
+        let mut viable = true;
+        for &value in values {
+            cost = cost.saturating_add((value >> k).saturating_add(1 + k));
+            if cost >= payload_limit {
+                viable = false;
+                break;
+            }
+        }
+        if !viable {
+            continue;
+        }
+        let mut writer = BitWriter::new();
+        for &value in values {
+            for _ in 0..(value >> k) {
+                writer.bit(1);
+            }
+            writer.bit(0);
+            writer.bits(value & ((1usize << k) - 1), k);
+        }
+        let mut candidate = vec![1, k as u8];
+        candidate.extend(writer.finish());
+        if candidate.len() < best.len() {
+            best = candidate;
+        }
+    }
+    let mut classes = Vec::with_capacity(values.len());
+    let mut lows = Vec::with_capacity(values.len());
+    for &value in values {
+        let shifted = value.checked_add(1).ok_or("LZ integer value overflow")?;
+        let width = bit_length(shifted) - 1;
+        if width > 255 {
+            return Ok(best);
+        }
+        classes.push(width as u8);
+        lows.push((shifted - (1usize << width), width));
+    }
+    let mut writer = BitWriter::new();
+    for &(low, width) in &lows {
+        writer.bits(low, width);
+    }
+    let low_blob = writer.finish();
+    for (mode, class_blob) in [
+        (2u8, crate::rank::encode_type_class(&classes)?),
+        (3u8, encode_bytes(&classes)?),
+    ] {
+        let mut candidate = vec![mode];
+        put_varint(class_blob.len(), &mut candidate);
+        candidate.extend(class_blob);
+        candidate.extend_from_slice(&low_blob);
+        if candidate.len() < best.len() {
+            best = candidate;
+        }
+    }
+    Ok(best)
+}
+
+fn encode_bytes(values: &[u8]) -> Result<Vec<u8>, String> {
+    let static_stream = crate::rank::encode_type_class(values)?;
+    let mut best = Vec::with_capacity(static_stream.len() + 1);
+    best.push(0);
+    best.extend_from_slice(&static_stream);
+    if values.is_empty() {
+        return Ok(best);
+    }
+    for chunk_size in [128usize, 256, 512, 1024, 2048, 4096] {
+        if values.len() < chunk_size * 2 {
+            continue;
+        }
+        let mut candidate = vec![1];
+        put_varint(chunk_size, &mut candidate);
+        for chunk in values.chunks(chunk_size) {
+            candidate.extend(crate::rank::encode_type_class(chunk)?);
+        }
+        if candidate.len() < best.len() {
+            best = candidate;
+        }
+    }
+    if values.len() >= 64 && wavelet_estimate_bits(values) / 8.0 <= best.len() as f64 * 1.03 + 8.0 {
+        let mut candidate = vec![4];
+        candidate.extend(encode_wavelet(values));
+        if candidate.len() < best.len() {
+            best = candidate;
+        }
+    }
+    if values.len() >= 256 {
+        let mut candidate = vec![2];
+        candidate.extend(crate::adaptive::encode_general(values, 0, 8, &[], 1)?);
+        if candidate.len() < best.len() {
+            best = candidate;
+        }
+        for (order, bucket_bits) in [(1usize, 8usize), (2, 10)] {
+            if order == 2 && values.len() < 2048 {
+                continue;
+            }
+            if conditional_bits(values, order) / 8.0 > best.len() as f64 * 1.10 + 16.0 {
+                continue;
+            }
+            let mut candidate = vec![3, order as u8];
+            candidate.extend(crate::adaptive::encode_general(
+                values,
+                order,
+                bucket_bits,
+                &[],
+                1usize << bucket_bits,
+            )?);
+            if candidate.len() < best.len() {
+                best = candidate;
+            }
+        }
+    }
+    if let Some(histogram) = histogram_typeclass_candidate(values, &static_stream)? {
+        let mut candidate = vec![5];
+        candidate.extend(histogram);
+        if candidate.len() < best.len() {
+            best = candidate;
+        }
+    }
+    Ok(best)
+}
+
+fn encode_tags(tags: &[u8]) -> Result<Vec<u8>, String> {
+    let encoded = crate::rank::encode_type_class(tags)?;
+    let mut best = Vec::with_capacity(encoded.len() + 1);
+    best.push(0);
+    best.extend(encoded);
+
+    let mut local = vec![2];
+    local.extend(encode_bytes(tags)?);
+    if local.len() < best.len() {
+        best = local;
+    }
+    if tags.is_empty() {
+        return Ok(best);
+    }
+
+    let mut runs = Vec::<usize>::new();
+    let mut current = tags[0];
+    let mut length = 1usize;
+    for &tag in &tags[1..] {
+        if tag == current {
+            length += 1;
+        } else {
+            runs.push(length - 1);
+            current = tag;
+            length = 1;
+        }
+    }
+    runs.push(length - 1);
+    let mut candidate = vec![1, tags[0]];
+    put_varint(runs.len(), &mut candidate);
+    candidate.extend(encode_uints(&runs)?);
+    if candidate.len() < best.len() {
+        best = candidate;
+    }
+    Ok(best)
+}
+
+fn varint_size(mut value: usize) -> usize {
+    let mut size = 1usize;
+    while value >= 128 {
+        size += 1;
+        value >>= 7;
+    }
+    size
+}
+
+fn approximate_typeclass_bytes(values: &[u8], log_factorial: &[f64]) -> f64 {
+    if values.is_empty() {
+        return 1.0;
+    }
+    let mut counts = [0usize; 256];
+    for &value in values {
+        counts[value as usize] += 1;
+    }
+    let active: Vec<usize> = counts.iter().copied().filter(|&count| count > 0).collect();
+    let m = active.len();
+    let mut size = varint_size(m) as f64;
+    if m < 256 {
+        size += (log_choose(log_factorial, 256, m) + 7.0) / 8.0;
+    }
+    if m > 1 {
+        size += (log_choose(log_factorial, values.len() - 1, m - 1) + 7.0) / 8.0;
+    }
+    let log_cardinality = log_factorial[values.len()]
+        - active
+            .iter()
+            .map(|&count| log_factorial[count])
+            .sum::<f64>();
+    size + (log_cardinality.max(0.0) + 7.0) / 8.0
+}
+
+fn literal_context_tail<'a>(
+    prefix: &'a [u8],
+    source: &'a [u8],
+    position: usize,
+    order: usize,
+) -> Vec<u8> {
+    if order == 0 {
+        return Vec::new();
+    }
+    if position >= order {
+        return source[position - order..position].to_vec();
+    }
+    let missing = order - position;
+    let mut out = prefix[prefix.len().saturating_sub(missing)..].to_vec();
+    out.extend_from_slice(&source[..position]);
+    out
+}
+
+fn encode_bucketed(
+    buckets: &BTreeMap<usize, Vec<u8>>,
+    bucket_count: usize,
+    total_items: usize,
+) -> Result<Vec<u8>, String> {
+    let ids: Vec<usize> = buckets
+        .iter()
+        .filter_map(|(&bucket, values)| (!values.is_empty()).then_some(bucket))
+        .collect();
+    let q = ids.len();
+    if buckets.values().map(Vec::len).sum::<usize>() != total_items
+        || q > bucket_count.min(total_items)
+    {
+        return Err("invalid LZ literal buckets".into());
+    }
+    let mut out = Vec::new();
+    put_varint(q, &mut out);
+    if q > 0 && q < bucket_count {
+        out.extend(fixed_bytes(
+            &colex_rank(&ids),
+            rank_width(choose(bucket_count, q)),
+        ));
+    }
+    let lengths: Vec<usize> = ids.iter().map(|id| buckets[id].len()).collect();
+    if q > 1 {
+        out.extend(fixed_bytes(
+            &composition_rank(&lengths)?,
+            rank_width(choose(total_items - 1, q - 1)),
+        ));
+    }
+    for id in ids {
+        out.extend(crate::rank::encode_type_class(&buckets[&id])?);
+    }
+    Ok(out)
+}
+
+fn encode_literals(
+    parsed: &LzParse,
+    source: &[u8],
+    prefix_history: &[u8],
+    context_models: &[ContextSpec],
+    allow_fixed_mix: bool,
+) -> Result<(Vec<u8>, String), String> {
+    let encoded = crate::rank::encode_type_class(&parsed.literals)?;
+    let mut candidates = vec![(
+        {
+            let mut payload = vec![0];
+            payload.extend(encoded);
+            payload
+        },
+        "literal-multinomial".to_string(),
+    )];
+    let mut local = vec![2];
+    local.extend(encode_bytes(&parsed.literals)?);
+    candidates.push((local, "literal-local-multinomial".to_string()));
+
+    let max_n = parsed.literals.len().max(256);
+    let log_factorial = log_factorials(max_n);
+    let mut profiled = Vec::new();
+    for &model in context_models {
+        let order = model.order as usize;
+        let bucket_bits = model.bucket_bits as usize;
+        if order > 16 || !(1..=16).contains(&bucket_bits) {
+            return Err("invalid LZ literal context model".into());
+        }
+        let mut buckets = BTreeMap::<usize, Vec<u8>>::new();
+        for (&literal, &position) in parsed.literals.iter().zip(&parsed.literal_positions) {
+            let tail = literal_context_tail(prefix_history, source, position, order);
+            let bucket = context_bucket(&tail, order, bucket_bits);
+            buckets.entry(bucket).or_default().push(literal);
+        }
+        let estimate = 3.0
+            + buckets.len() as f64 * 2.0
+            + buckets
+                .values()
+                .map(|values| approximate_typeclass_bytes(values, &log_factorial))
+                .sum::<f64>();
+        profiled.push((estimate, order, bucket_bits, buckets));
+    }
+    profiled.sort_by(|left, right| {
+        left.0
+            .total_cmp(&right.0)
+            .then(left.1.cmp(&right.1))
+            .then(left.2.cmp(&right.2))
+    });
+    for (_, order, bucket_bits, buckets) in profiled.into_iter().take(2) {
+        let mut payload = vec![1, order as u8, bucket_bits as u8];
+        payload.extend(encode_bucketed(
+            &buckets,
+            1usize << bucket_bits,
+            parsed.literals.len(),
+        )?);
+        candidates.push((payload, format!("literal-context-o{order}-b{bucket_bits}")));
+    }
+
+    if parsed.literals.len() >= 64 {
+        let mut estimates = Vec::new();
+        for order in 1..=4usize {
+            estimates.push((crate::ppm::estimate_bits(&parsed.literals, order)?, order));
+        }
+        estimates.sort_by(|left, right| left.0.total_cmp(&right.0).then(left.1.cmp(&right.1)));
+        let (estimate, order) = estimates[0];
+        let current_best = candidates
+            .iter()
+            .map(|candidate| candidate.0.len())
+            .min()
+            .unwrap_or(usize::MAX);
+        if estimate / 8.0 <= current_best as f64 * 1.08 + 16.0 {
+            let mut payload = vec![3];
+            payload.extend(crate::ppm::encode_best(
+                &parsed.literals,
+                order,
+                &[],
+                None,
+                None,
+                None,
+            )?);
+            candidates.push((payload, format!("literal-ppm-o{order}")));
+        }
+    }
+    if allow_fixed_mix && (64..=16384).contains(&parsed.literals.len()) {
+        let mut payload = vec![4];
+        payload.extend(crate::fixedmix::encode(&parsed.literals));
+        candidates.push((payload, "literal-fixed-mix".to_string()));
+    }
+    candidates
+        .into_iter()
+        .min_by_key(|candidate| candidate.0.len())
+        .ok_or_else(|| "no LZ literal candidates".into())
+}
+
+fn encode_distances_legacy(distances: &[usize]) -> Result<Vec<u8>, String> {
+    if distances.is_empty() {
+        return Ok(Vec::new());
+    }
+    let mut cache = Vec::<usize>::new();
+    let mut symbols = Vec::<u8>::with_capacity(distances.len());
+    let mut lows = Vec::<(usize, usize)>::with_capacity(distances.len());
+    for &distance in distances {
+        if distance == 0 {
+            return Err("LZ distances must be positive".into());
+        }
+        if let Some(index) = cache.iter().position(|&cached| cached == distance) {
+            symbols.push(index as u8);
+            lows.push((0, 0));
+            let cached = cache.remove(index);
+            cache.insert(0, cached);
+        } else {
+            let width = bit_length(distance) - 1;
+            symbols.push((4 + width) as u8);
+            lows.push((distance - (1usize << width), width));
+            cache.insert(0, distance);
+            cache.truncate(4);
+        }
+    }
+    let encoded = crate::rank::encode_type_class(&symbols)?;
+    let mut out = Vec::new();
+    put_varint(encoded.len(), &mut out);
+    out.extend(encoded);
+    let mut writer = BitWriter::new();
+    for (low, width) in lows {
+        writer.bits(low, width);
+    }
+    out.extend(writer.finish());
+    Ok(out)
+}
+
+fn encode_distances_best(distances: &[usize]) -> Result<Vec<u8>, String> {
+    if distances.is_empty() {
+        return Ok(vec![0]);
+    }
+    let mut best: Option<Vec<u8>> = None;
+    for cache_size in [0usize, 1, 2, 4, 8, 16] {
+        let mut cache = Vec::<usize>::new();
+        let mut symbols = Vec::<u8>::with_capacity(distances.len());
+        let mut lows = Vec::<(usize, usize)>::with_capacity(distances.len());
+        for &distance in distances {
+            if distance == 0 {
+                return Err("LZ distances must be positive".into());
+            }
+            if let Some(index) = cache.iter().position(|&cached| cached == distance) {
+                symbols.push(index as u8);
+                lows.push((0, 0));
+                let cached = cache.remove(index);
+                cache.insert(0, cached);
+            } else {
+                let width = bit_length(distance) - 1;
+                let symbol = cache_size + width;
+                if symbol > 255 {
+                    return Err("LZ distance class too large".into());
+                }
+                symbols.push(symbol as u8);
+                lows.push((distance - (1usize << width), width));
+                if cache_size > 0 {
+                    cache.insert(0, distance);
+                    cache.truncate(cache_size);
+                }
+            }
+        }
+        let encoded = encode_bytes(&symbols)?;
+        let mut candidate = vec![cache_size as u8];
+        put_varint(encoded.len(), &mut candidate);
+        candidate.extend(encoded);
+        let mut writer = BitWriter::new();
+        for (low, width) in lows {
+            writer.bits(low, width);
+        }
+        candidate.extend(writer.finish());
+        if best
+            .as_ref()
+            .is_none_or(|incumbent| candidate.len() < incumbent.len())
+        {
+            best = Some(candidate);
+        }
+    }
+    best.ok_or_else(|| "no LZ distance candidates".into())
+}
+
+fn encode_parse(
+    parsed: &LzParse,
+    source: &[u8],
+    prefix_history: &[u8],
+    config: &EncodeConfig,
+) -> Result<EncodedCandidate, String> {
+    if !matches!(config.version, 1 | 3) {
+        return Err("LZ encoder version must be 1 or 3".into());
+    }
+    let tags = if config.version == 1 {
+        crate::rank::encode_type_class(&parsed.tags)?
+    } else {
+        encode_tags(&parsed.tags)?
+    };
+    let (literals, literal_name) = encode_literals(
+        parsed,
+        source,
+        prefix_history,
+        &config.context_models,
+        config.allow_fixed_mix,
+    )?;
+    let lengths = encode_uints(&parsed.lengths)?;
+    let distances = if config.version == 1 {
+        encode_distances_legacy(&parsed.distances)?
+    } else {
+        encode_distances_best(&parsed.distances)?
+    };
+    let mut payload = vec![config.version, config.min_match.max(4) as u8];
+    put_varint(parsed.tags.len(), &mut payload);
+    put_varint(parsed.literals.len(), &mut payload);
+    put_varint(parsed.lengths.len(), &mut payload);
+    for stream in [tags, literals, lengths, distances] {
+        put_varint(stream.len(), &mut payload);
+        payload.extend(stream);
+    }
+    Ok(EncodedCandidate {
+        payload,
+        description: format!(
+            "lz-{literal_name}-m{}-w{}-c{}{}-v{}",
+            config.min_match.max(4),
+            config.window,
+            config.chain,
+            if config.lazy { "-lazy" } else { "" },
+            config.version,
+        ),
+    })
+}
+
+/// Encode one fixed, deterministic parser/model recipe.
+pub fn encode_with_config(
+    data: &[u8],
+    prefix_history: &[u8],
+    config: &EncodeConfig,
+) -> Result<EncodedCandidate, String> {
+    if config.min_match > u8::MAX as usize {
+        return Err("LZ minimum match exceeds format range".into());
+    }
+    let parsed = parse_lz(
+        data,
+        prefix_history,
+        config.min_match,
+        DEFAULT_MAX_MATCH,
+        config.window,
+        config.chain,
+        config.lazy,
+    )?;
+    encode_parse(&parsed, data, prefix_history, config)
+}
+
+/// Produce a bounded effort portfolio for complete-archive selector comparison.
+pub fn encode_candidates(
+    data: &[u8],
+    prefix_history: &[u8],
+    effort: u8,
+) -> Result<Vec<EncodedCandidate>, String> {
+    if !(1..=9).contains(&effort) {
+        return Err("LZ effort must be between 1 and 9".into());
+    }
+    let chain = if effort <= 2 {
+        8
+    } else if effort <= 6 {
+        32
+    } else {
+        96
+    };
+    let contexts = if effort <= 2 {
+        Vec::new()
+    } else if effort <= 6 {
+        vec![
+            ContextSpec {
+                order: 1,
+                bucket_bits: 8,
+            },
+            ContextSpec {
+                order: 2,
+                bucket_bits: 10,
+            },
+        ]
+    } else {
+        vec![
+            ContextSpec {
+                order: 1,
+                bucket_bits: 8,
+            },
+            ContextSpec {
+                order: 2,
+                bucket_bits: 10,
+            },
+            ContextSpec {
+                order: 3,
+                bucket_bits: 10,
+            },
+            ContextSpec {
+                order: 4,
+                bucket_bits: 12,
+            },
+        ]
+    };
+    let mut recipes = vec![(DEFAULT_MIN_MATCH, false)];
+    if chain >= 24 && data.len() >= 128 {
+        recipes.push((DEFAULT_MIN_MATCH, true));
+        recipes.push((5, true));
+    }
+    if chain >= 96 && data.len() >= 1024 {
+        for min_match in [8usize, 16, 32, 48, 64] {
+            recipes.push((min_match, true));
+        }
+    }
+    let mut candidates = Vec::with_capacity(recipes.len());
+    for (min_match, lazy) in recipes {
+        let config = EncodeConfig {
+            version: LZ_VERSION,
+            window: 1 << 20,
+            chain,
+            min_match,
+            lazy,
+            context_models: contexts.clone(),
+            allow_fixed_mix: effort >= 7,
+        };
+        candidates.push(encode_with_config(data, prefix_history, &config)?);
+    }
+    Ok(candidates)
+}
+
+/// Select the smallest physical mode-3 payload from the bounded effort portfolio.
+pub fn encode(data: &[u8], prefix_history: &[u8], effort: u8) -> Result<EncodedCandidate, String> {
+    encode_candidates(data, prefix_history, effort)?
+        .into_iter()
+        .min_by_key(|candidate| candidate.payload.len())
+        .ok_or_else(|| "no LZ candidates".into())
 }
 
 fn decode_bytes(blob: &[u8], count: usize, model_limit: usize) -> Result<Vec<u8>, String> {

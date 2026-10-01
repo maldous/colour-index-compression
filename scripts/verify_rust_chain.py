@@ -2,11 +2,14 @@
 """Cross-check the native CIXM6 mode-7 transform-chain decoder."""
 from __future__ import annotations
 
+import io
 import os
 import random
 import struct
 import subprocess
 import sys
+import tarfile
+import tempfile
 import zlib
 from pathlib import Path
 
@@ -245,6 +248,66 @@ def main() -> None:
         f"verified {verified} Rust/Python mode-7 cases: every transform ID, all seven inner codecs, "
         "LZ v1/v3 literal/tag modes, BWT v1-v6, and malformed/truncated rejection"
     )
+
+    # Have the Rust selector emit its bounded high-effort winners and exact
+    # per-candidate byte counts, then decode those payloads with the immutable
+    # Python reference tree rather than the live working copy.
+    reference = "80b95427725ecf59d626b2982d50f6349abd56e1"
+    with tempfile.TemporaryDirectory(prefix="cix-chain-encoder-") as directory:
+        temporary = Path(directory)
+        fixtures = temporary / "fixtures"
+        environment = os.environ.copy()
+        environment["CIX_CHAIN_FIXTURE_DIR"] = str(fixtures)
+        environment["CARGO_BUILD_JOBS"] = "2"
+        subprocess.run(
+            [
+                "cargo",
+                "test",
+                "--release",
+                "--manifest-path",
+                str(ROOT / "rust/cix-native/Cargo.toml"),
+                "--bin",
+                "cix",
+                "encoder_fixtures_cross_decode_in_rust",
+                "--",
+                "--nocapture",
+            ],
+            cwd=ROOT,
+            env=environment,
+            check=True,
+        )
+        frozen = temporary / "frozen"
+        frozen.mkdir()
+        archive_bytes = subprocess.check_output(
+            ["git", "archive", "--format=tar", reference, "cix"], cwd=ROOT
+        )
+        with tarfile.open(fileobj=io.BytesIO(archive_bytes), mode="r:") as reference_tar:
+            reference_tar.extractall(frozen)
+        reference_check = """
+import sys
+from pathlib import Path
+reference, fixtures = map(Path, sys.argv[1:])
+sys.path.insert(0, str(reference))
+from cix.chain import decode_chain_block
+count = 0
+for payload_path in sorted(fixtures.glob('*.payload')):
+    stem = payload_path.stem
+    payload = payload_path.read_bytes()
+    source = (fixtures / f'{stem}.source').read_bytes()
+    assert decode_chain_block(payload, source_length=len(source)) == source
+    measurement_path = fixtures / f'{stem}.candidates.tsv'
+    if measurement_path.exists():
+        rows = [line.split('\t', 3) for line in measurement_path.read_text().splitlines()]
+        assert rows and min(int(row[2]) for row in rows) == len(payload)
+        assert {int(row[0]) for row in rows} == {12, 13, 16, 20, 21, 29, 30, 31, 33}
+    count += 1
+assert count == 20
+print(f'frozen Python decoded {count} Rust-encoded payloads with exact full-byte accounting')
+"""
+        subprocess.run(
+            [sys.executable, "-c", reference_check, str(frozen), str(fixtures)],
+            check=True,
+        )
 
 
 if __name__ == "__main__":

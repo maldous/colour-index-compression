@@ -5,6 +5,58 @@
 //! convention; the CIXG1 route has different framing.
 
 use super::rank::{self, ArithmeticDecoder};
+use num_bigint::BigUint;
+use num_traits::{One, ToPrimitive, Zero};
+use std::collections::HashMap;
+
+const MAX_ENCODE_BLOCK: usize = 65_536;
+
+fn put_varint(mut value: usize, out: &mut Vec<u8>) {
+    while value >= 128 {
+        out.push((value as u8 & 0x7f) | 0x80);
+        value >>= 7;
+    }
+    out.push(value as u8);
+}
+
+struct BitWriter {
+    data: Vec<u8>,
+    current: u8,
+    used: u8,
+}
+
+impl BitWriter {
+    fn new() -> Self {
+        Self {
+            data: Vec::new(),
+            current: 0,
+            used: 0,
+        }
+    }
+
+    fn bit(&mut self, value: usize) {
+        self.current = (self.current << 1) | (value as u8 & 1);
+        self.used += 1;
+        if self.used == 8 {
+            self.data.push(self.current);
+            self.current = 0;
+            self.used = 0;
+        }
+    }
+
+    fn bits(&mut self, value: usize, width: usize) {
+        for shift in (0..width).rev() {
+            self.bit((value >> shift) & 1);
+        }
+    }
+
+    fn finish(mut self) -> Vec<u8> {
+        if self.used > 0 {
+            self.data.push(self.current << (8 - self.used));
+        }
+        self.data
+    }
+}
 
 fn read_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {
     let mut value = 0usize;
@@ -548,6 +600,838 @@ fn bwt_inverse(primary: usize, transformed: &[u8]) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
+fn choose(n: usize, k: usize) -> BigUint {
+    if k > n {
+        return BigUint::zero();
+    }
+    let k = k.min(n - k);
+    let mut value = BigUint::one();
+    for i in 1..=k {
+        value *= n - k + i;
+        value /= i;
+    }
+    value
+}
+
+fn fixed_width(value: &BigUint) -> usize {
+    value.bits() as usize
+}
+
+fn fixed_bytes(value: &BigUint, width_bits: usize) -> Vec<u8> {
+    let size = width_bits.div_ceil(8);
+    if size == 0 {
+        return Vec::new();
+    }
+    let bytes = value.to_bytes_be();
+    let mut out = vec![0; size - bytes.len()];
+    out.extend(bytes);
+    out
+}
+
+fn colex_rank(positions: &[usize]) -> BigUint {
+    positions
+        .iter()
+        .enumerate()
+        .fold(BigUint::zero(), |rank, (index, &position)| {
+            rank + choose(position, index + 1)
+        })
+}
+
+fn zigzag(value: i128) -> Result<usize, String> {
+    let encoded = if value >= 0 {
+        value.checked_mul(2)
+    } else {
+        value
+            .checked_neg()
+            .and_then(|v| v.checked_mul(2))
+            .and_then(|v| v.checked_sub(1))
+    }
+    .ok_or("BWT zigzag overflow")?;
+    usize::try_from(encoded).map_err(|_| "BWT zigzag outside machine range".into())
+}
+
+fn big_log2(value: &BigUint) -> f64 {
+    if value.is_zero() {
+        return f64::NEG_INFINITY;
+    }
+    let bits = value.bits() as usize;
+    if bits <= 53 {
+        return (value.to_u64().unwrap() as f64).log2();
+    }
+    let shift = bits - 53;
+    let top = (value >> shift).to_u64().unwrap();
+    shift as f64 + (top as f64).log2()
+}
+
+fn bwt_transform(data: &[u8]) -> Result<(usize, Vec<u8>), String> {
+    let n = data.len();
+    if n == 0 {
+        return Ok((0, Vec::new()));
+    }
+    let mut suffixes: Vec<usize> = (0..n).collect();
+    let mut ranks: Vec<i64> = data.iter().map(|&byte| byte as i64).collect();
+    let mut width = 1usize;
+    loop {
+        suffixes.sort_unstable_by_key(|&index| {
+            (
+                ranks[index],
+                if index + width < n {
+                    ranks[index + width]
+                } else {
+                    -1
+                },
+            )
+        });
+        let mut next = vec![0i64; n];
+        let mut class = 0i64;
+        let mut previous = None;
+        for &index in &suffixes {
+            let pair = (
+                ranks[index],
+                if index + width < n {
+                    ranks[index + width]
+                } else {
+                    -1
+                },
+            );
+            if previous.is_some() && previous != Some(pair) {
+                class += 1;
+            }
+            next[index] = class;
+            previous = Some(pair);
+        }
+        ranks = next;
+        if class as usize == n - 1 {
+            break;
+        }
+        width = width.checked_mul(2).ok_or("BWT suffix width overflow")?;
+    }
+    let primary = suffixes
+        .iter()
+        .position(|&index| index == 0)
+        .ok_or("BWT suffix array omitted source start")?
+        + 1;
+    let mut transformed = Vec::with_capacity(n);
+    transformed.push(data[n - 1]);
+    for &index in &suffixes {
+        if index > 0 {
+            transformed.push(data[index - 1]);
+        }
+    }
+    if transformed.len() != n {
+        return Err("invalid BWT transform size".into());
+    }
+    Ok((primary, transformed))
+}
+
+fn mtf_encode(data: &[u8]) -> Vec<u8> {
+    let mut symbols: Vec<u8> = (0..=255).collect();
+    let mut positions: Vec<usize> = (0..256).collect();
+    let mut out = Vec::with_capacity(data.len());
+    for &byte in data {
+        let index = positions[byte as usize];
+        out.push(index as u8);
+        if index > 0 {
+            let moved = symbols[index];
+            for position in (1..=index).rev() {
+                symbols[position] = symbols[position - 1];
+                positions[symbols[position] as usize] = position;
+            }
+            symbols[0] = moved;
+            positions[moved as usize] = 0;
+        }
+    }
+    out
+}
+
+#[derive(Clone)]
+struct AdaptiveModel {
+    counts: [usize; 256],
+    seen: usize,
+}
+
+impl AdaptiveModel {
+    fn new() -> Self {
+        Self {
+            counts: [0; 256],
+            seen: 0,
+        }
+    }
+
+    fn interval(&self, symbol: usize) -> (usize, usize, usize) {
+        let before: usize = self.counts[..symbol].iter().sum();
+        let low = 2 * before + symbol;
+        (low, low + 2 * self.counts[symbol] + 1, 2 * self.seen + 256)
+    }
+
+    fn observe(&mut self, symbol: usize) {
+        self.counts[symbol] += 1;
+        self.seen += 1;
+    }
+}
+
+fn adaptive_bucket(history: &[u8], order: usize, bucket_bits: usize) -> usize {
+    if order == 0 {
+        return 0;
+    }
+    if order == 1 && bucket_bits >= 8 {
+        return history.last().copied().unwrap_or(0) as usize;
+    }
+    let mut hash = 1469598103934665603u64;
+    for &byte in history {
+        hash ^= byte as u64;
+        hash = hash.wrapping_mul(1099511628211);
+    }
+    (hash & ((1u64 << bucket_bits) - 1)) as usize
+}
+
+fn encode_adaptive(data: &[u8], order: usize, bucket_bits: usize) -> Vec<u8> {
+    let mut models = HashMap::<usize, AdaptiveModel>::new();
+    let mut history = Vec::with_capacity(order);
+    let mut encoder = rank::ArithmeticEncoder::new();
+    for &symbol in data {
+        let bucket = adaptive_bucket(&history, order, bucket_bits);
+        let model = models.entry(bucket).or_insert_with(AdaptiveModel::new);
+        let (low, high, total) = model.interval(symbol as usize);
+        encoder.encode(low, high, total);
+        model.observe(symbol as usize);
+        if order > 0 {
+            history.push(symbol);
+            if history.len() > order {
+                history.remove(0);
+            }
+        }
+    }
+    let (payload, bit_length) = encoder.finish();
+    let mut out = vec![1, order as u8, bucket_bits as u8];
+    put_varint(bit_length, &mut out);
+    out.extend(payload);
+    out
+}
+
+fn encode_wavelet_node(values: &[u8], depth: usize, encoder: &mut rank::ArithmeticEncoder) {
+    if values.is_empty() || depth == 8 {
+        return;
+    }
+    let shift = 7 - depth;
+    let ones = values
+        .iter()
+        .filter(|&&value| ((value >> shift) & 1) != 0)
+        .count();
+    encoder.encode(ones, ones + 1, values.len() + 1);
+    let (mut zero, mut remaining) = (values.len() - ones, values.len());
+    for &value in values {
+        if ((value >> shift) & 1) != 0 {
+            encoder.encode(zero, remaining, remaining);
+        } else {
+            encoder.encode(0, zero, remaining);
+            zero -= 1;
+        }
+        remaining -= 1;
+    }
+    if ones == 0 || ones == values.len() {
+        encode_wavelet_node(values, depth + 1, encoder);
+    } else {
+        let zeros: Vec<u8> = values
+            .iter()
+            .copied()
+            .filter(|value| ((value >> shift) & 1) == 0)
+            .collect();
+        let ones_values: Vec<u8> = values
+            .iter()
+            .copied()
+            .filter(|value| ((value >> shift) & 1) != 0)
+            .collect();
+        encode_wavelet_node(&zeros, depth + 1, encoder);
+        encode_wavelet_node(&ones_values, depth + 1, encoder);
+    }
+}
+
+fn encode_wavelet(data: &[u8]) -> Vec<u8> {
+    let mut encoder = rank::ArithmeticEncoder::new();
+    encode_wavelet_node(data, 0, &mut encoder);
+    let (payload, bit_length) = encoder.finish();
+    let mut out = vec![1];
+    put_varint(bit_length, &mut out);
+    out.extend(payload);
+    out
+}
+
+fn estimate_wavelet_node(counts: &[usize; 256], lo: usize, hi: usize, depth: usize) -> f64 {
+    let n: usize = counts[lo..hi].iter().sum();
+    if n == 0 || depth == 8 {
+        return 0.0;
+    }
+    let middle = (lo + hi) / 2;
+    let ones: usize = counts[middle..hi].iter().sum();
+    let mut bits = (n as f64 + 1.0).log2();
+    if ones > 0 && ones < n {
+        bits += big_log2(&choose(n, ones));
+    }
+    bits + estimate_wavelet_node(counts, lo, middle, depth + 1)
+        + estimate_wavelet_node(counts, middle, hi, depth + 1)
+}
+
+fn estimate_wavelet_bits(data: &[u8]) -> f64 {
+    let mut counts = [0usize; 256];
+    for &value in data {
+        counts[value as usize] += 1;
+    }
+    estimate_wavelet_node(&counts, 0, 256, 0) + 24.0
+}
+
+fn conditional_bits(data: &[u8], order: usize) -> f64 {
+    if data.is_empty() {
+        return 0.0;
+    }
+    if order == 0 {
+        let mut counts = [0usize; 256];
+        for &value in data {
+            counts[value as usize] += 1;
+        }
+        let n = data.len() as f64;
+        return n * n.log2()
+            - counts
+                .iter()
+                .filter(|&&count| count > 0)
+                .map(|&count| count as f64 * (count as f64).log2())
+                .sum::<f64>();
+    }
+    let mut indices = HashMap::<Vec<u8>, usize>::new();
+    let mut contexts = Vec::<[usize; 256]>::new();
+    let mut history = Vec::with_capacity(order);
+    for &value in data {
+        let key = history.clone();
+        let index = if let Some(&index) = indices.get(&key) {
+            index
+        } else {
+            let index = contexts.len();
+            indices.insert(key, index);
+            contexts.push([0; 256]);
+            index
+        };
+        contexts[index][value as usize] += 1;
+        history.push(value);
+        if history.len() > order {
+            history.remove(0);
+        }
+    }
+    contexts
+        .iter()
+        .map(|counts| {
+            let n: usize = counts.iter().sum();
+            n as f64 * (n as f64).log2()
+                - counts
+                    .iter()
+                    .filter(|&&count| count > 0)
+                    .map(|&count| count as f64 * (count as f64).log2())
+                    .sum::<f64>()
+        })
+        .sum()
+}
+
+fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
+    if values.is_empty() {
+        return Ok(vec![0]);
+    }
+    let mut raw = vec![0];
+    for &value in values {
+        put_varint(value, &mut raw);
+    }
+    let mut best = raw;
+    for width in 0..=16usize {
+        let payload_limit_bits = best.len().saturating_sub(2) * 8;
+        let mut bit_cost = 0usize;
+        let mut viable = true;
+        for &value in values {
+            bit_cost = bit_cost
+                .checked_add(value >> width)
+                .and_then(|cost| cost.checked_add(1 + width))
+                .unwrap_or(usize::MAX);
+            if bit_cost >= payload_limit_bits {
+                viable = false;
+                break;
+            }
+        }
+        if !viable {
+            continue;
+        }
+        let mut writer = BitWriter::new();
+        for &value in values {
+            for _ in 0..(value >> width) {
+                writer.bit(1);
+            }
+            writer.bit(0);
+            if width > 0 {
+                writer.bits(value & ((1usize << width) - 1), width);
+            }
+        }
+        let mut candidate = vec![1, width as u8];
+        candidate.extend(writer.finish());
+        if candidate.len() < best.len() {
+            best = candidate;
+        }
+    }
+    let mut classes = Vec::with_capacity(values.len());
+    let mut lows = Vec::with_capacity(values.len());
+    for &value in values {
+        let x = value.checked_add(1).ok_or("BWT integer class overflow")?;
+        let width = (usize::BITS - x.leading_zeros() - 1) as usize;
+        if width > 255 {
+            return Ok(best);
+        }
+        classes.push(width as u8);
+        lows.push((x - (1usize << width), width));
+    }
+    let class_blob = rank::encode_type_class(&classes)?;
+    let mut writer = BitWriter::new();
+    for &(low, width) in &lows {
+        if width > 0 {
+            writer.bits(low, width);
+        }
+    }
+    let low_blob = writer.finish();
+    let mut candidate = vec![2];
+    put_varint(class_blob.len(), &mut candidate);
+    candidate.extend(&class_blob);
+    candidate.extend(&low_blob);
+    if candidate.len() < best.len() {
+        best = candidate;
+    }
+    let local_class_blob = encode_bytes(&classes)?;
+    let mut candidate = vec![3];
+    put_varint(local_class_blob.len(), &mut candidate);
+    candidate.extend(local_class_blob);
+    candidate.extend(low_blob);
+    if candidate.len() < best.len() {
+        best = candidate;
+    }
+    Ok(best)
+}
+
+fn active_prefix(active: &[usize]) -> Vec<u8> {
+    let mut out = Vec::new();
+    put_varint(active.len(), &mut out);
+    if active.len() < 256 {
+        let width = fixed_width(&(choose(256, active.len()) - BigUint::one()));
+        out.extend(fixed_bytes(&colex_rank(active), width));
+    }
+    out
+}
+
+fn encode_count_vector(counts: &[usize; 256]) -> Result<Vec<u8>, String> {
+    let total: usize = counts.iter().sum();
+    if total == 0 {
+        return Err("empty BWT count vector".into());
+    }
+    let active: Vec<usize> = counts
+        .iter()
+        .enumerate()
+        .filter_map(|(symbol, &count)| (count > 0).then_some(symbol))
+        .collect();
+    let active_counts: Vec<usize> = active.iter().map(|&symbol| counts[symbol]).collect();
+    let prefix = active_prefix(&active);
+    let mut candidates = Vec::<(&'static str, Vec<u8>)>::new();
+
+    let mut candidate = vec![1, 0];
+    candidate.extend(&prefix);
+    candidate.extend(encode_uints(
+        &active_counts[..active_counts.len() - 1]
+            .iter()
+            .map(|count| count - 1)
+            .collect::<Vec<_>>(),
+    )?);
+    candidates.push(("active-uint", candidate));
+
+    let mut previous = 0i128;
+    let mut deltas = Vec::with_capacity(active_counts.len().saturating_sub(1));
+    for &count in &active_counts[..active_counts.len() - 1] {
+        let current = count as i128;
+        deltas.push(zigzag(current - previous)?);
+        previous = current;
+    }
+    let mut candidate = vec![1, 1];
+    candidate.extend(&prefix);
+    candidate.extend(encode_uints(&deltas)?);
+    candidates.push(("active-delta", candidate));
+
+    let dense = &counts[..255];
+    let mut candidate = vec![1, 2];
+    candidate.extend(encode_uints(dense)?);
+    candidates.push(("dense-uint", candidate));
+
+    previous = 0;
+    let mut deltas = Vec::with_capacity(255);
+    for &count in dense {
+        let current = count as i128;
+        deltas.push(zigzag(current - previous)?);
+        previous = current;
+    }
+    let mut candidate = vec![1, 3];
+    candidate.extend(encode_uints(&deltas)?);
+    candidates.push(("dense-delta", candidate));
+
+    let center = (total / active_counts.len()) as i128;
+    let centered: Vec<usize> = active_counts[..active_counts.len() - 1]
+        .iter()
+        .map(|&count| zigzag(count as i128 - center))
+        .collect::<Result<_, _>>()?;
+    let mut candidate = vec![1, 4];
+    candidate.extend(&prefix);
+    candidate.extend(encode_uints(&centered)?);
+    candidates.push(("active-centered", candidate));
+
+    let center = (total / 256) as i128;
+    let centered: Vec<usize> = dense
+        .iter()
+        .map(|&count| zigzag(count as i128 - center))
+        .collect::<Result<_, _>>()?;
+    let mut candidate = vec![1, 5];
+    candidate.extend(encode_uints(&centered)?);
+    candidates.push(("dense-centered", candidate));
+
+    candidates.sort_by(|(name_a, data_a), (name_b, data_b)| {
+        (data_a.len(), *name_a).cmp(&(data_b.len(), *name_b))
+    });
+    Ok(candidates.remove(0).1)
+}
+
+fn histogram_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option<Vec<u8>>, String> {
+    if data.len() < 512 {
+        return Ok(None);
+    }
+    let mut counts = [0usize; 256];
+    for &value in data {
+        counts[value as usize] += 1;
+    }
+    let active: Vec<usize> = counts
+        .iter()
+        .enumerate()
+        .filter_map(|(symbol, &count)| (count > 0).then_some(symbol))
+        .collect();
+    if active.len() < 2 {
+        return Ok(None);
+    }
+    let mut header_size = {
+        let mut encoded = Vec::new();
+        put_varint(active.len(), &mut encoded);
+        encoded.len()
+    };
+    if active.len() < 256 {
+        header_size += fixed_width(&(choose(256, active.len()) - BigUint::one())).div_ceil(8);
+    }
+    header_size +=
+        fixed_width(&(choose(data.len() - 1, active.len() - 1) - BigUint::one())).div_ceil(8);
+    if header_size < 64 || header_size > incumbent.len() {
+        return Ok(None);
+    }
+    let histogram = encode_count_vector(&counts)?;
+    let mut prefix = Vec::new();
+    put_varint(histogram.len(), &mut prefix);
+    prefix.extend(histogram);
+    if prefix.len() >= header_size {
+        return Ok(None);
+    }
+    prefix.extend_from_slice(&incumbent[header_size..]);
+    Ok(Some(prefix))
+}
+
+fn encode_bytes(data: &[u8]) -> Result<Vec<u8>, String> {
+    let static_payload = rank::encode_type_class(data)?;
+    let mut best = vec![0];
+    best.extend(&static_payload);
+    if data.is_empty() {
+        return Ok(best);
+    }
+    for chunk_size in [128usize, 256, 512, 1024, 2048, 4096] {
+        if data.len() < chunk_size * 2 {
+            continue;
+        }
+        let mut candidate = vec![1];
+        put_varint(chunk_size, &mut candidate);
+        for chunk in data.chunks(chunk_size) {
+            candidate.extend(rank::encode_type_class(chunk)?);
+        }
+        if candidate.len() < best.len() {
+            best = candidate;
+        }
+    }
+    if data.len() >= 64 && estimate_wavelet_bits(data) / 8.0 <= best.len() as f64 * 1.03 + 8.0 {
+        let mut candidate = vec![4];
+        candidate.extend(encode_wavelet(data));
+        if candidate.len() < best.len() {
+            best = candidate;
+        }
+    }
+    if data.len() >= 256 {
+        let mut candidate = vec![2];
+        candidate.extend(encode_adaptive(data, 0, 8));
+        if candidate.len() < best.len() {
+            best = candidate;
+        }
+        for order in if data.len() >= 2048 {
+            &[1usize, 2][..]
+        } else {
+            &[1usize][..]
+        } {
+            if conditional_bits(data, *order) / 8.0 > best.len() as f64 * 1.10 + 16.0 {
+                continue;
+            }
+            let mut candidate = vec![3, *order as u8];
+            candidate.extend(encode_adaptive(
+                data,
+                *order,
+                if *order == 1 { 8 } else { 10 },
+            ));
+            if candidate.len() < best.len() {
+                best = candidate;
+            }
+        }
+    }
+    if let Some(histogram) = histogram_candidate(data, &static_payload)? {
+        let mut candidate = vec![5];
+        candidate.extend(histogram);
+        if candidate.len() < best.len() {
+            best = candidate;
+        }
+    }
+    Ok(best)
+}
+
+fn split_zero_runs(data: &[u8]) -> (Vec<u8>, Vec<u8>, Vec<usize>) {
+    let (mut tags, mut nonzero, mut runs) = (Vec::new(), Vec::new(), Vec::new());
+    let mut position = 0usize;
+    while position < data.len() {
+        if data[position] != 0 {
+            tags.push(1);
+            nonzero.push(data[position]);
+            position += 1;
+            continue;
+        }
+        let mut stop = position + 1;
+        while stop < data.len() && data[stop] == 0 {
+            stop += 1;
+        }
+        tags.push(0);
+        runs.push(stop - position - 1);
+        position = stop;
+    }
+    (tags, nonzero, runs)
+}
+
+fn encode_binary_tags(tags: &[u8]) -> Result<Vec<u8>, String> {
+    let mut best = vec![0];
+    best.extend(encode_bytes(tags)?);
+    if tags.is_empty() {
+        return Ok(best);
+    }
+    let mut runs = Vec::new();
+    let mut current = tags[0];
+    let mut length = 1usize;
+    for &tag in &tags[1..] {
+        if tag == current {
+            length += 1;
+        } else {
+            runs.push(length - 1);
+            current = tag;
+            length = 1;
+        }
+    }
+    runs.push(length - 1);
+    let mut candidate = vec![1, tags[0]];
+    put_varint(runs.len(), &mut candidate);
+    candidate.extend(encode_uints(&runs)?);
+    if candidate.len() < best.len() {
+        best = candidate;
+    }
+    Ok(best)
+}
+
+fn pack_stream_variant(
+    version: u8,
+    primary: usize,
+    tags: &[u8],
+    nonzero: &[u8],
+    runs: &[usize],
+    streams: [&[u8]; 3],
+) -> Vec<u8> {
+    let mut out = vec![version];
+    put_varint(primary, &mut out);
+    put_varint(tags.len(), &mut out);
+    put_varint(nonzero.len(), &mut out);
+    put_varint(runs.len(), &mut out);
+    for stream in streams {
+        put_varint(stream.len(), &mut out);
+        out.extend_from_slice(stream);
+    }
+    out
+}
+
+fn runa_runb_tokens(mtf: &[u8]) -> (Vec<u8>, Vec<usize>) {
+    let (mut tokens, mut side_bits) = (Vec::new(), Vec::new());
+    let mut position = 0usize;
+    while position < mtf.len() {
+        if mtf[position] == 0 {
+            let mut stop = position + 1;
+            while stop < mtf.len() && mtf[stop] == 0 {
+                stop += 1;
+            }
+            let mut value = stop - position - 1;
+            loop {
+                tokens.push(if value & 1 == 0 { 0 } else { 1 });
+                if value < 2 {
+                    break;
+                }
+                value = (value - 2) / 2;
+            }
+            position = stop;
+            continue;
+        }
+        let rank = mtf[position];
+        if rank <= 253 {
+            tokens.push(rank + 1);
+        } else {
+            tokens.push(255);
+            side_bits.push((rank - 254) as usize);
+        }
+        position += 1;
+    }
+    (tokens, side_bits)
+}
+
+fn pack_runa_runb(
+    version: u8,
+    primary: usize,
+    tokens: &[u8],
+    side_bits: &[usize],
+    token_blob: &[u8],
+) -> Vec<u8> {
+    let mut writer = BitWriter::new();
+    for &bit in side_bits {
+        writer.bit(bit);
+    }
+    let mut out = vec![version];
+    put_varint(primary, &mut out);
+    put_varint(tokens.len(), &mut out);
+    put_varint(side_bits.len(), &mut out);
+    put_varint(token_blob.len(), &mut out);
+    out.extend_from_slice(token_blob);
+    out.extend(writer.finish());
+    out
+}
+
+fn encode_from_mtf(primary: usize, mtf: &[u8], version: u8) -> Result<Option<Vec<u8>>, String> {
+    let (tags, nonzero, runs) = split_zero_runs(mtf);
+    if matches!(version, 1..=4) {
+        let tag_blob = match version {
+            1 => rank::encode_type_class(&tags)?,
+            4 => encode_binary_tags(&tags)?,
+            _ => encode_bytes(&tags)?,
+        };
+        let nonzero_blob = match version {
+            1 => rank::encode_type_class(&nonzero)?,
+            2 => encode_bytes(&nonzero)?,
+            _ => {
+                let mut byte_candidate = vec![0];
+                byte_candidate.extend(encode_bytes(&nonzero)?);
+                let values: Vec<usize> = nonzero.iter().map(|&value| value as usize - 1).collect();
+                let mut uint_candidate = vec![1];
+                uint_candidate.extend(encode_uints(&values)?);
+                if uint_candidate.len() < byte_candidate.len() {
+                    uint_candidate
+                } else {
+                    byte_candidate
+                }
+            }
+        };
+        let run_blob = encode_uints(&runs)?;
+        return Ok(Some(pack_stream_variant(
+            version,
+            primary,
+            &tags,
+            &nonzero,
+            &runs,
+            [&tag_blob, &nonzero_blob, &run_blob],
+        )));
+    }
+    let (tokens, side_bits) = runa_runb_tokens(mtf);
+    let local = encode_bytes(&tokens)?;
+    if version == 5 {
+        return Ok(Some(pack_runa_runb(
+            5, primary, &tokens, &side_bits, &local,
+        )));
+    }
+    if version != 6 {
+        return Err("unknown requested BWT encoder version".into());
+    }
+    if tokens.len() < 32 {
+        return Ok(None);
+    }
+    let mut profiled = Vec::new();
+    for order in 1..=4 {
+        profiled.push((super::ppm::estimate_bits(&tokens, order)?, order));
+    }
+    profiled.sort_by(|(bits_a, order_a), (bits_b, order_b)| {
+        bits_a
+            .partial_cmp(bits_b)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then(order_a.cmp(order_b))
+    });
+    if profiled[0].0 / 8.0 > local.len() as f64 * 1.03 + 16.0 {
+        return Ok(None);
+    }
+    let ppm = super::ppm::encode_best(&tokens, profiled[0].1, &[], None, None, None)?;
+    if ppm.len() >= local.len() {
+        return Ok(None);
+    }
+    let mut token_blob = vec![1];
+    token_blob.extend(ppm);
+    Ok(Some(pack_runa_runb(
+        6,
+        primary,
+        &tokens,
+        &side_bits,
+        &token_blob,
+    )))
+}
+
+/// Encode a specific legacy BWT payload version. Version 6 returns `None` when
+/// the frozen estimator or complete-size gate rejects its optional PPM route.
+pub fn encode_version(data: &[u8], version: u8) -> Result<Option<Vec<u8>>, String> {
+    if data.len() > MAX_ENCODE_BLOCK {
+        return Err("legacy BWT block exceeds 65536-byte format bound".into());
+    }
+    if !matches!(version, 1..=6) {
+        return Err("unknown requested BWT encoder version".into());
+    }
+    let (primary, transformed) = bwt_transform(data)?;
+    encode_from_mtf(primary, &mtf_encode(&transformed), version)
+}
+
+/// Frozen canonical CIXM6 mode-4 encoder. It compares complete v4/v5/v6
+/// payloads and retains the first candidate on equal byte length.
+pub fn encode(data: &[u8]) -> Result<(Vec<u8>, &'static str), String> {
+    if data.len() > MAX_ENCODE_BLOCK {
+        return Err("legacy BWT block exceeds 65536-byte format bound".into());
+    }
+    let (primary, transformed) = bwt_transform(data)?;
+    let mtf = mtf_encode(&transformed);
+    let mut best = (
+        encode_from_mtf(primary, &mtf, 4)?.ok_or("missing BWT v4 candidate")?,
+        "bwt-mtf-runs",
+    );
+    let candidate = encode_from_mtf(primary, &mtf, 5)?.ok_or("missing BWT v5 candidate")?;
+    if candidate.len() < best.0.len() {
+        best = (candidate, "bwt-mtf-runa-runb");
+    }
+    if let Some(candidate) = encode_from_mtf(primary, &mtf, 6)? {
+        if candidate.len() < best.0.len() {
+            best = (candidate, "bwt-mtf-runa-runb-ppm");
+        }
+    }
+    Ok(best)
+}
+
 /// Decode one CIXM6 mode-4 payload.
 ///
 /// `model_limit` bounds the number of adaptive context models used by nested
@@ -709,5 +1593,51 @@ mod tests {
         assert!(decode(&[], 0, 16).is_err());
         assert!(decode(&[7], 0, 16).is_err());
         assert!(decode(&[5, 1], 1, 16).is_err());
+    }
+
+    #[test]
+    fn frozen_python_encoder_fixtures() {
+        let Some(path) = std::env::var_os("CIX_BWT_ENCODE_FIXTURES") else {
+            return;
+        };
+        let data = std::fs::read(PathBuf::from(path)).expect("read Python BWT encoder fixtures");
+        assert!(data.starts_with(b"CIXBWTE1"));
+        let mut pos = 8usize;
+        let count = u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) as usize;
+        pos += 4;
+        for _ in 0..count {
+            let source_length = u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) as usize;
+            pos += 4;
+            let canonical_length =
+                u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) as usize;
+            pos += 4;
+            let description_length = data[pos] as usize;
+            pos += 1;
+            let source = &data[pos..pos + source_length];
+            pos += source_length;
+            let canonical = &data[pos..pos + canonical_length];
+            pos += canonical_length;
+            let description = std::str::from_utf8(&data[pos..pos + description_length]).unwrap();
+            pos += description_length;
+            let (payload, actual_description) = super::encode(source).unwrap();
+            assert_eq!(payload, canonical);
+            assert_eq!(actual_description, description);
+            assert_eq!(decode(&payload, source.len(), 1 << 16).unwrap(), source);
+            for version in 1..=6u8 {
+                let payload_length = u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap());
+                pos += 4;
+                let expected = if payload_length == u32::MAX {
+                    None
+                } else {
+                    let length = payload_length as usize;
+                    let value = data[pos..pos + length].to_vec();
+                    pos += length;
+                    Some(value)
+                };
+                let actual = super::encode_version(source, version).unwrap();
+                assert_eq!(actual, expected, "BWT encoder version {version}");
+            }
+        }
+        assert_eq!(pos, data.len());
     }
 }

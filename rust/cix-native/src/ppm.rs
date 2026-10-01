@@ -238,16 +238,48 @@ fn read_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {
     Err("oversized PPM varint".into())
 }
 
-pub fn encode(data: &[u8], max_order: usize) -> Result<Vec<u8>, String> {
+/// Encode one deterministic fixed-escape PPM candidate.
+///
+/// `update_exclusion = false` emits the frozen v3 format; `true` emits v4.
+/// The output is canonical for a fixed input, history, order, escape method,
+/// and update policy.
+pub fn encode_fixed(
+    data: &[u8],
+    max_order: usize,
+    prefix_history: &[u8],
+    escape_method: u8,
+    update_exclusion: bool,
+) -> Result<Vec<u8>, String> {
     if max_order > 8 {
         return Err("PPM order exceeds supported maximum".into());
     }
-    let mut tables = Tables::new();
-    let mut history = Vec::with_capacity(max_order);
+    if escape_method > 3 {
+        return Err("unsupported PPM escape method".into());
+    }
+    let (tables, history) = prime(prefix_history, data.len(), max_order, update_exclusion);
+    encode_fixed_from_state(
+        data,
+        max_order,
+        escape_method,
+        update_exclusion,
+        tables,
+        history,
+    )
+}
+
+fn encode_fixed_from_state(
+    data: &[u8],
+    max_order: usize,
+    escape_method: u8,
+    update_exclusion: bool,
+    mut tables: Tables,
+    mut history: Vec<u8>,
+) -> Result<Vec<u8>, String> {
     let mut encoder = ArithmeticEncoder::new();
     for &symbol in data {
         let mut excluded = [false; 256];
         let mut coded = false;
+        let mut matched_order = 0;
         let highest = max_order.min(history.len());
         for order in (0..=highest).rev() {
             let key = context(&history, order);
@@ -259,7 +291,8 @@ pub fn encode(data: &[u8], max_order: usize) -> Result<Vec<u8>, String> {
                 continue;
             }
             let mass: usize = symbols.iter().map(|(_, count)| *count as usize).sum();
-            let total = mass + 1; // escape method 0: escape mass is one
+            let escape = escape_mass(&symbols, escape_method)?;
+            let total = mass + escape;
             if let Some(index) = symbols.iter().position(|(value, _)| *value == symbol) {
                 let low: usize = symbols[..index]
                     .iter()
@@ -268,6 +301,7 @@ pub fn encode(data: &[u8], max_order: usize) -> Result<Vec<u8>, String> {
                 let high = low + symbols[index].1 as usize;
                 encoder.encode(low, high, total);
                 coded = true;
+                matched_order = order;
                 break;
             }
             encoder.encode(mass, total, total);
@@ -289,13 +323,223 @@ pub fn encode(data: &[u8], max_order: usize) -> Result<Vec<u8>, String> {
             let rank = target_rank.ok_or("PPM escape excluded source symbol")?;
             encoder.encode(rank, rank + 1, remaining);
         }
-        observe(&mut tables, &mut history, symbol, max_order);
+        observe_from(
+            &mut tables,
+            &mut history,
+            symbol,
+            max_order,
+            if update_exclusion { matched_order } else { 0 },
+        );
     }
     let (payload, bit_length) = encoder.finish();
-    let mut out = vec![3, max_order as u8, 0]; // PPM v3, fixed escape mass one
+    let version = if update_exclusion { 4 } else { 3 };
+    let mut out = vec![version, max_order as u8, escape_method];
     put_varint(bit_length, &mut out);
     out.extend_from_slice(&payload);
     Ok(out)
+}
+
+/// Encode one deterministic v5 secondary escape estimation candidate.
+pub fn encode_secondary(
+    data: &[u8],
+    max_order: usize,
+    prefix_history: &[u8],
+    update_exclusion: bool,
+) -> Result<Vec<u8>, String> {
+    if max_order > 8 {
+        return Err("PPM order exceeds supported maximum".into());
+    }
+    let (mut tables, mut history, mut states) =
+        prime_see(prefix_history, data.len(), max_order, update_exclusion);
+    let mut encoder = ArithmeticEncoder::new();
+    for &symbol in data {
+        let mut excluded = [false; 256];
+        let mut coded = false;
+        let mut matched_order = 0;
+        let highest = max_order.min(history.len());
+        for order in (0..=highest).rev() {
+            let Some(counts) = tables.get(&context(&history, order)) else {
+                continue;
+            };
+            let symbols = eligible(counts, &excluded);
+            if symbols.is_empty() {
+                continue;
+            }
+            let key = see_key(order, &symbols);
+            let (escape_count, hit_count) = see_state(&states, key);
+            let event_total = (escape_count + hit_count) as usize;
+            if let Some(index) = symbols.iter().position(|(value, _)| *value == symbol) {
+                encoder.encode(0, hit_count as usize, event_total);
+                let mass = symbols
+                    .iter()
+                    .map(|(_, count)| *count as usize)
+                    .sum::<usize>();
+                let low = symbols[..index]
+                    .iter()
+                    .map(|(_, count)| *count as usize)
+                    .sum::<usize>();
+                let high = low + symbols[index].1 as usize;
+                encoder.encode(low, high, mass);
+                coded = true;
+                matched_order = order;
+                see_update(&mut states, key, false);
+                break;
+            }
+            encoder.encode(hit_count as usize, event_total, event_total);
+            see_update(&mut states, key, true);
+            for (value, _) in symbols {
+                excluded[value as usize] = true;
+            }
+        }
+        if !coded {
+            let mut remaining = 0usize;
+            let mut target_rank = None;
+            for symbol_id in 0..256 {
+                if !excluded[symbol_id] {
+                    if symbol_id == symbol as usize {
+                        target_rank = Some(remaining);
+                    }
+                    remaining += 1;
+                }
+            }
+            let rank = target_rank.ok_or("PPM SEE escape excluded source symbol")?;
+            encoder.encode(rank, rank + 1, remaining);
+        }
+        observe_from(
+            &mut tables,
+            &mut history,
+            symbol,
+            max_order,
+            if update_exclusion { matched_order } else { 0 },
+        );
+    }
+    let (payload, bit_length) = encoder.finish();
+    let mut out = vec![5, max_order as u8, u8::from(update_exclusion)];
+    put_varint(bit_length, &mut out);
+    out.extend_from_slice(&payload);
+    Ok(out)
+}
+
+/// Select the shortest payload from the frozen Python PPM candidate portfolio.
+///
+/// `None` matches the Python default for each option. Equal-length candidates
+/// retain the first candidate in Python's iteration order.
+pub fn encode_best(
+    data: &[u8],
+    max_order: usize,
+    prefix_history: &[u8],
+    escape_method: Option<u8>,
+    update_exclusion: Option<bool>,
+    secondary_escape: Option<bool>,
+) -> Result<Vec<u8>, String> {
+    if max_order > 8 {
+        return Err("PPM order exceeds supported maximum".into());
+    }
+    if escape_method.is_some_and(|method| method > 3) {
+        return Err("unsupported PPM escape method".into());
+    }
+    let variants: &[bool] = match update_exclusion {
+        Some(false) => &[false],
+        Some(true) => &[true],
+        None => &[false, true],
+    };
+    let methods: &[u8] = match escape_method {
+        Some(0) => &[0],
+        Some(1) => &[1],
+        Some(2) => &[2],
+        Some(3) => &[3],
+        Some(_) => unreachable!(),
+        None => &[0, 1, 2, 3],
+    };
+    let mut best: Option<Vec<u8>> = None;
+    if secondary_escape != Some(true) {
+        for &variant in variants {
+            let (tables, history) = prime(prefix_history, data.len(), max_order, variant);
+            for &method in methods {
+                let candidate = encode_fixed_from_state(
+                    data,
+                    max_order,
+                    method,
+                    variant,
+                    tables.clone(),
+                    history.clone(),
+                )?;
+                if best
+                    .as_ref()
+                    .is_none_or(|incumbent| candidate.len() < incumbent.len())
+                {
+                    best = Some(candidate);
+                }
+            }
+        }
+    }
+    if secondary_escape != Some(false) {
+        for &variant in variants {
+            let candidate = encode_secondary(data, max_order, prefix_history, variant)?;
+            if best
+                .as_ref()
+                .is_none_or(|incumbent| candidate.len() < incumbent.len())
+            {
+                best = Some(candidate);
+            }
+        }
+    }
+    best.ok_or_else(|| "no PPM variants requested".into())
+}
+
+/// Frozen BWT-v6 order estimate: method-1 escape mass, no update exclusion,
+/// measured on at most 4096 leading bytes and scaled to the complete stream.
+pub fn estimate_bits(data: &[u8], max_order: usize) -> Result<f64, String> {
+    if max_order > 8 {
+        return Err("PPM order exceeds supported maximum".into());
+    }
+    let sample_length = data.len().min(4096);
+    if sample_length == 0 {
+        return Ok(0.0);
+    }
+    let mut tables = Tables::new();
+    let mut history = Vec::with_capacity(max_order);
+    let mut bits = 0.0f64;
+    for &symbol in &data[..sample_length] {
+        let mut excluded = [false; 256];
+        let mut coded = false;
+        let highest = max_order.min(history.len());
+        for order in (0..=highest).rev() {
+            let Some(counts) = tables.get(&context(&history, order)) else {
+                continue;
+            };
+            let symbols = eligible(counts, &excluded);
+            if symbols.is_empty() {
+                continue;
+            }
+            let mass = symbols
+                .iter()
+                .map(|(_, count)| *count as usize)
+                .sum::<usize>();
+            let escape = symbols.len().max(1);
+            let total = mass + escape;
+            if let Some((_, count)) = symbols.iter().find(|(value, _)| *value == symbol) {
+                bits += (total as f64).log2() - (*count as f64).log2();
+                coded = true;
+                break;
+            }
+            bits += (total as f64).log2() - (escape as f64).log2();
+            for (value, _) in symbols {
+                excluded[value as usize] = true;
+            }
+        }
+        if !coded {
+            let remaining = 256 - excluded.iter().filter(|&&value| value).count();
+            bits += (remaining.max(1) as f64).log2();
+        }
+        observe(&mut tables, &mut history, symbol, max_order);
+    }
+    Ok(bits * data.len() as f64 / sample_length as f64)
+}
+
+/// Preserve the original native CIXG1 route API and canonical v3/method-0 bytes.
+pub fn encode(data: &[u8], max_order: usize) -> Result<Vec<u8>, String> {
+    encode_fixed(data, max_order, &[], 0, false)
 }
 
 pub fn decode(blob: &[u8], source_length: usize) -> Result<Vec<u8>, String> {

@@ -79,19 +79,65 @@ fn get_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {
     }
     Err("oversized adaptive varint".into())
 }
-pub fn encode(data: &[u8]) -> Vec<u8> {
-    let mut model = Model::new();
+
+fn bucket(tail: &[u8], order: usize, bucket_bits: usize) -> usize {
+    if order == 0 {
+        0
+    } else if order == 1 && bucket_bits >= 8 {
+        tail.last().copied().unwrap_or(0) as usize
+    } else {
+        let mut hash = 1469598103934665603u64;
+        for &byte in &tail[tail.len().saturating_sub(order)..] {
+            hash ^= byte as u64;
+            hash = hash.wrapping_mul(1099511628211);
+        }
+        (hash & ((1u64 << bucket_bits) - 1)) as usize
+    }
+}
+
+/// Encode the frozen general CIX adaptive payload with bounded context storage.
+pub fn encode_general(
+    data: &[u8],
+    order: usize,
+    bucket_bits: usize,
+    prefix_history: &[u8],
+    model_limit: usize,
+) -> Result<Vec<u8>, String> {
+    if order > 16 || !(1..=16).contains(&bucket_bits) {
+        return Err("invalid adaptive model parameters".into());
+    }
+    let mut tail = if order == 0 {
+        Vec::new()
+    } else {
+        prefix_history[prefix_history.len().saturating_sub(order)..].to_vec()
+    };
+    let mut models = std::collections::HashMap::<usize, Model>::new();
     let mut coder = ArithmeticEncoder::new();
-    for &b in data {
-        let (low, high, total) = model.interval(b as usize);
+    for &symbol in data {
+        let bucket = bucket(&tail, order, bucket_bits);
+        if !models.contains_key(&bucket) && models.len() >= model_limit {
+            return Err("adaptive model count exceeds --memory budget".into());
+        }
+        let model = models.entry(bucket).or_insert_with(Model::new);
+        let (low, high, total) = model.interval(symbol as usize);
         coder.encode(low, high, total);
-        model.add(b as usize);
+        model.add(symbol as usize);
+        if order > 0 {
+            tail.push(symbol);
+            if tail.len() > order {
+                tail.remove(0);
+            }
+        }
     }
     let (payload, bits) = coder.finish();
-    let mut out = vec![1, 0, 8];
+    let mut out = vec![1, order as u8, bucket_bits as u8];
     put_varint(bits, &mut out);
     out.extend(payload);
-    out
+    Ok(out)
+}
+
+pub fn encode(data: &[u8]) -> Vec<u8> {
+    encode_general(data, 0, 8, &[], 1).expect("order-0 adaptive encoding is bounded")
 }
 pub fn decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
     if blob.len() < 4 || blob[0] != 1 || blob[1] != 0 || blob[2] != 8 {
@@ -146,18 +192,7 @@ pub fn decode_general(
     let mut decoder = ArithmeticDecoder::new(&blob[pos..], bits);
     let mut out = Vec::with_capacity(n);
     for _ in 0..n {
-        let bucket = if order == 0 {
-            0
-        } else if order == 1 && bucket_bits >= 8 {
-            tail.last().copied().unwrap_or(0) as usize
-        } else {
-            let mut h = 1469598103934665603u64;
-            for &b in &tail {
-                h ^= b as u64;
-                h = h.wrapping_mul(1099511628211);
-            }
-            (h & ((1u64 << bucket_bits) - 1)) as usize
-        };
+        let bucket = bucket(&tail, order, bucket_bits);
         if !models.contains_key(&bucket) && models.len() >= model_limit {
             return Err("adaptive model count exceeds --memory budget".into());
         }

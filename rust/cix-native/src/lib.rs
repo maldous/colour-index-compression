@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-mod adaptive;
+pub mod adaptive;
 #[path = "main.rs"]
 mod cli;
 mod fixedmix;

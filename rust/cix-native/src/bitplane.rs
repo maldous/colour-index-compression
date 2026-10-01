@@ -1,8 +1,70 @@
-//! Legacy CIXM6 bit-plane block decoder (exact-rank v1 and arithmetic v2).
-use crate::rank::{self, ArithmeticDecoder};
+//! Legacy CIXM6 bit-plane block codec (exact-rank v1 decode and arithmetic v2).
+use crate::rank::{self, ArithmeticDecoder, ArithmeticEncoder};
+
 fn read_v(data: &[u8], p: &mut usize) -> Result<usize, String> {
-    super::unvar(data, p)
+    let mut value = 0usize;
+    for shift in (0..usize::BITS as usize).step_by(7) {
+        let byte = *data.get(*p).ok_or("truncated bit-plane varint")?;
+        *p += 1;
+        value |= ((byte & 0x7f) as usize)
+            .checked_shl(shift as u32)
+            .ok_or("bit-plane varint overflow")?;
+        if byte < 128 {
+            return Ok(value);
+        }
+    }
+    Err("oversized bit-plane varint".into())
 }
+
+fn put_v(mut value: usize, out: &mut Vec<u8>) {
+    while value >= 128 {
+        out.push((value as u8 & 0x7f) | 0x80);
+        value >>= 7;
+    }
+    out.push(value as u8);
+}
+
+/// Encode the canonical version-2 bit-plane payload used by the frozen Python
+/// reference. Effort is fixed: eight counting and eight coding passes over the
+/// caller's already bounded block, with no candidate search or retained model.
+pub fn encode(data: &[u8]) -> Vec<u8> {
+    let n = data.len();
+    let mut out = Vec::with_capacity(18);
+    out.push(2);
+    let mut plane_counts = [0usize; 8];
+
+    for (plane, shift) in (0..8).rev().enumerate() {
+        let ones = data
+            .iter()
+            .map(|byte| ((byte >> shift) & 1) as usize)
+            .sum::<usize>();
+        let majority = ones > n / 2;
+        out.push(majority as u8);
+        put_v(if majority { n - ones } else { ones }, &mut out);
+        plane_counts[plane] = ones;
+    }
+
+    let mut encoder = ArithmeticEncoder::new();
+    for (plane, shift) in (0..8).rev().enumerate() {
+        let mut remaining_ones = plane_counts[plane];
+        let mut remaining_zeros = n - remaining_ones;
+        for &byte in data {
+            let total = remaining_zeros + remaining_ones;
+            if (byte >> shift) & 1 != 0 {
+                encoder.encode(remaining_zeros, total, total);
+                remaining_ones -= 1;
+            } else {
+                encoder.encode(0, remaining_zeros, total);
+                remaining_zeros -= 1;
+            }
+        }
+    }
+    let (payload, bit_length) = encoder.finish();
+    put_v(bit_length, &mut out);
+    out.extend_from_slice(&payload);
+    out
+}
+
 pub fn decode(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
     if data.is_empty() || !matches!(data[0], 1 | 2) {
         return Err("unknown bit-plane version".into());

@@ -251,8 +251,29 @@ impl State {
         }
     }
 }
-fn encode_eta(data: &[u8], eta: u8, t: &[i32]) -> (Vec<u8>, usize) {
+fn observe_byte(state: &mut State, byte: u8, t: &[i32]) {
+    let mut prefix = 0;
+    for bit in 0..8 {
+        let actual = (byte >> (7 - bit)) & 1;
+        let (probability, stretches, keys) = state.probabilities(bit, prefix, t);
+        state.update(bit, actual, probability, &stretches, &keys);
+        prefix = (prefix << 1) | actual;
+    }
+    state.finish_byte(byte);
+}
+fn prime(prefix_history: &[u8], block_length: usize, eta: u8, t: &[i32]) -> State {
     let mut state = State::new(eta);
+    let training = prefix_history
+        .len()
+        .min(HISTORY_MAX)
+        .min(4096usize.max(block_length.saturating_mul(2)));
+    for &byte in &prefix_history[prefix_history.len() - training..] {
+        observe_byte(&mut state, byte, t);
+    }
+    state
+}
+fn encode_eta(data: &[u8], eta: u8, t: &[i32], prefix_history: &[u8]) -> (Vec<u8>, usize) {
+    let mut state = prime(prefix_history, data.len(), eta, t);
     let mut coder = ArithmeticEncoder::new();
     for &b in data {
         let mut prefix = 0;
@@ -293,11 +314,27 @@ fn get_v(b: &[u8], p: &mut usize) -> Result<usize, String> {
     }
     Err("oversized fixed-mix length".into())
 }
-pub fn encode(data: &[u8]) -> Vec<u8> {
+pub fn encode_with_history_eta(
+    data: &[u8],
+    prefix_history: &[u8],
+    eta_shift: u8,
+) -> Result<Vec<u8>, String> {
+    let id = ETA
+        .iter()
+        .position(|&eta| eta == eta_shift)
+        .ok_or("unsupported fixed-mix learning rate")?;
+    let t = stretch_table();
+    let (payload, bits) = encode_eta(data, eta_shift, &t, prefix_history);
+    let mut out = vec![1, id as u8];
+    put_v(bits, &mut out);
+    out.extend(payload);
+    Ok(out)
+}
+pub fn encode_with_history(data: &[u8], prefix_history: &[u8]) -> Vec<u8> {
     let t = stretch_table();
     let mut best = None;
     for (id, &eta) in ETA.iter().enumerate() {
-        let (payload, bits) = encode_eta(data, eta, &t);
+        let (payload, bits) = encode_eta(data, eta, &t, prefix_history);
         let mut out = vec![1, id as u8];
         put_v(bits, &mut out);
         out.extend(payload);
@@ -306,6 +343,9 @@ pub fn encode(data: &[u8]) -> Vec<u8> {
         }
     }
     best.unwrap()
+}
+pub fn encode(data: &[u8]) -> Vec<u8> {
+    encode_with_history(data, &[])
 }
 pub fn decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
     decode_with_history(blob, n, &[])
@@ -325,21 +365,7 @@ pub fn decode_with_history(
     }
     let eta = ETA[blob[1] as usize];
     let t = stretch_table();
-    let mut state = State::new(eta);
-    let training = prefix_history
-        .len()
-        .min(HISTORY_MAX)
-        .min(4096usize.max(n.saturating_mul(2)));
-    for &byte in &prefix_history[prefix_history.len() - training..] {
-        let mut prefix = 0u8;
-        for bit in 0..8 {
-            let (prob, s, k) = state.probabilities(bit, prefix, &t);
-            let actual = ((byte >> (7 - bit)) & 1) as u8;
-            state.update(bit, actual, prob, &s, &k);
-            prefix = (prefix << 1) | actual;
-        }
-        state.finish_byte(byte);
-    }
+    let mut state = prime(prefix_history, n, eta, &t);
     let mut coder = ArithmeticDecoder::new(&blob[p..], bits);
     let mut out = Vec::with_capacity(n);
     for _ in 0..n {

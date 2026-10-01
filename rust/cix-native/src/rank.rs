@@ -707,8 +707,14 @@ pub fn decode_context_type_classes(
     let bucket_count = 1usize << bucket_bits;
     let mut pos = 2;
     let q = read_varint(data, &mut pos)?;
-    if q == 0 || q > bucket_count.min(n) {
+    if q > bucket_count.min(n) || (q == 0 && n != 0) {
         return Err("invalid active context count".into());
+    }
+    if q == 0 {
+        if pos != data.len() {
+            return Err("trailing context type-class bytes".into());
+        }
+        return Ok(Vec::new());
     }
     let ids = if q == bucket_count {
         (0..bucket_count).collect()
@@ -769,6 +775,74 @@ pub fn decode_context_type_classes(
         .any(|(&used, lane)| used != lane.len())
     {
         return Err("unused context lane symbols".into());
+    }
+    Ok(out)
+}
+
+/// Encode the frozen CIXM6 context-conditioned type-class payload (mode 2).
+///
+/// `prefix_history` seeds the causal context for the first symbol, but is not
+/// included in the payload. The caller must retain and supply the same history
+/// to the decoder. Every combinatorial rank remains arbitrary precision.
+pub fn encode_context_type_classes(
+    data: &[u8],
+    order: usize,
+    bucket_bits: usize,
+    prefix_history: &[u8],
+) -> Result<Vec<u8>, String> {
+    if !(1..=16).contains(&order) {
+        return Err("context order outside supported range".into());
+    }
+    if !(1..=16).contains(&bucket_bits) {
+        return Err("context bucket bits outside supported range".into());
+    }
+
+    let bucket_count = 1usize << bucket_bits;
+    let mut buckets = std::collections::BTreeMap::<usize, Vec<u8>>::new();
+    let mut tail = if order <= prefix_history.len() {
+        prefix_history[prefix_history.len() - order..].to_vec()
+    } else {
+        prefix_history.to_vec()
+    };
+
+    for &symbol in data {
+        let bucket = if order == 1 && bucket_bits >= 8 {
+            tail.last().copied().unwrap_or(0) as usize
+        } else {
+            let mut hash = 1469598103934665603u64;
+            for &byte in &tail {
+                hash ^= byte as u64;
+                hash = hash.wrapping_mul(1099511628211);
+            }
+            (hash & ((1u64 << bucket_bits) - 1)) as usize
+        };
+        buckets.entry(bucket).or_default().push(symbol);
+        tail.push(symbol);
+        if tail.len() > order {
+            tail.remove(0);
+        }
+    }
+
+    let ids: Vec<usize> = buckets.keys().copied().collect();
+    let q = ids.len();
+    let mut out = Vec::new();
+    out.push(order as u8);
+    out.push(bucket_bits as u8);
+    varint(q, &mut out);
+
+    if q != 0 && q < bucket_count {
+        let width = fixed_width(&(choose(bucket_count, q) - BigUint::one()));
+        out.extend(fixed_bytes(&colex_rank(&ids), width));
+    }
+
+    if q > 1 {
+        let lengths: Vec<usize> = ids.iter().map(|id| buckets[id].len()).collect();
+        let width = fixed_width(&(choose(data.len() - 1, q - 1) - BigUint::one()));
+        out.extend(fixed_bytes(&composition_rank(&lengths)?, width));
+    }
+
+    for id in ids {
+        out.extend(encode_type_class(&buckets[&id])?);
     }
     Ok(out)
 }
