@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::{
     env,
     fs::{self, File, OpenOptions},
-    io::{self, Read, Write},
+    io::{self, Read, Seek, SeekFrom, Write},
     path::Path,
     process,
     time::{SystemTime, UNIX_EPOCH},
@@ -97,6 +97,7 @@ struct Opt {
     profile: String,
     profile_set: bool,
     portfolio: Option<String>,
+    format: String,
     block: Option<u32>,
     stream: bool,
     history: usize,
@@ -104,7 +105,7 @@ struct Opt {
     flush_interval: Option<std::time::Duration>,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--external gzip|bzip2|xz|zstd|brotli --profile fast|current|size | --portfolio fast|current|size] [--backend cix|deflate|hybrid|range|count-range] [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|bwt|stride|phrases|ppm|mixture|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported stream routes: raw, runs, exact-rank composition, LZ, predictor, PPM, fixed mixer, BWT/MTF, stride transforms, phrases and raw DEFLATE. Adaptive-range and count-range coding are available with the predictor route's --backend option. --external writes bounded CIXB1 (max 16 MiB); ordinary operation writes CIXG1. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--external gzip|bzip2|xz|zstd|brotli --profile fast|current|size | --portfolio fast|current|size] [--format cixg1|cixm6] [--backend cix|deflate|hybrid|range|count-range] [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|bwt|stride|phrases|ppm|mixture|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported stream routes: raw, runs, exact-rank composition, LZ, predictor, PPM, fixed mixer, BWT/MTF, stride transforms, phrases and raw DEFLATE. Adaptive-range and count-range coding are available with the predictor route's --backend option. --external writes bounded CIXB1 (max 16 MiB); `--format cixm6` writes bounded raw/multinomial CIXM6 blocks and `--format cixf1` adds the source basename wrapper; ordinary operation writes CIXG1. CIXG1 frames are limited to 65536 bytes.");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -113,6 +114,7 @@ fn parse() -> Result<Opt, String> {
         memory: 512 * 1024 * 1024,
         backend: "hybrid".into(),
         profile: "current".into(),
+        format: "cixg1".into(),
         ..Opt::default()
     };
     let args: Vec<String> = env::args().collect();
@@ -130,7 +132,10 @@ fn parse() -> Result<Opt, String> {
             usage();
             process::exit(0)
         } else if a == "--version" {
-            println!("cix-native {} (CIXG1)", env!("CARGO_PKG_VERSION"));
+            println!(
+                "cix-native {} (CIXG1/CIXM6/CIXF1)",
+                env!("CARGO_PKG_VERSION")
+            );
             process::exit(0)
         } else if a == "-d" {
             o.decode = true
@@ -170,6 +175,7 @@ fn parse() -> Result<Opt, String> {
             || a == "--external"
             || a == "--profile"
             || a == "--portfolio"
+            || a == "--format"
             || a == "--block"
             || a == "--block-size"
             || a == "--history"
@@ -198,6 +204,7 @@ fn parse() -> Result<Opt, String> {
                     o.profile_set = true;
                 }
                 "--portfolio" => o.portfolio = Some(args[i].clone()),
+                "--format" => o.format = args[i].clone(),
                 "--block" => o.block = Some(args[i].parse().map_err(|_| "invalid block size")?),
                 "--block-size" => {
                     o.block = Some(
@@ -1256,6 +1263,82 @@ fn encode<R: Read, W: Write>(
     Ok(())
 }
 
+fn encode_m6<R: Read, W: Write>(
+    mut src: R,
+    mut dst: W,
+    block_size: usize,
+    file_name: Option<&str>,
+) -> Result<(), String> {
+    dst.write_all(b"CIXM6").map_err(ioerr)?;
+    let mut header = Vec::new();
+    put_varint(1 << 20, &mut header);
+    dst.write_all(&header).map_err(ioerr)?;
+    let mut whole = 0usize;
+    let mut crc = crc32fast::Hasher::new();
+    let mut block = vec![0u8; block_size.min(MAX_BLOCK as usize).max(1)];
+    loop {
+        let mut got = 0;
+        while got < block.len() {
+            check_interrupted()?;
+            let n = match src.read(&mut block[got..]) {
+                Ok(n) => n,
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                Err(e) => return Err(ioerr(e)),
+            };
+            if n == 0 {
+                break;
+            }
+            got += n;
+        }
+        if got == 0 {
+            break;
+        }
+        let data = &block[..got];
+        let coded = rank::encode_type_class(data)?;
+        let coded_cost = 1 + varint_len(got) + varint_len(coded.len()) + coded.len();
+        let raw_cost = 1 + varint_len(got) + varint_len(got) + got;
+        let (mode, payload) = if coded_cost < raw_cost {
+            (1, coded.as_slice())
+        } else {
+            (0, data)
+        };
+        let mut frame = vec![mode];
+        put_varint(got, &mut frame);
+        put_varint(payload.len(), &mut frame);
+        dst.write_all(&frame).map_err(ioerr)?;
+        dst.write_all(payload).map_err(ioerr)?;
+        dst.flush().map_err(ioerr)?;
+        crc.update(data);
+        whole = whole
+            .checked_add(got)
+            .ok_or("CIXM6 stream length overflow")?;
+        if got < block.len() {
+            break;
+        }
+    }
+    let mut footer = vec![255];
+    put_varint(whole, &mut footer);
+    footer.extend_from_slice(&crc.finalize().to_le_bytes());
+    dst.write_all(&footer).map_err(ioerr)?;
+    if let Some(name) = file_name {
+        let bytes = name.as_bytes();
+        let name_len = u32::try_from(bytes.len()).map_err(|_| "CIXF1 filename is too long")?;
+        dst.write_all(bytes).map_err(ioerr)?;
+        dst.write_all(&name_len.to_le_bytes()).map_err(ioerr)?;
+        dst.write_all(b"CIXF1").map_err(ioerr)?;
+    }
+    dst.flush().map_err(ioerr)
+}
+
+fn varint_len(mut value: usize) -> usize {
+    let mut n = 1;
+    while value >= 128 {
+        value >>= 7;
+        n += 1;
+    }
+    n
+}
+
 fn cixg_candidate(data: &[u8], route: Option<u8>, level: u8) -> Result<Vec<u8>, String> {
     let mut out = Vec::new();
     out.extend_from_slice(MAGIC);
@@ -1384,6 +1467,306 @@ fn encode_external<R: Read, W: Write>(
     dst.write_all(&archive).map_err(ioerr)?;
     dst.flush().map_err(ioerr)
 }
+fn read_stream_varint<R: Read>(src: &mut R, fd: i32) -> Result<usize, String> {
+    let mut value = 0usize;
+    for shift in (0..usize::BITS as usize).step_by(7) {
+        let mut b = [0u8; 1];
+        read_exact_poll(src, &mut b, fd)?;
+        let low = (b[0] & 0x7f) as usize;
+        if shift + 7 > usize::BITS as usize && low > (usize::MAX >> shift) {
+            return Err("CIXM6 varint overflow".into());
+        }
+        let part = low
+            .checked_shl(shift as u32)
+            .ok_or("CIXM6 varint overflow")?;
+        value = value.checked_add(part).ok_or("CIXM6 varint overflow")?;
+        if b[0] & 0x80 == 0 {
+            return Ok(value);
+        }
+    }
+    Err("oversized CIXM6 varint".into())
+}
+
+fn m6_read_bits(data: &[u8], bitpos: &mut usize, count: usize) -> Result<usize, String> {
+    if count >= usize::BITS as usize || bitpos.saturating_add(count) > data.len() * 8 {
+        return Err("truncated CIXM6 bitstream".into());
+    }
+    let mut value = 0usize;
+    for _ in 0..count {
+        value = (value << 1) | (((data[*bitpos / 8] >> (7 - (*bitpos % 8))) & 1) as usize);
+        *bitpos += 1;
+    }
+    Ok(value)
+}
+fn m6_decode_bytes(blob: &[u8], count: usize, model_limit: usize) -> Result<Vec<u8>, String> {
+    if blob.is_empty() {
+        return Err("empty CIXM6 byte substream".into());
+    }
+    let mut pos = 1;
+    let mut out = Vec::with_capacity(count);
+    match blob[0] {
+        0 => {
+            let values = rank::decode_type_class(blob, &mut pos, count)?;
+            if pos != blob.len() {
+                return Err("trailing CIXM6 static bytes".into());
+            }
+            Ok(values)
+        }
+        2 => adaptive::decode_general(&blob[1..], count, &[], model_limit),
+        3 => {
+            if blob.len() < 2 || !matches!(blob[1], 1 | 2) {
+                return Err("invalid CIXM6 byte context order".into());
+            }
+            adaptive::decode_general(&blob[2..], count, &[], model_limit)
+        }
+        1 => {
+            let chunk = unvar(blob, &mut pos)?;
+            if chunk == 0 {
+                return Err("invalid CIXM6 byte chunk size".into());
+            }
+            while out.len() < count {
+                let n = chunk.min(count - out.len());
+                out.extend(rank::decode_type_class(blob, &mut pos, n)?);
+            }
+            if pos != blob.len() {
+                return Err("trailing CIXM6 chunk bytes".into());
+            }
+            Ok(out)
+        }
+        mode => Err(format!("unsupported CIXM6 byte substream mode {mode}")),
+    }
+}
+fn m6_decode_uints(blob: &[u8], count: usize, model_limit: usize) -> Result<Vec<usize>, String> {
+    if count == 0 {
+        return Ok(Vec::new());
+    }
+    let mode = *blob.first().ok_or("empty CIXM6 integer stream")?;
+    let mut pos = 1;
+    match mode {
+        0 => {
+            let mut out = Vec::with_capacity(count);
+            for _ in 0..count {
+                out.push(unvar(blob, &mut pos)?);
+            }
+            if pos != blob.len() {
+                return Err("trailing CIXM6 varints".into());
+            }
+            Ok(out)
+        }
+        1 => {
+            let k = *blob.get(pos).ok_or("missing CIXM6 Rice parameter")? as usize;
+            pos += 1;
+            let bits = &blob[pos..];
+            let mut bp = 0;
+            let mut out = Vec::with_capacity(count);
+            for _ in 0..count {
+                let mut q = 0usize;
+                while m6_read_bits(bits, &mut bp, 1)? != 0 {
+                    q = q.checked_add(1).ok_or("Rice quotient overflow")?;
+                }
+                let low = m6_read_bits(bits, &mut bp, k)?;
+                out.push(q.checked_shl(k as u32).ok_or("Rice value overflow")? | low);
+            }
+            Ok(out)
+        }
+        2 | 3 => {
+            let class_len = unvar(blob, &mut pos)?;
+            let end = pos.checked_add(class_len).ok_or("class length overflow")?;
+            if end > blob.len() {
+                return Err("truncated CIXM6 integer classes".into());
+            }
+            let classes = if mode == 2 {
+                let mut cp = 0;
+                let v = rank::decode_type_class(&blob[pos..end], &mut cp, count)?;
+                if cp != class_len {
+                    return Err("trailing CIXM6 integer classes".into());
+                }
+                v
+            } else {
+                m6_decode_bytes(&blob[pos..end], count, model_limit)?
+            };
+            let bits = &blob[end..];
+            let mut bp = 0;
+            let mut out = Vec::with_capacity(count);
+            for class in classes {
+                let width = class as usize;
+                if width >= usize::BITS as usize {
+                    return Err("CIXM6 integer class too wide".into());
+                }
+                let low = m6_read_bits(bits, &mut bp, width)?;
+                out.push(
+                    (1usize << width)
+                        .checked_add(low)
+                        .and_then(|v| v.checked_sub(1))
+                        .ok_or("CIXM6 integer overflow")?,
+                );
+            }
+            Ok(out)
+        }
+        other => Err(format!("unsupported CIXM6 integer stream mode {other}")),
+    }
+}
+fn m6_decode_runs(blob: &[u8], source_len: usize, model_limit: usize) -> Result<Vec<u8>, String> {
+    if blob.first() != Some(&1) {
+        return Err("unsupported CIXM6 run block version".into());
+    }
+    let mut pos = 1;
+    let run_count = unvar(blob, &mut pos)?;
+    if run_count == 0 || run_count > source_len {
+        return Err("invalid CIXM6 run count".into());
+    }
+    let symbol_len = unvar(blob, &mut pos)?;
+    let end = pos
+        .checked_add(symbol_len)
+        .ok_or("run symbol length overflow")?;
+    if end > blob.len() {
+        return Err("truncated CIXM6 run symbols".into());
+    }
+    let mut symbol_pos = 0;
+    let symbols = rank::decode_type_class(&blob[pos..end], &mut symbol_pos, run_count)?;
+    if symbol_pos != symbol_len {
+        return Err("unused CIXM6 run-symbol bytes".into());
+    }
+    let lengths = m6_decode_uints(&blob[end..], run_count, model_limit)?;
+    let mut out = Vec::with_capacity(source_len);
+    for (symbol, minus_one) in symbols.into_iter().zip(lengths) {
+        let n = minus_one.checked_add(1).ok_or("run length overflow")?;
+        if out
+            .len()
+            .checked_add(n)
+            .filter(|&v| v <= source_len)
+            .is_none()
+        {
+            return Err("CIXM6 runs exceed source length".into());
+        }
+        out.resize(out.len() + n, symbol);
+    }
+    if out.len() != source_len {
+        return Err("CIXM6 run source length mismatch".into());
+    }
+    Ok(out)
+}
+
+fn decode_m6<R: Read, W: Write>(
+    mut src: R,
+    mut dst: W,
+    _magic: &[u8; 5],
+    fd: i32,
+    memory: usize,
+    verify_only: bool,
+) -> Result<(), String> {
+    let history_limit = read_stream_varint(&mut src, fd)?;
+    if history_limit == 0 || history_limit > 16 * 1024 * 1024 {
+        return Err("invalid CIXM6 history window".into());
+    }
+    let mut total = 0usize;
+    let mut crc = crc32fast::Hasher::new();
+    if history_limit > memory {
+        return Err("CIXM6 history exceeds --memory".into());
+    }
+    let mut history: Vec<u8> = Vec::with_capacity(history_limit);
+    let mut recent: Vec<Vec<u8>> = Vec::new();
+    let mut recent_bytes = 0usize;
+    let reference_budget = memory.saturating_div(8).min(16 * 1024 * 1024).max(1);
+    loop {
+        let mut mode = [0u8; 1];
+        read_exact_poll(&mut src, &mut mode, fd)?;
+        if mode[0] == 255 {
+            let expected = read_stream_varint(&mut src, fd)?;
+            let mut checksum = [0u8; 4];
+            read_exact_poll(&mut src, &mut checksum, fd)?;
+            if expected != total || u32::from_le_bytes(checksum) != crc.clone().finalize() {
+                return Err("CIXM6 length or CRC32 checksum mismatch".into());
+            }
+            let mut tail = Vec::new();
+            src.take((1024 * 1024 + 10) as u64)
+                .read_to_end(&mut tail)
+                .map_err(ioerr)?;
+            if tail.len() > 1024 * 1024 + 9 {
+                return Err("CIXF1 filename footer exceeds limit".into());
+            }
+            if !tail.is_empty() {
+                if tail.len() < 9 || &tail[tail.len() - 5..] != b"CIXF1" {
+                    return Err("trailing bytes after CIXM6 stream".into());
+                }
+                let name_len =
+                    u32::from_le_bytes(tail[tail.len() - 9..tail.len() - 5].try_into().unwrap())
+                        as usize;
+                if name_len != tail.len() - 9 || std::str::from_utf8(&tail[..name_len]).is_err() {
+                    return Err("invalid CIXF1 filename footer".into());
+                }
+            }
+            break;
+        }
+        let source_len = read_stream_varint(&mut src, fd)?;
+        let payload_len = read_stream_varint(&mut src, fd)?;
+        if source_len == 0
+            || source_len > 1024 * 1024
+            || payload_len > 8 * source_len + 4096
+            || source_len
+                .saturating_add(payload_len)
+                .saturating_add(history_limit)
+                > memory
+        {
+            return Err("CIXM6 block exceeds memory or format limit".into());
+        }
+        let mut payload = vec![0u8; payload_len];
+        read_exact_poll(&mut src, &mut payload, fd)?;
+        let block = match mode[0] {
+            0 => {
+                if payload.len() != source_len {
+                    return Err("CIXM6 raw block length mismatch".into());
+                }
+                payload
+            }
+            1 => {
+                let mut pos = 0;
+                let out = rank::decode_type_class(&payload, &mut pos, source_len)?;
+                if pos != payload.len() {
+                    return Err("unused CIXM6 multinomial bytes".into());
+                }
+                out
+            }
+            10 => adaptive::decode_general(&payload, source_len, &history, memory / 4096)?,
+            12 => m6_decode_runs(&payload, source_len, memory / 4096)?,
+            9 => {
+                let mut pos = 0;
+                let distance = unvar(&payload, &mut pos)?;
+                if pos != payload.len() || distance == 0 || distance > recent.len() {
+                    return Err("invalid CIXM6 block reference".into());
+                }
+                let out = recent[recent.len() - distance].clone();
+                if out.len() != source_len {
+                    return Err("CIXM6 reference length mismatch".into());
+                }
+                out
+            }
+            other => return Err(format!("unsupported CIXM6 block mode {other}")),
+        };
+        if block.len() != source_len {
+            return Err("CIXM6 decoded block length mismatch".into());
+        }
+        crc.update(&block);
+        history.extend_from_slice(&block);
+        if history.len() > history_limit {
+            history.drain(..history.len() - history_limit);
+        }
+        total = total
+            .checked_add(block.len())
+            .ok_or("CIXM6 output length overflow")?;
+        if !verify_only {
+            dst.write_all(&block).map_err(ioerr)?;
+            dst.flush().map_err(ioerr)?;
+        }
+        recent_bytes = recent_bytes.saturating_add(block.len());
+        recent.push(block);
+        while recent.len() > 4096 || recent_bytes > reference_budget {
+            recent_bytes = recent_bytes.saturating_sub(recent.remove(0).len());
+        }
+    }
+    Ok(())
+}
+
 fn decode<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
@@ -1394,6 +1777,9 @@ fn decode<R: Read, W: Write>(
 ) -> Result<(), String> {
     let mut archive_magic = [0u8; 5];
     read_exact_poll(&mut src, &mut archive_magic, input_fd)?;
+    if &archive_magic == b"CIXM6" || &archive_magic == b"CIXM5" {
+        return decode_m6(src, dst, &archive_magic, input_fd, memory, verify_only);
+    }
     if &archive_magic == b"CIXB1" {
         let mut fields = [0u8; 42];
         read_exact_poll(&mut src, &mut fields, input_fd)?;
@@ -1639,6 +2025,36 @@ pub unsafe extern "C" fn cix_squash_splice(
 fn ioerr(e: io::Error) -> String {
     e.to_string()
 }
+fn cixf1_original_name(input: &str) -> Option<String> {
+    if input == "-" {
+        return None;
+    }
+    let mut file = File::open(input).ok()?;
+    let end = file.seek(SeekFrom::End(0)).ok()?;
+    if end < 9 || file.seek(SeekFrom::End(-9)).ok().is_none() {
+        return None;
+    }
+    let mut footer = [0u8; 9];
+    file.read_exact(&mut footer).ok()?;
+    if &footer[4..] != b"CIXF1" {
+        return None;
+    }
+    let len = u32::from_le_bytes(footer[..4].try_into().ok()?) as u64;
+    if len > 1024 * 1024 || len + 9 > end {
+        return None;
+    }
+    file.seek(SeekFrom::Start(end - len - 9)).ok()?;
+    let mut name = vec![0u8; len as usize];
+    file.read_exact(&mut name).ok()?;
+    let name = std::str::from_utf8(&name).ok()?;
+    let base = Path::new(name).file_name()?.to_str()?;
+    if base.is_empty() || base == "." || base == ".." {
+        return None;
+    }
+    let parent = Path::new(input).parent().unwrap_or_else(|| Path::new("."));
+    Some(parent.join(base).to_string_lossy().into_owned())
+}
+
 fn default_output(input: &str, dec: bool) -> String {
     if input == "-" {
         return "-".into();
@@ -1713,6 +2129,12 @@ fn atomic_file(
     }
     Ok(())
 }
+fn block_min(o: &Opt) -> usize {
+    o.block
+        .unwrap_or(if o.level == 9 { MAX_BLOCK } else { 32768 })
+        .min(MAX_BLOCK) as usize
+}
+
 fn run() -> Result<(), String> {
     let o = parse()?;
     if o.threads != 1 {
@@ -1725,6 +2147,33 @@ fn run() -> Result<(), String> {
     }
     if o.profile_set && o.external_backend.is_none() {
         return Err("--profile requires --external".into());
+    }
+    if !matches!(o.format.as_str(), "cixg1" | "cixm6" | "cixf1") {
+        return Err("--format accepts cixg1, cixm6 or cixf1".into());
+    }
+    if matches!(o.format.as_str(), "cixm6" | "cixf1")
+        && (o.decode
+            || o.test
+            || o.list
+            || o.external_backend.is_some()
+            || o.portfolio.is_some()
+            || o.route.is_some())
+    {
+        return Err(
+            "--format cixm6 conflicts with decode, portfolio, external backend and route selection"
+                .into(),
+        );
+    }
+    if o.format == "cixf1" && o.input == "-" {
+        return Err("--format cixf1 requires a named input to store its basename".into());
+    }
+    if matches!(o.format.as_str(), "cixm6" | "cixf1") && o.flush_interval.is_some() {
+        return Err("--flush-interval is not available for the CIXM6 encoder".into());
+    }
+    if matches!(o.format.as_str(), "cixm6" | "cixf1") && o.memory < (1 << 20) + block_min(&o) {
+        return Err(
+            "CIXM6 encoder needs --memory for its 1 MiB history declaration and block".into(),
+        );
     }
     if let Some(p) = o.portfolio.as_deref() {
         if o.decode
@@ -1836,10 +2285,13 @@ fn run() -> Result<(), String> {
         return Err(format!("block needs about {estimated_working} bytes working memory; reduce --block-size or raise --memory"));
     }
     let forced = o.route.as_deref().filter(|r| *r != "auto");
-    let out = o
-        .output
-        .clone()
-        .unwrap_or_else(|| default_output(&o.input, o.decode));
+    let out = o.output.clone().unwrap_or_else(|| {
+        if o.decode {
+            cixf1_original_name(&o.input).unwrap_or_else(|| default_output(&o.input, true))
+        } else {
+            default_output(&o.input, false)
+        }
+    });
     if o.test || o.list {
         let f = open_input(&o.input)?;
         let fd = input_fd(&f);
@@ -1854,6 +2306,21 @@ fn run() -> Result<(), String> {
         let mut lock = dst.lock();
         if o.decode {
             decode(src, &mut lock, false, false, fd, o.memory)
+        } else if o.format == "cixm6" || o.format == "cixf1" {
+            let name = if o.format == "cixf1" {
+                Path::new(&o.input)
+                    .file_name()
+                    .and_then(|s| s.to_str())
+                    .ok_or("input basename is not valid UTF-8")?
+            } else {
+                ""
+            };
+            encode_m6(
+                src,
+                &mut lock,
+                block as usize,
+                (o.format == "cixf1").then_some(name),
+            )
         } else if let Some(profile) = o.portfolio.as_deref() {
             encode_portfolio(src, &mut lock, profile, o.memory)
         } else if let Some(backend) = o.external_backend.as_deref() {
@@ -1879,6 +2346,21 @@ fn run() -> Result<(), String> {
             let fd = input_fd(&src);
             if o.decode {
                 decode(src, dst, false, false, fd, o.memory)
+            } else if o.format == "cixm6" || o.format == "cixf1" {
+                let name = if o.format == "cixf1" {
+                    Path::new(&o.input)
+                        .file_name()
+                        .and_then(|s| s.to_str())
+                        .ok_or("input basename is not valid UTF-8")?
+                } else {
+                    ""
+                };
+                encode_m6(
+                    src,
+                    dst,
+                    block as usize,
+                    (o.format == "cixf1").then_some(name),
+                )
             } else if let Some(profile) = o.portfolio.as_deref() {
                 encode_portfolio(src, dst, profile, o.memory)
             } else if let Some(backend) = o.external_backend.as_deref() {

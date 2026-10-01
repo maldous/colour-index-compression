@@ -115,3 +115,64 @@ pub fn decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
     }
     Ok(out)
 }
+
+/// Decode the frozen general CIX adaptive block format, including context buckets.
+pub fn decode_general(
+    blob: &[u8],
+    n: usize,
+    prefix_history: &[u8],
+    model_limit: usize,
+) -> Result<Vec<u8>, String> {
+    if blob.len() < 4 || blob[0] != 1 {
+        return Err("unknown adaptive multinomial version".into());
+    }
+    let order = blob[1] as usize;
+    let bucket_bits = blob[2] as usize;
+    if order > 16 || !(1..=16).contains(&bucket_bits) {
+        return Err("invalid adaptive model parameters".into());
+    }
+    let mut pos = 3;
+    let bits = get_varint(blob, &mut pos)?;
+    let bytes = bits.div_ceil(8);
+    if pos.checked_add(bytes) != Some(blob.len()) {
+        return Err("adaptive payload length mismatch".into());
+    }
+    let mut tail = if order == 0 {
+        Vec::new()
+    } else {
+        prefix_history[prefix_history.len().saturating_sub(order)..].to_vec()
+    };
+    let mut models = std::collections::HashMap::<usize, Model>::new();
+    let mut decoder = ArithmeticDecoder::new(&blob[pos..], bits);
+    let mut out = Vec::with_capacity(n);
+    for _ in 0..n {
+        let bucket = if order == 0 {
+            0
+        } else if order == 1 && bucket_bits >= 8 {
+            tail.last().copied().unwrap_or(0) as usize
+        } else {
+            let mut h = 1469598103934665603u64;
+            for &b in &tail {
+                h ^= b as u64;
+                h = h.wrapping_mul(1099511628211);
+            }
+            (h & ((1u64 << bucket_bits) - 1)) as usize
+        };
+        if !models.contains_key(&bucket) && models.len() >= model_limit {
+            return Err("adaptive model count exceeds --memory budget".into());
+        }
+        let model = models.entry(bucket).or_insert_with(Model::new);
+        let target = decoder.target(2 * model.seen as usize + 256);
+        let (symbol, low, high, total) = model.select(target)?;
+        decoder.update(low, high, total);
+        model.add(symbol);
+        out.push(symbol as u8);
+        if order > 0 {
+            tail.push(symbol as u8);
+            if tail.len() > order {
+                tail.remove(0);
+            }
+        }
+    }
+    Ok(out)
+}
