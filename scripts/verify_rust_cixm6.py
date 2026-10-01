@@ -37,6 +37,8 @@ def main():
  from cix.fixedmix import encode_fixed_mix
  from cix.sparse import encode_sparse_block
  from cix.ppm import encode_ppm
+ from cix.record import encode_record_block
+ import cix.numeric as numeric
  from cix.multinomial import vencode
  rng=random.Random(112)
  cases=[b"",b"abc",b"A"*2000,random.Random(112).randbytes(3072),bytes(rng.choices(range(8),weights=[50,20,10,8,5,3,2,1],k=6000))]
@@ -86,6 +88,20 @@ def main():
   bytes([16])+vencode(len(ppm_data))+vencode(len(ppm_payload))+ppm_payload+
   bytes([255])+vencode(len(ppm_prefix)+len(ppm_data))+struct.pack("<I",zlib.crc32(ppm_prefix+ppm_data)))
  assert run(str(BIN/"uncix"),"-c","-",input=ppm_archive).stdout==ppm_prefix+ppm_data
+ record_data=b"".join(bytes([i&255,(i*7)&255,(i*13)&255,0,1,2,3,4]) for i in range(500))
+ record_payload,_=encode_record_block(record_data,beam=2)
+ record_archive=b"CIXM6"+vencode(1<<20)+bytes([14])+vencode(len(record_data))+vencode(len(record_payload))+record_payload+bytes([255])+vencode(len(record_data))+struct.pack("<I",zlib.crc32(record_data))
+ assert decompress(record_archive)==record_data
+ assert run(str(BIN/"uncix"),"-c","-",input=record_archive).stdout==record_data
+ spec=numeric.WordSpec(2,"little");tail=b"Z"
+ numeric_cases=[]
+ for method,values in ((numeric._encode_for,[100+i%9 for i in range(400)]),
+                       (numeric._encode_delta,[100+(i*3)%500 for i in range(400)]),
+                       (numeric._encode_delta2,[100+i*i%10000 for i in range(400)]),
+                       (lambda v,t,s:numeric._encode_pfor(v,t,s,3),[100+(i%8)+(500 if i%79==0 else 0) for i in range(400)])):
+  payload=method(values,tail,spec);data=b"".join(v.to_bytes(2,"little") for v in values)+tail
+  modes_archive=b"CIXM6"+vencode(1<<20)+bytes([8])+vencode(len(data))+vencode(len(payload))+payload+bytes([255])+vencode(len(data))+struct.pack("<I",zlib.crc32(data))
+  assert run(str(BIN/"uncix"),"-c","-",input=modes_archive).stdout==data
  repeated=b"same block reference payload"*80
  ref=(b"CIXM6"+vencode(1<<20)+bytes([0])+vencode(len(repeated))+vencode(len(repeated))+repeated+bytes([9])+vencode(len(repeated))+vencode(1)+vencode(1)+bytes([255])+vencode(2*len(repeated))+struct.pack("<I",zlib.crc32(repeated+repeated)))
  assert run(str(BIN/"uncix"),"-c","-",input=ref).stdout==repeated+repeated
@@ -105,5 +121,5 @@ def main():
    run(str(BIN/"uncix"),"-c","-",input=archive,ok=False)
  unsupported=b"CIXM6"+vencode(1<<20)+bytes([2])+vencode(1)+vencode(0)+bytes([255])+vencode(0)+struct.pack("<I",0)
  run(str(BIN/"uncix"),"-c","-",input=unsupported,ok=False)
- print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, sparse, PPM, fixed-mixer, and block-reference paths; verified Rust raw/multinomial encode in Python")
+ print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, sparse, record, numeric, PPM, fixed-mixer, and block-reference paths; verified Rust raw/multinomial encode in Python")
 if __name__=="__main__":main()

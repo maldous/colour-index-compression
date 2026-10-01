@@ -643,3 +643,14 @@ pub fn decode_sparse_blob(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
     }
     Ok(out)
 }
+
+/// Read a fixed-width combinadic rank and unrank its colex positions.
+pub fn decode_colex_positions(
+    data: &[u8],
+    pos: &mut usize,
+    universe: usize,
+    count: usize,
+) -> Result<Vec<usize>, String> {
+    let width = fixed_width(&(choose(universe, count) - BigUint::one()));
+    colex_unrank(read_fixed(data, pos, width)?, count, universe)
+}

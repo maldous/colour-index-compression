@@ -13,6 +13,7 @@ use std::{
 mod adaptive;
 mod external;
 mod fixedmix;
+mod numeric;
 mod ppm;
 mod rank;
 
@@ -1606,6 +1607,50 @@ fn m6_decode_uints(blob: &[u8], count: usize, model_limit: usize) -> Result<Vec<
         other => Err(format!("unsupported CIXM6 integer stream mode {other}")),
     }
 }
+fn m6_decode_record(blob: &[u8], source_len: usize, model_limit: usize) -> Result<Vec<u8>, String> {
+    if blob.is_empty() || !matches!(blob[0], 1 | 2) {
+        return Err("unknown CIXM6 record block version".into());
+    }
+    let version = blob[0];
+    let mut pos = 1;
+    let width = unvar(blob, &mut pos)?;
+    if width == 0 || width > source_len || width > 2048 {
+        return Err("invalid CIXM6 record width".into());
+    }
+    let mut lanes = Vec::with_capacity(width);
+    for lane in 0..width {
+        let count = if lane < source_len {
+            (source_len - 1 - lane) / width + 1
+        } else {
+            0
+        };
+        let values = if version == 1 {
+            rank::decode_type_class(blob, &mut pos, count)?
+        } else {
+            let len = unvar(blob, &mut pos)?;
+            let end = pos.checked_add(len).ok_or("record lane length overflow")?;
+            if end > blob.len() {
+                return Err("truncated CIXM6 record lane".into());
+            }
+            let out = m6_decode_bytes(&blob[pos..end], count, model_limit)?;
+            pos = end;
+            out
+        };
+        lanes.push(values);
+    }
+    if pos != blob.len() {
+        return Err("trailing CIXM6 record bytes".into());
+    }
+    let mut cursors = vec![0usize; width];
+    let mut out = vec![0u8; source_len];
+    for (index, byte) in out.iter_mut().enumerate() {
+        let lane = index % width;
+        *byte = lanes[lane][cursors[lane]];
+        cursors[lane] += 1;
+    }
+    Ok(out)
+}
+
 fn m6_decode_runs(blob: &[u8], source_len: usize, model_limit: usize) -> Result<Vec<u8>, String> {
     if blob.first() != Some(&1) {
         return Err("unsupported CIXM6 run block version".into());
@@ -1702,6 +1747,7 @@ fn decode_m6<R: Read, W: Write>(
         let payload_len = read_stream_varint(&mut src, fd)?;
         let model_budget = match mode[0] {
             10 => source_len.saturating_mul(64),
+            8 => source_len.saturating_mul(16),
             16 => source_len.saturating_mul(128),
             19 => source_len.saturating_mul(1024),
             _ => 0,
@@ -1738,6 +1784,8 @@ fn decode_m6<R: Read, W: Write>(
             10 => adaptive::decode_general(&payload, source_len, &history, memory / 4096)?,
             11 => rank::decode_sparse_blob(&payload, source_len)?,
             12 => m6_decode_runs(&payload, source_len, memory / 4096)?,
+            14 => m6_decode_record(&payload, source_len, memory / 4096)?,
+            8 => numeric::decode(&payload, source_len)?,
             16 => ppm::decode_with_history(&payload, source_len, &history)?,
             19 => fixedmix::decode_with_history(&payload, source_len, &history)?,
             9 => {
