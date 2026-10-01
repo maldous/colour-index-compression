@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Invoke packaged Rust CLI portfolio from an immutable read-only build snapshot."""
 from __future__ import annotations
-import argparse, json
+import argparse, json, sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from benchmarks.silesia_rust_client import executable, invoke
 
 
