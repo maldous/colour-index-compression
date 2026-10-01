@@ -1551,6 +1551,8 @@ fn encode_m6<R: Read, W: Write>(
             let (_, payload) = states.encode_best(data, prefix, stateful::WORKING_MEMORY_BOUND)?;
             consider(13, payload);
             states.observe(data, prefix)?;
+        } else {
+            budget_skips.insert(13);
         }
         drop(consider);
 
