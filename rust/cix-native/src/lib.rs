@@ -2,6 +2,7 @@
 pub mod adaptive;
 #[path = "main.rs"]
 mod cli;
+pub mod external;
 pub mod fixedmix;
 pub mod huffman;
 pub mod legacy_lz;
