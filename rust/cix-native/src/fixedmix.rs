@@ -308,6 +308,13 @@ pub fn encode(data: &[u8]) -> Vec<u8> {
     best.unwrap()
 }
 pub fn decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
+    decode_with_history(blob, n, &[])
+}
+pub fn decode_with_history(
+    blob: &[u8],
+    n: usize,
+    prefix_history: &[u8],
+) -> Result<Vec<u8>, String> {
     if blob.len() < 3 || blob[0] != 1 || blob[1] > 2 {
         return Err("invalid fixed-mix version or learning rate".into());
     }
@@ -319,6 +326,20 @@ pub fn decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
     let eta = ETA[blob[1] as usize];
     let t = stretch_table();
     let mut state = State::new(eta);
+    let training = prefix_history
+        .len()
+        .min(HISTORY_MAX)
+        .min(4096usize.max(n.saturating_mul(2)));
+    for &byte in &prefix_history[prefix_history.len() - training..] {
+        let mut prefix = 0u8;
+        for bit in 0..8 {
+            let (prob, s, k) = state.probabilities(bit, prefix, &t);
+            let actual = ((byte >> (7 - bit)) & 1) as u8;
+            state.update(bit, actual, prob, &s, &k);
+            prefix = (prefix << 1) | actual;
+        }
+        state.finish_byte(byte);
+    }
     let mut coder = ArithmeticDecoder::new(&blob[p..], bits);
     let mut out = Vec::with_capacity(n);
     for _ in 0..n {

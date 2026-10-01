@@ -34,6 +34,8 @@ def main():
  from cix.fileformat import _footer, split_file_wrapper
  from cix.runs import encode_run_block
  from cix.adaptive import encode_adaptive
+ from cix.fixedmix import encode_fixed_mix
+ from cix.sparse import encode_sparse_block
  from cix.multinomial import vencode
  rng=random.Random(112)
  cases=[b"",b"abc",b"A"*2000,random.Random(112).randbytes(3072),bytes(rng.choices(range(8),weights=[50,20,10,8,5,3,2,1],k=6000))]
@@ -64,6 +66,18 @@ def main():
   bytes([10])+vencode(len(adaptive_data))+vencode(len(adaptive_payload))+adaptive_payload+
   bytes([255])+vencode(len(prefix)+len(adaptive_data))+struct.pack("<I",zlib.crc32(prefix+adaptive_data)))
  assert run(str(BIN/"uncix"),"-c","-",input=adaptive_archive).stdout==prefix+adaptive_data
+ sparse_data=bytearray(b"\0"*5000)
+ for i in range(0,len(sparse_data),97): sparse_data[i]=(i//97+1)&255
+ sparse_data=bytes(sparse_data);sparse_payload,_=encode_sparse_block(sparse_data)
+ sparse_archive=b"CIXM6"+vencode(1<<20)+bytes([11])+vencode(len(sparse_data))+vencode(len(sparse_payload))+sparse_payload+bytes([255])+vencode(len(sparse_data))+struct.pack("<I",zlib.crc32(sparse_data))
+ assert run(str(BIN/"uncix"),"-c","-",input=sparse_archive).stdout==sparse_data
+ mix_prefix=b"history priming fixture "*250
+ mix_data=(b"history priming fixture and payload "*100)
+ mix_payload=encode_fixed_mix(mix_data,prefix_history=mix_prefix)
+ mix_archive=(b"CIXM6"+vencode(1<<20)+bytes([0])+vencode(len(mix_prefix))+vencode(len(mix_prefix))+mix_prefix+
+  bytes([19])+vencode(len(mix_data))+vencode(len(mix_payload))+mix_payload+
+  bytes([255])+vencode(len(mix_prefix)+len(mix_data))+struct.pack("<I",zlib.crc32(mix_prefix+mix_data)))
+ assert run(str(BIN/"uncix"),"-c","-",input=mix_archive).stdout==mix_prefix+mix_data
  repeated=b"same block reference payload"*80
  ref=(b"CIXM6"+vencode(1<<20)+bytes([0])+vencode(len(repeated))+vencode(len(repeated))+repeated+bytes([9])+vencode(len(repeated))+vencode(1)+vencode(1)+bytes([255])+vencode(2*len(repeated))+struct.pack("<I",zlib.crc32(repeated+repeated)))
  assert run(str(BIN/"uncix"),"-c","-",input=ref).stdout==repeated+repeated
@@ -83,5 +97,5 @@ def main():
    run(str(BIN/"uncix"),"-c","-",input=archive,ok=False)
  unsupported=b"CIXM6"+vencode(1<<20)+bytes([2])+vencode(1)+vencode(0)+bytes([255])+vencode(0)+struct.pack("<I",0)
  run(str(BIN/"uncix"),"-c","-",input=unsupported,ok=False)
- print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, and block references; verified Rust raw/multinomial encode in Python")
+ print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, sparse, fixed-mixer, and block-reference paths; verified Rust raw/multinomial encode in Python")
 if __name__=="__main__":main()

@@ -1728,7 +1728,9 @@ fn decode_m6<R: Read, W: Write>(
                 out
             }
             10 => adaptive::decode_general(&payload, source_len, &history, memory / 4096)?,
+            11 => rank::decode_sparse_blob(&payload, source_len)?,
             12 => m6_decode_runs(&payload, source_len, memory / 4096)?,
+            19 => fixedmix::decode_with_history(&payload, source_len, &history)?,
             9 => {
                 let mut pos = 0;
                 let distance = unvar(&payload, &mut pos)?;

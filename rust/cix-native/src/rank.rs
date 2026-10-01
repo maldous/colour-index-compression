@@ -618,3 +618,28 @@ pub fn decode_composition_tiles(data: &[u8], n: usize) -> Result<Vec<u8>, String
     }
     Ok(output)
 }
+
+/// Decode the legacy CIX sparse dominant-symbol representation.
+pub fn decode_sparse_blob(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
+    if data.len() < 2 || data[0] != 1 {
+        return Err("unknown sparse block version".into());
+    }
+    let dominant = data[1];
+    let mut pos = 2;
+    let k = read_varint(data, &mut pos)?;
+    if k > n {
+        return Err("too many sparse exceptions".into());
+    }
+    let width = fixed_width(&(choose(n, k) - BigUint::one()));
+    let ranks = colex_unrank(read_fixed(data, &mut pos, width)?, k, n)?;
+    let mut value_pos = pos;
+    let values = decode_type_class(data, &mut value_pos, k)?;
+    if value_pos != data.len() {
+        return Err("unused sparse payload bytes".into());
+    }
+    let mut out = vec![dominant; n];
+    for (index, value) in ranks.into_iter().zip(values) {
+        out[index] = value;
+    }
+    Ok(out)
+}
