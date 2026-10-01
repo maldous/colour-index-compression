@@ -28,7 +28,9 @@ const PATTERNS: &[&[usize]] = &[
     &[1, 4, 8],
 ];
 const LAGS: &[usize] = &[1, 2, 4, 8, 16, 32];
-const EXPERTS: usize = 20;
+const PATTERN_EXPERTS: usize = 13;
+const LAG_EXPERTS: usize = 6;
+const EXPERTS: usize = PATTERN_EXPERTS + LAG_EXPERTS + 1;
 
 fn floor_div(a: i64, b: i64) -> i64 {
     let q = a / b;
@@ -210,17 +212,15 @@ impl State {
             2048
         }
     }
-    fn predictions(&self) -> (Vec<Option<u8>>, Option<[u8; 4]>) {
-        let lags = LAGS
-            .iter()
-            .map(|&n| {
-                if self.history.len() >= n {
-                    Some(self.history.get(self.history.len() - n))
-                } else {
-                    None
-                }
-            })
-            .collect();
+    fn predictions(&self) -> ([Option<u8>; LAG_EXPERTS], Option<[u8; 4]>) {
+        let lags = std::array::from_fn(|i| {
+            let n = LAGS[i];
+            if self.history.len() >= n {
+                Some(self.history.get(self.history.len() - n))
+            } else {
+                None
+            }
+        });
         let key = if self.history.len() >= 4 {
             Some(std::array::from_fn(|i| {
                 self.history.get(self.history.len() - 4 + i)
@@ -266,25 +266,25 @@ impl State {
         t: &[i32],
     ) -> (
         i32,
-        Vec<i32>,
-        Vec<Option<CtxKey>>,
+        [i32; EXPERTS],
+        [Option<CtxKey>; PATTERN_EXPERTS],
         Option<(i32, usize, u8, i32)>,
     ) {
-        let mut ps = Vec::with_capacity(EXPERTS);
-        let mut keys = Vec::with_capacity(PATTERNS.len());
+        let mut probabilities = [0; EXPERTS];
+        let mut keys = [None; PATTERN_EXPERTS];
         for (i, p) in PATTERNS.iter().enumerate() {
             let k = self.context(p, bit, prefix);
             let cnt = k.as_ref().and_then(|x| self.tables[i].get(x));
-            ps.push(Self::context_prob(cnt));
-            keys.push(k);
+            probabilities[i] = Self::context_prob(cnt);
+            keys[i] = k;
         }
         let (lags, match_key) = self.predictions();
         for (i, p) in lags.iter().enumerate() {
-            ps.push(Self::rel_prob(*p, &self.lag_rel[i][bit], bit));
+            probabilities[PATTERN_EXPERTS + i] = Self::rel_prob(*p, &self.lag_rel[i][bit], bit);
         }
         let mp = match_key.and_then(|k| self.matches.get(&k).copied());
-        ps.push(Self::rel_prob(mp, &self.match_rel[bit], bit));
-        let stretches: Vec<i32> = ps.iter().map(|&p| t[p as usize]).collect();
+        probabilities[EXPERTS - 1] = Self::rel_prob(mp, &self.match_rel[bit], bit);
+        let stretches = std::array::from_fn(|i| t[probabilities[i] as usize]);
         let sum: i64 = self.weights[bit]
             .iter()
             .zip(&stretches)
