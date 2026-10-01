@@ -35,6 +35,8 @@ def main():
  from cix.runs import encode_run_block
  from cix.adaptive import encode_adaptive
  from cix.bitplanes import encode_bitplanes
+ from cix.wavelet import encode_wavelet
+ from cix.periodic import encode_periodic_block
  from cix.multinomial import encode_context_type_classes
  from cix.fixedmix import encode_fixed_mix
  from cix.sparse import encode_sparse_block
@@ -84,6 +86,14 @@ def main():
  bitplane_payload,_=encode_bitplanes(bitplane_data)
  bitplane_archive=b"CIXM6"+vencode(1<<20)+bytes([6])+vencode(len(bitplane_data))+vencode(len(bitplane_payload))+bitplane_payload+bytes([255])+vencode(len(bitplane_data))+struct.pack("<I",zlib.crc32(bitplane_data))
  assert run(str(BIN/"uncix"),"-c","-",input=bitplane_archive).stdout==bitplane_data
+ wavelet_data=(bytes(range(32))*96)+b"\0"*512
+ wavelet_payload=encode_wavelet(wavelet_data)
+ wavelet_archive=b"CIXM6"+vencode(1<<20)+bytes([18])+vencode(len(wavelet_data))+vencode(len(wavelet_payload))+wavelet_payload+bytes([255])+vencode(len(wavelet_data))+struct.pack("<I",zlib.crc32(wavelet_data))
+ assert run(str(BIN/"uncix"),"-c","-",input=wavelet_archive).stdout==wavelet_data
+ periodic_data=(b"periodic CIX stream\0"*300)+bytes(range(64))*32
+ periodic_payload,_=encode_periodic_block(periodic_data,beam=3)
+ periodic_archive=b"CIXM6"+vencode(1<<20)+bytes([15])+vencode(len(periodic_data))+vencode(len(periodic_payload))+periodic_payload+bytes([255])+vencode(len(periodic_data))+struct.pack("<I",zlib.crc32(periodic_data))
+ assert run(str(BIN/"uncix"),"-c","-",input=periodic_archive).stdout==periodic_data
  sparse_data=bytearray(b"\0"*5000)
  for i in range(0,len(sparse_data),97): sparse_data[i]=(i//97+1)&255
  sparse_data=bytes(sparse_data);sparse_payload,_=encode_sparse_block(sparse_data)
@@ -128,7 +138,7 @@ def main():
  assert run(str(BIN/"uncix"),"-c","-",input=ref).stdout==repeated+repeated
  for i,data in enumerate(cases):
   archive=compress(data)
-  supported=all(mode in (0,1,9) for mode in get_modes(archive))
+  supported=all(mode in (0,1,2,6,8,9,10,11,12,14,15,16,18,19,20) for mode in get_modes(archive))
   if supported:
    assert run(str(BIN/"uncix"),"-c","-",input=archive).stdout==data
    wrapped=archive+_footer("fixture.bin")
@@ -142,5 +152,5 @@ def main():
    run(str(BIN/"uncix"),"-c","-",input=archive,ok=False)
  unsupported=b"CIXM6"+vencode(1<<20)+bytes([2])+vencode(1)+vencode(0)+bytes([255])+vencode(0)+struct.pack("<I",0)
  run(str(BIN/"uncix"),"-c","-",input=unsupported,ok=False)
- print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, context, bit-plane, sparse, record, histogram, numeric, PPM, fixed-mixer, and block-reference paths; verified Rust raw/multinomial encode in Python")
+ print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, context, bit-plane, wavelet, periodic, sparse, record, histogram, numeric, PPM, fixed-mixer, and block-reference paths; verified Rust raw/multinomial encode in Python")
 if __name__=="__main__":main()

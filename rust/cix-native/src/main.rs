@@ -18,6 +18,7 @@ mod histogram;
 mod numeric;
 mod ppm;
 mod rank;
+mod wavelet;
 
 const MAGIC: &[u8; 5] = b"CIXG1";
 const HEADER: usize = 13;
@@ -1609,6 +1610,54 @@ fn m6_decode_uints(blob: &[u8], count: usize, model_limit: usize) -> Result<Vec<
         other => Err(format!("unsupported CIXM6 integer stream mode {other}")),
     }
 }
+fn m6_decode_periodic(
+    blob: &[u8],
+    source_len: usize,
+    model_limit: usize,
+) -> Result<Vec<u8>, String> {
+    if blob.len() < 4 || !matches!(blob[0], 1 | 2) {
+        return Err("unknown periodic block version".into());
+    }
+    let op = blob[1];
+    let inner = blob[2];
+    let mut pos = 3;
+    let lag = unvar(blob, &mut pos)?;
+    if lag == 0 || lag >= source_len {
+        return Err("invalid periodic lag".into());
+    }
+    let payload = &blob[pos..];
+    let residual = match inner {
+        0 => {
+            let mut p = 0;
+            let out = rank::decode_type_class(payload, &mut p, source_len)?;
+            if p != payload.len() {
+                return Err("trailing periodic multinomial bytes".into());
+            }
+            out
+        }
+        1 => rank::decode_sparse_blob(payload, source_len)?,
+        2 => m6_decode_runs(payload, source_len, model_limit)?,
+        3 => bitplane::decode(payload, source_len)?,
+        4 if blob[0] >= 2 => m6_decode_bytes(payload, source_len, model_limit)?,
+        _ => return Err(format!("unsupported periodic inner mode {inner}")),
+    };
+    let mut out = residual;
+    match op {
+        0 => {
+            for i in lag..source_len {
+                out[i] ^= out[i - lag];
+            }
+        }
+        1 => {
+            for i in lag..source_len {
+                out[i] = out[i].wrapping_add(out[i - lag]);
+            }
+        }
+        _ => return Err("unknown periodic operation".into()),
+    }
+    Ok(out)
+}
+
 fn m6_decode_record(blob: &[u8], source_len: usize, model_limit: usize) -> Result<Vec<u8>, String> {
     if blob.is_empty() || !matches!(blob[0], 1 | 2) {
         return Err("unknown CIXM6 record block version".into());
@@ -1753,6 +1802,7 @@ fn decode_m6<R: Read, W: Write>(
             6 => source_len.saturating_mul(8),
             8 => source_len.saturating_mul(16),
             16 => source_len.saturating_mul(128),
+            18 => source_len.saturating_mul(4),
             19 => source_len.saturating_mul(1024),
             _ => 0,
         };
@@ -1791,8 +1841,10 @@ fn decode_m6<R: Read, W: Write>(
             11 => rank::decode_sparse_blob(&payload, source_len)?,
             12 => m6_decode_runs(&payload, source_len, memory / 4096)?,
             14 => m6_decode_record(&payload, source_len, memory / 4096)?,
+            15 => m6_decode_periodic(&payload, source_len, memory / 4096)?,
             8 => numeric::decode(&payload, source_len)?,
             16 => ppm::decode_with_history(&payload, source_len, &history)?,
+            18 => wavelet::decode(&payload, source_len)?,
             20 => histogram::decode_type_class(&payload, source_len)?,
             19 => fixedmix::decode_with_history(&payload, source_len, &history)?,
             9 => {
