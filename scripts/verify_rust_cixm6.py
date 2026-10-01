@@ -41,6 +41,7 @@ def main():
  from cix.fixedmix import encode_fixed_mix
  from cix.sparse import encode_sparse_block
  from cix.ppm import encode_ppm
+ from cix.expertmix import encode_expert_mix
  from cix.record import encode_record_block
  import cix.numeric as numeric
  from cix.histogram import type_class_candidate, decode_type_class
@@ -90,6 +91,11 @@ def main():
  wavelet_payload=encode_wavelet(wavelet_data)
  wavelet_archive=b"CIXM6"+vencode(1<<20)+bytes([18])+vencode(len(wavelet_data))+vencode(len(wavelet_payload))+wavelet_payload+bytes([255])+vencode(len(wavelet_data))+struct.pack("<I",zlib.crc32(wavelet_data))
  assert run(str(BIN/"uncix"),"-c","-",input=wavelet_archive).stdout==wavelet_data
+ expert_data=(b"adaptive expert context: "+bytes(range(64)))*90
+ expert_payload=encode_expert_mix(expert_data)
+ expert_archive=b"CIXM6"+vencode(1<<20)+bytes([17])+vencode(len(expert_data))+vencode(len(expert_payload))+expert_payload+bytes([255])+vencode(len(expert_data))+struct.pack("<I",zlib.crc32(expert_data))
+ assert decompress(expert_archive)==expert_data
+ assert run(str(BIN/"uncix"),"-c","-",input=expert_archive).stdout==expert_data
  periodic_data=(b"periodic CIX stream\0"*300)+bytes(range(64))*32
  periodic_payload,_=encode_periodic_block(periodic_data,beam=3)
  periodic_archive=b"CIXM6"+vencode(1<<20)+bytes([15])+vencode(len(periodic_data))+vencode(len(periodic_payload))+periodic_payload+bytes([255])+vencode(len(periodic_data))+struct.pack("<I",zlib.crc32(periodic_data))
@@ -138,7 +144,7 @@ def main():
  assert run(str(BIN/"uncix"),"-c","-",input=ref).stdout==repeated+repeated
  for i,data in enumerate(cases):
   archive=compress(data)
-  supported=all(mode in (0,1,2,6,8,9,10,11,12,14,15,16,18,19,20) for mode in get_modes(archive))
+  supported=all(mode in (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20) for mode in get_modes(archive))
   if supported:
    assert run(str(BIN/"uncix"),"-c","-",input=archive).stdout==data
    wrapped=archive+_footer("fixture.bin")
@@ -152,5 +158,5 @@ def main():
    run(str(BIN/"uncix"),"-c","-",input=archive,ok=False)
  unsupported=b"CIXM6"+vencode(1<<20)+bytes([2])+vencode(1)+vencode(0)+bytes([255])+vencode(0)+struct.pack("<I",0)
  run(str(BIN/"uncix"),"-c","-",input=unsupported,ok=False)
- print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, context, bit-plane, wavelet, periodic, sparse, record, histogram, numeric, PPM, fixed-mixer, and block-reference paths; verified Rust raw/multinomial encode in Python")
+ print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, context, bit-plane, wavelet, periodic, sparse, record, histogram, numeric, PPM, expert-mix, fixed-mixer, and block-reference paths; verified Rust raw/multinomial encode in Python")
 if __name__=="__main__":main()

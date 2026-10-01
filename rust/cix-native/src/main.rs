@@ -12,18 +12,25 @@ use std::{
 
 mod adaptive;
 mod bitplane;
+mod bwt_legacy;
+mod chain;
+mod expertmix;
 mod external;
 mod fixedmix;
 mod histogram;
+mod legacy_lz;
 mod numeric;
 mod ppm;
 mod rank;
+mod stateful;
+mod transform;
 mod wavelet;
 
 const MAGIC: &[u8; 5] = b"CIXG1";
 const HEADER: usize = 13;
 const END: u8 = 255;
 const MAX_BLOCK: u32 = 65536;
+const EXPERT_CONTEXT_MEMORY_ESTIMATE: usize = 8192;
 static INTERRUPTED: AtomicBool = AtomicBool::new(false);
 fn check_interrupted() -> Result<(), String> {
     if INTERRUPTED.load(Ordering::Relaxed) {
@@ -1761,9 +1768,17 @@ fn decode_m6<R: Read, W: Write>(
         return Err("CIXM6 history exceeds --memory".into());
     }
     let mut history: Vec<u8> = Vec::with_capacity(history_limit);
+    let mut persistent_states = stateful::PersistentAdaptiveStates::new();
     let mut recent: Vec<Vec<u8>> = Vec::new();
     let mut recent_bytes = 0usize;
     let reference_budget = memory.saturating_div(8).min(16 * 1024 * 1024).max(1);
+    if history_limit
+        .saturating_add(reference_budget)
+        .saturating_add(stateful::RETAINED_MEMORY_BOUND)
+        > memory
+    {
+        return Err("CIXM6 history, references, and persistent models exceed --memory".into());
+    }
     loop {
         let mut mode = [0u8; 1];
         read_exact_poll(&mut src, &mut mode, fd)?;
@@ -1796,14 +1811,28 @@ fn decode_m6<R: Read, W: Write>(
         }
         let source_len = read_stream_varint(&mut src, fd)?;
         let payload_len = read_stream_varint(&mut src, fd)?;
+        let available_model_budget = memory
+            .saturating_sub(source_len)
+            .saturating_sub(payload_len)
+            .saturating_sub(history_limit)
+            .saturating_sub(reference_budget)
+            .saturating_sub(stateful::RETAINED_MEMORY_BOUND);
         let model_budget = match mode[0] {
             10 => source_len.saturating_mul(64),
             2 => source_len.saturating_mul(32),
             6 => source_len.saturating_mul(8),
             8 => source_len.saturating_mul(16),
             16 => source_len.saturating_mul(128),
+            17 => source_len
+                .saturating_mul(9)
+                .saturating_mul(EXPERT_CONTEXT_MEMORY_ESTIMATE)
+                .min(available_model_budget),
+            7 => source_len.saturating_mul(128),
+            3 | 4 => source_len.saturating_mul(128),
             18 => source_len.saturating_mul(4),
             19 => source_len.saturating_mul(1024),
+            5 => source_len.saturating_mul(64),
+            13 => stateful::WORKING_MEMORY_BOUND,
             _ => 0,
         };
         if source_len == 0
@@ -1836,14 +1865,30 @@ fn decode_m6<R: Read, W: Write>(
                 out
             }
             2 => rank::decode_context_type_classes(&payload, source_len, &history)?,
+            3 => legacy_lz::decode(&payload, source_len, &history, memory / 4096)?,
+            4 => bwt_legacy::decode(&payload, source_len, memory / 4096)?,
             6 => bitplane::decode(&payload, source_len)?,
+            7 => chain::decode(&payload, source_len, memory / 4096)?,
             10 => adaptive::decode_general(&payload, source_len, &history, memory / 4096)?,
+            13 => persistent_states.decode(
+                &payload,
+                source_len,
+                &history,
+                stateful::WORKING_MEMORY_BOUND,
+            )?,
             11 => rank::decode_sparse_blob(&payload, source_len)?,
             12 => m6_decode_runs(&payload, source_len, memory / 4096)?,
             14 => m6_decode_record(&payload, source_len, memory / 4096)?,
+            5 => transform::decode(&payload, source_len)?,
             15 => m6_decode_periodic(&payload, source_len, memory / 4096)?,
             8 => numeric::decode(&payload, source_len)?,
             16 => ppm::decode_with_history(&payload, source_len, &history)?,
+            17 => expertmix::decode_bounded(
+                &payload,
+                source_len,
+                &history,
+                model_budget / EXPERT_CONTEXT_MEMORY_ESTIMATE,
+            )?,
             18 => wavelet::decode(&payload, source_len)?,
             20 => histogram::decode_type_class(&payload, source_len)?,
             19 => fixedmix::decode_with_history(&payload, source_len, &history)?,
@@ -1864,6 +1909,7 @@ fn decode_m6<R: Read, W: Write>(
         if block.len() != source_len {
             return Err("CIXM6 decoded block length mismatch".into());
         }
+        persistent_states.observe(&block, &history)?;
         crc.update(&block);
         history.extend_from_slice(&block);
         if history.len() > history_limit {
