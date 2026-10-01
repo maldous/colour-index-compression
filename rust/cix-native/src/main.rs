@@ -130,7 +130,7 @@ struct Opt {
     verbose: bool,
 }
 fn usage() {
-    println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] FILE...\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] FILE...\n       cixcat FILE...\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best. Input files are kept by default. Use '-' for standard input or output. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format auto|cixg1|cixg2|cixm6|cixf1  Select or constrain the container version\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Set the maximum CIXG1/CIXG2 block\n  --memory SIZE               Bound working memory\n  --threads N                 Bound CPU workers (1..4; default up to 4)\n  --parallelism blocks|candidates  Choose ordered blocks or within-block trials\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Emit partial CIXG1/CIXG2 blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
+    println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] [FILE]\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] [FILE]\n       cixcat [FILE]\n\nFILE defaults to '-' (standard input); use '--' before a dash-prefixed filename. Input files are kept by default. Use '-' for standard input or output. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format auto|cixg1|cixg2|cixm6|cixf1  Select or constrain the container version\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Set the maximum CIXG1/CIXG2 block\n  --memory SIZE               Bound working memory\n  --threads N                 Bound CPU workers (1..4; default up to 4)\n  --parallelism blocks|candidates  Choose ordered blocks or within-block trials\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Emit partial CIXG1/CIXG2 blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -151,10 +151,15 @@ fn parse() -> Result<Opt, String> {
     o.decode = prog == "uncix" || prog == "unsix" || prog == "cixcat";
     o.stdout = prog == "cixcat";
     let mut files = vec![];
+    let mut options = true;
     let mut i = 1;
     while i < args.len() {
         let a = &args[i];
-        if a == "--help" || a == "-h" {
+        if options && a == "--" {
+            options = false;
+        } else if !options {
+            files.push(a.clone())
+        } else if a == "--help" || a == "-h" {
             usage();
             process::exit(0)
         } else if a == "--version" {
@@ -279,13 +284,18 @@ fn parse() -> Result<Opt, String> {
         }
         i += 1
     }
-    if files.is_empty() {
-        return Err("missing input file".into());
-    }
     if files.len() != 1 {
-        return Err("this build accepts one input at a time".into());
+        if files.is_empty() {
+            o.input = "-".into();
+        } else {
+            return Err("this build accepts one input at a time".into());
+        }
+    } else {
+        o.input = files.remove(0);
     }
-    o.input = files.remove(0);
+    if o.stdout && o.output.as_deref().is_some_and(|output| output != "-") {
+        return Err("-c conflicts with a named --output; use -o - for standard output".into());
+    }
     if o.threads == 0 {
         return Err("--threads must be positive".into());
     }

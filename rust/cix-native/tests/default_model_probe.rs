@@ -1,4 +1,4 @@
-//! Native DEFAULT selector experiment `cixg1-ppm-predictability-v1`.
+//! Native DEFAULT selector experiment `cixg1-ppm-predictability-v2`.
 //!
 //! These expectations intentionally describe the Rust selector after the
 //! frozen Python parity checkpoint.  The promotion is generic: it uses only
@@ -10,8 +10,10 @@ mod selection;
 use selection::{generate_candidates, profile, shortlist, Features, LAGS, ROUTES};
 
 #[test]
-fn predictable_default_input_promotes_ppm_while_fast_stays_cheap() {
-    let features = profile(b"abcdabcdabcdabcd", 16);
+fn well_supported_predictable_default_input_promotes_ppm_while_fast_stays_cheap() {
+    let input = b"abcd".repeat(2048);
+    let features = profile(&input, 4096);
+    assert!(features.prediction_opportunities >= 64);
     let default = shortlist(&features, "balanced").expect("default shortlist");
     assert!(default.contains(&"ppm"));
     assert_eq!(default.len(), 7);
@@ -28,6 +30,16 @@ fn predictable_default_input_promotes_ppm_while_fast_stays_cheap() {
 }
 
 #[test]
+fn tiny_prediction_sample_does_not_promote_ppm() {
+    let features = profile(b"abcdabcdabcdabcd", 16);
+    assert!(features.predictability > 0.1);
+    assert!(features.prediction_opportunities < 64);
+    assert!(!shortlist(&features, "balanced")
+        .expect("default shortlist")
+        .contains(&"ppm"));
+}
+
+#[test]
 fn high_entropy_repetition_keeps_lz_and_can_also_probe_ppm() {
     let features = Features {
         sample_bytes: 8192,
@@ -37,6 +49,7 @@ fn high_entropy_repetition_keeps_lz_and_can_also_probe_ppm() {
         repeat_fraction: 0.25,
         lag_entropy: [8.0; LAGS.len()],
         predictability: 0.5,
+        prediction_opportunities: 256,
         regional_entropy_range: 0.0,
     };
     let default = shortlist(&features, "balanced").expect("default shortlist");
@@ -46,7 +59,7 @@ fn high_entropy_repetition_keeps_lz_and_can_also_probe_ppm() {
 
 #[test]
 fn best_remains_the_complete_native_route_set_and_overrides_constrain_normally() {
-    let features = profile(b"abcdabcdabcdabcd", 16);
+    let features = profile(&b"abcd".repeat(2048), 4096);
     assert_eq!(
         shortlist(&features, "maximum").expect("best shortlist"),
         [
