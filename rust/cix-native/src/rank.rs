@@ -254,6 +254,33 @@ fn encode_sequence_range(data: &[u8], counts: &[usize]) -> (Vec<u8>, usize) {
     encoder.finish()
 }
 
+/// Python CIXG1's matched-information count-range control (coder 5).
+pub fn encode_count_range(data: &[u8]) -> Result<Vec<u8>, String> {
+    let mut out = Vec::new();
+    for tile in data.chunks(1024) {
+        let exact = encode_type_class(tile)?;
+        let mut counts = [0usize; 256];
+        for &value in tile {
+            counts[value as usize] += 1;
+        }
+        let ways = cardinality(&counts);
+        let width = fixed_width(&(&ways - BigUint::one()));
+        let sequence_bytes = width.div_ceil(8);
+        let header_end = exact
+            .len()
+            .checked_sub(sequence_bytes + 1)
+            .ok_or("invalid exact-rank header")?;
+        let (payload, bit_length) = encode_sequence_range(tile, &counts);
+        let mut encoded = exact[..header_end].to_vec();
+        encoded.push(1);
+        varint(bit_length, &mut encoded);
+        encoded.extend_from_slice(&payload);
+        varint(encoded.len(), &mut out);
+        out.extend_from_slice(&encoded);
+    }
+    Ok(out)
+}
+
 fn decode_sequence_range(
     payload: &[u8],
     bit_length: usize,

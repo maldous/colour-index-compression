@@ -11,6 +11,7 @@ use std::{
 };
 
 mod adaptive;
+mod fixedmix;
 mod ppm;
 mod rank;
 
@@ -36,16 +37,18 @@ fn read_poll<R: Read>(
         check_interrupted()?;
         #[cfg(unix)]
         {
-            let slice = std::time::Duration::from_millis(250);
-            let wait = timeout.map(|t| t.min(slice)).unwrap_or(slice);
-            if !wait_input(fd, wait).map_err(|e| {
-                if INTERRUPTED.load(Ordering::Relaxed) {
-                    "interrupted".to_string()
-                } else {
-                    ioerr(e)
+            if fd >= 0 {
+                let slice = std::time::Duration::from_millis(250);
+                let wait = timeout.map(|t| t.min(slice)).unwrap_or(slice);
+                if !wait_input(fd, wait).map_err(|e| {
+                    if INTERRUPTED.load(Ordering::Relaxed) {
+                        "interrupted".to_string()
+                    } else {
+                        ioerr(e)
+                    }
+                })? {
+                    return Ok(None);
                 }
-            })? {
-                return Ok(None);
             }
         }
         match src.read(buffer) {
@@ -96,7 +99,7 @@ struct Opt {
     flush_interval: Option<std::time::Duration>,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--backend cix|deflate|hybrid|range] [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|ppm|bwt|stride|phrases|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, LZ, predictor, PPM, BWT/MTF, stride transforms, phrases and raw DEFLATE. Adaptive-range coding is available with --backend range. LZ requires 16 MiB and PPM requires 64 MiB of --memory. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--backend cix|deflate|hybrid|range|count-range] [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|bwt|stride|phrases|ppm|mixture|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported routes: raw, runs, exact-rank composition, LZ, predictor, PPM, fixed mixer, BWT/MTF, stride transforms, phrases and raw DEFLATE. Adaptive-range and count-range coding are available with the predictor route's --backend option. LZ requires 16 MiB, PPM 64 MiB and mixture uses a block-scaled model-memory bound. CIXG1 frames are limited to 65536 bytes.");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -173,7 +176,10 @@ fn parse() -> Result<Opt, String> {
                 "--route" => o.route = Some(args[i].clone()),
                 "--backend" => {
                     o.backend = args[i].clone();
-                    if !matches!(o.backend.as_str(), "cix" | "deflate" | "hybrid" | "range") {
+                    if !matches!(
+                        o.backend.as_str(),
+                        "cix" | "deflate" | "hybrid" | "range" | "count-range"
+                    ) {
                         return Err("unsupported backend".into());
                     }
                 }
@@ -391,6 +397,9 @@ fn stream_payload(data: &[u8], level: u8, backend: &str) -> Result<(u8, Vec<u8>)
     }
     if backend == "range" {
         candidates.push((4, adaptive::encode(data)));
+    }
+    if backend == "count-range" {
+        candidates.push((5, rank::encode_count_range(data)?));
     }
     // Python min() keeps the first equal-sized candidate; preserve its order.
     candidates
@@ -801,6 +810,7 @@ fn encode_route(route: u8, data: &[u8], level: u8, backend: &str) -> Result<Vec<
         6 => stride_encode(data, level),
         7 => phrase_encode(data, level),
         8 => ppm::encode(data, 3),
+        9 => Ok(fixedmix::encode(data)),
         10 => stream_encode(data, level, "deflate"),
         _ => Err(format!("unsupported native route ID {route}")),
     }
@@ -1206,6 +1216,7 @@ fn encode<R: Read, W: Write>(
                 "stride" => 6,
                 "phrases" => 7,
                 "ppm" => 8,
+                "mixture" => 9,
                 "deflate" => 10,
                 _ => return Err(format!("unsupported route: {f}")),
             };
@@ -1324,6 +1335,15 @@ fn decode<R: Read, W: Write>(
             }
             7 => phrase_decode(&b, n as usize)?,
             8 => ppm::decode(&b, n as usize)?,
+            9 => {
+                let need = (n as usize)
+                    .saturating_mul(4096)
+                    .saturating_add(8 * 1024 * 1024);
+                if need > memory {
+                    return Err("decoding this mixture block exceeds --memory budget".into());
+                }
+                fixedmix::decode(&b, n as usize)?
+            }
             10 => stream_decode(&b, n as usize)?,
             _ => return Err(format!("unsupported CIXG1 route ID {}", r[0])),
         };
@@ -1346,6 +1366,90 @@ fn decode<R: Read, W: Write>(
         }
     }
 }
+
+type SquashRead = unsafe extern "C" fn(*mut usize, *mut u8, *mut std::ffi::c_void) -> i32;
+type SquashWrite = unsafe extern "C" fn(*mut usize, *const u8, *mut std::ffi::c_void) -> i32;
+struct SquashReader {
+    callback: SquashRead,
+    user: *mut std::ffi::c_void,
+}
+struct SquashWriter {
+    callback: SquashWrite,
+    user: *mut std::ffi::c_void,
+}
+impl Read for SquashReader {
+    fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        let mut size = buffer.len();
+        let status = unsafe { (self.callback)(&mut size, buffer.as_mut_ptr(), self.user) };
+        if status == 3 {
+            return Ok(0);
+        }
+        if status != 1 || size > buffer.len() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Squash input callback failed",
+            ));
+        }
+        Ok(size)
+    }
+}
+impl Write for SquashWriter {
+    fn write(&mut self, buffer: &[u8]) -> io::Result<usize> {
+        let mut size = buffer.len();
+        let status = unsafe { (self.callback)(&mut size, buffer.as_ptr(), self.user) };
+        if status != 1 || size > buffer.len() {
+            return Err(io::Error::new(
+                io::ErrorKind::BrokenPipe,
+                "Squash output callback failed",
+            ));
+        }
+        if size == 0 && !buffer.is_empty() {
+            return Err(io::Error::new(
+                io::ErrorKind::WriteZero,
+                "Squash output callback wrote no bytes",
+            ));
+        }
+        Ok(size)
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+#[no_mangle]
+pub unsafe extern "C" fn cix_squash_splice(
+    direction: i32,
+    level: i32,
+    read_cb: Option<SquashRead>,
+    write_cb: Option<SquashWrite>,
+    user: *mut std::ffi::c_void,
+) -> i32 {
+    let result =
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Result<(), String> {
+            let read = read_cb.ok_or("missing Squash read callback")?;
+            let write = write_cb.ok_or("missing Squash write callback")?;
+            let src = SquashReader {
+                callback: read,
+                user,
+            };
+            let dst = SquashWriter {
+                callback: write,
+                user,
+            };
+            match direction {
+                1 if (1..=9).contains(&level) => {
+                    encode(src, dst, 32768, level as u8, None, "hybrid", -1, None)
+                }
+                1 => Err("invalid Squash CIX compression level".into()),
+                2 => decode(src, dst, false, false, -1, 512 * 1024 * 1024),
+                _ => Err("invalid Squash stream direction".into()),
+            }
+        }));
+    match result {
+        Ok(Ok(())) => 1,
+        _ => -1,
+    }
+}
+
 fn ioerr(e: io::Error) -> String {
     e.to_string()
 }
@@ -1443,6 +1547,9 @@ fn run() -> Result<(), String> {
             "--route ppm requires --memory of at least 64 MiB for bounded context tables".into(),
         );
     }
+    if o.route.as_deref() == Some("mixture") && o.memory < 16 * 1024 * 1024 {
+        return Err("--route mixture requires at least 16 MiB of --memory".into());
+    }
     if o.history != 0 {
         if o.independent_blocks {
             return Err("--history conflicts with --independent-blocks".into());
@@ -1467,6 +1574,7 @@ fn run() -> Result<(), String> {
             "stride",
             "phrases",
             "ppm",
+            "mixture",
             "deflate",
         ]
         .contains(&r.as_str())
@@ -1481,6 +1589,16 @@ fn run() -> Result<(), String> {
         return Err("--block-size must be positive".into());
     }
     let block = requested_block.min(MAX_BLOCK);
+    if o.route.as_deref() == Some("mixture") {
+        let need = (block as usize)
+            .saturating_mul(4096)
+            .saturating_add(8 * 1024 * 1024);
+        if need > o.memory {
+            return Err(format!(
+                "mixture route needs about {need} bytes; reduce --block-size or raise --memory"
+            ));
+        }
+    }
     if requested_block > MAX_BLOCK {
         eprintln!("cix: CIXG1 limits frames to 65536 bytes; effective block size is 65536 bytes");
     }

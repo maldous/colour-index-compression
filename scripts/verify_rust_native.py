@@ -25,7 +25,7 @@ def run(*args: str, input: bytes | None = None, ok: bool = True) -> subprocess.C
 
 def main() -> None:
     subprocess.run(["cargo", "build", "--release", "--manifest-path", str(ROOT / "rust/cix-native/Cargo.toml")], check=True)
-    from cix.pipeline import encode_file, decode_file, _count_range
+    from cix.pipeline import encode_file, decode_file, _count_range, route_encode
     rng = random.Random(92341)
     fixtures = {
         "empty": b"",
@@ -81,6 +81,26 @@ def main() -> None:
         assert range_rust.read_bytes() == range_py.read_bytes(), "adaptive-range bytes differ from Python"
         assert run(str(BIN / "cixcat"), "-", input=range_rust.read_bytes()).stdout == range_data
         rows.append({"fixture": "mixed-adaptive-range", "route": "predictor", "coder": "adaptive-range", "source_bytes": len(range_data), "canonical_equal": True, "cross_decode": True})
+        count_py = d / "count-range.python.cix"
+        encode_file(range_src, count_py, effort="fast", backend="count-range", force="predictor", block_bytes=32768)
+        run(str(BIN / "cix"), "--route", "predictor", "--backend", "count-range", "-f", "--block", "32768", str(range_src))
+        count_rust = range_src.with_name(range_src.name + ".cix")
+        assert count_rust.read_bytes() == count_py.read_bytes(), "count-range bytes differ from Python"
+        assert run(str(BIN / "cixcat"), "-", input=count_rust.read_bytes()).stdout == range_data
+        rows.append({"fixture": "mixed-count-range", "route": "predictor", "coder": "count-range", "source_bytes": len(range_data), "canonical_equal": True, "cross_decode": True})
+        mix_data = (b"ABCD" * 1024)
+        mix_src = d / "mixture.input"; mix_src.write_bytes(mix_data)
+        mix_py = d / "mixture.python.cix"
+        mix_payload = route_encode("mixture", mix_data, "deflate")
+        mix_hash = hashlib.sha256(mix_data).digest()
+        mix_py.write_bytes(struct.pack("<5sII", b"CIXG1", 32768, 0)
+            + struct.pack("<BII32s", 9, len(mix_data), len(mix_payload), mix_hash) + mix_payload
+            + struct.pack("<BII32s", 255, 0, 0, mix_hash))
+        run(str(BIN / "cix"), "--route", "mixture", "-f", "--block", "32768", str(mix_src))
+        mix_rust = mix_src.with_name(mix_src.name + ".cix")
+        assert mix_rust.read_bytes() == mix_py.read_bytes(), "mixture bytes differ from Python"
+        assert run(str(BIN / "cixcat"), "-", input=mix_rust.read_bytes()).stdout == mix_data
+        rows.append({"fixture": "mixed-fixed-mixer", "route": "mixture", "source_bytes": len(mix_data), "canonical_equal": True, "cross_decode": True})
         src = d / "pipe.bin"
         encoded = run(str(BIN / "cix"), "-c", "-", input=b"pipe input\0" * 100).stdout
         restored = run(str(BIN / "cixcat"), "-", input=encoded).stdout
