@@ -132,7 +132,14 @@ pub fn encode(data: &[u8], max_order: usize) -> Result<Vec<u8>, String> {
 }
 
 pub fn decode(blob: &[u8], source_length: usize) -> Result<Vec<u8>, String> {
-    if blob.len() < 3 || blob[0] != 3 {
+    decode_with_history(blob, source_length, &[])
+}
+pub fn decode_with_history(
+    blob: &[u8],
+    source_length: usize,
+    prefix_history: &[u8],
+) -> Result<Vec<u8>, String> {
+    if blob.len() < 3 || !matches!(blob[0], 2 | 3) {
         return Err("unsupported PPM payload version".into());
     }
     let max_order = blob[1] as usize;
@@ -148,8 +155,25 @@ pub fn decode(blob: &[u8], source_length: usize) -> Result<Vec<u8>, String> {
     if end != blob.len() {
         return Err("PPM payload length mismatch".into());
     }
+    if blob[0] == 3 && blob[2] != 0 {
+        return Err("unsupported PPM escape method".into());
+    }
     let mut tables = Tables::new();
-    let mut history = Vec::with_capacity(max_order);
+    let mut history;
+    if blob[0] == 2 {
+        history = prefix_history[prefix_history.len().saturating_sub(max_order)..].to_vec();
+    } else {
+        let training = prefix_history
+            .len()
+            .min(65536)
+            .min(4096usize.max(source_length.saturating_mul(2)));
+        let start = prefix_history.len() - training;
+        let seed_start = start.saturating_sub(max_order);
+        history = prefix_history[seed_start..start].to_vec();
+        for &symbol in &prefix_history[start..] {
+            observe(&mut tables, &mut history, symbol, max_order);
+        }
+    }
     let mut decoder = ArithmeticDecoder::new(&blob[pos..end], bit_length);
     let mut out = Vec::with_capacity(source_length);
     for _ in 0..source_length {

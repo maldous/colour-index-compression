@@ -1700,12 +1700,20 @@ fn decode_m6<R: Read, W: Write>(
         }
         let source_len = read_stream_varint(&mut src, fd)?;
         let payload_len = read_stream_varint(&mut src, fd)?;
+        let model_budget = match mode[0] {
+            10 => source_len.saturating_mul(64),
+            16 => source_len.saturating_mul(128),
+            19 => source_len.saturating_mul(1024),
+            _ => 0,
+        };
         if source_len == 0
             || source_len > 1024 * 1024
             || payload_len > 8 * source_len + 4096
             || source_len
                 .saturating_add(payload_len)
                 .saturating_add(history_limit)
+                .saturating_add(reference_budget)
+                .saturating_add(model_budget)
                 > memory
         {
             return Err("CIXM6 block exceeds memory or format limit".into());
@@ -1730,6 +1738,7 @@ fn decode_m6<R: Read, W: Write>(
             10 => adaptive::decode_general(&payload, source_len, &history, memory / 4096)?,
             11 => rank::decode_sparse_blob(&payload, source_len)?,
             12 => m6_decode_runs(&payload, source_len, memory / 4096)?,
+            16 => ppm::decode_with_history(&payload, source_len, &history)?,
             19 => fixedmix::decode_with_history(&payload, source_len, &history)?,
             9 => {
                 let mut pos = 0;

@@ -36,6 +36,7 @@ def main():
  from cix.adaptive import encode_adaptive
  from cix.fixedmix import encode_fixed_mix
  from cix.sparse import encode_sparse_block
+ from cix.ppm import encode_ppm
  from cix.multinomial import vencode
  rng=random.Random(112)
  cases=[b"",b"abc",b"A"*2000,random.Random(112).randbytes(3072),bytes(rng.choices(range(8),weights=[50,20,10,8,5,3,2,1],k=6000))]
@@ -78,6 +79,13 @@ def main():
   bytes([19])+vencode(len(mix_data))+vencode(len(mix_payload))+mix_payload+
   bytes([255])+vencode(len(mix_prefix)+len(mix_data))+struct.pack("<I",zlib.crc32(mix_prefix+mix_data)))
  assert run(str(BIN/"uncix"),"-c","-",input=mix_archive).stdout==mix_prefix+mix_data
+ ppm_prefix=b"ppm retained dictionary history "*200
+ ppm_data=(b"ppm retained dictionary history works "*80)+bytes(range(128))*4
+ ppm_payload=encode_ppm(ppm_data,max_order=4,prefix_history=ppm_prefix,escape_method=0,update_exclusion=False,secondary_escape=False)
+ ppm_archive=(b"CIXM6"+vencode(1<<20)+bytes([0])+vencode(len(ppm_prefix))+vencode(len(ppm_prefix))+ppm_prefix+
+  bytes([16])+vencode(len(ppm_data))+vencode(len(ppm_payload))+ppm_payload+
+  bytes([255])+vencode(len(ppm_prefix)+len(ppm_data))+struct.pack("<I",zlib.crc32(ppm_prefix+ppm_data)))
+ assert run(str(BIN/"uncix"),"-c","-",input=ppm_archive).stdout==ppm_prefix+ppm_data
  repeated=b"same block reference payload"*80
  ref=(b"CIXM6"+vencode(1<<20)+bytes([0])+vencode(len(repeated))+vencode(len(repeated))+repeated+bytes([9])+vencode(len(repeated))+vencode(1)+vencode(1)+bytes([255])+vencode(2*len(repeated))+struct.pack("<I",zlib.crc32(repeated+repeated)))
  assert run(str(BIN/"uncix"),"-c","-",input=ref).stdout==repeated+repeated
@@ -97,5 +105,5 @@ def main():
    run(str(BIN/"uncix"),"-c","-",input=archive,ok=False)
  unsupported=b"CIXM6"+vencode(1<<20)+bytes([2])+vencode(1)+vencode(0)+bytes([255])+vencode(0)+struct.pack("<I",0)
  run(str(BIN/"uncix"),"-c","-",input=unsupported,ok=False)
- print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, sparse, fixed-mixer, and block-reference paths; verified Rust raw/multinomial encode in Python")
+ print("verified supported and explicitly rejected Python CIXM6 modes, CIXF1, sparse, PPM, fixed-mixer, and block-reference paths; verified Rust raw/multinomial encode in Python")
 if __name__=="__main__":main()
