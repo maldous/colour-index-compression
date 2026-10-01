@@ -96,6 +96,7 @@ struct Opt {
     external_backend: Option<String>,
     profile: String,
     profile_set: bool,
+    portfolio: Option<String>,
     block: Option<u32>,
     stream: bool,
     history: usize,
@@ -103,7 +104,7 @@ struct Opt {
     flush_interval: Option<std::time::Duration>,
 }
 fn usage() {
-    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--external gzip|bzip2|xz|zstd|brotli --profile fast|current|size] [--backend cix|deflate|hybrid|range|count-range] [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|bwt|stride|phrases|ppm|mixture|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported stream routes: raw, runs, exact-rank composition, LZ, predictor, PPM, fixed mixer, BWT/MTF, stride transforms, phrases and raw DEFLATE. Adaptive-range and count-range coding are available with the predictor route's --backend option. --external writes bounded CIXB1 (max 16 MiB); ordinary operation writes CIXG1. CIXG1 frames are limited to 65536 bytes.");
+    println!("CIX (pronounced six) native stream compressor (CIXG1; not ZIP/gzip)\nUsage: cix [--external gzip|bzip2|xz|zstd|brotli --profile fast|current|size | --portfolio fast|current|size] [--backend cix|deflate|hybrid|range|count-range] [--stream] [--block-size SIZE] [--memory SIZE] [--threads N] [--history SIZE] [--independent-blocks] [--flush-interval DURATION] [-1..-9] [-c] [-k] [-f] [--route auto|raw|runs|composition|lz|predictor|bwt|stride|phrases|ppm|mixture|deflate] [-o FILE] FILE...\n       uncix [--stream] [-d|-c|-t|-l] [-k] [-f] [-o FILE] FILE...\n       cixcat FILE...\nUse '-' for standard input/output. Supported stream routes: raw, runs, exact-rank composition, LZ, predictor, PPM, fixed mixer, BWT/MTF, stride transforms, phrases and raw DEFLATE. Adaptive-range and count-range coding are available with the predictor route's --backend option. --external writes bounded CIXB1 (max 16 MiB); ordinary operation writes CIXG1. CIXG1 frames are limited to 65536 bytes.");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -168,6 +169,7 @@ fn parse() -> Result<Opt, String> {
             || a == "--backend"
             || a == "--external"
             || a == "--profile"
+            || a == "--portfolio"
             || a == "--block"
             || a == "--block-size"
             || a == "--history"
@@ -195,6 +197,7 @@ fn parse() -> Result<Opt, String> {
                     o.profile = args[i].clone();
                     o.profile_set = true;
                 }
+                "--portfolio" => o.portfolio = Some(args[i].clone()),
                 "--block" => o.block = Some(args[i].parse().map_err(|_| "invalid block size")?),
                 "--block-size" => {
                     o.block = Some(
@@ -1253,6 +1256,107 @@ fn encode<R: Read, W: Write>(
     Ok(())
 }
 
+fn cixg_candidate(data: &[u8], route: Option<u8>, level: u8) -> Result<Vec<u8>, String> {
+    let mut out = Vec::new();
+    out.extend_from_slice(MAGIC);
+    out.extend_from_slice(&MAX_BLOCK.to_le_bytes());
+    out.extend_from_slice(&0u32.to_le_bytes());
+    let mut whole = Sha256::new();
+    for block in data.chunks(MAX_BLOCK as usize) {
+        let (selected, payload) = if let Some(id) = route {
+            (id, encode_route(id, block, level, "hybrid")?)
+        } else {
+            let candidates = [
+                (0, block.to_vec()),
+                (1, rle(block)),
+                (2, encode_route(2, block, level, "hybrid")?),
+                (10, encode_route(10, block, level, "hybrid")?),
+            ];
+            candidates.into_iter().min_by_key(|(_, p)| p.len()).unwrap()
+        };
+        let digest: [u8; 32] = Sha256::digest(block).into();
+        put_frame(
+            &mut out,
+            selected,
+            block.len() as u32,
+            payload.len() as u32,
+            &digest,
+        )
+        .map_err(ioerr)?;
+        out.extend_from_slice(&payload);
+        whole.update(block);
+    }
+    let digest: [u8; 32] = whole.finalize().into();
+    put_frame(&mut out, END, 0, 0, &digest).map_err(ioerr)?;
+    Ok(out)
+}
+
+fn encode_portfolio<R: Read, W: Write>(
+    src: R,
+    mut dst: W,
+    profile: &str,
+    memory: usize,
+) -> Result<(), String> {
+    if !matches!(profile, "fast" | "current" | "size") {
+        return Err("--portfolio accepts fast, current or size".into());
+    }
+    let required = if profile == "size" {
+        384 * 1024 * 1024
+    } else {
+        128 * 1024 * 1024
+    };
+    if memory < required {
+        return Err(format!(
+            "{profile} portfolio requires --memory of at least {} MiB",
+            required / (1024 * 1024)
+        ));
+    }
+    let mut data = Vec::with_capacity(external::MAX_INPUT);
+    src.take((external::MAX_INPUT + 1) as u64)
+        .read_to_end(&mut data)
+        .map_err(ioerr)?;
+    if data.len() > external::MAX_INPUT {
+        return Err("native portfolio input exceeds 16 MiB".into());
+    }
+    let level = match profile {
+        "fast" => 1,
+        "current" => 5,
+        _ => 9,
+    };
+    let mut winner = cixg_candidate(&data, None, level)?;
+    let mut winner_name = "cix-adaptive".to_string();
+    let backends: &[&str] = if profile == "fast" {
+        &["gzip", "zstd", "brotli"]
+    } else {
+        &["gzip", "bzip2", "xz", "zstd"]
+    };
+    for backend in backends {
+        check_interrupted()?;
+        let candidate = external::encode(backend, profile, &data)?;
+        if candidate.len() < winner.len() {
+            winner = candidate;
+            winner_name = format!("{backend}:direct");
+        }
+    }
+    if profile == "size" {
+        for route in 0u8..=10 {
+            check_interrupted()?;
+            let candidate = cixg_candidate(&data, Some(route), level)?;
+            if candidate.len() < winner.len() {
+                winner = candidate;
+                winner_name = format!("cix-route:{route}");
+            }
+        }
+    }
+    dst.write_all(&winner).map_err(ioerr)?;
+    dst.flush().map_err(ioerr)?;
+    eprintln!(
+        "cix: portfolio profile={profile}, selected={winner_name}, archive_bytes={}",
+        winner.len()
+    );
+    Ok(())
+}
+
 fn encode_external<R: Read, W: Write>(
     src: R,
     mut dst: W,
@@ -1622,6 +1726,27 @@ fn run() -> Result<(), String> {
     if o.profile_set && o.external_backend.is_none() {
         return Err("--profile requires --external".into());
     }
+    if let Some(p) = o.portfolio.as_deref() {
+        if o.decode
+            || o.test
+            || o.list
+            || o.external_backend.is_some()
+            || o.route.is_some()
+            || o.profile_set
+        {
+            return Err(
+                "--portfolio conflicts with decode, --external, --route and --profile".into(),
+            );
+        }
+        if o.stream || o.flush_interval.is_some() {
+            return Err(
+                "bounded portfolio selection conflicts with --stream/--flush-interval".into(),
+            );
+        }
+        if !matches!(p, "fast" | "current" | "size") {
+            return Err("--portfolio accepts fast, current or size".into());
+        }
+    }
     if o.external_backend.is_some() {
         if o.decode || o.test || o.list {
             return Err("--external is an encoding option".into());
@@ -1729,6 +1854,8 @@ fn run() -> Result<(), String> {
         let mut lock = dst.lock();
         if o.decode {
             decode(src, &mut lock, false, false, fd, o.memory)
+        } else if let Some(profile) = o.portfolio.as_deref() {
+            encode_portfolio(src, &mut lock, profile, o.memory)
         } else if let Some(backend) = o.external_backend.as_deref() {
             encode_external(src, &mut lock, backend, &o.profile, o.memory)
         } else {
@@ -1752,6 +1879,8 @@ fn run() -> Result<(), String> {
             let fd = input_fd(&src);
             if o.decode {
                 decode(src, dst, false, false, fd, o.memory)
+            } else if let Some(profile) = o.portfolio.as_deref() {
+                encode_portfolio(src, dst, profile, o.memory)
             } else if let Some(backend) = o.external_backend.as_deref() {
                 encode_external(src, dst, backend, &o.profile, o.memory)
             } else {
