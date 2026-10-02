@@ -2690,6 +2690,175 @@ fn direct_external_descriptor(
     }
 }
 
+struct PortfolioWinner {
+    archive: Vec<u8>,
+    name: String,
+    omitted: Vec<String>,
+}
+
+impl PortfolioWinner {
+    fn retained_bytes(&self, data: &Vec<u8>) -> usize {
+        data.capacity().saturating_add(self.archive.capacity())
+    }
+
+    fn consider(
+        &mut self,
+        candidate: Vec<u8>,
+        data: &[u8],
+        data_capacity: usize,
+        memory: usize,
+        descriptor: Option<&external::CandidateDescriptor>,
+        name: impl FnOnce() -> String,
+        omitted_name: &str,
+    ) -> Result<(), String> {
+        if candidate.len() >= self.archive.len() {
+            return Ok(());
+        }
+        match portfolio_candidate_matches(
+            &candidate,
+            candidate.capacity(),
+            data,
+            data_capacity.saturating_add(self.archive.capacity()),
+            memory,
+            descriptor,
+        )? {
+            PortfolioVerification::Verified => {
+                self.archive = candidate;
+                self.name = name();
+            }
+            PortfolioVerification::MemoryOmission(reason) => {
+                self.omitted.push(format!("{omitted_name} ({reason})"));
+            }
+        }
+        Ok(())
+    }
+}
+
+fn portfolio_search_external(
+    data: &Vec<u8>,
+    profile: &str,
+    memory: usize,
+    winner: &mut PortfolioWinner,
+) -> Result<(), String> {
+    for descriptor in portfolio_descriptors(profile) {
+        check_interrupted()?;
+        let available = memory.saturating_sub(winner.retained_bytes(data));
+        if let Err(omission) = descriptor.admit(data.len(), available) {
+            winner
+                .omitted
+                .push(format!("{} ({})", descriptor.id, omission.reason));
+            continue;
+        }
+        let candidate = match descriptor.full_archive_encode(data) {
+            Ok(candidate) => candidate,
+            // BSC can decline uncompressible input. It is a measured candidate
+            // rejection, while real backend errors remain fatal.
+            Err(error)
+                if error.starts_with("BSC candidate rejected:")
+                    || error.starts_with("ZPAQ candidate rejected:") =>
+            {
+                winner.omitted.push(format!("{} ({error})", descriptor.id));
+                continue;
+            }
+            Err(error) => return Err(error),
+        };
+        if winner
+            .retained_bytes(data)
+            .saturating_add(candidate.capacity())
+            > memory
+        {
+            return Err(format!(
+                "CIXB1 {} exceeded its admitted --memory accounting",
+                descriptor.id
+            ));
+        }
+        winner.consider(
+            candidate,
+            data,
+            data.capacity(),
+            memory,
+            Some(descriptor),
+            || descriptor.id.to_string(),
+            descriptor.id,
+        )?;
+    }
+    Ok(())
+}
+
+fn portfolio_search_native(
+    data: &Vec<u8>,
+    level: u8,
+    memory: usize,
+    winner: &mut PortfolioWinner,
+    route: Option<&str>,
+    timeout_seconds: u64,
+    name: String,
+) -> Result<(), String> {
+    let Some(candidate) = portfolio_cix_candidate(
+        data,
+        level,
+        memory,
+        winner.retained_bytes(data),
+        route,
+        timeout_seconds,
+    )? else {
+        winner.omitted.push(name);
+        return Ok(());
+    };
+    let omitted_name = name.clone();
+    winner.consider(
+        candidate,
+        data,
+        data.capacity(),
+        memory,
+        None,
+        || name,
+        &omitted_name,
+    )
+}
+
+fn portfolio_search_size_routes(
+    data: &Vec<u8>,
+    level: u8,
+    memory: usize,
+    deadline: Instant,
+    candidate_seconds: u64,
+    winner: &mut PortfolioWinner,
+) -> Result<(), String> {
+    let routes = [
+        "raw",
+        "runs",
+        "composition",
+        "lz",
+        "predictor",
+        "bwt",
+        "stride",
+        "phrases",
+        "ppm",
+        "mixture",
+        "deflate",
+    ];
+    for route in routes {
+        check_interrupted()?;
+        let remaining = deadline.saturating_duration_since(Instant::now()).as_secs();
+        let name = format!("cix-route:{route}");
+        if remaining == 0 {
+            winner.omitted.push(format!("{name}:overall-budget"));
+            continue;
+        }
+        portfolio_search_native(
+            data,
+            level,
+            memory,
+            winner,
+            Some(route),
+            candidate_seconds.min(remaining),
+            name,
+        )?;
+    }
+    Ok(())
+}
+
 fn encode_portfolio<R: Read, W: Write>(
     src: R,
     mut dst: W,
@@ -2743,64 +2912,16 @@ fn encode_portfolio<R: Read, W: Write>(
     // Establish a complete, valid archive before any search. The Python
     // selector does this first too; otherwise one expensive model can prevent
     // the caller from receiving even a usable fallback.
-    let mut winner = cixg_candidate(&data, Some(0), level)?;
-    if data.capacity().saturating_add(winner.capacity()) > memory {
+    let archive = cixg_candidate(&data, Some(0), level)?;
+    if data.capacity().saturating_add(archive.capacity()) > memory {
         return Err("portfolio source plus raw fallback exceeds --memory".into());
     }
-    let mut winner_name = "cix-route:raw".to_string();
-    let mut omitted = Vec::new();
-    for descriptor in portfolio_descriptors(profile) {
-        check_interrupted()?;
-        let available = memory
-            .saturating_sub(data.capacity())
-            .saturating_sub(winner.capacity());
-        if let Err(omission) = descriptor.admit(data.len(), available) {
-            omitted.push(format!("{} ({})", descriptor.id, omission.reason));
-            continue;
-        }
-        let candidate = match descriptor.full_archive_encode(&data) {
-            Ok(candidate) => candidate,
-            // BSC can decline uncompressible input.  It is a measured
-            // candidate rejection, while real backend errors remain fatal.
-            Err(error)
-                if error.starts_with("BSC candidate rejected:")
-                    || error.starts_with("ZPAQ candidate rejected:") =>
-            {
-                omitted.push(format!("{} ({error})", descriptor.id));
-                continue;
-            }
-            Err(error) => return Err(error),
-        };
-        if data
-            .capacity()
-            .saturating_add(winner.capacity())
-            .saturating_add(candidate.capacity())
-            > memory
-        {
-            return Err(format!(
-                "CIXB1 {} exceeded its admitted --memory accounting",
-                descriptor.id
-            ));
-        }
-        if candidate.len() < winner.len() {
-            match portfolio_candidate_matches(
-                &candidate,
-                candidate.capacity(),
-                &data,
-                data.capacity().saturating_add(winner.capacity()),
-                memory,
-                Some(descriptor),
-            )? {
-                PortfolioVerification::Verified => {
-                    winner = candidate;
-                    winner_name = descriptor.id.to_string();
-                }
-                PortfolioVerification::MemoryOmission(reason) => {
-                    omitted.push(format!("{} ({reason})", descriptor.id));
-                }
-            }
-        }
-    }
+    let mut winner = PortfolioWinner {
+        archive,
+        name: "cix-route:raw".to_string(),
+        omitted: Vec::new(),
+    };
+    portfolio_search_external(&data, profile, memory, &mut winner)?;
     // Give size routes more time than the default profile while retaining an
     // explicit whole-search ceiling. Earlier 4s/12s limits cut off CIX routes
     // before they could complete on full Silesia files.
@@ -2816,96 +2937,35 @@ fn encode_portfolio<R: Read, W: Write>(
         .saturating_duration_since(Instant::now())
         .as_secs();
     if remaining == 0 {
-        omitted.push("cix-adaptive:overall-budget".to_string());
-    } else if let Some(candidate) = portfolio_cix_candidate(
-        &data,
-        level,
-        memory,
-        data.capacity().saturating_add(winner.capacity()),
-        None,
-        candidate_seconds.min(remaining),
-    )? {
-        if candidate.len() < winner.len() {
-            match portfolio_candidate_matches(
-                &candidate,
-                candidate.capacity(),
-                &data,
-                data.capacity().saturating_add(winner.capacity()),
-                memory,
-                None,
-            )? {
-                PortfolioVerification::Verified => {
-                    winner = candidate;
-                    winner_name = "cix-adaptive".into();
-                }
-                PortfolioVerification::MemoryOmission(reason) => {
-                    omitted.push(format!("cix-adaptive ({reason})"));
-                }
-            }
-        }
+        winner.omitted.push("cix-adaptive:overall-budget".to_string());
     } else {
-        omitted.push("cix-adaptive".to_string());
+        portfolio_search_native(
+            &data,
+            level,
+            memory,
+            &mut winner,
+            None,
+            candidate_seconds.min(remaining),
+            "cix-adaptive".to_string(),
+        )?;
     }
     if profile == "size" {
-        let routes = [
-            "raw",
-            "runs",
-            "composition",
-            "lz",
-            "predictor",
-            "bwt",
-            "stride",
-            "phrases",
-            "ppm",
-            "mixture",
-            "deflate",
-        ];
-        for route in routes {
-            check_interrupted()?;
-            let remaining = search_deadline
-                .saturating_duration_since(Instant::now())
-                .as_secs();
-            if remaining == 0 {
-                omitted.push(format!("cix-route:{route}:overall-budget"));
-                continue;
-            }
-            if let Some(candidate) = portfolio_cix_candidate(
-                &data,
-                level,
-                memory,
-                data.capacity().saturating_add(winner.capacity()),
-                Some(route),
-                candidate_seconds.min(remaining),
-            )? {
-                if candidate.len() < winner.len() {
-                    match portfolio_candidate_matches(
-                        &candidate,
-                        candidate.capacity(),
-                        &data,
-                        data.capacity().saturating_add(winner.capacity()),
-                        memory,
-                        None,
-                    )? {
-                        PortfolioVerification::Verified => {
-                            winner = candidate;
-                            winner_name = format!("cix-route:{route}");
-                        }
-                        PortfolioVerification::MemoryOmission(reason) => {
-                            omitted.push(format!("cix-route:{route} ({reason})"));
-                        }
-                    }
-                }
-            } else {
-                omitted.push(format!("cix-route:{route}"));
-            }
-        }
+        portfolio_search_size_routes(
+            &data,
+            level,
+            memory,
+            search_deadline,
+            candidate_seconds,
+            &mut winner,
+        )?;
     }
-    dst.write_all(&winner).map_err(ioerr)?;
+    dst.write_all(&winner.archive).map_err(ioerr)?;
     dst.flush().map_err(ioerr)?;
     eprintln!(
-        "cix: portfolio profile={profile}, selected={winner_name}, archive_bytes={}, search_budget_seconds={total_search_seconds}, time_budget_omitted={}",
-        winner.len(),
-        if omitted.is_empty() { "none".to_string() } else { omitted.join(",") }
+        "cix: portfolio profile={profile}, selected={}, archive_bytes={}, search_budget_seconds={total_search_seconds}, time_budget_omitted={}",
+        winner.name,
+        winner.archive.len(),
+        if winner.omitted.is_empty() { "none".to_string() } else { winner.omitted.join(",") }
     );
     Ok(())
 }
