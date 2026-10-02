@@ -28,6 +28,68 @@ fn eligible(counts: &[(u8, u32)], excluded: &[bool; 256]) -> Vec<(u8, u32)> {
         .collect()
 }
 
+/// Fixed-encoder summary of one ordered eligible-symbol scan.
+///
+/// This deliberately mirrors `eligible`: counts are already sorted by symbol,
+/// and every unexcluded count contributes in that order.  The fixed encoder
+/// needs only these aggregates and the source symbol interval, so it does not
+/// materialize a temporary vector on each context probe.
+struct FixedEligible {
+    mass: usize,
+    symbols: usize,
+    singletons: usize,
+    hit: Option<(usize, usize)>,
+}
+
+fn fixed_eligible(
+    counts: &[(u8, u32)],
+    excluded: &[bool; 256],
+    source: u8,
+) -> Option<FixedEligible> {
+    let mut mass = 0usize;
+    let mut symbols = 0usize;
+    let mut singletons = 0usize;
+    let mut hit = None;
+    for &(value, count) in counts {
+        if excluded[value as usize] {
+            continue;
+        }
+        let count = count as usize;
+        if value == source {
+            hit = Some((mass, count));
+        }
+        mass += count;
+        symbols += 1;
+        if count == 1 {
+            singletons += 1;
+        }
+    }
+    (symbols != 0).then_some(FixedEligible {
+        mass,
+        symbols,
+        singletons,
+        hit,
+    })
+}
+
+fn fixed_escape_mass(symbols: &FixedEligible, method: u8) -> Result<usize, String> {
+    match method {
+        0 => Ok(1),
+        1 => Ok(symbols.symbols.max(1)),
+        2 => Ok(symbols.symbols.div_ceil(2).max(1)),
+        3 => Ok(symbols.singletons.max(1)),
+        _ => Err("unsupported PPM escape method".into()),
+    }
+}
+
+fn exclude_eligible(counts: &[(u8, u32)], excluded: &mut [bool; 256]) {
+    for &(value, _) in counts {
+        if !excluded[value as usize] {
+            excluded[value as usize] = true;
+        }
+    }
+}
+
 fn fallback_rank(symbol: u8, excluded: &[bool; 256]) -> Result<(usize, usize), String> {
     let mut remaining = 0;
     let mut rank = None;
@@ -331,28 +393,20 @@ fn encode_fixed_from_state(
             let Some(counts) = tables.get(context(&history, order)) else {
                 continue;
             };
-            let symbols = eligible(counts, &excluded);
-            if symbols.is_empty() {
+            let Some(symbols) = fixed_eligible(counts, &excluded, symbol) else {
                 continue;
-            }
-            let mass: usize = symbols.iter().map(|(_, count)| *count as usize).sum();
-            let escape = escape_mass(&symbols, escape_method)?;
-            let total = mass + escape;
-            if let Some(index) = symbols.iter().position(|(value, _)| *value == symbol) {
-                let low: usize = symbols[..index]
-                    .iter()
-                    .map(|(_, count)| *count as usize)
-                    .sum();
-                let high = low + symbols[index].1 as usize;
+            };
+            let escape = fixed_escape_mass(&symbols, escape_method)?;
+            let total = symbols.mass + escape;
+            if let Some((low, count)) = symbols.hit {
+                let high = low + count;
                 encoder.encode(low, high, total);
                 coded = true;
                 matched_order = order;
                 break;
             }
-            encoder.encode(mass, total, total);
-            for (value, _) in symbols {
-                excluded[value as usize] = true;
-            }
+            encoder.encode(symbols.mass, total, total);
+            exclude_eligible(counts, &mut excluded);
         }
         if !coded {
             let (rank, remaining) = fallback_rank(symbol, &excluded)?;
