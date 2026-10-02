@@ -17,7 +17,7 @@ struct InterruptThenPartial { inner: Partial, interrupted: bool, fail: bool }
 impl Read for InterruptThenPartial {
     fn read(&mut self, dst: &mut [u8]) -> io::Result<usize> {
         if !self.interrupted { self.interrupted = true; return Err(io::Error::new(io::ErrorKind::Interrupted, "retry")); }
-        if self.fail { return Err(io::Error::new(io::ErrorKind::Other, "injected")); }
+        if self.fail { return Err(io::Error::other("injected")); }
         self.inner.read(dst)
     }
 }

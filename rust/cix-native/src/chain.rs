@@ -394,7 +394,7 @@ fn read_fixed(data: &[u8], pos: &mut usize, width: usize) -> Result<BigUint, Str
     if end > data.len() {
         return Err("truncated transform-chain rank".into());
     }
-    if width % 8 != 0 && bytes > 0 && data[*pos] >> (width % 8) != 0 {
+    if !width.is_multiple_of(8) && bytes > 0 && data[*pos] >> (width % 8) != 0 {
         return Err("nonzero transform-chain rank padding".into());
     }
     let value = BigUint::from_bytes_be(&data[*pos..end]);
@@ -734,24 +734,24 @@ fn decode_lz(data: &[u8], source_len: usize, model_limit: usize) -> Result<Vec<u
     let lengths = decode_uints(streams[2], match_count, model_limit)?;
     let distances = decode_lz_distances(version, streams[3], match_count, model_limit)?;
     let mut output = Vec::with_capacity(source_len);
-    let mut literals_used = 0usize;
-    let mut matches_used = 0usize;
+    let streams = LzMatchStreams {
+        lengths: &lengths,
+        distances: &distances,
+    };
+    let mut used = LzUsed {
+        literals: 0,
+        matches: 0,
+    };
+    let limits = LzLimits {
+        min_match,
+        source_len,
+    };
     for tag in tags {
-        decode_lz_tag(
-            tag,
-            &mut output,
-            &mut literals,
-            &lengths,
-            &distances,
-            &mut literals_used,
-            &mut matches_used,
-            min_match,
-            source_len,
-        )?;
+        decode_lz_tag(tag, &mut output, &mut literals, streams, &mut used, limits)?;
     }
     if output.len() != source_len
-        || literals_used != literal_count
-        || matches_used != match_count
+        || used.literals != literal_count
+        || used.matches != match_count
         || !literals.fully_consumed()
     {
         return Err("chained LZ decoded counts or length mismatch".into());
@@ -811,40 +811,54 @@ fn decode_lz_distances(
         decode_distances_v3(data, count, limit)
     }
 }
+#[derive(Clone, Copy)]
+struct LzMatchStreams<'a> {
+    lengths: &'a [usize],
+    distances: &'a [usize],
+}
+struct LzUsed {
+    literals: usize,
+    matches: usize,
+}
+#[derive(Clone, Copy)]
+struct LzLimits {
+    min_match: usize,
+    source_len: usize,
+}
+
 fn decode_lz_tag(
     tag: u8,
     out: &mut Vec<u8>,
     literals: &mut Literals,
-    lengths: &[usize],
-    distances: &[usize],
-    literals_used: &mut usize,
-    matches_used: &mut usize,
-    min_match: usize,
-    source_len: usize,
+    streams: LzMatchStreams<'_>,
+    used: &mut LzUsed,
+    limits: LzLimits,
 ) -> Result<(), String> {
     match tag {
         0 => {
             out.push(literals.next(out)?);
-            *literals_used += 1;
+            used.literals += 1;
         }
         1 => {
-            let encoded = *lengths
-                .get(*matches_used)
+            let encoded = *streams
+                .lengths
+                .get(used.matches)
                 .ok_or("chained LZ match stream exhausted")?;
-            let distance = *distances
-                .get(*matches_used)
+            let distance = *streams
+                .distances
+                .get(used.matches)
                 .ok_or("chained LZ distance stream exhausted")?;
-            *matches_used += 1;
+            used.matches += 1;
             if distance == 0 || distance > out.len() {
                 return Err("chained LZ distance before available history".into());
             }
             let length = encoded
-                .checked_add(min_match)
+                .checked_add(limits.min_match)
                 .ok_or("chained LZ match length overflow")?;
             for _ in 0..length {
                 let value = out[out.len() - distance];
                 out.push(value);
-                if out.len() > source_len {
+                if out.len() > limits.source_len {
                     return Err("chained LZ expands beyond source length".into());
                 }
             }
@@ -1417,107 +1431,112 @@ mod tests {
         );
     }
 
+    fn word_mask(bits: usize) -> u64 {
+        if bits == 64 {
+            u64::MAX
+        } else {
+            (1u64 << bits) - 1
+        }
+    }
+
+    fn assert_restore_boundaries(operation: Operation, encoded: &[u64], source: &[u64], mask: u64) {
+        assert!(restore_words(std::iter::empty(), operation, mask).is_empty());
+        assert_eq!(
+            restore_words(encoded[..1].iter().copied(), operation, mask),
+            source[..1]
+        );
+        assert_eq!(
+            restore_words(encoded[..2].iter().copied(), operation, mask),
+            source[..2]
+        );
+        assert_eq!(
+            restore_words(encoded.iter().copied(), operation, mask),
+            source
+        );
+    }
+
+    fn normal_numeric_cases(source: &[u64; 5], mask: u64) -> [(Operation, Vec<u64>); 3] {
+        let xor = vec![
+            source[0],
+            source[0] ^ source[1],
+            source[1] ^ source[2],
+            source[2] ^ source[3],
+            source[3] ^ source[4],
+        ];
+        let delta = vec![
+            source[0],
+            source[1].wrapping_sub(source[0]) & mask,
+            source[2].wrapping_sub(source[1]) & mask,
+            source[3].wrapping_sub(source[2]) & mask,
+            source[4].wrapping_sub(source[3]) & mask,
+        ];
+        let delta2 = vec![
+            source[0],
+            delta[1],
+            delta[2].wrapping_sub(delta[1]) & mask,
+            delta[3].wrapping_sub(delta[2]) & mask,
+            delta[4].wrapping_sub(delta[3]) & mask,
+        ];
+        [
+            (Operation::Xor, xor),
+            (Operation::Delta, delta),
+            (Operation::Delta2, delta2),
+        ]
+    }
+
+    fn signed_word(value: u64, bits: usize) -> i128 {
+        if bits == 64 {
+            (value as i64) as i128
+        } else if value < (1u64 << (bits - 1)) {
+            value as i128
+        } else {
+            value as i128 - (1i128 << bits)
+        }
+    }
+
+    fn zigzag(value: i128) -> u64 {
+        if value >= 0 {
+            (value << 1) as u64
+        } else {
+            ((-value << 1) - 1) as u64
+        }
+    }
+
+    fn zigzag_delta2_case(source: &[u64; 5], bits: usize, mask: u64) -> Vec<u64> {
+        let first_delta = source[1].wrapping_sub(source[0]) & mask;
+        let mut previous_delta = first_delta;
+        let mut encoded = vec![source[0], zigzag(signed_word(first_delta, bits))];
+        for pair in source.windows(2).skip(1) {
+            let delta = pair[1].wrapping_sub(pair[0]) & mask;
+            encoded.push(zigzag(signed_word(
+                delta.wrapping_sub(previous_delta) & mask,
+                bits,
+            )));
+            previous_delta = delta;
+        }
+        encoded
+    }
+
     #[test]
     fn restore_words_handles_all_numeric_operations_and_boundaries() {
         for bits in [16usize, 32, 64] {
-            let mask = if bits == 64 {
-                u64::MAX
-            } else {
-                (1u64 << bits) - 1
-            };
+            let mask = word_mask(bits);
             let source = [mask.wrapping_sub(1), 1, 2, mask, 3];
-            let xor = [
-                source[0],
-                source[0] ^ source[1],
-                source[1] ^ source[2],
-                source[2] ^ source[3],
-                source[3] ^ source[4],
-            ];
-            let delta = [
-                source[0],
-                source[1].wrapping_sub(source[0]) & mask,
-                source[2].wrapping_sub(source[1]) & mask,
-                source[3].wrapping_sub(source[2]) & mask,
-                source[4].wrapping_sub(source[3]) & mask,
-            ];
-            let d1 = delta[1];
-            let d2 = delta[2];
-            let d3 = delta[3];
-            let d4 = delta[4];
-            let delta2 = [
-                source[0],
-                d1,
-                d2.wrapping_sub(d1) & mask,
-                d3.wrapping_sub(d2) & mask,
-                d4.wrapping_sub(d3) & mask,
-            ];
             // The first word is stored verbatim.  Every operation must also
             // preserve the empty, one-word, and two-word boundaries.
-            for (operation, encoded) in [
-                (Operation::Xor, xor.to_vec()),
-                (Operation::Delta, delta.to_vec()),
-                (Operation::Delta2, delta2.to_vec()),
-            ] {
-                assert!(restore_words(std::iter::empty(), operation, mask).is_empty());
-                assert_eq!(
-                    restore_words(encoded[..1].iter().copied(), operation, mask),
-                    source[..1]
-                );
-                assert_eq!(
-                    restore_words(encoded[..2].iter().copied(), operation, mask),
-                    source[..2]
-                );
-                assert_eq!(restore_words(encoded.into_iter(), operation, mask), source);
+            for (operation, encoded) in normal_numeric_cases(&source, mask) {
+                assert_restore_boundaries(operation, &encoded, &source, mask);
             }
 
             // Encode a delta2 sequence whose first and later changes cross
             // zero, so the zigzag inverse sees both signs and wrapping.
             let zigzag_source = [mask.wrapping_sub(1), 1, mask.wrapping_sub(2), 2, mask];
-            let signed = |value: u64| {
-                if bits == 64 {
-                    (value as i64) as i128
-                } else if value < (1u64 << (bits - 1)) {
-                    value as i128
-                } else {
-                    value as i128 - (1i128 << bits)
-                }
-            };
-            let zigzag = |value: i128| {
-                if value >= 0 {
-                    (value << 1) as u64
-                } else {
-                    ((-value << 1) - 1) as u64
-                }
-            };
-            let first_delta = zigzag_source[1].wrapping_sub(zigzag_source[0]) & mask;
-            let mut previous_delta = first_delta;
-            let mut zigzag_encoded = vec![zigzag_source[0], zigzag(signed(first_delta))];
-            for pair in zigzag_source.windows(2).skip(1) {
-                let delta = pair[1].wrapping_sub(pair[0]) & mask;
-                let delta_delta = delta.wrapping_sub(previous_delta) & mask;
-                zigzag_encoded.push(zigzag(signed(delta_delta)));
-                previous_delta = delta;
-            }
-            assert!(restore_words(std::iter::empty(), Operation::Delta2Zigzag, mask).is_empty());
-            assert_eq!(
-                restore_words(
-                    zigzag_encoded[..1].iter().copied(),
-                    Operation::Delta2Zigzag,
-                    mask
-                ),
-                zigzag_source[..1]
-            );
-            assert_eq!(
-                restore_words(
-                    zigzag_encoded[..2].iter().copied(),
-                    Operation::Delta2Zigzag,
-                    mask
-                ),
-                zigzag_source[..2]
-            );
-            assert_eq!(
-                restore_words(zigzag_encoded.into_iter(), Operation::Delta2Zigzag, mask),
-                zigzag_source
+            let zigzag_encoded = zigzag_delta2_case(&zigzag_source, bits, mask);
+            assert_restore_boundaries(
+                Operation::Delta2Zigzag,
+                &zigzag_encoded,
+                &zigzag_source,
+                mask,
             );
         }
     }
