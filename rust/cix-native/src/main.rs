@@ -744,11 +744,7 @@ fn predictor_residual(data: &[u8], inverse: bool) -> Vec<u8> {
     let mut out = Vec::with_capacity(data.len());
     for (i, &value) in data.iter().enumerate() {
         let past = if inverse { out.as_slice() } else { data };
-        let context = if i >= 2 {
-            past[i - 2] as usize * 256 + past[i - 1] as usize
-        } else {
-            0
-        };
+        let context = predictor_context(past, i);
         let predictions = [
             if i > 0 { past[i - 1] } else { 0 },
             if i >= 4 { past[i - 4] } else { 0 },
@@ -788,6 +784,10 @@ fn predictor_residual(data: &[u8], inverse: bool) -> Vec<u8> {
         }
     }
     out
+}
+
+fn predictor_context(past: &[u8], index: usize) -> usize {
+    if index >= 2 { past[index - 2] as usize * 256 + past[index - 1] as usize } else { 0 }
 }
 
 fn read_word(bytes: &[u8], endian_le: bool) -> u64 {
@@ -1539,14 +1539,12 @@ fn bwt_transform(data: &[u8]) -> Result<(usize, Vec<u8>), String> {
     let mut width = 1usize;
     loop {
         check_interrupted()?;
-        suffixes.sort_unstable_by_key(|&i| {
-            (ranks[i], if i + width < n { ranks[i + width] } else { -1 })
-        });
+        suffixes.sort_unstable_by_key(|&i| bwt_rank_pair(&ranks, i, width));
         let mut next = vec![0i64; n];
         let mut class = 0i64;
         let mut previous: Option<(i64, i64)> = None;
         for &i in &suffixes {
-            let pair = (ranks[i], if i + width < n { ranks[i + width] } else { -1 });
+            let pair = bwt_rank_pair(&ranks, i, width);
             if previous.is_some() && previous != Some(pair) {
                 class += 1;
             }
@@ -1575,6 +1573,10 @@ fn bwt_transform(data: &[u8]) -> Result<(usize, Vec<u8>), String> {
         return Err("invalid BWT transform size".into());
     }
     Ok((primary, transformed))
+}
+
+fn bwt_rank_pair(ranks: &[i64], index: usize, width: usize) -> (i64, i64) {
+    (ranks[index], ranks.get(index + width).copied().unwrap_or(-1))
 }
 
 fn mtf_encode(data: &[u8]) -> Vec<u8> {
@@ -1721,15 +1723,17 @@ fn bwt_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> 
 }
 
 fn lz_insert(table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>, data: &[u8], pos: usize) {
-    if pos + 4 > data.len() {
-        return;
-    }
-    let key = [data[pos], data[pos + 1], data[pos + 2], data[pos + 3]];
+    let Some(key) = lz_key(data, pos) else { return; };
     let candidates = table.entry(key).or_default();
     candidates.push(pos);
     if candidates.len() > 8 {
         candidates.remove(0);
     }
+}
+
+fn lz_key(data: &[u8], position: usize) -> Option<[u8; 4]> {
+    data.get(position..position.checked_add(4)?)
+        .and_then(|bytes| bytes.try_into().ok())
 }
 
 fn lz_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
@@ -1749,13 +1753,7 @@ fn lz_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
         limits::check()?;
         let mut best_length = 0usize;
         let mut best_distance = 0usize;
-        if position + 4 <= data.len() {
-            let key = [
-                data[position],
-                data[position + 1],
-                data[position + 2],
-                data[position + 3],
-            ];
+        if let Some(key) = lz_key(data, position) {
             if let Some(candidates) = table.get(&key) {
                 let limit = 65535.min(data.len() - position);
                 let mut best_score = i64::MIN;
