@@ -1,0 +1,48 @@
+{
+"dhatFileVersion": 2,
+"mode": "rust-heap",
+"verb": "Allocated",
+"bklt": true,
+"bkacc": false,
+"tu": "µs",
+"Mtu": "s",
+"tuth": 10,
+"cmd": "/home/user/src/cix-perf-reader-audit/rust/cix-native/target/debug/bounded-reader-allocation new 1048576",
+"pid": 717987,
+"tg": 290,
+"te": 522,
+"pps": [
+{
+"tb": 2031616,
+"tbk": 5,
+"tl": 231,
+"mb": 1048576,
+"mbk": 1,
+"gb": 1048576,
+"gbk": 1,
+"eb": 0,
+"ebk": 0,
+"fs": [
+1,
+2,
+3,
+4,
+5,
+6,
+7,
+8
+]
+}
+],
+"ftbl": [
+"[root]",
+"0x574d6ffbbba9: <alloc::alloc::Global as core::alloc::Allocator>::allocate (alloc/src/alloc.rs:449:14)",
+"0x574d6ffb8c28: <alloc::raw_vec::RawVecInner>::finish_grow (src/raw_vec/mod.rs:560:24)",
+"0x574d6fecee91: <alloc::raw_vec::RawVecInner>::grow_exact (src/raw_vec/mod.rs:801:33)",
+"0x574d6fecf29a: <alloc::raw_vec::RawVecInner>::try_reserve_exact (src/raw_vec/mod.rs:729:22)",
+"0x574d6fecc327: <alloc::raw_vec::RawVec<u8>>::try_reserve_exact (src/raw_vec/mod.rs:384:29)",
+"0x574d6fecc327: <alloc::vec::Vec<u8>>::try_reserve_exact (src/vec/mod.rs:1579:18)",
+"0x574d6fecdd74: bounded_reader_allocation::bounded_reader::read_bounded::<core::io::cursor::Cursor<&alloc::vec::Vec<u8>>> (bin/../bounded_reader.rs:25:13)",
+"0x574d6feca9ef: bounded_reader_allocation::main (src/bin/bounded_reader_allocation.rs:36:22)"
+]
+}
