@@ -23,8 +23,9 @@ outside Git at `/home/user/audit-artifacts/ppm-eligible-controlled/identity-2026
 
 The retained ABBA run is outside Git at
 `/home/user/audit-artifacts/ppm-eligible-controlled/abba-20261002T1906Z/`.
-It used 5 ABBA pairs per case, with two observations per arm per pair (20
-means per arm), direct compiled benchmark execution on CPU 12, and a read-back
+It used 5 ABBA pairs per case, with two observations per arm across each pair
+(10 Criterion means per arm; 20 total across both arms), direct compiled
+benchmark execution on CPU 12, and a read-back
 `memory.max=1073741824`, `memory.swap.max=0` cgroup for all 80 processes.
 The originally started wrapper-only runs are preserved outside Git and are not
 used here.
