@@ -83,3 +83,26 @@ hotspot runner is prepared with source/hash and actual descendant-resource
 checks; preparation is not profiling. Full repeated CCA comparisons, qualified
 scaling curves and build-profile replication remain open. No new corpus
 performance or ranking claim is made.
+
+## Verified interim release and follow-up cleanup
+
+`a628bda23` completed its optimized all-feature suite: 44 successful result
+groups, 748 repeated passed executions, and a separate Criterion smoke pass.
+The fresh matched pre-refactor `99f4f7319` artifact and both metadata/manifests
+were independently checked. Packets are under `2026-10-03-rust-performance-audit/`.
+
+The fresh scan of that exact source records 33 open findings: 7 native
+complexity and 26 imported Clippy. Fourteen importer drops remain in the warning
+inventory. This is an interim release, not zero-warning completion.
+
+Follow-up reader/chain and five encoder helpers are merged. Shared library codec
+modules now use one instance with the included CLI; focused compile/boundary
+checks pass. Legacy LZ reconstruction metadata and branch cleanup is also merged.
+Remaining CLI warning fixes and streaming request grouping are being qualified
+in separate worktrees. Adversarial review rejected false CIXZ1 and OOM-test pass
+claims from one packet; its corrected independent rerun is pending. No unqualified
+claim is used to rank or publish results.
+
+The next combined source must pass optimized validation and a fresh scan before
+corpus measurements resume. The intended corpus execution remains four datasets
+concurrently with four encoder workers per dataset, with the CCA gate first.

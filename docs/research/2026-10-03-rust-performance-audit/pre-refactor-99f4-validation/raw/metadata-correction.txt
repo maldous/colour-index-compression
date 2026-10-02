@@ -1,0 +1,3 @@
+The first copied native-release.json was sealed before the artifact helper schema check. It stored aggregate artifact and DSO text but lacked the helper-required `binaries` object. It is retained as `native-release.initial-incompatible.json`.
+
+The current native-release.json is an after-build metadata correction only: it adds exact per-binary SHA-256 entries, Cargo.lock SHA-256, direct rustc -Vv text, and observed empty flag fields. The readonly binaries were not rebuilt or altered. `benchmarks.cix_rust_perf_audit.artifact()` accepted the corrected metadata and returned the recorded 99f4 source revision.

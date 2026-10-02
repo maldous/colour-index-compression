@@ -1,6 +1,6 @@
 # Encoder helper extraction
 
-Base source a628bda23, tree `74c5b9c90d1e554b1f87089b6a5a1c758630073b.
+Base source a628bda23, tree `74c5b9c90d1e554b1f87089b6a5a1c758630073b`.
 The independently reviewed source patch preserves M6 trial order, complete cost,
 strict ties, admission, state/history updates, error handling and EINTR behavior.
 Raw source, command journal, binary hashes, build logs and parity artifacts are

@@ -13,7 +13,7 @@ result says the executed harness source is unattested and two/four-thread decode
 rows exited natively with status 2. It is not a valid pre-refactor baseline.
 The current `45e` evidence is attested but answers its own frozen question.
 Build a fresh release-lto baseline from frozen pre-refactor `99f4f7319` and the
-current final revision with the same direct stable toolchain, Cargo lockfile,
+current final revision with the same direct stable toolchain, frozen per-revision lockfiles,
 `--profile release-lto`, C/C++ flags, environment, DSO hashes and build cgroup.
 Each directory needs `cix`, `uncix`, and matching `native-release.json`; the
 harness rejects altered binary hashes and records resolved DSO hashes.
@@ -50,3 +50,11 @@ single uncontrolled twenty-thread process.
 - The harness records wall/user/system/RSS, archive bytes and cgroup sampled
   high water. It does not establish cache-miss, allocation, perf, or PGO
   attribution; those need independent scoped probes.
+
+## Dependency control
+
+Root parsed both frozen Cargo lockfiles: every common package retains the same
+version and none was removed. The final lockfile adds optional DHAT and Criterion
+instrumentation dependencies. The normal CLI has no DHAT global allocator;
+instrumentation lives in separate audit binaries. Preserve both lock hashes
+instead of claiming that the lockfiles are identical.

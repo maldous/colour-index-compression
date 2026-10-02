@@ -1,0 +1,54 @@
+15:14:08.365 INFO  Scanner configuration file: /opt/sonar-scanner/conf/sonar-scanner.properties
+15:14:08.368 INFO  Project root configuration file: NONE
+15:14:08.381 INFO  SonarScanner CLI 8.1.0.6389
+15:14:08.385 INFO  Linux 6.8.0-138-generic amd64
+15:14:09.458 INFO  Communicating with SonarQube Community Build 26.9.0.129388
+15:14:09.459 INFO  JRE provisioning: os[linux], arch[x86_64]
+15:14:11.201 INFO  Starting SonarScanner Engine...
+15:14:11.202 INFO  Java 21.0.11 Eclipse Adoptium (64-bit)
+15:14:12.318 INFO  Load global settings
+15:14:12.392 INFO  Load global settings (done) | time=72ms
+15:14:12.399 INFO  Server id: 147B411E-AaD67r-i14xrlQfx-pSg
+15:14:12.405 INFO  Loading required plugins
+15:14:12.406 INFO  Load plugins index
+15:14:12.420 INFO  Load plugins index (done) | time=14ms
+15:14:12.424 INFO  Load/download plugins
+15:14:12.716 INFO  Load/download plugins (done) | time=295ms
+15:14:13.027 INFO  Process project properties
+15:14:13.038 INFO  Process project properties (done) | time=13ms
+15:14:13.051 INFO  Project key: cix-native-rust-local-final-a628
+15:14:13.056 INFO  Base dir: /usr/src
+15:14:13.057 INFO  Working dir: /tmp/.scannerwork
+15:14:13.069 INFO  Load project settings for component key: 'cix-native-rust-local-final-a628'
+15:14:13.096 INFO  Load project settings for component key: 'cix-native-rust-local-final-a628' (done) | time=19ms
+15:14:13.118 INFO  Load quality profiles
+15:14:13.198 INFO  Load quality profiles (done) | time=78ms
+15:14:13.242 INFO  Load active rules
+15:14:13.628 INFO  Load active rules (done) | time=386ms
+15:14:13.634 INFO  Load analysis cache
+15:14:13.650 INFO  Load analysis cache (404) | time=14ms
+15:14:13.795 INFO  Preprocessing files...
+15:14:13.810 ERROR Error during SonarScanner Engine execution
+java.lang.IllegalStateException: Unable to open Git repository
+	at org.sonar.scm.git.JGitUtils.buildRepository(JGitUtils.java:30)
+	at org.sonar.scm.git.IncludedFilesRepository.indexFiles(IncludedFilesRepository.java:36)
+	at org.sonar.scm.git.IncludedFilesRepository.<init>(IncludedFilesRepository.java:27)
+	at org.sonar.scm.git.GitIgnoreCommand.init(GitIgnoreCommand.java:23)
+	at org.sonar.scanner.scan.filesystem.ProjectFilePreprocessor.execute(ProjectFilePreprocessor.java:113)
+	at org.sonar.scanner.bootstrap.SpringScannerContainer.doAfterStart(SpringScannerContainer.java:387)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringGlobalContainer.doAfterStart(SpringGlobalContainer.java:146)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.ServerScannerEngineRunner.execute(ServerScannerEngineRunner.java:39)
+	at org.sonar.scanner.bootstrap.ScannerMain.runScannerEngine(ScannerMain.java:144)
+	at org.sonar.scanner.bootstrap.ScannerMain.run(ScannerMain.java:65)
+	at org.sonar.scanner.bootstrap.ScannerMain.main(ScannerMain.java:45)
+Caused by: org.eclipse.jgit.errors.RepositoryNotFoundException: repository not found: /home/user/src/colour-index-compression/.git/worktrees/cix-sonar-final
+	at org.eclipse.jgit.lib.BaseRepositoryBuilder.build(BaseRepositoryBuilder.java:681)
+	at org.sonar.scm.git.JGitUtils.buildRepository(JGitUtils.java:23)
+	... 14 common frames omitted
+
+15:14:13.828 INFO  EXECUTION FAILURE
+15:14:13.829 INFO  Total time: 5.466s
