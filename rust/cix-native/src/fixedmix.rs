@@ -311,26 +311,42 @@ impl State {
         } else {
             -(p as i64)
         };
+        let denom = SCALE * LOG_SCALE * (1i64 << self.eta);
+        self.update_bias_and_weights(bit, error, stretches, denom);
+        self.update_recurrence(bit, actual, error, recurrence, denom);
+        self.update_pattern_counts(actual, keys);
+        self.update_lag_relations(bit, actual);
+        self.update_match_relation(bit, actual);
+    }
+
+    fn update_bias_and_weights(&mut self, bit: usize, error: i64, stretches: &[i32], denom: i64) {
         let bd = floor_div(error * LOG_SCALE, SCALE * (1i64 << self.eta));
         self.bias[bit] = (self.bias[bit] as i64 + bd).clamp(-CLIP_LOG, CLIP_LOG) as i32;
-        let denom = SCALE * LOG_SCALE * (1i64 << self.eta);
         for (i, &s) in stretches.iter().enumerate() {
             let d = floor_div(error * s as i64 * WEIGHT_SCALE, denom);
             self.weights[bit][i] =
                 (self.weights[bit][i] as i64 + d).clamp(-4 * WEIGHT_SCALE, 4 * WEIGHT_SCALE) as i32;
         }
+    }
+
+    fn update_recurrence(
+        &mut self,
+        bit: usize,
+        actual: u8,
+        error: i64,
+        recurrence: Option<(i32, usize, u8, i32)>,
+        denom: i64,
+    ) {
         if let Some((_probability, bucket, predicted, stretch)) = recurrence {
             let d = floor_div(error * stretch as i64 * WEIGHT_SCALE, denom);
             self.recurrence_weights[bit] = (self.recurrence_weights[bit] as i64 + d)
                 .clamp(-4 * WEIGHT_SCALE, 4 * WEIGHT_SCALE)
                 as i32;
-            let rel = &mut self.recurrence_rel[bucket][bit];
-            rel[if predicted == actual { 0 } else { 1 }] += 1;
-            if rel[0] + rel[1] > COUNT_LIMIT {
-                rel[0] = (rel[0] + 1) / 2;
-                rel[1] = (rel[1] + 1) / 2;
-            }
+            observe_relation(&mut self.recurrence_rel[bucket][bit], predicted, actual);
         }
+    }
+
+    fn update_pattern_counts(&mut self, actual: u8, keys: &[Option<CtxKey>]) {
         for (i, key) in keys.iter().enumerate() {
             if let Some(k) = key {
                 let c = self.tables[i].entry(*k).or_insert([0, 0]);
@@ -341,27 +357,23 @@ impl State {
                 }
             }
         }
+    }
+
+    fn update_lag_relations(&mut self, bit: usize, actual: u8) {
         for (i, &lag) in LAGS.iter().enumerate() {
             if self.history.len() >= lag {
                 let pred = (self.history.get(self.history.len() - lag) >> (7 - bit)) & 1;
-                let r = &mut self.lag_rel[i][bit];
-                r[if pred == actual { 0 } else { 1 }] += 1;
-                if r[0] + r[1] > COUNT_LIMIT {
-                    r[0] = (r[0] + 1) / 2;
-                    r[1] = (r[1] + 1) / 2;
-                }
+                observe_relation(&mut self.lag_rel[i][bit], pred, actual);
             }
         }
+    }
+
+    fn update_match_relation(&mut self, bit: usize, actual: u8) {
         if self.history.len() >= 4 {
             let k: [u8; 4] = std::array::from_fn(|i| self.history.get(self.history.len() - 4 + i));
             if let Some(&v) = self.matches.get(&k) {
                 let pred = (v >> (7 - bit)) & 1;
-                let r = &mut self.match_rel[bit];
-                r[if pred == actual { 0 } else { 1 }] += 1;
-                if r[0] + r[1] > COUNT_LIMIT {
-                    r[0] = (r[0] + 1) / 2;
-                    r[1] = (r[1] + 1) / 2;
-                }
+                observe_relation(&mut self.match_rel[bit], pred, actual);
             }
         }
     }
@@ -377,6 +389,14 @@ impl State {
                 self.previous_recurrence_feature = Some(feature);
             }
         }
+    }
+}
+
+fn observe_relation(relation: &mut [i32; 2], predicted: u8, actual: u8) {
+    relation[if predicted == actual { 0 } else { 1 }] += 1;
+    if relation[0] + relation[1] > COUNT_LIMIT {
+        relation[0] = (relation[0] + 1) / 2;
+        relation[1] = (relation[1] + 1) / 2;
     }
 }
 fn observe_byte(state: &mut State, byte: u8, t: &[i32]) {
@@ -648,23 +668,24 @@ pub fn encode(data: &[u8]) -> Vec<u8> {
 pub fn decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
     decode_with_history(blob, n, &[])
 }
-pub fn decode_with_history(
+
+fn decoder_state(
     blob: &[u8],
     n: usize,
     prefix_history: &[u8],
-) -> Result<Vec<u8>, String> {
+) -> Result<(usize, usize, State, Vec<i32>), String> {
     if blob.len() < 3 || !matches!(blob[0], 1..=3) || blob[1] > 2 {
         return Err("invalid fixed-mix version or learning rate".into());
     }
-    let mut p: usize = 2;
+    let mut pos: usize = 2;
     let recurrence = if blob[0] >= 2 {
-        let end = p
+        let end = pos
             .checked_add(7)
             .ok_or("fixed-mix recurrence header overflow")?;
         let bytes = blob
-            .get(p..end)
+            .get(pos..end)
             .ok_or("truncated fixed-mix recurrence configuration")?;
-        p = end;
+        pos = end;
         Some(match blob[0] {
             2 => (
                 RecurrenceConfig::from_bytes(bytes)?,
@@ -679,41 +700,58 @@ pub fn decode_with_history(
     } else {
         None
     };
-    let bits = get_v(blob, &mut p)?;
-    if p.checked_add(bits.div_ceil(8)) != Some(blob.len()) {
+    let bits = get_v(blob, &mut pos)?;
+    if pos.checked_add(bits.div_ceil(8)) != Some(blob.len()) {
         return Err("fixed-mix payload length mismatch".into());
     }
-    let eta = ETA[blob[1] as usize];
-    let t = stretch_table();
-    let mut state = match recurrence {
-        Some((config, mode)) => prime_with_recurrence(prefix_history, n, eta, &t, config, mode)?,
-        None => prime_checked(prefix_history, n, eta, &t)?,
+    let table = stretch_table();
+    let state = match recurrence {
+        Some((config, mode)) => prime_with_recurrence(
+            prefix_history,
+            n,
+            ETA[blob[1] as usize],
+            &table,
+            config,
+            mode,
+        )?,
+        None => prime_checked(prefix_history, n, ETA[blob[1] as usize], &table)?,
     };
+    Ok((pos, bits, state, table))
+}
+
+fn decode_byte(state: &mut State, coder: &mut ArithmeticDecoder<'_>, table: &[i32]) -> u8 {
+    let mut byte = 0;
+    let mut prefix = 0;
+    for bit in 0..8 {
+        let (probability, stretches, keys, recurrence) = state.probabilities(bit, prefix, table);
+        let zero = 4096 - probability as usize;
+        let actual = u8::from(coder.target(4096) >= zero);
+        if actual == 0 {
+            coder.update(0, zero, 4096);
+        } else {
+            coder.update(zero, 4096, 4096);
+        }
+        state.update(bit, actual, probability, &stretches, &keys, recurrence);
+        byte = (byte << 1) | actual;
+        prefix = (prefix << 1) | actual;
+    }
+    state.finish_byte(byte);
+    byte
+}
+
+pub fn decode_with_history(
+    blob: &[u8],
+    n: usize,
+    prefix_history: &[u8],
+) -> Result<Vec<u8>, String> {
+    let (p, bits, mut state, table) = decoder_state(blob, n, prefix_history)?;
     let mut coder = ArithmeticDecoder::new(&blob[p..], bits);
     let mut out = Vec::with_capacity(n);
     for index in 0..n {
         if index & 255 == 0 {
             crate::limits::check()?;
         }
-        let mut byte = 0u8;
-        let mut prefix = 0u8;
-        for bit in 0..8 {
-            let (prob, s, k, recurrence) = state.probabilities(bit, prefix, &t);
-            let zero = 4096 - prob as usize;
-            let target = coder.target(4096);
-            let actual = if target < zero {
-                coder.update(0, zero, 4096);
-                0
-            } else {
-                coder.update(zero, 4096, 4096);
-                1
-            };
-            state.update(bit, actual as u8, prob, &s, &k, recurrence);
-            byte = (byte << 1) | actual as u8;
-            prefix = (prefix << 1) | actual as u8;
-        }
-        out.push(byte);
-        state.finish_byte(byte);
+        out.push(decode_byte(&mut state, &mut coder, &table));
     }
     Ok(out)
 }

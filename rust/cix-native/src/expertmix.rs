@@ -150,50 +150,19 @@ pub fn encode_bounded(
     let mut encoder = ArithmeticEncoder::new();
 
     for &symbol in data {
-        contexts.clear();
-        for &order in orders {
-            let order = order as usize;
-            contexts.push(if order == 0 {
-                Vec::new()
-            } else {
-                history[history.len().saturating_sub(order)..].to_vec()
-            });
-        }
-
-        let mut selected = 0usize;
-        for index in 1..orders.len() {
-            if losses[index] < losses[selected] {
-                selected = index;
-            }
-        }
+        populate_contexts(&mut contexts, &history, orders);
+        let selected = best_expert(&losses);
         let (low, high, model_total) = interval(tables[selected].get(&contexts[selected]), symbol);
         encoder.encode(low, high, model_total);
-
-        for index in 0..orders.len() {
-            losses[index] = update_loss(losses[index], tables[index].get(&contexts[index]), symbol);
-        }
-        for index in 0..orders.len() {
-            if !tables[index].contains_key(&contexts[index]) {
-                if context_count >= max_contexts {
-                    return Err("context-expert model exceeds memory budget".into());
-                }
-                tables[index].insert(contexts[index].clone(), Vec::new());
-                context_count += 1;
-            }
-            observe(
-                tables[index]
-                    .get_mut(&contexts[index])
-                    .expect("inserted context is present"),
-                symbol,
-            );
-        }
-
-        if max_order > 0 {
-            history.push(symbol);
-            if history.len() > max_order {
-                history.remove(0);
-            }
-        }
+        update_experts(
+            &mut tables,
+            &mut losses,
+            &contexts,
+            symbol,
+            &mut context_count,
+            max_contexts,
+        )?;
+        push_history(&mut history, symbol, max_order);
     }
 
     let (coded, bit_length) = encoder.finish();
@@ -206,6 +175,67 @@ pub fn encode_bounded(
     put_varint(bit_length, &mut out);
     out.extend_from_slice(&coded);
     Ok(out)
+}
+
+fn populate_contexts(contexts: &mut Vec<Vec<u8>>, history: &[u8], orders: &[u8]) {
+    contexts.clear();
+    contexts.extend(orders.iter().map(|&order| {
+        let order = order as usize;
+        if order == 0 {
+            Vec::new()
+        } else {
+            history[history.len().saturating_sub(order)..].to_vec()
+        }
+    }));
+}
+
+fn best_expert(losses: &[f64]) -> usize {
+    losses
+        .iter()
+        .enumerate()
+        .skip(1)
+        .fold(0, |selected, (index, loss)| {
+            if *loss < losses[selected] {
+                index
+            } else {
+                selected
+            }
+        })
+}
+
+fn update_experts(
+    tables: &mut [Table],
+    losses: &mut [f64],
+    contexts: &[Vec<u8>],
+    symbol: u8,
+    context_count: &mut usize,
+    max_contexts: usize,
+) -> Result<(), String> {
+    for ((table, loss), context) in tables.iter_mut().zip(losses).zip(contexts) {
+        *loss = update_loss(*loss, table.get(context), symbol);
+        if !table.contains_key(context) {
+            if *context_count >= max_contexts {
+                return Err("context-expert model exceeds memory budget".into());
+            }
+            table.insert(context.clone(), Vec::new());
+            *context_count += 1;
+        }
+        observe(
+            table.get_mut(context).expect("inserted context is present"),
+            symbol,
+        );
+    }
+    Ok(())
+}
+
+fn push_history(history: &mut Vec<u8>, symbol: u8, max_order: usize) {
+    if max_order == 0 {
+        return;
+    }
+    history.push(symbol);
+    if history.len() > max_order {
+        history.remove(0);
+    }
 }
 
 pub fn encode_with_history(
@@ -266,50 +296,19 @@ pub fn decode_bounded(
         .map_err(|_| "context-expert output exceeds available memory")?;
 
     for _ in 0..source_length {
-        contexts.clear();
-        for &order in orders {
-            let order = order as usize;
-            contexts.push(if order == 0 {
-                Vec::new()
-            } else {
-                history[history.len().saturating_sub(order)..].to_vec()
-            });
-        }
-
-        let mut selected = 0usize;
-        for index in 1..order_count {
-            if losses[index] < losses[selected] {
-                selected = index;
-            }
-        }
+        populate_contexts(&mut contexts, &history, orders);
+        let selected = best_expert(&losses);
         let symbol = decode_symbol(&mut decoder, tables[selected].get(&contexts[selected]))?;
         out.push(symbol);
-
-        for index in 0..order_count {
-            losses[index] = update_loss(losses[index], tables[index].get(&contexts[index]), symbol);
-        }
-        for index in 0..order_count {
-            if !tables[index].contains_key(&contexts[index]) {
-                if context_count >= max_contexts {
-                    return Err("context-expert model exceeds memory budget".into());
-                }
-                tables[index].insert(contexts[index].clone(), Vec::new());
-                context_count += 1;
-            }
-            observe(
-                tables[index]
-                    .get_mut(&contexts[index])
-                    .expect("inserted context is present"),
-                symbol,
-            );
-        }
-
-        if max_order > 0 {
-            history.push(symbol);
-            if history.len() > max_order {
-                history.remove(0);
-            }
-        }
+        update_experts(
+            &mut tables,
+            &mut losses,
+            &contexts,
+            symbol,
+            &mut context_count,
+            max_contexts,
+        )?;
+        push_history(&mut history, symbol, max_order);
     }
     Ok(out)
 }

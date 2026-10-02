@@ -59,34 +59,43 @@ fn read_poll<R: Read>(
 ) -> Result<Option<usize>, String> {
     loop {
         check_interrupted()?;
-        #[cfg(unix)]
-        {
-            if fd >= 0 {
-                let slice = std::time::Duration::from_millis(250);
-                let wait = timeout.map(|t| t.min(slice)).unwrap_or(slice);
-                if !wait_input(fd, wait).map_err(|e| {
-                    if INTERRUPTED.load(Ordering::Relaxed) {
-                        "interrupted".to_string()
-                    } else {
-                        ioerr(e)
-                    }
-                })? {
-                    return Ok(None);
-                }
-            }
+        if !input_ready(fd, timeout)? {
+            return Ok(None);
         }
-        match src.read(buffer) {
-            Ok(n) => return Ok(Some(n)),
-            Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
-            Err(e) => {
-                return Err(if INTERRUPTED.load(Ordering::Relaxed) {
-                    "interrupted".into()
-                } else {
-                    ioerr(e)
-                })
-            }
+        if let Some(read) = read_once(src, buffer)? {
+            return Ok(Some(read));
         }
     }
+}
+
+fn read_once<R: Read>(src: &mut R, buffer: &mut [u8]) -> Result<Option<usize>, String> {
+    match src.read(buffer) {
+        Ok(read) => Ok(Some(read)),
+        Err(error) if error.kind() == io::ErrorKind::Interrupted => Ok(None),
+        Err(_error) if INTERRUPTED.load(Ordering::Relaxed) => Err("interrupted".into()),
+        Err(error) => Err(ioerr(error)),
+    }
+}
+
+#[cfg(unix)]
+fn input_ready(fd: i32, timeout: Option<Duration>) -> Result<bool, String> {
+    if fd < 0 {
+        return Ok(true);
+    }
+    let slice = Duration::from_millis(250);
+    let wait = timeout.map(|value| value.min(slice)).unwrap_or(slice);
+    wait_input(fd, wait).map_err(|error| {
+        if INTERRUPTED.load(Ordering::Relaxed) {
+            "interrupted".into()
+        } else {
+            ioerr(error)
+        }
+    })
+}
+
+#[cfg(not(unix))]
+fn input_ready(_fd: i32, _timeout: Option<Duration>) -> Result<bool, String> {
+    Ok(true)
 }
 fn read_exact_poll<R: Read>(src: &mut R, mut buffer: &mut [u8], fd: i32) -> Result<(), String> {
     while !buffer.is_empty() {
@@ -582,50 +591,7 @@ fn streams_decode(
         if total > limit || end > blob.len() {
             return Err("CIX substream resource/truncation limit".into());
         }
-        let payload = &blob[pos..end];
-        let decoded = match coder {
-            0 => {
-                if size != n {
-                    return Err("raw substream size mismatch".into());
-                }
-                payload.to_vec()
-            }
-            1 => unrle(payload, n)?,
-            2 => rank::decode_composition_tiles(payload, n)?,
-            3 => inflate(payload, n)?,
-            4 => adaptive::decode(payload, n)?,
-            5 => rank::decode_composition_tiles(payload, n)?,
-            6 => {
-                if !allow_extended_coders {
-                    return Err("CIXG1 cannot contain versioned context-range substreams".into());
-                }
-                if payload.len() < 4 || payload[0] != 1 {
-                    return Err("invalid context-range substream header".into());
-                }
-                let order = payload[1] as usize;
-                let bits = payload[2] as usize;
-                if !(1..=16).contains(&order) || !(1..=8).contains(&bits) {
-                    return Err("context-range parameters exceed version-1 bounds".into());
-                }
-                adaptive::decode_general(payload, n, &[], 1usize << bits)?
-            }
-            7 => {
-                if !allow_extended_coders {
-                    return Err("CIXG1 cannot contain versioned Huffman substreams".into());
-                }
-                if payload.len() < 11
-                    || u64::from_le_bytes(payload[3..11].try_into().unwrap()) != n as u64
-                {
-                    return Err("Huffman substream decoded length mismatch".into());
-                }
-                let decoded = huffman::decode(payload).map_err(|error| error.to_string())?;
-                if decoded.len() != n {
-                    return Err("Huffman substream decoded length mismatch".into());
-                }
-                decoded
-            }
-            _ => return Err(format!("unsupported CIX substream coder {coder}")),
-        };
+        let decoded = decode_substream(coder, &blob[pos..end], n, size, allow_extended_coders)?;
         parts.push(decoded);
         pos = end;
     }
@@ -633,6 +599,81 @@ fn streams_decode(
         return Err("trailing CIX substream bytes".into());
     }
     Ok(parts)
+}
+
+fn decode_substream(
+    coder: u8,
+    payload: &[u8],
+    decoded_len: usize,
+    encoded_len: usize,
+    allow_extended_coders: bool,
+) -> Result<Vec<u8>, String> {
+    match coder {
+        0 => decode_raw_substream(payload, decoded_len, encoded_len),
+        1 => unrle(payload, decoded_len),
+        2 | 5 => rank::decode_composition_tiles(payload, decoded_len),
+        3 => inflate(payload, decoded_len),
+        4 => adaptive::decode(payload, decoded_len),
+        6 | 7 => decode_versioned_substream(coder, payload, decoded_len, allow_extended_coders),
+        _ => Err(format!("unsupported CIX substream coder {coder}")),
+    }
+}
+
+fn decode_raw_substream(
+    payload: &[u8],
+    decoded_len: usize,
+    encoded_len: usize,
+) -> Result<Vec<u8>, String> {
+    if encoded_len != decoded_len {
+        return Err("raw substream size mismatch".into());
+    }
+    Ok(payload.to_vec())
+}
+
+fn decode_versioned_substream(
+    coder: u8,
+    payload: &[u8],
+    decoded_len: usize,
+    allow_extended_coders: bool,
+) -> Result<Vec<u8>, String> {
+    if !allow_extended_coders {
+        return Err(match coder {
+            6 => "CIXG1 cannot contain versioned context-range substreams",
+            7 => "CIXG1 cannot contain versioned Huffman substreams",
+            _ => "CIXG1 cannot contain versioned substreams",
+        }
+        .into());
+    }
+    match coder {
+        6 => decode_context_range_substream(payload, decoded_len),
+        7 => decode_huffman_substream(payload, decoded_len),
+        _ => Err("invalid versioned CIX substream coder".into()),
+    }
+}
+
+fn decode_context_range_substream(payload: &[u8], decoded_len: usize) -> Result<Vec<u8>, String> {
+    if payload.len() < 4 || payload[0] != 1 {
+        return Err("invalid context-range substream header".into());
+    }
+    let order = payload[1] as usize;
+    let bits = payload[2] as usize;
+    if !(1..=16).contains(&order) || !(1..=8).contains(&bits) {
+        return Err("context-range parameters exceed version-1 bounds".into());
+    }
+    adaptive::decode_general(payload, decoded_len, &[], 1usize << bits)
+}
+
+fn decode_huffman_substream(payload: &[u8], decoded_len: usize) -> Result<Vec<u8>, String> {
+    if payload.len() < 11
+        || u64::from_le_bytes(payload[3..11].try_into().unwrap()) != decoded_len as u64
+    {
+        return Err("Huffman substream decoded length mismatch".into());
+    }
+    let decoded = huffman::decode(payload).map_err(|error| error.to_string())?;
+    if decoded.len() != decoded_len {
+        return Err("Huffman substream decoded length mismatch".into());
+    }
+    Ok(decoded)
 }
 
 fn stream_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {

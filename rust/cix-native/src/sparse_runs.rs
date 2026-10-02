@@ -419,61 +419,84 @@ fn histogram_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option<Vec<u8>>,
 /// Encode the frozen Python local byte-substream candidate portfolio.
 pub fn encode_bytes(data: &[u8]) -> Result<Vec<u8>, String> {
     let static_payload = rank::encode_type_class(data)?;
-    let mut best = vec![0];
-    best.extend(&static_payload);
+    let mut best = tagged(0, static_payload.clone());
     if data.is_empty() {
         return Ok(best);
     }
+    consider_tiled(data, &mut best)?;
+    consider_wavelet(data, &mut best);
+    consider_adaptive(data, &mut best);
+    consider_histogram(data, &static_payload, &mut best)?;
+    Ok(best)
+}
+
+fn tagged(tag: u8, payload: Vec<u8>) -> Vec<u8> {
+    let mut candidate = vec![tag];
+    candidate.extend(payload);
+    candidate
+}
+
+fn retain_shorter(best: &mut Vec<u8>, candidate: Vec<u8>) {
+    if candidate.len() < best.len() {
+        *best = candidate;
+    }
+}
+
+fn consider_tiled(data: &[u8], best: &mut Vec<u8>) -> Result<(), String> {
     for chunk_size in [128usize, 256, 512, 1024, 2048, 4096] {
-        if data.len() < chunk_size * 2 {
-            continue;
-        }
-        let mut candidate = vec![1];
-        put_varint(chunk_size, &mut candidate);
-        for chunk in data.chunks(chunk_size) {
-            candidate.extend(rank::encode_type_class(chunk)?);
-        }
-        if candidate.len() < best.len() {
-            best = candidate;
+        if data.len() >= chunk_size * 2 {
+            retain_shorter(best, encode_tiled(data, chunk_size)?);
         }
     }
+    Ok(())
+}
+
+fn encode_tiled(data: &[u8], chunk_size: usize) -> Result<Vec<u8>, String> {
+    let mut candidate = vec![1];
+    put_varint(chunk_size, &mut candidate);
+    for chunk in data.chunks(chunk_size) {
+        candidate.extend(rank::encode_type_class(chunk)?);
+    }
+    Ok(candidate)
+}
+
+fn consider_wavelet(data: &[u8], best: &mut Vec<u8>) {
     if data.len() >= 64 && estimate_wavelet_bits(data) / 8.0 <= best.len() as f64 * 1.03 + 8.0 {
-        let mut candidate = vec![4];
-        candidate.extend(encode_wavelet(data));
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
+        retain_shorter(best, tagged(4, encode_wavelet(data)));
     }
-    if data.len() >= 256 {
-        let mut candidate = vec![2];
-        candidate.extend(encode_adaptive(data, 0, 8));
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
-        let context_orders: &[(usize, usize)] = if data.len() >= 2048 {
-            &[(1, 8), (2, 10)]
-        } else {
-            &[(1, 8)]
-        };
-        for &(order, bucket_bits) in context_orders {
-            if conditional_bits(data, order) / 8.0 > best.len() as f64 * 1.10 + 16.0 {
-                continue;
-            }
+}
+
+fn consider_adaptive(data: &[u8], best: &mut Vec<u8>) {
+    if data.len() < 256 {
+        return;
+    }
+    retain_shorter(best, tagged(2, encode_adaptive(data, 0, 8)));
+    for &(order, bucket_bits) in adaptive_orders(data.len()) {
+        if conditional_bits(data, order) / 8.0 <= best.len() as f64 * 1.10 + 16.0 {
             let mut candidate = vec![3, order as u8];
             candidate.extend(encode_adaptive(data, order, bucket_bits));
-            if candidate.len() < best.len() {
-                best = candidate;
-            }
+            retain_shorter(best, candidate);
         }
     }
-    if let Some(histogram) = histogram_candidate(data, &static_payload)? {
-        let mut candidate = vec![5];
-        candidate.extend(histogram);
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
+}
+
+fn adaptive_orders(length: usize) -> &'static [(usize, usize)] {
+    if length >= 2048 {
+        &[(1, 8), (2, 10)]
+    } else {
+        &[(1, 8)]
     }
-    Ok(best)
+}
+
+fn consider_histogram(
+    data: &[u8],
+    static_payload: &[u8],
+    best: &mut Vec<u8>,
+) -> Result<(), String> {
+    if let Some(histogram) = histogram_candidate(data, static_payload)? {
+        retain_shorter(best, tagged(5, histogram));
+    }
+    Ok(())
 }
 
 fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {

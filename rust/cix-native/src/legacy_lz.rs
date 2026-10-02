@@ -237,6 +237,24 @@ fn find_match(
     (best_length, best_distance)
 }
 
+fn push_lz_literal(parsed: &mut LzParse, value: u8, position: usize, history_len: usize) {
+    parsed.tags.push(0);
+    parsed.literals.push(value);
+    parsed.literal_positions.push(position - history_len);
+}
+
+fn insert_lz_range(
+    table: &mut HashMap<[u8; 4], Vec<usize>>,
+    base: &[u8],
+    start: usize,
+    stop: usize,
+    chain: usize,
+) {
+    for at in start..stop {
+        insert_match(table, base, at, chain);
+    }
+}
+
 fn parse_lz(
     data: &[u8],
     prefix_history: &[u8],
@@ -285,9 +303,7 @@ fn parse_lz(
                 chain,
             );
             if next_length > best_length + 1 {
-                parsed.tags.push(0);
-                parsed.literals.push(base[position]);
-                parsed.literal_positions.push(position - history_len);
+                push_lz_literal(&mut parsed, base[position], position, history_len);
                 position += 1;
                 continue;
             }
@@ -297,14 +313,10 @@ fn parse_lz(
             parsed.lengths.push(best_length - min_match);
             parsed.distances.push(best_distance);
             let stop = base.len().min(position + best_length);
-            for at in position..stop {
-                insert_match(&mut table, &base, at, chain);
-            }
+            insert_lz_range(&mut table, &base, position, stop, chain);
             position += best_length;
         } else {
-            parsed.tags.push(0);
-            parsed.literals.push(base[position]);
-            parsed.literal_positions.push(position - history_len);
+            push_lz_literal(&mut parsed, base[position], position, history_len);
             insert_match(&mut table, &base, position, chain);
             position += 1;
         }
@@ -614,67 +626,83 @@ fn histogram_typeclass_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option
     Ok(Some(prefix))
 }
 
-fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
-    if values.is_empty() {
-        return Ok(vec![0]);
-    }
+fn lz_raw_uints(values: &[usize]) -> Vec<u8> {
     let mut raw = vec![0];
     for &value in values {
         put_varint(value, &mut raw);
     }
-    let mut best = raw;
-    for k in 0..=16usize {
-        let payload_limit = best.len().saturating_sub(2) * 8;
-        let mut cost = 0usize;
-        let mut viable = true;
-        for &value in values {
-            cost = cost.saturating_add((value >> k).saturating_add(1 + k));
-            if cost >= payload_limit {
-                viable = false;
-                break;
-            }
-        }
-        if !viable {
-            continue;
-        }
-        let mut writer = BitWriter::new();
-        for &value in values {
-            for _ in 0..(value >> k) {
-                writer.bit(1);
-            }
-            writer.bit(0);
-            writer.bits(value & ((1usize << k) - 1), k);
-        }
-        let mut candidate = vec![1, k as u8];
-        candidate.extend(writer.finish());
-        if candidate.len() < best.len() {
-            best = candidate;
+    raw
+}
+
+fn lz_rice_candidate(values: &[usize], k: usize, incumbent_length: usize) -> Option<Vec<u8>> {
+    let payload_limit = incumbent_length.saturating_sub(2) * 8;
+    let mut cost = 0usize;
+    for &value in values {
+        cost = cost.saturating_add((value >> k).saturating_add(1 + k));
+        if cost >= payload_limit {
+            return None;
         }
     }
+    let mut writer = BitWriter::new();
+    for &value in values {
+        for _ in 0..(value >> k) {
+            writer.bit(1);
+        }
+        writer.bit(0);
+        writer.bits(value & ((1usize << k) - 1), k);
+    }
+    let mut candidate = vec![1, k as u8];
+    candidate.extend(writer.finish());
+    Some(candidate)
+}
+
+fn lz_integer_classes(values: &[usize]) -> Result<Option<(Vec<u8>, Vec<(usize, usize)>)>, String> {
     let mut classes = Vec::with_capacity(values.len());
     let mut lows = Vec::with_capacity(values.len());
     for &value in values {
         let shifted = value.checked_add(1).ok_or("LZ integer value overflow")?;
         let width = bit_length(shifted) - 1;
         if width > 255 {
-            return Ok(best);
+            return Ok(None);
         }
         classes.push(width as u8);
         lows.push((shifted - (1usize << width), width));
     }
+    Ok(Some((classes, lows)))
+}
+
+fn lz_class_candidate(mode: u8, class_blob: Vec<u8>, lows: &[(usize, usize)]) -> Vec<u8> {
     let mut writer = BitWriter::new();
-    for &(low, width) in &lows {
+    for &(low, width) in lows {
         writer.bits(low, width);
     }
-    let low_blob = writer.finish();
+    let mut candidate = vec![mode];
+    put_varint(class_blob.len(), &mut candidate);
+    candidate.extend(class_blob);
+    candidate.extend_from_slice(&writer.finish());
+    candidate
+}
+
+fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
+    if values.is_empty() {
+        return Ok(vec![0]);
+    }
+    let mut best = lz_raw_uints(values);
+    for k in 0..=16usize {
+        if let Some(candidate) = lz_rice_candidate(values, k, best.len()) {
+            if candidate.len() < best.len() {
+                best = candidate;
+            }
+        }
+    }
+    let Some((classes, lows)) = lz_integer_classes(values)? else {
+        return Ok(best);
+    };
     for (mode, class_blob) in [
         (2u8, crate::rank::encode_type_class(&classes)?),
         (3u8, encode_bytes(&classes)?),
     ] {
-        let mut candidate = vec![mode];
-        put_varint(class_blob.len(), &mut candidate);
-        candidate.extend(class_blob);
-        candidate.extend_from_slice(&low_blob);
+        let candidate = lz_class_candidate(mode, class_blob, &lows);
         if candidate.len() < best.len() {
             best = candidate;
         }
@@ -682,14 +710,14 @@ fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
     Ok(best)
 }
 
-fn encode_bytes(values: &[u8]) -> Result<Vec<u8>, String> {
-    let static_stream = crate::rank::encode_type_class(values)?;
-    let mut best = Vec::with_capacity(static_stream.len() + 1);
-    best.push(0);
-    best.extend_from_slice(&static_stream);
-    if values.is_empty() {
-        return Ok(best);
+fn replace_if_smaller(best: &mut Vec<u8>, candidate: Vec<u8>) {
+    if candidate.len() < best.len() {
+        *best = candidate;
     }
+}
+
+fn lz_chunked_bytes(values: &[u8]) -> Result<Vec<Vec<u8>>, String> {
+    let mut candidates = Vec::new();
     for chunk_size in [128usize, 256, 512, 1024, 2048, 4096] {
         if values.len() < chunk_size * 2 {
             continue;
@@ -699,49 +727,66 @@ fn encode_bytes(values: &[u8]) -> Result<Vec<u8>, String> {
         for chunk in values.chunks(chunk_size) {
             candidate.extend(crate::rank::encode_type_class(chunk)?);
         }
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
+        candidates.push(candidate);
     }
-    if values.len() >= 64 && wavelet_estimate_bits(values) / 8.0 <= best.len() as f64 * 1.03 + 8.0 {
-        let mut candidate = vec![4];
-        candidate.extend(encode_wavelet(values));
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
+    Ok(candidates)
+}
+
+fn lz_wavelet_candidate(values: &[u8], incumbent_length: usize) -> Option<Vec<u8>> {
+    if values.len() < 64
+        || wavelet_estimate_bits(values) / 8.0 > incumbent_length as f64 * 1.03 + 8.0
+    {
+        return None;
     }
-    if values.len() >= 256 {
-        let mut candidate = vec![2];
-        candidate.extend(crate::adaptive::encode_general(values, 0, 8, &[], 1)?);
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
-        for (order, bucket_bits) in [(1usize, 8usize), (2, 10)] {
-            if order == 2 && values.len() < 2048 {
-                continue;
-            }
-            if conditional_bits(values, order) / 8.0 > best.len() as f64 * 1.10 + 16.0 {
-                continue;
-            }
-            let mut candidate = vec![3, order as u8];
-            candidate.extend(crate::adaptive::encode_general(
-                values,
-                order,
-                bucket_bits,
-                &[],
-                1usize << bucket_bits,
-            )?);
-            if candidate.len() < best.len() {
-                best = candidate;
-            }
-        }
+    let mut candidate = vec![4];
+    candidate.extend(encode_wavelet(values));
+    Some(candidate)
+}
+
+fn lz_apply_adaptive_candidates(values: &[u8], best: &mut Vec<u8>) -> Result<(), String> {
+    if values.len() < 256 {
+        return Ok(());
     }
+    let mut order_zero = vec![2];
+    order_zero.extend(crate::adaptive::encode_general(values, 0, 8, &[], 1)?);
+    replace_if_smaller(best, order_zero);
+    for (order, bucket_bits) in [(1usize, 8usize), (2, 10)] {
+        if order == 2 && values.len() < 2048 {
+            continue;
+        }
+        if conditional_bits(values, order) / 8.0 > best.len() as f64 * 1.10 + 16.0 {
+            continue;
+        }
+        let mut candidate = vec![3, order as u8];
+        candidate.extend(crate::adaptive::encode_general(
+            values,
+            order,
+            bucket_bits,
+            &[],
+            1usize << bucket_bits,
+        )?);
+        replace_if_smaller(best, candidate);
+    }
+    Ok(())
+}
+
+fn encode_bytes(values: &[u8]) -> Result<Vec<u8>, String> {
+    let static_stream = crate::rank::encode_type_class(values)?;
+    let mut best = [vec![0], static_stream.clone()].concat();
+    if values.is_empty() {
+        return Ok(best);
+    }
+    for candidate in lz_chunked_bytes(values)? {
+        replace_if_smaller(&mut best, candidate);
+    }
+    if let Some(candidate) = lz_wavelet_candidate(values, best.len()) {
+        replace_if_smaller(&mut best, candidate);
+    }
+    lz_apply_adaptive_candidates(values, &mut best)?;
     if let Some(histogram) = histogram_typeclass_candidate(values, &static_stream)? {
         let mut candidate = vec![5];
         candidate.extend(histogram);
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
+        replace_if_smaller(&mut best, candidate);
     }
     Ok(best)
 }
@@ -1002,47 +1047,52 @@ fn encode_distances_legacy(distances: &[usize]) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
+fn encode_distance_candidate(distances: &[usize], cache_size: usize) -> Result<Vec<u8>, String> {
+    let mut cache = Vec::<usize>::new();
+    let mut symbols = Vec::<u8>::with_capacity(distances.len());
+    let mut lows = Vec::<(usize, usize)>::with_capacity(distances.len());
+    for &distance in distances {
+        if distance == 0 {
+            return Err("LZ distances must be positive".into());
+        }
+        if let Some(index) = cache.iter().position(|&cached| cached == distance) {
+            symbols.push(index as u8);
+            lows.push((0, 0));
+            let cached = cache.remove(index);
+            cache.insert(0, cached);
+        } else {
+            let width = bit_length(distance) - 1;
+            let symbol = cache_size + width;
+            if symbol > 255 {
+                return Err("LZ distance class too large".into());
+            }
+            symbols.push(symbol as u8);
+            lows.push((distance - (1usize << width), width));
+            if cache_size > 0 {
+                cache.insert(0, distance);
+                cache.truncate(cache_size);
+            }
+        }
+    }
+    let encoded = encode_bytes(&symbols)?;
+    let mut candidate = vec![cache_size as u8];
+    put_varint(encoded.len(), &mut candidate);
+    candidate.extend(encoded);
+    let mut writer = BitWriter::new();
+    for (low, width) in lows {
+        writer.bits(low, width);
+    }
+    candidate.extend(writer.finish());
+    Ok(candidate)
+}
+
 fn encode_distances_best(distances: &[usize]) -> Result<Vec<u8>, String> {
     if distances.is_empty() {
         return Ok(vec![0]);
     }
     let mut best: Option<Vec<u8>> = None;
     for cache_size in [0usize, 1, 2, 4, 8, 16] {
-        let mut cache = Vec::<usize>::new();
-        let mut symbols = Vec::<u8>::with_capacity(distances.len());
-        let mut lows = Vec::<(usize, usize)>::with_capacity(distances.len());
-        for &distance in distances {
-            if distance == 0 {
-                return Err("LZ distances must be positive".into());
-            }
-            if let Some(index) = cache.iter().position(|&cached| cached == distance) {
-                symbols.push(index as u8);
-                lows.push((0, 0));
-                let cached = cache.remove(index);
-                cache.insert(0, cached);
-            } else {
-                let width = bit_length(distance) - 1;
-                let symbol = cache_size + width;
-                if symbol > 255 {
-                    return Err("LZ distance class too large".into());
-                }
-                symbols.push(symbol as u8);
-                lows.push((distance - (1usize << width), width));
-                if cache_size > 0 {
-                    cache.insert(0, distance);
-                    cache.truncate(cache_size);
-                }
-            }
-        }
-        let encoded = encode_bytes(&symbols)?;
-        let mut candidate = vec![cache_size as u8];
-        put_varint(encoded.len(), &mut candidate);
-        candidate.extend(encoded);
-        let mut writer = BitWriter::new();
-        for (low, width) in lows {
-            writer.bits(low, width);
-        }
-        candidate.extend(writer.finish());
+        let candidate = encode_distance_candidate(distances, cache_size)?;
         if best
             .as_ref()
             .is_none_or(|incumbent| candidate.len() < incumbent.len())
@@ -2020,7 +2070,7 @@ pub fn decode(
 
 #[cfg(test)]
 mod tests {
-    use super::decode;
+    use super::{decode, encode_with_config, EncodeConfig};
 
     #[test]
     fn rejects_unknown_version() {
@@ -2030,5 +2080,18 @@ mod tests {
     #[test]
     fn rejects_inconsistent_counts_before_stream_allocation() {
         assert!(decode(&[3, 4, 2, 2, 1], 2, &[], 1024).is_err());
+    }
+
+    #[test]
+    fn legacy_round_trip_after_helper_extraction() {
+        let history = b"dictionary prefix ";
+        let source = b"dictionary prefix dictionary prefix dictionary prefix payload";
+        let payload = encode_with_config(source, history, &EncodeConfig::default())
+            .unwrap()
+            .payload;
+        assert_eq!(
+            decode(&payload, source.len(), history, 1 << 16).unwrap(),
+            source
+        );
     }
 }

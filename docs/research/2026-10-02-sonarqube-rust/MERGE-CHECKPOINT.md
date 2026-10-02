@@ -39,3 +39,21 @@ page uses46 previously verified Rust BEST results at d66739120, sorted by
 percentage size difference against sourced references without external
 pretraining/dictionaries. No incomplete archive is ranked. The next study is
 four concurrent datasets with four threads per dataset, after code completion.
+
+## Second reviewed checkpoint
+
+Corrected cumulative patch SHA-256:
+`4b99f5a8477b01ad6de4b40b81dbc846e77aeb6621e3600c3018ae85c3962306`.
+The independent adversarial review found a chained-LZ cursor evaluation-order
+regression: adding a decoded varint to the old cursor shortened substreams.
+The repaired parser reads the length first, then adds it to the updated cursor.
+Root added a direct regression covering both versions, empty streams and
+multi-byte lengths. The malformed BWT/MAX regression from the first checkpoint
+is retained. The canonical README continues to document the 20-worker limit.
+
+The reviewer approved the corrected mathematical operations, model-update
+order, strict-shorter candidate ordering, version gates and validation bounds.
+Root `cargo check --locked` passes after merging. The exact isolated Docker
+scan before the two review repairs had 38 open cognitive-complexity findings;
+its quality gate still failed. This checkpoint is further remediation, not a
+claim of zero warnings or completed aggregate qualification.

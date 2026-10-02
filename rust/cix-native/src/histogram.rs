@@ -511,101 +511,128 @@ pub fn decode_counts(blob: &[u8], total: usize) -> Result<[usize; 256], String> 
         return Err("invalid count-vector total".into());
     }
     let mode = blob[1];
-    let mut pos = 2;
-    let mut counts = [0usize; 256];
-    if matches!(mode, 0 | 1 | 4) {
-        let active_count = read_v(blob, &mut pos)?;
-        if active_count == 0 || active_count > 256 || active_count > total {
-            return Err("invalid active count alphabet".into());
-        }
-        let active = if active_count == 256 {
-            (0..256).collect::<Vec<_>>()
-        } else {
-            rank::decode_colex_positions(blob, &mut pos, 256, active_count)?
-        };
-        let encoded = decode_uints(&blob[pos..], active_count - 1)?;
-        let mut first = Vec::with_capacity(active_count - 1);
-        match mode {
-            0 => {
-                for value in encoded {
-                    first.push(value.checked_add(1).ok_or("active count overflow")?);
-                }
-            }
-            1 => {
-                let mut previous = 0i128;
-                for value in encoded {
+    match mode {
+        0 | 1 | 4 => decode_active_counts(blob, total, mode),
+        2 | 3 | 5 => decode_dense_counts(blob, total, mode),
+        _ => Err(format!("unknown count-vector mode {mode}")),
+    }
+}
+
+fn checked_count(value: i128, positive: bool, message: &'static str) -> Result<usize, String> {
+    if value < 0 || positive && value == 0 {
+        return Err(message.into());
+    }
+    usize::try_from(value).map_err(|_| message.into())
+}
+
+fn active_values(
+    encoded: Vec<usize>,
+    mode: u8,
+    total: usize,
+    active_count: usize,
+) -> Result<Vec<usize>, String> {
+    match mode {
+        0 => encoded
+            .into_iter()
+            .map(|value| value.checked_add(1).ok_or("active count overflow".into()))
+            .collect(),
+        1 => {
+            let mut previous = 0i128;
+            encoded
+                .into_iter()
+                .map(|value| {
                     previous += unzig(value);
-                    if previous <= 0 {
-                        return Err("non-positive active count".into());
-                    }
-                    first.push(usize::try_from(previous).map_err(|_| "active count overflow")?);
-                }
-            }
-            4 => {
-                let center = (total / active_count) as i128;
-                for value in encoded {
-                    let count = center + unzig(value);
-                    if count <= 0 {
-                        return Err("non-positive centered active count".into());
-                    }
-                    first.push(usize::try_from(count).map_err(|_| "active count overflow")?);
-                }
-            }
-            _ => unreachable!(),
+                    checked_count(previous, true, "non-positive active count")
+                })
+                .collect()
         }
-        let first_total = first
-            .iter()
-            .try_fold(0usize, |sum, &value| sum.checked_add(value))
-            .ok_or("active histogram total overflow")?;
-        let last = total
+        4 => encoded
+            .into_iter()
+            .map(|value| {
+                checked_count(
+                    (total / active_count) as i128 + unzig(value),
+                    true,
+                    "non-positive centered active count",
+                )
+            })
+            .collect(),
+        _ => unreachable!(),
+    }
+}
+
+fn decode_active_counts(blob: &[u8], total: usize, mode: u8) -> Result<[usize; 256], String> {
+    let mut pos = 2;
+    let active_count = read_v(blob, &mut pos)?;
+    if active_count == 0 || active_count > 256 || active_count > total {
+        return Err("invalid active count alphabet".into());
+    }
+    let active = if active_count == 256 {
+        (0..256).collect()
+    } else {
+        rank::decode_colex_positions(blob, &mut pos, 256, active_count)?
+    };
+    let mut first = active_values(
+        decode_uints(&blob[pos..], active_count - 1)?,
+        mode,
+        total,
+        active_count,
+    )?;
+    let first_total = first
+        .iter()
+        .try_fold(0usize, |sum, &value| sum.checked_add(value))
+        .ok_or("active histogram total overflow")?;
+    first.push(
+        total
             .checked_sub(first_total)
             .filter(|&value| value > 0)
-            .ok_or("invalid implied active count")?;
-        first.push(last);
-        for (symbol, count) in active.into_iter().zip(first) {
-            counts[symbol] = count;
-        }
-        return Ok(counts);
+            .ok_or("invalid implied active count")?,
+    );
+    let mut counts = [0usize; 256];
+    for (symbol, count) in active.into_iter().zip(first) {
+        counts[symbol] = count;
     }
-    if matches!(mode, 2 | 3 | 5) {
-        let encoded = decode_uints(&blob[pos..], 255)?;
-        let mut first = Vec::with_capacity(255);
-        match mode {
-            2 => first = encoded,
-            3 => {
-                let mut previous = 0i128;
-                for value in encoded {
+    Ok(counts)
+}
+
+fn dense_values(encoded: Vec<usize>, mode: u8, total: usize) -> Result<Vec<usize>, String> {
+    match mode {
+        2 => Ok(encoded),
+        3 => {
+            let mut previous = 0i128;
+            encoded
+                .into_iter()
+                .map(|value| {
                     previous += unzig(value);
-                    if previous < 0 {
-                        return Err("negative dense count".into());
-                    }
-                    first.push(usize::try_from(previous).map_err(|_| "dense count overflow")?);
-                }
-            }
-            5 => {
-                let center = (total / 256) as i128;
-                for value in encoded {
-                    let count = center + unzig(value);
-                    if count < 0 {
-                        return Err("negative centered dense count".into());
-                    }
-                    first.push(usize::try_from(count).map_err(|_| "dense count overflow")?);
-                }
-            }
-            _ => unreachable!(),
+                    checked_count(previous, false, "negative dense count")
+                })
+                .collect()
         }
-        let first_total = first
-            .iter()
-            .try_fold(0usize, |sum, &value| sum.checked_add(value))
-            .ok_or("dense histogram total overflow")?;
-        let last = total
-            .checked_sub(first_total)
-            .ok_or("invalid implied dense count")?;
-        counts[..255].copy_from_slice(&first);
-        counts[255] = last;
-        return Ok(counts);
+        5 => encoded
+            .into_iter()
+            .map(|value| {
+                checked_count(
+                    (total / 256) as i128 + unzig(value),
+                    false,
+                    "negative centered dense count",
+                )
+            })
+            .collect(),
+        _ => unreachable!(),
     }
-    Err(format!("unknown count-vector mode {mode}"))
+}
+
+fn decode_dense_counts(blob: &[u8], total: usize, mode: u8) -> Result<[usize; 256], String> {
+    let first = dense_values(decode_uints(&blob[2..], 255)?, mode, total)?;
+    let first_total = first
+        .iter()
+        .try_fold(0usize, |sum, &value| sum.checked_add(value))
+        .ok_or("dense histogram total overflow")?;
+    let mut counts = [0usize; 256];
+    counts[..255].copy_from_slice(&first);
+    counts[255] = total
+        .checked_sub(first_total)
+        .ok_or("invalid implied dense count")?;
+    Ok(counts)
 }
 
 pub fn decode_type_class(blob: &[u8], total: usize) -> Result<Vec<u8>, String> {

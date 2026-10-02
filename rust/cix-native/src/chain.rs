@@ -726,15 +726,50 @@ fn decode_distance_symbols(
 }
 
 fn decode_lz(data: &[u8], source_len: usize, model_limit: usize) -> Result<Vec<u8>, String> {
+    let (version, min_match, token_count, literal_count, match_count, streams) =
+        parse_lz_streams(data)?;
+    let tags = decode_lz_tags(version, streams[0], token_count, model_limit)?;
+    let mut literals = decode_literals(streams[1], literal_count, model_limit)?;
+    let lengths = decode_uints(streams[2], match_count, model_limit)?;
+    let distances = decode_lz_distances(version, streams[3], match_count, model_limit)?;
+    let mut output = Vec::with_capacity(source_len);
+    let mut literals_used = 0usize;
+    let mut matches_used = 0usize;
+    for tag in tags {
+        decode_lz_tag(
+            tag,
+            &mut output,
+            &mut literals,
+            &lengths,
+            &distances,
+            &mut literals_used,
+            &mut matches_used,
+            min_match,
+            source_len,
+        )?;
+    }
+    if output.len() != source_len
+        || literals_used != literal_count
+        || matches_used != match_count
+        || !literals.fully_consumed()
+    {
+        return Err("chained LZ decoded counts or length mismatch".into());
+    }
+    Ok(output)
+}
+
+type LzHeader<'a> = (u8, usize, usize, usize, usize, Vec<&'a [u8]>);
+fn parse_lz_streams(data: &[u8]) -> Result<LzHeader<'_>, String> {
     if data.len() < 2 || !matches!(data[0], 1 | 3) {
         return Err("unknown chained LZ version".into());
     }
-    let version = data[0];
-    let min_match = data[1] as usize;
+    let (version, min_match) = (data[0], data[1] as usize);
     let mut pos = 2;
-    let token_count = unvar(data, &mut pos)?;
-    let literal_count = unvar(data, &mut pos)?;
-    let match_count = unvar(data, &mut pos)?;
+    let (tokens, literals, matches) = (
+        unvar(data, &mut pos)?,
+        unvar(data, &mut pos)?,
+        unvar(data, &mut pos)?,
+    );
     let mut streams = Vec::with_capacity(4);
     for _ in 0..4 {
         let length = unvar(data, &mut pos)?;
@@ -750,66 +785,72 @@ fn decode_lz(data: &[u8], source_len: usize, model_limit: usize) -> Result<Vec<u
     if pos != data.len() {
         return Err("trailing chained LZ bytes".into());
     }
-    let tags = if version == 1 {
-        let mut tag_pos = 0;
-        let tags = rank::decode_type_class(streams[0], &mut tag_pos, token_count)?;
-        if tag_pos != streams[0].len() {
-            return Err("unused chained LZ v1 tag bytes".into());
-        }
-        tags
-    } else {
-        decode_tags(streams[0], token_count, model_limit)?
-    };
-    let mut literals = decode_literals(streams[1], literal_count, model_limit)?;
-    let lengths = decode_uints(streams[2], match_count, model_limit)?;
-    let distances = if version == 1 {
-        decode_distances_v1(streams[3], match_count)?
-    } else {
-        decode_distances_v3(streams[3], match_count, model_limit)?
-    };
-    let mut output = Vec::with_capacity(source_len);
-    let mut literals_used = 0usize;
-    let mut matches_used = 0usize;
-    for tag in tags {
-        match tag {
-            0 => {
-                output.push(literals.next(&output)?);
-                literals_used += 1;
-            }
-            1 => {
-                let encoded_length = *lengths
-                    .get(matches_used)
-                    .ok_or("chained LZ match stream exhausted")?;
-                let distance = *distances
-                    .get(matches_used)
-                    .ok_or("chained LZ distance stream exhausted")?;
-                matches_used += 1;
-                if distance == 0 || distance > output.len() {
-                    return Err("chained LZ distance before available history".into());
-                }
-                let length = encoded_length
-                    .checked_add(min_match)
-                    .ok_or("chained LZ match length overflow")?;
-                for _ in 0..length {
-                    let source = output.len() - distance;
-                    let value = output[source];
-                    output.push(value);
-                    if output.len() > source_len {
-                        return Err("chained LZ expands beyond source length".into());
-                    }
-                }
-            }
-            _ => return Err("invalid chained LZ tag".into()),
-        }
+    Ok((version, min_match, tokens, literals, matches, streams))
+}
+fn decode_lz_tags(version: u8, data: &[u8], count: usize, limit: usize) -> Result<Vec<u8>, String> {
+    if version != 1 {
+        return decode_tags(data, count, limit);
     }
-    if output.len() != source_len
-        || literals_used != literal_count
-        || matches_used != match_count
-        || !literals.fully_consumed()
-    {
-        return Err("chained LZ decoded counts or length mismatch".into());
+    let mut pos = 0;
+    let tags = rank::decode_type_class(data, &mut pos, count)?;
+    if pos != data.len() {
+        return Err("unused chained LZ v1 tag bytes".into());
     }
-    Ok(output)
+    Ok(tags)
+}
+fn decode_lz_distances(
+    version: u8,
+    data: &[u8],
+    count: usize,
+    limit: usize,
+) -> Result<Vec<usize>, String> {
+    if version == 1 {
+        decode_distances_v1(data, count)
+    } else {
+        decode_distances_v3(data, count, limit)
+    }
+}
+fn decode_lz_tag(
+    tag: u8,
+    out: &mut Vec<u8>,
+    literals: &mut Literals,
+    lengths: &[usize],
+    distances: &[usize],
+    literals_used: &mut usize,
+    matches_used: &mut usize,
+    min_match: usize,
+    source_len: usize,
+) -> Result<(), String> {
+    match tag {
+        0 => {
+            out.push(literals.next(out)?);
+            *literals_used += 1;
+        }
+        1 => {
+            let encoded = *lengths
+                .get(*matches_used)
+                .ok_or("chained LZ match stream exhausted")?;
+            let distance = *distances
+                .get(*matches_used)
+                .ok_or("chained LZ distance stream exhausted")?;
+            *matches_used += 1;
+            if distance == 0 || distance > out.len() {
+                return Err("chained LZ distance before available history".into());
+            }
+            let length = encoded
+                .checked_add(min_match)
+                .ok_or("chained LZ match length overflow")?;
+            for _ in 0..length {
+                let value = out[out.len() - distance];
+                out.push(value);
+                if out.len() > source_len {
+                    return Err("chained LZ expands beyond source length".into());
+                }
+            }
+        }
+        _ => return Err("invalid chained LZ tag".into()),
+    }
+    Ok(())
 }
 
 fn encode_uints_raw(values: &[usize]) -> Vec<u8> {
@@ -1221,6 +1262,22 @@ mod tests {
             fs::write(directory.join(format!("{}.payload", *index)), payload).unwrap();
         }
         *index += 1;
+    }
+
+    #[test]
+    fn lz_substream_lengths_start_after_varints() {
+        let payloads = [vec![11], vec![22; 128], Vec::new(), vec![33; 257]];
+        for version in [1, 3] {
+            let mut data = vec![version, 3, 0, 0, 0];
+            for payload in &payloads {
+                put_var(payload.len(), &mut data);
+                data.extend_from_slice(payload);
+            }
+            let (_, _, _, _, _, streams) = parse_lz_streams(&data).unwrap();
+            assert_eq!(streams, payloads.iter().map(Vec::as_slice).collect::<Vec<_>>());
+            data.pop();
+            assert!(parse_lz_streams(&data).is_err());
+        }
     }
 
     #[test]

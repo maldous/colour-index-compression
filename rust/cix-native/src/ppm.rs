@@ -28,6 +28,39 @@ fn eligible(counts: &[(u8, u32)], excluded: &[bool; 256]) -> Vec<(u8, u32)> {
         .collect()
 }
 
+fn fallback_rank(symbol: u8, excluded: &[bool; 256]) -> Result<(usize, usize), String> {
+    let mut remaining = 0;
+    let mut rank = None;
+    for symbol_id in 0..256 {
+        if !excluded[symbol_id] {
+            if symbol_id == symbol as usize {
+                rank = Some(remaining);
+            }
+            remaining += 1;
+        }
+    }
+    rank.map(|rank| (rank, remaining))
+        .ok_or("PPM escape excluded source symbol".into())
+}
+
+fn decode_fallback(
+    decoder: &mut ArithmeticDecoder<'_>,
+    excluded: &[bool; 256],
+    empty_message: &'static str,
+    outside_message: &'static str,
+) -> Result<u8, String> {
+    let remaining = (0..=255)
+        .filter(|&value| !excluded[value as usize])
+        .collect::<Vec<_>>();
+    if remaining.is_empty() {
+        return Err(empty_message.into());
+    }
+    let target = decoder.target(remaining.len());
+    let value = *remaining.get(target).ok_or(outside_message)?;
+    decoder.update(target, target + 1, remaining.len());
+    Ok(value)
+}
+
 fn observe_from(
     tables: &mut Tables,
     history: &mut Vec<u8>,
@@ -319,17 +352,7 @@ fn encode_fixed_from_state(
             }
         }
         if !coded {
-            let mut remaining = 0usize;
-            let mut target_rank = None;
-            for symbol_id in 0..256 {
-                if !excluded[symbol_id] {
-                    if symbol_id == symbol as usize {
-                        target_rank = Some(remaining);
-                    }
-                    remaining += 1;
-                }
-            }
-            let rank = target_rank.ok_or("PPM escape excluded source symbol")?;
+            let (rank, remaining) = fallback_rank(symbol, &excluded)?;
             encoder.encode(rank, rank + 1, remaining);
         }
         observe_from(
@@ -404,17 +427,8 @@ pub fn encode_secondary(
             }
         }
         if !coded {
-            let mut remaining = 0usize;
-            let mut target_rank = None;
-            for symbol_id in 0..256 {
-                if !excluded[symbol_id] {
-                    if symbol_id == symbol as usize {
-                        target_rank = Some(remaining);
-                    }
-                    remaining += 1;
-                }
-            }
-            let rank = target_rank.ok_or("PPM SEE escape excluded source symbol")?;
+            let (rank, remaining) = fallback_rank(symbol, &excluded)
+                .map_err(|_| "PPM SEE escape excluded source symbol".to_owned())?;
             encoder.encode(rank, rank + 1, remaining);
         }
         observe_from(
@@ -657,18 +671,12 @@ pub fn decode_with_history(
         let value = if let Some(value) = symbol {
             value
         } else {
-            let remaining: Vec<u8> = (0..=255)
-                .filter(|&value| !excluded[value as usize])
-                .collect();
-            if remaining.is_empty() {
-                return Err("PPM fallback alphabet is empty".into());
-            }
-            let target = decoder.target(remaining.len());
-            let value = *remaining
-                .get(target)
-                .ok_or("PPM fallback target outside alphabet")?;
-            decoder.update(target, target + 1, remaining.len());
-            value
+            decode_fallback(
+                &mut decoder,
+                &excluded,
+                "PPM fallback alphabet is empty",
+                "PPM fallback target outside alphabet",
+            )?
         };
         out.push(value);
         observe_from(
@@ -747,18 +755,12 @@ fn decode_see(
         let value = if let Some(value) = symbol {
             value
         } else {
-            let remaining = (0..=255)
-                .filter(|&value| !excluded[value as usize])
-                .collect::<Vec<u8>>();
-            if remaining.is_empty() {
-                return Err("PPM SEE fallback alphabet is empty".into());
-            }
-            let target = decoder.target(remaining.len());
-            let value = *remaining
-                .get(target)
-                .ok_or("PPM SEE fallback target outside alphabet")?;
-            decoder.update(target, target + 1, remaining.len());
-            value
+            decode_fallback(
+                &mut decoder,
+                &excluded,
+                "PPM SEE fallback alphabet is empty",
+                "PPM SEE fallback target outside alphabet",
+            )?
         };
         out.push(value);
         observe_from(

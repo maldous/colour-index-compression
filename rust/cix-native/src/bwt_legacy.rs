@@ -106,6 +106,33 @@ impl<'a> BitReader<'a> {
     }
 }
 
+fn decode_wavelet_bit(
+    decoder: &mut ArithmeticDecoder<'_>,
+    zero: &mut usize,
+    one: &mut usize,
+    remaining: usize,
+) -> Result<u8, String> {
+    if *zero == 0 {
+        decoder.update(0, *one, remaining);
+        *one -= 1;
+        return Ok(1);
+    }
+    if *one == 0 {
+        decoder.update(0, *zero, remaining);
+        *zero -= 1;
+        return Ok(0);
+    }
+    if decoder.target(remaining) < *zero {
+        decoder.update(0, *zero, remaining);
+        *zero -= 1;
+        Ok(0)
+    } else {
+        decoder.update(*zero, remaining, remaining);
+        *one -= 1;
+        Ok(1)
+    }
+}
+
 fn decode_wavelet_node(
     n: usize,
     depth: usize,
@@ -128,26 +155,7 @@ fn decode_wavelet_node(
     let (mut one, mut zero, mut remaining) = (original_ones, original_zeros, n);
     let mut bits = Vec::with_capacity(n);
     for _ in 0..n {
-        let bit = if zero == 0 {
-            decoder.update(0, one, remaining);
-            one -= 1;
-            1
-        } else if one == 0 {
-            decoder.update(0, zero, remaining);
-            zero -= 1;
-            0
-        } else {
-            let target = decoder.target(remaining);
-            if target < zero {
-                decoder.update(0, zero, remaining);
-                zero -= 1;
-                0
-            } else {
-                decoder.update(zero, remaining, remaining);
-                one -= 1;
-                1
-            }
-        };
+        let bit = decode_wavelet_bit(decoder, &mut zero, &mut one, remaining)?;
         remaining -= 1;
         bits.push(bit);
     }
@@ -190,6 +198,147 @@ fn unzig(value: usize) -> i128 {
     }
 }
 
+fn bwt_sum_counts(values: &[usize]) -> Result<usize, String> {
+    values
+        .iter()
+        .try_fold(0usize, |sum, &value| sum.checked_add(value))
+        .ok_or("BWT count total overflow".into())
+}
+
+fn bwt_positive_delta(values: Vec<usize>) -> Result<Vec<usize>, String> {
+    let mut previous = 0i128;
+    values
+        .into_iter()
+        .map(|value| {
+            previous += unzig(value);
+            if previous <= 0 || previous > usize::MAX as i128 {
+                return Err("invalid BWT active count delta".into());
+            }
+            Ok(previous as usize)
+        })
+        .collect()
+}
+
+fn bwt_positive_centered(values: Vec<usize>, center: usize) -> Result<Vec<usize>, String> {
+    values
+        .into_iter()
+        .map(|value| {
+            let count = center as i128 + unzig(value);
+            if count <= 0 || count > usize::MAX as i128 {
+                return Err("invalid BWT centered active count".into());
+            }
+            Ok(count as usize)
+        })
+        .collect()
+}
+
+fn bwt_active_values(
+    mode: u8,
+    values: Vec<usize>,
+    total: usize,
+    active_count: usize,
+) -> Result<Vec<usize>, String> {
+    match mode {
+        0 => values
+            .into_iter()
+            .map(|value| value.checked_add(1).ok_or("BWT count overflow".into()))
+            .collect(),
+        1 => bwt_positive_delta(values),
+        4 => bwt_positive_centered(values, total / active_count),
+        _ => unreachable!(),
+    }
+}
+
+fn bwt_dense_delta(values: Vec<usize>) -> Result<Vec<usize>, String> {
+    let mut previous = 0i128;
+    values
+        .into_iter()
+        .map(|value| {
+            previous += unzig(value);
+            if previous < 0 || previous > usize::MAX as i128 {
+                return Err("negative BWT dense histogram count".into());
+            }
+            Ok(previous as usize)
+        })
+        .collect()
+}
+
+fn bwt_dense_centered(values: Vec<usize>, center: usize) -> Result<Vec<usize>, String> {
+    values
+        .into_iter()
+        .map(|value| {
+            let count = center as i128 + unzig(value);
+            if count < 0 || count > usize::MAX as i128 {
+                return Err("negative BWT centered histogram count".into());
+            }
+            Ok(count as usize)
+        })
+        .collect()
+}
+
+fn bwt_dense_values(mode: u8, values: Vec<usize>, total: usize) -> Result<Vec<usize>, String> {
+    match mode {
+        2 => Ok(values),
+        3 => bwt_dense_delta(values),
+        5 => bwt_dense_centered(values, total / 256),
+        _ => unreachable!(),
+    }
+}
+
+fn decode_active_histogram(
+    blob: &[u8],
+    pos: &mut usize,
+    mode: u8,
+    total: usize,
+    model_limit: usize,
+) -> Result<Vec<usize>, String> {
+    let active_count = read_varint(blob, pos)?;
+    if active_count == 0 || active_count > 256 || active_count > total {
+        return Err("invalid BWT active count alphabet".into());
+    }
+    let active = if active_count == 256 {
+        (0..256).collect()
+    } else {
+        rank::decode_colex_positions(blob, pos, 256, active_count)?
+    };
+    let mut first = bwt_active_values(
+        mode,
+        decode_uints(&blob[*pos..], active_count - 1, model_limit)?,
+        total,
+        active_count,
+    )?;
+    let used = bwt_sum_counts(&first)?;
+    let last = total
+        .checked_sub(used)
+        .ok_or("BWT histogram exceeds total")?;
+    if last == 0 {
+        return Err("zero implied BWT active count".into());
+    }
+    first.push(last);
+    let mut counts = vec![0usize; 256];
+    for (symbol, count) in active.into_iter().zip(first) {
+        counts[symbol] = count;
+    }
+    Ok(counts)
+}
+
+fn decode_dense_histogram(
+    blob: &[u8],
+    pos: usize,
+    mode: u8,
+    total: usize,
+    model_limit: usize,
+) -> Result<Vec<usize>, String> {
+    let mut first = bwt_dense_values(mode, decode_uints(&blob[pos..], 255, model_limit)?, total)?;
+    let used = bwt_sum_counts(&first)?;
+    first.push(
+        total
+            .checked_sub(used)
+            .ok_or("BWT dense histogram exceeds total")?,
+    );
+    Ok(first)
+}
+
 fn decode_histogram_counts(
     blob: &[u8],
     total: usize,
@@ -200,102 +349,11 @@ fn decode_histogram_counts(
     }
     let mode = blob[1];
     let mut pos = 2;
-    let mut counts = vec![0usize; 256];
-    if matches!(mode, 0 | 1 | 4) {
-        let active_count = read_varint(blob, &mut pos)?;
-        if active_count == 0 || active_count > 256 || active_count > total {
-            return Err("invalid BWT active count alphabet".into());
-        }
-        let active = if active_count == 256 {
-            (0..256).collect()
-        } else {
-            rank::decode_colex_positions(blob, &mut pos, 256, active_count)?
-        };
-        let encoded = decode_uints(&blob[pos..], active_count - 1, model_limit)?;
-        let mut first = Vec::with_capacity(active_count);
-        match mode {
-            0 => {
-                for value in encoded {
-                    first.push(value.checked_add(1).ok_or("BWT count overflow")?);
-                }
-            }
-            1 => {
-                let mut previous = 0i128;
-                for value in encoded {
-                    previous += unzig(value);
-                    if previous <= 0 || previous > usize::MAX as i128 {
-                        return Err("invalid BWT active count delta".into());
-                    }
-                    first.push(previous as usize);
-                }
-            }
-            4 => {
-                let center = total / active_count;
-                for value in encoded {
-                    let count = center as i128 + unzig(value);
-                    if count <= 0 || count > usize::MAX as i128 {
-                        return Err("invalid BWT centered active count".into());
-                    }
-                    first.push(count as usize);
-                }
-            }
-            _ => unreachable!(),
-        }
-        let used = first
-            .iter()
-            .try_fold(0usize, |sum, &value| sum.checked_add(value))
-            .ok_or("BWT count total overflow")?;
-        let last = total
-            .checked_sub(used)
-            .ok_or("BWT histogram exceeds total")?;
-        if last == 0 {
-            return Err("zero implied BWT active count".into());
-        }
-        first.push(last);
-        for (symbol, count) in active.into_iter().zip(first) {
-            counts[symbol] = count;
-        }
-        return Ok(counts);
+    match mode {
+        0 | 1 | 4 => decode_active_histogram(blob, &mut pos, mode, total, model_limit),
+        2 | 3 | 5 => decode_dense_histogram(blob, pos, mode, total, model_limit),
+        _ => Err(format!("unknown BWT count-vector mode {mode}")),
     }
-    if matches!(mode, 2 | 3 | 5) {
-        let encoded = decode_uints(&blob[pos..], 255, model_limit)?;
-        let mut first = Vec::with_capacity(256);
-        match mode {
-            2 => first = encoded,
-            3 => {
-                let mut previous = 0i128;
-                for value in encoded {
-                    previous += unzig(value);
-                    if previous < 0 || previous > usize::MAX as i128 {
-                        return Err("negative BWT dense histogram count".into());
-                    }
-                    first.push(previous as usize);
-                }
-            }
-            5 => {
-                let center = total / 256;
-                for value in encoded {
-                    let count = center as i128 + unzig(value);
-                    if count < 0 || count > usize::MAX as i128 {
-                        return Err("negative BWT centered histogram count".into());
-                    }
-                    first.push(count as usize);
-                }
-            }
-            _ => unreachable!(),
-        }
-        let used = first
-            .iter()
-            .try_fold(0usize, |sum, &value| sum.checked_add(value))
-            .ok_or("BWT count total overflow")?;
-        first.push(
-            total
-                .checked_sub(used)
-                .ok_or("BWT dense histogram exceeds total")?,
-        );
-        return Ok(first);
-    }
-    Err(format!("unknown BWT count-vector mode {mode}"))
 }
 
 fn decode_histogram(blob: &[u8], total: usize, model_limit: usize) -> Result<Vec<u8>, String> {
@@ -350,81 +408,93 @@ fn decode_bytes(blob: &[u8], count: usize, model_limit: usize) -> Result<Vec<u8>
     }
 }
 
+fn decode_raw_uints(blob: &[u8], count: usize) -> Result<Vec<usize>, String> {
+    let mut pos = 1;
+    let mut out = Vec::with_capacity(count);
+    for _ in 0..count {
+        out.push(read_varint(blob, &mut pos)?);
+    }
+    if pos != blob.len() {
+        return Err("trailing BWT integer varints".into());
+    }
+    Ok(out)
+}
+
+fn decode_rice_uints(blob: &[u8], count: usize) -> Result<Vec<usize>, String> {
+    let mut pos = 1;
+    let width = *blob.get(pos).ok_or("missing BWT Rice parameter")? as usize;
+    pos += 1;
+    if width >= usize::BITS as usize {
+        return Err("BWT Rice parameter too wide".into());
+    }
+    let mut reader = BitReader::new(&blob[pos..]);
+    let mut out = Vec::with_capacity(count);
+    for _ in 0..count {
+        let mut quotient = 0usize;
+        while reader.bit()? != 0 {
+            quotient = quotient
+                .checked_add(1)
+                .ok_or("BWT Rice quotient overflow")?;
+        }
+        let low = reader.bits(width)?;
+        out.push(
+            quotient
+                .checked_shl(width as u32)
+                .and_then(|value| value.checked_add(low))
+                .ok_or("BWT Rice value overflow")?,
+        );
+    }
+    Ok(out)
+}
+
+fn decode_class_uints(
+    blob: &[u8],
+    count: usize,
+    mode: u8,
+    model_limit: usize,
+) -> Result<Vec<usize>, String> {
+    let mut pos = 1;
+    let class_length = read_varint(blob, &mut pos)?;
+    let end = pos
+        .checked_add(class_length)
+        .ok_or("BWT integer class length overflow")?;
+    if end > blob.len() {
+        return Err("truncated BWT integer class stream".into());
+    }
+    let classes = if mode == 2 {
+        let mut class_pos = 0;
+        let values = rank::decode_type_class(&blob[pos..end], &mut class_pos, count)?;
+        if class_pos != class_length {
+            return Err("unused BWT integer class bytes".into());
+        }
+        values
+    } else {
+        decode_bytes(&blob[pos..end], count, model_limit)?
+    };
+    let mut reader = BitReader::new(&blob[end..]);
+    let mut out = Vec::with_capacity(count);
+    for width in classes {
+        let width = width as usize;
+        let low = reader.bits(width)?;
+        out.push(
+            (1usize << width)
+                .checked_add(low)
+                .and_then(|value| value.checked_sub(1))
+                .ok_or("BWT integer overflow")?,
+        );
+    }
+    Ok(out)
+}
+
 fn decode_uints(blob: &[u8], count: usize, model_limit: usize) -> Result<Vec<usize>, String> {
     if count == 0 {
         return Ok(Vec::new());
     }
-    let mode = *blob.first().ok_or("empty BWT integer stream")?;
-    let mut pos = 1;
-    match mode {
-        0 => {
-            let mut out = Vec::with_capacity(count);
-            for _ in 0..count {
-                out.push(read_varint(blob, &mut pos)?);
-            }
-            if pos != blob.len() {
-                return Err("trailing BWT integer varints".into());
-            }
-            Ok(out)
-        }
-        1 => {
-            let width = *blob.get(pos).ok_or("missing BWT Rice parameter")? as usize;
-            pos += 1;
-            if width >= usize::BITS as usize {
-                return Err("BWT Rice parameter too wide".into());
-            }
-            let mut reader = BitReader::new(&blob[pos..]);
-            let mut out = Vec::with_capacity(count);
-            for _ in 0..count {
-                let mut quotient = 0usize;
-                while reader.bit()? != 0 {
-                    quotient = quotient
-                        .checked_add(1)
-                        .ok_or("BWT Rice quotient overflow")?;
-                }
-                let low = reader.bits(width)?;
-                out.push(
-                    quotient
-                        .checked_shl(width as u32)
-                        .and_then(|value| value.checked_add(low))
-                        .ok_or("BWT Rice value overflow")?,
-                );
-            }
-            Ok(out)
-        }
-        2 | 3 => {
-            let class_length = read_varint(blob, &mut pos)?;
-            let end = pos
-                .checked_add(class_length)
-                .ok_or("BWT integer class length overflow")?;
-            if end > blob.len() {
-                return Err("truncated BWT integer class stream".into());
-            }
-            let classes = if mode == 2 {
-                let mut class_pos = 0;
-                let values = rank::decode_type_class(&blob[pos..end], &mut class_pos, count)?;
-                if class_pos != class_length {
-                    return Err("unused BWT integer class bytes".into());
-                }
-                values
-            } else {
-                decode_bytes(&blob[pos..end], count, model_limit)?
-            };
-            let mut reader = BitReader::new(&blob[end..]);
-            let mut out = Vec::with_capacity(count);
-            for width in classes {
-                let width = width as usize;
-                let low = reader.bits(width)?;
-                out.push(
-                    (1usize << width)
-                        .checked_add(low)
-                        .and_then(|value| value.checked_sub(1))
-                        .ok_or("BWT integer overflow")?,
-                );
-            }
-            Ok(out)
-        }
-        _ => Err(format!("unknown BWT integer stream mode {mode}")),
+    match *blob.first().ok_or("empty BWT integer stream")? {
+        0 => decode_raw_uints(blob, count),
+        1 => decode_rice_uints(blob, count),
+        mode @ (2 | 3) => decode_class_uints(blob, count, mode, model_limit),
+        mode => Err(format!("unknown BWT integer stream mode {mode}")),
     }
 }
 
@@ -503,6 +573,31 @@ fn join_zero_runs(
     Ok(out)
 }
 
+fn decode_runa_zero_run(tokens: &[u8], pos: &mut usize) -> Result<usize, String> {
+    let mut value = 0usize;
+    let mut weight = 1usize;
+    while *pos < tokens.len() && tokens[*pos] <= 1 {
+        let factor = if tokens[*pos] == 0 { 1 } else { 2 };
+        value = value
+            .checked_add(weight.checked_mul(factor).ok_or("BWT run overflow")?)
+            .ok_or("BWT run overflow")?;
+        weight = weight.checked_mul(2).ok_or("BWT run overflow")?;
+        *pos += 1;
+    }
+    Ok(value)
+}
+
+fn decode_runa_literal(token: u8, side_bits: &[usize], side_pos: &mut usize) -> Result<u8, String> {
+    if token < 255 {
+        return Ok(token - 1);
+    }
+    let side = *side_bits
+        .get(*side_pos)
+        .ok_or("BWT RUNA/RUNB side stream exhausted")?;
+    *side_pos += 1;
+    Ok(254 + side as u8)
+}
+
 fn decode_runa_runb(
     tokens: &[u8],
     side_bits: &[usize],
@@ -513,16 +608,7 @@ fn decode_runa_runb(
     while pos < tokens.len() {
         let token = tokens[pos];
         if token <= 1 {
-            let mut value = 0usize;
-            let mut weight = 1usize;
-            while pos < tokens.len() && tokens[pos] <= 1 {
-                let factor = if tokens[pos] == 0 { 1 } else { 2 };
-                value = value
-                    .checked_add(weight.checked_mul(factor).ok_or("BWT run overflow")?)
-                    .ok_or("BWT run overflow")?;
-                weight = weight.checked_mul(2).ok_or("BWT run overflow")?;
-                pos += 1;
-            }
+            let value = decode_runa_zero_run(tokens, &mut pos)?;
             let end = out
                 .len()
                 .checked_add(value)
@@ -531,15 +617,7 @@ fn decode_runa_runb(
             out.resize(end, 0);
             continue;
         }
-        if token < 255 {
-            out.push(token - 1);
-        } else {
-            let side = *side_bits
-                .get(side_pos)
-                .ok_or("BWT RUNA/RUNB side stream exhausted")?;
-            out.push(254 + side as u8);
-            side_pos += 1;
-        }
+        out.push(decode_runa_literal(token, side_bits, &mut side_pos)?);
         if out.len() > source_length {
             return Err("BWT RUNA/RUNB transformed length mismatch".into());
         }
@@ -663,6 +741,48 @@ fn big_log2(value: &BigUint) -> f64 {
     shift as f64 + (top as f64).log2()
 }
 
+fn suffix_rank_pair(ranks: &[i64], index: usize, width: usize) -> (i64, i64) {
+    (
+        ranks[index],
+        ranks.get(index + width).copied().unwrap_or(-1),
+    )
+}
+
+fn advance_suffix_ranks(suffixes: &[usize], ranks: &[i64], width: usize) -> Vec<i64> {
+    let mut next = vec![0i64; ranks.len()];
+    let mut class = 0i64;
+    let mut previous = None;
+    for &index in suffixes {
+        let pair = suffix_rank_pair(ranks, index, width);
+        if previous.is_some() && previous != Some(pair) {
+            class += 1;
+        }
+        next[index] = class;
+        previous = Some(pair);
+    }
+    next
+}
+
+fn bwt_output(data: &[u8], suffixes: &[usize]) -> Result<(usize, Vec<u8>), String> {
+    let primary = suffixes
+        .iter()
+        .position(|&index| index == 0)
+        .ok_or("BWT suffix array omitted source start")?
+        + 1;
+    let mut transformed = Vec::with_capacity(data.len());
+    transformed.push(data[data.len() - 1]);
+    transformed.extend(
+        suffixes
+            .iter()
+            .filter(|&&index| index > 0)
+            .map(|&index| data[index - 1]),
+    );
+    if transformed.len() != data.len() {
+        return Err("invalid BWT transform size".into());
+    }
+    Ok((primary, transformed))
+}
+
 fn bwt_transform(data: &[u8]) -> Result<(usize, Vec<u8>), String> {
     let n = data.len();
     if n == 0 {
@@ -672,56 +792,14 @@ fn bwt_transform(data: &[u8]) -> Result<(usize, Vec<u8>), String> {
     let mut ranks: Vec<i64> = data.iter().map(|&byte| byte as i64).collect();
     let mut width = 1usize;
     loop {
-        suffixes.sort_unstable_by_key(|&index| {
-            (
-                ranks[index],
-                if index + width < n {
-                    ranks[index + width]
-                } else {
-                    -1
-                },
-            )
-        });
-        let mut next = vec![0i64; n];
-        let mut class = 0i64;
-        let mut previous = None;
-        for &index in &suffixes {
-            let pair = (
-                ranks[index],
-                if index + width < n {
-                    ranks[index + width]
-                } else {
-                    -1
-                },
-            );
-            if previous.is_some() && previous != Some(pair) {
-                class += 1;
-            }
-            next[index] = class;
-            previous = Some(pair);
-        }
-        ranks = next;
-        if class as usize == n - 1 {
+        suffixes.sort_unstable_by_key(|&index| suffix_rank_pair(&ranks, index, width));
+        ranks = advance_suffix_ranks(&suffixes, &ranks, width);
+        if ranks.iter().copied().max() == Some((n - 1) as i64) {
             break;
         }
         width = width.checked_mul(2).ok_or("BWT suffix width overflow")?;
     }
-    let primary = suffixes
-        .iter()
-        .position(|&index| index == 0)
-        .ok_or("BWT suffix array omitted source start")?
-        + 1;
-    let mut transformed = Vec::with_capacity(n);
-    transformed.push(data[n - 1]);
-    for &index in &suffixes {
-        if index > 0 {
-            transformed.push(data[index - 1]);
-        }
-    }
-    if transformed.len() != n {
-        return Err("invalid BWT transform size".into());
-    }
-    Ok((primary, transformed))
+    bwt_output(data, &suffixes)
 }
 
 fn mtf_encode(data: &[u8]) -> Vec<u8> {
@@ -1096,22 +1174,15 @@ fn encode_count_vector(counts: &[usize; 256]) -> Result<Vec<u8>, String> {
     Ok(candidates.remove(0).1)
 }
 
-fn histogram_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option<Vec<u8>>, String> {
-    if data.len() < 512 {
-        return Ok(None);
-    }
+fn bwt_counts(data: &[u8]) -> [usize; 256] {
     let mut counts = [0usize; 256];
     for &value in data {
         counts[value as usize] += 1;
     }
-    let active: Vec<usize> = counts
-        .iter()
-        .enumerate()
-        .filter_map(|(symbol, &count)| (count > 0).then_some(symbol))
-        .collect();
-    if active.len() < 2 {
-        return Ok(None);
-    }
+    counts
+}
+
+fn bwt_histogram_header_size(total: usize, active: &[usize]) -> usize {
     let mut header_size = {
         let mut encoded = Vec::new();
         put_varint(active.len(), &mut encoded);
@@ -1120,8 +1191,24 @@ fn histogram_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option<Vec<u8>>,
     if active.len() < 256 {
         header_size += fixed_width(&(choose(256, active.len()) - BigUint::one())).div_ceil(8);
     }
-    header_size +=
-        fixed_width(&(choose(data.len() - 1, active.len() - 1) - BigUint::one())).div_ceil(8);
+    header_size += fixed_width(&(choose(total - 1, active.len() - 1) - BigUint::one())).div_ceil(8);
+    header_size
+}
+
+fn histogram_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option<Vec<u8>>, String> {
+    if data.len() < 512 {
+        return Ok(None);
+    }
+    let counts = bwt_counts(data);
+    let active: Vec<usize> = counts
+        .iter()
+        .enumerate()
+        .filter_map(|(symbol, &count)| (count > 0).then_some(symbol))
+        .collect();
+    if active.len() < 2 {
+        return Ok(None);
+    }
+    let header_size = bwt_histogram_header_size(data.len(), &active);
     if header_size < 64 || header_size > incumbent.len() {
         return Ok(None);
     }
@@ -1267,6 +1354,26 @@ fn pack_stream_variant(
     out
 }
 
+fn push_runa_zero(tokens: &mut Vec<u8>, value: usize) {
+    let mut value = value;
+    loop {
+        tokens.push(if value & 1 == 0 { 0 } else { 1 });
+        if value < 2 {
+            return;
+        }
+        value = (value - 2) / 2;
+    }
+}
+
+fn push_runa_nonzero(tokens: &mut Vec<u8>, side_bits: &mut Vec<usize>, rank: u8) {
+    if rank <= 253 {
+        tokens.push(rank + 1);
+    } else {
+        tokens.push(255);
+        side_bits.push((rank - 254) as usize);
+    }
+}
+
 fn runa_runb_tokens(mtf: &[u8]) -> (Vec<u8>, Vec<usize>) {
     let (mut tokens, mut side_bits) = (Vec::new(), Vec::new());
     let mut position = 0usize;
@@ -1276,24 +1383,11 @@ fn runa_runb_tokens(mtf: &[u8]) -> (Vec<u8>, Vec<usize>) {
             while stop < mtf.len() && mtf[stop] == 0 {
                 stop += 1;
             }
-            let mut value = stop - position - 1;
-            loop {
-                tokens.push(if value & 1 == 0 { 0 } else { 1 });
-                if value < 2 {
-                    break;
-                }
-                value = (value - 2) / 2;
-            }
+            push_runa_zero(&mut tokens, stop - position - 1);
             position = stop;
             continue;
         }
-        let rank = mtf[position];
-        if rank <= 253 {
-            tokens.push(rank + 1);
-        } else {
-            tokens.push(255);
-            side_bits.push((rank - 254) as usize);
-        }
+        push_runa_nonzero(&mut tokens, &mut side_bits, mtf[position]);
         position += 1;
     }
     (tokens, side_bits)
@@ -1522,18 +1616,22 @@ fn decode_legacy_nonzero(
     }
     match stream.first() {
         Some(0) => decode_bytes(&stream[1..], count, model_limit),
-        Some(1) => decode_uints(&stream[1..], count, model_limit)?
-            .into_iter()
-            .map(|value| {
-                if value > 254 {
-                    return Err("BWT MTF rank outside byte range".into());
-                }
-                Ok((value + 1) as u8)
-            })
-            .collect(),
+        Some(1) => decode_mtf_ranks(decode_uints(&stream[1..], count, model_limit)?),
         Some(_) => Err("unknown BWT nonzero stream mode".into()),
         None => Err("missing BWT nonzero stream mode".into()),
     }
+}
+
+fn decode_mtf_ranks(values: Vec<usize>) -> Result<Vec<u8>, String> {
+    values
+        .into_iter()
+        .map(|value| {
+            if value > 254 {
+                return Err("BWT MTF rank outside byte range".into());
+            }
+            Ok((value + 1) as u8)
+        })
+        .collect()
 }
 
 fn decode_legacy_payload(
@@ -1617,7 +1715,7 @@ mod tests {
             );
         }
     }
-    use super::decode;
+    use super::{decode, decode_mtf_ranks};
     use std::path::PathBuf;
 
     #[test]
@@ -1650,6 +1748,20 @@ mod tests {
         assert!(decode(&[], 0, 16).is_err());
         assert!(decode(&[7], 0, 16).is_err());
         assert!(decode(&[5, 1], 1, 16).is_err());
+    }
+
+    #[test]
+    fn rejects_mtf_uint_overflow_before_conversion() {
+        assert!(decode_mtf_ranks(vec![255]).is_err());
+        assert!(decode_mtf_ranks(vec![usize::MAX]).is_err());
+    }
+
+    #[test]
+    fn legacy_round_trip_after_helper_extraction() {
+        let source =
+            b"legacy bwt helper extraction round trip; legacy bwt helper extraction round trip";
+        let (payload, _) = super::encode(source).unwrap();
+        assert_eq!(decode(&payload, source.len(), 1 << 16).unwrap(), source);
     }
 
     #[test]
