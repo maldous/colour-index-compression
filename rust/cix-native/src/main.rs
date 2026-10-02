@@ -2420,8 +2420,6 @@ fn encode_m6<R: Read, W: Write>(
         } else {
             budget_skips.insert(13);
         }
-        drop(consider);
-
         let mut frame = vec![best_mode];
         put_varint(got, &mut frame);
         put_varint(best_payload.len(), &mut frame);
@@ -3898,6 +3896,13 @@ impl Write for SquashWriter {
     }
 }
 #[no_mangle]
+/// Adapts CIX's bounded stream encoder and decoder to the Squash callback ABI.
+///
+/// # Safety
+/// `read_cb` and `write_cb`, when supplied, must be valid callbacks for the
+/// duration of this call. `user` must be a pointer that both callbacks accept;
+/// CIX never dereferences it itself. Callbacks must uphold their documented
+/// buffer and length contracts and must not unwind through this FFI boundary.
 pub unsafe extern "C" fn cix_squash_splice(
     direction: i32,
     level: i32,
@@ -4118,6 +4123,75 @@ fn encode_automatic_persistent_stream<R: Read, W: Write>(
         explain,
         verbose,
     )
+}
+
+/// Execute the selected encoder after option validation. Keeping this dispatch
+/// separate from filesystem handling means stdout and atomic-file output use
+/// precisely the same encoder selection rules.
+fn encode_selected<R: Read, W: Write>(
+    o: &Opt,
+    src: R,
+    dst: W,
+    block: u32,
+    forced: Option<&str>,
+    input_fd: i32,
+    automatic_best: bool,
+    automatic_persistent_best: bool,
+) -> Result<(), String> {
+    if automatic_best {
+        return portfolio_auto::encode(o, dst);
+    }
+    if o.format == "cixm6" || o.format == "cixf1" {
+        let name = cixm6_file_name(o)?;
+        return encode_m6(src, dst, block as usize, name, o.level, o.memory);
+    }
+    if let Some(profile) = o.portfolio.as_deref() {
+        return encode_portfolio(src, dst, profile, o.memory);
+    }
+    if let Some(backend) = o.external_backend.as_deref() {
+        return encode_external(src, dst, backend, &o.profile, o.memory);
+    }
+    if automatic_persistent_best {
+        return encode_automatic_persistent_stream(
+            src,
+            dst,
+            block,
+            input_fd,
+            o.flush_interval,
+            o.memory,
+            o.threads,
+            o.explain,
+            o.verbose,
+        );
+    }
+    encode_with_strategy(
+        src,
+        dst,
+        block,
+        o.level,
+        forced,
+        &o.backend,
+        o.backend_set,
+        &o.format,
+        input_fd,
+        o.flush_interval,
+        o.memory,
+        o.threads,
+        o.explain,
+        o.verbose,
+        &o.parallelism,
+    )
+}
+
+fn cixm6_file_name(o: &Opt) -> Result<Option<&str>, String> {
+    if o.format != "cixf1" {
+        return Ok(None);
+    }
+    Path::new(&o.input)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(Some)
+        .ok_or_else(|| "input basename is not valid UTF-8".into())
 }
 
 fn run() -> Result<(), String> {
@@ -4383,58 +4457,16 @@ fn run() -> Result<(), String> {
         let mut lock = stdout_writer::StdoutWriter::new().map_err(ioerr)?;
         if o.decode {
             decode(src, &mut lock, false, false, fd, o.memory)
-        } else if automatic_best {
-            portfolio_auto::encode(&o, &mut lock)
-        } else if o.format == "cixm6" || o.format == "cixf1" {
-            let name = if o.format == "cixf1" {
-                Path::new(&o.input)
-                    .file_name()
-                    .and_then(|s| s.to_str())
-                    .ok_or("input basename is not valid UTF-8")?
-            } else {
-                ""
-            };
-            encode_m6(
-                src,
-                &mut lock,
-                block as usize,
-                (o.format == "cixf1").then_some(name),
-                o.level,
-                o.memory,
-            )
-        } else if let Some(profile) = o.portfolio.as_deref() {
-            encode_portfolio(src, &mut lock, profile, o.memory)
-        } else if let Some(backend) = o.external_backend.as_deref() {
-            encode_external(src, &mut lock, backend, &o.profile, o.memory)
-        } else if automatic_persistent_best {
-            encode_automatic_persistent_stream(
-                src,
-                &mut lock,
-                block,
-                fd,
-                o.flush_interval,
-                o.memory,
-                o.threads,
-                o.explain,
-                o.verbose,
-            )
         } else {
-            encode_with_strategy(
+            encode_selected(
+                &o,
                 src,
                 &mut lock,
                 block,
-                o.level,
                 forced,
-                &o.backend,
-                o.backend_set,
-                &o.format,
                 fd,
-                o.flush_interval,
-                o.memory,
-                o.threads,
-                o.explain,
-                o.verbose,
-                &o.parallelism,
+                automatic_best,
+                automatic_persistent_best,
             )
         }?
     } else {
@@ -4446,58 +4478,16 @@ fn run() -> Result<(), String> {
             let fd = input_fd(&src);
             if o.decode {
                 decode(src, dst, false, false, fd, o.memory)
-            } else if automatic_best {
-                portfolio_auto::encode(&o, dst)
-            } else if o.format == "cixm6" || o.format == "cixf1" {
-                let name = if o.format == "cixf1" {
-                    Path::new(&o.input)
-                        .file_name()
-                        .and_then(|s| s.to_str())
-                        .ok_or("input basename is not valid UTF-8")?
-                } else {
-                    ""
-                };
-                encode_m6(
-                    src,
-                    dst,
-                    block as usize,
-                    (o.format == "cixf1").then_some(name),
-                    o.level,
-                    o.memory,
-                )
-            } else if let Some(profile) = o.portfolio.as_deref() {
-                encode_portfolio(src, dst, profile, o.memory)
-            } else if let Some(backend) = o.external_backend.as_deref() {
-                encode_external(src, dst, backend, &o.profile, o.memory)
-            } else if automatic_persistent_best {
-                encode_automatic_persistent_stream(
-                    src,
-                    dst,
-                    block,
-                    fd,
-                    o.flush_interval,
-                    o.memory,
-                    o.threads,
-                    o.explain,
-                    o.verbose,
-                )
             } else {
-                encode_with_strategy(
+                encode_selected(
+                    &o,
                     src,
                     dst,
                     block,
-                    o.level,
                     forced,
-                    &o.backend,
-                    o.backend_set,
-                    &o.format,
                     fd,
-                    o.flush_interval,
-                    o.memory,
-                    o.threads,
-                    o.explain,
-                    o.verbose,
-                    &o.parallelism,
+                    automatic_best,
+                    automatic_persistent_best,
                 )
             }
         })?;

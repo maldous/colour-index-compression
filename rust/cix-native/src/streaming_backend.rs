@@ -452,6 +452,207 @@ fn write_reset<W: Write>(
     Ok(())
 }
 
+struct StreamTotals {
+    whole: Sha256,
+    total: u64,
+    frames: u64,
+}
+
+impl StreamTotals {
+    fn new() -> Self {
+        Self {
+            whole: Sha256::new(),
+            total: 0,
+            frames: 0,
+        }
+    }
+
+    fn record(&mut self, data: &[u8]) -> Result<(), String> {
+        self.whole.update(data);
+        self.total = self
+            .total
+            .checked_add(data.len() as u64)
+            .ok_or("input length overflow")?;
+        self.frames += 1;
+        Ok(())
+    }
+}
+
+struct RegionCandidates {
+    native: Option<Vec<u8>>,
+    native_omission: Option<String>,
+    zstd_payload: Vec<u8>,
+}
+
+fn prepare_region_candidates(
+    data: &[u8],
+    block: u32,
+    level: u8,
+    memory: usize,
+    workers: usize,
+    compressors: &mut Option<(Compressor, Compressor)>,
+) -> Result<RegionCandidates, String> {
+    let native_budget = memory.checked_sub(
+        native_memory()?
+            .saturating_mul(2)
+            .saturating_add((block as usize).saturating_mul(12))
+            .saturating_add(STREAM_SLACK.saturating_mul(2)),
+    );
+    let (native, native_omission) = match native_budget {
+        Some(budget) => match native_cixg_candidate(data, budget, workers) {
+            Ok(candidate) => (Some(candidate), None),
+            Err(error) if resource_omission(&error) => (None, Some(error)),
+            Err(error) => return Err(error),
+        },
+        None => (
+            None,
+            Some("CIXG candidate omitted: stream reservation exhausts --memory".into()),
+        ),
+    };
+    if compressors.is_none() {
+        *compressors = Some((
+            Compressor::new(level_for(level))?,
+            Compressor::new(level_for(level))?,
+        ));
+    }
+    Ok(RegionCandidates {
+        native,
+        native_omission,
+        zstd_payload: compressors
+            .as_mut()
+            .expect("stream contexts initialized")
+            .0
+            .flush(data)?,
+    })
+}
+
+fn select_region_route(data_len: usize, candidates: &RegionCandidates, active: bool) -> u8 {
+    let reset = active
+        .then_some(FRAME_PREFIX_COST.saturating_add(FINALIZATION_COST))
+        .unwrap_or(0);
+    let native_len = candidates
+        .native
+        .as_ref()
+        .map_or(usize::MAX, |payload| payload.len().saturating_add(reset));
+    let raw_len = data_len.saturating_add(reset);
+    let zstd_len = candidates
+        .zstd_payload
+        .len()
+        .saturating_add(FINALIZATION_COST);
+    if zstd_len <= raw_len && zstd_len <= native_len {
+        ROUTE_ZSTD
+    } else if native_len <= raw_len {
+        ROUTE_CIXG
+    } else {
+        ROUTE_RAW
+    }
+}
+
+fn explain_region(data_len: usize, candidates: &RegionCandidates, active: bool, selected: u8) {
+    let reset = active
+        .then_some(FRAME_PREFIX_COST.saturating_add(FINALIZATION_COST))
+        .unwrap_or(0);
+    let native = candidates.native.as_ref().map_or_else(
+        || {
+            format!(
+                "omitted:{}",
+                candidates.native_omission.as_deref().unwrap_or("unknown")
+            )
+        },
+        |payload| format!("{}B", payload.len().saturating_add(reset)),
+    );
+    eprintln!(
+        "cix: CIXZ1 region source={} candidates=[raw:{}B,zstd-persistent:{}B,cixg:{}] transition_allowance={}B selected={}",
+        data_len, data_len.saturating_add(reset), candidates.zstd_payload.len().saturating_add(FINALIZATION_COST), native, reset,
+        match selected { ROUTE_ZSTD => "zstd-persistent", ROUTE_CIXG => "cixg2", _ => "raw" },
+    );
+}
+
+fn emit_frame<W: Write>(
+    dst: &mut W,
+    route: u8,
+    source: &[u8],
+    payload: &[u8],
+) -> Result<(), String> {
+    let hash: [u8; 32] = Sha256::digest(source).into();
+    put_frame(
+        dst,
+        route,
+        u32::try_from(source.len()).map_err(|_| "source block overflow")?,
+        u32::try_from(payload.len()).map_err(|_| "payload block overflow")?,
+        &hash,
+    )
+    .map_err(ioerr)?;
+    dst.write_all(payload).map_err(ioerr)?;
+    dst.flush().map_err(ioerr)
+}
+
+fn emit_selected_region<W: Write>(
+    dst: &mut W,
+    data: &[u8],
+    candidates: RegionCandidates,
+    selected: u8,
+    compressors: &mut Option<(Compressor, Compressor)>,
+    active: &mut bool,
+) -> Result<(), String> {
+    match selected {
+        ROUTE_RAW => {
+            write_reset(dst, compressors, active)?;
+            emit_frame(dst, ROUTE_RAW, data, data)
+        }
+        ROUTE_CIXG => {
+            write_reset(dst, compressors, active)?;
+            let payload = candidates
+                .native
+                .expect("selected native candidate is present");
+            if payload.len() > data.len().saturating_mul(8).saturating_add(8192) {
+                return Err("nested CIXG candidate exceeds bounded frame allowance".into());
+            }
+            emit_frame(dst, ROUTE_CIXG, data, &payload)
+        }
+        ROUTE_ZSTD => {
+            if candidates.zstd_payload.len() > data.len().saturating_add(STREAM_SLACK) {
+                return Err("zstd streaming payload exceeds bounded frame allowance".into());
+            }
+            // Release the losing nested archive before duplicating the zstd payload.
+            drop(candidates.native);
+            let confirmation = compressors
+                .as_mut()
+                .expect("stream contexts initialized")
+                .1
+                .flush(data)?;
+            if confirmation != candidates.zstd_payload {
+                return Err("zstd duplicate persistent contexts diverged".into());
+            }
+            *active = true;
+            emit_frame(dst, ROUTE_ZSTD, data, &candidates.zstd_payload)
+        }
+        _ => Err("invalid selected CIXZ1 route".into()),
+    }
+}
+
+fn encode_region<W: Write>(
+    dst: &mut W,
+    data: &[u8],
+    block: u32,
+    level: u8,
+    memory: usize,
+    workers: usize,
+    compressors: &mut Option<(Compressor, Compressor)>,
+    active: &mut bool,
+    totals: &mut StreamTotals,
+    explain: bool,
+) -> Result<(), String> {
+    let was_active = *active;
+    let candidates = prepare_region_candidates(data, block, level, memory, workers, compressors)?;
+    let selected = select_region_route(data.len(), &candidates, was_active);
+    if explain {
+        explain_region(data.len(), &candidates, was_active, selected);
+    }
+    emit_selected_region(dst, data, candidates, selected, compressors, active)?;
+    totals.record(data)
+}
+
 /// Encode a selected persistent zstd CIXZ1 stream. This function does not
 /// choose the route: its caller must have made a bounded probe first.
 pub(super) fn encode<R: Read, W: Write>(
@@ -471,172 +672,44 @@ pub(super) fn encode<R: Read, W: Write>(
     if required_memory(block) > memory {
         return Err("persistent zstd stream exceeds --memory".into());
     }
-    let mut compressors: Option<(Compressor, Compressor)> = None;
-    let mut active_zstd_segment = false;
     dst.write_all(MAGIC).map_err(ioerr)?;
     dst.write_all(&block.to_le_bytes()).map_err(ioerr)?;
     dst.write_all(&0u32.to_le_bytes()).map_err(ioerr)?;
-    let mut whole = Sha256::new();
-    let mut total = 0u64;
-    let mut frames = 0u64;
+    let mut compressors = None;
+    let mut active_zstd_segment = false;
+    let mut totals = StreamTotals::new();
     let mut next = Some((first, first_eof));
     loop {
         let (data, eof) = match next.take() {
             Some(value) => value,
             None => read_block(&mut src, block as usize, input_fd, flush_interval)?,
         };
-        if data.is_empty() {
-            if eof {
-                break;
-            }
-            continue;
-        }
-        let native_state = native_memory()?;
-        // `read_block` retains its allocation at the configured block size
-        // after an idle flush.  Reserve against that capacity, rather than
-        // the short logical frame, before admitting a nested encoder.
-        let block_reservation = block as usize;
-        let native_budget = memory.checked_sub(
-            native_state
-                .saturating_mul(2)
-                .saturating_add(block_reservation.saturating_mul(12))
-                .saturating_add(STREAM_SLACK.saturating_mul(2)),
-        );
-        let (native, native_omission) = match native_budget {
-            None => (
-                None,
-                Some("CIXG candidate omitted: stream reservation exhausts --memory".into()),
-            ),
-            Some(nested_memory) => match native_cixg_candidate(&data, nested_memory, workers) {
-                Ok(candidate) => (Some(candidate), None),
-                Err(error) if resource_omission(&error) => (None, Some(error)),
-                Err(error) => return Err(error),
-            },
-        };
-        // Keep two contexts in the same committed state. One materialises the
-        // candidate; the other is advanced only after zstd wins. This is a
-        // supported state-preservation scheme, unlike copying an active zstd
-        // stream context.
-        let had_active_zstd = active_zstd_segment;
-        if compressors.is_none() {
-            compressors = Some((
-                Compressor::new(level_for(level))?,
-                Compressor::new(level_for(level))?,
-            ));
-        }
-        let zstd_payload = compressors.as_mut().unwrap().0.flush(&data)?;
-        let reset_allowance = had_active_zstd
-            .then_some(FRAME_PREFIX_COST.saturating_add(FINALIZATION_COST))
-            .unwrap_or(0);
-        let native_len = native.as_ref().map_or(usize::MAX, |payload| {
-            payload.len().saturating_add(reset_allowance)
-        });
-        let raw_len = data.len().saturating_add(reset_allowance);
-        let zstd_cost = zstd_payload.len().saturating_add(FINALIZATION_COST);
-        let selected = if zstd_cost <= raw_len && zstd_cost <= native_len {
-            ROUTE_ZSTD
-        } else if native_len <= raw_len {
-            ROUTE_CIXG
-        } else {
-            ROUTE_RAW
-        };
-        if explain {
-            eprintln!(
-                "cix: CIXZ1 region source={} candidates=[raw:{}B,zstd-persistent:{}B,cixg:{}] transition_allowance={}B selected={}",
-                data.len(), raw_len, zstd_cost, native.as_ref().map_or_else(|| format!("omitted:{}", native_omission.as_deref().unwrap_or("unknown")), |v| format!("{}B", v.len().saturating_add(reset_allowance))), reset_allowance,
-                match selected { ROUTE_ZSTD => "zstd-persistent", ROUTE_CIXG => "cixg2", _ => "raw" }
-            );
-        }
-        if selected == ROUTE_RAW {
-            write_reset(&mut dst, &mut compressors, &mut active_zstd_segment)?;
-            let hash: [u8; 32] = Sha256::digest(&data).into();
-            put_frame(
+        if !data.is_empty() {
+            encode_region(
                 &mut dst,
-                ROUTE_RAW,
-                u32::try_from(data.len()).map_err(|_| "raw source block overflow")?,
-                u32::try_from(data.len()).map_err(|_| "raw payload block overflow")?,
-                &hash,
-            )
-            .map_err(ioerr)?;
-            dst.write_all(&data).map_err(ioerr)?;
-            dst.flush().map_err(ioerr)?;
-            whole.update(&data);
-            total = total
-                .checked_add(data.len() as u64)
-                .ok_or("input length overflow")?;
-            frames += 1;
-            if eof {
-                break;
-            }
-            continue;
+                &data,
+                block,
+                level,
+                memory,
+                workers,
+                &mut compressors,
+                &mut active_zstd_segment,
+                &mut totals,
+                explain,
+            )?;
         }
-        if selected == ROUTE_CIXG {
-            write_reset(&mut dst, &mut compressors, &mut active_zstd_segment)?;
-            let payload = native.expect("selected native candidate is present");
-            if payload.len() > data.len().saturating_mul(8).saturating_add(8192) {
-                return Err("nested CIXG candidate exceeds bounded frame allowance".into());
-            }
-            let hash: [u8; 32] = Sha256::digest(&data).into();
-            put_frame(
-                &mut dst,
-                ROUTE_CIXG,
-                u32::try_from(data.len()).map_err(|_| "CIXG source block overflow")?,
-                u32::try_from(payload.len()).map_err(|_| "CIXG payload block overflow")?,
-                &hash,
-            )
-            .map_err(ioerr)?;
-            dst.write_all(&payload).map_err(ioerr)?;
-            dst.flush().map_err(ioerr)?;
-            whole.update(&data);
-            total = total
-                .checked_add(data.len() as u64)
-                .ok_or("input length overflow")?;
-            frames += 1;
-            if eof {
-                break;
-            }
-            continue;
-        }
-        if zstd_payload.len() > data.len().saturating_add(STREAM_SLACK) {
-            return Err("zstd streaming payload exceeds bounded frame allowance".into());
-        }
-        // The native archive lost this comparison; release it before the
-        // second zstd payload is materialised for state confirmation.
-        drop(native);
-        let confirmation = compressors.as_mut().unwrap().1.flush(&data)?;
-        if confirmation != zstd_payload {
-            return Err("zstd duplicate persistent contexts diverged".into());
-        }
-        active_zstd_segment = true;
-        let hash: [u8; 32] = Sha256::digest(&data).into();
-        put_frame(
-            &mut dst,
-            ROUTE_ZSTD,
-            u32::try_from(data.len()).map_err(|_| "zstd source block overflow")?,
-            u32::try_from(zstd_payload.len()).map_err(|_| "zstd payload block overflow")?,
-            &hash,
-        )
-        .map_err(ioerr)?;
-        dst.write_all(&zstd_payload).map_err(ioerr)?;
-        dst.flush().map_err(ioerr)?;
-        whole.update(&data);
-        total = total
-            .checked_add(data.len() as u64)
-            .ok_or("input length overflow")?;
-        frames += 1;
         if eof {
             break;
         }
     }
     let tail = match compressors {
         Some((mut compressor, _)) if active_zstd_segment => compressor.finish()?,
-        None => Vec::new(),
-        Some(_) => Vec::new(),
+        _ => Vec::new(),
     };
     if tail.len() > STREAM_SLACK {
         return Err("zstd stream footer exceeds bounded allowance".into());
     }
-    let hash: [u8; 32] = whole.finalize().into();
+    let hash: [u8; 32] = totals.whole.finalize().into();
     put_frame(
         &mut dst,
         END,
@@ -648,10 +721,8 @@ pub(super) fn encode<R: Read, W: Write>(
     dst.write_all(&tail).map_err(ioerr)?;
     dst.flush().map_err(ioerr)?;
     if verbose {
-        eprintln!(
-            "cix: effort={} format=CIXZ1 backend=zstd-persistent frames={} source_bytes={} zstd_workers=1 native_candidate_workers={} memory_reservation={}",
-            effort_display_name(level), frames, total, workers, required_memory(block)
-        );
+        eprintln!("cix: effort={} format=CIXZ1 backend=zstd-persistent frames={} source_bytes={} zstd_workers=1 native_candidate_workers={} memory_reservation={}",
+            effort_display_name(level), totals.frames, totals.total, workers, required_memory(block));
     }
     Ok(())
 }
@@ -701,6 +772,172 @@ fn read_block<R: Read>(
 /// Decode the remainder after `main` has already consumed the five-byte
 /// CIXZ1 magic.  Data reaches `dst` frame-by-frame; an atomic file caller
 /// therefore only replaces its destination after the footer is verified.
+struct FrameHeader {
+    route: u8,
+    source_len: usize,
+    payload_len: usize,
+    hash: [u8; 32],
+}
+
+fn read_frame_header<R: Read>(src: &mut R, input_fd: i32) -> Result<FrameHeader, String> {
+    let mut route = [0u8; 1];
+    read_exact_poll(src, &mut route, input_fd)?;
+    let source_len = read_u32(src, input_fd)? as usize;
+    let payload_len = read_u32(src, input_fd)? as usize;
+    let mut hash = [0u8; 32];
+    read_exact_poll(src, &mut hash, input_fd)?;
+    Ok(FrameHeader {
+        route: route[0],
+        source_len,
+        payload_len,
+        hash,
+    })
+}
+
+fn validate_data_frame(frame: &FrameHeader, block: u32, memory: usize) -> Result<(), String> {
+    if !matches!(frame.route, ROUTE_ZSTD | ROUTE_RAW | ROUTE_CIXG)
+        || frame.source_len == 0
+        || frame.source_len > block as usize
+    {
+        return Err("invalid CIXZ1 frame descriptor".into());
+    }
+    let allowed = match frame.route {
+        ROUTE_ZSTD => frame.payload_len <= frame.source_len.saturating_add(STREAM_SLACK),
+        ROUTE_RAW => frame.payload_len == frame.source_len,
+        ROUTE_CIXG => frame.payload_len <= frame.source_len.saturating_mul(8).saturating_add(8192),
+        _ => false,
+    };
+    if !allowed {
+        return Err("CIXZ1 payload exceeds bounded frame allowance".into());
+    }
+    let live = frame
+        .source_len
+        .checked_add(frame.payload_len)
+        .and_then(|size| size.checked_add(decoder_memory().unwrap_or(usize::MAX)))
+        .ok_or("CIXZ1 frame memory overflow")?;
+    if live > memory {
+        return Err("CIXZ1 frame exceeds --memory".into());
+    }
+    Ok(())
+}
+
+fn decode_data_payload(
+    frame: &FrameHeader,
+    payload: Vec<u8>,
+    decoder: &mut Option<Decompressor>,
+    memory: usize,
+) -> Result<Vec<u8>, String> {
+    match frame.route {
+        ROUTE_RAW => {
+            if decoder.is_some() {
+                return Err("CIXZ1 raw frame requires an explicit zstd reset boundary".into());
+            }
+            Ok(payload)
+        }
+        ROUTE_CIXG => decode_nested_payload(frame, payload, decoder, memory),
+        ROUTE_ZSTD => decoder
+            .get_or_insert(Decompressor::new()?)
+            .decode_block(&payload, frame.source_len),
+        _ => Err("invalid CIXZ1 route".into()),
+    }
+}
+
+fn decode_nested_payload(
+    frame: &FrameHeader,
+    payload: Vec<u8>,
+    decoder: &Option<Decompressor>,
+    memory: usize,
+) -> Result<Vec<u8>, String> {
+    if decoder.is_some() {
+        return Err("CIXZ1 CIXG frame requires an explicit zstd reset boundary".into());
+    }
+    if !matches!(payload.get(..5), Some(b"CIXG1") | Some(b"CIXG2")) {
+        return Err("CIXZ1 nested frame is not a CIXG1/CIXG2 archive".into());
+    }
+    let nested_memory = memory
+        .checked_sub(frame.payload_len)
+        .and_then(|left| left.checked_sub(frame.source_len))
+        .ok_or("CIXZ1 nested CIXG exceeds --memory")?;
+    let mut nested = CappedWriter::new(frame.source_len);
+    super::decode(
+        std::io::Cursor::new(payload),
+        &mut nested,
+        false,
+        false,
+        -1,
+        nested_memory,
+    )?;
+    let restored = nested.into_inner();
+    if restored.len() != frame.source_len {
+        return Err("CIXZ1 nested CIXG decoded length mismatch".into());
+    }
+    Ok(restored)
+}
+
+fn decode_reset<R: Read>(
+    src: &mut R,
+    input_fd: i32,
+    frame: &FrameHeader,
+    decoder: &mut Option<Decompressor>,
+) -> Result<(), String> {
+    if frame.source_len != 0 || frame.payload_len != FINALIZATION_COST || frame.hash != [0u8; 32] {
+        return Err("invalid CIXZ1 zstd reset frame".into());
+    }
+    let mut tail = vec![0u8; frame.payload_len];
+    read_exact_poll(src, &mut tail, input_fd)?;
+    decoder
+        .take()
+        .ok_or("CIXZ1 zstd reset without active stream")?
+        .finish(&tail)
+}
+
+fn finish_stream<R: Read, W: Write>(
+    src: &mut R,
+    dst: &mut W,
+    input_fd: i32,
+    frame: &FrameHeader,
+    decoder: &mut Option<Decompressor>,
+    whole: Sha256,
+    verify_only: bool,
+    list: bool,
+    total: u64,
+    frames: u64,
+) -> Result<(), String> {
+    let expected_tail = if decoder.is_some() {
+        FINALIZATION_COST
+    } else {
+        0
+    };
+    if frame.source_len != 0 || frame.payload_len != expected_tail {
+        return Err("invalid CIXZ1 footer descriptor".into());
+    }
+    let mut tail = vec![0u8; frame.payload_len];
+    read_exact_poll(src, &mut tail, input_fd)?;
+    match decoder.take() {
+        Some(mut state) => state.finish(&tail)?,
+        None if tail.is_empty() => {}
+        None => return Err("CIXZ1 footer has a zstd epilogue without an active stream".into()),
+    }
+    if frame.hash != <[u8; 32]>::from(whole.finalize()) {
+        return Err("CIXZ1 whole-stream checksum mismatch".into());
+    }
+    let mut extra = [0u8; 1];
+    loop {
+        match read_poll(src, &mut extra, input_fd, None)? {
+            Some(0) => break,
+            Some(_) => return Err("trailing bytes after CIXZ1 footer".into()),
+            None => continue,
+        }
+    }
+    if !verify_only {
+        dst.flush().map_err(ioerr)?;
+    }
+    if list {
+        eprintln!("CIXZ1 stream: backend=zstd-persistent frames={frames} decoded {total} bytes");
+    }
+    Ok(())
+}
+
 pub(super) fn decode<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
@@ -723,132 +960,35 @@ pub(super) fn decode<R: Read, W: Write>(
     {
         return Err("persistent zstd decoder exceeds --memory".into());
     }
-    let mut decoder: Option<Decompressor> = None;
+    let mut decoder = None;
     let mut whole = Sha256::new();
     let mut total = 0u64;
     let mut frames = 0u64;
     loop {
-        let mut route = [0u8; 1];
-        read_exact_poll(&mut src, &mut route, input_fd)?;
-        let source_len = read_u32(&mut src, input_fd)? as usize;
-        let payload_len = read_u32(&mut src, input_fd)? as usize;
-        let mut expected_hash = [0u8; 32];
-        read_exact_poll(&mut src, &mut expected_hash, input_fd)?;
-        if route[0] == END {
-            if source_len != 0 || payload_len > STREAM_SLACK {
-                return Err("invalid CIXZ1 footer descriptor".into());
-            }
-            // The encoder has a proved fixed zstd epilogue after a flushed
-            // active segment.  An inactive stream has no epilogue at all.
-            let expected_tail = if decoder.is_some() {
-                FINALIZATION_COST
-            } else {
-                0
-            };
-            if payload_len != expected_tail {
-                return Err("invalid CIXZ1 footer epilogue length".into());
-            }
-            let mut tail = vec![0u8; payload_len];
-            read_exact_poll(&mut src, &mut tail, input_fd)?;
-            match decoder.take() {
-                Some(mut decoder) => decoder.finish(&tail)?,
-                None if tail.is_empty() => {}
-                None => {
-                    return Err("CIXZ1 footer has a zstd epilogue without an active stream".into())
-                }
-            }
-            if expected_hash != <[u8; 32]>::from(whole.finalize()) {
-                return Err("CIXZ1 whole-stream checksum mismatch".into());
-            }
-            let mut extra = [0u8; 1];
-            loop {
-                match read_poll(&mut src, &mut extra, input_fd, None)? {
-                    Some(0) => break,
-                    Some(_) => return Err("trailing bytes after CIXZ1 footer".into()),
-                    None => continue,
-                }
-            }
-            if !verify_only {
-                dst.flush().map_err(ioerr)?;
-            }
-            if list {
-                eprintln!(
-                    "CIXZ1 stream: backend=zstd-persistent frames={frames} decoded {total} bytes"
-                );
-            }
-            return Ok(());
+        let frame = read_frame_header(&mut src, input_fd)?;
+        if frame.route == END {
+            return finish_stream(
+                &mut src,
+                &mut dst,
+                input_fd,
+                &frame,
+                &mut decoder,
+                whole,
+                verify_only,
+                list,
+                total,
+                frames,
+            );
         }
-        if route[0] == ROUTE_ZSTD_RESET {
-            if source_len != 0 || payload_len != FINALIZATION_COST || expected_hash != [0u8; 32] {
-                return Err("invalid CIXZ1 zstd reset frame".into());
-            }
-            let mut tail = vec![0u8; payload_len];
-            read_exact_poll(&mut src, &mut tail, input_fd)?;
-            decoder
-                .take()
-                .ok_or("CIXZ1 zstd reset without active stream")?
-                .finish(&tail)?;
+        if frame.route == ROUTE_ZSTD_RESET {
+            decode_reset(&mut src, input_fd, &frame, &mut decoder)?;
             continue;
         }
-        if !matches!(route[0], ROUTE_ZSTD | ROUTE_RAW | ROUTE_CIXG)
-            || source_len == 0
-            || source_len > block as usize
-        {
-            return Err("invalid CIXZ1 frame descriptor".into());
-        }
-        if (route[0] == ROUTE_ZSTD && payload_len > source_len.saturating_add(STREAM_SLACK))
-            || (route[0] == ROUTE_RAW && payload_len != source_len)
-            || (route[0] == ROUTE_CIXG
-                // Nested CIXG can itself use its 8*n+4096 payload allowance,
-                // plus its 13-byte header and two 41-byte frame prefixes.
-                && payload_len > source_len.saturating_mul(8).saturating_add(8192))
-        {
-            return Err("CIXZ1 payload exceeds bounded frame allowance".into());
-        }
-        let frame_live = source_len
-            .checked_add(payload_len)
-            .and_then(|n| n.checked_add(decoder_memory().unwrap_or(usize::MAX)))
-            .ok_or("CIXZ1 frame memory overflow")?;
-        if frame_live > memory {
-            return Err("CIXZ1 frame exceeds --memory".into());
-        }
-        let mut payload = vec![0u8; payload_len];
+        validate_data_frame(&frame, block, memory)?;
+        let mut payload = vec![0u8; frame.payload_len];
         read_exact_poll(&mut src, &mut payload, input_fd)?;
-        let restored = if route[0] == ROUTE_RAW {
-            if decoder.is_some() {
-                return Err("CIXZ1 raw frame requires an explicit zstd reset boundary".into());
-            }
-            payload
-        } else if route[0] == ROUTE_CIXG {
-            if decoder.is_some() {
-                return Err("CIXZ1 CIXG frame requires an explicit zstd reset boundary".into());
-            }
-            if !matches!(payload.get(..5), Some(b"CIXG1") | Some(b"CIXG2")) {
-                return Err("CIXZ1 nested frame is not a CIXG1/CIXG2 archive".into());
-            }
-            let nested_memory = memory
-                .checked_sub(payload_len)
-                .and_then(|remaining| remaining.checked_sub(source_len))
-                .ok_or("CIXZ1 nested CIXG exceeds --memory")?;
-            let mut nested = CappedWriter::new(source_len);
-            super::decode(
-                std::io::Cursor::new(payload),
-                &mut nested,
-                false,
-                false,
-                -1,
-                nested_memory,
-            )?;
-            let nested = nested.into_inner();
-            if nested.len() != source_len {
-                return Err("CIXZ1 nested CIXG decoded length mismatch".into());
-            }
-            nested
-        } else {
-            let active = decoder.get_or_insert(Decompressor::new()?);
-            active.decode_block(&payload, source_len)?
-        };
-        if <[u8; 32]>::from(Sha256::digest(&restored)) != expected_hash {
+        let restored = decode_data_payload(&frame, payload, &mut decoder, memory)?;
+        if <[u8; 32]>::from(Sha256::digest(&restored)) != frame.hash {
             return Err("CIXZ1 block checksum mismatch".into());
         }
         whole.update(&restored);
@@ -859,13 +999,13 @@ pub(super) fn decode<R: Read, W: Write>(
         if list {
             eprintln!(
                 "CIXZ1 block: route={} source={} bytes payload={} bytes",
-                match route[0] {
+                match frame.route {
                     ROUTE_ZSTD => "zstd-persistent",
                     ROUTE_CIXG => "cixg2",
                     _ => "raw",
                 },
-                source_len,
-                payload_len
+                frame.source_len,
+                frame.payload_len
             );
         }
         if !verify_only {

@@ -34,6 +34,122 @@ struct TreeNode {
     symbol: Option<u8>,
 }
 
+struct FrameHeader<'a> {
+    decoded_len: u64,
+    bit_len: u64,
+    metadata: &'a [u8],
+    payload: &'a [u8],
+}
+
+fn parse_frame_header(frame: &[u8]) -> Result<FrameHeader<'_>> {
+    if frame.len() < FIXED_HEADER {
+        return Err(HuffmanError("truncated Huffman header".into()));
+    }
+    if frame[0] != VERSION {
+        return Err(HuffmanError("unsupported Huffman version".into()));
+    }
+    let symbol_count = u16::from_le_bytes([frame[1], frame[2]]) as usize;
+    if symbol_count > 256 {
+        return Err(HuffmanError("symbol count exceeds byte alphabet".into()));
+    }
+    let decoded_len = u64::from_le_bytes(frame[3..11].try_into().unwrap());
+    let bit_len = u64::from_le_bytes(frame[11..19].try_into().unwrap());
+    let metadata_end = FIXED_HEADER
+        .checked_add(
+            symbol_count
+                .checked_mul(2)
+                .ok_or_else(|| HuffmanError("metadata size overflow".into()))?,
+        )
+        .ok_or_else(|| HuffmanError("metadata size overflow".into()))?;
+    if frame.len() < metadata_end {
+        return Err(HuffmanError("truncated Huffman code lengths".into()));
+    }
+    let payload_len = usize::try_from(bit_len.div_ceil(8))
+        .map_err(|_| HuffmanError("declared payload does not fit this platform".into()))?;
+    let expected_len = metadata_end
+        .checked_add(payload_len)
+        .ok_or_else(|| HuffmanError("declared frame size overflow".into()))?;
+    if frame.len() != expected_len {
+        return Err(HuffmanError(
+            if frame.len() < expected_len {
+                "truncated Huffman payload"
+            } else {
+                "trailing bytes after Huffman payload"
+            }
+            .into(),
+        ));
+    }
+    Ok(FrameHeader {
+        decoded_len,
+        bit_len,
+        metadata: &frame[FIXED_HEADER..metadata_end],
+        payload: &frame[metadata_end..],
+    })
+}
+
+fn read_lengths(metadata: &[u8]) -> Result<[u8; 256]> {
+    let mut lengths = [0u8; 256];
+    let mut previous = None;
+    for pair in metadata.chunks_exact(2) {
+        let (symbol, length) = (pair[0], pair[1]);
+        if length == 0 {
+            return Err(HuffmanError("zero-length code is invalid".into()));
+        }
+        if previous.is_some_and(|last| symbol <= last) {
+            return Err(HuffmanError("code lengths are not symbol-sorted".into()));
+        }
+        previous = Some(symbol);
+        lengths[symbol as usize] = length;
+    }
+    Ok(lengths)
+}
+
+fn validate_padding(payload: &[u8], bit_len: u64) -> Result<()> {
+    if bit_len % 8 != 0 && !payload.is_empty() {
+        let unused = 8 - (bit_len % 8) as u8;
+        if payload[payload.len() - 1] & ((1u8 << unused) - 1) != 0 {
+            return Err(HuffmanError("nonzero Huffman padding bits".into()));
+        }
+    }
+    Ok(())
+}
+
+fn decode_payload(
+    payload: &[u8],
+    bit_len: u64,
+    trie: &[TreeNode],
+    output_len: usize,
+) -> Result<Vec<u8>> {
+    let mut output = Vec::with_capacity(output_len);
+    let mut node = 0usize;
+    for bit_index in 0..bit_len {
+        let byte = payload[(bit_index / 8) as usize];
+        let bit = (byte >> (7 - (bit_index % 8) as u8)) & 1;
+        node = if bit == 0 {
+            trie[node].left
+        } else {
+            trie[node].right
+        }
+        .ok_or_else(|| HuffmanError("bit stream does not match Huffman table".into()))?;
+        if let Some(symbol) = trie[node].symbol {
+            if output.len() == output_len {
+                return Err(HuffmanError("decoded more bytes than declared".into()));
+            }
+            output.push(symbol);
+            node = 0;
+        }
+    }
+    if node != 0 {
+        return Err(HuffmanError("Huffman bit stream ends mid-code".into()));
+    }
+    if output.len() != output_len {
+        return Err(HuffmanError(
+            "decoded byte count differs from declared length".into(),
+        ));
+    }
+    Ok(output)
+}
+
 /// Encodes one complete, self-delimiting Huffman substream.
 ///
 /// Wire format, all integers little-endian:
@@ -100,96 +216,20 @@ pub fn encode(input: &[u8]) -> Result<Vec<u8>> {
 
 /// Decodes one complete Huffman substream and rejects malformed framing.
 pub fn decode(frame: &[u8]) -> Result<Vec<u8>> {
-    if frame.len() < FIXED_HEADER {
-        return Err(HuffmanError("truncated Huffman header".into()));
-    }
-    if frame[0] != VERSION {
-        return Err(HuffmanError("unsupported Huffman version".into()));
-    }
-    let symbol_count = u16::from_le_bytes([frame[1], frame[2]]) as usize;
-    if symbol_count > 256 {
-        return Err(HuffmanError("symbol count exceeds byte alphabet".into()));
-    }
-    let decoded_len = u64::from_le_bytes(frame[3..11].try_into().unwrap());
-    let bit_len = u64::from_le_bytes(frame[11..19].try_into().unwrap());
-    let metadata_end = FIXED_HEADER
-        .checked_add(
-            symbol_count
-                .checked_mul(2)
-                .ok_or_else(|| HuffmanError("metadata size overflow".into()))?,
-        )
-        .ok_or_else(|| HuffmanError("metadata size overflow".into()))?;
-    if frame.len() < metadata_end {
-        return Err(HuffmanError("truncated Huffman code lengths".into()));
-    }
-    let payload_len = usize::try_from(bit_len.div_ceil(8))
-        .map_err(|_| HuffmanError("declared payload does not fit this platform".into()))?;
-    let expected_len = metadata_end
-        .checked_add(payload_len)
-        .ok_or_else(|| HuffmanError("declared frame size overflow".into()))?;
-    if frame.len() != expected_len {
-        return Err(HuffmanError(if frame.len() < expected_len {
-            "truncated Huffman payload".into()
-        } else {
-            "trailing bytes after Huffman payload".into()
-        }));
-    }
-    let output_len = usize::try_from(decoded_len)
-        .map_err(|_| HuffmanError("declared output does not fit this platform".into()))?;
-    let mut lengths = [0u8; 256];
-    let mut previous = None;
-    for pair in frame[FIXED_HEADER..metadata_end].chunks_exact(2) {
-        let symbol = pair[0];
-        let length = pair[1];
-        if length == 0 {
-            return Err(HuffmanError("zero-length code is invalid".into()));
-        }
-        if previous.is_some_and(|last| symbol <= last) {
-            return Err(HuffmanError("code lengths are not symbol-sorted".into()));
-        }
-        previous = Some(symbol);
-        lengths[symbol as usize] = length;
-    }
-    validate_table(&lengths, symbol_count, decoded_len, bit_len)?;
+    let header = parse_frame_header(frame)?;
+    let lengths = read_lengths(header.metadata)?;
+    validate_table(
+        &lengths,
+        header.metadata.len() / 2,
+        header.decoded_len,
+        header.bit_len,
+    )?;
     let codes = canonical_codes(&lengths)?;
     let trie = build_trie(&codes)?;
-    let payload = &frame[metadata_end..];
-    if bit_len % 8 != 0 && !payload.is_empty() {
-        let unused = 8 - (bit_len % 8) as u8;
-        let mask = (1u8 << unused) - 1;
-        if payload[payload.len() - 1] & mask != 0 {
-            return Err(HuffmanError("nonzero Huffman padding bits".into()));
-        }
-    }
-
-    let mut output = Vec::with_capacity(output_len);
-    let mut node = 0usize;
-    for bit_index in 0..bit_len {
-        let byte = payload[(bit_index / 8) as usize];
-        let bit = (byte >> (7 - (bit_index % 8) as u8)) & 1;
-        node = if bit == 0 {
-            trie[node].left
-        } else {
-            trie[node].right
-        }
-        .ok_or_else(|| HuffmanError("bit stream does not match Huffman table".into()))?;
-        if let Some(symbol) = trie[node].symbol {
-            if output.len() == output_len {
-                return Err(HuffmanError("decoded more bytes than declared".into()));
-            }
-            output.push(symbol);
-            node = 0;
-        }
-    }
-    if node != 0 {
-        return Err(HuffmanError("Huffman bit stream ends mid-code".into()));
-    }
-    if output.len() != output_len {
-        return Err(HuffmanError(
-            "decoded byte count differs from declared length".into(),
-        ));
-    }
-    Ok(output)
+    validate_padding(header.payload, header.bit_len)?;
+    let output_len = usize::try_from(header.decoded_len)
+        .map_err(|_| HuffmanError("declared output does not fit this platform".into()))?;
+    decode_payload(header.payload, header.bit_len, &trie, output_len)
 }
 
 fn build_lengths(frequency: &[u64; 256]) -> Result<[u8; 256]> {
@@ -364,48 +404,52 @@ fn build_trie(codes: &[Vec<bool>]) -> Result<Vec<TreeNode>> {
         if code.is_empty() {
             continue;
         }
-        let mut index = 0;
-        for (position, &bit) in code.iter().enumerate() {
-            if nodes[index].symbol.is_some() {
-                return Err(HuffmanError(
-                    "Huffman code is a prefix of another code".into(),
-                ));
-            }
-            let existing = if bit {
-                nodes[index].right
-            } else {
-                nodes[index].left
-            };
-            let next = match existing {
-                Some(next) => next,
-                None => {
-                    let next = nodes.len();
-                    nodes.push(TreeNode {
-                        left: None,
-                        right: None,
-                        symbol: None,
-                    });
-                    if bit {
-                        nodes[index].right = Some(next);
-                    } else {
-                        nodes[index].left = Some(next);
-                    }
-                    next
-                }
-            };
-            index = next;
-            if position + 1 == code.len() {
-                if nodes[index].left.is_some()
-                    || nodes[index].right.is_some()
-                    || nodes[index].symbol.is_some()
-                {
-                    return Err(HuffmanError("duplicate or prefix Huffman code".into()));
-                }
-                nodes[index].symbol = Some(symbol as u8);
-            }
-        }
+        insert_code(&mut nodes, code, symbol as u8)?;
     }
     Ok(nodes)
+}
+
+fn insert_code(nodes: &mut Vec<TreeNode>, code: &[bool], symbol: u8) -> Result<()> {
+    let mut index = 0;
+    for (position, &bit) in code.iter().enumerate() {
+        if nodes[index].symbol.is_some() {
+            return Err(HuffmanError(
+                "Huffman code is a prefix of another code".into(),
+            ));
+        }
+        let next = match if bit {
+            nodes[index].right
+        } else {
+            nodes[index].left
+        } {
+            Some(next) => next,
+            None => {
+                let next = nodes.len();
+                nodes.push(TreeNode {
+                    left: None,
+                    right: None,
+                    symbol: None,
+                });
+                if bit {
+                    nodes[index].right = Some(next);
+                } else {
+                    nodes[index].left = Some(next);
+                }
+                next
+            }
+        };
+        index = next;
+        if position + 1 == code.len() {
+            if nodes[index].left.is_some()
+                || nodes[index].right.is_some()
+                || nodes[index].symbol.is_some()
+            {
+                return Err(HuffmanError("duplicate or prefix Huffman code".into()));
+            }
+            nodes[index].symbol = Some(symbol);
+        }
+    }
+    Ok(())
 }
 
 #[derive(Default)]

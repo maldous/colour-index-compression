@@ -24,6 +24,77 @@ const HASH_SIZE: usize = 1 << HASH_BITS;
 const NO_POSITION: u32 = u32::MAX;
 const POLL_MASK: usize = 0x0fff;
 
+struct Streams {
+    tags: Vec<u8>,
+    literals: Vec<u8>,
+    lengths: Vec<u8>,
+    distances: Vec<u8>,
+}
+
+impl Streams {
+    fn new(input_len: usize) -> Self {
+        Self {
+            tags: Vec::with_capacity(input_len),
+            literals: Vec::with_capacity(input_len),
+            lengths: Vec::new(),
+            distances: Vec::new(),
+        }
+    }
+
+    fn literal(&mut self, value: u8) {
+        self.tags.push(0);
+        self.literals.push(value);
+    }
+
+    fn matched(&mut self, length: usize, distance: usize) {
+        self.tags.push(1);
+        put_leb128(length - MIN_MATCH, &mut self.lengths);
+        put_leb128(distance, &mut self.distances);
+    }
+
+    fn finish(self) -> [Vec<u8>; 4] {
+        [self.tags, self.literals, self.lengths, self.distances]
+    }
+}
+
+fn match_at(
+    data: &[u8],
+    table: &mut [u32],
+    position: usize,
+    probe: bool,
+) -> Option<(usize, usize)> {
+    if !probe || position + MIN_MATCH > data.len() {
+        return None;
+    }
+    let hash = hash4(data, position);
+    let prior = table[hash];
+    table[hash] = position as u32;
+    let candidate = (prior != NO_POSITION).then_some(prior as usize)?;
+    let distance = position.saturating_sub(candidate);
+    let prefix_matches = distance != 0
+        && distance <= WINDOW
+        && candidate + MIN_MATCH <= data.len()
+        && data[candidate..candidate + MIN_MATCH] == data[position..position + MIN_MATCH];
+    prefix_matches
+        .then(|| (match_length(data, candidate, position), distance))
+        .filter(|(length, _)| *length >= MIN_MATCH)
+}
+
+fn next_probe(skip_probes: &mut usize) -> bool {
+    let probe = *skip_probes == 0;
+    if !probe {
+        *skip_probes -= 1;
+    }
+    probe
+}
+
+fn advance_after_miss(misses: &mut usize, skip_probes: &mut usize, probe: bool) {
+    *misses = misses.saturating_add(1);
+    if probe && *misses >= 16 {
+        *skip_probes = ((*misses - 16) >> 4).min(8);
+    }
+}
+
 /// Parse one CIXG1 LZ block into its uncompressed route-3 substreams.
 ///
 /// `data` must be a CIXG1 block, hence no larger than 64 KiB.  The returned
@@ -41,10 +112,7 @@ pub fn parse(data: &[u8]) -> Result<[Vec<u8>; 4], String> {
     // intentionally not a hash map: collision behaviour is deterministic,
     // cache-friendly, and its 256 KiB cost is independent of input content.
     let mut table = vec![NO_POSITION; HASH_SIZE];
-    let mut tags = Vec::with_capacity(data.len());
-    let mut literals = Vec::with_capacity(data.len());
-    let mut lengths = Vec::new();
-    let mut distances = Vec::new();
+    let mut streams = Streams::new(data.len());
     let mut position = 0usize;
     let mut misses = 0usize;
     let mut skip_probes = 0usize;
@@ -57,37 +125,11 @@ pub fn parse(data: &[u8]) -> Result<[Vec<u8>; 4], String> {
         // Once a region has repeatedly failed to match, spend fewer hash
         // probes there.  This affects only search work: every skipped source
         // byte is still emitted as a literal, so it cannot lose data.
-        let probe = skip_probes == 0;
-        if skip_probes != 0 {
-            skip_probes -= 1;
-        }
-
-        let mut matched = None;
-        if probe && position + MIN_MATCH <= data.len() {
-            let hash = hash4(data, position);
-            let prior = table[hash];
-            table[hash] = position as u32;
-            if prior != NO_POSITION {
-                let candidate = prior as usize;
-                let distance = position.saturating_sub(candidate);
-                if distance != 0
-                    && distance <= WINDOW
-                    && candidate + MIN_MATCH <= data.len()
-                    && data[candidate..candidate + MIN_MATCH]
-                        == data[position..position + MIN_MATCH]
-                {
-                    let length = match_length(data, candidate, position);
-                    if length >= MIN_MATCH {
-                        matched = Some((length, distance));
-                    }
-                }
-            }
-        }
+        let probe = next_probe(&mut skip_probes);
+        let matched = match_at(data, &mut table, position, probe);
 
         if let Some((length, distance)) = matched {
-            tags.push(1);
-            put_leb128(length - MIN_MATCH, &mut lengths);
-            put_leb128(distance, &mut distances);
+            streams.matched(length, distance);
 
             let stop = position + length;
             // Insert only bounded boundary positions instead of every byte of
@@ -98,10 +140,8 @@ pub fn parse(data: &[u8]) -> Result<[Vec<u8>; 4], String> {
             misses = 0;
             skip_probes = 0;
         } else {
-            tags.push(0);
-            literals.push(data[position]);
+            streams.literal(data[position]);
             position += 1;
-            misses = misses.saturating_add(1);
             // The bounded skip is only activated after enough demonstrated
             // misses and is capped, preserving a cheap opportunity to resume
             // matching soon after an incompressible section.
@@ -109,13 +149,11 @@ pub fn parse(data: &[u8]) -> Result<[Vec<u8>; 4], String> {
             // skipped literal reset this counter too, a long random prefix
             // could perpetually re-arm a one-position skip and never notice
             // the first match in a later compressible region.
-            if probe && misses >= 16 {
-                skip_probes = ((misses - 16) >> 4).min(8);
-            }
+            advance_after_miss(&mut misses, &mut skip_probes, probe);
         }
     }
     limits::check()?;
-    Ok([tags, literals, lengths, distances])
+    Ok(streams.finish())
 }
 
 #[inline]

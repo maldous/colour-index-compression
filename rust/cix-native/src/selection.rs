@@ -139,125 +139,171 @@ pub fn generate_candidates(
     // on a caller's CLI parser.  Library callers and future frontends must
     // get the same compatibility errors and cannot manufacture a mislabeled
     // candidate.
-    if effort(effort_name).is_none() {
-        return Err(format!("unknown CIXG1 effort profile: {effort_name}"));
-    }
-    if let Some(route) = forced_route {
-        if usize::from(route) >= ROUTES.len() {
-            return Err(format!("unsupported native route ID {route}"));
-        }
-    }
-    if let Some(backend) = forced_backend {
-        if !is_known_backend(backend) {
-            return Err(format!("unsupported CIXG1 backend override: {backend}"));
-        }
-        if let Some(route) = forced_route {
-            if !route_supports_backend(route, backend) {
-                return Err(format!(
-                    "backend {backend} is incompatible with intrinsic route {}",
-                    ROUTES[route as usize]
-                ));
-            }
-        }
-    }
-    let mut routes = if let Some(route) = forced_route {
-        vec![route]
-    } else {
-        shortlist(features, effort_name)?
-            .iter()
-            .map(|name| {
-                ROUTES
-                    .iter()
-                    .position(|candidate| candidate == name)
-                    .map(|id| id as u8)
-                    .ok_or_else(|| format!("unknown route {name}"))
-            })
-            .collect::<Result<Vec<_>, _>>()?
-    };
-    if let Some(backend) = forced_backend {
-        // An intrinsic backend identifies a single route.  Add it even when
-        // a cheap automatic probe did not shortlist that route: the explicit
-        // override is still entitled to evaluate its compatible encoder.
-        if forced_route.is_none() {
-            if let Some(route) = intrinsic_route_for_backend(backend) {
-                if !routes.contains(&route) {
-                    routes.push(route);
-                }
-            }
-        }
-        // Global backend overrides constrain the backend dimension for every
-        // non-raw candidate.  Intrinsic routes that cannot encode through the
-        // requested backend are excluded rather than being mislabeled.
-        routes.retain(|&route| route_supports_backend(route, backend));
-    }
+    validate_constraints(effort_name, forced_route, forced_backend)?;
+    let routes = candidate_routes(features, effort_name, forced_route, forced_backend)?;
     let mut candidates = vec![Candidate {
         route: 0,
         backend: "raw".into(),
         parameter: None,
     }];
-    let mut base = Vec::new();
-    for &route in &routes {
-        // Route 0 is already present as the universal raw fallback.  Do not
-        // add a duplicate when `--route raw` or `--backend raw` is explicit.
-        if route == 0 {
-            continue;
-        }
-        // FAST evaluates cheap materialized coders rather than exact-rank
-        // trials hidden inside the historical hybrid backend. Explicit
-        // overrides still constrain only the requested coder dimension.
-        let backend = forced_backend.unwrap_or_else(|| {
-            if effort_name == "fast" && (2..=7).contains(&route) {
-                "deflate"
-            } else {
-                baseline_backend(route)
-            }
-        });
-        base.push(Candidate {
-            route,
-            backend: backend.into(),
-            parameter: (route == 8).then_some(3),
-        });
-    }
-    candidates.extend(base);
-    if forced_backend.is_none() {
-        for &route in &routes {
-            for &backend in nested_backends(route, effort_name) {
-                let candidate = Candidate {
-                    route,
-                    backend: backend.into(),
-                    parameter: None,
-                };
-                if !candidates.contains(&candidate) {
-                    candidates.push(candidate);
-                }
-            }
-        }
-    }
+    candidates.extend(baseline_candidates(&routes, effort_name, forced_backend));
+    append_nested_candidates(&mut candidates, &routes, effort_name, forced_backend);
     // PPM order is independently serialized and the current CIXG1 decoder
     // supports orders 0..=8. Broader profiles include the complete legal
     // native order range; the execution budget decides how much is evaluated.
-    let ppm_orders: &[u8] = match effort_name {
-        "fast" => &[2],
-        "balanced" => &[1, 2, 3],
-        "maximum" => &[0, 1, 2, 3, 4, 5, 6, 7, 8],
-        _ => return Err(format!("unknown CIXG1 effort profile: {effort_name}")),
+    append_ppm_candidates(&mut candidates, &routes, effort_name)?;
+    Ok(candidates)
+}
+
+fn validate_constraints(
+    effort_name: &str,
+    forced_route: Option<u8>,
+    forced_backend: Option<&str>,
+) -> Result<(), String> {
+    if effort(effort_name).is_none() {
+        return Err(format!("unknown CIXG1 effort profile: {effort_name}"));
+    }
+    if forced_route.is_some_and(|route| usize::from(route) >= ROUTES.len()) {
+        return Err(format!(
+            "unsupported native route ID {}",
+            forced_route.unwrap()
+        ));
+    }
+    let Some(backend) = forced_backend else {
+        return Ok(());
     };
-    for &route in &routes {
-        if route != 8 {
-            continue;
+    if !is_known_backend(backend) {
+        return Err(format!("unsupported CIXG1 backend override: {backend}"));
+    }
+    if let Some(route) = forced_route {
+        if !route_supports_backend(route, backend) {
+            return Err(format!(
+                "backend {backend} is incompatible with intrinsic route {}",
+                ROUTES[route as usize]
+            ));
         }
-        for &order in ppm_orders {
+    }
+    Ok(())
+}
+
+fn candidate_routes(
+    features: &Features,
+    effort_name: &str,
+    forced_route: Option<u8>,
+    forced_backend: Option<&str>,
+) -> Result<Vec<u8>, String> {
+    let mut routes = match forced_route {
+        Some(route) => vec![route],
+        None => shortlisted_route_ids(features, effort_name)?,
+    };
+    if let Some(backend) = forced_backend {
+        add_intrinsic_route(&mut routes, backend, forced_route);
+        routes.retain(|&route| route_supports_backend(route, backend));
+    }
+    Ok(routes)
+}
+
+fn shortlisted_route_ids(features: &Features, effort_name: &str) -> Result<Vec<u8>, String> {
+    shortlist(features, effort_name)?
+        .iter()
+        .map(|name| {
+            ROUTES
+                .iter()
+                .position(|candidate| candidate == name)
+                .map(|id| id as u8)
+                .ok_or_else(|| format!("unknown route {name}"))
+        })
+        .collect()
+}
+
+fn add_intrinsic_route(routes: &mut Vec<u8>, backend: &str, forced_route: Option<u8>) {
+    if forced_route.is_none() {
+        if let Some(route) = intrinsic_route_for_backend(backend) {
+            if !routes.contains(&route) {
+                routes.push(route);
+            }
+        }
+    }
+}
+
+fn baseline_candidates(
+    routes: &[u8],
+    effort_name: &str,
+    forced_backend: Option<&str>,
+) -> Vec<Candidate> {
+    routes
+        .iter()
+        .copied()
+        .filter(|&route| route != 0)
+        .map(|route| Candidate {
+            route,
+            backend: baseline_for(route, effort_name, forced_backend),
+            parameter: (route == 8).then_some(3),
+        })
+        .collect()
+}
+
+fn baseline_for(route: u8, effort_name: &str, forced_backend: Option<&str>) -> String {
+    forced_backend.map(str::to_owned).unwrap_or_else(|| {
+        if effort_name == "fast" && (2..=7).contains(&route) {
+            "deflate".into()
+        } else {
+            baseline_backend(route).into()
+        }
+    })
+}
+
+fn append_nested_candidates(
+    candidates: &mut Vec<Candidate>,
+    routes: &[u8],
+    effort_name: &str,
+    forced_backend: Option<&str>,
+) {
+    if forced_backend.is_some() {
+        return;
+    }
+    for &route in routes {
+        for &backend in nested_backends(route, effort_name) {
             let candidate = Candidate {
                 route,
-                backend: "ppm".into(),
-                parameter: Some(order),
+                backend: backend.into(),
+                parameter: None,
             };
             if !candidates.contains(&candidate) {
                 candidates.push(candidate);
             }
         }
     }
-    Ok(candidates)
+}
+
+fn append_ppm_candidates(
+    candidates: &mut Vec<Candidate>,
+    routes: &[u8],
+    effort_name: &str,
+) -> Result<(), String> {
+    if !routes.contains(&8) {
+        return Ok(());
+    }
+    for &order in ppm_orders(effort_name)? {
+        let candidate = Candidate {
+            route: 8,
+            backend: "ppm".into(),
+            parameter: Some(order),
+        };
+        if !candidates.contains(&candidate) {
+            candidates.push(candidate);
+        }
+    }
+    Ok(())
+}
+
+fn ppm_orders(effort_name: &str) -> Result<&'static [u8], String> {
+    match effort_name {
+        "fast" => Ok(&[2]),
+        "balanced" => Ok(&[1, 2, 3]),
+        "maximum" => Ok(&[0, 1, 2, 3, 4, 5, 6, 7, 8]),
+        _ => Err(format!("unknown CIXG1 effort profile: {effort_name}")),
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -375,6 +421,26 @@ fn entropy(data: &[u8]) -> f64 {
 /// `cap` is the frozen total sample budget. As in Python, each of up to four
 /// regions has width `max(1, cap / 4)`, and overlapping regions are not merged.
 pub fn profile(data: &[u8], cap: usize) -> Features {
+    let parts = profile_parts(data, cap);
+    let (sample, run_equal) = sample_stats(&parts);
+    let (repeats, keys) = repeat_stats(&parts);
+    let lag_entropy = lag_entropies(&parts);
+    let (hits, opportunities) = prediction_stats(&parts);
+    let regional_entropy_range = regional_entropy_range(&parts);
+    Features {
+        sample_bytes: sample.len,
+        entropy: sample.entropy(),
+        symbols: sample.first_seen.len(),
+        run_fraction: run_equal as f64 / sample.len.saturating_sub(parts.len()).max(1) as f64,
+        repeat_fraction: repeats as f64 / keys.max(1) as f64,
+        lag_entropy,
+        predictability: hits as f64 / opportunities.max(1) as f64,
+        prediction_opportunities: opportunities,
+        regional_entropy_range,
+    }
+}
+
+fn profile_parts(data: &[u8], cap: usize) -> Vec<&[u8]> {
     let width = (cap / 4).max(1);
     let two_thirds = (data.len() / 3) * 2 + ((data.len() % 3) * 2) / 3;
     let mut starts = vec![
@@ -386,45 +452,55 @@ pub fn profile(data: &[u8], cap: usize) -> Features {
     starts.sort_unstable();
     starts.dedup();
 
-    let parts: Vec<&[u8]> = starts
+    starts
         .into_iter()
         .map(|start| &data[start..start.saturating_add(width).min(data.len())])
-        .collect();
+        .collect()
+}
 
+fn sample_stats(parts: &[&[u8]]) -> (Histogram, usize) {
     let mut sample = Histogram::default();
     let mut run_equal = 0usize;
-    for part in &parts {
+    for part in parts {
         for &value in *part {
             sample.observe(value);
         }
         run_equal += part.windows(2).filter(|pair| pair[0] == pair[1]).count();
     }
+    (sample, run_equal)
+}
 
+fn repeat_stats(parts: &[&[u8]]) -> (usize, usize) {
     let mut seen = HashSet::<[u8; 4]>::new();
     let mut repeats = 0usize;
     let mut keys = 0usize;
-    for part in &parts {
+    for part in parts {
         for key in part.windows(4) {
             let key = [key[0], key[1], key[2], key[3]];
             repeats += usize::from(!seen.insert(key));
             keys += 1;
         }
     }
+    (repeats, keys)
+}
 
-    let lag_entropy = LAGS.map(|lag| {
+fn lag_entropies(parts: &[&[u8]]) -> [f64; LAGS.len()] {
+    LAGS.map(|lag| {
         let mut residuals = Histogram::default();
-        for part in &parts {
+        for part in parts {
             for index in lag..part.len() {
                 residuals.observe(part[index] ^ part[index - lag]);
             }
         }
         residuals.entropy()
-    });
+    })
+}
 
+fn prediction_stats(parts: &[&[u8]]) -> (usize, usize) {
     let mut contexts = HashMap::<[u8; 2], u8>::new();
     let mut hits = 0usize;
     let mut opportunities = 0usize;
-    for part in &parts {
+    for part in parts {
         for index in 2..part.len() {
             let key = [part[index - 2], part[index - 1]];
             if let Some(&prediction) = contexts.get(&key) {
@@ -434,7 +510,10 @@ pub fn profile(data: &[u8], cap: usize) -> Features {
             contexts.insert(key, part[index]);
         }
     }
+    (hits, opportunities)
+}
 
+fn regional_entropy_range(parts: &[&[u8]]) -> f64 {
     let first_regional_entropy = entropy(parts[0]);
     let (minimum_regional_entropy, maximum_regional_entropy) = parts[1..].iter().fold(
         (first_regional_entropy, first_regional_entropy),
@@ -444,17 +523,7 @@ pub fn profile(data: &[u8], cap: usize) -> Features {
         },
     );
 
-    Features {
-        sample_bytes: sample.len,
-        entropy: sample.entropy(),
-        symbols: sample.first_seen.len(),
-        run_fraction: run_equal as f64 / sample.len.saturating_sub(parts.len()).max(1) as f64,
-        repeat_fraction: repeats as f64 / keys.max(1) as f64,
-        lag_entropy,
-        predictability: hits as f64 / opportunities.max(1) as f64,
-        prediction_opportunities: opportunities,
-        regional_entropy_range: maximum_regional_entropy - minimum_regional_entropy,
-    }
+    maximum_regional_entropy - minimum_regional_entropy
 }
 
 /// Return the ordered candidate route names for an effort profile.

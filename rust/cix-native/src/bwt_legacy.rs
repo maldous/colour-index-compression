@@ -1437,6 +1437,143 @@ pub fn encode(data: &[u8]) -> Result<(Vec<u8>, &'static str), String> {
 /// `model_limit` bounds the number of adaptive context models used by nested
 /// byte substreams. Callers should derive it from their total working-memory
 /// budget, as the other legacy decoders do.
+fn decode_runa_payload(
+    blob: &[u8],
+    pos: &mut usize,
+    version: u8,
+    source_length: usize,
+    model_limit: usize,
+) -> Result<Vec<u8>, String> {
+    let token_count = read_varint(blob, pos)?;
+    let side_count = read_varint(blob, pos)?;
+    if token_count > source_length || side_count > token_count {
+        return Err("invalid BWT RUNA/RUNB stream counts".into());
+    }
+    let token_length = read_varint(blob, pos)?;
+    let token_end = pos
+        .checked_add(token_length)
+        .ok_or("BWT token length overflow")?;
+    if token_end > blob.len() {
+        return Err("truncated BWT RUNA/RUNB token stream".into());
+    }
+    let tokens = if version == 5 {
+        decode_bytes(&blob[*pos..token_end], token_count, model_limit)?
+    } else {
+        let stream = &blob[*pos..token_end];
+        match stream.first() {
+            Some(0) => decode_bytes(&stream[1..], token_count, model_limit)?,
+            Some(1) => super::ppm::decode(&stream[1..], token_count)?,
+            Some(_) => return Err("unknown BWT token coding mode".into()),
+            None => return Err("missing BWT token coding mode".into()),
+        }
+    };
+    *pos = token_end;
+    let side_bytes = side_count.div_ceil(8);
+    if pos.checked_add(side_bytes) != Some(blob.len()) {
+        return Err("BWT RUNA/RUNB side length mismatch".into());
+    }
+    let mut reader = BitReader::new(&blob[*pos..]);
+    let mut side_bits = Vec::with_capacity(side_count);
+    for _ in 0..side_count {
+        side_bits.push(reader.bit()?);
+    }
+    let decoded = decode_runa_runb(&tokens, &side_bits, source_length)?;
+    if decoded.len() != source_length {
+        return Err("BWT RUNA/RUNB transformed length mismatch".into());
+    }
+    Ok(decoded)
+}
+
+fn decode_type_class_exact(blob: &[u8], count: usize, label: &str) -> Result<Vec<u8>, String> {
+    let mut pos = 0;
+    let values = rank::decode_type_class(blob, &mut pos, count)?;
+    if pos != blob.len() {
+        return Err(format!("unused BWT {label} bytes"));
+    }
+    Ok(values)
+}
+
+fn decode_legacy_tags(
+    version: u8,
+    stream: &[u8],
+    count: usize,
+    model_limit: usize,
+) -> Result<Vec<u8>, String> {
+    if version == 1 {
+        decode_type_class_exact(stream, count, "tag")
+    } else if version >= 4 {
+        decode_binary_tags(stream, count, model_limit)
+    } else {
+        decode_bytes(stream, count, model_limit)
+    }
+}
+
+fn decode_legacy_nonzero(
+    version: u8,
+    stream: &[u8],
+    count: usize,
+    model_limit: usize,
+) -> Result<Vec<u8>, String> {
+    if version == 1 {
+        return decode_type_class_exact(stream, count, "nonzero");
+    }
+    if version == 2 {
+        return decode_bytes(stream, count, model_limit);
+    }
+    match stream.first() {
+        Some(0) => decode_bytes(&stream[1..], count, model_limit),
+        Some(1) => decode_uints(&stream[1..], count, model_limit)?
+            .into_iter()
+            .map(|value| {
+                if value > 254 {
+                    return Err("BWT MTF rank outside byte range".into());
+                }
+                Ok((value + 1) as u8)
+            })
+            .collect(),
+        Some(_) => Err("unknown BWT nonzero stream mode".into()),
+        None => Err("missing BWT nonzero stream mode".into()),
+    }
+}
+
+fn decode_legacy_payload(
+    blob: &[u8],
+    pos: &mut usize,
+    version: u8,
+    source_length: usize,
+    model_limit: usize,
+) -> Result<Vec<u8>, String> {
+    let tag_count = read_varint(blob, pos)?;
+    let nonzero_count = read_varint(blob, pos)?;
+    let run_count = read_varint(blob, pos)?;
+    if tag_count > source_length || nonzero_count > source_length || run_count > source_length {
+        return Err("invalid BWT substream counts".into());
+    }
+    let mut streams: Vec<&[u8]> = Vec::with_capacity(3);
+    for _ in 0..3 {
+        let length = read_varint(blob, pos)?;
+        let end = pos
+            .checked_add(length)
+            .ok_or("BWT substream length overflow")?;
+        if end > blob.len() {
+            return Err("truncated BWT substream".into());
+        }
+        streams.push(&blob[*pos..end]);
+        *pos = end;
+    }
+    if *pos != blob.len() {
+        return Err("trailing BWT bytes".into());
+    }
+    let tags = decode_legacy_tags(version, streams[0], tag_count, model_limit)?;
+    let nonzero = decode_legacy_nonzero(version, streams[1], nonzero_count, model_limit)?;
+    let runs = decode_uints(streams[2], run_count, model_limit)?;
+    let decoded = join_zero_runs(&tags, &nonzero, &runs, source_length)?;
+    if decoded.len() != source_length {
+        return Err("BWT transformed length mismatch".into());
+    }
+    Ok(decoded)
+}
+
 pub fn decode(blob: &[u8], source_length: usize, model_limit: usize) -> Result<Vec<u8>, String> {
     let version = *blob.first().ok_or("empty BWT block")?;
     if !matches!(version, 1..=6) {
@@ -1445,111 +1582,9 @@ pub fn decode(blob: &[u8], source_length: usize, model_limit: usize) -> Result<V
     let mut pos = 1;
     let primary = read_varint(blob, &mut pos)?;
     let mtf = if matches!(version, 5 | 6) {
-        let token_count = read_varint(blob, &mut pos)?;
-        let side_count = read_varint(blob, &mut pos)?;
-        if token_count > source_length || side_count > token_count {
-            return Err("invalid BWT RUNA/RUNB stream counts".into());
-        }
-        let token_length = read_varint(blob, &mut pos)?;
-        let token_end = pos
-            .checked_add(token_length)
-            .ok_or("BWT token length overflow")?;
-        if token_end > blob.len() {
-            return Err("truncated BWT RUNA/RUNB token stream".into());
-        }
-        let tokens = if version == 5 {
-            decode_bytes(&blob[pos..token_end], token_count, model_limit)?
-        } else {
-            let stream = &blob[pos..token_end];
-            match stream.first() {
-                Some(0) => decode_bytes(&stream[1..], token_count, model_limit)?,
-                Some(1) => super::ppm::decode(&stream[1..], token_count)?,
-                Some(_) => return Err("unknown BWT token coding mode".into()),
-                None => return Err("missing BWT token coding mode".into()),
-            }
-        };
-        pos = token_end;
-        let side_bytes = side_count.div_ceil(8);
-        if pos.checked_add(side_bytes) != Some(blob.len()) {
-            return Err("BWT RUNA/RUNB side length mismatch".into());
-        }
-        let mut reader = BitReader::new(&blob[pos..]);
-        let mut side_bits = Vec::with_capacity(side_count);
-        for _ in 0..side_count {
-            side_bits.push(reader.bit()?);
-        }
-        let decoded = decode_runa_runb(&tokens, &side_bits, source_length)?;
-        if decoded.len() != source_length {
-            return Err("BWT RUNA/RUNB transformed length mismatch".into());
-        }
-        decoded
+        decode_runa_payload(blob, &mut pos, version, source_length, model_limit)?
     } else {
-        let tag_count = read_varint(blob, &mut pos)?;
-        let nonzero_count = read_varint(blob, &mut pos)?;
-        let run_count = read_varint(blob, &mut pos)?;
-        if tag_count > source_length || nonzero_count > source_length || run_count > source_length {
-            return Err("invalid BWT substream counts".into());
-        }
-        let mut streams: Vec<&[u8]> = Vec::with_capacity(3);
-        for _ in 0..3 {
-            let length = read_varint(blob, &mut pos)?;
-            let end = pos
-                .checked_add(length)
-                .ok_or("BWT substream length overflow")?;
-            if end > blob.len() {
-                return Err("truncated BWT substream".into());
-            }
-            streams.push(&blob[pos..end]);
-            pos = end;
-        }
-        if pos != blob.len() {
-            return Err("trailing BWT bytes".into());
-        }
-        let tags = if version == 1 {
-            let mut tag_pos = 0;
-            let values = rank::decode_type_class(streams[0], &mut tag_pos, tag_count)?;
-            if tag_pos != streams[0].len() {
-                return Err("unused BWT tag bytes".into());
-            }
-            values
-        } else if version >= 4 {
-            decode_binary_tags(streams[0], tag_count, model_limit)?
-        } else {
-            decode_bytes(streams[0], tag_count, model_limit)?
-        };
-        let nonzero = if version == 1 {
-            let mut nonzero_pos = 0;
-            let values = rank::decode_type_class(streams[1], &mut nonzero_pos, nonzero_count)?;
-            if nonzero_pos != streams[1].len() {
-                return Err("unused BWT nonzero bytes".into());
-            }
-            values
-        } else if version == 2 {
-            decode_bytes(streams[1], nonzero_count, model_limit)?
-        } else {
-            match streams[1].first() {
-                Some(0) => decode_bytes(&streams[1][1..], nonzero_count, model_limit)?,
-                Some(1) => {
-                    let values = decode_uints(&streams[1][1..], nonzero_count, model_limit)?;
-                    let mut out = Vec::with_capacity(values.len());
-                    for value in values {
-                        if value > 254 {
-                            return Err("BWT MTF rank outside byte range".into());
-                        }
-                        out.push((value + 1) as u8);
-                    }
-                    out
-                }
-                Some(_) => return Err("unknown BWT nonzero stream mode".into()),
-                None => return Err("missing BWT nonzero stream mode".into()),
-            }
-        };
-        let runs = decode_uints(streams[2], run_count, model_limit)?;
-        let decoded = join_zero_runs(&tags, &nonzero, &runs, source_length)?;
-        if decoded.len() != source_length {
-            return Err("BWT transformed length mismatch".into());
-        }
-        decoded
+        decode_legacy_payload(blob, &mut pos, version, source_length, model_limit)?
     };
     let restored = bwt_inverse(primary, &mtf_decode(&mtf))?;
     if restored.len() != source_length {
@@ -1560,6 +1595,28 @@ pub fn decode(blob: &[u8], source_length: usize, model_limit: usize) -> Result<V
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn malformed_nonzero_rank_does_not_overflow() {
+        for value in [255, usize::MAX] {
+            let mut stream = vec![1, 0];
+            super::put_varint(value, &mut stream);
+            assert_eq!(
+                super::decode_legacy_nonzero(3, &stream, 1, 1024).unwrap_err(),
+                "BWT MTF rank outside byte range"
+            );
+        }
+        #[cfg(target_pointer_width = "64")]
+        {
+            let blob = [
+                3, 0, 0, 1, 0, 2, 0, 0, 12, 1, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 1,
+                1, 0,
+            ];
+            assert_eq!(
+                super::decode(&blob, 1, 1024).unwrap_err(),
+                "BWT MTF rank outside byte range"
+            );
+        }
+    }
     use super::decode;
     use std::path::PathBuf;
 

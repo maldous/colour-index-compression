@@ -1324,6 +1324,80 @@ fn unzig(value: usize) -> i128 {
     }
 }
 
+fn lz_decode_active_values(
+    values: Vec<usize>,
+    mode: u8,
+    total: usize,
+    active_count: usize,
+) -> Result<Vec<usize>, String> {
+    match mode {
+        0 => Ok(values
+            .into_iter()
+            .map(|value| value.saturating_add(1))
+            .collect()),
+        1 | 4 => {
+            let mut previous = 0i128;
+            let center = total / active_count;
+            values
+                .into_iter()
+                .map(|value| {
+                    let candidate = if mode == 1 {
+                        previous + unzig(value)
+                    } else {
+                        center as i128 + unzig(value)
+                    };
+                    if candidate <= 0 {
+                        return Err(if mode == 1 {
+                            "invalid LZ active count delta"
+                        } else {
+                            "invalid LZ centered active count"
+                        }
+                        .into());
+                    }
+                    previous = candidate;
+                    Ok(candidate as usize)
+                })
+                .collect()
+        }
+        _ => unreachable!(),
+    }
+}
+
+fn lz_decode_dense_values(
+    values: Vec<usize>,
+    mode: u8,
+    total: usize,
+) -> Result<Vec<usize>, String> {
+    match mode {
+        2 => Ok(values),
+        3 | 5 => {
+            let mut previous = 0i128;
+            let center = total / 256;
+            values
+                .into_iter()
+                .map(|value| {
+                    let candidate = if mode == 3 {
+                        previous + unzig(value)
+                    } else {
+                        center as i128 + unzig(value)
+                    };
+                    if candidate < 0 {
+                        return Err(if mode == 3 {
+                            "negative LZ dense histogram count"
+                        } else {
+                            "negative LZ centered histogram count"
+                        }
+                        .into());
+                    }
+                    previous = candidate;
+                    Ok(candidate as usize)
+                })
+                .collect()
+        }
+        _ => unreachable!(),
+    }
+}
+
 fn decode_histogram_counts(
     blob: &[u8],
     total: usize,
@@ -1334,7 +1408,6 @@ fn decode_histogram_counts(
     }
     let mode = blob[1];
     let mut pos = 2usize;
-    let mut counts = vec![0usize; 256];
     if matches!(mode, 0 | 1 | 4) {
         let active_count = read_varint(blob, &mut pos)?;
         if active_count == 0 || active_count > 256 || active_count > total {
@@ -1345,32 +1418,12 @@ fn decode_histogram_counts(
         } else {
             crate::rank::decode_colex_positions(blob, &mut pos, 256, active_count)?
         };
-        let values = decode_uints(&blob[pos..], active_count - 1, model_limit)?;
-        let mut first = Vec::with_capacity(active_count);
-        match mode {
-            0 => first.extend(values.into_iter().map(|value| value.saturating_add(1))),
-            1 => {
-                let mut previous = 0i128;
-                for value in values {
-                    previous += unzig(value);
-                    if previous <= 0 {
-                        return Err("invalid LZ active count delta".into());
-                    }
-                    first.push(previous as usize);
-                }
-            }
-            4 => {
-                let center = total / active_count;
-                for value in values {
-                    let count = center as i128 + unzig(value);
-                    if count <= 0 {
-                        return Err("invalid LZ centered active count".into());
-                    }
-                    first.push(count as usize);
-                }
-            }
-            _ => unreachable!(),
-        }
+        let mut first = lz_decode_active_values(
+            decode_uints(&blob[pos..], active_count - 1, model_limit)?,
+            mode,
+            total,
+            active_count,
+        )?;
         let last = total
             .checked_sub(first.iter().sum())
             .ok_or("LZ active histogram exceeds total")?;
@@ -1378,38 +1431,15 @@ fn decode_histogram_counts(
             return Err("zero implied LZ active count".into());
         }
         first.push(last);
+        let mut counts = vec![0usize; 256];
         for (symbol, count) in active.into_iter().zip(first) {
             counts[symbol] = count;
         }
         return Ok(counts);
     }
     if matches!(mode, 2 | 3 | 5) {
-        let values = decode_uints(&blob[pos..], 255, model_limit)?;
-        let mut first = Vec::with_capacity(256);
-        match mode {
-            2 => first = values,
-            3 => {
-                let mut previous = 0i128;
-                for value in values {
-                    previous += unzig(value);
-                    if previous < 0 {
-                        return Err("negative LZ dense histogram count".into());
-                    }
-                    first.push(previous as usize);
-                }
-            }
-            5 => {
-                let center = total / 256;
-                for value in values {
-                    let count = center as i128 + unzig(value);
-                    if count < 0 {
-                        return Err("negative LZ centered histogram count".into());
-                    }
-                    first.push(count as usize);
-                }
-            }
-            _ => unreachable!(),
-        }
+        let mut first =
+            lz_decode_dense_values(decode_uints(&blob[pos..], 255, model_limit)?, mode, total)?;
         let last = total
             .checked_sub(first.iter().sum())
             .ok_or("LZ dense histogram exceeds total")?;
@@ -1829,6 +1859,120 @@ fn decode_distance_symbols(
 ///
 /// `prefix_history` is already reconstructed stream history visible to the
 /// block. `model_limit` bounds adaptive substream context tables.
+fn decode_streams<'a>(blob: &'a [u8], pos: &mut usize) -> Result<Vec<&'a [u8]>, String> {
+    let mut streams = Vec::with_capacity(4);
+    for _ in 0..4 {
+        let length = read_varint(blob, pos)?;
+        let end = pos
+            .checked_add(length)
+            .ok_or("LZ substream length overflow")?;
+        if end > blob.len() {
+            return Err("truncated LZ substream".into());
+        }
+        streams.push(&blob[*pos..end]);
+        *pos = end;
+    }
+    if *pos != blob.len() {
+        return Err("trailing LZ block bytes".into());
+    }
+    Ok(streams)
+}
+
+fn decode_version_tags(
+    version: u8,
+    stream: &[u8],
+    count: usize,
+    model_limit: usize,
+) -> Result<Vec<u8>, String> {
+    if version != 1 {
+        return decode_tags(stream, count, model_limit);
+    }
+    let mut pos = 0;
+    let tags = crate::rank::decode_type_class(stream, &mut pos, count)?;
+    if pos != stream.len() {
+        return Err("trailing version-1 LZ tag bytes".into());
+    }
+    Ok(tags)
+}
+
+fn decode_match(
+    produced: &mut Vec<u8>,
+    prefix_history: &[u8],
+    distance: usize,
+    length: usize,
+    source_length: usize,
+) -> Result<(), String> {
+    if distance == 0
+        || distance > prefix_history.len().saturating_add(produced.len())
+        || produced
+            .len()
+            .checked_add(length)
+            .is_none_or(|end| end > source_length)
+    {
+        return Err("invalid LZ match descriptor".into());
+    }
+    for _ in 0..length {
+        let source = prefix_history.len() + produced.len() - distance;
+        let value = if source < prefix_history.len() {
+            prefix_history[source]
+        } else {
+            produced[source - prefix_history.len()]
+        };
+        produced.push(value);
+    }
+    Ok(())
+}
+
+fn reconstruct_tokens(
+    tags: Vec<u8>,
+    mut literals: LiteralDecoder,
+    lengths: Vec<usize>,
+    distances: Vec<usize>,
+    min_match: usize,
+    source_length: usize,
+    prefix_history: &[u8],
+    literal_count: usize,
+    match_count: usize,
+) -> Result<Vec<u8>, String> {
+    let mut produced = Vec::with_capacity(source_length);
+    let mut literal_used = 0usize;
+    let mut match_used = 0usize;
+    for tag in tags {
+        match tag {
+            0 => {
+                produced.push(literals.next(prefix_history, &produced)?);
+                literal_used += 1;
+            }
+            1 => {
+                let encoded_length = *lengths
+                    .get(match_used)
+                    .ok_or("LZ match-length stream exhausted")?;
+                let distance = *distances
+                    .get(match_used)
+                    .ok_or("LZ distance stream exhausted")?;
+                match_used += 1;
+                let length = encoded_length
+                    .checked_add(min_match)
+                    .ok_or("LZ match length overflow")?;
+                decode_match(
+                    &mut produced,
+                    prefix_history,
+                    distance,
+                    length,
+                    source_length,
+                )?;
+            }
+            _ => return Err("invalid LZ tag".into()),
+        }
+    }
+    if produced.len() != source_length || literal_used != literal_count || match_used != match_count
+    {
+        return Err("LZ decoded length or token count mismatch".into());
+    }
+    literals.finish(literal_count)?;
+    Ok(produced)
+}
+
 pub fn decode(
     blob: &[u8],
     source_length: usize,
@@ -1851,33 +1995,9 @@ pub fn decode(
     {
         return Err("invalid LZ token counts".into());
     }
-    let mut streams = Vec::with_capacity(4);
-    for _ in 0..4 {
-        let length = read_varint(blob, &mut pos)?;
-        let end = pos
-            .checked_add(length)
-            .ok_or("LZ substream length overflow")?;
-        if end > blob.len() {
-            return Err("truncated LZ substream".into());
-        }
-        streams.push(&blob[pos..end]);
-        pos = end;
-    }
-    if pos != blob.len() {
-        return Err("trailing LZ block bytes".into());
-    }
-
-    let tags = if version == 1 {
-        let mut tag_pos = 0usize;
-        let out = crate::rank::decode_type_class(streams[0], &mut tag_pos, token_count)?;
-        if tag_pos != streams[0].len() {
-            return Err("trailing version-1 LZ tag bytes".into());
-        }
-        out
-    } else {
-        decode_tags(streams[0], token_count, model_limit)?
-    };
-    let mut literals = decode_literals(streams[1], literal_count, model_limit)?;
+    let streams = decode_streams(blob, &mut pos)?;
+    let tags = decode_version_tags(version, streams[0], token_count, model_limit)?;
+    let literals = decode_literals(streams[1], literal_count, model_limit)?;
     let lengths = decode_uints(streams[2], match_count, model_limit)?;
     let distances = if version >= 3 {
         decode_distances_best(streams[3], match_count, model_limit)?
@@ -1885,54 +2005,17 @@ pub fn decode(
         decode_distances_legacy(streams[3], match_count)?
     };
 
-    let mut produced = Vec::with_capacity(source_length);
-    let mut literal_used = 0usize;
-    let mut match_used = 0usize;
-    for tag in tags {
-        match tag {
-            0 => {
-                produced.push(literals.next(prefix_history, &produced)?);
-                literal_used += 1;
-            }
-            1 => {
-                let encoded_length = *lengths
-                    .get(match_used)
-                    .ok_or("LZ match-length stream exhausted")?;
-                let distance = *distances
-                    .get(match_used)
-                    .ok_or("LZ distance stream exhausted")?;
-                match_used += 1;
-                let length = encoded_length
-                    .checked_add(min_match)
-                    .ok_or("LZ match length overflow")?;
-                if distance == 0
-                    || distance > prefix_history.len().saturating_add(produced.len())
-                    || produced
-                        .len()
-                        .checked_add(length)
-                        .is_none_or(|end| end > source_length)
-                {
-                    return Err("invalid LZ match descriptor".into());
-                }
-                for _ in 0..length {
-                    let source = prefix_history.len() + produced.len() - distance;
-                    let value = if source < prefix_history.len() {
-                        prefix_history[source]
-                    } else {
-                        produced[source - prefix_history.len()]
-                    };
-                    produced.push(value);
-                }
-            }
-            _ => return Err("invalid LZ tag".into()),
-        }
-    }
-    if produced.len() != source_length || literal_used != literal_count || match_used != match_count
-    {
-        return Err("LZ decoded length or token count mismatch".into());
-    }
-    literals.finish(literal_count)?;
-    Ok(produced)
+    reconstruct_tokens(
+        tags,
+        literals,
+        lengths,
+        distances,
+        min_match,
+        source_length,
+        prefix_history,
+        literal_count,
+        match_count,
+    )
 }
 
 #[cfg(test)]

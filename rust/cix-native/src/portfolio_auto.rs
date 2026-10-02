@@ -361,6 +361,320 @@ fn external_validation_admitted(
     Ok(())
 }
 
+struct NativeSearch<'a> {
+    data: &'a Vec<u8>,
+    forced_route: Option<&'a str>,
+    cixg_format: &'a str,
+    cixg_block: u32,
+    cixg_backend: &'a str,
+    cap: usize,
+    cixg_budget: Duration,
+    m6_budget: Duration,
+}
+
+fn available_for_trial(o: &Opt, data: &Vec<u8>, winner: &Vec<u8>, cap: usize) -> Option<usize> {
+    o.memory
+        .checked_sub(data.capacity())
+        .and_then(|rest| rest.checked_sub(winner.capacity()))
+        .and_then(|rest| rest.checked_sub(cap))
+        .filter(|available| *available >= NATIVE_MINIMUM)
+}
+
+fn record_native_trial(
+    o: &Opt,
+    winner: &mut Vec<u8>,
+    winner_name: &mut String,
+    evaluated: &mut usize,
+    omitted: &mut Vec<String>,
+    name: String,
+    output: CappedWriter,
+    encoded: Result<(), String>,
+    data: &Vec<u8>,
+) -> Result<(), String> {
+    match encoded {
+        Ok(()) => {
+            *evaluated += 1;
+            if o.explain || o.verbose {
+                eprintln!(
+                    "cix: packaging_candidate={name} archive_bytes={}",
+                    output.bytes.len()
+                );
+            }
+            match consider(
+                winner,
+                winner_name,
+                &name,
+                output.into_inner(),
+                data,
+                o.memory,
+            ) {
+                Ok(_) => Ok(()),
+                Err(error) if is_resource_omission(&error) => {
+                    omitted.push(format!("{name} ({error})"));
+                    Ok(())
+                }
+                Err(error) => Err(error),
+            }
+        }
+        Err(error) if is_interruption(&error) => Err(error),
+        Err(error) if is_resource_omission(&error) || is_candidate_rejection(&error) => {
+            omitted.push(format!("{name} ({error})"));
+            Ok(())
+        }
+        Err(error) => Err(error),
+    }
+}
+
+fn run_cixg_trials(
+    o: &Opt,
+    search: &NativeSearch<'_>,
+    winner: &mut Vec<u8>,
+    winner_name: &mut String,
+    evaluated: &mut usize,
+    omitted: &mut Vec<String>,
+) -> Result<(), String> {
+    let formats: Vec<&str> = if o.format == "auto" {
+        vec!["cixg1", "cixg2"]
+    } else {
+        vec![o.format.as_str()]
+    };
+    let blocks: Vec<u32> = match o.block {
+        Some(block) => vec![block],
+        None if search.data.len() <= 16 * 1024 * 1024 => vec![16 * 1024, 32 * 1024, MAX_BLOCK],
+        None => vec![MAX_BLOCK],
+    };
+    let trials: Vec<(&str, u32)> = formats
+        .into_iter()
+        .flat_map(|format| {
+            blocks.iter().copied().filter_map(move |block| {
+                (search.forced_route.is_none()
+                    || format != search.cixg_format
+                    || block != search.cixg_block)
+                    .then_some((format, block))
+            })
+        })
+        .collect();
+    let started = Instant::now();
+    for (index, (format, block)) in trials.iter().copied().enumerate() {
+        check_interrupted()?;
+        let left = trials_len_remaining(
+            index,
+            &trials,
+            search.cixg_budget,
+            started,
+            format,
+            block,
+            omitted,
+        );
+        let Some(budget) = left else { continue };
+        let Some(available) = available_for_trial(o, search.data, winner, search.cap) else {
+            omitted.push(format!(
+                "{format}:native-auto:block={block} (insufficient aggregate memory)"
+            ));
+            continue;
+        };
+        let mut output = CappedWriter::new(search.cap);
+        let guard = crate::limits::DeadlineGuard::new(budget);
+        let encoded = encode_with_strategy(
+            io::Cursor::new(search.data.as_slice()),
+            &mut output,
+            block,
+            o.level,
+            search.forced_route,
+            search.cixg_backend,
+            o.backend_set,
+            format,
+            -1,
+            None,
+            available,
+            o.threads,
+            o.explain,
+            o.verbose,
+            &o.parallelism,
+        );
+        drop(guard);
+        let name = format!(
+            "{format}:{}:block={block}",
+            search.forced_route.unwrap_or("native-auto")
+        );
+        record_native_trial(
+            o,
+            winner,
+            winner_name,
+            evaluated,
+            omitted,
+            name,
+            output,
+            encoded,
+            search.data,
+        )?;
+    }
+    Ok(())
+}
+
+fn trials_len_remaining(
+    index: usize,
+    trials: &[(&str, u32)],
+    budget: Duration,
+    started: Instant,
+    format: &str,
+    block: u32,
+    omitted: &mut Vec<String>,
+) -> Option<Duration> {
+    let remaining = budget.saturating_sub(started.elapsed());
+    let per_trial = remaining.checked_div((trials.len() - index) as u32);
+    match per_trial.filter(|duration| !duration.is_zero()) {
+        Some(duration) => Some(duration),
+        None => {
+            omitted.push(format!(
+                "{format}:native-auto:block={block} (CIXG family deadline allocation exhausted)"
+            ));
+            None
+        }
+    }
+}
+
+fn run_m6_trials(
+    o: &Opt,
+    search: &NativeSearch<'_>,
+    winner: &mut Vec<u8>,
+    winner_name: &mut String,
+    evaluated: &mut usize,
+    omitted: &mut Vec<String>,
+) -> Result<(), String> {
+    let blocks: Vec<usize> = if o.format != "auto"
+        || search.forced_route.is_some()
+        || o.backend_set
+        || o.independent_blocks
+    {
+        vec![]
+    } else if let Some(block) = o.block {
+        vec![block as usize]
+    } else if search.data.len() <= 16 * 1024 * 1024 {
+        vec![16 * 1024, 32 * 1024, MAX_BLOCK as usize]
+    } else {
+        vec![MAX_BLOCK as usize]
+    };
+    if blocks.is_empty() && o.format == "auto" {
+        omitted.push(
+            "cixm6:native-auto (incompatible expert container/route/backend/block constraint)"
+                .into(),
+        );
+    }
+    let started = Instant::now();
+    for (index, block_size) in blocks.iter().copied().enumerate() {
+        check_interrupted()?;
+        let remaining = search.m6_budget.saturating_sub(started.elapsed());
+        let Some(budget) = remaining
+            .checked_div((blocks.len() - index) as u32)
+            .filter(|duration| !duration.is_zero())
+        else {
+            omitted.push(format!(
+                "cixm6:native-auto:block={block_size} (CIXM6 family deadline allocation exhausted)"
+            ));
+            continue;
+        };
+        let Some(available) = available_for_trial(o, search.data, winner, search.cap) else {
+            omitted.push(format!(
+                "cixm6:native-auto:block={block_size} (insufficient aggregate memory)"
+            ));
+            continue;
+        };
+        let mut output = CappedWriter::new(search.cap);
+        let guard = crate::limits::DeadlineGuard::new(budget);
+        let encoded = super::encode_m6(
+            io::Cursor::new(search.data.as_slice()),
+            &mut output,
+            block_size,
+            None,
+            o.level,
+            available,
+        );
+        drop(guard);
+        let name = format!("cixm6:native-auto:block={block_size}");
+        record_native_trial(
+            o,
+            winner,
+            winner_name,
+            evaluated,
+            omitted,
+            name,
+            output,
+            encoded,
+            search.data,
+        )?;
+    }
+    Ok(())
+}
+
+fn run_external_trials(
+    o: &Opt,
+    data: &Vec<u8>,
+    winner: &mut Vec<u8>,
+    winner_name: &mut String,
+    evaluated: &mut usize,
+    omitted: &mut Vec<String>,
+    allowed: bool,
+) -> Result<(), String> {
+    if !allowed {
+        omitted.push("cixb1:external candidates (incompatible expert native constraint)".into());
+    }
+    for descriptor in external::best_candidates().iter().filter(|_| allowed) {
+        check_interrupted()?;
+        let available = o
+            .memory
+            .saturating_sub(data.capacity())
+            .saturating_sub(winner.capacity());
+        if let Err(omission) = descriptor.admit(data.len(), available) {
+            omitted.push(format!("{} ({})", descriptor.id, omission.reason));
+            continue;
+        }
+        match descriptor.full_archive_encode(data) {
+            Ok(archive) => {
+                *evaluated += 1;
+                if o.explain || o.verbose {
+                    eprintln!(
+                        "cix: packaging_candidate={} backend={} version={} archive_bytes={}",
+                        descriptor.id,
+                        descriptor.backend,
+                        external::backend_version(descriptor.backend)?
+                            .replace(char::is_whitespace, "_"),
+                        archive.len()
+                    );
+                }
+                match external_validation_admitted(
+                    descriptor,
+                    data.capacity(),
+                    winner.capacity(),
+                    archive.capacity(),
+                    data.len(),
+                    o.memory,
+                ) {
+                    Ok(()) => {}
+                    Err(error) if is_resource_omission(&error) => {
+                        omitted.push(format!("{} ({error})", descriptor.id));
+                        continue;
+                    }
+                    Err(error) => return Err(error),
+                }
+                match consider(winner, winner_name, descriptor.id, archive, data, o.memory) {
+                    Ok(_) => {}
+                    Err(error) if is_resource_omission(&error) => {
+                        omitted.push(format!("{} ({error})", descriptor.id))
+                    }
+                    Err(error) => return Err(error),
+                }
+            }
+            Err(error) if is_interruption(&error) => return Err(error),
+            Err(error) if is_resource_omission(&error) || is_candidate_rejection(&error) => {
+                omitted.push(format!("{} ({error})", descriptor.id))
+            }
+            Err(error) => return Err(error),
+        }
+    }
+    Ok(())
+}
+
 /// Select a complete archive.  The source is read once before candidate work;
 /// candidate execution is serial because native CIXG2 may use `--threads` and
 /// backend libraries have coarse cancellation points.
@@ -433,292 +747,46 @@ pub(super) fn select(o: &Opt) -> Result<SelectedArchive, String> {
     let mut evaluated = 1usize;
     let mut omitted = Vec::new();
 
-    // CIXG1 and CIXG2 have distinct framing and decoder rules; BEST measures
-    // both complete archives unless the caller pinned one.  Smaller frames can
-    // win on mixed data, so expose them on bounded-size inputs.  Each trial is
-    // assigned a slice of the CIXG family budget, preventing an early format
-    // from starving a later legal representation.
-    let cixg_formats: Vec<&str> = if o.format == "auto" {
-        vec!["cixg1", "cixg2"]
-    } else {
-        vec![o.format.as_str()]
+    let search = NativeSearch {
+        data: &data,
+        forced_route,
+        cixg_format,
+        cixg_block,
+        cixg_backend,
+        cap,
+        cixg_budget,
+        m6_budget,
     };
-    let cixg_blocks: Vec<u32> = match o.block {
-        Some(block) => vec![block],
-        None if data.len() <= 16 * 1024 * 1024 => vec![16 * 1024, 32 * 1024, MAX_BLOCK],
-        None => vec![MAX_BLOCK],
-    };
-    let mut cixg_trials = Vec::new();
-    for &format in &cixg_formats {
-        for &block in &cixg_blocks {
-            // The incumbent already materialized this exact forced route.
-            if forced_route.is_some() && format == cixg_format && block == cixg_block {
-                continue;
-            }
-            cixg_trials.push((format, block));
-        }
-    }
-    let cixg_started = Instant::now();
-    for (index, (format, block)) in cixg_trials.iter().copied().enumerate() {
-        check_interrupted()?;
-        let remaining = cixg_budget.saturating_sub(cixg_started.elapsed());
-        let trials_left = (cixg_trials.len() - index) as u32;
-        let Some(trial_budget) = remaining.checked_div(trials_left) else {
-            omitted.push(format!(
-                "{format}:native-auto:block={block} (CIXG family deadline allocation exhausted)"
-            ));
-            continue;
-        };
-        if trial_budget.is_zero() {
-            omitted.push(format!(
-                "{format}:native-auto:block={block} (CIXG family deadline allocation exhausted)"
-            ));
-            continue;
-        }
-        let available = o
-            .memory
-            .checked_sub(data.capacity())
-            .and_then(|rest| rest.checked_sub(winner.capacity()))
-            .and_then(|rest| rest.checked_sub(cap));
-        let Some(available) = available.filter(|available| *available >= NATIVE_MINIMUM) else {
-            omitted.push(format!(
-                "{format}:native-auto:block={block} (insufficient aggregate memory)"
-            ));
-            continue;
-        };
-        let mut output = CappedWriter::new(cap);
-        let deadline = crate::limits::DeadlineGuard::new(trial_budget);
-        let encoded = encode_with_strategy(
-            io::Cursor::new(data.as_slice()),
-            &mut output,
-            block,
-            o.level,
-            forced_route,
-            cixg_backend,
-            o.backend_set,
-            format,
-            -1,
-            None,
-            available,
-            o.threads,
-            o.explain,
-            o.verbose,
-            &o.parallelism,
-        );
-        drop(deadline);
-        let route_name = forced_route.unwrap_or("native-auto");
-        let name = format!("{format}:{route_name}:block={block}");
-        match encoded {
-            Ok(()) => {
-                evaluated += 1;
-                if o.explain || o.verbose {
-                    eprintln!(
-                        "cix: packaging_candidate={name} archive_bytes={}",
-                        output.bytes.len()
-                    );
-                }
-                match consider(
-                    &mut winner,
-                    &mut winner_name,
-                    &name,
-                    output.into_inner(),
-                    &data,
-                    o.memory,
-                ) {
-                    Ok(_) => {}
-                    Err(error) if is_resource_omission(&error) => {
-                        omitted.push(format!("{name} ({error})"))
-                    }
-                    Err(error) => return Err(error),
-                }
-            }
-            Err(error) if is_interruption(&error) => return Err(error),
-            Err(error) if is_resource_omission(&error) || is_candidate_rejection(&error) => {
-                drop(output);
-                omitted.push(format!("{name} ({error})"));
-            }
-            Err(error) => return Err(error),
-        }
-    }
-
-    // CIXM6 is a decoder-supported production container. Compare complete
-    // bytes including the state/history header and footer, then exact-decode
-    // before it can affect BEST. Smaller blocks are bounded to small inputs:
-    // on large sources CIXG2 already makes local choices per block and an
-    // additional whole-package Cartesian search is not proportionate.
-    let m6_blocks: Vec<usize> =
-        if o.format != "auto" || forced_route.is_some() || o.backend_set || o.independent_blocks {
-            vec![]
-        } else if let Some(block) = o.block {
-            // `--block-size` is an explicit frame decision, not a request to
-            // suppress CIXM6. The complete CIXM6 candidate honours it exactly.
-            vec![block as usize]
-        } else if data.len() <= 16 * 1024 * 1024 {
-            vec![16 * 1024, 32 * 1024, MAX_BLOCK as usize]
-        } else {
-            vec![MAX_BLOCK as usize]
-        };
-    if m6_blocks.is_empty() && o.format == "auto" {
-        omitted.push(
-            "cixm6:native-auto (incompatible expert container/route/backend/block constraint)"
-                .into(),
-        );
-    }
-    let m6_started = Instant::now();
-    for (index, &block_size) in m6_blocks.iter().enumerate() {
-        check_interrupted()?;
-        let remaining = m6_budget.saturating_sub(m6_started.elapsed());
-        let trials_left = (m6_blocks.len() - index) as u32;
-        let Some(trial_budget) = remaining.checked_div(trials_left) else {
-            omitted.push(format!(
-                "cixm6:native-auto:block={block_size} (CIXM6 family deadline allocation exhausted)"
-            ));
-            continue;
-        };
-        if trial_budget.is_zero() {
-            omitted.push(format!(
-                "cixm6:native-auto:block={block_size} (CIXM6 family deadline allocation exhausted)"
-            ));
-            continue;
-        }
-        let available = o
-            .memory
-            .checked_sub(data.capacity())
-            .and_then(|rest| rest.checked_sub(winner.capacity()))
-            .and_then(|rest| rest.checked_sub(cap));
-        let Some(available) = available.filter(|available| *available >= NATIVE_MINIMUM) else {
-            omitted.push(format!(
-                "cixm6:native-auto:block={block_size} (insufficient aggregate memory)"
-            ));
-            continue;
-        };
-        let mut output = CappedWriter::new(cap);
-        let deadline = crate::limits::DeadlineGuard::new(trial_budget);
-        let encoded = super::encode_m6(
-            io::Cursor::new(data.as_slice()),
-            &mut output,
-            block_size,
-            None,
-            o.level,
-            available,
-        );
-        drop(deadline);
-        let name = format!("cixm6:native-auto:block={block_size}");
-        match encoded {
-            Ok(()) => {
-                evaluated += 1;
-                if o.explain || o.verbose {
-                    eprintln!(
-                        "cix: packaging_candidate={name} archive_bytes={}",
-                        output.bytes.len()
-                    );
-                }
-                match consider(
-                    &mut winner,
-                    &mut winner_name,
-                    &name,
-                    output.into_inner(),
-                    &data,
-                    o.memory,
-                ) {
-                    Ok(_) => {}
-                    Err(error) if is_resource_omission(&error) => {
-                        omitted.push(format!("{name} ({error})"));
-                    }
-                    Err(error) => return Err(error),
-                }
-            }
-            Err(error) if is_interruption(&error) => return Err(error),
-            Err(error) if is_resource_omission(&error) => {
-                drop(output);
-                omitted.push(format!("{name} ({error})"));
-            }
-            Err(error) => return Err(error),
-        }
-    }
-
-    // Registry order is deterministic.  Every descriptor represents a full
-    // CIXB1 archive, including all backend framing and configuration cost.
-    // An explicit native route/backend/block/container constraint is not a
-    // request to ignore BEST, but it does make an unrelated CIXB1 wrapper
-    // illegal for this invocation.
+    run_cixg_trials(
+        o,
+        &search,
+        &mut winner,
+        &mut winner_name,
+        &mut evaluated,
+        &mut omitted,
+    )?;
+    run_m6_trials(
+        o,
+        &search,
+        &mut winner,
+        &mut winner_name,
+        &mut evaluated,
+        &mut omitted,
+    )?;
     let external_allowed = o.format == "auto"
         && forced_route.is_none()
         && !o.backend_set
         && o.block.is_none()
         && !o.independent_blocks;
-    if !external_allowed {
-        omitted.push("cixb1:external candidates (incompatible expert native constraint)".into());
-    }
-    for descriptor in external::best_candidates()
-        .iter()
-        .filter(|_| external_allowed)
-    {
-        check_interrupted()?;
-        let available = o
-            .memory
-            .saturating_sub(data.capacity())
-            .saturating_sub(winner.capacity());
-        if let Err(omission) = descriptor.admit(data.len(), available) {
-            omitted.push(format!("{} ({})", descriptor.id, omission.reason));
-            continue;
-        }
-        match descriptor.full_archive_encode(&data) {
-            Ok(archive) => {
-                evaluated += 1;
-                if o.explain || o.verbose {
-                    eprintln!(
-                        "cix: packaging_candidate={} backend={} version={} archive_bytes={}",
-                        descriptor.id,
-                        descriptor.backend,
-                        external::backend_version(descriptor.backend)?
-                            .replace(char::is_whitespace, "_"),
-                        archive.len()
-                    );
-                }
-                match external_validation_admitted(
-                    descriptor,
-                    data.capacity(),
-                    winner.capacity(),
-                    archive.capacity(),
-                    data.len(),
-                    o.memory,
-                ) {
-                    Ok(()) => {}
-                    Err(error) if is_resource_omission(&error) => {
-                        omitted.push(format!("{} ({error})", descriptor.id));
-                        continue;
-                    }
-                    Err(error) => return Err(error),
-                }
-                match consider(
-                    &mut winner,
-                    &mut winner_name,
-                    descriptor.id,
-                    archive,
-                    &data,
-                    o.memory,
-                ) {
-                    Ok(_) => {}
-                    Err(error) if is_resource_omission(&error) => {
-                        omitted.push(format!("{} ({error})", descriptor.id));
-                    }
-                    Err(error) => return Err(error),
-                }
-            }
-            Err(error) if is_interruption(&error) => return Err(error),
-            // Only an explicitly recognised resource/deadline condition is
-            // omittable. ABI/configuration/codec failures are correctness
-            // failures, never a reason to claim BEST completed.
-            Err(error) if is_resource_omission(&error) => {
-                omitted.push(format!("{} ({error})", descriptor.id));
-            }
-            Err(error) if is_candidate_rejection(&error) => {
-                omitted.push(format!("{} ({error})", descriptor.id));
-            }
-            Err(error) => return Err(error),
-        }
-    }
+    run_external_trials(
+        o,
+        &data,
+        &mut winner,
+        &mut winner_name,
+        &mut evaluated,
+        &mut omitted,
+        external_allowed,
+    )?;
     validate(&winner, winner.capacity(), &data, 0, o.memory)?;
     Ok(SelectedArchive {
         archive: winner,

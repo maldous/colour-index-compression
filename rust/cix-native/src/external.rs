@@ -981,118 +981,19 @@ pub fn encode(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>, Str
     if input.len() > MAX_INPUT {
         return Err("CIXB1 input exceeds 128 MiB limit".into());
     }
-    let payload = match backend {
-        "gzip" => {
-            let level = if profile == "fast" { 1 } else { 9 };
-            let mut encoder = GzBuilder::new().mtime(0).write(
-                Vec::with_capacity(input.len() + 1024 * 1024),
-                Compression::new(level),
-            );
-            encoder.write_all(input).map_err(|e| e.to_string())?;
-            let payload = encoder.finish().map_err(|e| e.to_string())?;
-            check_cancel()?;
-            payload
-        }
-        "bzip2" => {
-            let level = if profile == "fast" { 1 } else { 9 };
-            let cap = input
-                .len()
-                .saturating_add(input.len() / 100)
-                .saturating_add(601)
-                .max(601);
-            let mut out = vec![0u8; cap];
-            let mut n = u32::try_from(cap).map_err(|_| "bzip2 output bound overflow")?;
-            let srcn = u32::try_from(input.len()).map_err(|_| "bzip2 source too large")?;
-            let rc = unsafe {
-                BZ2_bzBuffToBuffCompress(
-                    out.as_mut_ptr().cast(),
-                    &mut n,
-                    input.as_ptr().cast_mut().cast(),
-                    srcn,
-                    level,
-                    0,
-                    30,
-                )
-            };
-            if rc != 0 {
-                return Err(format!("bzip2 compressor returned {rc}"));
-            }
-            check_cancel()?;
-            out.truncate(n as usize);
-            out
-        }
-        "xz" => {
-            let base = match profile {
-                "fast" => 0,
-                "default" | "current" => 6,
-                _ => 9,
-            };
-            let preset = base | if profile == "size" { 1u32 << 31 } else { 0 };
-            let cap = unsafe { lzma_stream_buffer_bound(input.len()) };
-            let mut stream: LzmaStream = unsafe { std::mem::zeroed() };
-            stream.next_in = input.as_ptr();
-            stream.avail_in = input.len();
-            let init = unsafe { lzma_easy_encoder(&mut stream, preset, 4) };
-            if init != 0 {
-                return Err(format!("xz encoder initialization returned {init}"));
-            }
-            let mut out = Vec::with_capacity(cap);
-            let mut chunk = [0u8; 65536];
-            loop {
-                check_cancel()?;
-                stream.next_out = chunk.as_mut_ptr();
-                stream.avail_out = chunk.len();
-                let before_in = stream.avail_in;
-                let rc = unsafe { lzma_code(&mut stream, 3) }; // LZMA_FINISH
-                let written = chunk.len() - stream.avail_out;
-                out.extend_from_slice(&chunk[..written]);
-                if rc != 0 {
-                    if rc != 1 {
-                        return Err(format!("xz encoder returned {rc}"));
-                    }
-                }
-                check_cancel()?;
-                if rc == 1 {
-                    break;
-                } // LZMA_STREAM_END
-                if written == 0 && stream.avail_in == before_in {
-                    return Err("xz encoder made no progress".into());
-                }
-            }
-            out
-        }
-        "zstd" => {
-            let level = match profile {
-                "fast" => -131072,
-                "default" | "current" => 3,
-                _ => 22,
-            };
-            let cap = unsafe { ZSTD_compressBound(input.len()) };
-            let mut out = vec![0u8; cap];
-            let n = unsafe {
-                ZSTD_compress(
-                    out.as_mut_ptr().cast(),
-                    out.len(),
-                    input.as_ptr().cast(),
-                    input.len(),
-                    level,
-                )
-            };
-            if unsafe { ZSTD_isError(n) } != 0 {
-                return Err(format!("zstd encode: {}", zstd_error(n)));
-            }
-            check_cancel()?;
-            out.truncate(n);
-            out
-        }
-        "brotli" => brotli_payload(input, 0, 22, BrotliMode::Generic)?,
-        "zpaq" => zpaq_payload(input, 5)?,
-        "bsc" => bsc_payload(input, crate::bsc_ffi::BscOptions::default())?,
-        _ => return Err(format!("unsupported CIXB1 backend: {backend}")),
-    };
+    let payload = encode_payload(backend, profile, input)?;
     if payload.len() > MAX_PAYLOAD {
         return Err("CIXB1 payload exceeds bounded limit".into());
     }
+    wrap_archive(backend, profile, input, payload)
+}
+
+fn wrap_archive(
+    backend: &str,
+    profile: &str,
+    input: &[u8],
+    payload: Vec<u8>,
+) -> Result<Vec<u8>, String> {
     let mut out = Vec::with_capacity(HEADER + payload.len());
     out.extend_from_slice(b"CIXB1");
     out.push(backend_id(backend)?);
@@ -1101,6 +1002,126 @@ pub fn encode(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>, Str
     out.extend_from_slice(&(payload.len() as u32).to_le_bytes());
     out.extend_from_slice(&Sha256::digest(input));
     out.extend_from_slice(&payload);
+    Ok(out)
+}
+
+fn encode_payload(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>, String> {
+    match backend {
+        "gzip" => encode_gzip_payload(profile, input),
+        "bzip2" => encode_bzip2_payload(profile, input),
+        "xz" => encode_xz_payload(profile, input),
+        "zstd" => encode_zstd_payload(profile, input),
+        "brotli" => brotli_payload(input, 0, 22, BrotliMode::Generic),
+        "zpaq" => zpaq_payload(input, 5),
+        "bsc" => bsc_payload(input, crate::bsc_ffi::BscOptions::default()),
+        _ => Err(format!("unsupported CIXB1 backend: {backend}")),
+    }
+}
+
+fn encode_gzip_payload(profile: &str, input: &[u8]) -> Result<Vec<u8>, String> {
+    let level = if profile == "fast" { 1 } else { 9 };
+    let mut encoder = GzBuilder::new().mtime(0).write(
+        Vec::with_capacity(input.len() + 1024 * 1024),
+        Compression::new(level),
+    );
+    encoder
+        .write_all(input)
+        .map_err(|error| error.to_string())?;
+    let payload = encoder.finish().map_err(|error| error.to_string())?;
+    check_cancel()?;
+    Ok(payload)
+}
+
+fn encode_bzip2_payload(profile: &str, input: &[u8]) -> Result<Vec<u8>, String> {
+    let level = if profile == "fast" { 1 } else { 9 };
+    let cap = input
+        .len()
+        .saturating_add(input.len() / 100)
+        .saturating_add(601)
+        .max(601);
+    let mut out = vec![0u8; cap];
+    let mut n = u32::try_from(cap).map_err(|_| "bzip2 output bound overflow")?;
+    let srcn = u32::try_from(input.len()).map_err(|_| "bzip2 source too large")?;
+    let rc = unsafe {
+        BZ2_bzBuffToBuffCompress(
+            out.as_mut_ptr().cast(),
+            &mut n,
+            input.as_ptr().cast_mut().cast(),
+            srcn,
+            level,
+            0,
+            30,
+        )
+    };
+    if rc != 0 {
+        return Err(format!("bzip2 compressor returned {rc}"));
+    }
+    check_cancel()?;
+    out.truncate(n as usize);
+    Ok(out)
+}
+
+fn encode_xz_payload(profile: &str, input: &[u8]) -> Result<Vec<u8>, String> {
+    let base = match profile {
+        "fast" => 0,
+        "default" | "current" => 6,
+        _ => 9,
+    };
+    let preset = base | if profile == "size" { 1u32 << 31 } else { 0 };
+    let cap = unsafe { lzma_stream_buffer_bound(input.len()) };
+    let mut stream: LzmaStream = unsafe { std::mem::zeroed() };
+    stream.next_in = input.as_ptr();
+    stream.avail_in = input.len();
+    let init = unsafe { lzma_easy_encoder(&mut stream, preset, 4) };
+    if init != 0 {
+        return Err(format!("xz encoder initialization returned {init}"));
+    }
+    let mut out = Vec::with_capacity(cap);
+    let mut chunk = [0u8; 65536];
+    loop {
+        check_cancel()?;
+        stream.next_out = chunk.as_mut_ptr();
+        stream.avail_out = chunk.len();
+        let before_in = stream.avail_in;
+        let rc = unsafe { lzma_code(&mut stream, 3) };
+        let written = chunk.len() - stream.avail_out;
+        out.extend_from_slice(&chunk[..written]);
+        if rc != 0 && rc != 1 {
+            return Err(format!("xz encoder returned {rc}"));
+        }
+        check_cancel()?;
+        if rc == 1 {
+            break;
+        }
+        if written == 0 && stream.avail_in == before_in {
+            return Err("xz encoder made no progress".into());
+        }
+    }
+    Ok(out)
+}
+
+fn encode_zstd_payload(profile: &str, input: &[u8]) -> Result<Vec<u8>, String> {
+    let level = match profile {
+        "fast" => -131072,
+        "default" | "current" => 3,
+        _ => 22,
+    };
+    let cap = unsafe { ZSTD_compressBound(input.len()) };
+    let mut out = vec![0u8; cap];
+    let n = unsafe {
+        ZSTD_compress(
+            out.as_mut_ptr().cast(),
+            out.len(),
+            input.as_ptr().cast(),
+            input.len(),
+            level,
+        )
+    };
+    if unsafe { ZSTD_isError(n) } != 0 {
+        return Err(format!("zstd encode: {}", zstd_error(n)));
+    }
+    check_cancel()?;
+    out.truncate(n);
     Ok(out)
 }
 
@@ -1313,140 +1334,7 @@ pub fn decode(archive: &[u8], memory_limit: usize) -> Result<Vec<u8>, String> {
         return Err("CIXB1 decoder memory/resource limit exceeded".into());
     }
     let mut output = vec![0u8; expected.saturating_add(1)];
-    let written = match bid {
-        1 => {
-            output.clear();
-            let mut decoder = GzDecoder::new(Cursor::new(payload));
-            std::io::Read::by_ref(&mut decoder)
-                .take((expected + 1) as u64)
-                .read_to_end(&mut output)
-                .map_err(|e| format!("gzip decode: {e}"))?;
-            check_cancel()?;
-            let pos = decoder.get_ref().position() as usize;
-            if pos != payload.len() {
-                return Err("gzip trailing or concatenated data".into());
-            }
-            output.len()
-        }
-        2 => {
-            let mut stream = BzStream {
-                next_in: payload.as_ptr().cast_mut().cast(),
-                avail_in: u32::try_from(payload.len()).map_err(|_| "bzip2 input too large")?,
-                total_in_lo32: 0,
-                total_in_hi32: 0,
-                next_out: output.as_mut_ptr().cast(),
-                avail_out: u32::try_from(output.len()).map_err(|_| "bzip2 output too large")?,
-                total_out_lo32: 0,
-                total_out_hi32: 0,
-                state: std::ptr::null_mut(),
-                bzalloc: None,
-                bzfree: None,
-                opaque: std::ptr::null_mut(),
-            };
-            let init = unsafe { BZ2_bzDecompressInit(&mut stream, 0, 0) };
-            if init != 0 {
-                return Err(format!("bzip2 init returned {init}"));
-            }
-            let mut rc;
-            loop {
-                rc = unsafe { BZ2_bzDecompress(&mut stream) };
-                if rc == 4 || rc < 0 || rc == 0 && stream.avail_in == 0 || stream.avail_out == 0 {
-                    break;
-                }
-                if let Err(error) = check_cancel() {
-                    unsafe { BZ2_bzDecompressEnd(&mut stream) };
-                    return Err(error);
-                }
-            }
-            let _ = unsafe { BZ2_bzDecompressEnd(&mut stream) };
-            if rc != 4 || stream.avail_in != 0 {
-                return Err("bzip2 truncated, trailing or invalid data".into());
-            }
-            check_cancel()?;
-            stream.total_out_lo32 as usize | ((stream.total_out_hi32 as usize) << 32)
-        }
-        3 => {
-            let mut inpos = 0usize;
-            let mut outpos = 0usize;
-            let mut memlimit = native_memory as u64;
-            let rc = unsafe {
-                lzma_stream_buffer_decode(
-                    &mut memlimit,
-                    0,
-                    std::ptr::null(),
-                    payload.as_ptr(),
-                    &mut inpos,
-                    payload.len(),
-                    output.as_mut_ptr(),
-                    &mut outpos,
-                    output.len(),
-                )
-            };
-            if rc != 0 || inpos != payload.len() {
-                return Err(format!("xz invalid/trailing data (status {rc})"));
-            }
-            check_cancel()?;
-            outpos
-        }
-        4 => {
-            let frame =
-                unsafe { ZSTD_findFrameCompressedSize(payload.as_ptr().cast(), payload.len()) };
-            if unsafe { ZSTD_isError(frame) } != 0 || frame != payload.len() {
-                return Err("zstd invalid or trailing data".into());
-            }
-            let n = unsafe {
-                ZSTD_decompress(
-                    output.as_mut_ptr().cast(),
-                    output.len(),
-                    payload.as_ptr().cast(),
-                    payload.len(),
-                )
-            };
-            if unsafe { ZSTD_isError(n) } != 0 {
-                return Err(format!("zstd decode: {}", zstd_error(n)));
-            }
-            check_cancel()?;
-            n
-        }
-        5 => {
-            let n = brotli_decode_exact(payload, &mut output)?;
-            check_cancel()?;
-            n
-        }
-        6 => {
-            let mut decoded_size = 0usize;
-            let mut error = [0 as c_char; 512];
-            let status = unsafe {
-                cix_zpaq715_decompress(
-                    payload.as_ptr(),
-                    payload.len(),
-                    output.as_mut_ptr(),
-                    output.len(),
-                    native_memory,
-                    &mut decoded_size,
-                    error.as_mut_ptr(),
-                    error.len(),
-                    zpaq_cancelled,
-                )
-            };
-            if status != 0 {
-                return Err(zpaq_error("ZPAQ 7.15 decode", status, &error));
-            }
-            if decoded_size > output.len() {
-                return Err("ZPAQ decoder returned invalid output length".into());
-            }
-            check_cancel()?;
-            decoded_size
-        }
-        7 => {
-            let decoded = crate::bsc_ffi::decompress(payload, expected)
-                .map_err(|error| format!("libbsc decode: {error}"))?;
-            check_cancel()?;
-            output[..expected].copy_from_slice(&decoded);
-            expected
-        }
-        _ => return Err("unknown CIXB1 backend".into()),
-    };
+    let written = decode_payload(bid, payload, &mut output, expected, native_memory)?;
     if written != expected {
         return Err(format!(
             "CIXB1 decoded length mismatch: expected {expected}, got {written}"
@@ -1457,6 +1345,173 @@ pub fn decode(archive: &[u8], memory_limit: usize) -> Result<Vec<u8>, String> {
         return Err("CIXB1 SHA-256 checksum mismatch".into());
     }
     Ok(output)
+}
+
+fn decode_payload(
+    backend_id: u8,
+    payload: &[u8],
+    output: &mut Vec<u8>,
+    expected: usize,
+    native_memory: usize,
+) -> Result<usize, String> {
+    match backend_id {
+        1 => decode_gzip_payload(payload, output, expected),
+        2 => decode_bzip2_payload(payload, output),
+        3 => decode_xz_payload(payload, output, native_memory),
+        4 => decode_zstd_payload(payload, output),
+        5 => decode_brotli_payload(payload, output),
+        6 => decode_zpaq_payload(payload, output, native_memory),
+        7 => decode_bsc_payload(payload, output, expected),
+        _ => Err("unknown CIXB1 backend".into()),
+    }
+}
+
+fn decode_gzip_payload(
+    payload: &[u8],
+    output: &mut Vec<u8>,
+    expected: usize,
+) -> Result<usize, String> {
+    output.clear();
+    let mut decoder = GzDecoder::new(Cursor::new(payload));
+    std::io::Read::by_ref(&mut decoder)
+        .take((expected + 1) as u64)
+        .read_to_end(output)
+        .map_err(|error| format!("gzip decode: {error}"))?;
+    check_cancel()?;
+    if decoder.get_ref().position() as usize != payload.len() {
+        return Err("gzip trailing or concatenated data".into());
+    }
+    Ok(output.len())
+}
+
+fn decode_bzip2_payload(payload: &[u8], output: &mut [u8]) -> Result<usize, String> {
+    let mut stream = BzStream {
+        next_in: payload.as_ptr().cast_mut().cast(),
+        avail_in: u32::try_from(payload.len()).map_err(|_| "bzip2 input too large")?,
+        total_in_lo32: 0,
+        total_in_hi32: 0,
+        next_out: output.as_mut_ptr().cast(),
+        avail_out: u32::try_from(output.len()).map_err(|_| "bzip2 output too large")?,
+        total_out_lo32: 0,
+        total_out_hi32: 0,
+        state: std::ptr::null_mut(),
+        bzalloc: None,
+        bzfree: None,
+        opaque: std::ptr::null_mut(),
+    };
+    let init = unsafe { BZ2_bzDecompressInit(&mut stream, 0, 0) };
+    if init != 0 {
+        return Err(format!("bzip2 init returned {init}"));
+    }
+    let mut rc;
+    loop {
+        rc = unsafe { BZ2_bzDecompress(&mut stream) };
+        if rc == 4 || rc < 0 || rc == 0 && stream.avail_in == 0 || stream.avail_out == 0 {
+            break;
+        }
+        if let Err(error) = check_cancel() {
+            unsafe { BZ2_bzDecompressEnd(&mut stream) };
+            return Err(error);
+        }
+    }
+    let _ = unsafe { BZ2_bzDecompressEnd(&mut stream) };
+    if rc != 4 || stream.avail_in != 0 {
+        return Err("bzip2 truncated, trailing or invalid data".into());
+    }
+    check_cancel()?;
+    Ok(stream.total_out_lo32 as usize | ((stream.total_out_hi32 as usize) << 32))
+}
+
+fn decode_xz_payload(
+    payload: &[u8],
+    output: &mut [u8],
+    native_memory: usize,
+) -> Result<usize, String> {
+    let mut inpos = 0usize;
+    let mut outpos = 0usize;
+    let mut memlimit = native_memory as u64;
+    let rc = unsafe {
+        lzma_stream_buffer_decode(
+            &mut memlimit,
+            0,
+            std::ptr::null(),
+            payload.as_ptr(),
+            &mut inpos,
+            payload.len(),
+            output.as_mut_ptr(),
+            &mut outpos,
+            output.len(),
+        )
+    };
+    if rc != 0 || inpos != payload.len() {
+        return Err(format!("xz invalid/trailing data (status {rc})"));
+    }
+    check_cancel()?;
+    Ok(outpos)
+}
+
+fn decode_zstd_payload(payload: &[u8], output: &mut [u8]) -> Result<usize, String> {
+    let frame = unsafe { ZSTD_findFrameCompressedSize(payload.as_ptr().cast(), payload.len()) };
+    if unsafe { ZSTD_isError(frame) } != 0 || frame != payload.len() {
+        return Err("zstd invalid or trailing data".into());
+    }
+    let written = unsafe {
+        ZSTD_decompress(
+            output.as_mut_ptr().cast(),
+            output.len(),
+            payload.as_ptr().cast(),
+            payload.len(),
+        )
+    };
+    if unsafe { ZSTD_isError(written) } != 0 {
+        return Err(format!("zstd decode: {}", zstd_error(written)));
+    }
+    check_cancel()?;
+    Ok(written)
+}
+
+fn decode_brotli_payload(payload: &[u8], output: &mut [u8]) -> Result<usize, String> {
+    let written = brotli_decode_exact(payload, output)?;
+    check_cancel()?;
+    Ok(written)
+}
+
+fn decode_zpaq_payload(
+    payload: &[u8],
+    output: &mut [u8],
+    native_memory: usize,
+) -> Result<usize, String> {
+    let mut decoded_size = 0usize;
+    let mut error = [0 as c_char; 512];
+    let status = unsafe {
+        cix_zpaq715_decompress(
+            payload.as_ptr(),
+            payload.len(),
+            output.as_mut_ptr(),
+            output.len(),
+            native_memory,
+            &mut decoded_size,
+            error.as_mut_ptr(),
+            error.len(),
+            zpaq_cancelled,
+        )
+    };
+    if status != 0 {
+        return Err(zpaq_error("ZPAQ 7.15 decode", status, &error));
+    }
+    if decoded_size > output.len() {
+        return Err("ZPAQ decoder returned invalid output length".into());
+    }
+    check_cancel()?;
+    Ok(decoded_size)
+}
+
+fn decode_bsc_payload(payload: &[u8], output: &mut [u8], expected: usize) -> Result<usize, String> {
+    let decoded = crate::bsc_ffi::decompress(payload, expected)
+        .map_err(|error| format!("libbsc decode: {error}"))?;
+    check_cancel()?;
+    output[..expected].copy_from_slice(&decoded);
+    Ok(expected)
 }
 
 #[cfg(test)]

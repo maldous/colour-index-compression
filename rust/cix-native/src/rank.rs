@@ -720,6 +720,56 @@ pub fn decode_type_class_with_counts(
     Ok(out)
 }
 
+fn context_tail(prefix_history: &[u8], order: usize) -> Vec<u8> {
+    if order <= prefix_history.len() {
+        prefix_history[prefix_history.len() - order..].to_vec()
+    } else {
+        prefix_history.to_vec()
+    }
+}
+
+fn context_bucket(tail: &[u8], order: usize, bucket_bits: usize) -> usize {
+    if order == 1 && bucket_bits >= 8 {
+        return tail.last().copied().unwrap_or(0) as usize;
+    }
+    let mut hash = 1469598103934665603u64;
+    for &byte in tail {
+        hash ^= byte as u64;
+        hash = hash.wrapping_mul(1099511628211);
+    }
+    (hash & ((1u64 << bucket_bits) - 1)) as usize
+}
+
+fn advance_context_tail(tail: &mut Vec<u8>, value: u8, order: usize) {
+    tail.push(value);
+    if tail.len() > order {
+        tail.remove(0);
+    }
+}
+
+fn decode_context_lanes(
+    data: &[u8],
+    pos: &mut usize,
+    lengths: Vec<usize>,
+) -> Result<Vec<Vec<u8>>, String> {
+    let mut lanes = Vec::with_capacity(lengths.len());
+    for count in lengths {
+        lanes.push(decode_type_class(data, pos, count)?);
+    }
+    Ok(lanes)
+}
+
+fn validate_context_cursors(cursors: &[usize], lanes: &[Vec<u8>]) -> Result<(), String> {
+    if cursors
+        .iter()
+        .zip(lanes)
+        .any(|(&used, lane)| used != lane.len())
+    {
+        return Err("unused context lane symbols".into());
+    }
+    Ok(())
+}
+
 /// Decode CIXM6 context-conditioned type classes (mode 2).
 pub fn decode_context_type_classes(
     data: &[u8],
@@ -758,37 +808,20 @@ pub fn decode_context_type_classes(
         let width = fixed_width(&(choose(n - 1, q - 1) - BigUint::one()));
         composition_unrank(read_fixed(data, &mut pos, width)?, n, q)?
     };
-    let mut lanes = Vec::with_capacity(q);
-    for count in lengths {
-        let lane = decode_type_class(data, &mut pos, count)?;
-        lanes.push(lane);
-    }
+    let lanes = decode_context_lanes(data, &mut pos, lengths)?;
     if pos != data.len() {
         return Err("trailing context type-class bytes".into());
     }
     let lookup: std::collections::HashMap<usize, usize> =
         ids.iter().enumerate().map(|(i, &id)| (id, i)).collect();
     let mut cursors = vec![0usize; q];
-    let mut tail = if order <= prefix_history.len() {
-        prefix_history[prefix_history.len() - order..].to_vec()
-    } else {
-        prefix_history.to_vec()
-    };
+    let mut tail = context_tail(prefix_history, order);
     let mut out = Vec::with_capacity(n);
     for index in 0..n {
         if index & 255 == 0 {
             crate::limits::check()?;
         }
-        let bucket = if order == 1 && bucket_bits >= 8 {
-            tail.last().copied().unwrap_or(0) as usize
-        } else {
-            let mut h = 1469598103934665603u64;
-            for &b in &tail {
-                h ^= b as u64;
-                h = h.wrapping_mul(1099511628211);
-            }
-            (h & ((1u64 << bucket_bits) - 1)) as usize
-        };
+        let bucket = context_bucket(&tail, order, bucket_bits);
         let lane = *lookup
             .get(&bucket)
             .ok_or("context bucket absent from stream")?;
@@ -797,18 +830,9 @@ pub fn decode_context_type_classes(
             .ok_or("context lane exhausted")?;
         cursors[lane] += 1;
         out.push(value);
-        tail.push(value);
-        if tail.len() > order {
-            tail.remove(0);
-        }
+        advance_context_tail(&mut tail, value, order);
     }
-    if cursors
-        .iter()
-        .zip(&lanes)
-        .any(|(&used, lane)| used != lane.len())
-    {
-        return Err("unused context lane symbols".into());
-    }
+    validate_context_cursors(&cursors, &lanes)?;
     Ok(out)
 }
 
@@ -832,31 +856,15 @@ pub fn encode_context_type_classes(
 
     let bucket_count = 1usize << bucket_bits;
     let mut buckets = std::collections::BTreeMap::<usize, Vec<u8>>::new();
-    let mut tail = if order <= prefix_history.len() {
-        prefix_history[prefix_history.len() - order..].to_vec()
-    } else {
-        prefix_history.to_vec()
-    };
+    let mut tail = context_tail(prefix_history, order);
 
     for (index, &symbol) in data.iter().enumerate() {
         if index & 255 == 0 {
             crate::limits::check()?;
         }
-        let bucket = if order == 1 && bucket_bits >= 8 {
-            tail.last().copied().unwrap_or(0) as usize
-        } else {
-            let mut hash = 1469598103934665603u64;
-            for &byte in &tail {
-                hash ^= byte as u64;
-                hash = hash.wrapping_mul(1099511628211);
-            }
-            (hash & ((1u64 << bucket_bits) - 1)) as usize
-        };
+        let bucket = context_bucket(&tail, order, bucket_bits);
         buckets.entry(bucket).or_default().push(symbol);
-        tail.push(symbol);
-        if tail.len() > order {
-            tail.remove(0);
-        }
+        advance_context_tail(&mut tail, symbol, order);
     }
 
     let ids: Vec<usize> = buckets.keys().copied().collect();

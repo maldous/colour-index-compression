@@ -70,49 +70,59 @@ pub fn decode(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
         return Err("unknown bit-plane version".into());
     }
     let version = data[0];
+    if version == 1 {
+        return decode_rank_planes(data, n);
+    }
+    decode_arithmetic_planes(data, n)
+}
+
+fn plane_header(data: &[u8], p: &mut usize, n: usize) -> Result<(u8, usize), String> {
+    let majority = *data.get(*p).ok_or("truncated bit-plane header")?;
+    *p += 1;
+    if majority > 1 {
+        return Err("invalid bit-plane majority".into());
+    }
+    let minority = read_v(data, p)?;
+    if minority > n {
+        return Err("invalid bit-plane minority".into());
+    }
+    Ok((majority, minority))
+}
+
+fn decode_rank_planes(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
     let mut p = 1;
     let mut out = vec![0u8; n];
-    if version == 1 {
-        for shift in (0..8).rev() {
-            let majority = *data.get(p).ok_or("truncated bit-plane header")?;
-            p += 1;
-            if majority > 1 {
-                return Err("invalid bit-plane majority".into());
-            }
-            let k = read_v(data, &mut p)?;
-            if k > n {
-                return Err("invalid bit-plane minority".into());
-            }
-            let positions = rank::decode_colex_positions(data, &mut p, n, k)?;
-            if majority == 1 {
-                for b in &mut out {
-                    *b |= 1 << shift;
-                }
-                for i in positions {
-                    out[i] &= !(1 << shift);
-                }
-            } else {
-                for i in positions {
-                    out[i] |= 1 << shift;
-                }
-            }
-        }
-        if p != data.len() {
-            return Err("trailing bit-plane data".into());
-        }
-        return Ok(out);
+    for shift in (0..8).rev() {
+        let (majority, k) = plane_header(data, &mut p, n)?;
+        let positions = rank::decode_colex_positions(data, &mut p, n, k)?;
+        apply_rank_plane(&mut out, shift, majority, positions);
     }
+    if p != data.len() {
+        return Err("trailing bit-plane data".into());
+    }
+    Ok(out)
+}
+
+fn apply_rank_plane(out: &mut [u8], shift: usize, majority: u8, positions: Vec<usize>) {
+    if majority == 1 {
+        for byte in out.iter_mut() {
+            *byte |= 1 << shift;
+        }
+        for index in positions {
+            out[index] &= !(1 << shift);
+        }
+    } else {
+        for index in positions {
+            out[index] |= 1 << shift;
+        }
+    }
+}
+
+fn decode_arithmetic_planes(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
+    let mut p = 1;
     let mut ones = Vec::with_capacity(8);
     for _ in 0..8 {
-        let majority = *data.get(p).ok_or("truncated bit-plane header")?;
-        p += 1;
-        if majority > 1 {
-            return Err("invalid bit-plane majority".into());
-        }
-        let minority = read_v(data, &mut p)?;
-        if minority > n {
-            return Err("invalid bit-plane minority".into());
-        }
+        let (majority, minority) = plane_header(data, &mut p, n)?;
         ones.push(if majority == 1 {
             n - minority
         } else {
@@ -124,21 +134,29 @@ pub fn decode(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
         return Err("bit-plane arithmetic payload length mismatch".into());
     }
     let mut decoder = ArithmeticDecoder::new(&data[p..], bit_length);
+    let mut out = vec![0u8; n];
     for (plane, &one_count) in ones.iter().enumerate() {
-        let mut one = one_count;
-        let mut zero = n - one_count;
-        for i in 0..n {
-            let total = one + zero;
-            let target = decoder.target(total);
-            if target < zero {
-                decoder.update(0, zero, total);
-                zero -= 1;
-            } else {
-                decoder.update(zero, total, total);
-                one -= 1;
-                out[i] |= 1 << (7 - plane);
-            }
-        }
+        decode_arithmetic_plane(&mut decoder, &mut out, plane, one_count);
     }
     Ok(out)
+}
+
+fn decode_arithmetic_plane(
+    decoder: &mut ArithmeticDecoder<'_>,
+    out: &mut [u8],
+    plane: usize,
+    one_count: usize,
+) {
+    let (mut one, mut zero) = (one_count, out.len() - one_count);
+    for byte in out {
+        let total = one + zero;
+        if decoder.target(total) < zero {
+            decoder.update(0, zero, total);
+            zero -= 1;
+        } else {
+            decoder.update(zero, total, total);
+            one -= 1;
+            *byte |= 1 << (7 - plane);
+        }
+    }
 }

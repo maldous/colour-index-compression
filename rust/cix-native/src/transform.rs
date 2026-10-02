@@ -252,87 +252,100 @@ fn encode_matchxor(data: &[u8]) -> Vec<u8> {
 fn apply(data: &[u8], spec: Spec) -> Vec<u8> {
     match spec.operation {
         Operation::MatchXor => return encode_matchxor(data),
-        Operation::ByteXor(lag) => {
-            let mut out = data.to_vec();
-            for index in lag..data.len() {
-                out[index] = data[index] ^ data[index - lag];
-            }
-            return out;
-        }
-        Operation::ByteDelta(lag) => {
-            let mut out = data.to_vec();
-            for index in lag..data.len() {
-                out[index] = data[index].wrapping_sub(data[index - lag]);
-            }
-            return out;
-        }
+        Operation::ByteXor(lag) => return apply_byte_xor(data, lag),
+        Operation::ByteDelta(lag) => return apply_byte_delta(data, lag),
         _ => {}
     }
-
-    let usable = data.len() / spec.width * spec.width;
-    let values: Vec<u64> = data[..usable]
-        .chunks_exact(spec.width)
-        .map(|word| read_word(word, spec.big_endian))
-        .collect();
+    let (values, usable) = words(data, spec);
     if values.is_empty() {
         return data.to_vec();
     }
-
-    let mask = word_mask(spec.width);
-    let mut transformed = Vec::with_capacity(values.len());
-    transformed.push(values[0]);
-    match spec.operation {
-        Operation::WordXor => {
-            for index in 1..values.len() {
-                transformed.push(values[index] ^ values[index - 1]);
-            }
-        }
-        Operation::WordDelta => {
-            for index in 1..values.len() {
-                transformed.push(values[index].wrapping_sub(values[index - 1]) & mask);
-            }
-        }
-        Operation::WordDelta2 => {
-            if values.len() > 1 {
-                let mut previous_delta = values[1].wrapping_sub(values[0]) & mask;
-                transformed.push(previous_delta);
-                for index in 2..values.len() {
-                    let delta = values[index].wrapping_sub(values[index - 1]) & mask;
-                    transformed.push(delta.wrapping_sub(previous_delta) & mask);
-                    previous_delta = delta;
-                }
-            }
-        }
-        Operation::WordDelta2Zigzag => {
-            if values.len() > 1 {
-                let mut previous_delta =
-                    signed_word(values[1].wrapping_sub(values[0]) & mask, spec.width);
-                transformed.push(zigzag(previous_delta));
-                for index in 2..values.len() {
-                    let delta = signed_word(
-                        values[index].wrapping_sub(values[index - 1]) & mask,
-                        spec.width,
-                    );
-                    let delta_delta = signed_mod(delta - previous_delta, spec.width);
-                    transformed.push(zigzag(delta_delta));
-                    previous_delta = delta;
-                }
-            }
-        }
-        Operation::ByteXor(_) | Operation::ByteDelta(_) | Operation::MatchXor => {
-            unreachable!()
-        }
-    }
-
-    let mut raw = Vec::with_capacity(data.len());
-    for value in transformed {
-        write_word(value, spec.width, spec.big_endian, &mut raw);
-    }
+    let transformed = apply_word_operation(&values, spec);
+    let mut raw = write_words(transformed, spec, data.len());
     raw.extend_from_slice(&data[usable..]);
     if spec.shuffled {
         shuffle(&raw, spec.width)
     } else {
         raw
+    }
+}
+
+fn apply_byte_xor(data: &[u8], lag: usize) -> Vec<u8> {
+    let mut out = data.to_vec();
+    for index in lag..data.len() {
+        out[index] = data[index] ^ data[index - lag];
+    }
+    out
+}
+
+fn apply_byte_delta(data: &[u8], lag: usize) -> Vec<u8> {
+    let mut out = data.to_vec();
+    for index in lag..data.len() {
+        out[index] = data[index].wrapping_sub(data[index - lag]);
+    }
+    out
+}
+
+fn words(data: &[u8], spec: Spec) -> (Vec<u64>, usize) {
+    let usable = data.len() / spec.width * spec.width;
+    (
+        data[..usable]
+            .chunks_exact(spec.width)
+            .map(|word| read_word(word, spec.big_endian))
+            .collect(),
+        usable,
+    )
+}
+
+fn write_words(values: Vec<u64>, spec: Spec, capacity: usize) -> Vec<u8> {
+    let mut out = Vec::with_capacity(capacity);
+    for value in values {
+        write_word(value, spec.width, spec.big_endian, &mut out);
+    }
+    out
+}
+
+fn apply_word_operation(values: &[u64], spec: Spec) -> Vec<u64> {
+    let mask = word_mask(spec.width);
+    let mut out = Vec::with_capacity(values.len());
+    out.push(values[0]);
+    match spec.operation {
+        Operation::WordXor => out.extend(values.windows(2).map(|pair| pair[1] ^ pair[0])),
+        Operation::WordDelta => out.extend(
+            values
+                .windows(2)
+                .map(|pair| pair[1].wrapping_sub(pair[0]) & mask),
+        ),
+        Operation::WordDelta2 => append_delta2(values, mask, &mut out),
+        Operation::WordDelta2Zigzag => append_zigzag_delta2(values, spec.width, mask, &mut out),
+        Operation::ByteXor(_) | Operation::ByteDelta(_) | Operation::MatchXor => unreachable!(),
+    }
+    out
+}
+
+fn append_delta2(values: &[u64], mask: u64, out: &mut Vec<u64>) {
+    if values.len() < 2 {
+        return;
+    }
+    let mut previous = values[1].wrapping_sub(values[0]) & mask;
+    out.push(previous);
+    for pair in values.windows(2).skip(1) {
+        let delta = pair[1].wrapping_sub(pair[0]) & mask;
+        out.push(delta.wrapping_sub(previous) & mask);
+        previous = delta;
+    }
+}
+
+fn append_zigzag_delta2(values: &[u64], width: usize, mask: u64, out: &mut Vec<u64>) {
+    if values.len() < 2 {
+        return;
+    }
+    let mut previous = signed_word(values[1].wrapping_sub(values[0]) & mask, width);
+    out.push(zigzag(previous));
+    for pair in values.windows(2).skip(1) {
+        let delta = signed_word(pair[1].wrapping_sub(pair[0]) & mask, width);
+        out.push(zigzag(signed_mod(delta - previous, width)));
+        previous = delta;
     }
 }
 
@@ -460,20 +473,8 @@ fn decode_matchxor(residual: &[u8]) -> Vec<u8> {
 fn invert(data: &[u8], spec: Spec) -> Vec<u8> {
     match spec.operation {
         Operation::MatchXor => return decode_matchxor(data),
-        Operation::ByteXor(lag) => {
-            let mut out = data.to_vec();
-            for index in lag..out.len() {
-                out[index] ^= out[index - lag];
-            }
-            return out;
-        }
-        Operation::ByteDelta(lag) => {
-            let mut out = data.to_vec();
-            for index in lag..out.len() {
-                out[index] = out[index].wrapping_add(out[index - lag]);
-            }
-            return out;
-        }
+        Operation::ByteXor(lag) => return invert_byte_xor(data, lag),
+        Operation::ByteDelta(lag) => return invert_byte_delta(data, lag),
         _ => {}
     }
 
@@ -487,48 +488,66 @@ fn invert(data: &[u8], spec: Spec) -> Vec<u8> {
         .chunks_exact(spec.width)
         .map(|word| read_word(word, spec.big_endian))
         .collect();
-    if values.len() > 1 {
-        let mask = word_mask(spec.width);
-        match spec.operation {
-            Operation::WordXor => {
-                for index in 1..values.len() {
-                    values[index] ^= values[index - 1];
-                }
-            }
-            Operation::WordDelta => {
-                for index in 1..values.len() {
-                    values[index] = values[index - 1].wrapping_add(values[index]) & mask;
-                }
-            }
-            Operation::WordDelta2 => {
-                let mut previous_delta = values[1];
-                values[1] = values[0].wrapping_add(previous_delta) & mask;
-                for index in 2..values.len() {
-                    previous_delta = previous_delta.wrapping_add(values[index]) & mask;
-                    values[index] = values[index - 1].wrapping_add(previous_delta) & mask;
-                }
-            }
-            Operation::WordDelta2Zigzag => {
-                let mut previous_delta = unzigzag(values[1]);
-                values[1] = add_signed(values[0], previous_delta, spec.width);
-                for index in 2..values.len() {
-                    previous_delta =
-                        signed_mod(previous_delta + unzigzag(values[index]), spec.width);
-                    values[index] = add_signed(values[index - 1], previous_delta, spec.width);
-                }
-            }
-            Operation::ByteXor(_) | Operation::ByteDelta(_) | Operation::MatchXor => {
-                unreachable!()
-            }
-        }
-    }
-
-    let mut out = Vec::with_capacity(raw.len());
-    for value in values {
-        write_word(value, spec.width, spec.big_endian, &mut out);
-    }
+    invert_word_operation(&mut values, spec);
+    let mut out = write_words(values, spec, raw.len());
     out.extend_from_slice(&raw[usable..]);
     out
+}
+
+fn invert_byte_xor(data: &[u8], lag: usize) -> Vec<u8> {
+    let mut out = data.to_vec();
+    for index in lag..out.len() {
+        out[index] ^= out[index - lag];
+    }
+    out
+}
+
+fn invert_byte_delta(data: &[u8], lag: usize) -> Vec<u8> {
+    let mut out = data.to_vec();
+    for index in lag..out.len() {
+        out[index] = out[index].wrapping_add(out[index - lag]);
+    }
+    out
+}
+
+fn invert_word_operation(values: &mut [u64], spec: Spec) {
+    if values.len() < 2 {
+        return;
+    }
+    let mask = word_mask(spec.width);
+    match spec.operation {
+        Operation::WordXor => {
+            for index in 1..values.len() {
+                values[index] ^= values[index - 1];
+            }
+        }
+        Operation::WordDelta => {
+            for index in 1..values.len() {
+                values[index] = values[index - 1].wrapping_add(values[index]) & mask;
+            }
+        }
+        Operation::WordDelta2 => invert_delta2(values, mask),
+        Operation::WordDelta2Zigzag => invert_zigzag_delta2(values, spec.width),
+        Operation::ByteXor(_) | Operation::ByteDelta(_) | Operation::MatchXor => unreachable!(),
+    }
+}
+
+fn invert_delta2(values: &mut [u64], mask: u64) {
+    let mut previous = values[1];
+    values[1] = values[0].wrapping_add(previous) & mask;
+    for index in 2..values.len() {
+        previous = previous.wrapping_add(values[index]) & mask;
+        values[index] = values[index - 1].wrapping_add(previous) & mask;
+    }
+}
+
+fn invert_zigzag_delta2(values: &mut [u64], width: usize) {
+    let mut previous = unzigzag(values[1]);
+    values[1] = add_signed(values[0], previous, width);
+    for index in 2..values.len() {
+        previous = signed_mod(previous + unzigzag(values[index]), width);
+        values[index] = add_signed(values[index - 1], previous, width);
+    }
 }
 
 /// Decode one complete mode-5 payload.

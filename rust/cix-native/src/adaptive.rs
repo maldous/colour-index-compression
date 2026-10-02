@@ -95,6 +95,51 @@ fn bucket(tail: &[u8], order: usize, bucket_bits: usize) -> usize {
     }
 }
 
+fn validate_parameters(order: usize, bucket_bits: usize) -> Result<(), String> {
+    if order > 16 || !(1..=16).contains(&bucket_bits) {
+        return Err("invalid adaptive model parameters".into());
+    }
+    Ok(())
+}
+
+fn initial_tail(prefix_history: &[u8], order: usize) -> Vec<u8> {
+    if order == 0 {
+        Vec::new()
+    } else {
+        prefix_history[prefix_history.len().saturating_sub(order)..].to_vec()
+    }
+}
+
+fn extend_tail(tail: &mut Vec<u8>, symbol: u8, order: usize) {
+    if order != 0 {
+        tail.push(symbol);
+        if tail.len() > order {
+            tail.remove(0);
+        }
+    }
+}
+
+fn model_for<'a>(
+    models: &'a mut std::collections::HashMap<usize, Model>,
+    bucket: usize,
+    model_limit: usize,
+) -> Result<&'a mut Model, String> {
+    if !models.contains_key(&bucket) && models.len() >= model_limit {
+        return Err("adaptive model count exceeds --memory budget".into());
+    }
+    Ok(models.entry(bucket).or_insert_with(Model::new))
+}
+
+fn payload_bounds(blob: &[u8]) -> Result<(usize, usize), String> {
+    let mut pos = 3;
+    let bits = get_varint(blob, &mut pos)?;
+    let bytes = bits.div_ceil(8);
+    if pos.checked_add(bytes) != Some(blob.len()) {
+        return Err("adaptive payload length mismatch".into());
+    }
+    Ok((pos, bits))
+}
+
 /// Encode the frozen general CIX adaptive payload with bounded context storage.
 pub fn encode_general(
     data: &[u8],
@@ -103,14 +148,8 @@ pub fn encode_general(
     prefix_history: &[u8],
     model_limit: usize,
 ) -> Result<Vec<u8>, String> {
-    if order > 16 || !(1..=16).contains(&bucket_bits) {
-        return Err("invalid adaptive model parameters".into());
-    }
-    let mut tail = if order == 0 {
-        Vec::new()
-    } else {
-        prefix_history[prefix_history.len().saturating_sub(order)..].to_vec()
-    };
+    validate_parameters(order, bucket_bits)?;
+    let mut tail = initial_tail(prefix_history, order);
     let mut models = std::collections::HashMap::<usize, Model>::new();
     let mut coder = ArithmeticEncoder::new();
     for (index, &symbol) in data.iter().enumerate() {
@@ -118,19 +157,11 @@ pub fn encode_general(
             crate::limits::check()?;
         }
         let bucket = bucket(&tail, order, bucket_bits);
-        if !models.contains_key(&bucket) && models.len() >= model_limit {
-            return Err("adaptive model count exceeds --memory budget".into());
-        }
-        let model = models.entry(bucket).or_insert_with(Model::new);
+        let model = model_for(&mut models, bucket, model_limit)?;
         let (low, high, total) = model.interval(symbol as usize);
         coder.encode(low, high, total);
         model.add(symbol as usize);
-        if order > 0 {
-            tail.push(symbol);
-            if tail.len() > order {
-                tail.remove(0);
-            }
-        }
+        extend_tail(&mut tail, symbol, order);
     }
     let (payload, bits) = coder.finish();
     let mut out = vec![1, order as u8, bucket_bits as u8];
@@ -146,12 +177,7 @@ pub fn decode(blob: &[u8], n: usize) -> Result<Vec<u8>, String> {
     if blob.len() < 4 || blob[0] != 1 || blob[1] != 0 || blob[2] != 8 {
         return Err("unsupported adaptive substream model".into());
     }
-    let mut pos = 3;
-    let bits = get_varint(blob, &mut pos)?;
-    let bytes = bits.div_ceil(8);
-    if pos.checked_add(bytes) != Some(blob.len()) {
-        return Err("adaptive payload length mismatch".into());
-    }
+    let (pos, bits) = payload_bounds(blob)?;
     let mut model = Model::new();
     let mut coder = ArithmeticDecoder::new(&blob[pos..], bits);
     let mut out = Vec::with_capacity(n);
@@ -180,20 +206,9 @@ pub fn decode_general(
     }
     let order = blob[1] as usize;
     let bucket_bits = blob[2] as usize;
-    if order > 16 || !(1..=16).contains(&bucket_bits) {
-        return Err("invalid adaptive model parameters".into());
-    }
-    let mut pos = 3;
-    let bits = get_varint(blob, &mut pos)?;
-    let bytes = bits.div_ceil(8);
-    if pos.checked_add(bytes) != Some(blob.len()) {
-        return Err("adaptive payload length mismatch".into());
-    }
-    let mut tail = if order == 0 {
-        Vec::new()
-    } else {
-        prefix_history[prefix_history.len().saturating_sub(order)..].to_vec()
-    };
+    validate_parameters(order, bucket_bits)?;
+    let (pos, bits) = payload_bounds(blob)?;
+    let mut tail = initial_tail(prefix_history, order);
     let mut models = std::collections::HashMap::<usize, Model>::new();
     let mut decoder = ArithmeticDecoder::new(&blob[pos..], bits);
     let mut out = Vec::with_capacity(n);
@@ -202,21 +217,13 @@ pub fn decode_general(
             crate::limits::check()?;
         }
         let bucket = bucket(&tail, order, bucket_bits);
-        if !models.contains_key(&bucket) && models.len() >= model_limit {
-            return Err("adaptive model count exceeds --memory budget".into());
-        }
-        let model = models.entry(bucket).or_insert_with(Model::new);
+        let model = model_for(&mut models, bucket, model_limit)?;
         let target = decoder.target(2 * model.seen as usize + 256);
         let (symbol, low, high, total) = model.select(target)?;
         decoder.update(low, high, total);
         model.add(symbol);
         out.push(symbol as u8);
-        if order > 0 {
-            tail.push(symbol as u8);
-            if tail.len() > order {
-                tail.remove(0);
-            }
-        }
+        extend_tail(&mut tail, symbol as u8, order);
     }
     Ok(out)
 }
