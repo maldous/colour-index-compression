@@ -2560,6 +2560,219 @@ fn m6_frame_size(source_len: usize, payload_len: usize) -> usize {
         .saturating_add(payload_len)
 }
 
+struct M6Selection {
+    mode: u8,
+    payload: Vec<u8>,
+    size: usize,
+}
+
+impl M6Selection {
+    fn raw(data: &[u8]) -> Self {
+        let payload = data.to_vec();
+        Self { mode: 0, size: m6_frame_size(data.len(), payload.len()), payload }
+    }
+
+    fn consider(&mut self, mode: u8, payload: Vec<u8>, source_len: usize) {
+        let size = m6_frame_size(source_len, payload.len());
+        if size < self.size {
+            self.mode = mode;
+            self.payload = payload;
+            self.size = size;
+        }
+    }
+}
+
+struct M6TrialContext<'a> {
+    selected: &'a mut M6Selection,
+    data: &'a [u8],
+    prefix: &'a [u8],
+    effort: u8,
+    available: usize,
+    budget_skips: &'a mut std::collections::BTreeSet<u8>,
+}
+
+fn m6_memory_plan(block_len: usize, memory: usize) -> Result<(usize, usize, bool), String> {
+    const HISTORY_LIMIT: usize = 1 << 20;
+    let fixed = HISTORY_LIMIT
+        .saturating_add(block_len.saturating_mul(3))
+        .saturating_add(256 * 1024);
+    if fixed > memory {
+        return Err("CIXM6 history, source and candidate buffers exceed --memory".into());
+    }
+    let reference = memory.saturating_div(8).min(16 * 1024 * 1024).min(memory.saturating_sub(fixed));
+    let persistent = stateful::RETAINED_MEMORY_BOUND.saturating_add(stateful::WORKING_MEMORY_BOUND);
+    Ok((fixed, reference, fixed.saturating_add(reference).saturating_add(persistent) <= memory))
+}
+
+fn m6_try_recent_reference(
+    selected: &mut M6Selection, recent: &std::collections::VecDeque<Vec<u8>>, data: &[u8],
+) {
+    if let Some((distance, _)) = recent.iter().rev().enumerate().find(|(_, prior)| prior.as_slice() == data) {
+        let mut payload = Vec::new();
+        put_varint(distance + 1, &mut payload);
+        selected.consider(9, payload, data.len());
+    }
+}
+
+fn m6_try_sparse_candidates(selected: &mut M6Selection, data: &[u8]) -> Result<(), String> {
+    if data.len() < 2 { return Ok(()); }
+    let mut counts = [0usize; 256];
+    for &byte in data { counts[byte as usize] += 1; }
+    if counts.iter().copied().max().unwrap_or(0).saturating_mul(4) >= data.len() {
+        selected.consider(11, sparse_runs::encode_sparse(data)?, data.len());
+    }
+    let runs = 1 + data.windows(2).filter(|pair| pair[0] != pair[1]).count();
+    if runs.saturating_mul(3) <= data.len().saturating_mul(2) {
+        selected.consider(12, sparse_runs::encode_runs(data)?, data.len());
+    }
+    Ok(())
+}
+
+fn m6_try_legacy_candidates(
+    selected: &mut M6Selection, data: &[u8], prefix: &[u8], effort: u8, available: usize,
+    budget_skips: &mut std::collections::BTreeSet<u8>,
+) -> Result<(), String> {
+    if data.len() >= 16 && effort >= 2 {
+        if available >= data.len().saturating_mul(64) { selected.consider(3, legacy_lz::encode(data, prefix, effort)?.payload, data.len()); } else { budget_skips.insert(3); }
+    }
+    if data.len() >= 32 && effort >= 4 {
+        if available >= data.len().saturating_mul(128) { selected.consider(4, bwt_legacy::encode(data)?.0, data.len()); } else { budget_skips.insert(4); }
+    }
+    if data.len() >= 4 && effort >= 2 {
+        if available >= data.len().saturating_mul(64) { selected.consider(5, transform::encode(data, usize::from(effort.min(10)))?.0, data.len()); } else { budget_skips.insert(5); }
+    }
+    Ok(())
+}
+
+fn m6_try_context_and_adaptive_candidates(ctx: &mut M6TrialContext<'_>) -> Result<Option<Vec<u8>>, String> {
+    let (data, prefix, effort, available) = (ctx.data, ctx.prefix, ctx.effort, ctx.available);
+    let selected = &mut *ctx.selected;
+    let budget_skips = &mut *ctx.budget_skips;
+    let multinomial = if available >= data.len().saturating_mul(32) {
+        let payload = rank::encode_type_class(data)?;
+        selected.consider(1, payload.clone(), data.len());
+        Some(payload)
+    } else {
+        budget_skips.insert(1);
+        None
+    };
+    let context_models = [(1usize, 6usize), (1, 8), (2, 8), (2, 10), (3, 10), (4, 10), (4, 12), (6, 12)];
+    let context_beam = usize::from(effort.min(4));
+    if available >= data.len().saturating_mul(32) {
+        for &(order, bucket_bits) in context_models.iter().take(context_beam) {
+            selected.consider(2, rank::encode_context_type_classes(data, order, bucket_bits, prefix)?, data.len());
+        }
+    } else if context_beam > 0 {
+        budget_skips.insert(2);
+    }
+    if data.len() >= 2 {
+        selected.consider(18, wavelet::encode(data), data.len());
+        if available >= data.len().saturating_mul(32) {
+            let adaptive_models = [(0usize, 8usize), (1, 6), (1, 8), (2, 8), (2, 10), (3, 10), (4, 10), (4, 12), (6, 12)];
+            for &(order, bucket_bits) in adaptive_models.iter().take(usize::from(effort)) {
+                match adaptive::encode_general(data, order, bucket_bits, prefix, (available / 4096).max(1)) {
+                    Ok(payload) => selected.consider(10, payload, data.len()),
+                    Err(error) if error.contains("memory budget") => { budget_skips.insert(10); }
+                    Err(error) => return Err(error),
+                }
+            }
+        } else {
+            budget_skips.insert(10);
+        }
+    }
+    Ok(multinomial)
+}
+
+fn m6_try_chain_numeric_histogram_candidates(ctx: &mut M6TrialContext<'_>, multinomial: Option<&[u8]>) -> Result<(), String> {
+    let (data, effort, available) = (ctx.data, ctx.effort, ctx.available);
+    let selected = &mut *ctx.selected;
+    let budget_skips = &mut *ctx.budget_skips;
+    if data.len() >= 2 { selected.consider(6, bitplane::encode(data), data.len()); }
+    if data.len() >= 32 && effort >= 8 {
+        if available >= data.len().saturating_mul(128) {
+            let encoded = chain::encode(data, chain::EncodeOptions { beam: usize::from(effort.min(9)), effort })?;
+            selected.consider(7, encoded.payload, data.len());
+        } else { budget_skips.insert(7); }
+    }
+    if data.len() >= 6 {
+        if available >= data.len().saturating_mul(128) { selected.consider(8, numeric::encode(data)?.payload, data.len()); } else { budget_skips.insert(8); }
+    }
+    if data.len() >= 2 {
+        if available >= data.len().saturating_mul(32) {
+            if let Some(multinomial) = multinomial {
+                if let Some(payload) = histogram::type_class_candidate(data, multinomial)? { selected.consider(20, payload, data.len()); }
+            } else { budget_skips.insert(20); }
+        } else { budget_skips.insert(20); }
+    }
+    Ok(())
+}
+
+fn m6_try_record_periodic_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(), String> {
+    let (data, effort, available) = (ctx.data, ctx.effort, ctx.available);
+    let selected = &mut *ctx.selected;
+    let budget_skips = &mut *ctx.budget_skips;
+    if data.len() >= 256 && effort >= 4 {
+        if available >= data.len().saturating_mul(128) {
+            selected.consider(14, record_periodic::encode_record(data, usize::from(effort.min(6)))?.0, data.len());
+            selected.consider(15, record_periodic::encode_periodic(data, usize::from(effort.min(8)))?.0, data.len());
+        } else { budget_skips.extend([14, 15]); }
+    }
+    Ok(())
+}
+
+fn m6_try_prediction_mix_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(), String> {
+    let (data, prefix, effort, available) = (ctx.data, ctx.prefix, ctx.effort, ctx.available);
+    let selected = &mut *ctx.selected;
+    let budget_skips = &mut *ctx.budget_skips;
+    if data.len() >= 512 && effort >= 4 {
+        let trained = prefix.len().min(65536).min(4096usize.max(data.len().saturating_mul(2)));
+        if available >= route_minimum_memory(8, data.len().saturating_add(trained)) {
+            let order = match effort { 0..=3 => 2, 4..=6 => 4, 7..=8 => 5, _ => 6 };
+            selected.consider(16, ppm::encode_best(data, order, prefix, None, None, None)?, data.len());
+        } else { budget_skips.insert(16); }
+    }
+    if data.len() >= 512 && effort >= 6 {
+        let max_contexts = available / EXPERT_CONTEXT_MEMORY_ESTIMATE;
+        if max_contexts > 0 {
+            match expertmix::encode_bounded(data, &[0, 1, 2, 4], prefix, max_contexts) {
+                Ok(payload) => selected.consider(17, payload, data.len()),
+                Err(error) if error.contains("memory budget") => { budget_skips.insert(17); }
+                Err(error) => return Err(error),
+            }
+        } else { budget_skips.insert(17); }
+    }
+    if data.len() >= 512 && data.len() <= 32768 && effort >= 7 {
+        let trained = prefix.len().min(65536).min(4096usize.max(data.len().saturating_mul(2)));
+        if available >= route_minimum_memory(9, data.len().saturating_add(trained)) {
+            selected.consider(19, fixedmix::encode_with_history_eta(data, prefix, 6)?, data.len());
+        } else { budget_skips.insert(19); }
+    }
+    Ok(())
+}
+
+fn m6_try_persistent_candidate(
+    ctx: &mut M6TrialContext<'_>, states: &mut Option<stateful::PersistentAdaptiveStates>,
+) -> Result<(), String> {
+    let (data, prefix) = (ctx.data, ctx.prefix);
+    let selected = &mut *ctx.selected;
+    let budget_skips = &mut *ctx.budget_skips;
+    if let Some(states) = states.as_mut() {
+        let (_, payload) = states.encode_best(data, prefix, stateful::WORKING_MEMORY_BOUND)?;
+        selected.consider(13, payload, data.len());
+        states.observe(data, prefix)?;
+    } else { budget_skips.insert(13); }
+    Ok(())
+}
+
+fn m6_write_selected_frame<W: Write>(dst: &mut W, selected: &M6Selection, source_len: usize) -> Result<(), String> {
+    let mut frame = vec![selected.mode];
+    put_varint(source_len, &mut frame);
+    put_varint(selected.payload.len(), &mut frame);
+    dst.write_all(&frame).map_err(ioerr)?;
+    dst.write_all(&selected.payload).map_err(ioerr)?;
+    dst.flush().map_err(ioerr)
+}
+
 fn encode_m6<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
@@ -2572,22 +2785,8 @@ fn encode_m6<R: Read, W: Write>(
     let mut whole = 0usize;
     let mut crc = crc32fast::Hasher::new();
     let mut block = vec![0u8; block_size.min(MAX_BLOCK as usize).max(1)];
-    let fixed_reserve = HISTORY_LIMIT
-        .saturating_add(block.len().saturating_mul(3))
-        .saturating_add(256 * 1024);
-    if fixed_reserve > memory {
-        return Err("CIXM6 history, source and candidate buffers exceed --memory".into());
-    }
-    let reference_budget = memory
-        .saturating_div(8)
-        .min(16 * 1024 * 1024)
-        .min(memory.saturating_sub(fixed_reserve));
-    let persistent_reserve =
-        stateful::RETAINED_MEMORY_BOUND.saturating_add(stateful::WORKING_MEMORY_BOUND);
-    let persistent_enabled = fixed_reserve
-        .saturating_add(reference_budget)
-        .saturating_add(persistent_reserve)
-        <= memory;
+    let (fixed_reserve, reference_budget, persistent_enabled) = m6_memory_plan(block.len(), memory)?;
+    let persistent_reserve = stateful::RETAINED_MEMORY_BOUND.saturating_add(stateful::WORKING_MEMORY_BOUND);
     dst.write_all(b"CIXM6").map_err(ioerr)?;
     let mut header = Vec::new();
     put_varint(HISTORY_LIMIT, &mut header);
@@ -2617,17 +2816,7 @@ fn encode_m6<R: Read, W: Write>(
         }
         let data = &block[..got];
         let prefix = history.as_slice();
-        let mut best_mode = 0u8;
-        let mut best_payload = data.to_vec();
-        let mut best_size = m6_frame_size(got, best_payload.len());
-        let mut consider = |mode: u8, payload: Vec<u8>| {
-            let size = m6_frame_size(got, payload.len());
-            if size < best_size {
-                best_mode = mode;
-                best_payload = payload;
-                best_size = size;
-            }
-        };
+        let mut selected = M6Selection::raw(data);
 
         let available = memory
             .saturating_sub(fixed_reserve)
@@ -2637,232 +2826,28 @@ fn encode_m6<R: Read, W: Write>(
             } else {
                 0
             });
-        // Raw always fits. Materialize rank coding only when scratch fits.
-        let multinomial = if available >= got.saturating_mul(32) {
-            let payload = rank::encode_type_class(data)?;
-            consider(1, payload.clone());
-            Some(payload)
-        } else {
-            budget_skips.insert(1);
-            None
+        let mut trials = M6TrialContext {
+            selected: &mut selected,
+            data,
+            prefix,
+            effort,
+            available,
+            budget_skips: &mut budget_skips,
         };
+        let multinomial = m6_try_context_and_adaptive_candidates(&mut trials)?;
 
-        // Exact CIX context candidates. The beam is bounded by effort and by a
-        // conservative working-memory estimate; each complete frame is charged.
-        let context_models = [
-            (1usize, 6usize),
-            (1, 8),
-            (2, 8),
-            (2, 10),
-            (3, 10),
-            (4, 10),
-            (4, 12),
-            (6, 12),
-        ];
-        let context_beam = usize::from(effort.min(4));
-        if available >= got.saturating_mul(32) {
-            for &(order, bucket_bits) in context_models.iter().take(context_beam) {
-                let payload = rank::encode_context_type_classes(data, order, bucket_bits, prefix)?;
-                consider(2, payload);
-            }
-        } else if context_beam > 0 {
-            budget_skips.insert(2);
-        }
-
-        // Hierarchical wavelet and adaptive context candidates are cheap enough
-        // to try before the more expensive portfolios.
-        if data.len() >= 2 {
-            consider(18, wavelet::encode(data));
-            if available >= got.saturating_mul(32) {
-                let adaptive_models = [
-                    (0usize, 8usize),
-                    (1, 6),
-                    (1, 8),
-                    (2, 8),
-                    (2, 10),
-                    (3, 10),
-                    (4, 10),
-                    (4, 12),
-                    (6, 12),
-                ];
-                for &(order, bucket_bits) in adaptive_models.iter().take(usize::from(effort)) {
-                    let encoded = adaptive::encode_general(
-                        data,
-                        order,
-                        bucket_bits,
-                        prefix,
-                        (available / 4096).max(1),
-                    );
-                    match encoded {
-                        Ok(payload) => consider(10, payload),
-                        Err(error) if error.contains("memory budget") => {
-                            budget_skips.insert(10);
-                        }
-                        Err(error) => return Err(error),
-                    }
-                }
-            } else {
-                budget_skips.insert(10);
-            }
-        }
-
-        if data.len() >= 2 {
-            let mut counts = [0usize; 256];
-            for &byte in data {
-                counts[byte as usize] += 1;
-            }
-            if counts.iter().copied().max().unwrap_or(0).saturating_mul(4) >= data.len() {
-                consider(11, sparse_runs::encode_sparse(data)?);
-            }
-            let runs = 1 + data.windows(2).filter(|pair| pair[0] != pair[1]).count();
-            if runs.saturating_mul(3) <= data.len().saturating_mul(2) {
-                consider(12, sparse_runs::encode_runs(data)?);
-            }
-        }
+        m6_try_sparse_candidates(trials.selected, data)?;
 
         // Recent identical blocks use a relative back-reference; retain only
         // the configured bounded queue and compare its complete frame cost.
-        if let Some((distance, _)) = recent
-            .iter()
-            .rev()
-            .enumerate()
-            .find(|(_, prior)| prior.as_slice() == data)
-        {
-            let mut payload = Vec::new();
-            put_varint(distance + 1, &mut payload);
-            consider(9, payload);
-        }
+        m6_try_recent_reference(trials.selected, &recent, data);
 
-        if data.len() >= 16 && effort >= 2 {
-            if available >= got.saturating_mul(64) {
-                consider(3, legacy_lz::encode(data, prefix, effort)?.payload);
-            } else {
-                budget_skips.insert(3);
-            }
-        }
-        if data.len() >= 32 && effort >= 4 {
-            if available >= got.saturating_mul(128) {
-                consider(4, bwt_legacy::encode(data)?.0);
-            } else {
-                budget_skips.insert(4);
-            }
-        }
-        if data.len() >= 4 && effort >= 2 {
-            if available >= got.saturating_mul(64) {
-                consider(5, transform::encode(data, usize::from(effort.min(10)))?.0);
-            } else {
-                budget_skips.insert(5);
-            }
-        }
-        if data.len() >= 2 {
-            consider(6, bitplane::encode(data));
-        }
-        if data.len() >= 32 && effort >= 8 {
-            if available >= got.saturating_mul(128) {
-                let encoded = chain::encode(
-                    data,
-                    chain::EncodeOptions {
-                        beam: usize::from(effort.min(9)),
-                        effort,
-                    },
-                )?;
-                consider(7, encoded.payload);
-            } else {
-                budget_skips.insert(7);
-            }
-        }
-        if data.len() >= 6 {
-            if available >= got.saturating_mul(128) {
-                consider(8, numeric::encode(data)?.payload);
-            } else {
-                budget_skips.insert(8);
-            }
-        }
-        if data.len() >= 2 {
-            if available >= got.saturating_mul(32) {
-                if let Some(multinomial) = multinomial.as_deref() {
-                    if let Some(payload) = histogram::type_class_candidate(data, multinomial)? {
-                        consider(20, payload);
-                    }
-                } else {
-                    budget_skips.insert(20);
-                }
-            } else {
-                budget_skips.insert(20);
-            }
-        }
-
-        if data.len() >= 256 && effort >= 4 {
-            if available >= got.saturating_mul(128) {
-                consider(
-                    14,
-                    record_periodic::encode_record(data, usize::from(effort.min(6)))?.0,
-                );
-                consider(
-                    15,
-                    record_periodic::encode_periodic(data, usize::from(effort.min(8)))?.0,
-                );
-            } else {
-                budget_skips.extend([14, 15]);
-            }
-        }
-        if data.len() >= 512 && effort >= 4 {
-            let trained = prefix
-                .len()
-                .min(65536)
-                .min(4096usize.max(got.saturating_mul(2)));
-            if available >= route_minimum_memory(8, got.saturating_add(trained)) {
-                let order = match effort {
-                    0..=3 => 2,
-                    4..=6 => 4,
-                    7..=8 => 5,
-                    _ => 6,
-                };
-                consider(16, ppm::encode_best(data, order, prefix, None, None, None)?);
-            } else {
-                budget_skips.insert(16);
-            }
-        }
-        if data.len() >= 512 && effort >= 6 {
-            let max_contexts = available / EXPERT_CONTEXT_MEMORY_ESTIMATE;
-            if max_contexts > 0 {
-                match expertmix::encode_bounded(data, &[0, 1, 2, 4], prefix, max_contexts) {
-                    Ok(payload) => consider(17, payload),
-                    Err(error) if error.contains("memory budget") => {
-                        budget_skips.insert(17);
-                    }
-                    Err(error) => return Err(error),
-                }
-            } else {
-                budget_skips.insert(17);
-            }
-        }
-        if data.len() >= 512 && data.len() <= 32768 && effort >= 7 {
-            let trained = prefix
-                .len()
-                .min(65536)
-                .min(4096usize.max(got.saturating_mul(2)));
-            if available >= route_minimum_memory(9, got.saturating_add(trained)) {
-                consider(19, fixedmix::encode_with_history_eta(data, prefix, 6)?);
-            } else {
-                budget_skips.insert(19);
-            }
-        }
-        // Persistent models observe every block and retain history across route
-        // changes. Encode a mode-13 candidate from the pre-block model state.
-        if let Some(states) = persistent_states.as_mut() {
-            let (_, payload) = states.encode_best(data, prefix, stateful::WORKING_MEMORY_BOUND)?;
-            consider(13, payload);
-            states.observe(data, prefix)?;
-        } else {
-            budget_skips.insert(13);
-        }
-        let mut frame = vec![best_mode];
-        put_varint(got, &mut frame);
-        put_varint(best_payload.len(), &mut frame);
-        dst.write_all(&frame).map_err(ioerr)?;
-        dst.write_all(&best_payload).map_err(ioerr)?;
-        dst.flush().map_err(ioerr)?;
+        m6_try_legacy_candidates(trials.selected, data, prefix, effort, available, trials.budget_skips)?;
+        m6_try_chain_numeric_histogram_candidates(&mut trials, multinomial.as_deref())?;
+        m6_try_record_periodic_candidates(&mut trials)?;
+        m6_try_prediction_mix_candidates(&mut trials)?;
+        m6_try_persistent_candidate(&mut trials, &mut persistent_states)?;
+        m6_write_selected_frame(&mut dst, &selected, got)?;
         crc.update(data);
         whole = whole
             .checked_add(got)
