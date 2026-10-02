@@ -11,6 +11,105 @@ struct Completed {
     stats: AutoSelectionStats,
 }
 
+struct StreamState {
+    buffer: Vec<u8>,
+    filled: usize,
+    counts: [u32; 256],
+    since: Option<Instant>,
+    free: VecDeque<Vec<u8>>,
+    whole: Sha256,
+    source_bytes: u64,
+    archive_bytes: u64,
+    totals: AutoSelectionStats,
+    eof: bool,
+    peak_outstanding: usize,
+}
+
+impl StreamState {
+    fn new(block: u32) -> Self {
+        Self {
+            buffer: vec![0; block as usize],
+            filled: 0,
+            counts: [0; 256],
+            since: None,
+            free: VecDeque::new(),
+            whole: Sha256::new(),
+            source_bytes: 0,
+            archive_bytes: HEADER as u64,
+            totals: AutoSelectionStats::default(),
+            eof: false,
+            peak_outstanding: 0,
+        }
+    }
+
+    fn ready(&self, flush_interval: Option<Duration>) -> bool {
+        let expired = self
+            .since
+            .zip(flush_interval)
+            .is_some_and(|(start, interval)| start.elapsed() >= interval);
+        self.filled == self.buffer.len() || self.filled != 0 && (expired || self.eof)
+    }
+
+    fn record_input(&mut self, count: usize) {
+        for &byte in &self.buffer[self.filled..self.filled + count] {
+            self.counts[byte as usize] += 1;
+        }
+        self.filled += count;
+        self.since.get_or_insert_with(Instant::now);
+    }
+
+    fn input_timeout(
+        &self,
+        flush_interval: Option<Duration>,
+        outstanding: usize,
+    ) -> Option<Duration> {
+        let mut timeout = self
+            .since
+            .zip(flush_interval)
+            .map(|(start, interval)| interval.saturating_sub(start.elapsed()));
+        if outstanding != 0 {
+            timeout = Some(timeout.map_or(Duration::from_millis(50), |wait| {
+                wait.min(Duration::from_millis(50))
+            }));
+        }
+        timeout
+    }
+
+    fn submit(
+        &mut self,
+        pipeline: &mut parallel::OrderedPipeline<Vec<u8>, Completed>,
+        block: u32,
+    ) -> Result<(), String> {
+        if self.counts.iter().map(|&n| n as usize).sum::<usize>() != self.filled {
+            return Err("internal block symbol count mismatch".into());
+        }
+        self.buffer.truncate(self.filled);
+        self.whole.update(&self.buffer);
+        self.source_bytes = self
+            .source_bytes
+            .checked_add(self.filled as u64)
+            .ok_or("input length overflow")?;
+        match pipeline.try_submit(std::mem::take(&mut self.buffer)) {
+            Ok(()) => {}
+            Err(parallel::TrySubmitError::Cancelled(_)) => {
+                return Err(pipeline
+                    .try_recv_next()
+                    .err()
+                    .map(pipeline_error)
+                    .unwrap_or_else(|| "block encoding cancelled".into()));
+            }
+            Err(_) => return Err("pipeline admission invariant failed".into()),
+        }
+        self.peak_outstanding = self.peak_outstanding.max(pipeline.outstanding());
+        self.buffer = self.free.pop_front().unwrap_or_default();
+        self.buffer.resize(block as usize, 0);
+        self.filled = 0;
+        self.counts.fill(0);
+        self.since = None;
+        Ok(())
+    }
+}
+
 fn pipeline_error(error: parallel::PipelineError) -> String {
     match error {
         parallel::PipelineError::Worker(message) => message,
@@ -82,6 +181,40 @@ fn wait_one<W: Write>(
             }
         }
     }
+}
+
+fn drain_ready<W: Write>(
+    pipeline: &mut parallel::OrderedPipeline<Vec<u8>, Completed>,
+    dst: &mut W,
+    state: &mut StreamState,
+) -> Result<(), String> {
+    while let parallel::Poll::Item(item) = pipeline.try_recv_next().map_err(pipeline_error)? {
+        emit(
+            dst,
+            item,
+            &mut state.totals,
+            &mut state.archive_bytes,
+            &mut state.free,
+        )?;
+    }
+    Ok(())
+}
+
+fn wait_for_capacity<W: Write>(
+    pipeline: &mut parallel::OrderedPipeline<Vec<u8>, Completed>,
+    dst: &mut W,
+    state: &mut StreamState,
+) -> Result<(), String> {
+    while pipeline.outstanding() == pipeline.capacity() {
+        wait_one(
+            pipeline,
+            dst,
+            &mut state.totals,
+            &mut state.archive_bytes,
+            &mut state.free,
+        )?;
+    }
+    Ok(())
 }
 
 pub(super) fn encode<R: Read, W: Write>(
@@ -167,85 +300,28 @@ pub(super) fn encode<R: Read, W: Write>(
         dst.write_all(magic).map_err(ioerr)?;
         dst.write_all(&block.to_le_bytes()).map_err(ioerr)?;
         dst.write_all(&0u32.to_le_bytes()).map_err(ioerr)?;
-        let mut buffer = vec![0u8; block as usize];
-        let mut filled = 0usize;
-        let mut counts = [0u32; 256];
-        let mut since: Option<Instant> = None;
-        let mut free = VecDeque::new();
-        let mut whole = Sha256::new();
-        let mut source_bytes = 0u64;
-        let mut archive_bytes = HEADER as u64;
-        let mut totals = AutoSelectionStats::default();
-        let mut eof = false;
-        let mut peak_outstanding = 0usize;
+        let mut state = StreamState::new(block);
         loop {
             check_interrupted()?;
-            while let parallel::Poll::Item(item) =
-                pipeline.try_recv_next().map_err(pipeline_error)?
-            {
-                emit(&mut dst, item, &mut totals, &mut archive_bytes, &mut free)?;
-            }
+            drain_ready(&mut pipeline, &mut dst, &mut state)?;
             // Do not read ahead while the writer's ordered output is backlogged.
-            while pipeline.outstanding() == pipeline.capacity() {
-                wait_one(
-                    &mut pipeline,
-                    &mut dst,
-                    &mut totals,
-                    &mut archive_bytes,
-                    &mut free,
-                )?;
-            }
-            let expired = since
-                .zip(flush_interval)
-                .is_some_and(|(start, interval)| start.elapsed() >= interval);
-            if filled == buffer.len() || filled != 0 && (expired || eof) {
-                if counts.iter().map(|&n| n as usize).sum::<usize>() != filled {
-                    return Err("internal block symbol count mismatch".into());
-                }
-                buffer.truncate(filled);
-                whole.update(&buffer);
-                source_bytes = source_bytes
-                    .checked_add(filled as u64)
-                    .ok_or("input length overflow")?;
-                match pipeline.try_submit(buffer) {
-                    Ok(()) => {}
-                    Err(parallel::TrySubmitError::Cancelled(_)) => {
-                        return Err(pipeline
-                            .try_recv_next()
-                            .err()
-                            .map(pipeline_error)
-                            .unwrap_or_else(|| "block encoding cancelled".into()));
-                    }
-                    Err(_) => return Err("pipeline admission invariant failed".into()),
-                }
-                peak_outstanding = peak_outstanding.max(pipeline.outstanding());
-                buffer = free.pop_front().unwrap_or_default();
-                buffer.resize(block as usize, 0);
-                filled = 0;
-                counts.fill(0);
-                since = None;
+            wait_for_capacity(&mut pipeline, &mut dst, &mut state)?;
+            if state.ready(flush_interval) {
+                state.submit(&mut pipeline, block)?;
                 continue;
             }
-            if eof {
+            if state.eof {
                 break;
             }
-            let mut timeout = since
-                .zip(flush_interval)
-                .map(|(start, interval)| interval.saturating_sub(start.elapsed()));
-            if pipeline.outstanding() != 0 {
-                timeout = Some(timeout.map_or(Duration::from_millis(50), |wait| {
-                    wait.min(Duration::from_millis(50))
-                }));
-            }
-            match read_poll(&mut src, &mut buffer[filled..], input_fd, timeout)? {
-                Some(0) => eof = true,
-                Some(n) => {
-                    for &byte in &buffer[filled..filled + n] {
-                        counts[byte as usize] += 1;
-                    }
-                    filled += n;
-                    since.get_or_insert_with(Instant::now);
-                }
+            let timeout = state.input_timeout(flush_interval, pipeline.outstanding());
+            match read_poll(
+                &mut src,
+                &mut state.buffer[state.filled..],
+                input_fd,
+                timeout,
+            )? {
+                Some(0) => state.eof = true,
+                Some(count) => state.record_input(count),
                 None => {}
             }
         }
@@ -254,20 +330,22 @@ pub(super) fn encode<R: Read, W: Write>(
             wait_one(
                 &mut pipeline,
                 &mut dst,
-                &mut totals,
-                &mut archive_bytes,
-                &mut free,
+                &mut state.totals,
+                &mut state.archive_bytes,
+                &mut state.free,
             )?;
         }
         pipeline.finish().map_err(pipeline_error)?;
         check_interrupted()?;
-        put_frame(&mut dst, END, 0, 0, &whole.finalize().into()).map_err(ioerr)?;
-        archive_bytes = archive_bytes
+        put_frame(&mut dst, END, 0, 0, &state.whole.finalize().into()).map_err(ioerr)?;
+        state.archive_bytes = state
+            .archive_bytes
             .checked_add(41)
             .ok_or("archive length overflow")?;
         dst.flush().map_err(ioerr)?;
         if verbose || explain {
-            let routes = totals
+            let routes = state
+                .totals
                 .selected_source_bytes
                 .iter()
                 .enumerate()
@@ -276,10 +354,10 @@ pub(super) fn encode<R: Read, W: Write>(
                 .collect::<Vec<_>>()
                 .join(",");
             eprintln!("cix: effort={} format={} parallelism=blocks workers={} queue_capacity={} peak_outstanding={} reserved_buffers={} peak_scratch_reserved={} source_bytes={} blocks={} candidates={} memory_skips={} budget_skips={} analyse_seconds={:.3} candidate_seconds={:.3} search_seconds={:.3} archive_bytes={} selected_source_bytes=[{}]",
-            effort_display_name(level), resolved_format, workers, workers, peak_outstanding, retained,
-            budget.stats().peak_reserved_bytes, source_bytes, totals.blocks, totals.candidate_attempts,
-            totals.memory_skips, totals.budget_skips, totals.profile_seconds, totals.candidate_seconds,
-            totals.search_seconds, archive_bytes, routes);
+            effort_display_name(level), resolved_format, workers, workers, state.peak_outstanding, retained,
+            budget.stats().peak_reserved_bytes, state.source_bytes, state.totals.blocks, state.totals.candidate_attempts,
+            state.totals.memory_skips, state.totals.budget_skips, state.totals.profile_seconds, state.totals.candidate_seconds,
+            state.totals.search_seconds, state.archive_bytes, routes);
         }
         Ok(())
     })();

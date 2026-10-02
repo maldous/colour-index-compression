@@ -1,0 +1,41 @@
+{
+  "schema": "cix-rust-gstream-refactor-v1",
+  "status": "VERIFIED",
+  "source": {
+    "control_revision": "5e7eb8f1286c2507afa9c885581ba95447117546",
+    "candidate_gstream_sha256": "26941ef5509bccd5f3197e3f985259d23c7543c52d251473f56ea7a22787dc33"
+  },
+  "builds": {
+    "control": {
+      "cix_sha256": "7be0ebcd91ee24eeadf9dc494b120fa883c65d99e99148ec454df614bd06d034",
+      "uncix_sha256": "2927024a0a29c7fea38edb33a46c80930d1164c18cf4512d325d896257e54d54"
+    },
+    "candidate": {
+      "cix_sha256": "55cfd080bde839170d0bfa7770b7496b4277eb41e416a0099fc7cadd4f2a28f2",
+      "uncix_sha256": "20baccc0b9026d1ca0f20417d79dfa303d667d9c92fcffedb922982bff1ebde6"
+    }
+  },
+  "archive_identity": {
+    "input_bytes": 131072,
+    "input_sha256": "0b352442f8c59821311809ae20d06e2edf4fed6386a9b7eb44947e13ce0b7d15",
+    "configuration": "--fast --stream --threads 2 --parallelism blocks --block-size 4KiB --memory 64MiB",
+    "cixg1": {"bytes": 132438, "sha256": "e469088e46faf84d5b32598dcb8803eb9ae215d9f07170cd97f39f78f9663f8b", "identical": true},
+    "cixg2": {"bytes": 132438, "sha256": "4c677a01b60ed555e7759675615acc5b387257a931cc342b40a40f995639c038", "identical": true},
+    "cross_decode": {"control_decodes_candidate": true, "candidate_decodes_control": true}
+  },
+  "focused_tests": {
+    "cargo_check": "passed",
+    "streaming_pipe": {"passed": 7, "failed": 0, "elapsed_seconds": 4.82},
+    "parallel_pipeline": {"passed": 7, "failed": 0, "elapsed_seconds": 0.11}
+  },
+  "real_pipe_probe": {
+    "receipt": "pipe-probe.json",
+    "receipt_sha256": "eb0c9e13252ace32ee727478347fb1ebefc4b02a67a8c2db70d893cccd9b834c",
+    "cgroup": {"MemoryMax": "1G", "MemorySwapMax": 0, "CPUAffinity": [12]},
+    "idle_first_32KiB_before_eof": true,
+    "slow_consumer_pre_eof_liveness": true,
+    "truncated_rejected": true,
+    "corrupt_rejected": true
+  },
+  "allocation_copy_change": "None. The completed buffer is moved through std::mem::take into the existing pipeline. The next reader buffer is still sourced from the free queue or allocated only when the queue is empty, then resized to block length."
+}
