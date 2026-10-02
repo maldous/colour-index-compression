@@ -102,3 +102,56 @@ No unsafe code, allocator change, SIMD, or dependency was added.  The
 optimization retains all arbitrary-precision count/header ranks; it removes
 only an independently materialized arbitrary-precision sequence rank whose
 bytes were discarded before output.
+
+## Kernel-only Criterion and allocation audit
+
+The end-to-end number above includes CIXG1 selection and framing.  A separate
+pair of disposable instrumentation worktrees measured only
+`rank::encode_count_range` on the same deterministic 4,096-byte synthetic
+input.  Both used CPU 28, Criterion 0.5.1, 30 samples, one second warmup and
+three seconds requested measurement time.  Criterion extended the candidate
+collection to 5.12 seconds to obtain its requested 30 samples.
+
+| revision | encoded bytes | SHA-256 | Criterion time | throughput |
+| --- | ---: | --- | ---: | ---: |
+| e0b96c0fc baseline | 4,171 | `0a5b75ff72f907c5818a01749c6e8a35717d86477e64e6d3db4dfc0a4aca6a6a` | 16.410–16.670 ms | 239.95–243.75 KiB/s |
+| direct-header candidate | 4,171 | `0a5b75ff72f907c5818a01749c6e8a35717d86477e64e6d3db4dfc0a4aca6a6a` | 11.093–11.180 ms | 357.77–360.57 KiB/s |
+
+That is a 1.48x kernel speedup at the midpoint. This synthetic input differs
+from the English-text CLI control, so the two speedup ratios are not a matched
+comparison of kernel versus CLI overhead. Three outliers were reported in
+each 30-sample run; the intervals are retained rather than reduced to a
+single point estimate.
+
+An audit-only `dhat` global allocator binary encoded that exact same input
+once in clean pre-change and candidate worktrees.  Fixture construction occurs
+before profiling; the fresh decode and exact restoration assertion occur after
+the profiler closes.  The count-range payload bytes and SHA-256 above were
+identical in both runs.  The allocator results therefore describe the encoder
+alone:
+
+| revision | total allocated | allocation blocks | peak live | live at exit |
+| --- | ---: | ---: | ---: | ---: |
+| baseline | 2,571,062 B | 7,653 | 18,930 B | 4,172 B |
+| candidate | 206,235 B | 2,967 | 10,540 B | 4,172 B |
+
+The candidate reduces counted allocation volume by 91.98%, allocation events
+by 61.23%, and peak live heap by 44.32% for this input.  DHAT is a profiling
+allocator, not a production allocator or a peak-RSS measurement.
+The audit-only dependency and binary remain outside this production change.
+
+The audit commands were:
+
+```sh
+taskset -c 28 env CARGO_BUILD_JOBS=2 cargo bench \
+  --manifest-path rust/cix-native/Cargo.toml --bench count_range_audit -- \
+  --sample-size 30 --warm-up-time 1 --measurement-time 3
+taskset -c 28 env CARGO_BUILD_JOBS=2 cargo run \
+  --manifest-path rust/cix-native/Cargo.toml --release \
+  --features audit-dhat --bin count-range-dhat
+```
+
+This narrow improvement may reduce automatic-search cost wherever an eligible
+candidate uses count-range.  It does not change FAST, DEFAULT, or BEST
+selection policy and therefore cannot by itself establish an overall profile
+speedup or a compressed-size change.
