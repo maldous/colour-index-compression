@@ -602,60 +602,94 @@ fn run_external_trials(
 ) -> Result<(), String> {
     if !allowed {
         omitted.push("cixb1:external candidates (incompatible expert native constraint)".into());
+        return Ok(());
     }
-    for descriptor in external::best_candidates().iter().filter(|_| allowed) {
-        check_interrupted()?;
-        let available = o
-            .memory
-            .saturating_sub(data.capacity())
-            .saturating_sub(winner.capacity());
-        if let Err(omission) = descriptor.admit(data.len(), available) {
-            omitted.push(format!("{} ({})", descriptor.id, omission.reason));
-            continue;
-        }
-        match descriptor.full_archive_encode(data) {
-            Ok(archive) => {
-                *evaluated += 1;
-                if o.explain || o.verbose {
-                    eprintln!(
-                        "cix: packaging_candidate={} backend={} version={} archive_bytes={}",
-                        descriptor.id,
-                        descriptor.backend,
-                        external::backend_version(descriptor.backend)?
-                            .replace(char::is_whitespace, "_"),
-                        archive.len()
-                    );
-                }
-                match external_validation_admitted(
-                    descriptor,
-                    data.capacity(),
-                    winner.capacity(),
-                    archive.capacity(),
-                    data.len(),
-                    o.memory,
-                ) {
-                    Ok(()) => {}
-                    Err(error) if is_resource_omission(&error) => {
-                        omitted.push(format!("{} ({error})", descriptor.id));
-                        continue;
-                    }
-                    Err(error) => return Err(error),
-                }
-                match consider(winner, winner_name, descriptor.id, archive, data, o.memory) {
-                    Ok(_) => {}
-                    Err(error) if is_resource_omission(&error) => {
-                        omitted.push(format!("{} ({error})", descriptor.id))
-                    }
-                    Err(error) => return Err(error),
-                }
-            }
-            Err(error) if is_interruption(&error) => return Err(error),
-            Err(error) if is_resource_omission(&error) || is_candidate_rejection(&error) => {
-                omitted.push(format!("{} ({error})", descriptor.id))
-            }
-            Err(error) => return Err(error),
-        }
+    for descriptor in external::best_candidates() {
+        run_external_trial(
+            o,
+            descriptor,
+            data,
+            winner,
+            winner_name,
+            evaluated,
+            omitted,
+        )?;
     }
+    Ok(())
+}
+
+fn run_external_trial(
+    o: &Opt,
+    descriptor: &external::CandidateDescriptor,
+    data: &Vec<u8>,
+    winner: &mut Vec<u8>,
+    winner_name: &mut String,
+    evaluated: &mut usize,
+    omitted: &mut Vec<String>,
+) -> Result<(), String> {
+    check_interrupted()?;
+    let available = o
+        .memory
+        .saturating_sub(data.capacity())
+        .saturating_sub(winner.capacity());
+    if let Err(omission) = descriptor.admit(data.len(), available) {
+        omitted.push(format!("{} ({})", descriptor.id, omission.reason));
+        return Ok(());
+    }
+    let archive = match descriptor.full_archive_encode(data) {
+        Ok(archive) => archive,
+        Err(error) if is_interruption(&error) => return Err(error),
+        Err(error) if is_resource_omission(&error) || is_candidate_rejection(&error) => {
+            omitted.push(format!("{} ({error})", descriptor.id));
+            return Ok(());
+        }
+        Err(error) => return Err(error),
+    };
+    *evaluated += 1;
+    report_external_archive(o, descriptor, archive.len())?;
+    match validate_and_consider_external(o, descriptor, data, winner, winner_name, archive) {
+        Ok(()) => Ok(()),
+        Err(error) if is_resource_omission(&error) => {
+            omitted.push(format!("{} ({error})", descriptor.id));
+            Ok(())
+        }
+        Err(error) => Err(error),
+    }
+}
+
+fn report_external_archive(
+    o: &Opt,
+    descriptor: &external::CandidateDescriptor,
+    archive_len: usize,
+) -> Result<(), String> {
+    if o.explain || o.verbose {
+        eprintln!(
+            "cix: packaging_candidate={} backend={} version={} archive_bytes={archive_len}",
+            descriptor.id,
+            descriptor.backend,
+            external::backend_version(descriptor.backend)?.replace(char::is_whitespace, "_"),
+        );
+    }
+    Ok(())
+}
+
+fn validate_and_consider_external(
+    o: &Opt,
+    descriptor: &external::CandidateDescriptor,
+    data: &Vec<u8>,
+    winner: &mut Vec<u8>,
+    winner_name: &mut String,
+    archive: Vec<u8>,
+) -> Result<(), String> {
+    external_validation_admitted(
+        descriptor,
+        data.capacity(),
+        winner.capacity(),
+        archive.capacity(),
+        data.len(),
+        o.memory,
+    )?;
+    consider(winner, winner_name, descriptor.id, archive, data, o.memory)?;
     Ok(())
 }
 
