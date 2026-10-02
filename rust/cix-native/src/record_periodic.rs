@@ -106,7 +106,7 @@ fn divisors(value: usize) -> BTreeSet<usize> {
     let mut out = BTreeSet::new();
     let root = (value as f64).sqrt() as usize;
     for d in 2..=root {
-        if value % d == 0 {
+        if value.is_multiple_of(d) {
             out.insert(d);
             out.insert(value / d);
         }

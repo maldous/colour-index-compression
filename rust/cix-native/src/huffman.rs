@@ -90,7 +90,11 @@ fn parse_frame_header(frame: &[u8]) -> Result<FrameHeader<'_>> {
 fn read_lengths(metadata: &[u8]) -> Result<[u8; 256]> {
     let mut lengths = [0u8; 256];
     let mut previous = None;
-    for pair in metadata.chunks_exact(2) {
+    let (pairs, remainder) = metadata.as_chunks::<2>();
+    if !remainder.is_empty() {
+        return Err(HuffmanError("truncated Huffman code lengths".into()));
+    }
+    for pair in pairs {
         let (symbol, length) = (pair[0], pair[1]);
         if length == 0 {
             return Err(HuffmanError("zero-length code is invalid".into()));
@@ -105,7 +109,7 @@ fn read_lengths(metadata: &[u8]) -> Result<[u8; 256]> {
 }
 
 fn validate_padding(payload: &[u8], bit_len: u64) -> Result<()> {
-    if bit_len % 8 != 0 && !payload.is_empty() {
+    if !bit_len.is_multiple_of(8) && !payload.is_empty() {
         let unused = 8 - (bit_len % 8) as u8;
         if payload[payload.len() - 1] & ((1u8 << unused) - 1) != 0 {
             return Err(HuffmanError("nonzero Huffman padding bits".into()));

@@ -37,14 +37,14 @@ impl Model {
         let mut i = symbol + 1;
         while i <= 256 {
             self.tree[i] += 1;
-            i += i & i.wrapping_neg();
+            i += i.isolate_lowest_one();
         }
     }
     fn select(&self, target: usize) -> Result<(usize, usize, usize, usize), String> {
         let mut lo = 0usize;
         let mut hi = 255usize;
         while lo < hi {
-            let mid = (lo + hi + 1) / 2;
+            let mid = lo + (hi - lo).div_ceil(2);
             if 2 * self.prefix(mid) as usize + mid <= target {
                 lo = mid;
             } else {
@@ -123,11 +123,11 @@ fn extend_tail(tail: &mut Vec<u8>, symbol: u8, order: usize) {
     }
 }
 
-fn model_for<'a>(
-    models: &'a mut std::collections::HashMap<usize, Model>,
+fn model_for(
+    models: &mut std::collections::HashMap<usize, Model>,
     bucket: usize,
     model_limit: usize,
-) -> Result<&'a mut Model, String> {
+) -> Result<&mut Model, String> {
     if !models.contains_key(&bucket) && models.len() >= model_limit {
         return Err("adaptive model count exceeds --memory budget".into());
     }

@@ -57,7 +57,7 @@ impl Model {
             self.tree[i] = self.tree[i]
                 .checked_add(count)
                 .ok_or("persistent adaptive Fenwick overflow")?;
-            i += i & i.wrapping_neg();
+            i += i.isolate_lowest_one();
         }
         Ok(())
     }
@@ -89,7 +89,7 @@ impl Model {
         let mut lo = 0usize;
         let mut hi = 255usize;
         while lo < hi {
-            let mid = (lo + hi + 1) / 2;
+            let mid = lo + (hi - lo).div_ceil(2);
             if 2 * self.prefix(mid) as usize + mid <= target {
                 lo = mid;
             } else {
@@ -505,5 +505,27 @@ mod integer_overflow_tests {
         let mut malformed = vec![128; groups - 1];
         malformed.push(1u8 << ((usize::BITS as usize - 1) % 7 + 1));
         assert!(read_varint(&malformed, &mut 0).is_err());
+    }
+
+    #[test]
+    fn persistent_models_restore_across_observed_blocks() {
+        let first = b"persistent model state must survive a block boundary";
+        let second = b"and decode with exactly the same accumulated state";
+        let budget = WORKING_MEMORY_BOUND;
+        let mut encoder = PersistentAdaptiveStates::new();
+        let mut decoder = PersistentAdaptiveStates::new();
+
+        let (_, first_payload) = encoder.encode_best(first, &[], budget).unwrap();
+        assert_eq!(decoder.decode(&first_payload, first.len(), &[], budget).unwrap(), first);
+        encoder.observe(first, &[]).unwrap();
+        decoder.observe(first, &[]).unwrap();
+
+        let (_, second_payload) = encoder.encode_best(second, first, budget).unwrap();
+        assert_eq!(
+            decoder
+                .decode(&second_payload, second.len(), first, budget)
+                .unwrap(),
+            second
+        );
     }
 }

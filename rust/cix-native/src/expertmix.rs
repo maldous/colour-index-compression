@@ -126,7 +126,7 @@ fn observe(counts: &mut Counts, symbol: u8) {
     let sum: u32 = counts.iter().map(|(_, n)| *n).sum();
     if sum > CONTEXT_LIMIT {
         for (_, n) in counts {
-            *n = (*n + 1) / 2;
+            *n = n.div_ceil(2);
         }
     }
 }

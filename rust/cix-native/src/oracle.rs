@@ -191,7 +191,7 @@ fn validate(config: &OracleConfig, input_len: usize) -> Result<(), String> {
         }
     }
     for &eta in &config.fixedmix_eta_shifts {
-        if !matches!(eta, 5 | 6 | 7) {
+        if !matches!(eta, 5..=7) {
             return Err("oracle fixed-mix eta must be 5, 6, or 7".into());
         }
     }
