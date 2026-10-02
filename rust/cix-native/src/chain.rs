@@ -5,7 +5,8 @@
 //! every length-delimited inner stream is checked before transform inversion.
 
 use super::{
-    adaptive, bitplane, bwt_legacy, fixedmix, histogram, legacy_lz, ppm, rank, transform, wavelet,
+    adaptive, bitplane, bwt_legacy, combinatorics, fixedmix, histogram, legacy_lz, ppm, rank,
+    transform, wavelet,
 };
 use num_bigint::BigUint;
 use num_traits::{One, Zero};
@@ -350,17 +351,8 @@ fn decode_runs(data: &[u8], source_len: usize, model_limit: usize) -> Result<Vec
     Ok(out)
 }
 
-fn choose(n: usize, k: usize) -> BigUint {
-    if k > n {
-        return BigUint::zero();
-    }
-    let k = k.min(n - k);
-    let mut value = BigUint::one();
-    for i in 1..=k {
-        value *= n - k + i;
-        value /= i;
-    }
-    value
+fn choose(n: usize, k: usize) -> Result<BigUint, String> {
+    combinatorics::choose_checked(n, k)
 }
 
 fn fixed_bytes(value: &BigUint, width: usize) -> Vec<u8> {
@@ -374,13 +366,8 @@ fn fixed_bytes(value: &BigUint, width: usize) -> Vec<u8> {
     out
 }
 
-fn colex_rank(values: &[usize]) -> BigUint {
-    values
-        .iter()
-        .enumerate()
-        .fold(BigUint::zero(), |sum, (index, &value)| {
-            sum + choose(value, index + 1)
-        })
+fn colex_rank(values: &[usize]) -> Result<BigUint, String> {
+    combinatorics::colex_rank_checked(values)
 }
 
 fn fixed_width(value: &BigUint) -> usize {
@@ -406,7 +393,7 @@ fn colex_unrank(
     count: usize,
     universe: usize,
 ) -> Result<Vec<usize>, String> {
-    if count > universe || rank_value >= choose(universe, count) {
+    if count > universe || rank_value >= choose(universe, count)? {
         return Err("colex rank outside transform-chain universe".into());
     }
     let mut result = vec![0usize; count];
@@ -416,14 +403,14 @@ fn colex_unrank(
         let mut high = upper;
         while low + 1 < high {
             let mid = low + (high - low) / 2;
-            if choose(mid, i) <= rank_value {
+            if choose(mid, i)? <= rank_value {
                 low = mid;
             } else {
                 high = mid;
             }
         }
         result[i - 1] = low;
-        rank_value -= choose(low, i);
+        rank_value -= choose(low, i)?;
         upper = low;
     }
     if !rank_value.is_zero() {
@@ -437,7 +424,7 @@ fn composition_unrank(
     total: usize,
     parts: usize,
 ) -> Result<Vec<usize>, String> {
-    if parts == 0 || total < parts || rank_value >= choose(total - 1, parts - 1) {
+    if parts == 0 || total < parts || rank_value >= choose(total - 1, parts - 1)? {
         return Err("composition rank outside transform-chain class".into());
     }
     if parts == 1 {
@@ -474,13 +461,13 @@ fn decode_bucketed(
     let ids = if q == bucket_count {
         (0..bucket_count).collect::<Vec<_>>()
     } else {
-        let width = fixed_width(&(choose(bucket_count, q) - BigUint::one()));
+        let width = fixed_width(&(choose(bucket_count, q)? - BigUint::one()));
         colex_unrank(read_fixed(data, pos, width)?, q, bucket_count)?
     };
     let lengths = if q == 1 {
         vec![total]
     } else {
-        let width = fixed_width(&(choose(total - 1, q - 1) - BigUint::one()));
+        let width = fixed_width(&(choose(total - 1, q - 1)? - BigUint::one()));
         composition_unrank(read_fixed(data, pos, width)?, total, q)?
     };
     let mut streams = HashMap::with_capacity(q);
@@ -883,10 +870,11 @@ fn encode_sparse(data: &[u8]) -> Result<Vec<u8>, String> {
             values.push(byte);
         }
     }
-    let width = fixed_width(&(choose(data.len(), positions.len()) - BigUint::one()));
+    let width = fixed_width(&(combinatorics::choose_checked(data.len(), positions.len())?
+        - BigUint::one()));
     let mut out = vec![1, dominant as u8];
     put_var(positions.len(), &mut out);
-    out.extend(fixed_bytes(&colex_rank(&positions), width));
+    out.extend(fixed_bytes(&colex_rank(&positions)?, width));
     out.extend(rank::encode_type_class(&values)?);
     Ok(out)
 }

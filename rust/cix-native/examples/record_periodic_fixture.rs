@@ -7,6 +7,9 @@ mod limits;
 #[path = "../src/rank.rs"]
 mod rank;
 #[allow(dead_code)]
+#[path = "../src/combinatorics.rs"]
+mod combinatorics;
+#[allow(dead_code)]
 #[path = "../src/record_periodic.rs"]
 mod record_periodic;
 #[allow(dead_code)]

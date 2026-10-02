@@ -2,6 +2,8 @@
 mod limits;
 #[path = "../rank.rs"]
 mod rank;
+#[path = "../combinatorics.rs"]
+mod combinatorics;
 #[path = "../sparse_runs.rs"]
 mod sparse_runs;
 

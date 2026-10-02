@@ -3,6 +3,8 @@
 mod bitplane;
 #[path = "../src/limits.rs"]
 mod limits;
+#[path = "../src/combinatorics.rs"]
+mod combinatorics;
 #[allow(dead_code)]
 #[path = "../src/rank.rs"]
 mod rank;

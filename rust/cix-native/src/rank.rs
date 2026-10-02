@@ -6,6 +6,7 @@
 
 use num_bigint::BigUint;
 use num_traits::{One, Zero};
+use crate::combinatorics;
 
 fn choose(n: usize, k: usize) -> BigUint {
     if k > n {
@@ -308,11 +309,8 @@ fn decode_sequence_range(
     Ok(out)
 }
 
-fn colex_rank(values: &[usize]) -> BigUint {
-    values
-        .iter()
-        .enumerate()
-        .fold(BigUint::zero(), |sum, (i, &v)| sum + choose(v, i + 1))
+fn colex_rank(values: &[usize]) -> Result<BigUint, String> {
+    combinatorics::colex_rank_checked(values)
 }
 
 fn colex_unrank(mut rank: BigUint, k: usize, universe: usize) -> Result<Vec<usize>, String> {
@@ -352,7 +350,7 @@ fn composition_rank(parts: &[usize]) -> Result<BigUint, String> {
         total = total.checked_add(part).ok_or("composition overflow")?;
         cuts.push(total - 1);
     }
-    Ok(colex_rank(&cuts))
+    colex_rank(&cuts)
 }
 
 fn composition_unrank(rank: BigUint, total: usize, count: usize) -> Result<Vec<usize>, String> {
@@ -538,7 +536,7 @@ fn encode_type_class_header(n: usize, counts: &[usize; 256]) -> Result<Vec<u8>, 
     }
     if m < 256 {
         let width = fixed_width(&(choose(256, m) - BigUint::one()));
-        out.extend(fixed_bytes(&colex_rank(&active), width));
+        out.extend(fixed_bytes(&colex_rank(&active)?, width));
     }
     if m > 1 {
         let parts: Vec<usize> = active.iter().map(|&s| counts[s]).collect();
@@ -714,7 +712,7 @@ pub fn decode_type_class_with_counts(
     varint(m, &mut header);
     if m < 256 {
         let width = fixed_width(&(choose(256, m) - BigUint::one()));
-        header.extend(fixed_bytes(&colex_rank(&active), width));
+        header.extend(fixed_bytes(&colex_rank(&active)?, width));
     }
     if m > 1 {
         let parts: Vec<usize> = active.iter().map(|&s| counts[s]).collect();
@@ -886,7 +884,7 @@ pub fn encode_context_type_classes(
 
     if q != 0 && q < bucket_count {
         let width = fixed_width(&(choose(bucket_count, q) - BigUint::one()));
-        out.extend(fixed_bytes(&colex_rank(&ids), width));
+        out.extend(fixed_bytes(&colex_rank(&ids)?, width));
     }
 
     if q > 1 {

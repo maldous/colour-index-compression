@@ -16,6 +16,7 @@ mod bitplane;
 mod bsc_ffi;
 mod bwt_legacy;
 mod chain;
+pub mod combinatorics;
 mod expertmix;
 mod external;
 mod fast_lz;

@@ -1,5 +1,7 @@
 #[path = "../src/limits.rs"]
 mod limits;
+#[path = "../src/combinatorics.rs"]
+mod combinatorics;
 #[path = "../src/rank.rs"]
 mod rank;
 

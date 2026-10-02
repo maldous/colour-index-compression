@@ -5,6 +5,7 @@
 //! candidate set used by the reference, including local models and histogram
 //! replacement. All combinatorial ranks remain arbitrary precision.
 
+use super::combinatorics;
 use crate::rank::{self, ArithmeticEncoder};
 use num_bigint::BigUint;
 use num_traits::{One, ToPrimitive, Zero};
@@ -46,13 +47,8 @@ fn fixed_bytes(value: &BigUint, width_bits: usize) -> Vec<u8> {
     out
 }
 
-fn colex_rank(positions: &[usize]) -> BigUint {
-    positions
-        .iter()
-        .enumerate()
-        .fold(BigUint::zero(), |rank, (index, &position)| {
-            rank + choose(position, index + 1)
-        })
+fn colex_rank(positions: &[usize]) -> Result<BigUint, String> {
+    combinatorics::colex_rank_checked(positions)
 }
 
 struct BitWriter {
@@ -293,14 +289,14 @@ fn zigzag(value: i128) -> Result<usize, String> {
     usize::try_from(encoded).map_err(|_| "run histogram zigzag outside machine range".into())
 }
 
-fn active_prefix(active: &[usize]) -> Vec<u8> {
+fn active_prefix(active: &[usize]) -> Result<Vec<u8>, String> {
     let mut out = Vec::new();
     put_varint(active.len(), &mut out);
     if active.len() < 256 {
         let width = fixed_width(&(choose(256, active.len()) - BigUint::one()));
-        out.extend(fixed_bytes(&colex_rank(active), width));
+        out.extend(fixed_bytes(&colex_rank(active)?, width));
     }
-    out
+    Ok(out)
 }
 
 fn encode_count_vector(counts: &[usize; 256]) -> Result<Vec<u8>, String> {
@@ -314,7 +310,7 @@ fn encode_count_vector(counts: &[usize; 256]) -> Result<Vec<u8>, String> {
         .filter_map(|(symbol, &count)| (count != 0).then_some(symbol))
         .collect();
     let active_counts: Vec<usize> = active.iter().map(|&symbol| counts[symbol]).collect();
-    let prefix = active_prefix(&active);
+    let prefix = active_prefix(&active)?;
     let mut candidates = Vec::<(&'static str, Vec<u8>)>::new();
 
     let mut candidate = vec![1, 0];
@@ -398,10 +394,13 @@ fn histogram_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option<Vec<u8>>,
     put_varint(active.len(), &mut active_prefix);
     let mut header_size = active_prefix.len();
     if active.len() < 256 {
-        header_size += fixed_width(&(choose(256, active.len()) - BigUint::one())).div_ceil(8);
+        header_size += fixed_width(&(combinatorics::choose_checked(256, active.len())?
+            - BigUint::one()))
+        .div_ceil(8);
     }
-    header_size +=
-        fixed_width(&(choose(data.len() - 1, active.len() - 1) - BigUint::one())).div_ceil(8);
+    header_size += fixed_width(&(combinatorics::choose_checked(data.len() - 1, active.len() - 1)?
+        - BigUint::one()))
+    .div_ceil(8);
     if header_size < 64 || header_size > incumbent.len() {
         return Ok(None);
     }
@@ -603,10 +602,11 @@ pub fn encode_sparse(data: &[u8]) -> Result<Vec<u8>, String> {
             values.push(byte);
         }
     }
-    let width = fixed_width(&(choose(data.len(), positions.len()) - BigUint::one()));
+    let width = fixed_width(&(combinatorics::choose_checked(data.len(), positions.len())?
+        - BigUint::one()));
     let mut out = vec![1, dominant as u8];
     put_varint(positions.len(), &mut out);
-    out.extend(fixed_bytes(&colex_rank(&positions), width));
+    out.extend(fixed_bytes(&colex_rank(&positions)?, width));
     out.extend(rank::encode_type_class(&values)?);
     Ok(out)
 }

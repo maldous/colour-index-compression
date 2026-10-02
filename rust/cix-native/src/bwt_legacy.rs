@@ -4,7 +4,7 @@
 //! byte/integer substreams and libdivsufsort's one-based primary-index
 //! convention; the CIXG1 route has different framing.
 
-use super::rank::{self, ArithmeticDecoder};
+use super::{combinatorics, rank::{self, ArithmeticDecoder}};
 use num_bigint::BigUint;
 use num_traits::{One, ToPrimitive, Zero};
 use std::collections::HashMap;
@@ -706,13 +706,8 @@ fn fixed_bytes(value: &BigUint, width_bits: usize) -> Vec<u8> {
     out
 }
 
-fn colex_rank(positions: &[usize]) -> BigUint {
-    positions
-        .iter()
-        .enumerate()
-        .fold(BigUint::zero(), |rank, (index, &position)| {
-            rank + choose(position, index + 1)
-        })
+fn colex_rank(positions: &[usize]) -> Result<BigUint, String> {
+    combinatorics::colex_rank_checked(positions)
 }
 
 fn zigzag(value: i128) -> Result<usize, String> {
@@ -1087,14 +1082,14 @@ fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
     Ok(best)
 }
 
-fn active_prefix(active: &[usize]) -> Vec<u8> {
+fn active_prefix(active: &[usize]) -> Result<Vec<u8>, String> {
     let mut out = Vec::new();
     put_varint(active.len(), &mut out);
     if active.len() < 256 {
         let width = fixed_width(&(choose(256, active.len()) - BigUint::one()));
-        out.extend(fixed_bytes(&colex_rank(active), width));
+        out.extend(fixed_bytes(&colex_rank(active)?, width));
     }
-    out
+    Ok(out)
 }
 
 fn encode_count_vector(counts: &[usize; 256]) -> Result<Vec<u8>, String> {
@@ -1108,7 +1103,7 @@ fn encode_count_vector(counts: &[usize; 256]) -> Result<Vec<u8>, String> {
         .filter_map(|(symbol, &count)| (count > 0).then_some(symbol))
         .collect();
     let active_counts: Vec<usize> = active.iter().map(|&symbol| counts[symbol]).collect();
-    let prefix = active_prefix(&active);
+    let prefix = active_prefix(&active)?;
     let mut candidates = Vec::<(&'static str, Vec<u8>)>::new();
 
     let mut candidate = vec![1, 0];
@@ -1182,17 +1177,21 @@ fn bwt_counts(data: &[u8]) -> [usize; 256] {
     counts
 }
 
-fn bwt_histogram_header_size(total: usize, active: &[usize]) -> usize {
+fn bwt_histogram_header_size(total: usize, active: &[usize]) -> Result<usize, String> {
     let mut header_size = {
         let mut encoded = Vec::new();
         put_varint(active.len(), &mut encoded);
         encoded.len()
     };
     if active.len() < 256 {
-        header_size += fixed_width(&(choose(256, active.len()) - BigUint::one())).div_ceil(8);
+        header_size += fixed_width(&(combinatorics::choose_checked(256, active.len())?
+            - BigUint::one()))
+        .div_ceil(8);
     }
-    header_size += fixed_width(&(choose(total - 1, active.len() - 1) - BigUint::one())).div_ceil(8);
-    header_size
+    header_size += fixed_width(&(combinatorics::choose_checked(total - 1, active.len() - 1)?
+        - BigUint::one()))
+    .div_ceil(8);
+    Ok(header_size)
 }
 
 fn histogram_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option<Vec<u8>>, String> {
@@ -1208,7 +1207,7 @@ fn histogram_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option<Vec<u8>>,
     if active.len() < 2 {
         return Ok(None);
     }
-    let header_size = bwt_histogram_header_size(data.len(), &active);
+    let header_size = bwt_histogram_header_size(data.len(), &active)?;
     if header_size < 64 || header_size > incumbent.len() {
         return Ok(None);
     }
