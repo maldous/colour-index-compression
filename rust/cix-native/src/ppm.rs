@@ -90,6 +90,33 @@ fn exclude_eligible(counts: &[(u8, u32)], excluded: &mut [bool; 256]) {
     }
 }
 
+fn exclude_symbols(symbols: &[(u8, u32)], excluded: &mut [bool; 256]) {
+    for (value, _) in symbols {
+        excluded[*value as usize] = true;
+    }
+}
+
+fn symbol_mass(symbols: &[(u8, u32)]) -> usize {
+    symbols.iter().map(|(_, count)| *count as usize).sum()
+}
+
+fn checked_order(max_order: usize) -> Result<(), String> {
+    if max_order > 8 {
+        Err("PPM order exceeds supported maximum".into())
+    } else {
+        Ok(())
+    }
+}
+
+fn retain_shorter(best: &mut Option<Vec<u8>>, candidate: Vec<u8>) {
+    if best
+        .as_ref()
+        .is_none_or(|incumbent| candidate.len() < incumbent.len())
+    {
+        *best = Some(candidate);
+    }
+}
+
 fn fallback_rank(symbol: u8, excluded: &[bool; 256]) -> Result<(usize, usize), String> {
     let mut remaining = 0;
     let mut rank = None;
@@ -187,21 +214,30 @@ fn training_start(prefix_length: usize, source_length: usize) -> usize {
     prefix_length - training
 }
 
-fn prime(
+fn initial_history(
+    prefix_history: &[u8],
+    source_length: usize,
+    max_order: usize,
+) -> (usize, Vec<u8>) {
+    let start = training_start(prefix_history.len(), source_length);
+    let mut history = Vec::with_capacity(max_order);
+    if max_order > 0 && start > 0 {
+        history.extend_from_slice(&prefix_history[start.saturating_sub(max_order)..start]);
+    }
+    (start, history)
+}
+
+fn prime_tables(
     prefix_history: &[u8],
     source_length: usize,
     max_order: usize,
     update_exclusion: bool,
 ) -> Result<(Tables, Vec<u8>), String> {
     let mut tables = Tables::new();
-    let mut history = Vec::with_capacity(max_order);
     if prefix_history.is_empty() {
-        return Ok((tables, history));
+        return Ok((tables, Vec::with_capacity(max_order)));
     }
-    let start = training_start(prefix_history.len(), source_length);
-    if max_order > 0 && start > 0 {
-        history.extend_from_slice(&prefix_history[start.saturating_sub(max_order)..start]);
-    }
+    let (start, mut history) = initial_history(prefix_history, source_length, max_order);
     for (index, &symbol) in prefix_history[start..].iter().enumerate() {
         if index & 31 == 0 {
             crate::limits::check()?;
@@ -214,6 +250,15 @@ fn prime(
         observe_from(&mut tables, &mut history, symbol, max_order, floor);
     }
     Ok((tables, history))
+}
+
+fn prime(
+    prefix_history: &[u8],
+    source_length: usize,
+    max_order: usize,
+    update_exclusion: bool,
+) -> Result<(Tables, Vec<u8>), String> {
+    prime_tables(prefix_history, source_length, max_order, update_exclusion)
 }
 
 fn escape_mass(symbols: &[(u8, u32)], method: u8) -> Result<usize, String> {
@@ -270,16 +315,14 @@ fn prime_see(
     max_order: usize,
     update_exclusion: bool,
 ) -> Result<(Tables, Vec<u8>, SeeStates), String> {
-    let mut tables = Tables::new();
-    let mut history = Vec::with_capacity(max_order);
     let mut states = SeeStates::new();
-    if prefix_history.is_empty() {
-        return Ok((tables, history, states));
-    }
+    let (mut tables, mut history) = if prefix_history.is_empty() {
+        return Ok((Tables::new(), Vec::with_capacity(max_order), states));
+    } else {
+        let (_, history) = initial_history(prefix_history, source_length, max_order);
+        (Tables::new(), history)
+    };
     let start = training_start(prefix_history.len(), source_length);
-    if max_order > 0 && start > 0 {
-        history.extend_from_slice(&prefix_history[start.saturating_sub(max_order)..start]);
-    }
     for (index, &symbol) in prefix_history[start..].iter().enumerate() {
         if index & 31 == 0 {
             crate::limits::check()?;
@@ -355,9 +398,7 @@ pub fn encode_fixed(
     escape_method: u8,
     update_exclusion: bool,
 ) -> Result<Vec<u8>, String> {
-    if max_order > 8 {
-        return Err("PPM order exceeds supported maximum".into());
-    }
+    checked_order(max_order)?;
     if escape_method > 3 {
         return Err("unsupported PPM escape method".into());
     }
@@ -435,9 +476,7 @@ pub fn encode_secondary(
     prefix_history: &[u8],
     update_exclusion: bool,
 ) -> Result<Vec<u8>, String> {
-    if max_order > 8 {
-        return Err("PPM order exceeds supported maximum".into());
-    }
+    checked_order(max_order)?;
     let (mut tables, mut history, mut states) =
         prime_see(prefix_history, data.len(), max_order, update_exclusion)?;
     let mut encoder = ArithmeticEncoder::new();
@@ -462,10 +501,7 @@ pub fn encode_secondary(
             let event_total = (escape_count + hit_count) as usize;
             if let Some(index) = symbols.iter().position(|(value, _)| *value == symbol) {
                 encoder.encode(0, hit_count as usize, event_total);
-                let mass = symbols
-                    .iter()
-                    .map(|(_, count)| *count as usize)
-                    .sum::<usize>();
+                let mass = symbol_mass(&symbols);
                 let low = symbols[..index]
                     .iter()
                     .map(|(_, count)| *count as usize)
@@ -479,9 +515,7 @@ pub fn encode_secondary(
             }
             encoder.encode(hit_count as usize, event_total, event_total);
             see_update(&mut states, key, true);
-            for (value, _) in symbols {
-                excluded[value as usize] = true;
-            }
+            exclude_symbols(&symbols, &mut excluded);
         }
         if !coded {
             let (rank, remaining) = fallback_rank(symbol, &excluded)
@@ -515,9 +549,7 @@ pub fn encode_best(
     update_exclusion: Option<bool>,
     secondary_escape: Option<bool>,
 ) -> Result<Vec<u8>, String> {
-    if max_order > 8 {
-        return Err("PPM order exceeds supported maximum".into());
-    }
+    checked_order(max_order)?;
     if escape_method.is_some_and(|method| method > 3) {
         return Err("unsupported PPM escape method".into());
     }
@@ -547,24 +579,14 @@ pub fn encode_best(
                     tables.clone(),
                     history.clone(),
                 )?;
-                if best
-                    .as_ref()
-                    .is_none_or(|incumbent| candidate.len() < incumbent.len())
-                {
-                    best = Some(candidate);
-                }
+                retain_shorter(&mut best, candidate);
             }
         }
     }
     if secondary_escape != Some(false) {
         for &variant in variants {
             let candidate = encode_secondary(data, max_order, prefix_history, variant)?;
-            if best
-                .as_ref()
-                .is_none_or(|incumbent| candidate.len() < incumbent.len())
-            {
-                best = Some(candidate);
-            }
+            retain_shorter(&mut best, candidate);
         }
     }
     best.ok_or_else(|| "no PPM variants requested".into())
@@ -573,9 +595,7 @@ pub fn encode_best(
 /// Frozen BWT-v6 order estimate: method-1 escape mass, no update exclusion,
 /// measured on at most 4096 leading bytes and scaled to the complete stream.
 pub fn estimate_bits(data: &[u8], max_order: usize) -> Result<f64, String> {
-    if max_order > 8 {
-        return Err("PPM order exceeds supported maximum".into());
-    }
+    checked_order(max_order)?;
     let sample_length = data.len().min(4096);
     if sample_length == 0 {
         return Ok(0.0);
@@ -598,10 +618,7 @@ pub fn estimate_bits(data: &[u8], max_order: usize) -> Result<f64, String> {
             if symbols.is_empty() {
                 continue;
             }
-            let mass = symbols
-                .iter()
-                .map(|(_, count)| *count as usize)
-                .sum::<usize>();
+            let mass = symbol_mass(&symbols);
             let escape = symbols.len().max(1);
             let total = mass + escape;
             if let Some((_, count)) = symbols.iter().find(|(value, _)| *value == symbol) {
@@ -610,9 +627,7 @@ pub fn estimate_bits(data: &[u8], max_order: usize) -> Result<f64, String> {
                 break;
             }
             bits += (total as f64).log2() - (escape as f64).log2();
-            for (value, _) in symbols {
-                excluded[value as usize] = true;
-            }
+            exclude_symbols(&symbols, &mut excluded);
         }
         if !coded {
             let remaining = 256 - excluded.iter().filter(|&&value| value).count();
@@ -698,7 +713,7 @@ pub fn decode_with_history(
             if symbols.is_empty() {
                 continue;
             }
-            let mass: usize = symbols.iter().map(|(_, count)| *count as usize).sum();
+            let mass = symbol_mass(&symbols);
             let escape = escape_mass(&symbols, escape_method)?;
             let total = mass + escape;
             let target = decoder.target(total);
@@ -720,9 +735,7 @@ pub fn decode_with_history(
                 break;
             }
             decoder.update(mass, total, total);
-            for (value, _) in symbols {
-                excluded[value as usize] = true;
-            }
+            exclude_symbols(&symbols, &mut excluded);
         }
         let value = if let Some(value) = symbol {
             value
@@ -876,10 +889,7 @@ fn decode_see(
             let target = decoder.target(event_total);
             if target < hit_count as usize {
                 decoder.update(0, hit_count as usize, event_total);
-                let mass = symbols
-                    .iter()
-                    .map(|(_, count)| *count as usize)
-                    .sum::<usize>();
+                let mass = symbol_mass(&symbols);
                 let symbol_target = decoder.target(mass);
                 let mut low = 0usize;
                 for (candidate, count) in symbols {
@@ -900,9 +910,7 @@ fn decode_see(
             }
             decoder.update(hit_count as usize, event_total, event_total);
             see_update(&mut states, key, true);
-            for (value, _) in symbols {
-                excluded[value as usize] = true;
-            }
+            exclude_symbols(&symbols, &mut excluded);
         }
         let value = if let Some(value) = symbol {
             value
