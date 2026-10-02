@@ -1,5 +1,5 @@
 {
-  "status": "kernel timing and exactness completed; DHAT before/after pending",
+  "status": "kernel timing, exactness, and DHAT allocation evidence completed",
   "base_commit": "9214e2f8b",
   "candidate_scope": "fixed encoder eligible scan only; SEE and decoders unchanged",
   "identity": {
@@ -20,5 +20,13 @@
       "weak": {"baseline_encode": 1021464.299, "candidate_encode": 830011.207, "baseline_decode": 1086385.443, "candidate_decode": 1032084.730},
       "absent": {"baseline_encode": 2176346.255, "candidate_encode": 1525467.369, "baseline_decode": 2238995.965, "candidate_decode": 2156155.910}
     }
+  },
+  "dhat": {
+    "feature": "audit-dhat",
+    "scope": "fixed PPM encode followed by native restore; allocation totals include the whole probe",
+    "cgroup": {"cpu": 12, "memory_max": "1073741824", "memory_swap_max": "0", "processes": 8},
+    "total_allocated_bytes": {"random": [36684671, 20377087], "strong": [277237, 146197], "weak": [2189423, 1281423], "absent": [4236269, 3140141]},
+    "total_allocation_events": {"random": [108721, 72432], "strong": [8286, 4191], "weak": [16212, 10631], "absent": [53474, 36092]},
+    "peak_live_scope": "Dhat per-point maxima: sum(mb), not global peak live or RSS"
   }
 }

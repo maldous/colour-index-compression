@@ -40,8 +40,28 @@ Encode is lower in all four cases.  Decode does not exercise the changed
 fixed-encoder helper, so the random decode variation is not attributed to this
 change.  This evidence is kernel-only and does not claim a CIXG1 speedup.
 
+## DHAT allocation evidence
+
+The audit-only `ppm_eligible_dhat` example is built with the existing
+`audit-dhat` feature; it never participates in production binaries.  It
+encodes then restores each frozen 4 KiB kernel input under CPU 12 and the same
+read-back 1 GiB, swap-disabled cgroup.  `tb`/`tbk` below are DHAT total
+allocated bytes/events. `sum(mb)` is a sum of allocation-point peak-live
+values, not a process RSS or a global peak-live claim; the largest individual
+allocation-point peak was unchanged in every case.
+
+| case | baseline bytes/events | candidate bytes/events | baseline/candidate sum(mb) |
+|---|---:|---:|---:|
+| random | 36,684,671 / 108,721 | 20,377,087 / 72,432 | 3,089,535 / 3,087,487 |
+| strong | 277,237 / 8,286 | 146,197 / 4,191 | 12,913 / 12,881 |
+| weak | 2,189,423 / 16,212 | 1,281,423 / 10,631 | 228,911 / 226,863 |
+| absent | 4,236,269 / 53,474 | 3,140,141 / 36,092 | 1,578,109 / 1,577,981 |
+
+Raw DHAT JSON, native stdout payload receipts, and cgroup receipts are outside
+Git at `/home/user/audit-artifacts/ppm-eligible-controlled/dhat-20261002T1918Z/`.
+
 ## Status
 
 The PPM unit tests passed and `rustfmt --check` passed for the changed files.
-An allocator-profiler before/after run remains required before promotion from
-this bounded experimental source change.
+The direct kernel evidence supports promotion review only; it does not claim a
+whole-CIXG1 speedup.
