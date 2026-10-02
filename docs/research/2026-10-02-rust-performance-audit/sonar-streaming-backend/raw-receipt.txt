@@ -1,0 +1,8 @@
+Base: 2cb5716b6. Candidate source: streaming_backend.rs only.
+Build: cd rust/cix-native && cargo build --bin cix --bin uncix.
+Stream fixture command: printf 'persistent stream fixture %.0s' $(seq 1 128) > /tmp/stream-audit/in
+Encode: cix --stream --format cixg1 -f -o /tmp/stream-audit/archive /tmp/stream-audit/in; exit 0.
+Decode: uncix -f -o /tmp/stream-audit/out /tmp/stream-audit/archive; exit 0.
+SHA-256 input/output: f5cad301412b2c6b53185fbffa8c759cb79028d543596bcfb46725d8b2da373d.
+SHA-256 archive: 5cb37e3fb4520ce92075209f2cd09b84cdb98f22ae7a86f439dce476940038ec.
+`cargo check --lib` completed successfully after the helper changes.

@@ -390,7 +390,25 @@ fn native_cixg_candidate(data: &[u8], memory: usize, workers: usize) -> Result<V
     // header, frame and footer are retained inside the outer route payload so
     // a later CIXZ1 decoder has every native route decision available.
     let mut archive = Vec::new();
-    super::encode_with_strategy(std::io::Cursor::new(data), &mut archive, super::EncodeOptions { block: u32::try_from(data.len()).map_err(|_| "CIXG nested source overflow")?, level: 9, forced: None, backend: "hybrid", backend_set: false, format: "cixg2", input_fd: -1, flush_interval: None, memory, workers: workers.max(1), explain: false, verbose: false, strategy: "candidates" })?;
+    super::encode_with_strategy(
+        std::io::Cursor::new(data),
+        &mut archive,
+        super::EncodeOptions {
+            block: u32::try_from(data.len()).map_err(|_| "CIXG nested source overflow")?,
+            level: 9,
+            forced: None,
+            backend: "hybrid",
+            backend_set: false,
+            format: "cixg2",
+            input_fd: -1,
+            flush_interval: None,
+            memory,
+            workers: workers.max(1),
+            explain: false,
+            verbose: false,
+            strategy: "candidates",
+        },
+    )?;
     if !matches!(archive.get(..5), Some(b"CIXG1") | Some(b"CIXG2")) {
         return Err("nested native candidate did not produce CIXG".into());
     }
@@ -511,9 +529,11 @@ fn prepare_region_candidates(
 }
 
 fn select_region_route(data_len: usize, candidates: &RegionCandidates, active: bool) -> u8 {
-    let reset = active
-        .then_some(FRAME_PREFIX_COST.saturating_add(FINALIZATION_COST))
-        .unwrap_or(0);
+    let reset = if active {
+        FRAME_PREFIX_COST.saturating_add(FINALIZATION_COST)
+    } else {
+        0
+    };
     let native_len = candidates
         .native
         .as_ref()
@@ -533,9 +553,11 @@ fn select_region_route(data_len: usize, candidates: &RegionCandidates, active: b
 }
 
 fn explain_region(data_len: usize, candidates: &RegionCandidates, active: bool, selected: u8) {
-    let reset = active
-        .then_some(FRAME_PREFIX_COST.saturating_add(FINALIZATION_COST))
-        .unwrap_or(0);
+    let reset = if active {
+        FRAME_PREFIX_COST.saturating_add(FINALIZATION_COST)
+    } else {
+        0
+    };
     let native = candidates.native.as_ref().map_or_else(
         || {
             format!(
@@ -615,22 +637,34 @@ fn emit_selected_region<W: Write>(
     }
 }
 
-fn encode_region<W: Write>(
-    dst: &mut W,
-    data: &[u8],
+#[derive(Clone, Copy)]
+struct RegionConfig {
     block: u32,
     level: u8,
     memory: usize,
     workers: usize,
+    explain: bool,
+}
+
+fn encode_region<W: Write>(
+    dst: &mut W,
+    data: &[u8],
+    config: RegionConfig,
     compressors: &mut Option<(Compressor, Compressor)>,
     active: &mut bool,
     totals: &mut StreamTotals,
-    explain: bool,
 ) -> Result<(), String> {
     let was_active = *active;
-    let candidates = prepare_region_candidates(data, block, level, memory, workers, compressors)?;
+    let candidates = prepare_region_candidates(
+        data,
+        config.block,
+        config.level,
+        config.memory,
+        config.workers,
+        compressors,
+    )?;
     let selected = select_region_route(data.len(), &candidates, was_active);
-    if explain {
+    if config.explain {
         explain_region(data.len(), &candidates, was_active, selected);
     }
     emit_selected_region(dst, data, candidates, selected, compressors, active)?;
@@ -672,14 +706,16 @@ pub(super) fn encode<R: Read, W: Write>(
             encode_region(
                 &mut dst,
                 &data,
-                block,
-                level,
-                memory,
-                workers,
+                RegionConfig {
+                    block,
+                    level,
+                    memory,
+                    workers,
+                    explain,
+                },
                 &mut compressors,
                 &mut active_zstd_segment,
                 &mut totals,
-                explain,
             )?;
         }
         if eof {
