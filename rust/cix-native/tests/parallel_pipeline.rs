@@ -145,6 +145,17 @@ fn worker_error_and_panic_cancel_pending_work_without_deadlock() {
     drop(panic_pipe);
 }
 
+fn wait_for_flag(flag: &AtomicBool, message: &str) -> Result<(), String> {
+    let until = Instant::now() + Duration::from_secs(1);
+    while !flag.load(Ordering::Acquire) && Instant::now() < until {
+        thread::yield_now();
+    }
+    if !flag.load(Ordering::Acquire) {
+        return Err(message.into());
+    }
+    Ok(())
+}
+
 #[test]
 fn worker_failure_signals_a_running_sibling_through_the_shared_token() {
     let token = Arc::new(AtomicBool::new(false));
@@ -155,23 +166,11 @@ fn worker_failure_signals_a_running_sibling_through_the_shared_token() {
     let encoder_saw_cancel = Arc::clone(&sibling_saw_cancel);
     let mut pipe = OrderedPipeline::new_with_cancellation(2, 2, Arc::clone(&token), move |job| {
         if job == 0 {
-            let until = Instant::now() + Duration::from_secs(1);
-            while !encoder_started.load(Ordering::Acquire) && Instant::now() < until {
-                thread::yield_now();
-            }
-            if !encoder_started.load(Ordering::Acquire) {
-                return Err("sibling never began".into());
-            }
+            wait_for_flag(&encoder_started, "sibling never began")?;
             Err("intentional error".into())
         } else {
             encoder_started.store(true, Ordering::Release);
-            let until = Instant::now() + Duration::from_secs(1);
-            while !encoder_token.load(Ordering::Acquire) && Instant::now() < until {
-                thread::yield_now();
-            }
-            if !encoder_token.load(Ordering::Acquire) {
-                return Err("cancellation token was not raised".into());
-            }
+            wait_for_flag(&encoder_token, "cancellation token was not raised")?;
             encoder_saw_cancel.store(true, Ordering::Release);
             Ok(())
         }
