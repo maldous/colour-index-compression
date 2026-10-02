@@ -264,23 +264,14 @@ pub fn encode_count_range(data: &[u8]) -> Result<Vec<u8>, String> {
         if tile_index & 3 == 0 {
             crate::limits::check()?;
         }
-        let exact = encode_type_class(tile)?;
-        let mut counts = [0usize; 256];
-        for (index, &value) in tile.iter().enumerate() {
-            if index & 255 == 0 {
-                crate::limits::check()?;
-            }
-            counts[value as usize] += 1;
-        }
-        let ways = cardinality(&counts);
-        let width = fixed_width(&(&ways - BigUint::one()));
-        let sequence_bytes = width.div_ceil(8);
-        let header_end = exact
-            .len()
-            .checked_sub(sequence_bytes + 1)
-            .ok_or("invalid exact-rank header")?;
+        let counts = type_class_counts(tile)?;
+        // Count-range has its own sequence stream.  Calling
+        // `encode_type_class` here used to first materialize the canonical
+        // permutation rank only to discard it.  Build the identical count
+        // header directly instead, keeping the format and emitted bytes
+        // unchanged while avoiding the arbitrary-precision rank work.
+        let mut encoded = encode_type_class_header(tile.len(), &counts)?;
         let (payload, bit_length) = encode_sequence_range(tile, &counts)?;
-        let mut encoded = exact[..header_end].to_vec();
         encoded.push(1);
         varint(bit_length, &mut encoded);
         encoded.extend_from_slice(&payload);
@@ -516,7 +507,7 @@ fn permutation_unrank(mut rank: BigUint, counts: &[usize]) -> Result<Vec<u8>, St
     Ok(output)
 }
 
-pub fn encode_type_class(data: &[u8]) -> Result<Vec<u8>, String> {
+fn type_class_counts(data: &[u8]) -> Result<[usize; 256], String> {
     let mut counts = [0usize; 256];
     for (index, &byte) in data.iter().enumerate() {
         if index & 255 == 0 {
@@ -524,6 +515,13 @@ pub fn encode_type_class(data: &[u8]) -> Result<Vec<u8>, String> {
         }
         counts[byte as usize] += 1;
     }
+    Ok(counts)
+}
+
+/// Serialize the count portion of a type-class payload, excluding its
+/// sequence mode and sequence bytes.  The byte layout deliberately matches
+/// the prefix emitted by `encode_type_class`.
+fn encode_type_class_header(n: usize, counts: &[usize; 256]) -> Result<Vec<u8>, String> {
     let active: Vec<usize> = counts
         .iter()
         .enumerate()
@@ -532,17 +530,29 @@ pub fn encode_type_class(data: &[u8]) -> Result<Vec<u8>, String> {
     let m = active.len();
     let mut out = Vec::new();
     varint(m, &mut out);
-    if data.is_empty() {
+    if n == 0 {
         return Ok(out);
+    }
+    if m == 0 || m > n {
+        return Err("invalid CIX type-class counts".into());
     }
     if m < 256 {
         let width = fixed_width(&(choose(256, m) - BigUint::one()));
         out.extend(fixed_bytes(&colex_rank(&active), width));
     }
-    let parts: Vec<usize> = active.iter().map(|&s| counts[s]).collect();
     if m > 1 {
-        let width = fixed_width(&(choose(data.len() - 1, m - 1) - BigUint::one()));
+        let parts: Vec<usize> = active.iter().map(|&s| counts[s]).collect();
+        let width = fixed_width(&(choose(n - 1, m - 1) - BigUint::one()));
         out.extend(fixed_bytes(&composition_rank(&parts)?, width));
+    }
+    Ok(out)
+}
+
+pub fn encode_type_class(data: &[u8]) -> Result<Vec<u8>, String> {
+    let counts = type_class_counts(data)?;
+    let mut out = encode_type_class_header(data.len(), &counts)?;
+    if data.is_empty() {
+        return Ok(out);
     }
     let ways = cardinality(&counts);
     let width = fixed_width(&(&ways - BigUint::one()));
@@ -889,4 +899,85 @@ pub fn encode_context_type_classes(
         out.extend(encode_type_class(&buckets[&id])?);
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // This is the pre-refactor count-range assembly.  It is test-only so the
+    // production path cannot accidentally retain the discarded rank work.
+    fn legacy_count_range(data: &[u8]) -> Result<Vec<u8>, String> {
+        let mut out = Vec::new();
+        for tile in data.chunks(1024) {
+            let exact = encode_type_class(tile)?;
+            let counts = type_class_counts(tile)?;
+            let ways = cardinality(&counts);
+            let width = fixed_width(&(&ways - BigUint::one()));
+            let sequence_bytes = width.div_ceil(8);
+            let header_end = exact
+                .len()
+                .checked_sub(sequence_bytes + 1)
+                .ok_or("invalid exact-rank header")?;
+            let (payload, bit_length) = encode_sequence_range(tile, &counts)?;
+            let mut encoded = exact[..header_end].to_vec();
+            encoded.push(1);
+            varint(bit_length, &mut encoded);
+            encoded.extend_from_slice(&payload);
+            varint(encoded.len(), &mut out);
+            out.extend_from_slice(&encoded);
+        }
+        Ok(out)
+    }
+
+    fn deterministic_bytes(length: usize) -> Vec<u8> {
+        let mut state = 0xD1CE_BA5Eu32;
+        (0..length)
+            .map(|_| {
+                state = state.wrapping_mul(1_664_525).wrapping_add(1_013_904_223);
+                (state >> 24) as u8
+            })
+            .collect()
+    }
+
+    #[test]
+    fn count_range_keeps_pre_refactor_bytes_and_round_trips() {
+        let mut cases = vec![Vec::new(), vec![7], vec![0; 1024]];
+        cases.push((0..1024).map(|i| (i & 255) as u8).collect());
+        cases.push(deterministic_bytes(2_049));
+        cases.push(
+            (0..3_217)
+                .map(|i| if i % 17 == 0 { 0xFF } else { (i % 9) as u8 })
+                .collect(),
+        );
+
+        for input in cases {
+            let encoded = encode_count_range(&input).unwrap();
+            assert_eq!(encoded, legacy_count_range(&input).unwrap());
+            assert_eq!(
+                decode_composition_tiles(&encoded, input.len()).unwrap(),
+                input
+            );
+        }
+    }
+
+    #[test]
+    fn count_range_preserves_large_exact_rank_type_classes() {
+        let input = deterministic_bytes(1024);
+        let counts = type_class_counts(&input).unwrap();
+        assert!(cardinality(&counts).bits() > 128);
+        let encoded = encode_count_range(&input).unwrap();
+        assert_eq!(
+            decode_composition_tiles(&encoded, input.len()).unwrap(),
+            input
+        );
+    }
+
+    #[test]
+    fn count_range_rejects_truncated_tile() {
+        let input = deterministic_bytes(1024);
+        let mut encoded = encode_count_range(&input).unwrap();
+        encoded.pop();
+        assert!(decode_composition_tiles(&encoded, input.len()).is_err());
+    }
 }
