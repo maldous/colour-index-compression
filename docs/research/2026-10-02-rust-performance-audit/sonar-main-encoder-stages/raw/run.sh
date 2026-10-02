@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Exact d52 parent/candidate route parity under a one-core, 1 GiB, no-swap cgroup.
+# Exact d52 parent/candidate route parity under a 1 GiB, no-swap cgroup and taskset CPU 12.
 # The temporary input, archives, and restored bytes deliberately remain outside Git.
 root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 work=$(mktemp -d /tmp/cix-main-encoder-stages.XXXXXX)
@@ -36,7 +36,11 @@ run_child() {
       printf "cgroup=%s\n" "$cg"
       printf "memory.max="; cat "/sys/fs/cgroup$cg/memory.max"
       printf "memory.swap.max="; cat "/sys/fs/cgroup$cg/memory.swap.max"
-      printf "cpuset.cpus.effective="; cat "/sys/fs/cgroup$cg/cpuset.cpus.effective"
+      if test -r "/sys/fs/cgroup$cg/cpuset.cpus.effective"; then
+        printf "cpuset.cpus.effective="; cat "/sys/fs/cgroup$cg/cpuset.cpus.effective"
+      else
+        printf "cpuset.cpus.effective=unavailable\n"
+      fi
       printf "affinity="; taskset -pc $$
       "$@"
       status=$?
