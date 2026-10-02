@@ -806,7 +806,7 @@ fn predictor_update(
         values[context] = actual;
         valid[context] = true;
     }
-    if (index + 1) % 256 == 0 {
+    if (index + 1).is_multiple_of(256) {
         for score in scores {
             *score /= 2;
         }
@@ -943,7 +943,7 @@ fn select_stride(sample: &[u8]) -> Result<u8, String> {
     for id in [4u8, 6, 7, 9, 17, 18] {
         let transformed = apply_stride(sample, id)?;
         let score = entropy(&transformed);
-        if best.map_or(true, |(_, old)| score < old) {
+        if best.is_none_or(|(_, old)| score < old) {
             best = Some((id, score));
         }
     }
@@ -996,7 +996,7 @@ fn phrase_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, Strin
         literals.push(data[i]);
         i += 1;
     }
-    let owned = vec![tags, literals, indices];
+    let owned = [tags, literals, indices];
     let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
     let streams = streams_encode(&refs, level, backend)?;
     let mut out = Vec::with_capacity(1 + 2 * dictionary.len() + streams.len());
@@ -1017,10 +1017,10 @@ fn phrase_decode(blob: &[u8], n: usize, allow_extended_coders: bool) -> Result<V
     if start > blob.len() {
         return Err("truncated phrase dictionary".into());
     }
-    let dictionary: Vec<[u8; 2]> = blob[1..start]
-        .chunks_exact(2)
-        .map(|p| [p[0], p[1]])
-        .collect();
+    let (dictionary_bytes, []) = blob[1..start].as_chunks::<2>() else {
+        return Err("invalid phrase dictionary size".into());
+    };
+    let dictionary: Vec<[u8; 2]> = dictionary_bytes.to_vec();
     let parts = streams_decode(&blob[start..], n.saturating_mul(2), allow_extended_coders)?;
     if parts.len() != 3 {
         return Err("phrase stream count mismatch".into());
@@ -1596,17 +1596,20 @@ fn consider_cixg_candidates_parallel(
 
 /// Keep an explicit route fixed while the effort policy still searches its
 /// compatible nested coders. An explicit backend narrows only that dimension.
-fn select_cixg_fixed_route(
+struct CixgFixedRouteRequest<'a> {
     route: u8,
-    data: &[u8],
-    backend_override: Option<&str>,
-    format: &str,
-    effort_name: &str,
-    budget: &resources::MemoryBudget,
+    data: &'a [u8],
+    backend_override: Option<&'a str>,
+    format: &'a str,
+    effort_name: &'a str,
+    budget: &'a resources::MemoryBudget,
     workers: usize,
-    stats: &mut AutoSelectionStats,
+    stats: &'a mut AutoSelectionStats,
     explain: bool,
-) -> Result<(u8, Vec<u8>), String> {
+}
+
+fn select_cixg_fixed_route(request: CixgFixedRouteRequest<'_>) -> Result<(u8, Vec<u8>), String> {
+    let CixgFixedRouteRequest { route, data, backend_override, format, effort_name, budget, workers, stats, explain } = request;
     let search_started = Instant::now();
     let profile_started = Instant::now();
     let effort = selection::effort(effort_name).ok_or("invalid selector effort")?;
@@ -1686,16 +1689,19 @@ fn select_cixg_fixed_route(
 /// Raw is always the incumbent. Every candidate is self-identifying within
 /// its framed payload, so its complete physical block cost differs only by
 /// payload length; the 41-byte frame is equal for all candidates.
-fn select_cixg_auto(
-    data: &[u8],
+struct CixgAutoRequest<'a> {
+    data: &'a [u8],
     level: u8,
-    backend_override: Option<&str>,
-    format: &str,
-    budget: &resources::MemoryBudget,
+    backend_override: Option<&'a str>,
+    format: &'a str,
+    budget: &'a resources::MemoryBudget,
     workers: usize,
-    stats: &mut AutoSelectionStats,
+    stats: &'a mut AutoSelectionStats,
     explain: bool,
-) -> Result<(u8, Vec<u8>), String> {
+}
+
+fn select_cixg_auto(request: CixgAutoRequest<'_>) -> Result<(u8, Vec<u8>), String> {
+    let CixgAutoRequest { data, level, backend_override, format, budget, workers, stats, explain } = request;
     let effort_name = selector_effort_name(level);
     let effort = selection::effort(effort_name).ok_or("invalid selector effort")?;
     let search_started = Instant::now();
@@ -1952,7 +1958,7 @@ fn bwt_inverse(primary: usize, transformed: &[u8]) -> Result<Vec<u8>, String> {
 fn bwt_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
     let (primary, transformed) = bwt_transform(data)?;
     let (tags, literals, lengths) = mtf_runs(&transformed);
-    let owned = vec![tags, literals, lengths];
+    let owned = [tags, literals, lengths];
     let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
     let streams = streams_encode(&refs, level, backend)?;
     let mut out = Vec::with_capacity(4 + streams.len());
@@ -1980,7 +1986,7 @@ fn lz_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
         return lz_encode_fast(data, level, backend);
     }
     let parts = lz_parse(data)?;
-    let owned = vec![parts.tags, parts.literals, parts.lengths, parts.distances];
+    let owned = [parts.tags, parts.literals, parts.lengths, parts.distances];
     let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
     streams_encode(&refs, level, backend)
 }
@@ -2348,28 +2354,28 @@ fn select_candidate_route(
             "deflate" => 10,
             _ => return Err(format!("unsupported route: {forced}")),
         };
-        select_cixg_fixed_route(
+        select_cixg_fixed_route(CixgFixedRouteRequest {
             route,
             data,
-            backend_set.then_some(backend),
+            backend_override: backend_set.then_some(backend),
             format,
-            selector_effort_name(level),
+            effort_name: selector_effort_name(level),
             budget,
             workers,
             stats,
             explain,
-        )
+        })
     } else {
-        select_cixg_auto(
+        select_cixg_auto(CixgAutoRequest {
             data,
             level,
-            backend_set.then_some(backend),
+            backend_override: backend_set.then_some(backend),
             format,
             budget,
             workers,
             stats,
             explain,
-        )
+        })
     }
 }
 
@@ -3046,6 +3052,14 @@ struct PortfolioWinner {
     omitted: Vec<String>,
 }
 
+struct PortfolioCandidate<'a> {
+    data: &'a [u8],
+    data_capacity: usize,
+    memory: usize,
+    descriptor: Option<&'a external::CandidateDescriptor>,
+    omitted_name: &'a str,
+}
+
 impl PortfolioWinner {
     fn retained_bytes(&self, data: &Vec<u8>) -> usize {
         data.capacity().saturating_add(self.archive.capacity())
@@ -3054,12 +3068,8 @@ impl PortfolioWinner {
     fn consider(
         &mut self,
         candidate: Vec<u8>,
-        data: &[u8],
-        data_capacity: usize,
-        memory: usize,
-        descriptor: Option<&external::CandidateDescriptor>,
+        context: PortfolioCandidate<'_>,
         name: impl FnOnce() -> String,
-        omitted_name: &str,
     ) -> Result<(), String> {
         if candidate.len() >= self.archive.len() {
             return Ok(());
@@ -3067,17 +3077,17 @@ impl PortfolioWinner {
         match portfolio_candidate_matches(
             &candidate,
             candidate.capacity(),
-            data,
-            data_capacity.saturating_add(self.archive.capacity()),
-            memory,
-            descriptor,
+            context.data,
+            context.data_capacity.saturating_add(self.archive.capacity()),
+            context.memory,
+            context.descriptor,
         )? {
             PortfolioVerification::Verified => {
                 self.archive = candidate;
                 self.name = name();
             }
             PortfolioVerification::MemoryOmission(reason) => {
-                self.omitted.push(format!("{omitted_name} ({reason})"));
+                self.omitted.push(format!("{} ({reason})", context.omitted_name));
             }
         }
         Ok(())
@@ -3122,15 +3132,13 @@ fn portfolio_search_external(
                 descriptor.id
             ));
         }
-        winner.consider(
-            candidate,
+        winner.consider(candidate, PortfolioCandidate {
             data,
-            data.capacity(),
+            data_capacity: data.capacity(),
             memory,
-            Some(descriptor),
-            || descriptor.id.to_string(),
-            descriptor.id,
-        )?;
+            descriptor: Some(descriptor),
+            omitted_name: descriptor.id,
+        }, || descriptor.id.to_string())?;
     }
     Ok(())
 }
@@ -3156,15 +3164,13 @@ fn portfolio_search_native(
         return Ok(());
     };
     let omitted_name = name.clone();
-    winner.consider(
-        candidate,
+    winner.consider(candidate, PortfolioCandidate {
         data,
-        data.capacity(),
+        data_capacity: data.capacity(),
         memory,
-        None,
-        || name,
-        &omitted_name,
-    )
+        descriptor: None,
+        omitted_name: &omitted_name,
+    }, || name)
 }
 
 fn portfolio_search_size_routes(
@@ -3947,14 +3953,14 @@ fn decode_m6_block(
     })
 }
 
-fn decode_m6<R: Read, W: Write>(
-    mut src: R,
-    mut dst: W,
-    _magic: &[u8; 5],
+struct M6DecodeOptions {
     fd: i32,
     memory: usize,
     verify_only: bool,
-) -> Result<(), String> {
+}
+
+fn decode_m6<R: Read, W: Write>(mut src: R, mut dst: W, options: M6DecodeOptions) -> Result<(), String> {
+    let M6DecodeOptions { fd, memory, verify_only } = options;
     let history_limit = read_stream_varint(&mut src, fd)?;
     if history_limit == 0 || history_limit > 16 * 1024 * 1024 {
         return Err("invalid CIXM6 history window".into());
@@ -3968,7 +3974,7 @@ fn decode_m6<R: Read, W: Write>(
     let mut persistent_states = stateful::PersistentAdaptiveStates::new();
     let mut recent: std::collections::VecDeque<Vec<u8>> = std::collections::VecDeque::new();
     let mut recent_bytes = 0usize;
-    let reference_budget = memory.saturating_div(8).min(16 * 1024 * 1024).max(1);
+    let reference_budget = memory.saturating_div(8).clamp(1, 16 * 1024 * 1024);
     if history_limit
         .saturating_add(reference_budget)
         .saturating_add(stateful::RETAINED_MEMORY_BOUND)
@@ -4043,7 +4049,20 @@ fn decode_cixb1<R: Read, W: Write>(mut src: R, mut dst: W, magic: [u8; 5], verif
     Ok(())
 }
 
-fn finish_cixg<R: Read, W: Write>(src: &mut R, dst: &mut W, fd: i32, verify_only: bool, list: bool, magic: &[u8; 5], total: u64, n: u32, s: u32, sum: [u8; 32], whole: &Sha256) -> Result<(), String> {
+struct CixgFinish<'a> {
+    fd: i32,
+    verify_only: bool,
+    list: bool,
+    magic: &'a [u8; 5],
+    total: u64,
+    n: u32,
+    s: u32,
+    sum: [u8; 32],
+    whole: &'a Sha256,
+}
+
+fn finish_cixg<R: Read, W: Write>(src: &mut R, dst: &mut W, finish: CixgFinish<'_>) -> Result<(), String> {
+    let CixgFinish { fd, verify_only, list, magic, total, n, s, sum, whole } = finish;
     if n != 0 || s != 0 || sum != <[u8; 32]>::from(whole.clone().finalize()) { return Err("archive checksum/terminator mismatch".into()); }
     loop { let mut extra=[0]; match read_poll(src,&mut extra,fd,None)? { Some(0)=>break, Some(_)=>return Err("trailing archive bytes".into()), None=>continue } }
     if !verify_only { dst.flush().map_err(ioerr)?; }
@@ -4297,7 +4316,7 @@ fn decode<R: Read, W: Write>(
     let mut archive_magic = [0u8; 5];
     read_exact_poll(&mut src, &mut archive_magic, input_fd)?;
     if &archive_magic == b"CIXM6" || &archive_magic == b"CIXM5" {
-        return decode_m6(src, dst, &archive_magic, input_fd, memory, verify_only);
+        return decode_m6(src, dst, M6DecodeOptions { fd: input_fd, memory, verify_only });
     }
     if &archive_magic == b"CIXB1" {
         return decode_cixb1(src, dst, archive_magic, verify_only, list, input_fd, memory);
@@ -4312,7 +4331,20 @@ fn decode<R: Read, W: Write>(
     let mut total_bytes = 0u64;
     loop {
         let (route, n, s, sum) = read_cixg_frame(&mut src, input_fd)?;
-        if route == END { finish_cixg(&mut src, &mut dst, input_fd, verify_only, list, &archive_magic, total_bytes, n, s, sum, &whole)?; return Ok(()); }
+        if route == END {
+            finish_cixg(&mut src, &mut dst, CixgFinish {
+                fd: input_fd,
+                verify_only,
+                list,
+                magic: &archive_magic,
+                total: total_bytes,
+                n,
+                s,
+                sum,
+                whole: &whole,
+            })?;
+            return Ok(());
+        }
         let b = read_cixg_payload(&mut src, input_fd, block, n, s, memory)?;
         let fixed_frame_bytes = n as usize + s as usize;
         // The payload remains live while route decoders build their output.
@@ -4570,9 +4602,7 @@ fn automatic_persistent_stream_eligible(o: &Opt, whole_archive_best: bool, block
 /// Commit an admitted non-seekable BEST source to the mixed CIXZ1 container.
 /// Every region still compares raw, a current-state zstd stream candidate,
 /// and a complete native CIXG2 block; reading the probe never seeks or spools.
-fn encode_automatic_persistent_stream<R: Read, W: Write>(
-    mut src: R,
-    dst: W,
+struct PersistentStreamOptions {
     block: u32,
     input_fd: i32,
     flush_interval: Option<Duration>,
@@ -4580,7 +4610,14 @@ fn encode_automatic_persistent_stream<R: Read, W: Write>(
     threads: usize,
     explain: bool,
     verbose: bool,
+}
+
+fn encode_automatic_persistent_stream<R: Read, W: Write>(
+    mut src: R,
+    dst: W,
+    options: PersistentStreamOptions,
 ) -> Result<(), String> {
+    let PersistentStreamOptions { block, input_fd, flush_interval, memory, threads, explain, verbose } = options;
     let (first, first_eof) =
         streaming_backend::read_probe(&mut src, block, input_fd, flush_interval)?;
     // An empty input has no region to probe.  Starting and finishing a fresh
@@ -4602,32 +4639,39 @@ fn encode_automatic_persistent_stream<R: Read, W: Write>(
     streaming_backend::encode(
         src,
         dst,
-        first,
-        first_eof,
-        block,
-        9,
-        input_fd,
-        flush_interval,
-        memory,
-        threads,
-        explain,
-        verbose,
+        streaming_backend::EncodeRequest {
+            first,
+            first_eof,
+            block,
+            level: 9,
+            input_fd,
+            flush_interval,
+            memory,
+            workers: threads,
+            explain,
+            verbose,
+        },
     )
 }
 
 /// Execute the selected encoder after option validation. Keeping this dispatch
 /// separate from filesystem handling means stdout and atomic-file output use
 /// precisely the same encoder selection rules.
-fn encode_selected<R: Read, W: Write>(
-    o: &Opt,
-    src: R,
-    dst: W,
+struct EncodeSelection<'a> {
+    o: &'a Opt,
     block: u32,
-    forced: Option<&str>,
+    forced: Option<&'a str>,
     input_fd: i32,
     automatic_best: bool,
     automatic_persistent_best: bool,
+}
+
+fn encode_selected<R: Read, W: Write>(
+    src: R,
+    dst: W,
+    selection: EncodeSelection<'_>,
 ) -> Result<(), String> {
+    let EncodeSelection { o, block, forced, input_fd, automatic_best, automatic_persistent_best } = selection;
     if automatic_best {
         return portfolio_auto::encode(o, dst);
     }
@@ -4642,17 +4686,15 @@ fn encode_selected<R: Read, W: Write>(
         return encode_external(src, dst, backend, &o.profile, o.memory);
     }
     if automatic_persistent_best {
-        return encode_automatic_persistent_stream(
-            src,
-            dst,
+        return encode_automatic_persistent_stream(src, dst, PersistentStreamOptions {
             block,
             input_fd,
-            o.flush_interval,
-            o.memory,
-            o.threads,
-            o.explain,
-            o.verbose,
-        );
+            flush_interval: o.flush_interval,
+            memory: o.memory,
+            threads: o.threads,
+            explain: o.explain,
+            verbose: o.verbose,
+        });
     }
     encode_with_strategy(src, dst, EncodeOptions { block, level: o.level, forced, backend: &o.backend, backend_set: o.backend_set, format: &o.format, input_fd, flush_interval: o.flush_interval, memory: o.memory, workers: o.threads, explain: o.explain, verbose: o.verbose, strategy: &o.parallelism })
 }
@@ -4772,7 +4814,7 @@ fn validate_m6_options(o: &Opt) -> Result<(), String> {
         return Err("--flush-interval is not available for the CIXM6 encoder".into());
     }
     if matches!(o.format.as_str(), "cixm6" | "cixf1")
-        && o.memory < (1 << 20) + block_min(&o).saturating_mul(3) + (256 << 10)
+        && o.memory < (1 << 20) + block_min(o).saturating_mul(3) + (256 << 10)
     {
         return Err(
             "CIXM6 encoder needs --memory for history, source and candidate buffers".into(),
@@ -4999,16 +5041,14 @@ fn execute_to_stdout(
     if o.decode {
         decode(src, &mut lock, false, false, fd, o.memory)
     } else {
-        encode_selected(
+        encode_selected(src, &mut lock, EncodeSelection {
             o,
-            src,
-            &mut lock,
             block,
             forced,
-            fd,
+            input_fd: fd,
             automatic_best,
             automatic_persistent_best,
-        )
+        })
     }
 }
 
@@ -5029,16 +5069,14 @@ fn execute_to_file(
         if o.decode {
             decode(src, dst, false, false, fd, o.memory)
         } else {
-            encode_selected(
+            encode_selected(src, dst, EncodeSelection {
                 o,
-                src,
-                dst,
                 block,
                 forced,
-                fd,
+                input_fd: fd,
                 automatic_best,
                 automatic_persistent_best,
-            )
+            })
         }
     })?;
     eprintln!("{out}");

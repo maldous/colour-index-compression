@@ -646,6 +646,24 @@ struct RegionConfig {
     explain: bool,
 }
 
+/// Inputs fixed by the caller's admitted CIXZ1 stream decision.
+///
+/// Keeping these values together makes the boundary between the outer CLI
+/// selection and this stateful encoder explicit. The first block was already
+/// read for bounded probing and therefore must be consumed before `src`.
+pub(super) struct EncodeRequest {
+    pub(super) first: Vec<u8>,
+    pub(super) first_eof: bool,
+    pub(super) block: u32,
+    pub(super) level: u8,
+    pub(super) input_fd: i32,
+    pub(super) flush_interval: Option<Duration>,
+    pub(super) memory: usize,
+    pub(super) workers: usize,
+    pub(super) explain: bool,
+    pub(super) verbose: bool,
+}
+
 fn encode_region<W: Write>(
     dst: &mut W,
     data: &[u8],
@@ -676,17 +694,9 @@ fn encode_region<W: Write>(
 pub(super) fn encode<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
-    first: Vec<u8>,
-    first_eof: bool,
-    block: u32,
-    level: u8,
-    input_fd: i32,
-    flush_interval: Option<Duration>,
-    memory: usize,
-    workers: usize,
-    explain: bool,
-    verbose: bool,
+    request: EncodeRequest,
 ) -> Result<(), String> {
+    let EncodeRequest { first, first_eof, block, level, input_fd, flush_interval, memory, workers, explain, verbose } = request;
     if required_memory(block) > memory {
         return Err("persistent zstd stream exceeds --memory".into());
     }
@@ -911,18 +921,23 @@ fn decode_reset<R: Read>(
         .finish(&tail)
 }
 
-fn finish_stream<R: Read, W: Write>(
-    src: &mut R,
-    dst: &mut W,
+struct FinishRequest<'a> {
     input_fd: i32,
-    frame: &FrameHeader,
-    decoder: &mut Option<Decompressor>,
+    frame: &'a FrameHeader,
+    decoder: &'a mut Option<Decompressor>,
     whole: Sha256,
     verify_only: bool,
     list: bool,
     total: u64,
     frames: u64,
+}
+
+fn finish_stream<R: Read, W: Write>(
+    src: &mut R,
+    dst: &mut W,
+    request: FinishRequest<'_>,
 ) -> Result<(), String> {
+    let FinishRequest { input_fd, frame, decoder, whole, verify_only, list, total, frames } = request;
     let expected_tail = if decoder.is_some() {
         FINALIZATION_COST
     } else {
@@ -990,14 +1005,16 @@ pub(super) fn decode<R: Read, W: Write>(
             return finish_stream(
                 &mut src,
                 &mut dst,
-                input_fd,
-                &frame,
-                &mut decoder,
-                whole,
-                verify_only,
-                list,
-                total,
-                frames,
+                FinishRequest {
+                    input_fd,
+                    frame: &frame,
+                    decoder: &mut decoder,
+                    whole,
+                    verify_only,
+                    list,
+                    total,
+                    frames,
+                },
             );
         }
         if frame.route == ROUTE_ZSTD_RESET {
@@ -1065,16 +1082,7 @@ mod tests {
         encode(
             Cursor::new(rest),
             &mut archive,
-            first,
-            split == data.len(),
-            block,
-            9,
-            -1,
-            None,
-            memory,
-            1,
-            false,
-            false,
+            EncodeRequest { first, first_eof: split == data.len(), block, level: 9, input_fd: -1, flush_interval: None, memory, workers: 1, explain: false, verbose: false },
         )
         .unwrap();
         assert_eq!(&archive[..5], MAGIC);
@@ -1100,16 +1108,7 @@ mod tests {
         encode(
             Cursor::new(Vec::<u8>::new()),
             &mut archive,
-            input,
-            true,
-            block,
-            9,
-            -1,
-            None,
-            memory,
-            1,
-            false,
-            false,
+            EncodeRequest { first: input, first_eof: true, block, level: 9, input_fd: -1, flush_interval: None, memory, workers: 1, explain: false, verbose: false },
         )
         .unwrap();
         // Header then first CIX frame header.  Mutate payload only when the
@@ -1165,16 +1164,7 @@ mod tests {
         encode(
             Cursor::new(Vec::<u8>::new()),
             &mut archive,
-            input.clone(),
-            true,
-            block,
-            9,
-            -1,
-            None,
-            memory,
-            1,
-            false,
-            false,
+            EncodeRequest { first: input.clone(), first_eof: true, block, level: 9, input_fd: -1, flush_interval: None, memory, workers: 1, explain: false, verbose: false },
         )
         .unwrap();
         assert_eq!(archive[13], ROUTE_RAW);

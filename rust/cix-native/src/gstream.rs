@@ -257,28 +257,28 @@ fn encode_block(input: Vec<u8>, options: &WorkerOptions) -> Result<Completed, St
     let mut stats = AutoSelectionStats::default();
     let override_backend = options.backend_set.then_some(options.backend.as_str());
     let (route, payload) = if let Some(id) = options.forced_id {
-        select_cixg_fixed_route(
-            id,
-            &input,
-            override_backend,
-            options.resolved_format,
-            selector_effort_name(options.level),
-            &options.budget,
-            1,
-            &mut stats,
-            options.explain,
-        )?
+        select_cixg_fixed_route(CixgFixedRouteRequest {
+            route: id,
+            data: &input,
+            backend_override: override_backend,
+            format: options.resolved_format,
+            effort_name: selector_effort_name(options.level),
+            budget: &options.budget,
+            workers: 1,
+            stats: &mut stats,
+            explain: options.explain,
+        })?
     } else {
-        select_cixg_auto(
-            &input,
-            options.level,
-            override_backend,
-            options.resolved_format,
-            &options.budget,
-            1,
-            &mut stats,
-            options.explain,
-        )?
+        select_cixg_auto(CixgAutoRequest {
+            data: &input,
+            level: options.level,
+            backend_override: override_backend,
+            format: options.resolved_format,
+            budget: &options.budget,
+            workers: 1,
+            stats: &mut stats,
+            explain: options.explain,
+        })?
     };
     Ok(Completed {
         input,

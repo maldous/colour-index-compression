@@ -1,0 +1,6 @@
+Command: cargo build --release --bin cix
+Worktree: /tmp/cix-main-warning-queue/rust/cix-native
+Status: exit 101 before the authorized gstream.rs request-construction adaptation.
+Rust errors: E0061 at src/gstream.rs:260 and src/gstream.rs:272, because those two callers still used the previous selector signatures.
+Resolution: the same argument values were placed in CixgFixedRouteRequest and CixgAutoRequest at exactly those two authorized call sites. The final release build is retained as build-candidate.log and exited 0.
+Raw compiler JSON for that intermediate state is retained in clippy-bin-pre-gstream.jsonl; no separately redirected build stdout was created for this transient compile.
