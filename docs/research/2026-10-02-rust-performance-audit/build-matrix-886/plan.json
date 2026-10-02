@@ -1,0 +1,55 @@
+{
+  "schema": "cix-build-matrix-886-plan-v1",
+  "status": "PREPARED_AWAITING_CLEAN_SCALING_EPOCH",
+  "source_revision": "8865bfbccba354b02920da86c7088c17e5f96aab",
+  "source_rust_tree_sha": "7360b401e85a3e9abf052e2d2bf14c7379fd79c7",
+  "purpose": "Matched portable code-generation screening only; no default build setting is changed by this plan.",
+  "resource_reservation": {
+    "cpus": [20, 22],
+    "cargo_build_jobs": 1,
+    "cgroup_memory_max_bytes": 2000000000,
+    "cgroup_memory_swap_max_bytes": 0,
+    "temporary_aggregate_bytes": 1000000000,
+    "concurrent_builds": 1,
+    "corpus_dispatch": false,
+    "start_condition": "Root confirms the clean scaling epoch is not reserved. Virtual-address limits are not used as RSS limits."
+  },
+  "baseline": {
+    "name": "portable-opt3-fatlto-cgu1",
+    "cargo_profile": "release",
+    "environment": {
+      "CARGO_PROFILE_RELEASE_OPT_LEVEL": "3",
+      "CARGO_PROFILE_RELEASE_LTO": "fat",
+      "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": "1",
+      "RUSTFLAGS": "-C target-cpu=x86-64"
+    }
+  },
+  "candidate": {
+    "name": "portable-opt3-fatlto-cgu16",
+    "difference_from_baseline": {"CARGO_PROFILE_RELEASE_CODEGEN_UNITS": "16"}
+  },
+  "pgo_candidate": {
+    "name": "portable-opt3-fatlto-cgu1-pgo",
+    "base": "portable-opt3-fatlto-cgu1",
+    "generate_rustflags": "-C target-cpu=x86-64 -Cprofile-generate=PROFILE_DIR",
+    "use_rustflags": "-C target-cpu=x86-64 -Cprofile-use=MERGED_PROFDATA",
+    "scope": "Rust only; BSC and ZPAQ C++ are not profile-instrumented by these Rust flags.",
+    "training_inputs": [
+      {"label": "canterbury/alice29.txt", "sha256": "7467306ee0feed4971260f3c87421154a05be571d944e9cb021a5713700c38f0", "flags": ["--fast", "--threads", "1"]},
+      {"label": "calgary/book1", "sha256": "9ffa47cd93bccd732f20e0c304203cfbc1b8a91bedac536e2d8f6051003d9951", "flags": ["--threads", "1"]}
+    ],
+    "held_out_inputs": [
+      {"label": "canterbury/kennedy.xls", "sha256": "9af47239ca29dfe20e633f80bbbb9a4cc9783d0803d7b2b5626f42e4c3790420", "flags": ["--fast", "--threads", "1"]},
+      {"label": "canterbury/kennedy.xls", "sha256": "9af47239ca29dfe20e633f80bbbb9a4cc9783d0803d7b2b5626f42e4c3790420", "flags": ["--threads", "1"]},
+      {"label": "canterbury/grammar.lsp", "sha256": "1b0805dfc0ae706b35aac2bb4e15f02485efd24dda5dbd29de7b2f84d1a88c15", "flags": ["--best", "--format", "cixg1", "--route", "lz", "--threads", "1"], "qualification": "constrained BEST only"}
+    ]
+  },
+  "measurement": {
+    "repetitions": 5,
+    "counterbalance": "Alternate workload order each repetition; alternate candidate order by repetition.",
+    "metrics": ["complete archive bytes", "encode/decode wall seconds", "encode/decode CPU seconds", "peak RSS KiB", "throughput", "binary bytes", "compile wall seconds", "temporary peak bytes"],
+    "correctness": "Each archive must have an owning fresh native decode and a fresh decode by every other generated build; output SHA-256 must equal the frozen input.",
+    "promotion": "No configuration is retained without all requested CCA validation, stable gains outside variance, unchanged complete bytes or an explicitly accepted size tradeoff, and root approval."
+  },
+  "excluded": ["Silesia", "corpus dispatch", "native CPU deployment setting", "Cargo.toml modification", "algorithm or selector change", "GitHub Actions"]
+}
