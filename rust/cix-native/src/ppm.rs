@@ -12,11 +12,11 @@ const SEE_RESCALE_LIMIT: u32 = 256;
 const HISTORY_MAX: usize = 65_536;
 const HISTORY_MIN: usize = 4_096;
 
-fn context(history: &[u8], order: usize) -> Vec<u8> {
+fn context(history: &[u8], order: usize) -> &[u8] {
     if order == 0 {
-        Vec::new()
+        &[]
     } else {
-        history[history.len() - order..].to_vec()
+        &history[history.len() - order..]
     }
 }
 
@@ -72,7 +72,11 @@ fn observe_from(
     let min_order = min_order.min(highest);
     for order in (min_order..=highest).rev() {
         let key = context(history, order);
-        let counts = tables.entry(key).or_default();
+        let counts = if let Some(counts) = tables.get_mut(key) {
+            counts
+        } else {
+            tables.entry(key.to_vec()).or_default()
+        };
         match counts.binary_search_by_key(&symbol, |(value, _)| *value) {
             Ok(index) => counts[index].1 += 1,
             Err(index) => counts.insert(index, (symbol, 1)),
@@ -103,7 +107,7 @@ fn observe(tables: &mut Tables, history: &mut Vec<u8>, symbol: u8, max_order: us
 fn update_floor(tables: &Tables, history: &[u8], symbol: u8, max_order: usize) -> usize {
     let highest = max_order.min(history.len());
     for order in (0..=highest).rev() {
-        if tables.get(&context(history, order)).is_some_and(|counts| {
+        if tables.get(context(history, order)).is_some_and(|counts| {
             counts
                 .binary_search_by_key(&symbol, |(value, _)| *value)
                 .is_ok()
@@ -222,7 +226,7 @@ fn prime_see(
         let mut matched_order = 0;
         let highest = max_order.min(history.len());
         for order in (0..=highest).rev() {
-            let Some(counts) = tables.get(&context(&history, order)) else {
+            let Some(counts) = tables.get(context(&history, order)) else {
                 continue;
             };
             let symbols = eligible(counts, &excluded);
@@ -324,8 +328,7 @@ fn encode_fixed_from_state(
         let mut matched_order = 0;
         let highest = max_order.min(history.len());
         for order in (0..=highest).rev() {
-            let key = context(&history, order);
-            let Some(counts) = tables.get(&key) else {
+            let Some(counts) = tables.get(context(&history, order)) else {
                 continue;
             };
             let symbols = eligible(counts, &excluded);
@@ -393,7 +396,7 @@ pub fn encode_secondary(
         let mut matched_order = 0;
         let highest = max_order.min(history.len());
         for order in (0..=highest).rev() {
-            let Some(counts) = tables.get(&context(&history, order)) else {
+            let Some(counts) = tables.get(context(&history, order)) else {
                 continue;
             };
             let symbols = eligible(counts, &excluded);
@@ -534,7 +537,7 @@ pub fn estimate_bits(data: &[u8], max_order: usize) -> Result<f64, String> {
         let mut coded = false;
         let highest = max_order.min(history.len());
         for order in (0..=highest).rev() {
-            let Some(counts) = tables.get(&context(&history, order)) else {
+            let Some(counts) = tables.get(context(&history, order)) else {
                 continue;
             };
             let symbols = eligible(counts, &excluded);
@@ -634,8 +637,7 @@ pub fn decode_with_history(
         let mut matched_order = 0;
         let highest = max_order.min(history.len());
         for order in (0..=highest).rev() {
-            let key = context(&history, order);
-            let Some(counts) = tables.get(&key) else {
+            let Some(counts) = tables.get(context(&history, order)) else {
                 continue;
             };
             let symbols = eligible(counts, &excluded);
@@ -807,7 +809,7 @@ fn decode_see(
         let mut matched_order = 0;
         let highest = max_order.min(history.len());
         for order in (0..=highest).rev() {
-            let Some(counts) = tables.get(&context(&history, order)) else {
+            let Some(counts) = tables.get(context(&history, order)) else {
                 continue;
             };
             let symbols = eligible(counts, &excluded);
