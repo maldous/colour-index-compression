@@ -5,28 +5,14 @@ mod combinatorics;
 #[path = "../src/rank.rs"]
 mod rank;
 
-mod adaptive {
-    pub fn decode_general(
-        _blob: &[u8],
-        _count: usize,
-        _history: &[u8],
-        _limit: usize,
-    ) -> Result<Vec<u8>, String> {
-        Err("decode is not used by the numeric encoder fixture".into())
-    }
-}
-
-mod histogram {
-    pub fn decode_type_class(_blob: &[u8], _count: usize) -> Result<Vec<u8>, String> {
-        Err("decode is not used by the numeric encoder fixture".into())
-    }
-}
-
-mod wavelet {
-    pub fn decode(_blob: &[u8], _count: usize) -> Result<Vec<u8>, String> {
-        Err("decode is not used by the numeric encoder fixture".into())
-    }
-}
+// Included codec tests validate their real reconstruction paths as well as
+// fixture generation. Decoder stubs would make those tests fail spuriously.
+#[path = "../src/adaptive.rs"]
+mod adaptive;
+#[path = "../src/histogram.rs"]
+mod histogram;
+#[path = "../src/wavelet.rs"]
+mod wavelet;
 
 fn unvar(data: &[u8], pos: &mut usize) -> Result<usize, String> {
     let mut value = 0usize;
