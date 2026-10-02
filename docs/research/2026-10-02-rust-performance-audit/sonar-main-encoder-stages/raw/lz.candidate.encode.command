@@ -1,0 +1,1 @@
+/home/user/src/cix-sonar-main-encoders-d52/rust/cix-native/target/release/cix --format cixg1 --route lz --explain -o /tmp/cix-main-encoder-stages.lCTJHm/lz.candidate.cix /tmp/cix-main-encoder-stages.lCTJHm/input.bin 

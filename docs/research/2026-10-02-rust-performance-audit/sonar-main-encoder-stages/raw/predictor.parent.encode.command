@@ -1,0 +1,1 @@
+/home/user/src/cix-current-validation-d52/rust/cix-native/target/release/cix --format cixg1 --route predictor --explain -o /tmp/cix-main-encoder-stages.lCTJHm/predictor.parent.cix /tmp/cix-main-encoder-stages.lCTJHm/input.bin 
