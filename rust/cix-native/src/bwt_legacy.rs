@@ -1013,11 +1013,7 @@ fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
     if values.is_empty() {
         return Ok(vec![0]);
     }
-    let mut raw = vec![0];
-    for &value in values {
-        put_varint(value, &mut raw);
-    }
-    let mut best = raw;
+    let mut best = varint_candidate(values);
     for width in 0..=16usize {
         if let Some(candidate) = rice_candidate(values, width, best.len()) {
             if candidate.len() < best.len() {
@@ -1025,41 +1021,58 @@ fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
             }
         }
     }
+    let Some((classes, lows)) = integer_classes(values)? else {
+        return Ok(best);
+    };
+    let low_blob = encode_integer_lows(&lows);
+    retain_uint_candidate(&mut best, 2, rank::encode_type_class(&classes)?, &low_blob);
+    retain_uint_candidate(&mut best, 3, encode_bytes(&classes)?, &low_blob);
+    Ok(best)
+}
+
+fn varint_candidate(values: &[usize]) -> Vec<u8> {
+    let mut raw = vec![0];
+    for &value in values {
+        put_varint(value, &mut raw);
+    }
+    raw
+}
+
+type IntegerClasses = (Vec<u8>, Vec<(usize, usize)>);
+
+fn integer_classes(values: &[usize]) -> Result<Option<IntegerClasses>, String> {
     let mut classes = Vec::with_capacity(values.len());
     let mut lows = Vec::with_capacity(values.len());
     for &value in values {
-        let x = value.checked_add(1).ok_or("BWT integer class overflow")?;
-        let width = (usize::BITS - x.leading_zeros() - 1) as usize;
+        let shifted = value.checked_add(1).ok_or("BWT integer class overflow")?;
+        let width = (usize::BITS - shifted.leading_zeros() - 1) as usize;
         if width > 255 {
-            return Ok(best);
+            return Ok(None);
         }
         classes.push(width as u8);
-        lows.push((x - (1usize << width), width));
+        lows.push((shifted - (1usize << width), width));
     }
-    let class_blob = rank::encode_type_class(&classes)?;
+    Ok(Some((classes, lows)))
+}
+
+fn encode_integer_lows(lows: &[(usize, usize)]) -> Vec<u8> {
     let mut writer = BitWriter::new();
-    for &(low, width) in &lows {
+    for &(low, width) in lows {
         if width > 0 {
             writer.bits(low, width);
         }
     }
-    let low_blob = writer.finish();
-    let mut candidate = vec![2];
-    put_varint(class_blob.len(), &mut candidate);
-    candidate.extend(&class_blob);
-    candidate.extend(&low_blob);
+    writer.finish()
+}
+
+fn retain_uint_candidate(best: &mut Vec<u8>, tag: u8, classes: Vec<u8>, lows: &[u8]) {
+    let mut candidate = vec![tag];
+    put_varint(classes.len(), &mut candidate);
+    candidate.extend(classes);
+    candidate.extend_from_slice(lows);
     if candidate.len() < best.len() {
-        best = candidate;
+        *best = candidate;
     }
-    let local_class_blob = encode_bytes(&classes)?;
-    let mut candidate = vec![3];
-    put_varint(local_class_blob.len(), &mut candidate);
-    candidate.extend(local_class_blob);
-    candidate.extend(low_blob);
-    if candidate.len() < best.len() {
-        best = candidate;
-    }
-    Ok(best)
 }
 
 fn rice_candidate(values: &[usize], width: usize, best_len: usize) -> Option<Vec<u8>> {

@@ -1,0 +1,26 @@
+base revision: d172ce8b429adbbe26c01fa4c27545588e4b7f73
+candidate binding: that revision plus review/scoped-production.patch and review/sonar_m6_routes.rs
+
+release build command:
+taskset -c 22 env CARGO_BUILD_JOBS=2 cargo build --manifest-path rust/cix-native/Cargo.toml --locked --release --bin cix --bin uncix
+
+baseline fixture command:
+taskset -c 22 env CARGO_BUILD_JOBS=2 CIX_M6_FIXTURE_DIR=/tmp/cix-bwt-sparse-evidence/baseline-fixture-v3 cargo test --manifest-path rust/cix-native/Cargo.toml --locked --test sonar_m6_routes -- --test-threads=1
+
+candidate fixture command:
+taskset -c 22 env CARGO_BUILD_JOBS=2 CIX_M6_FIXTURE_DIR=/tmp/cix-bwt-sparse-evidence/candidate-fixture-v2 cargo test --manifest-path rust/cix-native/Cargo.toml --locked --test sonar_m6_routes -- --test-threads=1
+
+fresh decoder command, per mode:
+taskset -c 22 /bin/bash -c 'grep Cpus_allowed_list /proc/self/status > CPU_FILE; cat /proc/self/cgroup > CGROUP_FILE; exec UNCIX -c ARCHIVE' > RESTORED 2> STDERR
+
+all commands ran in user systemd transient units with:
+MemoryMax=1G
+MemorySwapMax=0
+AllowedCPUs=22
+CPUQuota=100%
+
+The automatic selection observation used:
+cix --format cixm6 --verbose -c INPUT > ARCHIVE
+uncix -c ARCHIVE > RESTORED
+
+It is retained in raw/m6 and explicitly excluded from direct mode 4/11/12 claims.
