@@ -1,0 +1,52 @@
+base_parent=1146f0252cf14b9c51956c5f3f1173d72d8a055c
+candidate_commit=ca9f4fd1f95becf493f759ecd41fa1af446b2e2e
+toolchain_cargo=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo
+toolchain_rustc=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc
+toolchain_rustdoc=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustdoc
+parent_cix_sha256=92f4ecb393f14aa091bae24839383178e1dfdef226580c4f91879244a091e560
+parent_uncix_sha256=d55b6f668f2dee12d5bd761f4ee1f59669ac66468f7590ef1b4198be89d1fee2
+candidate_cix_sha256=4a418da498ac2e96f1b06a0e9534527ff40eebf7f79e71af9f595b3c3ea1cf1a
+candidate_uncix_sha256=b15cb592c80de7a4495029070173d9f050c4be66a581485b233e0e0c581ae66e
+build_parent_command=RUSTC=$toolchain_rustc RUSTDOC=$toolchain_rustdoc CARGO_TARGET_DIR=/tmp/cix-numeric-frozen-target $toolchain_cargo build --bin cix --bin uncix
+build_candidate_command=RUSTC=$toolchain_rustc RUSTDOC=$toolchain_rustdoc CARGO_TARGET_DIR=/tmp/cix-numeric-test-8LZ1Qb $toolchain_cargo build --bin cix --bin uncix
+unit_test_command=cargo test numeric::tests --lib
+unit_test_result=6 passed; 0 failed
+cgroup_cpu_affinity=14
+cgroup_memory_max=1073741824
+cgroup_memory_swap_max=0
+
+[exact-1146-identity]
+service=run-u113617.service
+input_generation=for i in $(seq 1 1024); do printf '\001\000\000\000'; done
+input_size=4096
+input_sha256=b33dd739a3b1d1e659a638b318bdcfbaed8eb8cca224dbf0a76e9e1a81db57bc
+parent_command=cix --format cixm6 -1 -f -o o i
+candidate_command=cix --format cixm6 -1 -f -o n i
+parent_archive_size=27
+candidate_archive_size=27
+parent_archive_sha256=9d80e051d58a521b113cce2d76097e4697c4eb9db6d1071f27bdc0d7a05a47d4
+candidate_archive_sha256=9d80e051d58a521b113cce2d76097e4697c4eb9db6d1071f27bdc0d7a05a47d4
+archive_cmp_exit=0
+parent_decode_candidate_command=parent/uncix -f -o d1 n
+candidate_decode_parent_command=candidate/uncix -f -o d2 o
+parent_decode_candidate_cmp_exit=0
+candidate_decode_parent_cmp_exit=0
+restored_sha256=b33dd739a3b1d1e659a638b318bdcfbaed8eb8cca224dbf0a76e9e1a81db57bc
+stdout=archive output paths printed by cix; no --explain output is available for CIXM6 mode
+stderr=empty
+
+[malformed]
+truncation_command=cp n t; truncate -s -1 t; candidate/uncix -t t
+truncation_exit=2
+truncation_stderr=cix: truncated archive
+trailing_command=printf x >> n; candidate/uncix -t n
+trailing_exit=2
+trailing_stderr=cix: trailing bytes after CIXM6 stream
+
+[unqualified-9214-comparison]
+baseline=/tmp/cix-sonar-main-old-build-xe9Kek/debug
+candidate_archive_sha256=6297d76f3f2304aee8c807d76958d3e58e1dc05b51f8e4f49129d245c1b1d337
+baseline_archive_sha256=9d80e051d58a521b113cce2d76097e4697c4eb9db6d1071f27bdc0d7a05a47d4
+archive_cmp_exit=1
+crossdecode=passed both directions
+status=unqualified: baseline was 9214, not exact 1146 parent

@@ -442,6 +442,41 @@ fn histogram_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option<Vec<u8>>,
     Ok(Some(prefix))
 }
 
+fn keep_smaller(best: &mut Vec<u8>, candidate: Vec<u8>) {
+    if candidate.len() < best.len() {
+        *best = candidate;
+    }
+}
+
+fn consider_chunked_bytes(data: &[u8], best: &mut Vec<u8>) -> Result<(), String> {
+    for chunk_size in [128usize, 256, 512, 1024, 2048, 4096] {
+        if data.len() >= chunk_size * 2 {
+            let mut candidate = vec![1];
+            put_varint(chunk_size, &mut candidate);
+            for chunk in data.chunks(chunk_size) {
+                candidate.extend(rank::encode_type_class(chunk)?);
+            }
+            keep_smaller(best, candidate);
+        }
+    }
+    Ok(())
+}
+
+fn consider_adaptive_bytes(data: &[u8], best: &mut Vec<u8>) {
+    if data.len() < 256 {
+        return;
+    }
+    keep_smaller(best, [vec![2], encode_adaptive(data, 0, 8)].concat());
+    let orders: &[usize] = if data.len() >= 2048 { &[1, 2] } else { &[1] };
+    for &order in orders {
+        if conditional_bits(data, order) / 8.0 <= best.len() as f64 * 1.10 + 16.0 {
+            let mut candidate = vec![3, order as u8];
+            candidate.extend(encode_adaptive(data, order, if order == 1 { 8 } else { 10 }));
+            keep_smaller(best, candidate);
+        }
+    }
+}
+
 fn encode_bytes(data: &[u8]) -> Result<Vec<u8>, String> {
     let static_blob = rank::encode_type_class(data)?;
     let mut best = vec![0];
@@ -450,98 +485,50 @@ fn encode_bytes(data: &[u8]) -> Result<Vec<u8>, String> {
         return Ok(best);
     }
 
-    for chunk_size in [128usize, 256, 512, 1024, 2048, 4096] {
-        if data.len() < chunk_size * 2 {
-            continue;
-        }
-        let mut candidate = vec![1];
-        put_varint(chunk_size, &mut candidate);
-        for chunk in data.chunks(chunk_size) {
-            candidate.extend(rank::encode_type_class(chunk)?);
-        }
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
-    }
+    consider_chunked_bytes(data, &mut best)?;
 
     if data.len() >= 64 && wavelet_estimate(data) / 8.0 <= best.len() as f64 * 1.03 + 8.0 {
         let mut candidate = vec![4];
         candidate.extend(encode_wavelet(data));
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
+        keep_smaller(&mut best, candidate);
     }
 
-    if data.len() >= 256 {
-        let mut candidate = vec![2];
-        candidate.extend(encode_adaptive(data, 0, 8));
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
-        let orders: &[usize] = if data.len() >= 2048 { &[1, 2] } else { &[1] };
-        for &order in orders {
-            if conditional_bits(data, order) / 8.0 > best.len() as f64 * 1.10 + 16.0 {
-                continue;
-            }
-            let mut candidate = vec![3, order as u8];
-            candidate.extend(encode_adaptive(
-                data,
-                order,
-                if order == 1 { 8 } else { 10 },
-            ));
-            if candidate.len() < best.len() {
-                best = candidate;
-            }
-        }
-    }
+    consider_adaptive_bytes(data, &mut best);
 
     if let Some(histogram) = histogram_candidate(data, &static_blob)? {
         let mut candidate = vec![5];
         candidate.extend(histogram);
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
+        keep_smaller(&mut best, candidate);
     }
     Ok(best)
 }
 
-fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
-    if values.is_empty() {
-        return Ok(vec![0]);
-    }
-    let mut best = vec![0];
+fn rice_candidate(values: &[usize], width: usize, best_len: usize) -> Option<Vec<u8>> {
+    let payload_limit = best_len.saturating_sub(2).saturating_mul(8);
+    let mut cost = 0usize;
     for &value in values {
-        put_varint(value, &mut best);
+        cost = cost.saturating_add((value >> width).saturating_add(1 + width));
+        if cost >= payload_limit {
+            return None;
+        }
     }
+    let mut writer = BitWriter::new();
+    for &value in values {
+        for _ in 0..(value >> width) { writer.bit(1); }
+        writer.bit(0);
+        if width > 0 { writer.write((value & ((1usize << width) - 1)) as u64, width); }
+    }
+    let mut candidate = vec![1, width as u8];
+    candidate.extend(writer.finish());
+    Some(candidate)
+}
+
+fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
+    if values.is_empty() { return Ok(vec![0]); }
+    let mut best = vec![0];
+    for &value in values { put_varint(value, &mut best); }
     for width in 0..=16usize {
-        let payload_limit = best.len().saturating_sub(2).saturating_mul(8);
-        let mut cost = 0usize;
-        let mut viable = true;
-        for &value in values {
-            cost = cost.saturating_add((value >> width).saturating_add(1 + width));
-            if cost >= payload_limit {
-                viable = false;
-                break;
-            }
-        }
-        if !viable {
-            continue;
-        }
-        let mut writer = BitWriter::new();
-        for &value in values {
-            for _ in 0..(value >> width) {
-                writer.bit(1);
-            }
-            writer.bit(0);
-            if width > 0 {
-                writer.write((value & ((1usize << width) - 1)) as u64, width);
-            }
-        }
-        let mut candidate = vec![1, width as u8];
-        candidate.extend(writer.finish());
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
+        if let Some(candidate) = rice_candidate(values, width, best.len()) { keep_smaller(&mut best, candidate); }
     }
 
     let mut classes = Vec::with_capacity(values.len());
@@ -568,18 +555,14 @@ fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
     put_varint(class_blob.len(), &mut candidate);
     candidate.extend(class_blob);
     candidate.extend_from_slice(&low_blob);
-    if candidate.len() < best.len() {
-        best = candidate;
-    }
+    keep_smaller(&mut best, candidate);
 
     let class_blob = encode_bytes(&classes)?;
     let mut candidate = vec![3];
     put_varint(class_blob.len(), &mut candidate);
     candidate.extend(class_blob);
     candidate.extend(low_blob);
-    if candidate.len() < best.len() {
-        best = candidate;
-    }
+    keep_smaller(&mut best, candidate);
     Ok(best)
 }
 
@@ -745,50 +728,54 @@ fn encode_pfor(
 }
 
 /// Materialize the frozen reference's complete ordered mode-8 candidate set.
+fn pfor_widths(values: &[u64]) -> BTreeSet<usize> {
+    let base = *values.iter().min().unwrap();
+    let mut widths: Vec<usize> = values.iter().map(|&value| bit_width(value - base)).collect();
+    widths.sort_unstable();
+    let mut choices = BTreeSet::new();
+    choices.insert(0usize);
+    for fraction in [0.90f64, 0.95, 0.99] {
+        let index = ((widths.len() as f64 * fraction) as usize).min(widths.len() - 1);
+        choices.insert(widths[index]);
+    }
+    choices.insert(*widths.last().unwrap());
+    choices
+}
+
+fn append_word_candidates(
+    candidates: &mut Vec<EncodedCandidate>,
+    data: &[u8],
+    width: usize,
+    big: bool,
+) -> Result<(), String> {
+    let (values, tail) = split_words(data, width, big);
+    if values.len() < 3 {
+        return Ok(());
+    }
+    let suffix = format!("{}{}", width * 8, if big { 'b' } else { 'l' });
+    for (name, payload) in [
+        ("for", encode_for(&values, tail, width, big)),
+        ("delta", encode_delta(&values, tail, width, big)),
+        ("delta2", encode_delta2(&values, tail, width, big)),
+    ] {
+        candidates.push(EncodedCandidate { payload, description: format!("{name}-{suffix}") });
+    }
+    for low_width in pfor_widths(&values) {
+        if low_width < width * 8 {
+            candidates.push(EncodedCandidate {
+                payload: encode_pfor(&values, tail, width, big, low_width)?,
+                description: format!("pfor{low_width}-{suffix}"),
+            });
+        }
+    }
+    Ok(())
+}
+
 pub fn encode_candidates(data: &[u8]) -> Result<Vec<EncodedCandidate>, String> {
     let mut candidates = Vec::new();
     for width in [2usize, 4, 8] {
         for big in [false, true] {
-            let (values, tail) = split_words(data, width, big);
-            if values.len() < 3 {
-                continue;
-            }
-            let suffix = format!("{}{}", width * 8, if big { 'b' } else { 'l' });
-            candidates.push(EncodedCandidate {
-                payload: encode_for(&values, tail, width, big),
-                description: format!("for-{suffix}"),
-            });
-            candidates.push(EncodedCandidate {
-                payload: encode_delta(&values, tail, width, big),
-                description: format!("delta-{suffix}"),
-            });
-            candidates.push(EncodedCandidate {
-                payload: encode_delta2(&values, tail, width, big),
-                description: format!("delta2-{suffix}"),
-            });
-
-            let base = *values.iter().min().unwrap();
-            let mut widths: Vec<usize> = values
-                .iter()
-                .map(|&value| bit_width(value - base))
-                .collect();
-            widths.sort_unstable();
-            let mut choices = BTreeSet::new();
-            choices.insert(0usize);
-            for fraction in [0.90f64, 0.95, 0.99] {
-                let index = ((widths.len() as f64 * fraction) as usize).min(widths.len() - 1);
-                choices.insert(widths[index]);
-            }
-            choices.insert(*widths.last().unwrap());
-            for low_width in choices {
-                if low_width >= width * 8 {
-                    continue;
-                }
-                candidates.push(EncodedCandidate {
-                    payload: encode_pfor(&values, tail, width, big, low_width)?,
-                    description: format!("pfor{low_width}-{suffix}"),
-                });
-            }
+            append_word_candidates(&mut candidates, data, width, big)?;
         }
     }
     if candidates.is_empty() {
@@ -894,55 +881,50 @@ fn decode_bytes(blob: &[u8], count: usize) -> Result<Vec<u8>, String> {
     }
 }
 
-fn decode_uints(blob: &[u8], count: usize) -> Result<Vec<usize>, String> {
-    if count == 0 {
-        return Ok(Vec::new());
-    }
-    let mode = *blob.first().ok_or("empty numeric exception stream")?;
-    let mut p = 1;
-    match mode {
-        0 => {
+fn decode_uint_varints(blob: &[u8], count: usize, p: &mut usize) -> Result<Vec<usize>, String> {
             let mut out = Vec::with_capacity(count);
             for _ in 0..count {
-                out.push(get_varint(blob, &mut p)?);
+                out.push(get_varint(blob, p)?);
             }
-            if p != blob.len() {
+            if *p != blob.len() {
                 return Err("trailing numeric exception varints".into());
             }
             Ok(out)
-        }
-        1 => {
-            let k = *blob.get(p).ok_or("missing Rice parameter")? as usize;
-            p += 1;
+}
+
+fn decode_uint_rice(blob: &[u8], count: usize, p: &mut usize) -> Result<Vec<usize>, String> {
+            let k = *blob.get(*p).ok_or("missing Rice parameter")? as usize;
+            *p += 1;
             let mut bp = 0;
             let mut out = Vec::with_capacity(count);
             for _ in 0..count {
                 let mut q = 0usize;
-                while bits(&blob[p..], &mut bp, 1)? != 0 {
+                while bits(&blob[*p..], &mut bp, 1)? != 0 {
                     q = q.checked_add(1).ok_or("Rice overflow")?;
                 }
-                let low = bits(&blob[p..], &mut bp, k)? as usize;
+                let low = bits(&blob[*p..], &mut bp, k)? as usize;
                 out.push(q.checked_shl(k as u32).ok_or("Rice overflow")? | low);
             }
             Ok(out)
-        }
-        2 | 3 => {
-            let class_len = get_varint(blob, &mut p)?;
-            let end = p
+}
+
+fn decode_uint_classes(blob: &[u8], count: usize, mode: u8, p: &mut usize) -> Result<Vec<usize>, String> {
+            let class_len = get_varint(blob, p)?;
+            let end = (*p)
                 .checked_add(class_len)
                 .ok_or("numeric integer class length overflow")?;
             if end > blob.len() {
                 return Err("truncated numeric integer classes".into());
             }
             let classes = if mode == 2 {
-                let mut class_pos = p;
+                let mut class_pos = *p;
                 let values = rank::decode_type_class(blob, &mut class_pos, count)?;
                 if class_pos != end {
                     return Err("trailing numeric integer classes".into());
                 }
                 values
             } else {
-                decode_bytes(&blob[p..end], count)?
+                decode_bytes(&blob[*p..end], count)?
             };
             let mut bit_pos = 0;
             let mut out = Vec::with_capacity(count);
@@ -960,7 +942,18 @@ fn decode_uints(blob: &[u8], count: usize) -> Result<Vec<usize>, String> {
                 );
             }
             Ok(out)
-        }
+}
+
+fn decode_uints(blob: &[u8], count: usize) -> Result<Vec<usize>, String> {
+    if count == 0 {
+        return Ok(Vec::new());
+    }
+    let mode = *blob.first().ok_or("empty numeric exception stream")?;
+    let mut p = 1;
+    match mode {
+        0 => decode_uint_varints(blob, count, &mut p),
+        1 => decode_uint_rice(blob, count, &mut p),
+        2 | 3 => decode_uint_classes(blob, count, mode, &mut p),
         _ => Err(format!("unsupported numeric integer stream mode {mode}")),
     }
 }
