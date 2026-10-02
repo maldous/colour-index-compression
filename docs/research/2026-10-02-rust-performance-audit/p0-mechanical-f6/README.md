@@ -4,7 +4,9 @@
 
 This is an isolated, behaviour-preserving cleanup patch based on
 `f6aa99c38344bb49dc575f166b25170e3063c540`
-(`80550d4b4685ff9268277a4f54051ff13ff0a80d` tree).  It changes only:
+(`80550d4b4685ff9268277a4f54051ff13ff0a80d` tree).  The reviewed source
+identity is that base plus the accompanying mechanical patch; it is not the
+current canonical tree.  It changes only:
 
 - `adaptive.rs`: elided needless named lifetime; idiomatic Fenwick low-bit and
   overflow-safe upper-midpoint expressions.
@@ -24,10 +26,21 @@ same upper midpoint while avoiding intermediate addition.  The old expert-mix
 addition could overflow at `u32::MAX`; `div_ceil(2)` gives the intended ceiling
 halving without that intermediate overflow.
 
-## Local validation
+## Local validation and retained provenance
 
-All commands used direct Rust toolchain paths, CPU 18, `MemoryMax=1G`, and
-`MemorySwapMax=0` through user systemd units.
+The launch recipe specified direct stable-toolchain paths, CPU 18,
+`MemoryMax=1G`, and `MemorySwapMax=0` through user systemd units.  The raw
+completed-pass logs retain the unit names and results, but their transient
+unit property readbacks were not captured before systemd collected those
+units.  Therefore CPU affinity, cgroup settings, and direct-toolchain use for
+the successful check, focused tests, stateful test, and Clippy run are
+**declared launch settings, not independently retained readbacks**.
+
+The failed full-library unit remains queryable.  Its retained `systemctl show`
+receipt in `raw/lib-1g-systemd-show.txt` proves its exact command, CPU 18,
+1 GiB memory maximum, zero swap maximum, 1 GiB peak, and OOM result.  It is
+the only run in this packet for which those resource properties are verified
+after completion.
 
 | Check | Result | Receipt |
 | --- | --- | --- |
@@ -59,6 +72,9 @@ SHA-256 of the completed raw logs:
 72293783fe364940ecfdb3063d9fcb4a81e9ea541f0c3ec36805b899713204c0  stateful.raw
 d8673adf22ce6be7c9a27bc234c5ff1042be4c631eb0343a0f55a75a3962ec11  clippy.raw
 62f5b9341c71e3f89eb632dd28b0f30e432302060a457195b2a7ce58a25920f0  lib-1g.raw
+f348222f1ee71f10b0b54b7ac0197078f97ca881c21e40017bb9ae8dab13814c  lib-1g-systemd-show.txt
+421dd228b6bec88a1e07bb35159c146a38437600b95942f7f407689e0d33c2b5  base-commit.txt
+f4a919c7d1afb5803db12122d5623df2b2926dfbe7386baafe05709e82176c06  base-tree.txt
 ```
 
 Vendor C/C++ warnings in the raw compiler logs are retained for provenance;
