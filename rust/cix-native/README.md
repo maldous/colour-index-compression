@@ -16,7 +16,7 @@ install -Dm755 rust/cix-native/target/release/uncix ~/.local/bin/uncix
 install -Dm755 rust/cix-native/target/release/cixcat ~/.local/bin/cixcat
 ```
 
-The checked-in `Cargo.lock` pins Rust dependencies. For the delivered LTO build use `CARGO_BUILD_JOBS=2 cargo build --profile release-lto --locked --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib`. Checked-in host binaries are in `dist/`; source, binary hashes and native-library versions are in [native-release.json](../../dist/native-release.json). No other operating system or architecture has been built or verified.
+The checked-in `Cargo.lock` pins Rust dependencies. For the delivered LTO build use `CARGO_BUILD_JOBS=2 cargo build --profile release-lto --locked --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib`. Checked-in host binaries and vendored-component notices are in `dist/`; copy `THIRD_PARTY_NOTICES.txt` with redistributed binaries. Source and binary hashes are in [native-release.json](../../dist/native-release.json). No other operating system or architecture has been built or verified.
 
 ## Examples
 
