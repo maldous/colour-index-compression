@@ -55,13 +55,20 @@ def execute_phase(**kwargs) -> dict:
     receipt = kwargs["destination"] / (kwargs["unit"] + ".child-status.json")
     if receipt.exists():
         raise RuntimeError(f"refusing stale phase child receipt: {receipt}")
+    command_file = (kwargs["destination"] / (kwargs["unit"] + ".command.json")).resolve()
+    with command_file.open("x") as stream:
+        json.dump(command, stream)
+    command_hash = sha256(command_file)
     launcher = ["/usr/bin/python3", str(ROOT / "benchmarks/cix_phase_receipt.py"),
-                str(receipt), "--", *command]
+                str(receipt), "--command-file", str(command_file), command_hash]
     result = supervised_phase(**{**kwargs, "command": launcher})
     result["command"] = command
     result["supervisor_command"] = launcher
     result["supervisor_exit_code"] = result["exit_code"]
+    result["command_file_sha256"] = command_hash
     try:
+        if sha256(command_file) != command_hash:
+            raise ValueError("phase command file changed")
         child = json.loads(receipt.read_text())
         if (not isinstance(child, dict) or child.get("command") != command
                 or type(child.get("child_exit_code")) is not int):
@@ -1085,8 +1092,11 @@ def collect(args: argparse.Namespace) -> None:
             "decode_peak_rss_bytes": summary_stats([item["decode"]["max_rss_bytes"] for item in verified if "decode" in item]),
             "encode_sampled_cgroup_high_water_bytes": summary_stats([item.get("encode_phase", {}).get("sampled_cgroup_memory_high_water_bytes") for item in verified if item.get("encode_phase", {}).get("sampled_cgroup_memory_high_water_bytes") is not None]),
             "decode_sampled_cgroup_high_water_bytes": summary_stats([item.get("decode_phase", {}).get("sampled_cgroup_memory_high_water_bytes") for item in verified if item.get("decode_phase", {}).get("sampled_cgroup_memory_high_water_bytes") is not None]),
-            "encode_throughput_bytes_per_second": summary_stats([item["task"]["input"]["bytes"] / max(item["encode"]["wall_seconds"], 1e-9) for item in verified if "encode" in item]),
-            "decode_throughput_bytes_per_second": summary_stats([item["task"]["input"]["bytes"] / max(item["decode"]["wall_seconds"], 1e-9) for item in verified if "decode" in item]),
+            "encode_throughput_bytes_per_second": summary_stats([item["task"]["input"]["bytes"] / item["encode"]["wall_seconds"] for item in verified if "encode" in item and item["encode"]["wall_seconds"] > 0]),
+            "decode_throughput_bytes_per_second": summary_stats([item["task"]["input"]["bytes"] / item["decode"]["wall_seconds"] for item in verified if "decode" in item and item["decode"]["wall_seconds"] > 0]),
+            "throughput_resolution_note": "GNU Time zero-wall samples are omitted from throughput; wrapper latency is separate.",
+            "encode_zero_wall_samples": sum(item["encode"]["wall_seconds"] == 0 for item in verified if "encode" in item),
+            "decode_zero_wall_samples": sum(item["decode"]["wall_seconds"] == 0 for item in verified if "decode" in item),
             "encode_wrapper_wall_nanoseconds": summary_stats([item.get("encode_phase", {}).get("wrapper_wall_nanoseconds") for item in verified if item.get("encode_phase", {}).get("wrapper_wall_nanoseconds") is not None]),
             "decode_wrapper_wall_nanoseconds": summary_stats([item.get("decode_phase", {}).get("wrapper_wall_nanoseconds") for item in verified if item.get("decode_phase", {}).get("wrapper_wall_nanoseconds") is not None])})
     write_json(destination / "results.json", report)

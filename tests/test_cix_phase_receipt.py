@@ -10,6 +10,31 @@ from benchmarks import cix_rust_perf_audit as audit
 
 
 class ChildStatusTests(unittest.TestCase):
+    def test_command_file_preserves_shell_and_empty_arguments(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            destination = Path(tmp)
+            command = ["/bin/bash", "-c", 'test "$$" -gt 0; test "$1" = ""', "case", ""]
+            def phase(**kwargs):
+                launcher = kwargs["command"]
+                self.assertNotIn(command[2], launcher)
+                completed = subprocess.run(launcher, check=False)
+                return {"exit_code": completed.returncode, "stop_reason": None}
+            with patch.object(audit, "supervised_phase", phase):
+                result = audit.execute_phase(unit="case", command=command, destination=destination)
+            self.assertEqual(result["exit_code"], 0)
+            self.assertEqual(result["child_status"]["command"], command)
+
+    def test_command_file_tampering_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            def phase(**kwargs):
+                launcher = kwargs["command"]
+                Path(launcher[4]).write_text('["false"]')
+                completed = subprocess.run(launcher, check=False, capture_output=True)
+                return {"exit_code": completed.returncode, "stop_reason": None}
+            with patch.object(audit, "supervised_phase", phase):
+                result = audit.execute_phase(unit="case", command=["true"], destination=Path(tmp))
+            self.assertFalse(audit.phase_ok(result))
+
     def test_child_status_and_resource_failure(self):
         for child, outer, reason, expected in [
             (0, 0, None, 0), (2, 0, None, 2), (-15, 143, None, -15),

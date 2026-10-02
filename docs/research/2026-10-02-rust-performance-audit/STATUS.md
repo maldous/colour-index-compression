@@ -128,3 +128,9 @@ FAST/default/BEST, four encoder threads, five repetitions. Initial execution
 uses four datasets concurrently, each capped at 2.9 GB RAM / 900 MB temporary
 space, zero swap. Silesia remains gated on all CCA results. Scaling/profile/PGO
 experiments remain separate; no new throughput or ranking claim is made yet.
+
+Initial v1 restart stopped on four wrapper launch failures before encoding.
+The command transport is corrected and validated with actual constrained
+children; new v2 plan retains the same releases/inputs/settings. The RAM ceiling
+is explicitly page-aligned at 2,899,996,672 bytes per job. Failed probes remain
+separate evidence, never performance observations.
