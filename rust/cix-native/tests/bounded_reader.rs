@@ -13,12 +13,37 @@ impl Read for Partial {
     }
 }
 
+struct InterruptThenPartial { inner: Partial, interrupted: bool, fail: bool }
+impl Read for InterruptThenPartial {
+    fn read(&mut self, dst: &mut [u8]) -> io::Result<usize> {
+        if !self.interrupted { self.interrupted = true; return Err(io::Error::new(io::ErrorKind::Interrupted, "retry")); }
+        if self.fail { return Err(io::Error::new(io::ErrorKind::Other, "injected")); }
+        self.inner.read(dst)
+    }
+}
+
 #[test]
 fn preserves_irregular_partial_reads() {
     let data: Vec<u8> = (0..251).cycle().take(999).collect();
     let got = bounded_reader::read_bounded(Partial { data: data.clone(), at: 0, step: 7 }, 1_024, 1_024).unwrap();
     assert_eq!(got, data);
     assert!(got.capacity() <= 1_024);
+}
+
+#[test]
+fn grows_across_chunks_without_exceeding_small_cap() {
+    let data = vec![4; 65_537];
+    let got = bounded_reader::read_bounded(Partial { data: data.clone(), at: 0, step: 3_001 }, 65_537, 65_537).unwrap();
+    assert_eq!(got, data);
+    assert!(got.capacity() <= 65_537);
+}
+
+#[test]
+fn retries_interruptions_and_propagates_other_errors() {
+    let data = vec![8; 17];
+    let got = bounded_reader::read_bounded(InterruptThenPartial { inner: Partial { data: data.clone(), at: 0, step: 2 }, interrupted: false, fail: false }, 32, 32).unwrap();
+    assert_eq!(got, data);
+    assert_eq!(bounded_reader::read_bounded(InterruptThenPartial { inner: Partial { data, at: 0, step: 2 }, interrupted: true, fail: true }, 32, 32).unwrap_err().kind(), io::ErrorKind::Other);
 }
 
 #[test]

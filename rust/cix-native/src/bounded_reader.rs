@@ -12,19 +12,28 @@ pub fn read_bounded<R: Read>(mut source: R, maximum: usize, allowance: usize) ->
     if allowance > maximum {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "source allowance exceeds maximum"));
     }
-    let mut out = Vec::with_capacity(allowance.min(CHUNK));
+    let mut out = Vec::new();
+    let initial = allowance.min(CHUNK);
+    if initial != 0 {
+        out.try_reserve_exact(initial)
+            .map_err(|_| io::Error::new(io::ErrorKind::OutOfMemory, "cannot reserve bounded source buffer"))?;
+        if out.capacity() > allowance {
+            return Err(io::Error::new(io::ErrorKind::OutOfMemory, "source allocation exceeded admitted buffer"));
+        }
+    }
     let mut buffer = [0u8; CHUNK];
     loop {
         let remaining = maximum.saturating_sub(out.len());
         let requested = remaining.min(buffer.len());
         if requested == 0 {
             // Do not retain a max+1 byte: the fixed probe proves overflow.
-            if source.read(&mut buffer[..1])? != 0 {
+            let probe = read_retry(&mut source, &mut buffer[..1])?;
+            if probe != 0 {
                 return Err(io::Error::new(io::ErrorKind::InvalidData, "input exceeds bounded source limit"));
             }
             return Ok(out);
         }
-        let got = source.read(&mut buffer[..requested])?;
+        let got = read_retry(&mut source, &mut buffer[..requested])?;
         if got == 0 {
             return Ok(out);
         }
@@ -34,12 +43,23 @@ pub fn read_bounded<R: Read>(mut source: R, maximum: usize, allowance: usize) ->
         }
         if needed > out.capacity() {
             let target = out.capacity().max(1).saturating_mul(2).max(needed).min(allowance);
-            out.try_reserve_exact(target - out.capacity())
+            // `try_reserve_exact` takes additional elements relative to len,
+            // rather than relative to capacity.
+            out.try_reserve_exact(target - out.len())
                 .map_err(|_| io::Error::new(io::ErrorKind::OutOfMemory, "cannot reserve bounded source buffer"))?;
-            if out.capacity() > allowance {
+            if out.capacity() < needed || out.capacity() > allowance {
                 return Err(io::Error::new(io::ErrorKind::OutOfMemory, "source allocation exceeded admitted buffer"));
             }
         }
         out.extend_from_slice(&buffer[..got]);
+    }
+}
+
+fn read_retry<R: Read>(source: &mut R, buffer: &mut [u8]) -> io::Result<usize> {
+    loop {
+        match source.read(buffer) {
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            result => return result,
+        }
     }
 }
