@@ -1,0 +1,278 @@
+diff --git a/rust/cix-native/src/lib.rs b/rust/cix-native/src/lib.rs
+index 3cbc2c6ae..c349726fa 100644
+--- a/rust/cix-native/src/lib.rs
++++ b/rust/cix-native/src/lib.rs
+@@ -1,22 +1,11 @@
+ #![allow(dead_code)]
+-pub mod adaptive;
+-pub mod bsc_ffi;
+ #[path = "main.rs"]
+ mod cli;
+-pub mod external;
+-pub mod fixedmix;
+-pub mod huffman;
+-pub mod legacy_lz;
++// Reexport the CLI codec instances so library calls share models and globals.
++pub use cli::{adaptive, bsc_ffi, external, fixedmix, huffman, legacy_lz, parallel, ppm, rank, resources, stdout_writer, zpaq_context};
+ // The CLI and public codecs share exactly one deadline/cancellation state.
+ pub use cli::limits;
+ // Rank coding in the library and CLI shares the CLI module's cancellation
+ // state and exact combinatorial implementation.
+ pub use cli::combinatorics;
+ pub mod oracle;
+-pub mod parallel;
+-pub mod ppm;
+-pub mod rank;
+-pub mod resources;
+-pub mod zpaq_context;
+-
+-pub mod stdout_writer;
+diff --git a/rust/cix-native/src/main.rs b/rust/cix-native/src/main.rs
+index b522aaec8..ae8e76d41 100644
+--- a/rust/cix-native/src/main.rs
++++ b/rust/cix-native/src/main.rs
+@@ -11,37 +11,37 @@ use std::{
+     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+ };
+ 
+-mod adaptive;
++pub mod adaptive;
+ mod bitplane;
+ mod bounded_reader;
+-mod bsc_ffi;
++pub mod bsc_ffi;
+ mod bwt_legacy;
+ mod chain;
+ pub mod combinatorics;
+ mod expertmix;
+-mod external;
++pub mod external;
+ mod fast_lz;
+-mod fixedmix;
++pub mod fixedmix;
+ mod gstream;
+ mod histogram;
+-mod huffman;
+-mod legacy_lz;
++pub mod huffman;
++pub mod legacy_lz;
+ pub mod limits;
+ mod numeric;
+-mod parallel;
++pub mod parallel;
+ mod portfolio_auto;
+-mod ppm;
+-mod rank;
++pub mod ppm;
++pub mod rank;
+ mod record_periodic;
+-mod resources;
++pub mod resources;
+ mod selection;
+ mod sparse_runs;
+ mod stateful;
+-mod stdout_writer;
++pub mod stdout_writer;
+ mod streaming_backend;
+ mod transform;
+ mod wavelet;
+-mod zpaq_context;
++pub mod zpaq_context;
+ 
+ const MAGIC: &[u8; 5] = b"CIXG1";
+ const MAGIC_V2: &[u8; 5] = b"CIXG2";
+diff --git a/rust/cix-native/src/ppm.rs b/rust/cix-native/src/ppm.rs
+index c9d83a959..69266c5da 100644
+--- a/rust/cix-native/src/ppm.rs
++++ b/rust/cix-native/src/ppm.rs
+@@ -120,9 +120,9 @@ fn retain_shorter(best: &mut Option<Vec<u8>>, candidate: Vec<u8>) {
+ fn fallback_rank(symbol: u8, excluded: &[bool; 256]) -> Result<(usize, usize), String> {
+     let mut remaining = 0;
+     let mut rank = None;
+-    for symbol_id in 0..256 {
+-        if !excluded[symbol_id] {
+-            if symbol_id == symbol as usize {
++    for (symbol_id, is_excluded) in excluded.iter().enumerate() {
++        if !is_excluded {
++            if symbol_id == usize::from(symbol) {
+                 rank = Some(remaining);
+             }
+             remaining += 1;
+@@ -757,6 +757,74 @@ fn decode_symbol_interval(
+     Ok(None)
+ }
+ 
++fn decode_see(
++    payload: &[u8],
++    bit_length: usize,
++    source_length: usize,
++    prefix_history: &[u8],
++    max_order: usize,
++    update_exclusion: bool,
++) -> Result<Vec<u8>, String> {
++    let (mut tables, mut history, mut states) =
++        prime_see(prefix_history, source_length, max_order, update_exclusion)?;
++    let mut decoder = ArithmeticDecoder::new(payload, bit_length);
++    let mut out = Vec::with_capacity(source_length);
++    for index in 0..source_length {
++        if index & 31 == 0 {
++            crate::limits::check()?;
++        }
++        let value = decode_see_symbol(
++            &mut decoder, &mut tables, &mut history, &mut states, max_order, update_exclusion,
++        )?;
++        out.push(value);
++    }
++    Ok(out)
++}
++
++fn decode_see_symbol(
++    decoder: &mut ArithmeticDecoder, tables: &mut Tables, history: &mut Vec<u8>,
++    states: &mut SeeStates, max_order: usize, update_exclusion: bool,
++) -> Result<u8, String> {
++    let mut excluded = [false; 256];
++    let mut symbol = None;
++    let mut matched_order = 0;
++    for order in (0..=max_order.min(history.len())).rev() {
++        let Some(counts) = tables.get(context(history, order)) else { continue; };
++        let symbols = eligible(counts, &excluded);
++        if symbols.is_empty() { continue; }
++        let key = see_key(order, &symbols);
++        let (escape_count, hit_count) = see_state(states, key);
++        let event_total = (escape_count + hit_count) as usize;
++        if decoder.target(event_total) < hit_count as usize {
++            decoder.update(0, hit_count as usize, event_total);
++            let mass = symbol_mass(&symbols);
++            symbol = decode_symbol_interval(decoder, &symbols, decoder.target(mass), mass)?;
++            if symbol.is_none() { return Err("PPM SEE symbol interval not found".into()); }
++            matched_order = order;
++            see_update(states, key, false);
++            break;
++        }
++        decoder.update(hit_count as usize, event_total, event_total);
++        see_update(states, key, true);
++        exclude_symbols(&symbols, &mut excluded);
++    }
++    let value = if let Some(value) = symbol {
++        value
++    } else {
++        decode_fallback(
++            decoder,
++            &excluded,
++            "PPM SEE fallback alphabet is empty",
++            "PPM SEE fallback target outside alphabet",
++        )?
++    };
++    observe_from(
++        tables, history, value, max_order,
++        if update_exclusion { matched_order } else { 0 },
++    );
++    Ok(value)
++}
++
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+@@ -771,14 +839,14 @@ mod tests {
+     #[test]
+     fn rescale_ceil_matches_old_formula_for_normal_model_counts() {
+         for count in 0u32..=32_768 {
+-            assert_eq!(((count + 1) / 2).max(1), count.div_ceil(2).max(1));
++            assert_eq!(((count >> 1) + (count & 1)).max(1), count.div_ceil(2).max(1));
+         }
+     }
+ 
+     #[test]
+     fn rescale_ceil_near_u32_max_matches_wide_oracle() {
+         for count in [u32::MAX - 3, u32::MAX - 2, u32::MAX - 1, u32::MAX] {
+-            let oracle = (u64::from(count) + 1) / 2;
++            let oracle = (u64::from(count) + 1) >> 1;
+             assert_eq!(u64::from(count.div_ceil(2).max(1)), oracle);
+         }
+     }
+@@ -870,71 +938,3 @@ mod tests {
+         format!("{:x}", Sha256::digest(bytes))
+     }
+ }
+-
+-fn decode_see(
+-    payload: &[u8],
+-    bit_length: usize,
+-    source_length: usize,
+-    prefix_history: &[u8],
+-    max_order: usize,
+-    update_exclusion: bool,
+-) -> Result<Vec<u8>, String> {
+-    let (mut tables, mut history, mut states) =
+-        prime_see(prefix_history, source_length, max_order, update_exclusion)?;
+-    let mut decoder = ArithmeticDecoder::new(payload, bit_length);
+-    let mut out = Vec::with_capacity(source_length);
+-    for index in 0..source_length {
+-        if index & 31 == 0 {
+-            crate::limits::check()?;
+-        }
+-        let value = decode_see_symbol(
+-            &mut decoder, &mut tables, &mut history, &mut states, max_order, update_exclusion,
+-        )?;
+-        out.push(value);
+-    }
+-    Ok(out)
+-}
+-
+-fn decode_see_symbol(
+-    decoder: &mut ArithmeticDecoder, tables: &mut Tables, history: &mut Vec<u8>,
+-    states: &mut SeeStates, max_order: usize, update_exclusion: bool,
+-) -> Result<u8, String> {
+-    let mut excluded = [false; 256];
+-    let mut symbol = None;
+-    let mut matched_order = 0;
+-    for order in (0..=max_order.min(history.len())).rev() {
+-        let Some(counts) = tables.get(context(history, order)) else { continue; };
+-        let symbols = eligible(counts, &excluded);
+-        if symbols.is_empty() { continue; }
+-        let key = see_key(order, &symbols);
+-        let (escape_count, hit_count) = see_state(states, key);
+-        let event_total = (escape_count + hit_count) as usize;
+-        if decoder.target(event_total) < hit_count as usize {
+-            decoder.update(0, hit_count as usize, event_total);
+-            let mass = symbol_mass(&symbols);
+-            symbol = decode_symbol_interval(decoder, &symbols, decoder.target(mass), mass)?;
+-            if symbol.is_none() { return Err("PPM SEE symbol interval not found".into()); }
+-            matched_order = order;
+-            see_update(states, key, false);
+-            break;
+-        }
+-        decoder.update(hit_count as usize, event_total, event_total);
+-        see_update(states, key, true);
+-        exclude_symbols(&symbols, &mut excluded);
+-    }
+-    let value = if let Some(value) = symbol {
+-        value
+-    } else {
+-        decode_fallback(
+-            decoder,
+-            &excluded,
+-            "PPM SEE fallback alphabet is empty",
+-            "PPM SEE fallback target outside alphabet",
+-        )?
+-    };
+-    observe_from(
+-        tables, history, value, max_order,
+-        if update_exclusion { matched_order } else { 0 },
+-    );
+-    Ok(value)
+-}
+diff --git a/rust/cix-native/src/rank.rs b/rust/cix-native/src/rank.rs
+index 8eb19289d..87e25a468 100644
+--- a/rust/cix-native/src/rank.rs
++++ b/rust/cix-native/src/rank.rs
+@@ -937,7 +937,8 @@ mod tests {
+     #[test]
+     fn lowest_bit_preserves_fenwick_step() {
+         for value in [0usize, 1, 2, 3, usize::MAX, 1 << (usize::BITS - 1)] {
+-            assert_eq!(value.isolate_lowest_one(), value & value.wrapping_neg());
++            let expected = if value == 0 { 0 } else { 1usize << value.trailing_zeros() };
++            assert_eq!(value.isolate_lowest_one(), expected);
+         }
+     }
+ 

@@ -937,7 +937,8 @@ mod tests {
     #[test]
     fn lowest_bit_preserves_fenwick_step() {
         for value in [0usize, 1, 2, 3, usize::MAX, 1 << (usize::BITS - 1)] {
-            assert_eq!(value.isolate_lowest_one(), value & value.wrapping_neg());
+            let expected = if value == 0 { 0 } else { 1usize << value.trailing_zeros() };
+            assert_eq!(value.isolate_lowest_one(), expected);
         }
     }
 
