@@ -3,7 +3,9 @@
 The frozen source scan completed without a Clippy parse error. The quality
 gate still fails: **30 native complexity findings and 62 imported Clippy
 findings**, 92 open findings total. Complexity decreased from the earlier
-39, but imported argument-count warnings increased. Cleanup is unfinished.
+39, but imported argument-count warnings increased. Both raw exports contain
+14 argument-count diagnostics; the higher imported count is not evidence that
+this refactor introduced six such warnings. Cleanup is unfinished.
 
 The complete normalized ledger contains 187 diagnostics. Scanner-unsupported
 rules, compiler-only diagnostics and alias/example locations remain in raw
