@@ -11,6 +11,39 @@ struct Completed {
     stats: AutoSelectionStats,
 }
 
+pub(super) struct EncodeOptions<'a> {
+    pub(super) block: u32,
+    pub(super) level: u8,
+    pub(super) forced: Option<&'a str>,
+    pub(super) backend: &'a str,
+    pub(super) backend_set: bool,
+    pub(super) format: &'a str,
+    pub(super) input_fd: i32,
+    pub(super) flush_interval: Option<Duration>,
+    pub(super) memory: usize,
+    pub(super) workers: usize,
+    pub(super) explain: bool,
+    pub(super) verbose: bool,
+}
+
+struct EncodeContext {
+    magic: &'static [u8; 5],
+    resolved_format: &'static str,
+    retained: usize,
+    budget: resources::MemoryBudget,
+}
+
+struct WorkerOptions {
+    forced_id: Option<u8>,
+    backend: String,
+    backend_set: bool,
+    resolved_format: &'static str,
+    level: u8,
+    budget: resources::MemoryBudget,
+    explain: bool,
+    cancelled: std::sync::Arc<AtomicBool>,
+}
+
 struct StreamState {
     buffer: Vec<u8>,
     filled: usize,
@@ -217,150 +250,165 @@ fn wait_for_capacity<W: Write>(
     Ok(())
 }
 
+fn encode_block(input: Vec<u8>, options: &WorkerOptions) -> Result<Completed, String> {
+    let _cancel = crate::limits::CancellationGuard::new(options.cancelled.clone());
+    check_interrupted()?;
+    let hash = Sha256::digest(&input).into();
+    let mut stats = AutoSelectionStats::default();
+    let override_backend = options.backend_set.then_some(options.backend.as_str());
+    let (route, payload) = if let Some(id) = options.forced_id {
+        select_cixg_fixed_route(
+            id,
+            &input,
+            override_backend,
+            options.resolved_format,
+            selector_effort_name(options.level),
+            &options.budget,
+            1,
+            &mut stats,
+            options.explain,
+        )?
+    } else {
+        select_cixg_auto(
+            &input,
+            options.level,
+            override_backend,
+            options.resolved_format,
+            &options.budget,
+            1,
+            &mut stats,
+            options.explain,
+        )?
+    };
+    Ok(Completed {
+        input,
+        route,
+        payload,
+        hash,
+        stats,
+    })
+}
+
+fn write_archive<R: Read, W: Write>(
+    src: &mut R,
+    dst: &mut W,
+    pipeline: &mut parallel::OrderedPipeline<Vec<u8>, Completed>,
+    options: &EncodeOptions<'_>,
+    context: &EncodeContext,
+) -> Result<(), String> {
+    dst.write_all(context.magic).map_err(ioerr)?;
+    dst.write_all(&options.block.to_le_bytes()).map_err(ioerr)?;
+    dst.write_all(&0u32.to_le_bytes()).map_err(ioerr)?;
+    let mut state = StreamState::new(options.block);
+    loop {
+        check_interrupted()?;
+        drain_ready(pipeline, dst, &mut state)?;
+        // Do not read ahead while the writer's ordered output is backlogged.
+        wait_for_capacity(pipeline, dst, &mut state)?;
+        if state.ready(options.flush_interval) {
+            state.submit(pipeline, options.block)?;
+            continue;
+        }
+        if state.eof {
+            break;
+        }
+        let timeout = state.input_timeout(options.flush_interval, pipeline.outstanding());
+        match read_poll(
+            src,
+            &mut state.buffer[state.filled..],
+            options.input_fd,
+            timeout,
+        )? {
+            Some(0) => state.eof = true,
+            Some(count) => state.record_input(count),
+            None => {}
+        }
+    }
+    pipeline.close();
+    while pipeline.outstanding() != 0 {
+        wait_one(
+            pipeline,
+            dst,
+            &mut state.totals,
+            &mut state.archive_bytes,
+            &mut state.free,
+        )?;
+    }
+    pipeline.finish().map_err(pipeline_error)?;
+    check_interrupted()?;
+    put_frame(dst, END, 0, 0, &state.whole.finalize().into()).map_err(ioerr)?;
+    state.archive_bytes = state
+        .archive_bytes
+        .checked_add(41)
+        .ok_or("archive length overflow")?;
+    dst.flush().map_err(ioerr)?;
+    if options.verbose || options.explain {
+        let routes = state
+            .totals
+            .selected_source_bytes
+            .iter()
+            .enumerate()
+            .filter(|(_, n)| **n != 0)
+            .map(|(id, n)| format!("{}:{n}", selection::ROUTES[id]))
+            .collect::<Vec<_>>()
+            .join(",");
+        eprintln!("cix: effort={} format={} parallelism=blocks workers={} queue_capacity={} peak_outstanding={} reserved_buffers={} peak_scratch_reserved={} source_bytes={} blocks={} candidates={} memory_skips={} budget_skips={} analyse_seconds={:.3} candidate_seconds={:.3} search_seconds={:.3} archive_bytes={} selected_source_bytes=[{}]",
+        effort_display_name(options.level), context.resolved_format, options.workers, options.workers, state.peak_outstanding, context.retained,
+        context.budget.stats().peak_reserved_bytes, state.source_bytes, state.totals.blocks, state.totals.candidate_attempts,
+        state.totals.memory_skips, state.totals.budget_skips, state.totals.profile_seconds, state.totals.candidate_seconds,
+        state.totals.search_seconds, state.archive_bytes, routes);
+    }
+    Ok(())
+}
+
 pub(super) fn encode<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
-    block: u32,
-    level: u8,
-    forced: Option<&str>,
-    backend: &str,
-    backend_set: bool,
-    format: &str,
-    input_fd: i32,
-    flush_interval: Option<Duration>,
-    memory: usize,
-    workers: usize,
-    explain: bool,
-    verbose: bool,
+    options: EncodeOptions<'_>,
 ) -> Result<(), String> {
-    let magic = native_magic(format, level, backend, backend_set);
+    let magic = native_magic(
+        options.format,
+        options.level,
+        options.backend,
+        options.backend_set,
+    );
     let resolved_format = if magic == MAGIC_V2 { "cixg2" } else { "cixg1" };
     // Two retained buffers per outstanding job (source and winning payload),
     // one reader block, thread stacks, and bounded descriptor/stat overhead.
-    let retained = parallel_retained(block, workers);
-    if retained >= memory {
+    let retained = parallel_retained(options.block, options.workers);
+    if retained >= options.memory {
         return Err(
             "parallel block buffers and thread stacks exceed --memory; reduce --threads".into(),
         );
     }
-    let budget = resources::MemoryBudget::new(memory - retained);
-    let worker_budget = budget.clone();
-    let forced_id = forced.map(route_id).transpose()?;
-    let backend = backend.to_owned();
+    let context = EncodeContext {
+        magic,
+        resolved_format,
+        retained,
+        budget: resources::MemoryBudget::new(options.memory - retained),
+    };
     let cancelled = std::sync::Arc::new(AtomicBool::new(false));
-    let worker_cancelled = cancelled.clone();
+    let worker_options = WorkerOptions {
+        forced_id: options.forced.map(route_id).transpose()?,
+        backend: options.backend.to_owned(),
+        backend_set: options.backend_set,
+        resolved_format,
+        level: options.level,
+        budget: context.budget.clone(),
+        explain: options.explain,
+        cancelled: cancelled.clone(),
+    };
     // Output polling and input reads must observe a failed sibling too.
     let _output_cancel = crate::limits::CancellationGuard::new(cancelled.clone());
     let mut pipeline = parallel::OrderedPipeline::new_with_cancellation(
-        workers,
-        workers,
+        options.workers,
+        options.workers,
         cancelled,
-        move |input: Vec<u8>| {
-            let _cancel = crate::limits::CancellationGuard::new(worker_cancelled.clone());
-            check_interrupted()?;
-            let hash = Sha256::digest(&input).into();
-            let mut stats = AutoSelectionStats::default();
-            let override_backend = backend_set.then_some(backend.as_str());
-            let (route, payload) = if let Some(id) = forced_id {
-                select_cixg_fixed_route(
-                    id,
-                    &input,
-                    override_backend,
-                    resolved_format,
-                    selector_effort_name(level),
-                    &worker_budget,
-                    1,
-                    &mut stats,
-                    explain,
-                )?
-            } else {
-                select_cixg_auto(
-                    &input,
-                    level,
-                    override_backend,
-                    resolved_format,
-                    &worker_budget,
-                    1,
-                    &mut stats,
-                    explain,
-                )?
-            };
-            Ok(Completed {
-                input,
-                route,
-                payload,
-                hash,
-                stats,
-            })
-        },
+        move |input| encode_block(input, &worker_options),
     )
     .map_err(str::to_owned)?;
 
-    let result = (|| -> Result<(), String> {
-        dst.write_all(magic).map_err(ioerr)?;
-        dst.write_all(&block.to_le_bytes()).map_err(ioerr)?;
-        dst.write_all(&0u32.to_le_bytes()).map_err(ioerr)?;
-        let mut state = StreamState::new(block);
-        loop {
-            check_interrupted()?;
-            drain_ready(&mut pipeline, &mut dst, &mut state)?;
-            // Do not read ahead while the writer's ordered output is backlogged.
-            wait_for_capacity(&mut pipeline, &mut dst, &mut state)?;
-            if state.ready(flush_interval) {
-                state.submit(&mut pipeline, block)?;
-                continue;
-            }
-            if state.eof {
-                break;
-            }
-            let timeout = state.input_timeout(flush_interval, pipeline.outstanding());
-            match read_poll(
-                &mut src,
-                &mut state.buffer[state.filled..],
-                input_fd,
-                timeout,
-            )? {
-                Some(0) => state.eof = true,
-                Some(count) => state.record_input(count),
-                None => {}
-            }
-        }
-        pipeline.close();
-        while pipeline.outstanding() != 0 {
-            wait_one(
-                &mut pipeline,
-                &mut dst,
-                &mut state.totals,
-                &mut state.archive_bytes,
-                &mut state.free,
-            )?;
-        }
-        pipeline.finish().map_err(pipeline_error)?;
-        check_interrupted()?;
-        put_frame(&mut dst, END, 0, 0, &state.whole.finalize().into()).map_err(ioerr)?;
-        state.archive_bytes = state
-            .archive_bytes
-            .checked_add(41)
-            .ok_or("archive length overflow")?;
-        dst.flush().map_err(ioerr)?;
-        if verbose || explain {
-            let routes = state
-                .totals
-                .selected_source_bytes
-                .iter()
-                .enumerate()
-                .filter(|(_, n)| **n != 0)
-                .map(|(id, n)| format!("{}:{n}", selection::ROUTES[id]))
-                .collect::<Vec<_>>()
-                .join(",");
-            eprintln!("cix: effort={} format={} parallelism=blocks workers={} queue_capacity={} peak_outstanding={} reserved_buffers={} peak_scratch_reserved={} source_bytes={} blocks={} candidates={} memory_skips={} budget_skips={} analyse_seconds={:.3} candidate_seconds={:.3} search_seconds={:.3} archive_bytes={} selected_source_bytes=[{}]",
-            effort_display_name(level), resolved_format, workers, workers, state.peak_outstanding, retained,
-            budget.stats().peak_reserved_bytes, state.source_bytes, state.totals.blocks, state.totals.candidate_attempts,
-            state.totals.memory_skips, state.totals.budget_skips, state.totals.profile_seconds, state.totals.candidate_seconds,
-            state.totals.search_seconds, state.archive_bytes, routes);
-        }
-        Ok(())
-    })();
+    let result = write_archive(&mut src, &mut dst, &mut pipeline, &options, &context);
     // Cooperative I/O cancellation is secondary to the original worker error.
     result.map_err(|error| pipeline.failure().map(pipeline_error).unwrap_or(error))
 }

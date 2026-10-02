@@ -11,8 +11,8 @@ SPEC = importlib.util.spec_from_file_location("stream_latency_probe", SOURCE)
 assert SPEC and SPEC.loader
 PROBE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(PROBE)
-PROBE.CIX = Path("/tmp/cix-gstream-candidate-target/release/cix")
-PROBE.UNCIX = Path("/tmp/cix-gstream-candidate-target/release/uncix")
+PROBE.CIX = Path("/tmp/cix-gstream-r2-candidate-target/release/cix")
+PROBE.UNCIX = Path("/tmp/cix-gstream-r2-candidate-target/release/uncix")
 PROBE.CPU = 12
 
 raise SystemExit(PROBE.main())

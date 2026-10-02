@@ -1927,18 +1927,20 @@ fn encode_with_strategy<R: Read, W: Write>(
         gstream::encode(
             src,
             dst,
-            block,
-            level,
-            forced,
-            backend,
-            backend_set,
-            format,
-            input_fd,
-            flush_interval,
-            memory,
-            workers,
-            explain,
-            verbose,
+            gstream::EncodeOptions {
+                block,
+                level,
+                forced,
+                backend,
+                backend_set,
+                format,
+                input_fd,
+                flush_interval,
+                memory,
+                workers,
+                explain,
+                verbose,
+            },
         )
     } else {
         encode_candidates(
