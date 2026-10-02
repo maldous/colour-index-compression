@@ -1,8 +1,24 @@
 # Rust audit-only instrumentation — 8865bfbcc
 
-Source revision: `8865bfbccba354b02920da86c7088c17e5f96aab`.
+Production source under audit: `8865bfbccba354b02920da86c7088c17e5f96aab`.
 
-The production commands and default allocator are unchanged. The additions are:
+Instrumentation source revisions:
+
+- `4b598673152336ddb4794729146494294bed1d40` adds the optional allocator
+  binary and Criterion targets.
+- `e88cde24f0428b049101fe9263f9bbfe1be11133` adds the exact count-range
+  reconstruction check to the allocator binary.
+
+The Rust production tree is unchanged between `8865bfbcc` and the parent of
+`4b5986731`; the later commits add Cargo audit declarations, audit-only source
+and this documentation. Checking out `8865bfbcc` alone therefore does not
+provide the instrumentation targets.
+
+The matched BEST probe's inherited source-state field is interpreted in
+[`matched-best-grammar-v2-provenance-erratum.md`](matched-best-grammar-v2-provenance-erratum.md).
+
+The production command source and default runtime allocator are unchanged. The
+additions are:
 
 - `cix_hot_kernels`: Criterion 0.5.1 synthetic 4 KiB composition-rank,
   count-range and fixed-mix encoding probes.
@@ -12,6 +28,29 @@ The production commands and default allocator are unchanged. The additions are:
 - `cix-dhat-audit`: a non-default `audit-dhat` feature binary. It alone
   installs DhAT's global allocator and checks exact composition, count-range
   and fixed-mix reconstruction before exiting.
+
+The `dhat` dependency is optional, `audit-dhat` is not a default feature, the
+audit binary requires that feature, and Criterion is a development dependency.
+Normal `cix`, `uncix` and `cixcat` builds therefore do not install the DhAT
+allocator or execute Criterion code. The audit program's allocator covers the
+whole audit process, including fixture construction and all three encode/decode
+pairs; its totals are not per-kernel allocation counts.
+
+## Aggregate-suite attribution
+
+The separate aggregate Cargo test recorded in
+`benchmark-work/rust-performance-audit/combined-8865-allocator-feature-tests.log`
+started at 2026-10-02 16:59:03 +10:00. Its test executables were compiled by
+16:59:15, before the audit Cargo manifest and lockfile changed at 17:07:23.
+Cargo therefore resolved that invocation against the `8865bfbcc` production
+tree, before the `audit-dhat` feature and Criterion targets existed. Later
+manifest edits cannot change already compiled test executables.
+
+That long-running command is evidence for the production Rust tree only. It
+does not qualify the new audit targets, despite having been invoked with
+`--all-features`, and it is not a completed-suite result unless its exit receipt
+records success. The positive audit checks below are the separate qualification
+for the instrumentation commits.
 
 ## Reproducible local commands
 
@@ -32,7 +71,7 @@ taskset -c 30 env CARGO_BUILD_JOBS=2 cargo bench --manifest-path rust/cix-native
   --bench cix_hot_kernels -- --sample-size 10 --warm-up-time 0.1 --measurement-time 0.1
 ```
 
-## Positive checks at this revision
+## Positive checks at the instrumentation revisions
 
 - `cargo check --features audit-dhat --bin cix-dhat-audit`: passed.
 - `cargo check --all-features`: passed.
