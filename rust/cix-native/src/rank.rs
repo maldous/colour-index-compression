@@ -43,7 +43,7 @@ fn read_fixed(data: &[u8], pos: &mut usize, width_bits: usize) -> Result<BigUint
         return Err("truncated CIX rank".into());
     }
     let value = BigUint::from_bytes_be(&data[*pos..end]);
-    if width_bits % 8 != 0 && size > 0 {
+    if !width_bits.is_multiple_of(8) && size > 0 {
         let excess = 8 - width_bits % 8;
         if data[*pos] >> (8 - excess) != 0 {
             return Err("nonzero padding in CIX rank".into());
@@ -116,6 +116,12 @@ pub struct ArithmeticEncoder {
     high: u64,
     pending: usize,
     writer: BitWriter,
+}
+
+impl Default for ArithmeticEncoder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ArithmeticEncoder {
@@ -341,7 +347,7 @@ fn colex_unrank(mut rank: BigUint, k: usize, universe: usize) -> Result<Vec<usiz
 }
 
 fn composition_rank(parts: &[usize]) -> Result<BigUint, String> {
-    if parts.is_empty() || parts.iter().any(|&x| x == 0) {
+    if parts.is_empty() || parts.contains(&0) {
         return Err("invalid CIX composition".into());
     }
     let mut total = 0usize;
@@ -403,7 +409,7 @@ impl Fenwick {
             } else {
                 self.tree[i] -= (-delta) as usize;
             }
-            i += i & i.wrapping_neg();
+            i += i.isolate_lowest_one();
         }
     }
 
@@ -916,6 +922,24 @@ pub fn encode_context_type_classes(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn default_arithmetic_encoder_preserves_constructor_bytes() {
+        let mut explicit = ArithmeticEncoder::new();
+        let mut default = ArithmeticEncoder::default();
+        for symbol in [0, 2, 1, 2, 0, 1] {
+            explicit.encode(symbol, symbol + 1, 3);
+            default.encode(symbol, symbol + 1, 3);
+        }
+        assert_eq!(explicit.finish(), default.finish());
+    }
+
+    #[test]
+    fn lowest_bit_preserves_fenwick_step() {
+        for value in [0usize, 1, 2, 3, usize::MAX, 1 << (usize::BITS - 1)] {
+            assert_eq!(value.isolate_lowest_one(), value & value.wrapping_neg());
+        }
+    }
 
     // This is the pre-refactor count-range assembly.  It is test-only so the
     // production path cannot accidentally retain the discarded rank work.
