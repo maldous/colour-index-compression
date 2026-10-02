@@ -23,6 +23,9 @@ fn read_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {
             .ok_or("truncated context-expert bit length")?;
         *pos += 1;
         let part = (byte & 0x7f) as usize;
+        if shift >= usize::BITS as usize || part > (usize::MAX >> shift) {
+            return Err("context-expert bit length overflow".into());
+        }
         value |= part
             .checked_shl(shift as u32)
             .ok_or("context-expert bit length overflow")?;
@@ -323,4 +326,24 @@ pub fn decode_with_history(
 
 pub fn decode(blob: &[u8], source_length: usize) -> Result<Vec<u8>, String> {
     decode_with_history(blob, source_length, &[])
+}
+
+#[cfg(test)]
+mod integer_overflow_tests {
+    use super::*;
+    #[test]
+    fn varint_accepts_max_rejects_high_bits() {
+        let mut value = usize::MAX;
+        let mut encoded = Vec::new();
+        while value >= 128 {
+            encoded.push((value as u8 & 127) | 128);
+            value >>= 7;
+        }
+        encoded.push(value as u8);
+        assert_eq!(read_varint(&encoded, &mut 0).unwrap(), usize::MAX);
+        let groups = (usize::BITS as usize).div_ceil(7);
+        let mut malformed = vec![128; groups - 1];
+        malformed.push(1u8 << ((usize::BITS as usize - 1) % 7 + 1));
+        assert!(read_varint(&malformed, &mut 0).is_err());
+    }
 }

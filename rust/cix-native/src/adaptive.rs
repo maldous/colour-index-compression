@@ -70,7 +70,11 @@ fn get_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {
     for shift in (0..usize::BITS as usize).step_by(7) {
         let byte = *data.get(*pos).ok_or("truncated adaptive bit length")?;
         *pos += 1;
-        value |= ((byte & 127) as usize)
+        let low = (byte & 127) as usize;
+        if low > (usize::MAX >> shift) {
+            return Err("adaptive varint overflow".into());
+        }
+        value |= low
             .checked_shl(shift as u32)
             .ok_or("adaptive varint overflow")?;
         if byte < 128 {
@@ -226,4 +230,24 @@ pub fn decode_general(
         extend_tail(&mut tail, symbol as u8, order);
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod integer_overflow_tests {
+    use super::*;
+    #[test]
+    fn varint_accepts_max_rejects_high_bits() {
+        let mut value = usize::MAX;
+        let mut encoded = Vec::new();
+        while value >= 128 {
+            encoded.push((value as u8 & 127) | 128);
+            value >>= 7;
+        }
+        encoded.push(value as u8);
+        assert_eq!(get_varint(&encoded, &mut 0).unwrap(), usize::MAX);
+        let groups = (usize::BITS as usize).div_ceil(7);
+        let mut malformed = vec![128; groups - 1];
+        malformed.push(1u8 << ((usize::BITS as usize - 1) % 7 + 1));
+        assert!(get_varint(&malformed, &mut 0).is_err());
+    }
 }

@@ -454,6 +454,9 @@ fn decode_rice(blob: &[u8], pos: usize, count: usize) -> Result<Vec<usize>, Stri
         while reader.bit()? != 0 {
             quotient = quotient.checked_add(1).ok_or("Rice quotient overflow")?;
         }
+        if quotient > (usize::MAX >> width) {
+            return Err("Rice value overflow".into());
+        }
         let low = reader.bits(width)?;
         out.push(
             quotient

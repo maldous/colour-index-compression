@@ -329,7 +329,11 @@ fn read_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {
     for shift in (0..usize::BITS as usize).step_by(7) {
         let byte = *data.get(*pos).ok_or("truncated LZ varint")?;
         *pos += 1;
-        let part = ((byte & 0x7f) as usize)
+        let low = (byte & 0x7f) as usize;
+        if low > (usize::MAX >> shift) {
+            return Err("LZ varint overflow".into());
+        }
+        let part = low
             .checked_shl(shift as u32)
             .ok_or("LZ varint overflow")?;
         value = value.checked_add(part).ok_or("LZ varint overflow")?;
@@ -1549,6 +1553,9 @@ fn decode_uints(blob: &[u8], count: usize, model_limit: usize) -> Result<Vec<usi
                 while bits.read(1)? != 0 {
                     quotient = quotient.checked_add(1).ok_or("LZ Rice quotient overflow")?;
                 }
+                if quotient > (usize::MAX >> k) {
+                    return Err("LZ Rice value overflow".into());
+                }
                 let low = bits.read(k)?;
                 out.push(
                     quotient
@@ -2093,5 +2100,46 @@ mod tests {
             decode(&payload, source.len(), history, 1 << 16).unwrap(),
             source
         );
+    }
+}
+
+#[cfg(test)]
+mod integer_overflow_tests {
+    use super::*;
+    #[test]
+    fn varint_accepts_max_rejects_high_bits() {
+        let mut value = usize::MAX;
+        let mut encoded = Vec::new();
+        while value >= 128 {
+            encoded.push((value as u8 & 127) | 128);
+            value >>= 7;
+        }
+        encoded.push(value as u8);
+        assert_eq!(read_varint(&encoded, &mut 0).unwrap(), usize::MAX);
+        let groups = (usize::BITS as usize).div_ceil(7);
+        let mut malformed = vec![128; groups - 1];
+        malformed.push(1u8 << ((usize::BITS as usize - 1) % 7 + 1));
+        assert!(read_varint(&malformed, &mut 0).is_err());
+    }
+}
+
+#[cfg(test)]
+mod rice_overflow_tests {
+    use super::*;
+    fn payload(q: usize, low: usize) -> Vec<u8> {
+        let width = usize::BITS as usize - 1;
+        let mut writer = BitWriter::new();
+        for _ in 0..q { writer.bit(1); }
+        writer.bit(0);
+        writer.bits(low, width);
+        let mut blob = vec![1, width as u8];
+        blob.extend(writer.finish());
+        blob
+    }
+    #[test]
+    fn rice_accepts_max_rejects_high_bits() {
+        assert_eq!(decode_uints(&payload(1, usize::MAX >> 1), 1, 1 << 20).unwrap(), vec![usize::MAX]);
+        assert!(decode_uints(&payload(2, 0), 1, 1 << 20).is_err());
+        assert!(decode_uints(&[1, usize::BITS as u8], 1, 1 << 20).is_err());
     }
 }

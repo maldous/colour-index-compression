@@ -895,12 +895,18 @@ fn decode_uint_varints(blob: &[u8], count: usize, p: &mut usize) -> Result<Vec<u
 fn decode_uint_rice(blob: &[u8], count: usize, p: &mut usize) -> Result<Vec<usize>, String> {
             let k = *blob.get(*p).ok_or("missing Rice parameter")? as usize;
             *p += 1;
+            if k >= usize::BITS as usize {
+                return Err("Rice parameter is too wide".into());
+            }
             let mut bp = 0;
             let mut out = Vec::with_capacity(count);
             for _ in 0..count {
                 let mut q = 0usize;
                 while bits(&blob[*p..], &mut bp, 1)? != 0 {
                     q = q.checked_add(1).ok_or("Rice overflow")?;
+                }
+                if q > (usize::MAX >> k) {
+                    return Err("Rice overflow".into());
                 }
                 let low = bits(&blob[*p..], &mut bp, k)? as usize;
                 out.push(q.checked_shl(k as u32).ok_or("Rice overflow")? | low);
@@ -1082,6 +1088,9 @@ fn decode_pfor(
 ) -> Result<Vec<u8>, String> {
     let low_width = *data.get(p).ok_or("missing PFOR width")? as usize;
     p += 1;
+    if low_width >= u64::BITS as usize {
+        return Err("PFOR width is too wide".into());
+    }
     let base = read_word(data, &mut p, width, big)?;
     let k = get_varint(data, &mut p)?;
     let indices = rank::decode_colex_positions(data, &mut p, n / width, k)?;
@@ -1113,6 +1122,9 @@ fn decode_pfor(
         let hi = if ex < indices.len() && indices[ex] == i {
             let v = highs[ex] as u64;
             ex += 1;
+            if v > (u64::MAX >> low_width) {
+                return Err("PFOR overflow".into());
+            }
             v.checked_shl(low_width as u32).ok_or("PFOR overflow")?
         } else {
             0
@@ -1207,5 +1219,47 @@ mod tests {
             input.len()
         )
         .is_err());
+    }
+}
+
+#[cfg(test)]
+mod rice_overflow_tests {
+    use super::*;
+    fn payload(q: usize, low: usize) -> Vec<u8> {
+        let width = usize::BITS as usize - 1;
+        let mut writer = BitWriter::new();
+        for _ in 0..q { writer.bit(1); }
+        writer.bit(0);
+        writer.write(low as u64, width);
+        let mut blob = vec![1, width as u8];
+        blob.extend(writer.finish());
+        blob
+    }
+    #[test]
+    fn rice_accepts_max_rejects_high_bits() {
+        assert_eq!(decode_uints(&payload(1, usize::MAX >> 1), 1).unwrap(), vec![usize::MAX]);
+        assert!(decode_uints(&payload(2, 0), 1).is_err());
+        assert!(decode_uints(&[1, usize::BITS as u8], 1).is_err());
+    }
+}
+
+#[cfg(test)]
+mod pfor_overflow_tests {
+    use super::*;
+    fn payload(high: u8, low: u64) -> Vec<u8> {
+        let mut data = vec![63];
+        data.extend([0; 8]); // base
+        data.push(1); // exception at the sole position: zero-bit colex rank
+        data.extend([2, 0, high]); // length, varint coder, high value
+        let mut writer = BitWriter::new();
+        writer.write(low, 63);
+        data.extend(writer.finish());
+        data
+    }
+    #[test]
+    fn pfor_accepts_max_rejects_high_bits() {
+        assert_eq!(decode_pfor(&payload(1, u64::MAX >> 1), 8, 8, false, 0).unwrap(), u64::MAX.to_le_bytes());
+        assert!(decode_pfor(&payload(2, 0), 8, 8, false, 0).is_err());
+        assert!(decode_pfor(&[64], 8, 8, false, 0).is_err());
     }
 }

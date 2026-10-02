@@ -572,7 +572,11 @@ fn get_v(b: &[u8], p: &mut usize) -> Result<usize, String> {
     for s in (0..usize::BITS as usize).step_by(7) {
         let v = *b.get(*p).ok_or("truncated fixed-mix length")?;
         *p += 1;
-        x |= ((v & 127) as usize)
+        let low = (v & 127) as usize;
+        if low > (usize::MAX >> s) {
+            return Err("fixed-mix length overflow".into());
+        }
+        x |= low
             .checked_shl(s as u32)
             .ok_or("fixed-mix length overflow")?;
         if v < 128 {
@@ -821,5 +825,25 @@ mod tests {
             .join()
             .unwrap();
         assert_eq!(local, joined);
+    }
+}
+
+#[cfg(test)]
+mod integer_overflow_tests {
+    use super::*;
+    #[test]
+    fn varint_accepts_max_rejects_high_bits() {
+        let mut value = usize::MAX;
+        let mut encoded = Vec::new();
+        while value >= 128 {
+            encoded.push((value as u8 & 127) | 128);
+            value >>= 7;
+        }
+        encoded.push(value as u8);
+        assert_eq!(get_v(&encoded, &mut 0).unwrap(), usize::MAX);
+        let groups = (usize::BITS as usize).div_ceil(7);
+        let mut malformed = vec![128; groups - 1];
+        malformed.push(1u8 << ((usize::BITS as usize - 1) % 7 + 1));
+        assert!(get_v(&malformed, &mut 0).is_err());
     }
 }
