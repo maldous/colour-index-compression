@@ -390,23 +390,7 @@ fn native_cixg_candidate(data: &[u8], memory: usize, workers: usize) -> Result<V
     // header, frame and footer are retained inside the outer route payload so
     // a later CIXZ1 decoder has every native route decision available.
     let mut archive = Vec::new();
-    super::encode_with_strategy(
-        std::io::Cursor::new(data),
-        &mut archive,
-        u32::try_from(data.len()).map_err(|_| "CIXG nested source overflow")?,
-        9,
-        None,
-        "hybrid",
-        false,
-        "cixg2",
-        -1,
-        None,
-        memory,
-        workers.max(1),
-        false,
-        false,
-        "candidates",
-    )?;
+    super::encode_with_strategy(std::io::Cursor::new(data), &mut archive, super::EncodeOptions { block: u32::try_from(data.len()).map_err(|_| "CIXG nested source overflow")?, level: 9, forced: None, backend: "hybrid", backend_set: false, format: "cixg2", input_fd: -1, flush_interval: None, memory, workers: workers.max(1), explain: false, verbose: false, strategy: "candidates" })?;
     if !matches!(archive.get(..5), Some(b"CIXG1") | Some(b"CIXG2")) {
         return Err("nested native candidate did not produce CIXG".into());
     }

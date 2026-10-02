@@ -1900,58 +1900,32 @@ fn automatic_workers(requested: usize, explicit: bool, block: u32, memory: usize
     workers
 }
 
-fn encode<R: Read, W: Write>(
-    src: R,
-    dst: W,
+pub(crate) struct EncodeOptions<'a> {
     block: u32,
     level: u8,
-    forced: Option<&str>,
-    backend: &str,
+    forced: Option<&'a str>,
+    backend: &'a str,
     backend_set: bool,
-    format: &str,
+    format: &'a str,
     input_fd: i32,
     flush_interval: Option<Duration>,
     memory: usize,
     workers: usize,
     explain: bool,
     verbose: bool,
-) -> Result<(), String> {
-    encode_with_strategy(
-        src,
-        dst,
-        block,
-        level,
-        forced,
-        backend,
-        backend_set,
-        format,
-        input_fd,
-        flush_interval,
-        memory,
-        workers,
-        explain,
-        verbose,
-        "blocks",
-    )
+    strategy: &'a str,
+}
+
+fn encode<R: Read, W: Write>(src: R, dst: W, options: EncodeOptions<'_>) -> Result<(), String> {
+    encode_with_strategy(src, dst, options)
 }
 
 fn encode_with_strategy<R: Read, W: Write>(
     src: R,
     dst: W,
-    block: u32,
-    level: u8,
-    forced: Option<&str>,
-    backend: &str,
-    backend_set: bool,
-    format: &str,
-    input_fd: i32,
-    flush_interval: Option<Duration>,
-    memory: usize,
-    workers: usize,
-    explain: bool,
-    verbose: bool,
-    strategy: &str,
+    options: EncodeOptions<'_>,
 ) -> Result<(), String> {
+    let EncodeOptions { block, level, forced, backend, backend_set, format, input_fd, flush_interval, memory, workers, explain, verbose, strategy } = options;
     if block == 0 || block > MAX_BLOCK {
         return Err("invalid CIXG block size".into());
     }
@@ -1987,41 +1961,16 @@ fn encode_with_strategy<R: Read, W: Write>(
             },
         )
     } else {
-        encode_candidates(
-            src,
-            dst,
-            block,
-            level,
-            forced,
-            backend,
-            backend_set,
-            format,
-            input_fd,
-            flush_interval,
-            memory,
-            workers,
-            explain,
-            verbose,
-        )
+        encode_candidates(src, dst, EncodeOptions { block, level, forced, backend, backend_set, format, input_fd, flush_interval, memory, workers, explain, verbose, strategy })
     }
 }
 
 fn encode_candidates<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
-    block: u32,
-    level: u8,
-    forced: Option<&str>,
-    backend: &str,
-    backend_set: bool,
-    format: &str,
-    input_fd: i32,
-    flush_interval: Option<std::time::Duration>,
-    memory: usize,
-    workers: usize,
-    explain: bool,
-    verbose: bool,
+    options: EncodeOptions<'_>,
 ) -> Result<(), String> {
+    let EncodeOptions { block, level, forced, backend, backend_set, format, input_fd, flush_interval, memory, workers, explain, verbose, .. } = options;
     if format == "cixg1"
         && backend_set
         && (backend.starts_with("context-range-") || backend == "huffman")
@@ -4011,22 +3960,7 @@ pub unsafe extern "C" fn cix_squash_splice(
                 user,
             };
             match direction {
-                1 if (1..=9).contains(&level) => encode(
-                    src,
-                    dst,
-                    default_block(level as u8),
-                    level as u8,
-                    None,
-                    "hybrid",
-                    false,
-                    "auto",
-                    -1,
-                    None,
-                    512 * 1024 * 1024,
-                    1,
-                    false,
-                    false,
-                ),
+                1 if (1..=9).contains(&level) => encode(src, dst, EncodeOptions { block: default_block(level as u8), level: level as u8, forced: None, backend: "hybrid", backend_set: false, format: "auto", input_fd: -1, flush_interval: None, memory: 512 * 1024 * 1024, workers: 1, explain: false, verbose: false, strategy: "blocks" }),
                 1 => Err("invalid Squash CIX compression level".into()),
                 2 => decode(src, dst, false, false, -1, 512 * 1024 * 1024),
                 _ => Err("invalid Squash stream direction".into()),
@@ -4252,23 +4186,7 @@ fn encode_selected<R: Read, W: Write>(
             o.verbose,
         );
     }
-    encode_with_strategy(
-        src,
-        dst,
-        block,
-        o.level,
-        forced,
-        &o.backend,
-        o.backend_set,
-        &o.format,
-        input_fd,
-        o.flush_interval,
-        o.memory,
-        o.threads,
-        o.explain,
-        o.verbose,
-        &o.parallelism,
-    )
+    encode_with_strategy(src, dst, EncodeOptions { block, level: o.level, forced, backend: &o.backend, backend_set: o.backend_set, format: &o.format, input_fd, flush_interval: o.flush_interval, memory: o.memory, workers: o.threads, explain: o.explain, verbose: o.verbose, strategy: &o.parallelism })
 }
 
 fn cixm6_file_name(o: &Opt) -> Result<Option<&str>, String> {
@@ -4754,22 +4672,7 @@ mod cixg_huffman_tests {
     fn forced_route_raw_fallback_is_tagged_raw() {
         let input: Vec<u8> = (0u8..64).collect();
         let mut archive = Vec::new();
-        encode(
-            Cursor::new(input.clone()),
-            &mut archive,
-            1024,
-            9,
-            Some("runs"),
-            "hybrid",
-            false,
-            "cixg1",
-            -1,
-            None,
-            128 * 1024 * 1024,
-            1,
-            false,
-            false,
-        )
+        encode(Cursor::new(input.clone()), &mut archive, EncodeOptions { block: 1024, level: 9, forced: Some("runs"), backend: "hybrid", backend_set: false, format: "cixg1", input_fd: -1, flush_interval: None, memory: 128 * 1024 * 1024, workers: 1, explain: false, verbose: false, strategy: "blocks" })
         .unwrap();
         // Header is 13 bytes; the next byte is the actual block route ID.
         assert_eq!(
@@ -4792,41 +4695,11 @@ mod cixg_huffman_tests {
     #[test]
     fn cixg2_huffman_substream_round_trips_and_cixg1_rejects_it() {
         let input = vec![b'Q'; 4096];
-        assert!(encode(
-            Cursor::new(input.clone()),
-            Vec::new(),
-            8192,
-            9,
-            Some("composition"),
-            "huffman",
-            true,
-            "cixg1",
-            -1,
-            None,
-            128 * 1024 * 1024,
-            1,
-            false,
-            false,
-        )
+        assert!(encode(Cursor::new(input.clone()), Vec::new(), EncodeOptions { block: 8192, level: 9, forced: Some("composition"), backend: "huffman", backend_set: true, format: "cixg1", input_fd: -1, flush_interval: None, memory: 128 * 1024 * 1024, workers: 1, explain: false, verbose: false, strategy: "blocks" })
         .unwrap_err()
         .contains("requires --format cixg2"));
         let mut archive = Vec::new();
-        encode(
-            Cursor::new(input.clone()),
-            &mut archive,
-            8192,
-            9,
-            Some("composition"),
-            "huffman",
-            true,
-            "cixg2",
-            -1,
-            None,
-            128 * 1024 * 1024,
-            1,
-            false,
-            false,
-        )
+        encode(Cursor::new(input.clone()), &mut archive, EncodeOptions { block: 8192, level: 9, forced: Some("composition"), backend: "huffman", backend_set: true, format: "cixg2", input_fd: -1, flush_interval: None, memory: 128 * 1024 * 1024, workers: 1, explain: false, verbose: false, strategy: "blocks" })
         .unwrap();
         assert_eq!(&archive[..5], MAGIC_V2);
         // Header + CIXG frame + substream count, then its coder ID.

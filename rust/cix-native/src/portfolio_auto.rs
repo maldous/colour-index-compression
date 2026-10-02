@@ -475,23 +475,7 @@ fn run_cixg_trials(
         };
         let mut output = CappedWriter::new(search.cap);
         let guard = crate::limits::DeadlineGuard::new(budget);
-        let encoded = encode_with_strategy(
-            io::Cursor::new(search.data.as_slice()),
-            &mut output,
-            block,
-            o.level,
-            search.forced_route,
-            search.cixg_backend,
-            o.backend_set,
-            format,
-            -1,
-            None,
-            available,
-            o.threads,
-            o.explain,
-            o.verbose,
-            &o.parallelism,
-        );
+        let encoded = encode_with_strategy(io::Cursor::new(search.data.as_slice()), &mut output, super::EncodeOptions { block, level: o.level, forced: search.forced_route, backend: search.cixg_backend, backend_set: o.backend_set, format, input_fd: -1, flush_interval: None, memory: available, workers: o.threads, explain: o.explain, verbose: o.verbose, strategy: &o.parallelism });
         drop(guard);
         let name = format!(
             "{format}:{}:block={block}",
@@ -718,23 +702,7 @@ pub(super) fn select(o: &Opt) -> Result<SelectedArchive, String> {
     // candidate, so BEST never silently replaces `--route predictor` with
     // raw bytes.
     let mut raw_output = CappedWriter::new(cap);
-    encode_with_strategy(
-        io::Cursor::new(data.as_slice()),
-        &mut raw_output,
-        cixg_block,
-        o.level,
-        forced_route.or(Some("raw")),
-        cixg_backend,
-        o.backend_set,
-        cixg_format,
-        -1,
-        None,
-        fallback_available,
-        o.threads,
-        false,
-        false,
-        &o.parallelism,
-    )?;
+    encode_with_strategy(io::Cursor::new(data.as_slice()), &mut raw_output, super::EncodeOptions { block: cixg_block, level: o.level, forced: forced_route.or(Some("raw")), backend: cixg_backend, backend_set: o.backend_set, format: cixg_format, input_fd: -1, flush_interval: None, memory: fallback_available, workers: o.threads, explain: false, verbose: false, strategy: &o.parallelism })?;
     let mut winner = raw_output.into_inner();
     validate(&winner, winner.capacity(), &data, 0, o.memory)?;
     let mut winner_name = format!("{cixg_format}:{}-baseline", forced_route.unwrap_or("raw"));
