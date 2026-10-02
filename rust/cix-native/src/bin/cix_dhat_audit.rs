@@ -10,8 +10,8 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 
 fn fixture() -> Vec<u8> {
     let mut state = 0x6a09_e667_u32;
-    // Keep the profiler smoke probe short enough for a debug allocator build.
-    // Criterion owns the larger 64 KiB throughput kernel separately.
+    // Keep the profiler smoke probe short enough for an allocator-instrumented
+    // build. The committed Criterion probes also use a bounded 4 KiB input.
     (0..4 * 1024)
         .map(|index| {
             state = state
@@ -34,13 +34,17 @@ fn main() {
         input
     );
     assert_eq!(
+        rank::decode_composition_tiles(&count_range, input.len()).expect("count-range decode"),
+        input
+    );
+    assert_eq!(
         fixedmix::decode(&mixed, input.len()).expect("fixedmix decode"),
         input
     );
-    // Keep the payload alive until after correctness checks; the final line is
-    // intentionally machine-readable for evidence collection.
+    // Keep every payload alive until after correctness checks. The final line
+    // is valid JSON for evidence collection.
     println!(
-        "cix-dhat-audit bytes={{input:{},composition:{},count_range:{},fixedmix:{}}}",
+        "{{\"tool\":\"cix-dhat-audit\",\"input_bytes\":{},\"composition_bytes\":{},\"count_range_bytes\":{},\"fixedmix_bytes\":{}}}",
         input.len(),
         composition.len(),
         count_range.len(),

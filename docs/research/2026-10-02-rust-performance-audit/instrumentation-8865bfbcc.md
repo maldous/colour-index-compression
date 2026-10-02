@@ -10,8 +10,8 @@ The production commands and default allocator are unchanged. The additions are:
   encoder, so that count-range results do not depend on an uncommitted local
   audit binary.
 - `cix-dhat-audit`: a non-default `audit-dhat` feature binary. It alone
-  installs DhAT's global allocator and checks exact composition and fixed-mix
-  reconstruction before exiting.
+  installs DhAT's global allocator and checks exact composition, count-range
+  and fixed-mix reconstruction before exiting.
 
 ## Reproducible local commands
 
@@ -37,10 +37,13 @@ taskset -c 30 env CARGO_BUILD_JOBS=2 cargo bench --manifest-path rust/cix-native
 - `cargo check --features audit-dhat --bin cix-dhat-audit`: passed.
 - `cargo check --all-features`: passed.
 - `cargo check --benches`: passed.
-- DhAT smoke output verified both decoding checks and reported 4,096 input
+- DhAT smoke output verified all three decoding checks and reported 4,096 input
   bytes, 4,163 composition bytes, 4,171 count-range bytes and 4,122 fixed-mix
-  bytes. DhAT reported 118,077,983 allocated bytes in 45,092 blocks, peak
+  bytes. DhAT reported 118,848,657 allocated bytes in 59,768 blocks, peak
   live 13,515,278 bytes in 24 blocks, and 17,578 bytes in 5 blocks at exit.
+  The profiler begins before deterministic fixture construction and ends after
+  all encodes and decodes, so these are whole audit-program allocation figures,
+  not encoder-only metrics and must not be compared to encoder-only DhAT runs.
 - Both Criterion targets completed on CPU 30. The generated Criterion output
   is transient build evidence and is intentionally not committed. Do not use
   these short samples as an optimization claim; collect repeated isolated
