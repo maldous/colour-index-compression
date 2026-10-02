@@ -26,9 +26,31 @@ libc = "0.2"
 ctrlc = { version = "3", features = ["termination"] }
 num-bigint = "0.4"
 num-traits = "0.2"
+dhat = { version = "0.3.3", optional = true }
+
+[features]
+# Audit-only allocator instrumentation. Normal CIX binaries keep the default
+# allocator and do not link DHAT.
+audit-dhat = ["dep:dhat"]
 
 [build-dependencies]
 cc = "1"
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "cix_hot_kernels"
+harness = false
+
+[[bench]]
+name = "count_range_audit"
+harness = false
+
+[[bin]]
+name = "cix-dhat-audit"
+path = "src/bin/cix_dhat_audit.rs"
+required-features = ["audit-dhat"]
 
 [profile.release-lto]
 inherits = "release"
