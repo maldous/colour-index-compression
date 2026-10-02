@@ -84,7 +84,7 @@ fn observe_from(
             > 16384
         {
             for (_, count) in counts.iter_mut() {
-                *count = ((*count + 1) / 2).max(1);
+                *count = (*count).div_ceil(2).max(1);
             }
         }
     }
@@ -192,8 +192,8 @@ fn see_update(states: &mut SeeStates, key: SeeKey, escaped: bool) {
         hit_count += 1;
     }
     if escape_count + hit_count > SEE_RESCALE_LIMIT {
-        escape_count = ((escape_count + 1) / 2).max(1);
-        hit_count = ((hit_count + 1) / 2).max(1);
+        escape_count = escape_count.div_ceil(2).max(1);
+        hit_count = hit_count.div_ceil(2).max(1);
     }
     states.insert(key, (escape_count, hit_count));
 }
@@ -688,6 +688,102 @@ pub fn decode_with_history(
         );
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sha2::{Digest, Sha256};
+
+    fn rescale_fixture_input() -> Vec<u8> {
+        (0..20_000)
+            .map(|index| ((index * 17 + index / 7) % 11) as u8)
+            .collect()
+    }
+
+    #[test]
+    fn rescale_ceil_matches_old_formula_for_normal_model_counts() {
+        for count in 0u32..=32_768 {
+            assert_eq!(((count + 1) / 2).max(1), count.div_ceil(2).max(1));
+        }
+    }
+
+    #[test]
+    fn rescale_ceil_near_u32_max_matches_wide_oracle() {
+        for count in [u32::MAX - 3, u32::MAX - 2, u32::MAX - 1, u32::MAX] {
+            let oracle = (u64::from(count) + 1) / 2;
+            assert_eq!(u64::from(count.div_ceil(2).max(1)), oracle);
+        }
+    }
+
+    #[test]
+    fn observe_rescale_follows_the_prechange_count_transition() {
+        let mut tables = Tables::new();
+        tables.insert(Vec::new(), vec![(b'x', 16_384)]);
+        let mut history = Vec::new();
+        observe_from(&mut tables, &mut history, b'x', 0, 0);
+        assert_eq!(tables.get(&Vec::new()), Some(&vec![(b'x', 8_193)]));
+    }
+
+    #[test]
+    fn see_rescale_follows_the_prechange_count_transition() {
+        let key = (0, 0, 0);
+        let mut states = SeeStates::new();
+        for _ in 0..254 {
+            see_update(&mut states, key, false);
+        }
+        assert_eq!(states.get(&key), Some(&(1, 128)));
+    }
+
+    #[test]
+    fn fixed_and_see_rescale_payloads_match_prechange_fixtures_and_restore() {
+        let input = rescale_fixture_input();
+        let fixed_v3 = encode_fixed(&input, 3, &[], 2, false).expect("v3 fixed fixture");
+        let fixed_v4 = encode_fixed(&input, 3, &[], 2, true).expect("v4 fixed fixture");
+        let see = encode_secondary(&input, 3, &[], true).expect("SEE fixture");
+        assert_eq!(fixed_v3.len(), 1_356);
+        assert_eq!(
+            hex_digest(&fixed_v3),
+            "97f10d47bc98cc9ac14dda5196baae609136f0a7e778029f1ef80af82971762d"
+        );
+        assert_eq!(fixed_v4.len(), 1_357);
+        assert_eq!(
+            hex_digest(&fixed_v4),
+            "3555ac79d01304720df52ec9ff486d6c627848345b2938c8efa40ab6b7285ffd"
+        );
+        assert_eq!(see.len(), 1_356);
+        assert_eq!(
+            hex_digest(&see),
+            "efb2cbbe5d8f6b43016123c4046e30a2c51953499ebaf748b0903fff31927772"
+        );
+        assert_eq!(
+            decode(&fixed_v3, input.len()).expect("v3 fixed decode"),
+            input
+        );
+        assert_eq!(
+            decode(&fixed_v4, input.len()).expect("v4 fixed decode"),
+            input
+        );
+        assert_eq!(decode(&see, input.len()).expect("SEE decode"), input);
+    }
+
+    #[test]
+    fn malformed_payloads_remain_rejected() {
+        for payload in [
+            vec![6, 0, 0],
+            vec![3, 9, 0],
+            vec![3],
+            vec![3, 0, 0, 8],
+            vec![3, 0, 0, 0, 0],
+            vec![5, 0, 2, 0],
+        ] {
+            assert!(decode(&payload, 1).is_err(), "payload {payload:?}");
+        }
+    }
+
+    fn hex_digest(bytes: &[u8]) -> String {
+        format!("{:x}", Sha256::digest(bytes))
+    }
 }
 
 fn decode_see(

@@ -1,0 +1,38 @@
+{
+  "schema": "cix-ppm-rescale-ceil-verification-v1",
+  "source_revision_before_change": "4e179a4baf3f52cbaf45195a341904374aa75358",
+  "source_change": {
+    "file": "rust/cix-native/src/ppm.rs",
+    "replacements": 3,
+    "old_expression": "((x + 1) / 2).max(1)",
+    "new_expression": "x.div_ceil(2).max(1)"
+  },
+  "prechange_fixture_capture": {
+    "cpu": 14,
+    "cargo_build_jobs": 1,
+    "result": "PASS",
+    "note": "v3, v4, and v5 SHA-256 fixtures recorded before the three source replacements"
+  },
+  "postchange_focused_test": {
+    "command": "CARGO_BUILD_JOBS=1 taskset -c 15 cargo test --lib ppm::tests -- --nocapture",
+    "cpu": 15,
+    "cargo_build_jobs": 1,
+    "result": "PASS",
+    "tests_passed": 12,
+    "tests_failed": 0,
+    "coverage": [
+      "0..=32768 old-formula equivalence",
+      "near-u32-max wide oracle",
+      "PPM model count rescale transition",
+      "SEE rescale transition",
+      "prechange v3/v4/v5 exact-byte SHA-256 identity and restoration",
+      "malformed PPM payload rejection"
+    ]
+  },
+  "resource_reservation": {
+    "cores": 1,
+    "ram_bytes": 1073741824,
+    "temporary_bytes": 268435456
+  },
+  "status": "VERIFIED"
+}
