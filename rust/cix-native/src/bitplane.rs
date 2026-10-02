@@ -150,6 +150,26 @@ fn decode_arithmetic_planes(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
+fn decode_arithmetic_plane(
+    decoder: &mut ArithmeticDecoder<'_>,
+    out: &mut [u8],
+    plane: usize,
+    one_count: usize,
+) {
+    let (mut one, mut zero) = (one_count, out.len() - one_count);
+    for byte in out {
+        let total = one + zero;
+        if decoder.target(total) < zero {
+            decoder.update(0, zero, total);
+            zero -= 1;
+        } else {
+            decoder.update(zero, total, total);
+            one -= 1;
+            *byte |= 1 << (7 - plane);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -197,25 +217,5 @@ mod tests {
             read_v(&encoded, &mut position).unwrap_err(),
             "bit-plane varint overflow"
         );
-    }
-}
-
-fn decode_arithmetic_plane(
-    decoder: &mut ArithmeticDecoder<'_>,
-    out: &mut [u8],
-    plane: usize,
-    one_count: usize,
-) {
-    let (mut one, mut zero) = (one_count, out.len() - one_count);
-    for byte in out {
-        let total = one + zero;
-        if decoder.target(total) < zero {
-            decoder.update(0, zero, total);
-            zero -= 1;
-        } else {
-            decoder.update(zero, total, total);
-            one -= 1;
-            *byte |= 1 << (7 - plane);
-        }
     }
 }

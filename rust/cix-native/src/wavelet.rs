@@ -129,11 +129,7 @@ fn decode_bit(
         decoder.update(0, *one, *remaining);
         *one -= 1;
         1
-    } else if *one == 0 {
-        decoder.update(0, *zero, *remaining);
-        *zero -= 1;
-        0
-    } else if decoder.target(*remaining) < *zero {
+    } else if *one == 0 || decoder.target(*remaining) < *zero {
         decoder.update(0, *zero, *remaining);
         *zero -= 1;
         0
@@ -160,6 +156,7 @@ fn interleave(bits: Vec<u8>, zeros: Vec<u8>, ones: Vec<u8>, n: usize) -> Vec<u8>
     }
     out
 }
+
 pub fn decode(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
     if data.is_empty() || data[0] != 1 {
         return Err("unknown wavelet version".into());
@@ -176,6 +173,13 @@ pub fn decode(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
 #[cfg(test)]
 mod integer_overflow_tests {
     use super::*;
+
+    #[test]
+    fn canonical_payload_round_trips() {
+        let input: Vec<u8> = (0..513).map(|index| (index * 37) as u8).collect();
+        assert_eq!(decode(&encode(&input), input.len()).unwrap(), input);
+    }
+
     #[test]
     fn varint_accepts_max_rejects_high_bits() {
         let mut value = usize::MAX;
