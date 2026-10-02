@@ -106,3 +106,25 @@ claim is used to rank or publish results.
 The next combined source must pass optimized validation and a fresh scan before
 corpus measurements resume. The intended corpus execution remains four datasets
 concurrently with four encoder workers per dataset, with the CCA gate first.
+
+## Final qualified source and matched measurement restart
+
+Exact source `bd2a0d97bb4bc5847b55113341ad8de94c269c7f` passed the
+locked optimized all-feature build, 44 suite groups / 713 passed executions,
+and Criterion smoke. The reduction from 748 executions removes duplicate
+library codec modules; it does not remove their CLI tests. Root independently
+verified all 26 final validation manifest entries and artifact hashes.
+Build/suite/Criterion cgroup peaks were 1,008,672,768 / 1,489,833,984 /
+371,957,760 bytes, each with a fresh 2 GiB limit and zero swap.
+
+The exact final source has zero current Sonar issues and zero imported Clippy
+warnings across 82 indexed Rust-scope files. Compiler and vendored C++ notices
+remain separately retained. Root verified the final Sonar packet checksums.
+These findings do not establish whole-project C/C++ warning cleanliness.
+
+Matched plan `2026-10-03-matched-bd2-v1` binds pre-refactor `99f4f7319`
+and final BD2 native releases, 33 frozen CCA and 12 cached Silesia inputs,
+FAST/default/BEST, four encoder threads, five repetitions. Initial execution
+uses four datasets concurrently, each capped at 2.9 GB RAM / 900 MB temporary
+space, zero swap. Silesia remains gated on all CCA results. Scaling/profile/PGO
+experiments remain separate; no new throughput or ranking claim is made yet.

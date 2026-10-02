@@ -1,0 +1,12 @@
+#!/bin/bash
+out=/home/user/src/colour-index-compression/benchmark-work/combined-0c6028-validation
+src=/home/user/src/cix-final-validation-0c6028/rust/cix-native
+cg=$(sed -n 's/^0:://p' /proc/self/cgroup); base=/sys/fs/cgroup
+cd "$src" || exit 125
+CARGO_BUILD_JOBS=2 RUSTC=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc RUSTDOC=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustdoc CARGO_TARGET_DIR=/home/user/src/cix-final-validation-0c6028/rust/cix-native/target-qualified taskset -c 10,11 /home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo build --locked --all-features --profile release-lto --bin cix --bin uncix --bin cixcat --lib -j2 > "$out/logs/build.log" 2>&1 &
+p=$!
+while kill -0 "$p" 2>/dev/null; do printf 'pid=%s\n' "$p" >> "$out/logs/build-children.log"; cat "/proc/$p/cgroup" >> "$out/logs/build-children.log" 2>/dev/null || true; taskset -pc "$p" >> "$out/logs/build-children.log" 2>&1 || true; for c in $(pgrep -P "$p" 2>/dev/null || true); do printf 'child=%s\n' "$c" >> "$out/logs/build-children.log"; cat "/proc/$c/cgroup" >> "$out/logs/build-children.log" 2>/dev/null || true; taskset -pc "$c" >> "$out/logs/build-children.log" 2>&1 || true; done; sleep 1; done
+wait "$p"; rc=$?
+printf 'scope=%s\nmemory.max=%s\nmemory.swap.max=%s\nbuild_rc=%s\npeak=%s\n' "$cg" "$(cat "$base$cg/memory.max")" "$(cat "$base$cg/memory.swap.max")" "$rc" "$(cat "$base$cg/memory.peak")" > "$out/logs/build-cgroup.log"
+printf 'exit=%s\n' "$rc" > "$out/logs/build.exit"
+exit "$rc"

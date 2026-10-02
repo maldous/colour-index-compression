@@ -23,13 +23,13 @@ harness rejects altered binary hashes and records resolved DSO hashes.
 ```sh
 python3 benchmarks/cix_rust_perf_audit.py prepare --id 2026-10-03-matched-final \
   --before /ABS/pre-final-release --current /ABS/final-release \
-  --profiles fast,default,best --threads 1,4 --repetitions 5 --include-silesia
+  --profiles fast,default,best --threads 4 --repetitions 5 --include-silesia
 python3 benchmarks/cix_rust_perf_audit.py run \
   --id 2026-10-03-matched-final --stage gate --threads 4 \
-  --workers-per-dataset 4 --jobs 4 --binding-sha BINDING_SHA --confirm-execution
+  --workers-per-dataset 4 --jobs 4 --rss-per-job 2900000000 --temp-per-job 900000000 --binding-sha BINDING_SHA --confirm-execution
 python3 benchmarks/cix_rust_perf_audit.py run \
   --id 2026-10-03-matched-final --stage silesia --threads 4 \
-  --workers-per-dataset 4 --jobs 4 --binding-sha BINDING_SHA --confirm-execution
+  --workers-per-dataset 4 --jobs 4 --rss-per-job 2900000000 --temp-per-job 900000000 --binding-sha BINDING_SHA --confirm-execution
 ```
 
 The runner enforces distinct physical CPU sets, systemd `MemoryMax` and
