@@ -333,9 +333,7 @@ fn read_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {
         if low > (usize::MAX >> shift) {
             return Err("LZ varint overflow".into());
         }
-        let part = low
-            .checked_shl(shift as u32)
-            .ok_or("LZ varint overflow")?;
+        let part = low.checked_shl(shift as u32).ok_or("LZ varint overflow")?;
         value = value.checked_add(part).ok_or("LZ varint overflow")?;
         if byte < 128 {
             return Ok(value);
@@ -1527,85 +1525,87 @@ fn decode_uints(blob: &[u8], count: usize, model_limit: usize) -> Result<Vec<usi
     let mode = *blob.first().ok_or("empty LZ integer substream")?;
     let mut pos = 1usize;
     match mode {
-        0 => {
-            let mut out = Vec::with_capacity(count);
-            for _ in 0..count {
-                out.push(read_varint(blob, &mut pos)?);
-            }
-            if pos != blob.len() {
-                return Err("trailing LZ integer varints".into());
-            }
-            Ok(out)
-        }
-        1 => {
-            let k = *blob.get(pos).ok_or("missing LZ Rice parameter")? as usize;
-            pos += 1;
-            if k >= usize::BITS as usize {
-                return Err("LZ Rice parameter is too wide".into());
-            }
-            let mut bits = BitReader {
-                data: &blob[pos..],
-                pos: 0,
-            };
-            let mut out = Vec::with_capacity(count);
-            for _ in 0..count {
-                let mut quotient = 0usize;
-                while bits.read(1)? != 0 {
-                    quotient = quotient.checked_add(1).ok_or("LZ Rice quotient overflow")?;
-                }
-                if quotient > (usize::MAX >> k) {
-                    return Err("LZ Rice value overflow".into());
-                }
-                let low = bits.read(k)?;
-                out.push(
-                    quotient
-                        .checked_shl(k as u32)
-                        .ok_or("LZ Rice value overflow")?
-                        | low,
-                );
-            }
-            Ok(out)
-        }
-        2 | 3 => {
-            let class_len = read_varint(blob, &mut pos)?;
-            let end = pos
-                .checked_add(class_len)
-                .ok_or("LZ integer class length overflow")?;
-            if end > blob.len() {
-                return Err("truncated LZ integer class stream".into());
-            }
-            let classes = if mode == 2 {
-                let mut class_pos = pos;
-                let out = crate::rank::decode_type_class(blob, &mut class_pos, count)?;
-                if class_pos != end {
-                    return Err("trailing LZ integer class bytes".into());
-                }
-                out
-            } else {
-                decode_bytes(&blob[pos..end], count, model_limit)?
-            };
-            let mut bits = BitReader {
-                data: &blob[end..],
-                pos: 0,
-            };
-            let mut out = Vec::with_capacity(count);
-            for class in classes {
-                let width = class as usize;
-                if width >= usize::BITS as usize {
-                    return Err("LZ integer class is too wide".into());
-                }
-                let low = bits.read(width)?;
-                out.push(
-                    (1usize << width)
-                        .checked_add(low)
-                        .and_then(|value| value.checked_sub(1))
-                        .ok_or("LZ integer value overflow")?,
-                );
-            }
-            Ok(out)
-        }
+        0 => decode_uint_varints(blob, count, &mut pos),
+        1 => decode_uint_rice(blob, count, &mut pos),
+        2 | 3 => decode_uint_classes(blob, count, model_limit, &mut pos, mode),
         other => Err(format!("unsupported LZ integer substream mode {other}")),
     }
+}
+
+fn decode_uint_varints(blob: &[u8], count: usize, pos: &mut usize) -> Result<Vec<usize>, String> {
+    let mut out = Vec::with_capacity(count);
+    for _ in 0..count {
+        out.push(read_varint(blob, pos)?);
+    }
+    if *pos != blob.len() {
+        return Err("trailing LZ integer varints".into());
+    }
+    Ok(out)
+}
+fn decode_uint_rice(blob: &[u8], count: usize, pos: &mut usize) -> Result<Vec<usize>, String> {
+    let k = *blob.get(*pos).ok_or("missing LZ Rice parameter")? as usize;
+    *pos += 1;
+    if k >= usize::BITS as usize {
+        return Err("LZ Rice parameter is too wide".into());
+    }
+    let mut bits = BitReader {
+        data: &blob[*pos..],
+        pos: 0,
+    };
+    (0..count)
+        .map(|_| {
+            let mut q = 0usize;
+            while bits.read(1)? != 0 {
+                q = q.checked_add(1).ok_or("LZ Rice quotient overflow")?;
+            }
+            if q > usize::MAX >> k {
+                return Err("LZ Rice value overflow".into());
+            }
+            Ok(q.checked_shl(k as u32).ok_or("LZ Rice value overflow")? | bits.read(k)?)
+        })
+        .collect()
+}
+fn decode_uint_classes(
+    blob: &[u8],
+    count: usize,
+    limit: usize,
+    pos: &mut usize,
+    mode: u8,
+) -> Result<Vec<usize>, String> {
+    let n = read_varint(blob, pos)?;
+    let end = pos
+        .checked_add(n)
+        .ok_or("LZ integer class length overflow")?;
+    if end > blob.len() {
+        return Err("truncated LZ integer class stream".into());
+    }
+    let c = if mode == 2 {
+        let mut p = *pos;
+        let v = crate::rank::decode_type_class(blob, &mut p, count)?;
+        if p != end {
+            return Err("trailing LZ integer class bytes".into());
+        }
+        v
+    } else {
+        decode_bytes(&blob[*pos..end], count, limit)?
+    };
+    let mut b = BitReader {
+        data: &blob[end..],
+        pos: 0,
+    };
+    c.into_iter()
+        .map(|x| {
+            let w = x as usize;
+            if w >= usize::BITS as usize {
+                return Err("LZ integer class is too wide".into());
+            }
+            let low = b.read(w)?;
+            (1usize << w)
+                .checked_add(low)
+                .and_then(|v| v.checked_sub(1))
+                .ok_or_else(|| "LZ integer value overflow".into())
+        })
+        .collect()
 }
 
 fn decode_tags(blob: &[u8], count: usize, model_limit: usize) -> Result<Vec<u8>, String> {
@@ -2129,7 +2129,9 @@ mod rice_overflow_tests {
     fn payload(q: usize, low: usize) -> Vec<u8> {
         let width = usize::BITS as usize - 1;
         let mut writer = BitWriter::new();
-        for _ in 0..q { writer.bit(1); }
+        for _ in 0..q {
+            writer.bit(1);
+        }
         writer.bit(0);
         writer.bits(low, width);
         let mut blob = vec![1, width as u8];
@@ -2138,7 +2140,10 @@ mod rice_overflow_tests {
     }
     #[test]
     fn rice_accepts_max_rejects_high_bits() {
-        assert_eq!(decode_uints(&payload(1, usize::MAX >> 1), 1, 1 << 20).unwrap(), vec![usize::MAX]);
+        assert_eq!(
+            decode_uints(&payload(1, usize::MAX >> 1), 1, 1 << 20).unwrap(),
+            vec![usize::MAX]
+        );
         assert!(decode_uints(&payload(2, 0), 1, 1 << 20).is_err());
         assert!(decode_uints(&[1, usize::BITS as u8], 1, 1 << 20).is_err());
     }

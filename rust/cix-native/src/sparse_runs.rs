@@ -394,12 +394,13 @@ fn histogram_candidate(data: &[u8], incumbent: &[u8]) -> Result<Option<Vec<u8>>,
     put_varint(active.len(), &mut active_prefix);
     let mut header_size = active_prefix.len();
     if active.len() < 256 {
-        header_size += fixed_width(&(combinatorics::choose_checked(256, active.len())?
-            - BigUint::one()))
-        .div_ceil(8);
+        header_size +=
+            fixed_width(&(combinatorics::choose_checked(256, active.len())? - BigUint::one()))
+                .div_ceil(8);
     }
-    header_size += fixed_width(&(combinatorics::choose_checked(data.len() - 1, active.len() - 1)?
-        - BigUint::one()))
+    header_size += fixed_width(
+        &(combinatorics::choose_checked(data.len() - 1, active.len() - 1)? - BigUint::one()),
+    )
     .div_ceil(8);
     if header_size < 64 || header_size > incumbent.len() {
         return Ok(None);
@@ -507,36 +508,10 @@ fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
         put_varint(value, &mut best);
     }
     for width in 0..=16usize {
-        let payload_limit_bits = best.len().saturating_sub(2) * 8;
-        let mut bit_cost = 0usize;
-        let mut viable = true;
-        for &value in values {
-            bit_cost = bit_cost
-                .checked_add(value >> width)
-                .and_then(|cost| cost.checked_add(1 + width))
-                .unwrap_or(usize::MAX);
-            if bit_cost >= payload_limit_bits {
-                viable = false;
-                break;
+        if let Some(candidate) = rice_candidate(values, width, best.len()) {
+            if candidate.len() < best.len() {
+                best = candidate;
             }
-        }
-        if !viable {
-            continue;
-        }
-        let mut writer = BitWriter::new();
-        for &value in values {
-            for _ in 0..(value >> width) {
-                writer.bit(1);
-            }
-            writer.bit(0);
-            if width != 0 {
-                writer.bits(value & ((1usize << width) - 1), width);
-            }
-        }
-        let mut candidate = vec![1, width as u8];
-        candidate.extend(writer.finish());
-        if candidate.len() < best.len() {
-            best = candidate;
         }
     }
 
@@ -579,6 +554,33 @@ fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
     Ok(best)
 }
 
+fn rice_candidate(values: &[usize], width: usize, best_len: usize) -> Option<Vec<u8>> {
+    let limit = best_len.saturating_sub(2) * 8;
+    let mut cost = 0usize;
+    for &value in values {
+        cost = cost
+            .checked_add(value >> width)
+            .and_then(|v| v.checked_add(1 + width))
+            .unwrap_or(usize::MAX);
+        if cost >= limit {
+            return None;
+        }
+    }
+    let mut writer = BitWriter::new();
+    for &value in values {
+        for _ in 0..(value >> width) {
+            writer.bit(1);
+        }
+        writer.bit(0);
+        if width != 0 {
+            writer.bits(value & ((1usize << width) - 1), width);
+        }
+    }
+    let mut candidate = vec![1, width as u8];
+    candidate.extend(writer.finish());
+    Some(candidate)
+}
+
 /// Encode a frozen CIX sparse payload (CIXM6 mode 11).
 pub fn encode_sparse(data: &[u8]) -> Result<Vec<u8>, String> {
     if data.is_empty() {
@@ -602,8 +604,9 @@ pub fn encode_sparse(data: &[u8]) -> Result<Vec<u8>, String> {
             values.push(byte);
         }
     }
-    let width = fixed_width(&(combinatorics::choose_checked(data.len(), positions.len())?
-        - BigUint::one()));
+    let width = fixed_width(
+        &(combinatorics::choose_checked(data.len(), positions.len())? - BigUint::one()),
+    );
     let mut out = vec![1, dominant as u8];
     put_varint(positions.len(), &mut out);
     out.extend(fixed_bytes(&colex_rank(&positions)?, width));
