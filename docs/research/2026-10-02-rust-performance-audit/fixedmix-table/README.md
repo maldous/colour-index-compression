@@ -37,14 +37,23 @@ forced `--stream --route mixture --format cixg1 --block-size 4KiB --threads 1
 small bounded blocks, where table construction is paid repeatedly before the
 change.  It is a kernel experiment, not a corpus compression claim.
 
-An attempted six-pair counterbalanced AB/BA replication is retained as an
-**INVALID_MIXED_ARTIFACT_TIMING** record.  Its candidate path was rebuilt by a
-separate concurrent experiment during the run, so it does not have one frozen
-candidate binary identity.  The archive/hash checks from that run remain valid
-format evidence; none of its timing figures may be used to attribute a speed
-gain.  A qualified rerun must use copied artifacts from unique target
-directories and rehash the executable and resolved DSOs before and after every
-pair.
+An earlier mutable-artifact timing attempt was invalidated and is not used
+below.  The qualified repetition rebuilt the two source revisions into unique
+`CARGO_TARGET_DIR` locations, copied the `cix` and `uncix` outputs to read-only
+artifact directories, and recorded SHA-256 manifests for both binaries and
+every resolved dynamic library.  It then ran six counterbalanced AB/BA pairs,
+with fresh encode and owning-decode processes, verifying that manifest before
+and after each phase.  Odd pairs ran baseline then candidate; even pairs ran
+candidate then baseline.  The run used CPU 10, `ulimit -v 1 GiB`, and a
+predeclared 600-second wall budget.  Reported confidence intervals are
+two-sided 95% Student-t intervals over six paired processes.
+
+The frozen source and artifact identities were:
+
+| role | source revision | `cix` SHA-256 | `uncix` SHA-256 | binary/DSO manifest SHA-256 |
+| --- | --- | --- | --- | --- |
+| baseline | `15426f310f40b9a3d753313741c28e718f7aceb6` | `e6ede6735f4b59bf75540353f4efcb26e3b05877c8af647cf77ed3f35e6729ab` | `acd854b39b19ae918ef7bac20ca638f6f017f07c1b63addae8f88c10a288fc78` | `4129bce4b7f251cd4bd1c574285f4d9b762aaf8ac8ebed77a67e45edf7883938` |
+| candidate | `e72e331039f18c60e1c4dcd1dbfc4fe342e7442c` | `53d912b78c003df7b0a6561a2cc0e1e93d770f6a057bb5ac54ec1991fff97496` | `05df2478053525fa76d4e9078cdeb1627cb75deade0a9e8db5507ac6486b83e8` | `761fa4e0afb896b57e02c2f647ab689d0714b6abffc0e679c5c37ef3537a2282` |
 
 ## Results
 
@@ -52,10 +61,15 @@ Complete archive SHA-256 was identical for every baseline/candidate repetition:
 `fd0554b163c1d61478d3df3a15fce0870c7a4117d186be40b3864c3138245166`
 (53,302 bytes).
 
-The initial unqualified 4 KiB cold-process probe recorded 28.52 ms / 133.66 M
-cycles / 335.13 M instructions for the candidate versus 29.35 ms / 138.69 M /
-338.13 M for the baseline.  It is retained only as a profiling lead, not a
-performance result.  `perf record` on the baseline attributes dominant work to
+| metric | baseline (n=6) | shared table (n=6) | paired change |
+| --- | ---: | ---: | ---: |
+| encode wall time | 14.658 s, SD 0.194 s | 14.295 s, SD 0.125 s | -0.363 s, 95% CI -0.456 to -0.271 s; -2.5% |
+| encode CPU time | 14.603 s | 14.240 s | -2.5% |
+| decode wall time | 14.612 s, SD 0.156 s | 14.280 s, SD 0.165 s | -0.332 s, 95% CI -0.483 to -0.180 s; -2.3% |
+| decode CPU time | 14.553 s | 14.218 s | -2.3% |
+| peak RSS | 5,376–5,888 KiB | 5,632–5,888 KiB | no reliable process-RSS change at this resolution |
+
+`perf record` on the baseline attributes dominant work to
 `fixedmix::State::probabilities` and `State::update`, so table initialization
 is not assumed to be the dominant fixedmix bottleneck.
 
@@ -65,15 +79,17 @@ the retained table occupies 16 KiB once per process and needs no unsafe code
 or dependency.
 
 FAST automatic selection on the 4 KiB fixture selected DEFLATE (its
-`--explain` output listed no fixedmix candidate).  This is a functional
-negative control only; its prior timing group shared the same mutable artifact
-problem and is not used as a performance result.
+`--explain` output listed no fixedmix candidate).  It is a functional negative
+control: table sharing changes no selector work when fixedmix is not selected.
 
 ## Validation
 
-* Archive byte equality was checked across all six repeated stream encodes.
-* Both baseline and candidate `uncix` binaries, in fresh processes, restored
-  the 4 MiB candidate archive byte-for-byte.
+* Archive byte equality was checked across all twelve repeated stream encodes.
+* Both owning `uncix` binaries restored their six fresh archives byte-for-byte;
+  each output SHA-256 was the source SHA-256 above.
+* Fresh cross-decoding also passed: baseline `uncix` decoded a candidate
+  archive and candidate `uncix` decoded a baseline archive.
+* All 36 pre/post-phase binary/DSO manifest checks and the final checks passed.
 * A byte-flipped archive was rejected by fresh candidate `uncix -t` with
   `block checksum mismatch`.
 * `cargo test --locked --lib fixedmix::tests -- --test-threads=1` passed six
