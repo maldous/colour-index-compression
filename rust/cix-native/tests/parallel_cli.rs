@@ -194,6 +194,20 @@ fn forced_raw_and_runs_are_byte_identical_across_block_workers() {
 }
 
 #[test]
+fn explicit_twenty_block_workers_preserve_order_and_round_trip() {
+    // More 4 KiB blocks than workers proves the ordered pipeline accepts a
+    // real 20-worker request rather than only parsing the option.
+    let mut input = Vec::with_capacity(96 * 1024);
+    for block in 0..24u8 {
+        input.extend(std::iter::repeat(block).take(4096));
+    }
+    let serial = encode(&input, "raw", 1);
+    let parallel = encode(&input, "raw", 20);
+    assert_eq!(parallel, serial, "20 workers changed framed output order");
+    assert_eq!(decode(&parallel), input, "20 workers did not restore input");
+}
+
+#[test]
 fn sigint_with_stalled_stdout_exits_without_a_complete_footer() {
     let mut child = Command::new(env!("CARGO_BIN_EXE_cix"))
         .args([
