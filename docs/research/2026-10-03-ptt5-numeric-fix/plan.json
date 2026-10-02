@@ -1,0 +1,54 @@
+{
+  "experiment": "ptt5-numeric-max-fallback-v1",
+  "status": "PREDECLARED_NOT_EXECUTED",
+  "hypothesis": "Optional plus-one integer-class coder must retain already-valid varints for usizeMAX; this fixes BEST/M6 ptt5 without format change or truncation.",
+  "failed_release": "bd2a0d97bb4bc5847b55113341ad8de94c269c7f",
+  "input": {
+    "path": "benchmark-work/canterbury/ptt5",
+    "bytes": 513216,
+    "sha256": "0ec3a75089bb52342813496b17e51377bc9eba3cb519a444d67025354841d650"
+  },
+  "build": {
+    "profile": "release-lto",
+    "all_features": true,
+    "cpus": [
+      8,
+      10
+    ],
+    "memory_max": 2147483648,
+    "swap_max": 0,
+    "wall_seconds": 1200,
+    "temp_bytes": 3500000000
+  },
+  "verification": {
+    "flags": [
+      "--best",
+      "--threads",
+      "4"
+    ],
+    "cpus": [
+      16,
+      17,
+      18,
+      19
+    ],
+    "memory_max": 2899996672,
+    "swap_max": 0,
+    "encode_wall_seconds": 7200,
+    "decode_wall_seconds": 1200,
+    "temp_bytes": 900000000,
+    "decoders": [
+      "new-fixed-release",
+      "frozen-BD2",
+      "pre-refactor-99f4"
+    ],
+    "fresh_process": true
+  },
+  "promotion": [
+    "Integer boundary and PFOR exact restoration regression tests pass",
+    "Actual ptt5 BEST exits0",
+    "Complete archive restores bytes with all3freshnative decoders",
+    "Source and binary hashes sealed"
+  ],
+  "benchmark_restart": false
+}

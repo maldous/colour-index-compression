@@ -534,9 +534,11 @@ fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
     let mut classes = Vec::with_capacity(values.len());
     let mut lows = Vec::with_capacity(values.len());
     for &value in values {
-        let shifted = value
-            .checked_add(1)
-            .ok_or("numeric integer class overflow")?;
+        let Some(shifted) = value.checked_add(1) else {
+            // The class representation stores value + 1; mode 0 already
+            // represents usize::MAX exactly, so only class modes are ineligible.
+            return Ok(best);
+        };
         let width = (usize::BITS - shifted.leading_zeros() - 1) as usize;
         if width > 255 {
             return Ok(best);
@@ -1204,6 +1206,49 @@ mod tests {
             get_varint_u64(&encoded, &mut position).unwrap_err(),
             "numeric varint overflow"
         );
+    }
+
+    #[test]
+    fn uint_classes_skip_maximum_without_losing_varint_round_trip() {
+        let highest_bit = 1usize << (usize::BITS - 1);
+        let values = [
+            highest_bit - 1,
+            highest_bit,
+            usize::MAX - 1,
+            usize::MAX,
+        ];
+        let encoded = encode_uints(&values).unwrap();
+        assert_eq!(encoded[0], 0);
+        assert_eq!(decode_uints(&encoded, values.len()).unwrap(), values.to_vec());
+    }
+
+    #[test]
+    #[cfg(target_pointer_width = "64")]
+    fn pfor_maximum_exception_round_trips_both_endiannesses_with_tail() {
+        let values = [0, u64::MAX, 0];
+        for big in [false, true] {
+            let payload = encode_pfor(&values, &[0xa5], 8, big, 0).unwrap();
+            let mut expected = Vec::new();
+            for &value in &values {
+                push_word(&mut expected, value, 8, big);
+            }
+            expected.push(0xa5);
+            assert_eq!(decode(&payload, expected.len()).unwrap(), expected);
+        }
+    }
+
+    #[test]
+    #[cfg(target_pointer_width = "64")]
+    fn numeric_candidates_restore_ptt5_extrema_pattern() {
+        // ptt5[81920..98304] contains an aligned zero u64 followed later by
+        // ff×8 at offset 90976; this compact fixture keeps that PFOR extrema.
+        let mut input = [0u8; 8].to_vec();
+        input.extend([0xff; 8]);
+        input.extend([0u8; 8]);
+        input.push(0xa5);
+        for candidate in encode_candidates(&input).unwrap() {
+            assert_eq!(decode(&candidate.payload, input.len()).unwrap(), input);
+        }
     }
 
     #[test]
