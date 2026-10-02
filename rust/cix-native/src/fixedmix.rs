@@ -65,8 +65,8 @@ static STRETCH_TABLE: OnceLock<[i32; 4096]> = OnceLock::new();
 fn stretch_table() -> &'static [i32; 4096] {
     STRETCH_TABLE.get_or_init(|| {
         let mut table = [0; 4096];
-        for p in 1..4096 {
-            table[p] = fixed_log2(p as u32) - fixed_log2((4096 - p) as u32);
+        for (p, entry) in table.iter_mut().enumerate().skip(1) {
+            *entry = fixed_log2(p as u32) - fixed_log2((4096 - p) as u32);
         }
         table
     })
@@ -95,6 +95,13 @@ fn squash(v: i64, t: &[i32]) -> i32 {
     }
 }
 type CtxKey = u64;
+type RecurrencePrediction = (i32, usize, u8, i32);
+type ProbabilityDetails = (
+    i32,
+    [i32; EXPERTS],
+    [Option<CtxKey>; PATTERN_EXPERTS],
+    Option<RecurrencePrediction>,
+);
 
 /// Last `HISTORY_MAX` bytes in logical insertion order.  Unlike the legacy
 /// Vec/remove(0) implementation, eviction is O(1); `get` preserves every
@@ -243,7 +250,7 @@ impl State {
     /// derived before the current symbol is observed, so both encoder and
     /// decoder have identical state.  This deliberately does not attempt the
     /// full ZPAQ periodic/MATCH/ISSE/SSE component graph.
-    fn recurrence_prob(&self, bit: usize, t: &[i32]) -> Option<(i32, usize, u8, i32)> {
+    fn recurrence_prob(&self, bit: usize, t: &[i32]) -> Option<RecurrencePrediction> {
         let predictor = self.recurrence.as_ref()?;
         let previous = self.history.last()?;
         let feature = match self.recurrence_mode? {
@@ -272,12 +279,7 @@ impl State {
         bit: usize,
         prefix: u8,
         t: &[i32],
-    ) -> (
-        i32,
-        [i32; EXPERTS],
-        [Option<CtxKey>; PATTERN_EXPERTS],
-        Option<(i32, usize, u8, i32)>,
-    ) {
+    ) -> ProbabilityDetails {
         let mut probabilities = [0; EXPERTS];
         let mut keys = [None; PATTERN_EXPERTS];
         for (i, p) in PATTERNS.iter().enumerate() {
@@ -774,8 +776,8 @@ mod tests {
 
     fn legacy_stretch_table() -> [i32; 4096] {
         let mut table = [0; 4096];
-        for p in 1..4096 {
-            table[p] = fixed_log2(p as u32) - fixed_log2((4096 - p) as u32);
+        for (p, entry) in table.iter_mut().enumerate().skip(1) {
+            *entry = fixed_log2(p as u32) - fixed_log2((4096 - p) as u32);
         }
         table
     }
