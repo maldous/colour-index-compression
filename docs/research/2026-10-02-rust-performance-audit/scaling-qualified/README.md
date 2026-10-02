@@ -1,6 +1,17 @@
-# CIXG1 default-effort scaling qualification
+# CIXG1 default-effort raw scaling screen — provenance incomplete
 
 Generated from 120 retained native receipts.
+
+Independent review found that the exact Python harness source executed during
+these trials was not retained or hash-attested. The committed runner at
+`4023fd656` could not generate the retained manifest state values or wrapper
+exit behavior. `112c889148` repairs a post-trial source version for future
+identities; it is not the source that ran these trials. Therefore this packet
+is a raw-command/archive screen, **not reproducible harness qualification**.
+Immutable codec/input hashes, actual command lines, native metric files and
+archive hashes support the observations below but do not cure this limitation.
+All timing rows are explicitly unqualified; failed decoder durations are
+omitted from the summary. Do not use this packet for release recommendations.
 
 Forty one-thread cells produced a physical archive, decoded through native `uncix`, and exactly restored the source byte count and SHA-256. The 80 requested two- and four-thread cells are retained as `FAILED`: their raw native decoder metric records exit 2 and stderr `--threads >1 applies to native CIXG1/CIXG2 block or candidate selection`; no restored file exists. `execute_phase` recorded wrapper exit 0, so native metric exit codes are authoritative. They are not decoder scaling evidence.
 
