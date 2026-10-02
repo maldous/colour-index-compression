@@ -1,0 +1,22 @@
+{
+  "hypothesis": "Transient service collection may erase nonzero child exits; direct atomic child receipts prevent false success.",
+  "inputs": "No datasets: tiny local exit/signal/launch-error controls only.",
+  "cpu": 8,
+  "memory_bytes": 134217728,
+  "memory_swap_bytes": 0,
+  "wall_seconds_per_actual_phase": 10,
+  "source_hashes": {
+    "benchmarks/cix_phase_receipt.py": "4144f9a91b9ff41fac57fab314d20d0edf27e7e48259802edfe5c92c6bef04bb",
+    "benchmarks/cix_rust_perf_audit.py": "75c47236dc117608244b4f8f97ba973847e5ed2d846a88c611e0960daab774d7",
+    "benchmarks/hutter_bounded_runner.py": "18232fabefc5081723ad6b10ff6aedf7ec3f58b5c01b8d219d0dcc5705214157"
+  },
+  "result": "Original supervisor reports both explicit exit-2 controls as zero; receipt-backed audit preserves 0/2/0/2, launch failure127, signal-15 and rejects absent/mismatched/stale receipts and outer failures.",
+  "scope": "Audit harness only; shared R&D supervisor remains unchanged. New future audit identity required.",
+  "final_reviewed_source_hashes": {
+    "benchmarks/cix_phase_receipt.py": "4144f9a91b9ff41fac57fab314d20d0edf27e7e48259802edfe5c92c6bef04bb",
+    "benchmarks/cix_rust_perf_audit.py": "e4c3016ad14d10a98cadfd2be0bf4b0986eea8e16679f435d97124769f0331a9",
+    "tests/test_cix_phase_receipt.py": "b22b68bc25c965a52c728daf9e1e2d96576e93cd843d75a2f9c4eaafb649ad07"
+  },
+  "unit_tests": "python3 -m unittest tests.test_cix_phase_receipt: 4 tests passed",
+  "source_hashes_note": "Original source hashes cover the initial direct exit controls; final reviewed source includes resource-status/binding checks tested separately by injected-timeout.json and unit tests."
+}

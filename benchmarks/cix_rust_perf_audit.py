@@ -30,7 +30,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from benchmarks.hutter_bounded_runner import execute_phase, stop_unit
+from benchmarks.hutter_bounded_runner import execute_phase as supervised_phase, stop_unit
 from benchmarks.hutter_experiment_scheduler import WaveScheduler, _core
 AREA = ROOT / "docs/research/2026-10-02-rust-performance-audit"
 GATE_DIRS = (("canterbury", 11), ("calgary", 18), ("artificial", 4))
@@ -47,6 +47,33 @@ SCHEMA = "cix-rust-performance-audit-v1"
 # limit is applied; later resume validates the sealed measurement receipt.
 MAX_RETAINED_EVIDENCE_BYTES = 128 * 1024
 MAX_TOTAL_ATTEMPT_EVIDENCE_BYTES = 128 * 1024 * 1024
+
+
+def execute_phase(**kwargs) -> dict:
+    """Require the child receipt; transient-unit collection can erase status."""
+    command = kwargs["command"]
+    receipt = kwargs["destination"] / (kwargs["unit"] + ".child-status.json")
+    if receipt.exists():
+        raise RuntimeError(f"refusing stale phase child receipt: {receipt}")
+    launcher = ["/usr/bin/python3", str(ROOT / "benchmarks/cix_phase_receipt.py"),
+                str(receipt), "--", *command]
+    result = supervised_phase(**{**kwargs, "command": launcher})
+    result["command"] = command
+    result["supervisor_command"] = launcher
+    result["supervisor_exit_code"] = result["exit_code"]
+    try:
+        child = json.loads(receipt.read_text())
+        if child.get("command") != command or type(child.get("child_exit_code")) is not int:
+            raise ValueError("invalid child status receipt")
+        result["child_status"] = child
+        result["child_status_sha256"] = sha256(receipt)
+        # Preserve an outer resource failure even if the child exited normally.
+        if result["stop_reason"] is None:
+            result["exit_code"] = child["child_exit_code"] or result["exit_code"]
+    except (OSError, ValueError, TypeError):
+        result["exit_code"] = result["exit_code"] or 1
+        result["stop_reason"] = result["stop_reason"] or "missing_or_invalid_child_status"
+    return result
 
 
 def utc() -> str:
@@ -313,6 +340,7 @@ def prepare(args: argparse.Namespace) -> None:
                "artifact_sha256": plan_value["artifact_sha256"], "fixture_sha256": plan_value["fixture_sha256"],
                "implementation": {rel(Path(__file__)): sha256(Path(__file__)),
                                   "benchmarks/hutter_bounded_runner.py": sha256(ROOT / "benchmarks/hutter_bounded_runner.py"),
+                                  "benchmarks/cix_phase_receipt.py": sha256(ROOT / "benchmarks/cix_phase_receipt.py"),
                                   "benchmarks/hutter_experiment_scheduler.py": sha256(ROOT / "benchmarks/hutter_experiment_scheduler.py")},
                "row_ids": [row["task_id"] for row in rows]}
     if len(set(binding["row_ids"])) != len(rows):
@@ -567,6 +595,9 @@ def validate_binding(destination: Path, supplied_sha256: str) -> tuple[dict, dic
     if sha256(binding_path) != supplied_sha256:
         raise RuntimeError("--binding-sha does not match the immutable manifest binding")
     binding = json.loads(binding_path.read_text())
+    helper = "benchmarks/cix_phase_receipt.py"
+    if binding.get("implementation", {}).get(helper) != sha256(ROOT / helper):
+        raise RuntimeError("audit binding lacks the current child-status supervisor; prepare a new identity")
     for name, expected in binding.get("files", {}).items():
         if sha256(destination / name) != expected:
             raise RuntimeError(f"immutable audit file changed after preparation: {name}")
