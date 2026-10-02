@@ -130,7 +130,11 @@ fn decode_arithmetic_planes(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
         });
     }
     let bit_length = read_v(data, &mut p)?;
-    if p + (bit_length + 7) / 8 != data.len() {
+    let payload_bytes = bit_length.div_ceil(8);
+    let payload_end = p
+        .checked_add(payload_bytes)
+        .ok_or("bit-plane arithmetic payload length overflow")?;
+    if payload_end != data.len() {
         return Err("bit-plane arithmetic payload length mismatch".into());
     }
     let mut decoder = ArithmeticDecoder::new(&data[p..], bit_length);
@@ -139,6 +143,35 @@ fn decode_arithmetic_planes(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
         decode_arithmetic_plane(&mut decoder, &mut out, plane, one_count);
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn arithmetic_planes_round_trip_and_reject_truncation() {
+        let input: Vec<u8> = (0..513).map(|index| (index * 37) as u8).collect();
+        let encoded = encode(&input);
+        assert_eq!(decode(&encoded, input.len()).unwrap(), input);
+        assert!(decode(&encoded[..encoded.len() - 1], input.len()).is_err());
+    }
+
+    #[test]
+    fn maximal_arithmetic_bit_length_is_rejected_without_overflow() {
+        let mut encoded = vec![2];
+        // Eight valid zero-minority plane headers, followed by usize::MAX as
+        // the arithmetic bit length. This exercises the ceiling division at
+        // the host maximum: the prior `bit_length + 7` expression overflowed
+        // before the decoder could reject the malformed payload.
+        encoded.extend([0, 0].repeat(8));
+        encoded.extend([0xff; 9]);
+        encoded.push(1);
+        assert_eq!(
+            decode(&encoded, 0).unwrap_err(),
+            "bit-plane arithmetic payload length mismatch"
+        );
+    }
 }
 
 fn decode_arithmetic_plane(

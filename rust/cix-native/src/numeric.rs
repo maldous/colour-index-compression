@@ -982,6 +982,10 @@ fn append_tail(mut out: Vec<u8>, tail: &[u8]) -> Vec<u8> {
     out
 }
 
+fn payload_end(end: usize, tail: usize, overflow: &'static str) -> Result<usize, String> {
+    end.checked_add(tail).ok_or_else(|| overflow.into())
+}
+
 fn decode_for(
     data: &[u8],
     n: usize,
@@ -994,9 +998,13 @@ fn decode_for(
     let base = read_word(data, &mut p, width, big)?;
     let count = n / width;
     let tail = n % width;
-    let packed = (count.checked_mul(b).ok_or("FOR bit count overflow")? + 7) / 8;
+    let packed = count
+        .checked_mul(b)
+        .ok_or("FOR bit count overflow")?
+        .div_ceil(8);
     let end = p.checked_add(packed).ok_or("FOR length overflow")?;
-    if end + tail != data.len() {
+    let expected_end = payload_end(end, tail, "FOR payload length overflow")?;
+    if expected_end != data.len() {
         return Err("numeric FOR payload length mismatch".into());
     }
     let mut bp = 0;
@@ -1034,14 +1042,15 @@ fn decode_delta(
             .checked_mul(b)
             .ok_or("delta2 bit count overflow")?
     };
-    let packed = (bits_count + 7) / 8;
+    let packed = bits_count.div_ceil(8);
     let first_delta = if method == 3 {
         Some(get_varint_u64(data, &mut p)?)
     } else {
         None
     };
     let end = p.checked_add(packed).ok_or("delta payload overflow")?;
-    if end + tail != data.len() {
+    let expected_end = payload_end(end, tail, "delta payload length overflow")?;
+    if expected_end != data.len() {
         return Err("numeric delta payload length mismatch".into());
     }
     let mut bp = 0;
@@ -1092,19 +1101,22 @@ fn decode_pfor(
     p = end;
     let count = n / width;
     let tail = n % width;
-    let packed = (count
+    let packed = count
         .checked_mul(low_width)
         .ok_or("PFOR bit count overflow")?
-        + 7)
-        / 8;
-    if p + packed + tail != data.len() {
+        .div_ceil(8);
+    let lows_end = p
+        .checked_add(packed)
+        .ok_or("PFOR low-bit length overflow")?;
+    let expected_end = payload_end(lows_end, tail, "PFOR payload length overflow")?;
+    if expected_end != data.len() {
         return Err("numeric PFOR payload length mismatch".into());
     }
     let mut bp = 0;
     let mut ex = 0;
     let mut out = Vec::with_capacity(n);
     for i in 0..count {
-        let lo = bits(&data[p..p + packed], &mut bp, low_width)?;
+        let lo = bits(&data[p..lows_end], &mut bp, low_width)?;
         let hi = if ex < indices.len() && indices[ex] == i {
             let v = highs[ex] as u64;
             ex += 1;
@@ -1115,7 +1127,7 @@ fn decode_pfor(
         let value = base.checked_add(hi | lo).ok_or("PFOR value overflow")?;
         push_word(&mut out, value, width, big);
     }
-    Ok(append_tail(out, &data[p + packed..]))
+    Ok(append_tail(out, &data[lows_end..]))
 }
 
 pub fn decode(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
@@ -1125,5 +1137,62 @@ pub fn decode(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
         2 | 3 => decode_delta(data, n, method, width, big, p),
         4 => decode_pfor(data, n, width, big, p),
         _ => Err(format!("unsupported numeric transform mode {method}")),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_numeric_candidate_round_trips_exactly() {
+        let input: Vec<u8> = (0..257)
+            .flat_map(|index| [(index * 17) as u8, (index >> 1) as u8])
+            .collect();
+        let candidates = encode_candidates(&input).unwrap();
+        assert!(candidates
+            .iter()
+            .any(|candidate| candidate.description.starts_with("for-")));
+        assert!(candidates
+            .iter()
+            .any(|candidate| candidate.description.starts_with("delta-")));
+        assert!(candidates
+            .iter()
+            .any(|candidate| candidate.description.starts_with("delta2-")));
+        assert!(candidates
+            .iter()
+            .any(|candidate| candidate.description.starts_with("pfor")));
+        for candidate in candidates {
+            assert_eq!(decode(&candidate.payload, input.len()).unwrap(), input);
+        }
+    }
+
+    #[test]
+    fn numeric_bit_count_overflow_is_rejected() {
+        let error = decode_for(&[3, 0, 0], usize::MAX, 2, false, 0).unwrap_err();
+        assert_eq!(error, "FOR bit count overflow");
+    }
+
+    #[test]
+    fn numeric_payload_end_overflow_is_rejected() {
+        assert_eq!(
+            payload_end(usize::MAX, 1, "numeric test payload overflow").unwrap_err(),
+            "numeric test payload overflow"
+        );
+    }
+
+    #[test]
+    fn truncated_numeric_candidate_is_rejected() {
+        let input: Vec<u8> = (0..128).map(|index| (index * 13) as u8).collect();
+        let candidate = encode_candidates(&input)
+            .unwrap()
+            .into_iter()
+            .find(|candidate| candidate.description.starts_with("pfor"))
+            .unwrap();
+        assert!(decode(
+            &candidate.payload[..candidate.payload.len() - 1],
+            input.len()
+        )
+        .is_err());
     }
 }
