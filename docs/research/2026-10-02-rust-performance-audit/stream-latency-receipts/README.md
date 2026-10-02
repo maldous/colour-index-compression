@@ -9,3 +9,12 @@ case.
 
 This is focused local streaming correctness and latency evidence. It is not an
 isolated-host corpus qualification, compression benchmark, or ranking.
+
+Root independently repeated all six cases under an aggregate 128 MiB service
+cgroup with `memory.swap.max=0` and CPU 8, read back before the run.
+`root-independent-noswap.json` records that guard and the generated results.
+The three ordinary idle cases emitted reconstructed bytes after about 107 ms,
+while producer EOF came after one second; slow consumption delayed output
+without corrupting the stream. All complete archives were 65,672 bytes,
+all six restored exactly, and truncation/corruption each exited 2.
+These timings describe this small native CIXG1 fixture, not sustained corpus throughput.
