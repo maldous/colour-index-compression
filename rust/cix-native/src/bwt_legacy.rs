@@ -4,7 +4,10 @@
 //! byte/integer substreams and libdivsufsort's one-based primary-index
 //! convention; the CIXG1 route has different framing.
 
-use super::{combinatorics, rank::{self, ArithmeticDecoder}};
+use super::{
+    combinatorics,
+    rank::{self, ArithmeticDecoder},
+};
 use num_bigint::BigUint;
 use num_traits::{One, ToPrimitive, Zero};
 use std::collections::HashMap;
@@ -437,6 +440,9 @@ fn decode_rice_uints(blob: &[u8], count: usize) -> Result<Vec<usize>, String> {
                 .ok_or("BWT Rice quotient overflow")?;
         }
         let low = reader.bits(width)?;
+        if quotient > (usize::MAX >> width) {
+            return Err("BWT Rice value overflow".into());
+        }
         out.push(
             quotient
                 .checked_shl(width as u32)
@@ -1013,36 +1019,10 @@ fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
     }
     let mut best = raw;
     for width in 0..=16usize {
-        let payload_limit_bits = best.len().saturating_sub(2) * 8;
-        let mut bit_cost = 0usize;
-        let mut viable = true;
-        for &value in values {
-            bit_cost = bit_cost
-                .checked_add(value >> width)
-                .and_then(|cost| cost.checked_add(1 + width))
-                .unwrap_or(usize::MAX);
-            if bit_cost >= payload_limit_bits {
-                viable = false;
-                break;
+        if let Some(candidate) = rice_candidate(values, width, best.len()) {
+            if candidate.len() < best.len() {
+                best = candidate;
             }
-        }
-        if !viable {
-            continue;
-        }
-        let mut writer = BitWriter::new();
-        for &value in values {
-            for _ in 0..(value >> width) {
-                writer.bit(1);
-            }
-            writer.bit(0);
-            if width > 0 {
-                writer.bits(value & ((1usize << width) - 1), width);
-            }
-        }
-        let mut candidate = vec![1, width as u8];
-        candidate.extend(writer.finish());
-        if candidate.len() < best.len() {
-            best = candidate;
         }
     }
     let mut classes = Vec::with_capacity(values.len());
@@ -1080,6 +1060,33 @@ fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
         best = candidate;
     }
     Ok(best)
+}
+
+fn rice_candidate(values: &[usize], width: usize, best_len: usize) -> Option<Vec<u8>> {
+    let payload_limit_bits = best_len.saturating_sub(2) * 8;
+    let mut bit_cost = 0usize;
+    for &value in values {
+        bit_cost = bit_cost
+            .checked_add(value >> width)
+            .and_then(|cost| cost.checked_add(1 + width))
+            .unwrap_or(usize::MAX);
+        if bit_cost >= payload_limit_bits {
+            return None;
+        }
+    }
+    let mut writer = BitWriter::new();
+    for &value in values {
+        for _ in 0..(value >> width) {
+            writer.bit(1);
+        }
+        writer.bit(0);
+        if width > 0 {
+            writer.bits(value & ((1usize << width) - 1), width);
+        }
+    }
+    let mut candidate = vec![1, width as u8];
+    candidate.extend(writer.finish());
+    Some(candidate)
 }
 
 fn active_prefix(active: &[usize]) -> Result<Vec<u8>, String> {
@@ -1184,12 +1191,13 @@ fn bwt_histogram_header_size(total: usize, active: &[usize]) -> Result<usize, St
         encoded.len()
     };
     if active.len() < 256 {
-        header_size += fixed_width(&(combinatorics::choose_checked(256, active.len())?
-            - BigUint::one()))
-        .div_ceil(8);
+        header_size +=
+            fixed_width(&(combinatorics::choose_checked(256, active.len())? - BigUint::one()))
+                .div_ceil(8);
     }
-    header_size += fixed_width(&(combinatorics::choose_checked(total - 1, active.len() - 1)?
-        - BigUint::one()))
+    header_size += fixed_width(
+        &(combinatorics::choose_checked(total - 1, active.len() - 1)? - BigUint::one()),
+    )
     .div_ceil(8);
     Ok(header_size)
 }
@@ -1230,58 +1238,60 @@ fn encode_bytes(data: &[u8]) -> Result<Vec<u8>, String> {
         return Ok(best);
     }
     for chunk_size in [128usize, 256, 512, 1024, 2048, 4096] {
-        if data.len() < chunk_size * 2 {
-            continue;
-        }
-        let mut candidate = vec![1];
-        put_varint(chunk_size, &mut candidate);
-        for chunk in data.chunks(chunk_size) {
-            candidate.extend(rank::encode_type_class(chunk)?);
-        }
-        if candidate.len() < best.len() {
-            best = candidate;
+        if let Some(candidate) = chunked_candidate(data, chunk_size)? {
+            consider_smaller(&mut best, candidate);
         }
     }
     if data.len() >= 64 && estimate_wavelet_bits(data) / 8.0 <= best.len() as f64 * 1.03 + 8.0 {
         let mut candidate = vec![4];
         candidate.extend(encode_wavelet(data));
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
+        consider_smaller(&mut best, candidate);
     }
     if data.len() >= 256 {
         let mut candidate = vec![2];
         candidate.extend(encode_adaptive(data, 0, 8));
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
-        for order in if data.len() >= 2048 {
-            &[1usize, 2][..]
-        } else {
-            &[1usize][..]
-        } {
-            if conditional_bits(data, *order) / 8.0 > best.len() as f64 * 1.10 + 16.0 {
-                continue;
-            }
-            let mut candidate = vec![3, *order as u8];
-            candidate.extend(encode_adaptive(
-                data,
-                *order,
-                if *order == 1 { 8 } else { 10 },
-            ));
-            if candidate.len() < best.len() {
-                best = candidate;
-            }
-        }
+        consider_smaller(&mut best, candidate);
+        consider_context_candidates(data, &mut best);
     }
     if let Some(histogram) = histogram_candidate(data, &static_payload)? {
         let mut candidate = vec![5];
         candidate.extend(histogram);
-        if candidate.len() < best.len() {
-            best = candidate;
-        }
+        consider_smaller(&mut best, candidate);
     }
     Ok(best)
+}
+
+fn consider_smaller(best: &mut Vec<u8>, candidate: Vec<u8>) {
+    if candidate.len() < best.len() {
+        *best = candidate;
+    }
+}
+
+fn chunked_candidate(data: &[u8], chunk_size: usize) -> Result<Option<Vec<u8>>, String> {
+    if data.len() < chunk_size * 2 {
+        return Ok(None);
+    }
+    let mut candidate = vec![1];
+    put_varint(chunk_size, &mut candidate);
+    for chunk in data.chunks(chunk_size) {
+        candidate.extend(rank::encode_type_class(chunk)?);
+    }
+    Ok(Some(candidate))
+}
+
+fn consider_context_candidates(data: &[u8], best: &mut Vec<u8>) {
+    let orders: &[usize] = if data.len() >= 2048 { &[1, 2] } else { &[1] };
+    for &order in orders {
+        if conditional_bits(data, order) / 8.0 <= best.len() as f64 * 1.10 + 16.0 {
+            let mut candidate = vec![3, order as u8];
+            candidate.extend(encode_adaptive(
+                data,
+                order,
+                if order == 1 { 8 } else { 10 },
+            ));
+            consider_smaller(best, candidate);
+        }
+    }
 }
 
 fn split_zero_runs(data: &[u8]) -> (Vec<u8>, Vec<u8>, Vec<usize>) {
@@ -1753,6 +1763,32 @@ mod tests {
     fn rejects_mtf_uint_overflow_before_conversion() {
         assert!(decode_mtf_ranks(vec![255]).is_err());
         assert!(decode_mtf_ranks(vec![usize::MAX]).is_err());
+    }
+
+    #[test]
+    fn rice_uints_reject_high_bit_overflow() {
+        let width = usize::BITS as usize - 1;
+        let mut valid_bits = super::BitWriter::new();
+        valid_bits.bit(0);
+        valid_bits.bits(usize::MAX >> 1, width);
+        let mut valid = vec![1, width as u8];
+        valid.extend(valid_bits.finish());
+        assert_eq!(
+            super::decode_rice_uints(&valid, 1).unwrap(),
+            vec![usize::MAX >> 1]
+        );
+
+        let mut overflow_bits = super::BitWriter::new();
+        overflow_bits.bit(1);
+        overflow_bits.bit(1);
+        overflow_bits.bit(0);
+        overflow_bits.bits(0, width);
+        let mut overflow = vec![1, width as u8];
+        overflow.extend(overflow_bits.finish());
+        assert_eq!(
+            super::decode_rice_uints(&overflow, 1).unwrap_err(),
+            "BWT Rice value overflow"
+        );
     }
 
     #[test]

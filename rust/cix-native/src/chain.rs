@@ -242,76 +242,90 @@ fn decode_uints(data: &[u8], count: usize, model_limit: usize) -> Result<Vec<usi
     let mode = *data.first().ok_or("empty transform-chain integer stream")?;
     let mut pos = 1;
     match mode {
-        0 => {
-            let mut out = Vec::with_capacity(count);
-            for _ in 0..count {
-                out.push(unvar(data, &mut pos)?);
-            }
-            if pos != data.len() {
-                return Err("trailing transform-chain varints".into());
-            }
-            Ok(out)
-        }
-        1 => {
-            let k = *data.get(pos).ok_or("missing Rice parameter")? as usize;
-            pos += 1;
-            let mut reader = BitReader {
-                data: &data[pos..],
-                pos: 0,
-            };
-            let mut out = Vec::with_capacity(count);
-            for _ in 0..count {
-                let mut quotient = 0usize;
-                while reader.bit()? != 0 {
-                    quotient = quotient.checked_add(1).ok_or("Rice quotient overflow")?;
-                }
-                let low = reader.bits(k)?;
-                out.push(
-                    quotient
-                        .checked_shl(k as u32)
-                        .ok_or("Rice integer overflow")?
-                        | low,
-                );
-            }
-            Ok(out)
-        }
-        2 | 3 => {
-            let class_len = unvar(data, &mut pos)?;
-            let end = pos
-                .checked_add(class_len)
-                .ok_or("integer class length overflow")?;
-            if end > data.len() {
-                return Err("truncated integer class stream".into());
-            }
-            let classes = if mode == 2 {
-                let mut class_pos = 0;
-                let out = rank::decode_type_class(&data[pos..end], &mut class_pos, count)?;
-                if class_pos != class_len {
-                    return Err("trailing integer class bytes".into());
-                }
-                out
-            } else {
-                decode_bytes(&data[pos..end], count, model_limit)?
-            };
-            let mut reader = BitReader {
-                data: &data[end..],
-                pos: 0,
-            };
-            let mut out = Vec::with_capacity(count);
-            for width in classes {
-                let width = width as usize;
-                let low = reader.bits(width)?;
-                out.push(
-                    (1usize << width)
-                        .checked_add(low)
-                        .and_then(|value| value.checked_sub(1))
-                        .ok_or("integer stream overflow")?,
-                );
-            }
-            Ok(out)
-        }
+        0 => decode_uint_varints(data, &mut pos, count),
+        1 => decode_uint_rice(data, &mut pos, count),
+        2 | 3 => decode_uint_classes(data, &mut pos, count, model_limit, mode),
         _ => Err(format!("unsupported transform-chain integer mode {mode}")),
     }
+}
+
+fn decode_uint_varints(data: &[u8], pos: &mut usize, count: usize) -> Result<Vec<usize>, String> {
+    let mut out = Vec::with_capacity(count);
+    for _ in 0..count {
+        out.push(unvar(data, pos)?);
+    }
+    if *pos != data.len() {
+        return Err("trailing transform-chain varints".into());
+    }
+    Ok(out)
+}
+
+fn decode_uint_rice(data: &[u8], pos: &mut usize, count: usize) -> Result<Vec<usize>, String> {
+    let k = *data.get(*pos).ok_or("missing Rice parameter")? as usize;
+    *pos += 1;
+    let mut reader = BitReader {
+        data: &data[*pos..],
+        pos: 0,
+    };
+    let mut out = Vec::with_capacity(count);
+    for _ in 0..count {
+        let mut quotient = 0usize;
+        while reader.bit()? != 0 {
+            quotient = quotient.checked_add(1).ok_or("Rice quotient overflow")?;
+        }
+        let low = reader.bits(k)?;
+        if quotient > (usize::MAX >> k) {
+            return Err("Rice integer overflow".into());
+        }
+        out.push(
+            quotient
+                .checked_shl(k as u32)
+                .ok_or("Rice integer overflow")?
+                | low,
+        );
+    }
+    Ok(out)
+}
+
+fn decode_uint_classes(
+    data: &[u8],
+    pos: &mut usize,
+    count: usize,
+    model_limit: usize,
+    mode: u8,
+) -> Result<Vec<usize>, String> {
+    let class_len = unvar(data, pos)?;
+    let end = pos
+        .checked_add(class_len)
+        .ok_or("integer class length overflow")?;
+    if end > data.len() {
+        return Err("truncated integer class stream".into());
+    }
+    let classes = if mode == 2 {
+        let mut class_pos = 0;
+        let out = rank::decode_type_class(&data[*pos..end], &mut class_pos, count)?;
+        if class_pos != class_len {
+            return Err("trailing integer class bytes".into());
+        }
+        out
+    } else {
+        decode_bytes(&data[*pos..end], count, model_limit)?
+    };
+    let mut reader = BitReader {
+        data: &data[end..],
+        pos: 0,
+    };
+    classes
+        .into_iter()
+        .map(|width| {
+            let width = width as usize;
+            let low = reader.bits(width)?;
+            (1usize << width)
+                .checked_add(low)
+                .and_then(|value| value.checked_sub(1))
+                .ok_or_else(|| "integer stream overflow".into())
+        })
+        .collect()
 }
 
 fn decode_runs(data: &[u8], source_len: usize, model_limit: usize) -> Result<Vec<u8>, String> {
@@ -870,8 +884,9 @@ fn encode_sparse(data: &[u8]) -> Result<Vec<u8>, String> {
             values.push(byte);
         }
     }
-    let width = fixed_width(&(combinatorics::choose_checked(data.len(), positions.len())?
-        - BigUint::one()));
+    let width = fixed_width(
+        &(combinatorics::choose_checked(data.len(), positions.len())? - BigUint::one()),
+    );
     let mut out = vec![1, dominant as u8];
     put_var(positions.len(), &mut out);
     out.extend(fixed_bytes(&colex_rank(&positions)?, width));
@@ -935,6 +950,140 @@ fn typeclass_score(data: &[u8], log_factorials: &[f64]) -> f64 {
     bits / 8.0
 }
 
+fn record_candidate(
+    best: &mut Option<(Vec<u8>, String)>,
+    measurements: &mut Vec<CandidateSize>,
+    transform_id: u8,
+    inner_mode: u8,
+    inner: Vec<u8>,
+    inner_name: &str,
+) {
+    let mut payload = vec![CHAIN_VERSION, transform_id, inner_mode];
+    payload.extend(inner);
+    let description = format!("{}->{inner_name}", transform_name(transform_id));
+    measurements.push(CandidateSize {
+        transform_id,
+        inner_mode,
+        bytes: payload.len(),
+        description: description.clone(),
+    });
+    if best
+        .as_ref()
+        .is_none_or(|(current, _)| payload.len() < current.len())
+    {
+        *best = Some((payload, description));
+    }
+}
+
+fn context_models(effort: u8) -> &'static [(usize, usize)] {
+    match effort {
+        0..=4 => &[],
+        5..=6 => &[(1, 8)],
+        7..=8 => &[(1, 8), (2, 8)],
+        _ => &[(1, 8), (2, 8), (2, 10)],
+    }
+}
+
+fn consider_transform(
+    transformed: &[u8],
+    transform_id: u8,
+    options: EncodeOptions,
+    best: &mut Option<(Vec<u8>, String)>,
+    measurements: &mut Vec<CandidateSize>,
+) -> Result<(), String> {
+    record_candidate(
+        best,
+        measurements,
+        transform_id,
+        INNER_MULTINOMIAL,
+        rank::encode_type_class(transformed)?,
+        "multinomial",
+    );
+    for &(order, bucket_bits) in context_models(options.effort) {
+        record_candidate(
+            best,
+            measurements,
+            transform_id,
+            INNER_CONTEXT,
+            rank::encode_context_type_classes(transformed, order, bucket_bits, &[])?,
+            &format!("context-o{order}-b{bucket_bits}"),
+        );
+    }
+    if options.effort >= 4 && transformed.len() >= 16 {
+        let candidate = legacy_lz::encode(transformed, &[], options.effort)?;
+        record_candidate(
+            best,
+            measurements,
+            transform_id,
+            INNER_LZ,
+            candidate.payload,
+            &candidate.description,
+        );
+    }
+    if options.effort >= 6 && (32..=65_536).contains(&transformed.len()) {
+        let (payload, description) = bwt_legacy::encode(transformed)?;
+        record_candidate(
+            best,
+            measurements,
+            transform_id,
+            INNER_BWT,
+            payload,
+            description,
+        );
+    }
+    if options.effort >= 3 && transformed.len() >= 2 {
+        record_candidate(
+            best,
+            measurements,
+            transform_id,
+            INNER_BITPLANE,
+            bitplane::encode(transformed),
+            "bitplanes",
+        );
+    }
+    if options.effort >= 2 && transformed.len() >= 2 {
+        consider_simple_transforms(transformed, transform_id, best, measurements)?;
+    }
+    Ok(())
+}
+
+fn consider_simple_transforms(
+    transformed: &[u8],
+    transform_id: u8,
+    best: &mut Option<(Vec<u8>, String)>,
+    measurements: &mut Vec<CandidateSize>,
+) -> Result<(), String> {
+    let mut counts = [0usize; 256];
+    for &byte in transformed {
+        counts[byte as usize] += 1;
+    }
+    if counts.iter().copied().max().unwrap_or(0) * 4 >= transformed.len() {
+        record_candidate(
+            best,
+            measurements,
+            transform_id,
+            INNER_SPARSE,
+            encode_sparse(transformed)?,
+            "sparse",
+        );
+    }
+    let run_count = 1 + transformed
+        .windows(2)
+        .filter(|pair| pair[0] != pair[1])
+        .count();
+    if run_count * 3 <= transformed.len() * 2 {
+        record_candidate(
+            best,
+            measurements,
+            transform_id,
+            INNER_RUNS,
+            encode_runs(transformed)?,
+            "runs",
+        );
+    }
+    Ok(())
+}
+
 /// Materialize a bounded frozen transform-chain portfolio and select by complete
 /// payload bytes. The returned payload includes the three-byte chain header.
 pub fn encode(data: &[u8], options: EncodeOptions) -> Result<EncodeResult, String> {
@@ -966,70 +1115,13 @@ pub fn encode(data: &[u8], options: EncodeOptions) -> Result<EncodeResult, Strin
     let mut best = None::<(Vec<u8>, String)>;
     let mut measurements = Vec::new();
     for (_, transform_id, transformed) in profiled.into_iter().take(options.beam) {
-        let mut consider =
-            |inner_mode: u8, inner: Vec<u8>, inner_name: &str| -> Result<(), String> {
-                let mut payload = vec![CHAIN_VERSION, transform_id, inner_mode];
-                payload.extend(inner);
-                let description = format!("{}->{inner_name}", transform_name(transform_id));
-                measurements.push(CandidateSize {
-                    transform_id,
-                    inner_mode,
-                    bytes: payload.len(),
-                    description: description.clone(),
-                });
-                if best
-                    .as_ref()
-                    .is_none_or(|(current, _)| payload.len() < current.len())
-                {
-                    best = Some((payload, description));
-                }
-                Ok(())
-            };
-        consider(
-            INNER_MULTINOMIAL,
-            rank::encode_type_class(&transformed)?,
-            "multinomial",
+        consider_transform(
+            &transformed,
+            transform_id,
+            options,
+            &mut best,
+            &mut measurements,
         )?;
-        let context_models: &[(usize, usize)] = match options.effort {
-            0..=4 => &[],
-            5..=6 => &[(1, 8)],
-            7..=8 => &[(1, 8), (2, 8)],
-            _ => &[(1, 8), (2, 8), (2, 10)],
-        };
-        for &(order, bucket_bits) in context_models {
-            consider(
-                INNER_CONTEXT,
-                rank::encode_context_type_classes(&transformed, order, bucket_bits, &[])?,
-                &format!("context-o{order}-b{bucket_bits}"),
-            )?;
-        }
-        if options.effort >= 4 && transformed.len() >= 16 {
-            let candidate = legacy_lz::encode(&transformed, &[], options.effort)?;
-            consider(INNER_LZ, candidate.payload, &candidate.description)?;
-        }
-        if options.effort >= 6 && (32..=65_536).contains(&transformed.len()) {
-            let (payload, description) = bwt_legacy::encode(&transformed)?;
-            consider(INNER_BWT, payload, description)?;
-        }
-        if options.effort >= 3 && transformed.len() >= 2 {
-            consider(INNER_BITPLANE, bitplane::encode(&transformed), "bitplanes")?;
-        }
-        if options.effort >= 2 && transformed.len() >= 2 {
-            let mut counts = [0usize; 256];
-            for &byte in &transformed {
-                counts[byte as usize] += 1;
-            }
-            if counts.iter().copied().max().unwrap_or(0) * 4 >= transformed.len() {
-                consider(INNER_SPARSE, encode_sparse(&transformed)?, "sparse")?;
-            }
-            let run_count = 1 + transformed
-                .windows(2)
-                .filter(|pair| pair[0] != pair[1])
-                .count();
-            if run_count * 3 <= transformed.len() * 2 {
-                consider(INNER_RUNS, encode_runs(&transformed)?, "runs")?;
-            }
-        }
     }
     let (payload, description) = best.ok_or("no transform-chain candidates")?;
     Ok(EncodeResult {
@@ -1105,48 +1197,34 @@ fn matchxor_decode(data: &[u8]) -> Vec<u8> {
     out
 }
 
-fn invert(data: &[u8], spec: Transform) -> Result<Vec<u8>, String> {
-    if matches!(spec.operation, Operation::MatchXor) {
-        return Ok(matchxor_decode(data));
-    }
-    let mut raw = if spec.shuffle {
-        unshuffle(data, spec.width)
-    } else {
-        data.to_vec()
-    };
-    if let Some(lag) = spec.byte_lag {
-        match spec.operation {
-            Operation::Xor => {
-                for i in lag..raw.len() {
-                    raw[i] ^= raw[i - lag];
-                }
+fn restore_byte_lag(raw: &mut [u8], lag: usize, operation: Operation) -> Result<(), String> {
+    match operation {
+        Operation::Xor => {
+            for i in lag..raw.len() {
+                raw[i] ^= raw[i - lag];
             }
-            Operation::Delta => {
-                for i in lag..raw.len() {
-                    raw[i] = raw[i].wrapping_add(raw[i - lag]);
-                }
-            }
-            _ => return Err("invalid byte-lag transform operation".into()),
         }
-        return Ok(raw);
+        Operation::Delta => {
+            for i in lag..raw.len() {
+                raw[i] = raw[i].wrapping_add(raw[i - lag]);
+            }
+        }
+        _ => return Err("invalid byte-lag transform operation".into()),
     }
-    let usable = raw.len() / spec.width * spec.width;
-    let mut values = raw[..usable]
-        .chunks_exact(spec.width)
-        .map(|word| read_word(word, spec.endian));
+    Ok(())
+}
+
+fn restore_words(
+    mut values: impl Iterator<Item = u64>,
+    operation: Operation,
+    mask: u64,
+) -> Vec<u64> {
     let Some(first) = values.next() else {
-        return Ok(raw);
-    };
-    let bits = 8 * spec.width;
-    let mask = if bits == 64 {
-        u64::MAX
-    } else {
-        (1u64 << bits) - 1
+        return Vec::new();
     };
     let add = |left: u64, right: u64| left.wrapping_add(right) & mask;
-    let mut restored = Vec::with_capacity(usable / spec.width);
-    restored.push(first);
-    match spec.operation {
+    let mut restored = vec![first];
+    match operation {
         Operation::Xor => {
             for encoded in values {
                 restored.push(restored.last().copied().unwrap() ^ encoded);
@@ -1185,6 +1263,36 @@ fn invert(data: &[u8], spec: Transform) -> Result<Vec<u8>, String> {
         }
         Operation::MatchXor => unreachable!(),
     }
+    restored
+}
+
+fn invert(data: &[u8], spec: Transform) -> Result<Vec<u8>, String> {
+    if matches!(spec.operation, Operation::MatchXor) {
+        return Ok(matchxor_decode(data));
+    }
+    let mut raw = if spec.shuffle {
+        unshuffle(data, spec.width)
+    } else {
+        data.to_vec()
+    };
+    if let Some(lag) = spec.byte_lag {
+        restore_byte_lag(&mut raw, lag, spec.operation)?;
+        return Ok(raw);
+    }
+    let usable = raw.len() / spec.width * spec.width;
+    let values = raw[..usable]
+        .chunks_exact(spec.width)
+        .map(|word| read_word(word, spec.endian));
+    if usable == 0 {
+        return Ok(raw);
+    }
+    let bits = 8 * spec.width;
+    let mask = if bits == 64 {
+        u64::MAX
+    } else {
+        (1u64 << bits) - 1
+    };
+    let restored = restore_words(values, spec.operation, mask);
     let mut out = Vec::with_capacity(raw.len());
     for word in restored {
         write_word(word, spec.width, spec.endian, &mut out);
@@ -1262,10 +1370,30 @@ mod tests {
                 data.extend_from_slice(payload);
             }
             let (_, _, _, _, _, streams) = parse_lz_streams(&data).unwrap();
-            assert_eq!(streams, payloads.iter().map(Vec::as_slice).collect::<Vec<_>>());
+            assert_eq!(
+                streams,
+                payloads.iter().map(Vec::as_slice).collect::<Vec<_>>()
+            );
             data.pop();
             assert!(parse_lz_streams(&data).is_err());
         }
+    }
+
+    #[test]
+    fn rice_uints_reject_high_bit_overflow() {
+        let width = usize::BITS as usize - 1;
+        let mut valid = vec![1, width as u8];
+        valid.push(0x7f);
+        valid.extend(std::iter::repeat_n(0xff, width / 8));
+        assert_eq!(decode_uints(&valid, 1, 1).unwrap(), vec![usize::MAX >> 1]);
+
+        let mut overflow = vec![1, width as u8];
+        overflow.push(0xc0);
+        overflow.extend(std::iter::repeat_n(0, width / 8 + 1));
+        assert_eq!(
+            decode_uints(&overflow, 1, 1).unwrap_err(),
+            "Rice integer overflow"
+        );
     }
 
     #[test]
