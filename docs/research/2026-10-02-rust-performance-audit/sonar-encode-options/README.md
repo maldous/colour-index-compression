@@ -9,4 +9,4 @@
 - `cargo check --bin cix`: passed.
 - `cargo test cixg_huffman_tests --bin cix -- --test-threads=1`: 2 passed.
 
-Archive and pipe qualification remains to be run before review.
+Archive and pipe qualification completed. See qualification-receipt.md, retained probe JSON and script identities, and the independent root no-swap repetition and SIGINT receipt. These are correctness checks, not performance qualification.
