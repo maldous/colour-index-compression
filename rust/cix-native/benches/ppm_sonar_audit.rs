@@ -5,6 +5,13 @@ fn main() {
     let input: Vec<u8> = (0..4096).map(|i| ((i * 17 + i / 23) & 255) as u8).collect();
     let prefix: Vec<u8> = (0..257).map(|i| ((i * 11) & 255) as u8).collect();
     let fixed = ppm::encode_fixed(&input, 3, &prefix, 2, true).unwrap();
+    for method in 0..=3 {
+        for update in [false, true] {
+            let payload = ppm::encode_fixed(&input, 3, &prefix, method, update).unwrap();
+            assert_eq!(ppm::decode_with_history(&payload, input.len(), &prefix).unwrap(), input);
+            println!("fixed-{method}-{} {} {:x}", u8::from(update), payload.len(), Sha256::digest(&payload));
+        }
+    }
     let see = ppm::encode_secondary(&input, 3, &prefix, true).unwrap();
     assert_eq!(ppm::decode_with_history(&fixed, input.len(), &prefix).unwrap(), input);
     assert_eq!(ppm::decode_with_history(&see, input.len(), &prefix).unwrap(), input);
