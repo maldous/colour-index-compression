@@ -376,9 +376,11 @@ fn read_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {
     for shift in (0..70).step_by(7) {
         let byte = *data.get(*pos).ok_or("truncated PPM bit length")?;
         *pos += 1;
-        value |= ((byte & 0x7f) as usize)
-            .checked_shl(shift as u32)
-            .ok_or("oversized PPM varint")?;
+        let low = (byte & 0x7f) as usize;
+        if shift >= usize::BITS as usize || low > usize::MAX >> shift {
+            return Err("oversized PPM varint".into());
+        }
+        value |= low << shift;
         if byte < 128 {
             return Ok(value);
         }
@@ -848,6 +850,24 @@ mod tests {
         ] {
             assert!(decode(&payload, 1).is_err(), "payload {payload:?}");
         }
+    }
+
+    #[test]
+    fn varint_rejects_bits_outside_usize() {
+        let groups = usize::BITS.div_ceil(7) as usize;
+        let mut maximum = vec![0xff; groups];
+        let last_bits = usize::BITS as usize - (groups - 1) * 7;
+        maximum[groups - 1] = ((1u16 << last_bits) - 1) as u8;
+        let mut pos = 0;
+        assert_eq!(read_varint(&maximum, &mut pos), Ok(usize::MAX));
+
+        let mut overflow = maximum;
+        overflow[groups - 1] += 1;
+        let mut pos = 0;
+        assert_eq!(
+            read_varint(&overflow, &mut pos),
+            Err("oversized PPM varint".into())
+        );
     }
 
     fn hex_digest(bytes: &[u8]) -> String {
