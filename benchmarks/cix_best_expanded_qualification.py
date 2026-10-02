@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -181,6 +182,20 @@ def native_trial_ids(input_bytes: int) -> list[str]:
     return [f"{container}:native-auto:block={block}" for container in ("cixg1", "cixg2", "cixm6") for block in blocks]
 
 
+def freeze_proof_sources(area: Path, artifact: dict) -> None:
+    """Copy selector evidence into this immutable plan, never into runtime paths."""
+    destination = area / "frozen-source"
+    destination.mkdir()
+    frozen = {}
+    for source in (EXTERNAL_SOURCE, PORTFOLIO_SOURCE):
+        copied = destination / source.name
+        shutil.copy2(source, copied)
+        if sha256(copied) != sha256(source):
+            raise RuntimeError(f"frozen selector proof copy hash mismatch: {source.name}")
+        frozen[source.name] = {"path": rel(copied), "sha256": sha256(copied), "source_path": rel(source)}
+    artifact["frozen_source_paths"] = frozen
+
+
 def phase_command(status_file: str, command: list[str]) -> list[str]:
     return [sys.executable, str(Path(__file__).resolve()), "phase", status_file, *command]
 
@@ -219,7 +234,8 @@ def manifest(row: dict, artifact: dict, identity: str, registry: dict) -> dict:
         "build_paths": [*(entry["path"] for entry in artifact["binaries"].values()), artifact["metadata"],
                         "benchmarks/cix_best_expanded_qualification.py", "benchmarks/cix_full_catalog.py",
                         "benchmarks/cix_dickens_best_compare.py", "benchmarks/hutter_bounded_runner.py",
-                        "benchmarks/hutter_experiment_scheduler.py", rel(EXTERNAL_SOURCE), rel(PORTFOLIO_SOURCE),
+                        "benchmarks/hutter_experiment_scheduler.py",
+                        *(entry["path"] for entry in artifact["frozen_source_paths"].values()),
                         registry["build_path"], rel(HOST_RUNTIME)],
         "qualification_registry": registry,
     }
@@ -235,6 +251,7 @@ def prepare(identity: str, artifacts: Path) -> Path:
     artifact = artifact_identity(artifacts)
     rows, provenance = inputs()
     area.mkdir(parents=True)
+    freeze_proof_sources(area, artifact)
     (area / ".gitignore").write_text("runs/**/work/\nruns/**/build/\n")
     registry_path = ROOT / "docs/research/2026-10-02-rust-full-catalog" / (identity + "-best-expanded") / "input-registry.json"
     if registry_path.exists(): raise RuntimeError("immutable qualification registry already exists")

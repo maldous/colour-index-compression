@@ -237,7 +237,7 @@ extern "C" int cix_zpaq715_decompress(const uint8_t* input, size_t input_size,
         0x37, 0x6b, 0x53, 0x74, 0xa0, 0x31, 0x83,
         0xd3, 0x8c, 0xb2, 0x28, 0xb0, 0xd3,
     };
-    // Even an empty original input is emitted by libzpaq as a tagged stream.
+    // CIXB1 backend-6 payloads must contain a framed, tagged ZPAQ stream.
     // Accepting an empty CIXB1 payload would create an unframed alternate
     // spelling and let a forged backend-6 envelope bypass this validation.
     if (input_size == 0) {

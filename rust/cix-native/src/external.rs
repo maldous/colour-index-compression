@@ -1490,7 +1490,14 @@ mod tests {
         trailing[11..15].copy_from_slice(&payload.to_le_bytes());
         assert!(decode(&trailing, 2 * 1024 * 1024 * 1024).is_err());
 
-        let mut missing_payload = encode_zpaq("size", &[], 5).unwrap();
+        assert!(encode_zpaq("size", &[], 5)
+            .unwrap_err()
+            .starts_with("ZPAQ candidate rejected:"));
+        let mut missing_payload = vec![0u8; HEADER];
+        missing_payload[..5].copy_from_slice(b"CIXB1");
+        missing_payload[5] = 6;
+        missing_payload[6] = 3;
+        missing_payload[15..47].copy_from_slice(&Sha256::digest([]));
         missing_payload.truncate(HEADER);
         missing_payload[11..15].copy_from_slice(&0u32.to_le_bytes());
         assert!(decode(&missing_payload, 2 * 1024 * 1024 * 1024).is_err());

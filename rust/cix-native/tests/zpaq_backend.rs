@@ -15,9 +15,17 @@ fn pinned_zpaq715_level5_round_trips_large_fixture_and_rejects_trailing_data() {
     trailing[11..15].copy_from_slice(&payload_size.to_le_bytes());
     assert!(decode(&trailing, 2 * 1024 * 1024 * 1024).is_err());
 
-    // Empty originals are still a tagged ZPAQ stream. A forged CIXB1
-    // envelope with a zero payload must not become an alternate spelling.
-    let mut missing_payload = encode_zpaq("size", &[], 5).expect("encode empty ZPAQ");
+    // libzpaq emits no frame for empty input; that candidate is rejected.
+    // A forged zero-payload envelope must not become an alternate spelling.
+    assert!(encode_zpaq("size", &[], 5)
+        .unwrap_err()
+        .starts_with("ZPAQ candidate rejected:"));
+    let mut missing_payload = vec![0u8; 47];
+    missing_payload[..5].copy_from_slice(b"CIXB1");
+    missing_payload[5] = 6;
+    missing_payload[6] = 3;
+    use sha2::{Digest, Sha256};
+    missing_payload[15..47].copy_from_slice(&Sha256::digest([]));
     missing_payload.truncate(47);
     missing_payload[11..15].copy_from_slice(&0u32.to_le_bytes());
     assert!(decode(&missing_payload, 2 * 1024 * 1024 * 1024).is_err());
