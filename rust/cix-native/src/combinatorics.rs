@@ -30,27 +30,36 @@ pub(crate) fn choose_checked(n: usize, k: usize) -> Result<BigUint, String> {
 
 pub(crate) fn colex_rank_checked(positions: &[usize]) -> Result<BigUint, String> {
     crate::limits::check()?;
-    let mut increasing = true;
+    if positions.len() < 2 || !increasing_positions(positions)? {
+        return definition_rank(positions);
+    }
+    increasing_rank(positions)
+}
+
+fn increasing_positions(positions: &[usize]) -> Result<bool, String> {
     for (index, pair) in positions.windows(2).enumerate() {
         if index & POLL_MASK == 0 {
             crate::limits::check()?;
         }
         if pair[0] >= pair[1] {
-            increasing = false;
-            break;
+            return Ok(false);
         }
     }
-    if positions.len() < 2 || !increasing {
-        let mut rank = BigUint::zero();
-        for (index, &position) in positions.iter().enumerate() {
-            if index & POLL_MASK == 0 {
-                crate::limits::check()?;
-            }
-            rank += choose_checked(position, index + 1)?;
-        }
-        return Ok(rank);
-    }
+    Ok(true)
+}
 
+fn definition_rank(positions: &[usize]) -> Result<BigUint, String> {
+    let mut rank = BigUint::zero();
+    for (index, &position) in positions.iter().enumerate() {
+        if index & POLL_MASK == 0 {
+            crate::limits::check()?;
+        }
+        rank += choose_checked(position, index + 1)?;
+    }
+    Ok(rank)
+}
+
+fn increasing_rank(positions: &[usize]) -> Result<BigUint, String> {
     // term is C(position, index + 1).  For an increasing position sequence,
     // incrementing n and then k gives the next term exactly:
     // C(n + 1, k) = C(n, k) * (n + 1) / (n + 1 - k),
@@ -64,9 +73,7 @@ pub(crate) fn colex_rank_checked(positions: &[usize]) -> Result<BigUint, String>
             crate::limits::check()?;
         }
         let next_width = width.checked_add(1).ok_or("colex width overflow")?;
-        let advance_cost = next_position
-            .saturating_sub(position)
-            .saturating_add(1);
+        let advance_cost = next_position.saturating_sub(position).saturating_add(1);
         let direct_cost = next_width.min(next_position.saturating_sub(next_width));
         if direct_cost <= advance_cost {
             term = choose_checked(next_position, next_width)?;
@@ -75,22 +82,7 @@ pub(crate) fn colex_rank_checked(positions: &[usize]) -> Result<BigUint, String>
             rank += &term;
             continue;
         }
-        let mut advanced = 0usize;
-        while position < next_position {
-            if advanced & POLL_MASK == 0 {
-                crate::limits::check()?;
-            }
-            position += 1;
-            advanced += 1;
-            if position < width {
-                term = BigUint::zero();
-            } else if position == width {
-                term = BigUint::one();
-            } else {
-                term *= position;
-                term /= position - width;
-            }
-        }
+        advance_term(&mut term, &mut position, width, next_position)?;
         // Strictly increasing positions guarantee position >= width here.
         term *= position - width;
         term /= next_width;
@@ -100,6 +92,31 @@ pub(crate) fn colex_rank_checked(positions: &[usize]) -> Result<BigUint, String>
     Ok(rank)
 }
 
+fn advance_term(
+    term: &mut BigUint,
+    position: &mut usize,
+    width: usize,
+    next_position: usize,
+) -> Result<(), String> {
+    let mut advanced = 0usize;
+    while *position < next_position {
+        if advanced & POLL_MASK == 0 {
+            crate::limits::check()?;
+        }
+        *position += 1;
+        advanced += 1;
+        if *position < width {
+            *term = BigUint::zero();
+        } else if *position == width {
+            *term = BigUint::one();
+        } else {
+            *term *= *position;
+            *term /= *position - width;
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::{choose_checked, colex_rank_checked};
@@ -107,9 +124,12 @@ mod tests {
     use num_traits::Zero;
 
     fn slow(positions: &[usize]) -> BigUint {
-        positions.iter().enumerate().fold(BigUint::zero(), |rank, (index, &position)| {
-            rank + choose_checked(position, index + 1).unwrap()
-        })
+        positions
+            .iter()
+            .enumerate()
+            .fold(BigUint::zero(), |rank, (index, &position)| {
+                rank + choose_checked(position, index + 1).unwrap()
+            })
     }
 
     fn visit(n: usize, k: usize, next: usize, values: &mut Vec<usize>) {

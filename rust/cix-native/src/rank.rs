@@ -4,9 +4,9 @@
 //! CIXG1 can produce ranks thousands of bits wide; converting them to machine
 //! integers would silently corrupt archives.
 
+use crate::combinatorics;
 use num_bigint::BigUint;
 use num_traits::{One, Zero};
-use crate::combinatorics;
 
 fn choose(n: usize, k: usize) -> BigUint {
     if k > n {
@@ -778,6 +778,37 @@ fn validate_context_cursors(cursors: &[usize], lanes: &[Vec<u8>]) -> Result<(), 
     Ok(())
 }
 
+fn context_layout(
+    data: &[u8],
+    pos: &mut usize,
+    n: usize,
+    bucket_count: usize,
+) -> Result<(Vec<usize>, Vec<usize>), String> {
+    let q = read_varint(data, pos)?;
+    if q > bucket_count.min(n) || (q == 0 && n != 0) {
+        return Err("invalid active context count".into());
+    }
+    if q == 0 {
+        if *pos != data.len() {
+            return Err("trailing context type-class bytes".into());
+        }
+        return Ok((Vec::new(), Vec::new()));
+    }
+    let ids = if q == bucket_count {
+        (0..bucket_count).collect()
+    } else {
+        let width = fixed_width(&(choose(bucket_count, q) - BigUint::one()));
+        colex_unrank(read_fixed(data, pos, width)?, q, bucket_count)?
+    };
+    let lengths = if q == 1 {
+        vec![n]
+    } else {
+        let width = fixed_width(&(choose(n - 1, q - 1) - BigUint::one()));
+        composition_unrank(read_fixed(data, pos, width)?, n, q)?
+    };
+    Ok((ids, lengths))
+}
+
 /// Decode CIXM6 context-conditioned type classes (mode 2).
 pub fn decode_context_type_classes(
     data: &[u8],
@@ -794,28 +825,11 @@ pub fn decode_context_type_classes(
     }
     let bucket_count = 1usize << bucket_bits;
     let mut pos = 2;
-    let q = read_varint(data, &mut pos)?;
-    if q > bucket_count.min(n) || (q == 0 && n != 0) {
-        return Err("invalid active context count".into());
-    }
-    if q == 0 {
-        if pos != data.len() {
-            return Err("trailing context type-class bytes".into());
-        }
+    let (ids, lengths) = context_layout(data, &mut pos, n, bucket_count)?;
+    if ids.is_empty() {
         return Ok(Vec::new());
     }
-    let ids = if q == bucket_count {
-        (0..bucket_count).collect()
-    } else {
-        let width = fixed_width(&(choose(bucket_count, q) - BigUint::one()));
-        colex_unrank(read_fixed(data, &mut pos, width)?, q, bucket_count)?
-    };
-    let lengths = if q == 1 {
-        vec![n]
-    } else {
-        let width = fixed_width(&(choose(n - 1, q - 1) - BigUint::one()));
-        composition_unrank(read_fixed(data, &mut pos, width)?, n, q)?
-    };
+    let q = ids.len();
     let lanes = decode_context_lanes(data, &mut pos, lengths)?;
     if pos != data.len() {
         return Err("trailing context type-class bytes".into());
@@ -977,5 +991,34 @@ mod tests {
         let mut encoded = encode_count_range(&input).unwrap();
         encoded.pop();
         assert!(decode_composition_tiles(&encoded, input.len()).is_err());
+    }
+
+    #[test]
+    fn context_layouts_round_trip_and_reject_trailing_bytes() {
+        let cases = [
+            (b"aaaaabbbbccccddddeeeeffff".as_slice(), 1, 1, b"".as_slice()),
+            (
+                b"context lanes preserve canonical ordering across blocks".as_slice(),
+                3,
+                4,
+                b"prior block context".as_slice(),
+            ),
+        ];
+        for (input, order, bucket_bits, history) in cases {
+            let encoded = encode_context_type_classes(input, order, bucket_bits, history).unwrap();
+            assert_eq!(
+                decode_context_type_classes(&encoded, input.len(), history).unwrap(),
+                input
+            );
+            let mut trailing = encoded;
+            trailing.push(0);
+            assert!(decode_context_type_classes(&trailing, input.len(), history).is_err());
+        }
+    }
+
+    #[test]
+    fn context_layout_rejects_malformed_prefix() {
+        assert!(decode_context_type_classes(&[1, 1], 1, b"").is_err());
+        assert!(decode_context_type_classes(&[1, 1, 0], 1, b"").is_err());
     }
 }

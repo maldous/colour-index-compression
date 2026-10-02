@@ -211,68 +211,65 @@ fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
         put_v(value, &mut best);
     }
     for width in 0..=16usize {
-        let limit = best.len().saturating_sub(2) * 8;
-        let mut cost = 0usize;
-        let mut viable = true;
-        for &value in values {
-            cost = cost
-                .checked_add(value >> width)
-                .and_then(|sum| sum.checked_add(1 + width))
-                .unwrap_or(usize::MAX);
-            if cost >= limit {
-                viable = false;
-                break;
-            }
+        if let Some(candidate) = rice_candidate(values, width, best.len()) {
+            best = candidate;
         }
-        if !viable {
-            continue;
-        }
-        let mut writer = BitWriter::new();
-        for &value in values {
-            for _ in 0..(value >> width) {
-                writer.bit(1);
-            }
-            writer.bit(0);
-            writer.bits(value & ((1usize << width) - 1), width);
-        }
-        let mut candidate = vec![1, width as u8];
-        candidate.extend(writer.finish());
+    }
+    for (mode, class_blob) in class_blobs(values)? {
+        let candidate = class_candidate(mode, class_blob, values)?;
         if candidate.len() < best.len() {
             best = candidate;
         }
     }
+    Ok(best)
+}
+
+fn rice_candidate(values: &[usize], width: usize, incumbent_bytes: usize) -> Option<Vec<u8>> {
+    let limit = incumbent_bytes.saturating_sub(2) * 8;
+    let mut cost = 0usize;
+    for &value in values {
+        cost = cost.checked_add(value >> width)?.checked_add(1 + width)?;
+        if cost >= limit {
+            return None;
+        }
+    }
+    let mut writer = BitWriter::new();
+    for &value in values {
+        for _ in 0..(value >> width) {
+            writer.bit(1);
+        }
+        writer.bit(0);
+        writer.bits(value & ((1usize << width) - 1), width);
+    }
+    let mut candidate = vec![1, width as u8];
+    candidate.extend(writer.finish());
+    Some(candidate)
+}
+
+fn class_blobs(values: &[usize]) -> Result<Vec<(u8, Vec<u8>)>, String> {
     let mut classes = Vec::with_capacity(values.len());
-    let mut lows = Vec::with_capacity(values.len());
+    for &value in values {
+        let shifted = value.checked_add(1).ok_or("histogram integer overflow")?;
+        classes.push((usize::BITS - shifted.leading_zeros() - 1) as u8);
+    }
+    Ok(vec![
+        (2, rank::encode_type_class(&classes)?),
+        (3, encode_class_bytes(&classes)?),
+    ])
+}
+
+fn class_candidate(mode: u8, class_blob: Vec<u8>, values: &[usize]) -> Result<Vec<u8>, String> {
+    let mut writer = BitWriter::new();
     for &value in values {
         let shifted = value.checked_add(1).ok_or("histogram integer overflow")?;
         let width = (usize::BITS - shifted.leading_zeros() - 1) as usize;
-        classes.push(width as u8);
-        lows.push((shifted - (1usize << width), width));
+        writer.bits(shifted - (1usize << width), width);
     }
-    let mut writer = BitWriter::new();
-    for &(low, width) in &lows {
-        writer.bits(low, width);
-    }
-    let low_blob = writer.finish();
-
-    let class_blob = rank::encode_type_class(&classes)?;
-    let mut candidate = vec![2];
+    let mut candidate = vec![mode];
     put_v(class_blob.len(), &mut candidate);
     candidate.extend(class_blob);
-    candidate.extend_from_slice(&low_blob);
-    if candidate.len() < best.len() {
-        best = candidate;
-    }
-
-    let class_blob = encode_class_bytes(&classes)?;
-    let mut candidate = vec![3];
-    put_v(class_blob.len(), &mut candidate);
-    candidate.extend(class_blob);
-    candidate.extend(low_blob);
-    if candidate.len() < best.len() {
-        best = candidate;
-    }
-    Ok(best)
+    candidate.extend(writer.finish());
+    Ok(candidate)
 }
 
 /// Return every frozen count-vector candidate with its stable selector name.
@@ -424,82 +421,92 @@ fn decode_uints(blob: &[u8], count: usize) -> Result<Vec<usize>, String> {
     let mode = *blob.first().ok_or("empty histogram integer stream")?;
     let mut pos = 1;
     match mode {
-        0 => {
-            let mut out = Vec::with_capacity(count);
-            for _ in 0..count {
-                out.push(read_v(blob, &mut pos)?);
-            }
-            if pos != blob.len() {
-                return Err("trailing histogram varints".into());
-            }
-            Ok(out)
-        }
-        1 => {
-            let width = *blob.get(pos).ok_or("missing histogram Rice parameter")? as usize;
-            pos += 1;
-            if width > 16 {
-                return Err("invalid histogram Rice parameter".into());
-            }
-            let mut reader = BitReader {
-                data: &blob[pos..],
-                pos: 0,
-            };
-            let mut out = Vec::with_capacity(count);
-            for _ in 0..count {
-                let mut quotient = 0usize;
-                while reader.bit()? != 0 {
-                    quotient = quotient.checked_add(1).ok_or("Rice quotient overflow")?;
-                }
-                let low = reader.bits(width)?;
-                out.push(
-                    quotient
-                        .checked_shl(width as u32)
-                        .and_then(|value| value.checked_add(low))
-                        .ok_or("Rice value overflow")?,
-                );
-            }
-            Ok(out)
-        }
-        2 | 3 => {
-            let class_len = read_v(blob, &mut pos)?;
-            let end = pos
-                .checked_add(class_len)
-                .ok_or("histogram class length overflow")?;
-            if end > blob.len() {
-                return Err("truncated histogram classes".into());
-            }
-            let classes = if mode == 2 {
-                let mut class_pos = 0;
-                let values = rank::decode_type_class(&blob[pos..end], &mut class_pos, count)?;
-                if class_pos != class_len {
-                    return Err("trailing histogram class data".into());
-                }
-                values
-            } else {
-                decode_class_bytes(&blob[pos..end], count)?
-            };
-            let mut reader = BitReader {
-                data: &blob[end..],
-                pos: 0,
-            };
-            let mut out = Vec::with_capacity(count);
-            for width in classes {
-                let width = width as usize;
-                if width >= usize::BITS as usize {
-                    return Err("histogram integer class outside machine range".into());
-                }
-                let low = reader.bits(width)?;
-                out.push(
-                    (1usize << width)
-                        .checked_add(low)
-                        .and_then(|value| value.checked_sub(1))
-                        .ok_or("histogram integer overflow")?,
-                );
-            }
-            Ok(out)
-        }
+        0 => decode_varints(blob, &mut pos, count),
+        1 => decode_rice(blob, pos, count),
+        2 | 3 => decode_classed_uints(blob, &mut pos, count, mode),
         other => Err(format!("unknown histogram integer stream mode {other}")),
     }
+}
+
+fn decode_varints(blob: &[u8], pos: &mut usize, count: usize) -> Result<Vec<usize>, String> {
+    let mut out = Vec::with_capacity(count);
+    for _ in 0..count {
+        out.push(read_v(blob, pos)?);
+    }
+    if *pos != blob.len() {
+        return Err("trailing histogram varints".into());
+    }
+    Ok(out)
+}
+
+fn decode_rice(blob: &[u8], pos: usize, count: usize) -> Result<Vec<usize>, String> {
+    let width = *blob.get(pos).ok_or("missing histogram Rice parameter")? as usize;
+    if width > 16 {
+        return Err("invalid histogram Rice parameter".into());
+    }
+    let mut reader = BitReader {
+        data: &blob[pos + 1..],
+        pos: 0,
+    };
+    let mut out = Vec::with_capacity(count);
+    for _ in 0..count {
+        let mut quotient = 0usize;
+        while reader.bit()? != 0 {
+            quotient = quotient.checked_add(1).ok_or("Rice quotient overflow")?;
+        }
+        let low = reader.bits(width)?;
+        out.push(
+            quotient
+                .checked_shl(width as u32)
+                .and_then(|value| value.checked_add(low))
+                .ok_or("Rice value overflow")?,
+        );
+    }
+    Ok(out)
+}
+
+fn decode_classed_uints(
+    blob: &[u8],
+    pos: &mut usize,
+    count: usize,
+    mode: u8,
+) -> Result<Vec<usize>, String> {
+    let class_len = read_v(blob, pos)?;
+    let end = pos
+        .checked_add(class_len)
+        .ok_or("histogram class length overflow")?;
+    if end > blob.len() {
+        return Err("truncated histogram classes".into());
+    }
+    let classes = if mode == 2 {
+        let mut class_pos = 0;
+        let values = rank::decode_type_class(&blob[*pos..end], &mut class_pos, count)?;
+        if class_pos != class_len {
+            return Err("trailing histogram class data".into());
+        }
+        values
+    } else {
+        decode_class_bytes(&blob[*pos..end], count)?
+    };
+    let mut reader = BitReader {
+        data: &blob[end..],
+        pos: 0,
+    };
+    classes
+        .into_iter()
+        .map(|class| decode_classed_value(&mut reader, class))
+        .collect()
+}
+
+fn decode_classed_value(reader: &mut BitReader<'_>, class: u8) -> Result<usize, String> {
+    let width = class as usize;
+    if width >= usize::BITS as usize {
+        return Err("histogram integer class outside machine range".into());
+    }
+    (1usize << width)
+        .checked_add(reader.bits(width)?)
+        .and_then(|value| value.checked_sub(1))
+        .ok_or("histogram integer overflow".into())
 }
 
 /// Decode a standalone frozen count-vector payload.
@@ -644,4 +651,39 @@ pub fn decode_type_class(blob: &[u8], total: usize) -> Result<Vec<u8>, String> {
     }
     let counts = decode_counts(&blob[pos..end], total)?;
     rank::decode_type_class_with_counts(&blob[end..], total, &counts)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn count_table_candidates_round_trip() {
+        let mut counts = [0usize; 256];
+        counts[0] = 19;
+        counts[1] = 2;
+        counts[7] = 31;
+        counts[129] = 1;
+        counts[255] = 11;
+        let total = counts.iter().sum();
+
+        for (name, encoded) in encode_candidates(&counts).unwrap() {
+            assert_eq!(decode_counts(&encoded, total).unwrap(), counts, "{name}");
+        }
+    }
+
+    #[test]
+    fn count_table_rejects_malformed_prefix_and_truncation() {
+        let counts = {
+            let mut counts = [0usize; 256];
+            counts[3] = 13;
+            counts[42] = 7;
+            counts
+        };
+        let total = counts.iter().sum();
+        let (encoded, _) = encode_best(&counts).unwrap();
+        assert!(decode_counts(&[], total).is_err());
+        assert!(decode_counts(&[VERSION + 1, 0], total).is_err());
+        assert!(decode_counts(&encoded[..encoded.len() - 1], total).is_err());
+    }
 }

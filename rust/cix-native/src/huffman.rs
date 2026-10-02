@@ -214,6 +214,20 @@ pub fn encode(input: &[u8]) -> Result<Vec<u8>> {
     Ok(out)
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_truncated_and_trailing_frames() {
+        let encoded = encode(b"canonical huffman frame with several symbols").unwrap();
+        assert!(decode(&encoded[..encoded.len() - 1]).is_err());
+        let mut trailing = encoded;
+        trailing.push(0);
+        assert!(decode(&trailing).is_err());
+    }
+}
+
 /// Decodes one complete Huffman substream and rejects malformed framing.
 pub fn decode(frame: &[u8]) -> Result<Vec<u8>> {
     let header = parse_frame_header(frame)?;
@@ -417,38 +431,43 @@ fn insert_code(nodes: &mut Vec<TreeNode>, code: &[bool], symbol: u8) -> Result<(
                 "Huffman code is a prefix of another code".into(),
             ));
         }
-        let next = match if bit {
-            nodes[index].right
-        } else {
-            nodes[index].left
-        } {
-            Some(next) => next,
-            None => {
-                let next = nodes.len();
-                nodes.push(TreeNode {
-                    left: None,
-                    right: None,
-                    symbol: None,
-                });
-                if bit {
-                    nodes[index].right = Some(next);
-                } else {
-                    nodes[index].left = Some(next);
-                }
-                next
-            }
-        };
+        let next = child_or_insert(nodes, index, bit);
         index = next;
         if position + 1 == code.len() {
-            if nodes[index].left.is_some()
-                || nodes[index].right.is_some()
-                || nodes[index].symbol.is_some()
-            {
-                return Err(HuffmanError("duplicate or prefix Huffman code".into()));
-            }
-            nodes[index].symbol = Some(symbol);
+            set_symbol(nodes, index, symbol)?;
         }
     }
+    Ok(())
+}
+
+fn child_or_insert(nodes: &mut Vec<TreeNode>, index: usize, bit: bool) -> usize {
+    let child = if bit {
+        nodes[index].right
+    } else {
+        nodes[index].left
+    };
+    child.unwrap_or_else(|| {
+        let next = nodes.len();
+        nodes.push(TreeNode {
+            left: None,
+            right: None,
+            symbol: None,
+        });
+        if bit {
+            nodes[index].right = Some(next);
+        } else {
+            nodes[index].left = Some(next);
+        }
+        next
+    })
+}
+
+fn set_symbol(nodes: &mut [TreeNode], index: usize, symbol: u8) -> Result<()> {
+    let node = &mut nodes[index];
+    if node.left.is_some() || node.right.is_some() || node.symbol.is_some() {
+        return Err(HuffmanError("duplicate or prefix Huffman code".into()));
+    }
+    node.symbol = Some(symbol);
     Ok(())
 }
 
