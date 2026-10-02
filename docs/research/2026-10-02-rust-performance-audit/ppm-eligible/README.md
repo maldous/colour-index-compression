@@ -66,3 +66,10 @@ Git at `/home/user/audit-artifacts/ppm-eligible-controlled/dhat-20261002T1918Z/`
 The PPM unit tests passed and `rustfmt --check` passed for the changed files.
 The direct kernel evidence supports promotion review only; it does not claim a
 whole-CIXG1 speedup.
+
+## Durable receipt copies
+
+The source, binary hashes, identity process receipts, 80 ABBA process/cgroup
+receipts and Criterion estimates, and DHAT receipts are also retained in
+[`raw/`](raw/). The external paths above describe their original capture
+locations; review does not require those directories.
