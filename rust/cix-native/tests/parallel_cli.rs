@@ -113,8 +113,8 @@ fn decode(archive: &[u8]) -> Vec<u8> {
 fn run_heavy_input() -> Vec<u8> {
     let mut input = Vec::with_capacity(48 * 1024);
     for block in 0..12 {
-        input.extend(std::iter::repeat((block % 3) as u8 + b'A').take(2048));
-        input.extend(std::iter::repeat((block % 5) as u8 + b'K').take(2048));
+        input.extend(std::iter::repeat_n((block % 3) as u8 + b'A', 2048));
+        input.extend(std::iter::repeat_n((block % 5) as u8 + b'K', 2048));
     }
     input
 }
@@ -199,7 +199,7 @@ fn explicit_twenty_block_workers_preserve_order_and_round_trip() {
     // real 20-worker request rather than only parsing the option.
     let mut input = Vec::with_capacity(96 * 1024);
     for block in 0..24u8 {
-        input.extend(std::iter::repeat(block).take(4096));
+        input.extend(std::iter::repeat_n(block, 4096));
     }
     let serial = encode(&input, "raw", 1);
     let parallel = encode(&input, "raw", 20);

@@ -141,23 +141,23 @@ fn context_range_substream_reserves_its_model_before_decode() {
 
 #[test]
 fn malformed_ppm_headers_fail_before_model_construction() {
-    let source = [b'x'];
+    let source = b"x";
     for payload in [vec![6, 0, 0], vec![3, 9, 0], vec![3]] {
-        let output = uncix(&archive(8, &source, &payload), "16MiB");
+        let output = uncix(&archive(8, source, &payload), "16MiB");
         assert!(!output.status.success());
         assert!(output.stdout.is_empty());
     }
 
     // CIXG1 retains its version boundary even when memory is otherwise ample.
-    let output = uncix(&archive(8, &source, &[3, 4, 0]), "16MiB");
+    let output = uncix(&archive(8, source, &[3, 4, 0]), "16MiB");
     assert!(!output.status.success());
     assert!(String::from_utf8_lossy(&output.stderr).contains("extended PPM orders"));
 }
 
 #[test]
 fn truncated_payload_is_rejected_without_partial_output() {
-    let source = [b'x'];
-    let mut truncated = archive(8, &source, &[3, 0, 0]);
+    let source = b"x";
+    let mut truncated = archive(8, source, &[3, 0, 0]);
     truncated.truncate(13 + 1 + 4 + 4 + 32 + 1);
     let output = uncix(&truncated, "16MiB");
     assert!(!output.status.success());

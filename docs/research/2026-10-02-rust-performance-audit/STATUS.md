@@ -1,10 +1,11 @@
 # Performance audit status
 
-Checkpoint source: `6dd09b6f7` (with reviewed PPM and integer guards) on
-`research/silesia-competitive`. This is an interim checkpoint, not completed
-Sonar remediation or a final corpus qualification. The previous private push was verified at `5b4be0235`; subsequent completed
-changes are queued for push. Repository privacy and disabled Actions were
-read back again on 2026-10-02 before the next push.
+Checkpoint source: `cdc49392b` (reviewed encoder/decoder helpers and native
+arithmetic cleanup) on `research/silesia-competitive`, pushed privately and
+remote SHA verified. Reviewed validation/evidence updates are committed at
+`e4e9a10ab`. This is an interim checkpoint, not completed Sonar remediation
+or final corpus qualification. Repository privacy and disabled Actions were
+read back before the latest push.
 
 ## Retained implementation changes
 
@@ -33,14 +34,14 @@ stubs; all 18 affected optimized example tests passed.
 | Requirement | Current evidence / next work |
 |---|---|
 | Pre-refactor versus current matched CLI | Three paired automatic BEST grammar runs: 14.2% lower mean wall time for combined `8865bfbcc`; wall-time paired confidence interval includes zero. One small input does not establish general improvement. |
-| Regression tests | Combined `8865bfbcc` passed 359 test executions; newer boundary and PPM targeted tests passed. Combined `9214e2f8b` exposed a rejecting numeric example stub, now repaired. The direct optimized `40d3520db` all-feature library/binary/integration/example suite exited zero; the separate Criterion smoke also exited zero. Reviewed raw logs, exit receipts and artifact metadata are retained in `combined-40d-validation/` (598 repeated test executions, not unique tests). |
+| Regression tests | Combined `8865bfbcc` passed 359 test executions; newer boundary and PPM targeted tests passed. Combined `9214e2f8b` exposed a rejecting numeric example stub, now repaired. The direct optimized `40d3520db` all-feature library/binary/integration/example suite exited zero; the separate Criterion smoke also exited zero. Reviewed raw logs, exit receipts and artifact metadata are retained in `combined-40d-validation/` (598 repeated test executions, not unique tests). Later `55aac92a1` passed 652 repeated executions and Criterion smoke; `d52fa7f72` passed 664 executions across 40 executables and Criterion smoke. Their immutable packets are retained in `combined-55-validation/` and `combined-d52-validation/`. Neither covers subsequent source changes at `cdc49392b`; those currently have focused checks only. |
 | Profiling | DEFAULT Kennedy and BEST grammar perf recordings identify BigUint division, PPM, BWT and mixing work. Full cache/bandwidth, scheduling, lock and I/O attribution remains open. |
 | Allocations | Encoder-only count-range DHAT and controlled PPM kernel DHAT completed. Fixed PPM eligible-vector removal is retained with 80 cgroup-read-back ABBA processes and raw allocation receipts; no whole-CLI improvement is inferred from kernels. |
 | Streaming latency | Actual idle producer and slow-consumer pipes produced compressed and reconstructed bytes before EOF, including a root no-swap 128 MiB repetition. A 256 MiB raw-route pipe restored exactly inside a read-back 64 MiB aggregate cgroup with swap disabled, bounded relay and slow-consumer backpressure. This is a correctness/resource control, not a selector or persistent-history performance result. |
 | Scaling | A 120-cell DEFAULT G1 screen completed. One-thread restores passed; explicit two/four-thread decoding is rejected. All timing rows are unqualified because the executed harness source identity was not retained. Native receipts preserve the failures; a direct-child status supervisor fixes future experiments under a new identity. No qualified decoder scaling curve is claimed. |
 | Persistent history versus independent blocks | G1 is already independent; its reset flag cannot establish this tradeoff. Genuine persistent-format comparisons remain open. |
 | Compiler / PGO | Portable/native, LTO/codegen and held-out PGO screens exist. PGO improves some encode screens but regresses decode; no build-profile change retained. Some historical resource readbacks were not retained, so those results remain screens. |
-| Sonar | Corrected compact Clippy import exposed remaining findings. The corrected `40d3520db` scan has 26 native complexity findings, down from 30; its reviewed raw evidence packet is retained in `sonar-40d-corrected/`. Unsupported imported rules and raw/imported visibility differences remain recorded. No zero-warning claim; disjoint cleanup continues. Later PPM and integer fixes have not yet had a combined scan or full optimized suite; chain/BWT, external portfolio and main decoder parity packets remain under qualification. |
+| Sonar | The corrected `d52fa7f72` scan records 17 native complexity findings and 50 imported Clippy findings (67 open), with raw/imported discrepancies retained in `sonar-d52-corrected/`. Subsequent reviewed encoder stages, test helpers and native warning fixes await a combined rescan. Decoder dispatch, PPM and other disjoint cleanup continues. No zero-warning claim. |
 | Full CCA gate then Silesia | Paused until reviewed cleanup and a new immutable release are complete. Corpus execution policy remains four datasets concurrently, four threads each. |
 | Default thread/block recommendation | Pending qualified scaling, memory and history comparisons. Existing defaults remain. |
 

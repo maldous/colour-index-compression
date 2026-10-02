@@ -124,7 +124,7 @@ fn identifies_shortlist_miss_and_scoring_tie() {
         SelectionOutcome::ShortlistMiss { .. }
     ));
     assert_eq!(
-        classify_selection(&report, &[winner.clone()], &winner),
+        classify_selection(&report, std::slice::from_ref(&winner), &winner),
         SelectionOutcome::Optimal
     );
     assert!(matches!(

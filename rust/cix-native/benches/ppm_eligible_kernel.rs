@@ -58,7 +58,7 @@ fn ppm_eligible_kernel(c: &mut Criterion) {
         value.parse().expect("valid CIX_AUDIT_ESCAPE_METHOD")
     });
     let update_exclusion =
-        std::env::var("CIX_AUDIT_UPDATE_EXCLUSION").map_or(false, |value| value == "1");
+        std::env::var("CIX_AUDIT_UPDATE_EXCLUSION").is_ok_and(|value| value == "1");
     let input = input(&case);
     let encoded =
         ppm::encode_fixed(&input, 3, &[], escape_method, update_exclusion).expect("PPM encode");
