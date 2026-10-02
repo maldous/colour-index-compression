@@ -745,21 +745,8 @@ fn predictor_residual(data: &[u8], inverse: bool) -> Vec<u8> {
     for (i, &value) in data.iter().enumerate() {
         let past = if inverse { out.as_slice() } else { data };
         let context = predictor_context(past, i);
-        let predictions = [
-            if i > 0 { past[i - 1] } else { 0 },
-            if i >= 4 { past[i - 4] } else { 0 },
-            if i >= 2 && valid[context] {
-                values[context]
-            } else {
-                0
-            },
-        ];
-        let mut winner = 0;
-        for k in 1..3 {
-            if scores[k] > scores[winner] {
-                winner = k;
-            }
-        }
+        let predictions = predictor_predictions(past, i, context, &values, &valid);
+        let winner = predictor_winner(&scores);
         let actual = if inverse {
             value ^ predictions[winner]
         } else {
@@ -770,24 +757,59 @@ fn predictor_residual(data: &[u8], inverse: bool) -> Vec<u8> {
         } else {
             value ^ predictions[winner]
         });
-        for k in 0..3 {
-            scores[k] += u32::from(predictions[k] == actual);
-        }
-        if i >= 2 {
-            values[context] = actual;
-            valid[context] = true;
-        }
-        if (i + 1) % 256 == 0 {
-            for score in &mut scores {
-                *score /= 2;
-            }
-        }
+        predictor_update(
+            &mut values,
+            &mut valid,
+            &mut scores,
+            &predictions,
+            context,
+            i,
+            actual,
+        );
     }
     out
 }
 
 fn predictor_context(past: &[u8], index: usize) -> usize {
     if index >= 2 { past[index - 2] as usize * 256 + past[index - 1] as usize } else { 0 }
+}
+
+fn predictor_predictions(
+    past: &[u8], index: usize, context: usize, values: &[u8], valid: &[bool],
+) -> [u8; 3] {
+    [
+        if index > 0 { past[index - 1] } else { 0 },
+        if index >= 4 { past[index - 4] } else { 0 },
+        if index >= 2 && valid[context] { values[context] } else { 0 },
+    ]
+}
+
+fn predictor_winner(scores: &[u32; 3]) -> usize {
+    let mut winner = 0;
+    for index in 1..scores.len() {
+        if scores[index] > scores[winner] {
+            winner = index;
+        }
+    }
+    winner
+}
+
+fn predictor_update(
+    values: &mut [u8], valid: &mut [bool], scores: &mut [u32; 3], predictions: &[u8; 3],
+    context: usize, index: usize, actual: u8,
+) {
+    for score_index in 0..scores.len() {
+        scores[score_index] += u32::from(predictions[score_index] == actual);
+    }
+    if index >= 2 {
+        values[context] = actual;
+        valid[context] = true;
+    }
+    if (index + 1) % 256 == 0 {
+        for score in scores {
+            *score /= 2;
+        }
+    }
 }
 
 fn read_word(bytes: &[u8], endian_le: bool) -> u64 {
@@ -1738,70 +1760,102 @@ fn lz_key(data: &[u8], position: usize) -> Option<[u8; 4]> {
 
 fn lz_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
     if level <= 2 {
-        let parts = fast_lz::parse(data)?;
-        let refs: Vec<&[u8]> = parts.iter().map(Vec::as_slice).collect();
-        return streams_encode(&refs, level, backend);
+        return lz_encode_fast(data, level, backend);
     }
+    let parts = lz_parse(data)?;
+    let owned = vec![parts.tags, parts.literals, parts.lengths, parts.distances];
+    let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
+    streams_encode(&refs, level, backend)
+}
+
+fn lz_encode_fast(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> {
+    let parts = fast_lz::parse(data)?;
+    let refs: Vec<&[u8]> = parts.iter().map(Vec::as_slice).collect();
+    streams_encode(&refs, level, backend)
+}
+
+struct LzParts {
+    tags: Vec<u8>,
+    literals: Vec<u8>,
+    lengths: Vec<u8>,
+    distances: Vec<u8>,
+}
+
+fn lz_parse(data: &[u8]) -> Result<LzParts, String> {
     use std::collections::HashMap;
     let mut table: HashMap<[u8; 4], Vec<usize>> = HashMap::new();
-    let mut tags = Vec::new();
-    let mut literals = Vec::new();
-    let mut lengths = Vec::new();
-    let mut distances = Vec::new();
+    let mut parts = LzParts { tags: Vec::new(), literals: Vec::new(), lengths: Vec::new(), distances: Vec::new() };
     let mut position = 0usize;
     while position < data.len() {
         limits::check()?;
-        let mut best_length = 0usize;
-        let mut best_distance = 0usize;
-        if let Some(key) = lz_key(data, position) {
-            if let Some(candidates) = table.get(&key) {
-                let limit = 65535.min(data.len() - position);
-                let mut best_score = i64::MIN;
-                for &candidate in candidates.iter().rev().take(8) {
-                    let distance = position - candidate;
-                    if distance == 0 || distance > 65536 {
-                        continue;
-                    }
-                    let mut length = 4usize;
-                    while length < limit
-                        && data[position - distance + length] == data[position + length]
-                    {
-                        length += 1;
-                    }
-                    if length < 4 {
-                        continue;
-                    }
-                    let score = (length * 8) as i64
-                        - (usize::BITS - distance.leading_zeros()) as i64
-                        - (usize::BITS - length.leading_zeros()) as i64
-                        - 3;
-                    if score > best_score || (score == best_score && length > best_length) {
-                        best_score = score;
-                        best_length = length;
-                        best_distance = distance;
-                    }
-                }
-            }
-        }
+        let (best_length, best_distance) = lz_best_match(data, position, &table);
         if best_length >= 4 {
-            tags.push(1);
-            put_varint(best_length - 4, &mut lengths);
-            put_varint(best_distance, &mut distances);
-            let stop = data.len().min(position + best_length);
-            for p in position..stop {
-                lz_insert(&mut table, data, p);
-            }
+            lz_emit_match(&mut parts, &mut table, data, position, best_length, best_distance);
             position += best_length;
         } else {
-            tags.push(0);
-            literals.push(data[position]);
-            lz_insert(&mut table, data, position);
+            lz_emit_literal(&mut parts, &mut table, data, position);
             position += 1;
         }
     }
-    let owned = vec![tags, literals, lengths, distances];
-    let refs: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-    streams_encode(&refs, level, backend)
+    Ok(parts)
+}
+
+fn lz_best_match(
+    data: &[u8], position: usize, table: &std::collections::HashMap<[u8; 4], Vec<usize>>,
+) -> (usize, usize) {
+    let Some(key) = lz_key(data, position) else { return (0, 0); };
+    let Some(candidates) = table.get(&key) else { return (0, 0); };
+    let limit = 65535.min(data.len() - position);
+    let mut best = (i64::MIN, 0usize, 0usize);
+    for &candidate in candidates.iter().rev().take(8) {
+        lz_consider_match(data, position, candidate, limit, &mut best);
+    }
+    (best.1, best.2)
+}
+
+fn lz_consider_match(
+    data: &[u8], position: usize, candidate: usize, limit: usize, best: &mut (i64, usize, usize),
+) {
+    let distance = position - candidate;
+    if distance == 0 || distance > 65536 {
+        return;
+    }
+    let mut length = 4usize;
+    while length < limit && data[position - distance + length] == data[position + length] {
+        length += 1;
+    }
+    if length < 4 {
+        return;
+    }
+    let score = (length * 8) as i64
+        - (usize::BITS - distance.leading_zeros()) as i64
+        - (usize::BITS - length.leading_zeros()) as i64
+        - 3;
+    if score > best.0 || (score == best.0 && length > best.1) {
+        *best = (score, length, distance);
+    }
+}
+
+fn lz_emit_match(
+    parts: &mut LzParts, table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>,
+    data: &[u8], position: usize, length: usize, distance: usize,
+) {
+    parts.tags.push(1);
+    put_varint(length - 4, &mut parts.lengths);
+    put_varint(distance, &mut parts.distances);
+    let stop = data.len().min(position + length);
+    for indexed_position in position..stop {
+        lz_insert(table, data, indexed_position);
+    }
+}
+
+fn lz_emit_literal(
+    parts: &mut LzParts, table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>,
+    data: &[u8], position: usize,
+) {
+    parts.tags.push(0);
+    parts.literals.push(data[position]);
+    lz_insert(table, data, position);
 }
 
 fn lz_decode(blob: &[u8], n: usize, allow_extended_coders: bool) -> Result<Vec<u8>, String> {
