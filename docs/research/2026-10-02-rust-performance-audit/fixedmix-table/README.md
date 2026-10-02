@@ -1,5 +1,13 @@
 # Fixedmix stretch-table reuse
 
+> **Timing evidence invalidated: mixed executable identity.** The candidate
+> executable in the six-pair counterbalanced run was rebuilt while that run
+> was active. The previously reported 3.0% encode and 1.7% decode gains cannot
+> be attributed to this change and are withdrawn. Retained measurements below
+> are historical, unqualified evidence. Archive equality and exact restoration
+> remain valid observations. A fresh comparison using copied immutable
+> executables with source, binary and runtime-library hashes is required.
+
 ## Scope and hypothesis
 
 Commit `15426f310f40b9a3d753313741c28e718f7aceb6` rebuilt a 4,096-entry
