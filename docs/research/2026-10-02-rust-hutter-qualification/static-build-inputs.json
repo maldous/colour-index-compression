@@ -1,0 +1,87 @@
+{
+  "source_revision": "d66739120c40fc409f2bf011b165389fc1062c2b",
+  "detached_source_worktree": "/home/user/src/cix-hutter-rust-qualification-d667",
+  "native_source_diff_from_source_revision": "empty",
+  "static_libraries": [
+    {
+      "name": "libbz2.a",
+      "path": "/usr/lib/x86_64-linux-gnu/libbz2.a",
+      "bytes": 82042,
+      "sha256": "311e9e4f44d6330807f9f90eab57c59e15c842e57c2aab29f17618b579f7c293"
+    },
+    {
+      "name": "libz.a",
+      "path": "/usr/lib/x86_64-linux-gnu/libz.a",
+      "bytes": 147120,
+      "sha256": "d9f5f6208214a493583f305c40c9879bfad2cada1ef2753a45e3b0bf8a4c7be2"
+    },
+    {
+      "name": "liblzma.a",
+      "path": "/usr/lib/x86_64-linux-gnu/liblzma.a",
+      "bytes": 349242,
+      "sha256": "e0a58f1cf275b753ec4e1a74b70c146b6546a2368a308c47a2d933a6102776c5"
+    },
+    {
+      "name": "libzstd.a",
+      "path": "/usr/lib/x86_64-linux-gnu/libzstd.a",
+      "bytes": 964146,
+      "sha256": "3b002d21b06091605db4a98c3739b479bd1126bac91b389a9e4a9e75612848ab"
+    },
+    {
+      "name": "libbrotlienc.a",
+      "path": "/usr/lib/x86_64-linux-gnu/libbrotlienc.a",
+      "bytes": 731550,
+      "sha256": "a1579f4def5a6698479b0d510ade574d5851266d7e7b3d85c3ab67f7519a8d40"
+    },
+    {
+      "name": "libbrotlidec.a",
+      "path": "/usr/lib/x86_64-linux-gnu/libbrotlidec.a",
+      "bytes": 58784,
+      "sha256": "42bfde426e261a5d05e60ca54b073e3f365a1ebcc9e962b4be217ac0967bbb6e"
+    },
+    {
+      "name": "libbrotlicommon.a",
+      "path": "/usr/lib/x86_64-linux-gnu/libbrotlicommon.a",
+      "bytes": 137056,
+      "sha256": "0e9302828672f8d12eb069bc9d737c647cafbc9b0c810c75784679fa72fa1331"
+    },
+    {
+      "name": "libc.a",
+      "path": "/usr/lib/x86_64-linux-gnu/libc.a",
+      "bytes": 6136944,
+      "sha256": "a40c7eae7581f977b65eddb81cbc799213a695749e039d966db55bdee4ac9621"
+    },
+    {
+      "name": "libm.a",
+      "path": "/usr/lib/x86_64-linux-gnu/libm.a",
+      "bytes": 132,
+      "sha256": "420cd3c406f6f8c12deb3d1291146e9c091ee015a7c39eaf2237f01e80d6f0ae"
+    },
+    {
+      "name": "libpthread.a",
+      "path": "/usr/lib/x86_64-linux-gnu/libpthread.a",
+      "bytes": 8,
+      "sha256": "f0a17a43c74d2fe5474fa2fd29c8f14799e777d7d75a2cc4d11c20a6e7b161c5"
+    },
+    {
+      "name": "libdl.a",
+      "path": "/usr/lib/x86_64-linux-gnu/libdl.a",
+      "bytes": 8,
+      "sha256": "f0a17a43c74d2fe5474fa2fd29c8f14799e777d7d75a2cc4d11c20a6e7b161c5"
+    }
+  ],
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "cc": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "intended_build": {
+    "profile": "release-lto",
+    "CARGO_BUILD_JOBS": 1,
+    "offline": true,
+    "locked": true,
+    "commands": [
+      "cargo rustc --offline --locked --profile release-lto --manifest-path SOURCE/rust/cix-native/Cargo.toml --target-dir WORK/target --bin cix -- -C target-feature=+crt-static",
+      "cargo rustc --offline --locked --profile release-lto --manifest-path SOURCE/rust/cix-native/Cargo.toml --target-dir WORK/target --bin uncix -- -C target-feature=+crt-static"
+    ],
+    "reason": "Apply static link flags to the final bin targets; preserve the source manifest cdylib/rlib settings."
+  },
+  "status": "INPUTS_AVAILABLE_STATIC_BUILD_NOT_YET_EXECUTED"
+}
