@@ -13,6 +13,7 @@ use std::{
 
 mod adaptive;
 mod bitplane;
+mod bounded_reader;
 mod bsc_ffi;
 mod bwt_legacy;
 mod chain;
@@ -3126,25 +3127,15 @@ fn encode_external<R: Read, W: Write>(
     memory: usize,
 ) -> Result<(), String> {
     let descriptor = direct_external_descriptor(backend, profile)?;
-    // The source buffer is bounded before its length is known. After it is
-    // read, admission uses the actual length so a small q11 Brotli request is
-    // not rejected merely because the format also supports a larger source.
-    if memory < external::MAX_INPUT {
-        return Err(format!(
-            "CIXB1 external encoding requires at least {} bytes of --memory for its bounded source",
-            external::MAX_INPUT
-        ));
+    // Source reading precedes all codec/model/output allocation. Reserve for
+    // the 64 KiB stack chunk and overlapping old/new Vec allocations during
+    // growth; post-read codec admission still charges the actual capacity.
+    if memory < 64 * 1024 {
+        return Err("CIXB1 bounded source reading requires at least 64 KiB of --memory".into());
     }
-    let mut data = Vec::with_capacity(external::MAX_INPUT);
-    src.take((external::MAX_INPUT + 1) as u64)
-        .read_to_end(&mut data)
-        .map_err(ioerr)?;
-    if data.len() > external::MAX_INPUT {
-        return Err(format!(
-            "CIXB1 external input exceeds {} MiB",
-            external::MAX_INPUT / (1024 * 1024)
-        ));
-    }
+    let allowance = bounded_reader::conservative_allowance(memory).min(external::MAX_INPUT);
+    let data = bounded_reader::read_bounded(src, external::MAX_INPUT, allowance)
+        .map_err(|error| format!("CIXB1 bounded source: {error}"))?;
     let available = memory.saturating_sub(data.capacity());
     descriptor
         .admit(data.len(), available)

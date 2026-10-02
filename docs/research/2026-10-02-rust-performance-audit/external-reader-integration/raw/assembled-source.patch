@@ -1,0 +1,141 @@
+diff --git a/rust/cix-native/src/bitplane.rs b/rust/cix-native/src/bitplane.rs
+index 4b422ffce..e5a06a344 100644
+--- a/rust/cix-native/src/bitplane.rs
++++ b/rust/cix-native/src/bitplane.rs
+@@ -150,6 +150,26 @@ fn decode_arithmetic_planes(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
+     Ok(out)
+ }
+ 
++fn decode_arithmetic_plane(
++    decoder: &mut ArithmeticDecoder<'_>,
++    out: &mut [u8],
++    plane: usize,
++    one_count: usize,
++) {
++    let (mut one, mut zero) = (one_count, out.len() - one_count);
++    for byte in out {
++        let total = one + zero;
++        if decoder.target(total) < zero {
++            decoder.update(0, zero, total);
++            zero -= 1;
++        } else {
++            decoder.update(zero, total, total);
++            one -= 1;
++            *byte |= 1 << (7 - plane);
++        }
++    }
++}
++
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+@@ -199,23 +219,3 @@ mod tests {
+         );
+     }
+ }
+-
+-fn decode_arithmetic_plane(
+-    decoder: &mut ArithmeticDecoder<'_>,
+-    out: &mut [u8],
+-    plane: usize,
+-    one_count: usize,
+-) {
+-    let (mut one, mut zero) = (one_count, out.len() - one_count);
+-    for byte in out {
+-        let total = one + zero;
+-        if decoder.target(total) < zero {
+-            decoder.update(0, zero, total);
+-            zero -= 1;
+-        } else {
+-            decoder.update(zero, total, total);
+-            one -= 1;
+-            *byte |= 1 << (7 - plane);
+-        }
+-    }
+-}
+diff --git a/rust/cix-native/src/main.rs b/rust/cix-native/src/main.rs
+index 2313c1a32..347e2a1ae 100644
+--- a/rust/cix-native/src/main.rs
++++ b/rust/cix-native/src/main.rs
+@@ -13,6 +13,7 @@ use std::{
+ 
+ mod adaptive;
+ mod bitplane;
++mod bounded_reader;
+ mod bsc_ffi;
+ mod bwt_legacy;
+ mod chain;
+@@ -3126,25 +3127,15 @@ fn encode_external<R: Read, W: Write>(
+     memory: usize,
+ ) -> Result<(), String> {
+     let descriptor = direct_external_descriptor(backend, profile)?;
+-    // The source buffer is bounded before its length is known. After it is
+-    // read, admission uses the actual length so a small q11 Brotli request is
+-    // not rejected merely because the format also supports a larger source.
+-    if memory < external::MAX_INPUT {
+-        return Err(format!(
+-            "CIXB1 external encoding requires at least {} bytes of --memory for its bounded source",
+-            external::MAX_INPUT
+-        ));
+-    }
+-    let mut data = Vec::with_capacity(external::MAX_INPUT);
+-    src.take((external::MAX_INPUT + 1) as u64)
+-        .read_to_end(&mut data)
+-        .map_err(ioerr)?;
+-    if data.len() > external::MAX_INPUT {
+-        return Err(format!(
+-            "CIXB1 external input exceeds {} MiB",
+-            external::MAX_INPUT / (1024 * 1024)
+-        ));
+-    }
++    // Source reading precedes all codec/model/output allocation. Reserve for
++    // the 64 KiB stack chunk and overlapping old/new Vec allocations during
++    // growth; post-read codec admission still charges the actual capacity.
++    if memory < 64 * 1024 {
++        return Err("CIXB1 bounded source reading requires at least 64 KiB of --memory".into());
++    }
++    let allowance = bounded_reader::conservative_allowance(memory).min(external::MAX_INPUT);
++    let data = bounded_reader::read_bounded(src, external::MAX_INPUT, allowance)
++        .map_err(|error| format!("CIXB1 bounded source: {error}"))?;
+     let available = memory.saturating_sub(data.capacity());
+     descriptor
+         .admit(data.len(), available)
+diff --git a/rust/cix-native/src/wavelet.rs b/rust/cix-native/src/wavelet.rs
+index ed7d17b0b..11d1a5d08 100644
+--- a/rust/cix-native/src/wavelet.rs
++++ b/rust/cix-native/src/wavelet.rs
+@@ -129,11 +129,7 @@ fn decode_bit(
+         decoder.update(0, *one, *remaining);
+         *one -= 1;
+         1
+-    } else if *one == 0 {
+-        decoder.update(0, *zero, *remaining);
+-        *zero -= 1;
+-        0
+-    } else if decoder.target(*remaining) < *zero {
++    } else if *one == 0 || decoder.target(*remaining) < *zero {
+         decoder.update(0, *zero, *remaining);
+         *zero -= 1;
+         0
+@@ -160,6 +156,7 @@ fn interleave(bits: Vec<u8>, zeros: Vec<u8>, ones: Vec<u8>, n: usize) -> Vec<u8>
+     }
+     out
+ }
++
+ pub fn decode(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
+     if data.is_empty() || data[0] != 1 {
+         return Err("unknown wavelet version".into());
+@@ -176,6 +173,13 @@ pub fn decode(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
+ #[cfg(test)]
+ mod integer_overflow_tests {
+     use super::*;
++
++    #[test]
++    fn canonical_payload_round_trips() {
++        let input: Vec<u8> = (0..513).map(|index| (index * 37) as u8).collect();
++        assert_eq!(decode(&encode(&input), input.len()).unwrap(), input);
++    }
++
+     #[test]
+     fn varint_accepts_max_rejects_high_bits() {
+         let mut value = usize::MAX;
