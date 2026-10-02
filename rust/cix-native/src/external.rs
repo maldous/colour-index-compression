@@ -1,4 +1,13 @@
 //! Bounded CIXB1 reference-backend envelope codecs.
+// Native C++ backends are linked into every CLI, including when Cargo does
+// not pull a Rust rlib member that carries cc's C++ runtime link metadata.
+#[cfg(target_os = "linux")]
+#[link(name = "stdc++")]
+unsafe extern "C" {}
+#[cfg(target_os = "macos")]
+#[link(name = "c++")]
+unsafe extern "C" {}
+
 use flate2::{bufread::GzDecoder, Compression, GzBuilder};
 use sha2::{Digest, Sha256};
 use std::ffi::{c_char, c_int, c_uint, c_void, CStr};
@@ -12,20 +21,32 @@ fn check_cancel() -> Result<(), String> {
     crate::limits::check()
 }
 
-// Match the existing Python CIXB1 envelope limit. The payload length is
-// stored as u32, so this remains comfortably within the on-disk format.
-pub const MAX_INPUT: usize = 64 * 1024 * 1024;
-pub const MAX_PAYLOAD: usize = MAX_INPUT + 1024 * 1024;
+// Whole-input trials are bounded by a fixed safety ceiling and aggregate
+// memory admission. u32 lengths are unchanged; existing archives remain valid.
+// 128 MiB admits the verified 100 MB catalog input when resources permit.
+pub const MAX_INPUT: usize = 128 * 1024 * 1024;
+// Bzip2 permits n + n/100 + 601 output; 2 MiB safely covers
+// that bound at the 128 MiB input ceiling, as well as wrapper slack.
+pub const MAX_PAYLOAD: usize = MAX_INPUT + 2 * 1024 * 1024;
 const HEADER: usize = 47;
-/// bzip2, Brotli and zstd use their stable one-shot APIs in this bounded
-/// envelope.  Cancellation is observed immediately before and after each
+/// bzip2, Brotli, zstd and libbsc use stable one-shot APIs in this bounded
+/// envelope. Cancellation is observed immediately before and after each
 /// call, so interruption latency can be one native call. XZ encoding is
 /// incrementally polled per 64 KiB output chunk; its existing bounded decode
-/// ABI remains one-shot. Replacing the former APIs with streaming state
-/// machines is a separate compatibility/performance change and must be
-/// measured before it is claimed as an improvement.
+/// ABI remains one-shot. libbsc's BWT/QLFC block call is also coarse and can
+/// delay SIGINT or a BEST deadline until a block of up to 128 MiB returns.
+/// Replacing these calls with streaming state machines is a separate
+/// compatibility/performance change and must be measured before it is
+/// claimed as an improvement.
 pub const ONE_SHOT_CANCELLATION_LIMITATION: &str =
-    "bzip2/Brotli/zstd and XZ decode use one-shot native calls with before/after cancellation checks; XZ encode polls per 64 KiB output chunk";
+    "bzip2/Brotli/zstd/libbsc and XZ decode use one-shot native calls with before/after cancellation checks; libbsc can delay cancellation for a block up to 128 MiB; XZ encode polls per 64 KiB output chunk; pinned ZPAQ polls cancellation in source reads and at most every 4096 interpreted ZPAQL instructions";
+
+/// Called from the in-process ZPAQ C++ bridge. Keep this small and allocation
+/// free so SIGINT/deadline cancellation is observed inside level-5 model work,
+/// rather than only after a potentially long native call returns.
+extern "C" fn zpaq_cancelled() -> bool {
+    crate::limits::check().is_err()
+}
 
 #[link(name = "bz2")]
 unsafe extern "C" {
@@ -210,6 +231,17 @@ pub enum CandidateConfig {
         lgwin: u8,
         mode: BrotliMode,
     },
+    /// libbsc BWT/QLFC settings. The libbsc payload records the decoder
+    /// semantics; these fields make the encoder-side choice observable and
+    /// keep future BSC candidates from sharing an ambiguous profile label.
+    Bsc {
+        lzp_hash_size: u8,
+        lzp_min_len: u8,
+        adaptive_coder: bool,
+        fast_mode: bool,
+    },
+    /// Pinned libzpaq 7.15 built-in level. Its payload is self-describing.
+    Zpaq { level: u8 },
 }
 
 /// Brotli's mode is typed so a future text/font setting cannot silently be
@@ -319,6 +351,23 @@ const CIXB1_BEST_CANDIDATES: &[CandidateDescriptor] = &[
             preset: 6,
         },
     },
+    CandidateDescriptor {
+        id: "bsc-v3.3.12-bwt-qlfc-static-lzp15-72-fast",
+        backend: "bsc",
+        profile: "size",
+        config: CandidateConfig::Bsc {
+            lzp_hash_size: 15,
+            lzp_min_len: 72,
+            adaptive_coder: false,
+            fast_mode: true,
+        },
+    },
+    CandidateDescriptor {
+        id: "zpaq715-l5",
+        backend: "zpaq",
+        profile: "size",
+        config: CandidateConfig::Zpaq { level: 5 },
+    },
 ];
 
 /// Every direct backend configuration automatically eligible to BEST.
@@ -326,14 +375,18 @@ const CIXB1_BEST_CANDIDATES: &[CandidateDescriptor] = &[
 /// `gzip-default` is intentionally omitted: it uses the same deflate level
 /// as `gzip-size`, while the latter is the historical size-profile envelope.
 pub fn best_candidates() -> &'static [CandidateDescriptor] {
-    // Existing canonical CIXB1 paths have frozen full-archive restoration
-    // evidence. New configurations stay experimental until matched complete
-    // cost and resource qualification; correctness tests alone do not promote.
-    &CIXB1_BEST_CANDIDATES[..9]
+    // Each descriptor produces a complete CIXB1 archive and has a
+    // conservative resource admission calculation. BEST compares materialized
+    // archives, including their wrapper, before selection. A caller that
+    // cannot admit a large dictionary/table receives an explicit omission.
+    CIXB1_BEST_CANDIDATES
 }
 
+/// Compatibility view for callers which previously inspected candidates that
+/// were awaiting promotion. Every implemented direct CIXB1 configuration is
+/// now eligible for BEST; an empty result is therefore expected.
 pub fn experimental_candidates() -> &'static [CandidateDescriptor] {
-    &CIXB1_BEST_CANDIDATES[9..]
+    &[]
 }
 
 /// Runtime version of the native backend selected by a descriptor. Evidence
@@ -360,6 +413,10 @@ pub fn backend_version(backend: &str) -> Result<String, String> {
                     version & 0x0fff
                 )
             }
+            "zpaq" => CStr::from_ptr(cix_zpaq715_version())
+                .to_string_lossy()
+                .into_owned(),
+            "bsc" => crate::bsc_ffi::LIBBSC_VERSION.to_string(),
             _ => return Err(format!("unsupported CIXB1 backend: {backend}")),
         };
         if version.is_empty() {
@@ -393,6 +450,38 @@ impl CandidateDescriptor {
                 }
                 encode_brotli_quality(self.profile, input, quality, lgwin, mode)
             }
+            CandidateConfig::Zpaq { level } => {
+                if self.backend != "zpaq" {
+                    return Err(format!(
+                        "ZPAQ configuration used by non-ZPAQ candidate {}",
+                        self.id
+                    ));
+                }
+                encode_zpaq(self.profile, input, level)
+            }
+            CandidateConfig::Bsc {
+                lzp_hash_size,
+                lzp_min_len,
+                adaptive_coder,
+                fast_mode,
+            } => {
+                if self.backend != "bsc" {
+                    return Err(format!(
+                        "BSC configuration used by non-BSC candidate {}",
+                        self.id
+                    ));
+                }
+                encode_bsc(
+                    self.profile,
+                    input,
+                    crate::bsc_ffi::BscOptions {
+                        lzp_hash_size,
+                        lzp_min_len,
+                        adaptive_coder,
+                        fast_mode,
+                    },
+                )
+            }
         }
     }
 
@@ -402,10 +491,10 @@ impl CandidateDescriptor {
     /// wrapper.  It is intentionally an admission estimate, not an RSS claim.
     pub fn encoder_peak_bytes(&self, input_len: usize) -> Result<usize, String> {
         if input_len > MAX_INPUT {
-            return Err("CIXB1 input exceeds 64 MiB limit".into());
+            return Err("CIXB1 input exceeds 128 MiB limit".into());
         }
         let payload = input_len
-            .checked_add(1024 * 1024)
+            .checked_add(2 * 1024 * 1024)
             .ok_or_else(|| "CIXB1 payload estimate overflow".to_string())?;
         // All ordinary backends hold a payload vector and then construct a
         // complete wrapper vector.  The dictionary XZ encoder grows its
@@ -413,13 +502,16 @@ impl CandidateDescriptor {
         // potential capacity growth before it becomes the wrapper.
         let copies = match self.config {
             CandidateConfig::Canonical => 2usize,
-            CandidateConfig::XzDictionary { .. } | CandidateConfig::BrotliQuality { .. } => 3usize,
+            CandidateConfig::XzDictionary { .. }
+            | CandidateConfig::BrotliQuality { .. }
+            | CandidateConfig::Zpaq { .. }
+            | CandidateConfig::Bsc { .. } => 3usize,
         };
         let storage = payload
             .checked_mul(copies)
             .and_then(|v| v.checked_add(HEADER))
             .ok_or_else(|| "CIXB1 output estimate overflow".to_string())?;
-        let native = self.native_encoder_bytes()?;
+        let native = self.native_encoder_bytes(input_len)?;
         storage
             .checked_add(native)
             .and_then(|v| v.checked_add(128 * 1024)) // stream chunks and ABI bookkeeping
@@ -456,7 +548,7 @@ impl CandidateDescriptor {
         Ok(needed_bytes)
     }
 
-    fn native_encoder_bytes(&self) -> Result<usize, String> {
+    fn native_encoder_bytes(&self, input_len: usize) -> Result<usize, String> {
         let bytes = match self.config {
             CandidateConfig::XzDictionary {
                 dictionary_bytes,
@@ -493,6 +585,16 @@ impl CandidateDescriptor {
             } if self.backend == "brotli" && quality <= 11 && (10..=24).contains(&lgwin) => {
                 256 * 1024 * 1024
             }
+            // Method 5 has fixed 16 MiB blocks plus adaptive tables whose
+            // allocation is model-dependent. The conservative admission is
+            // intentionally a resource guard rather than an RSS claim.
+            CandidateConfig::Zpaq { level: 5 } if self.backend == "zpaq" => 1024 * 1024 * 1024,
+            CandidateConfig::Bsc { .. } if self.backend == "bsc" => {
+                // Upstream's CPU estimate is 16 MiB + 5 × block bytes. The
+                // FFI wrapper additionally owns aligned input/output and a
+                // copied payload, so reserve three further block copies.
+                16 * 1024 * 1024 + input_len.saturating_mul(8)
+            }
             _ => return Err(format!("unsupported CIXB1 candidate {}", self.id)),
         };
         Ok(bytes)
@@ -505,7 +607,7 @@ impl CandidateDescriptor {
     /// performs exact header and output limits before invoking native code.
     pub fn decoder_peak_bytes(&self, input_len: usize) -> Result<usize, String> {
         if input_len > MAX_INPUT {
-            return Err("CIXB1 input exceeds 64 MiB limit".into());
+            return Err("CIXB1 input exceeds 128 MiB limit".into());
         }
         let native = match self.config {
             CandidateConfig::XzDictionary {
@@ -521,6 +623,10 @@ impl CandidateDescriptor {
             CandidateConfig::Canonical if self.backend == "bzip2" => 32 * 1024 * 1024,
             CandidateConfig::Canonical if self.backend == "zstd" => 64 * 1024 * 1024,
             CandidateConfig::Canonical if self.backend == "gzip" => 8 * 1024 * 1024,
+            CandidateConfig::Zpaq { level: 5 } if self.backend == "zpaq" => 1024 * 1024 * 1024,
+            CandidateConfig::Bsc { .. } if self.backend == "bsc" => {
+                16 * 1024 * 1024 + input_len.saturating_mul(8)
+            }
             _ => return Err(format!("unsupported CIXB1 candidate {}", self.id)),
         };
         MAX_PAYLOAD
@@ -595,12 +701,103 @@ unsafe extern "C" {
 }
 #[link(name = "brotlidec")]
 unsafe extern "C" {
-    fn BrotliDecoderDecompress(
-        encoded_size: usize,
-        encoded: *const u8,
-        decoded_size: *mut usize,
-        decoded: *mut u8,
+    fn BrotliDecoderCreateInstance(
+        alloc_func: *const c_void,
+        free_func: *const c_void,
+        opaque: *mut c_void,
+    ) -> *mut BrotliDecoderState;
+    fn BrotliDecoderDestroyInstance(state: *mut BrotliDecoderState);
+    fn BrotliDecoderDecompressStream(
+        state: *mut BrotliDecoderState,
+        available_in: *mut usize,
+        next_in: *mut *const u8,
+        available_out: *mut usize,
+        next_out: *mut *mut u8,
+        total_out: *mut usize,
     ) -> c_int;
+}
+
+#[repr(C)]
+struct BrotliDecoderState {
+    _opaque: [u8; 0],
+}
+
+struct BrotliDecoder(*mut BrotliDecoderState);
+
+impl Drop for BrotliDecoder {
+    fn drop(&mut self) {
+        if !self.0.is_null() {
+            unsafe { BrotliDecoderDestroyInstance(self.0) };
+        }
+    }
+}
+
+/// Decode exactly one Brotli stream. The one-shot Brotli API reports success
+/// after a valid stream even when bytes remain in its input buffer. CIXB1
+/// treats such bytes as a forged trailing payload, so use the streaming API
+/// and require that the successful decode consumes every wrapper payload byte.
+fn brotli_decode_exact(payload: &[u8], output: &mut [u8]) -> Result<usize, String> {
+    let state = unsafe {
+        BrotliDecoderCreateInstance(std::ptr::null(), std::ptr::null(), std::ptr::null_mut())
+    };
+    if state.is_null() {
+        return Err("brotli decoder allocation failed".into());
+    }
+    let _state = BrotliDecoder(state);
+    let mut available_in = payload.len();
+    let mut next_in = payload.as_ptr();
+    let mut available_out = output.len();
+    let mut next_out = output.as_mut_ptr();
+    let mut total_out = 0usize;
+    let status = unsafe {
+        BrotliDecoderDecompressStream(
+            state,
+            &mut available_in,
+            &mut next_in,
+            &mut available_out,
+            &mut next_out,
+            &mut total_out,
+        )
+    };
+    // BROTLI_DECODER_RESULT_SUCCESS is 1. NEEDS_MORE_INPUT (2) means a
+    // truncated payload; NEEDS_MORE_OUTPUT (3) exceeds the bounded output.
+    if status != 1 {
+        return Err("brotli truncated, invalid or oversized data".into());
+    }
+    if available_in != 0 {
+        return Err("brotli trailing data".into());
+    }
+    if total_out > output.len() {
+        return Err("brotli decoder returned invalid output length".into());
+    }
+    Ok(total_out)
+}
+
+#[link(name = "cix_zpaq715", kind = "static")]
+unsafe extern "C" {
+    fn cix_zpaq715_compress_l5(
+        input: *const u8,
+        input_size: usize,
+        output_limit: usize,
+        output: *mut *mut u8,
+        output_size: *mut usize,
+        error: *mut c_char,
+        error_capacity: usize,
+        cancellation: extern "C" fn() -> bool,
+    ) -> c_int;
+    fn cix_zpaq715_decompress(
+        input: *const u8,
+        input_size: usize,
+        output: *mut u8,
+        output_capacity: usize,
+        native_memory_limit: usize,
+        output_size: *mut usize,
+        error: *mut c_char,
+        error_capacity: usize,
+        cancellation: extern "C" fn() -> bool,
+    ) -> c_int;
+    fn cix_zpaq715_free(pointer: *mut c_void);
+    fn cix_zpaq715_version() -> *const c_char;
 }
 
 fn backend_id(name: &str) -> Result<u8, String> {
@@ -610,6 +807,8 @@ fn backend_id(name: &str) -> Result<u8, String> {
         "xz" => Ok(3),
         "zstd" => Ok(4),
         "brotli" => Ok(5),
+        "zpaq" => Ok(6),
+        "bsc" => Ok(7),
         _ => Err(format!("unsupported CIXB1 backend: {name}")),
     }
 }
@@ -624,7 +823,9 @@ fn profile_id(name: &str) -> Result<u8, String> {
 fn check_eligible(backend: &str, profile: &str) -> Result<(), String> {
     let valid = match profile {
         "fast" => matches!(backend, "gzip" | "zstd" | "brotli"),
-        "default" | "current" | "size" => matches!(backend, "gzip" | "bzip2" | "xz" | "zstd"),
+        "default" | "current" | "size" => {
+            matches!(backend, "gzip" | "bzip2" | "xz" | "zstd" | "zpaq" | "bsc")
+        }
         _ => false,
     };
     if valid {
@@ -643,11 +844,139 @@ fn zstd_error(code: usize) -> String {
     }
 }
 
+fn zpaq_error(prefix: &str, status: c_int, error: &[c_char]) -> String {
+    let detail = unsafe { CStr::from_ptr(error.as_ptr()) }.to_string_lossy();
+    if detail.is_empty() {
+        format!("{prefix} failed (status {status})")
+    } else {
+        format!("{prefix}: {detail}")
+    }
+}
+
+fn zpaq_payload(input: &[u8], level: u8) -> Result<Vec<u8>, String> {
+    if level != 5 {
+        return Err(format!("unsupported pinned ZPAQ level {level}"));
+    }
+    check_cancel()?;
+    let limit = input
+        .len()
+        .checked_add(1024 * 1024)
+        .ok_or("ZPAQ payload bound overflow")?;
+    let mut result = std::ptr::null_mut();
+    let mut result_size = 0usize;
+    let mut error = [0 as c_char; 512];
+    let status = unsafe {
+        cix_zpaq715_compress_l5(
+            input.as_ptr(),
+            input.len(),
+            limit,
+            &mut result,
+            &mut result_size,
+            error.as_mut_ptr(),
+            error.len(),
+            zpaq_cancelled,
+        )
+    };
+    if status != 0 {
+        return Err(zpaq_error("ZPAQ 7.15 level-5 encode", status, &error));
+    }
+    if result_size > limit || (result.is_null() && result_size != 0) {
+        if !result.is_null() {
+            unsafe { cix_zpaq715_free(result.cast()) };
+        }
+        return Err("ZPAQ encoder returned an invalid bounded payload".into());
+    }
+    let payload = if result_size == 0 {
+        Vec::new()
+    } else {
+        unsafe { std::slice::from_raw_parts(result, result_size) }.to_vec()
+    };
+    if !result.is_null() {
+        unsafe { cix_zpaq715_free(result.cast()) };
+    }
+    check_cancel()?;
+    Ok(payload)
+}
+
+/// Wrap the pinned libzpaq 7.15 built-in level-5 stream in a versioned CIXB1
+/// envelope. The CIXB1 backend ID identifies libzpaq semantics and its fixed
+/// embedded level, while the ZPAQ payload itself carries the decoder model.
+pub fn encode_zpaq(profile: &str, input: &[u8], level: u8) -> Result<Vec<u8>, String> {
+    if !matches!(profile, "default" | "current" | "size") {
+        return Err(format!(
+            "CIXB1 ZPAQ level-5 is not eligible for profile {profile}"
+        ));
+    }
+    if input.len() > MAX_INPUT {
+        return Err("CIXB1 input exceeds 128 MiB limit".into());
+    }
+    let payload = zpaq_payload(input, level)?;
+    if payload.len() > MAX_PAYLOAD {
+        return Err("CIXB1 payload exceeds bounded limit".into());
+    }
+    let mut out = Vec::with_capacity(HEADER + payload.len());
+    out.extend_from_slice(b"CIXB1");
+    out.push(backend_id("zpaq")?);
+    out.push(profile_id(profile)?);
+    out.extend_from_slice(&(input.len() as u32).to_le_bytes());
+    out.extend_from_slice(&(payload.len() as u32).to_le_bytes());
+    out.extend_from_slice(&Sha256::digest(input));
+    out.extend_from_slice(&payload);
+    Ok(out)
+}
+
+fn bsc_payload(input: &[u8], options: crate::bsc_ffi::BscOptions) -> Result<Vec<u8>, String> {
+    check_cancel()?;
+    match crate::bsc_ffi::compress(input, options) {
+        Ok(payload) => {
+            check_cancel()?;
+            Ok(payload)
+        }
+        // BSC deliberately declines blocks where its transformed payload is
+        // not smaller. In automatic BEST this is a normal rejected candidate;
+        // the native CIX raw candidate remains present and charged.
+        Err(crate::bsc_ffi::BscError::Compress(-3)) | Err(crate::bsc_ffi::BscError::EmptyBlock) => {
+            Err("BSC candidate rejected: libbsc reported not compressible".into())
+        }
+        Err(error) => Err(format!("libbsc encode: {error}")),
+    }
+}
+
+/// Encode an explicitly configured libbsc payload in a complete CIXB1
+/// envelope. The payload itself includes BSC's transform/coder settings;
+/// CIXB1 records backend 7 and retains the generic profile only as an effort
+/// label. No input-derived external dictionary is supplied.
+pub fn encode_bsc(
+    profile: &str,
+    input: &[u8],
+    options: crate::bsc_ffi::BscOptions,
+) -> Result<Vec<u8>, String> {
+    if !matches!(profile, "default" | "current" | "size") {
+        return Err(format!("CIXB1 BSC is not eligible for profile {profile}"));
+    }
+    if input.len() > MAX_INPUT {
+        return Err("CIXB1 input exceeds 128 MiB limit".into());
+    }
+    let payload = bsc_payload(input, options)?;
+    if payload.len() > MAX_PAYLOAD {
+        return Err("CIXB1 payload exceeds bounded limit".into());
+    }
+    let mut out = Vec::with_capacity(HEADER + payload.len());
+    out.extend_from_slice(b"CIXB1");
+    out.push(backend_id("bsc")?);
+    out.push(profile_id(profile)?);
+    out.extend_from_slice(&(input.len() as u32).to_le_bytes());
+    out.extend_from_slice(&(payload.len() as u32).to_le_bytes());
+    out.extend_from_slice(&Sha256::digest(input));
+    out.extend_from_slice(&payload);
+    Ok(out)
+}
+
 pub fn encode(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>, String> {
     check_eligible(backend, profile)?;
     check_cancel()?;
     if input.len() > MAX_INPUT {
-        return Err("CIXB1 input exceeds 64 MiB limit".into());
+        return Err("CIXB1 input exceeds 128 MiB limit".into());
     }
     let payload = match backend {
         "gzip" => {
@@ -754,6 +1083,8 @@ pub fn encode(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>, Str
             out
         }
         "brotli" => brotli_payload(input, 0, 22, BrotliMode::Generic)?,
+        "zpaq" => zpaq_payload(input, 5)?,
+        "bsc" => bsc_payload(input, crate::bsc_ffi::BscOptions::default())?,
         _ => return Err(format!("unsupported CIXB1 backend: {backend}")),
     };
     if payload.len() > MAX_PAYLOAD {
@@ -822,7 +1153,7 @@ pub fn encode_brotli_quality(
         return Err(format!("unsupported CIXB1 profile: {profile}"));
     }
     if input.len() > MAX_INPUT {
-        return Err("CIXB1 input exceeds 64 MiB limit".into());
+        return Err("CIXB1 input exceeds 128 MiB limit".into());
     }
     let payload = brotli_payload(input, quality, lgwin, mode)?;
     if payload.len() > MAX_PAYLOAD {
@@ -849,7 +1180,7 @@ pub fn encode_xz_dictionary(
 ) -> Result<Vec<u8>, String> {
     check_eligible("xz", profile)?;
     if input.len() > MAX_INPUT {
-        return Err("CIXB1 input exceeds 64 MiB limit".into());
+        return Err("CIXB1 input exceeds 128 MiB limit".into());
     }
     let base = match profile {
         "fast" => 0,
@@ -869,7 +1200,7 @@ pub fn encode_xz_dictionary_preset(
     check_eligible("xz", profile)?;
     check_cancel()?;
     if input.len() > MAX_INPUT {
-        return Err("CIXB1 input exceeds 64 MiB limit".into());
+        return Err("CIXB1 input exceeds 128 MiB limit".into());
     }
     let mut options: LzmaOptionsLzma = unsafe { std::mem::zeroed() };
     if unsafe { lzma_lzma_preset(&mut options, preset) } != 0 {
@@ -935,11 +1266,17 @@ pub fn decode(archive: &[u8], memory_limit: usize) -> Result<Vec<u8>, String> {
     }
     let bid = archive[5];
     let profile = archive[6];
-    if !(1..=5).contains(&bid) || !(1..=3).contains(&profile) {
+    if !(1..=7).contains(&bid) || !(1..=3).contains(&profile) {
         return Err("unsupported CIXB1 backend or profile ID".into());
     }
     let expected = u32::from_le_bytes(archive[7..11].try_into().unwrap()) as usize;
     let size = u32::from_le_bytes(archive[11..15].try_into().unwrap()) as usize;
+    // libbsc has no empty memory-block representation. Reject this before
+    // native dispatch so a forged CIXB1 header cannot represent empty data
+    // through backend 7. Empty CIX data uses a regular raw/native frame.
+    if bid == 7 && expected == 0 {
+        return Err("CIXB1 BSC backend does not encode empty input".into());
+    }
     if expected > MAX_INPUT
         || size > MAX_PAYLOAD
         || expected.saturating_add(size).saturating_add(HEADER) > memory_limit
@@ -963,6 +1300,10 @@ pub fn decode(archive: &[u8], memory_limit: usize) -> Result<Vec<u8>, String> {
         3 => 0, // liblzma enforces the exact remainder below.
         4 => 64 * 1024 * 1024,
         5 => 48 * 1024 * 1024,
+        6 => 1024 * 1024 * 1024,
+        // libbsc documents 16 MiB + 5 × block bytes. The aligned FFI decoder
+        // owns two more block copies before returning its final Vec.
+        7 => 16 * 1024 * 1024 + expected.saturating_mul(7),
         _ => unreachable!(),
     };
     if native_memory < native_reserve {
@@ -1065,20 +1406,41 @@ pub fn decode(archive: &[u8], memory_limit: usize) -> Result<Vec<u8>, String> {
             n
         }
         5 => {
-            let mut n = output.len();
-            let rc = unsafe {
-                BrotliDecoderDecompress(
-                    payload.len(),
-                    payload.as_ptr(),
-                    &mut n,
-                    output.as_mut_ptr(),
-                )
-            };
-            if rc != 1 {
-                return Err("brotli decode failed".into());
-            }
+            let n = brotli_decode_exact(payload, &mut output)?;
             check_cancel()?;
             n
+        }
+        6 => {
+            let mut decoded_size = 0usize;
+            let mut error = [0 as c_char; 512];
+            let status = unsafe {
+                cix_zpaq715_decompress(
+                    payload.as_ptr(),
+                    payload.len(),
+                    output.as_mut_ptr(),
+                    output.len(),
+                    native_memory,
+                    &mut decoded_size,
+                    error.as_mut_ptr(),
+                    error.len(),
+                    zpaq_cancelled,
+                )
+            };
+            if status != 0 {
+                return Err(zpaq_error("ZPAQ 7.15 decode", status, &error));
+            }
+            if decoded_size > output.len() {
+                return Err("ZPAQ decoder returned invalid output length".into());
+            }
+            check_cancel()?;
+            decoded_size
+        }
+        7 => {
+            let decoded = crate::bsc_ffi::decompress(payload, expected)
+                .map_err(|error| format!("libbsc decode: {error}"))?;
+            check_cancel()?;
+            output[..expected].copy_from_slice(&decoded);
+            expected
         }
         _ => return Err("unknown CIXB1 backend".into()),
     };
@@ -1096,12 +1458,71 @@ pub fn decode(archive: &[u8], memory_limit: usize) -> Result<Vec<u8>, String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{decode, encode_xz_dictionary};
+    use super::{decode, encode_bsc, encode_xz_dictionary, encode_zpaq, HEADER};
+    use sha2::{Digest, Sha256};
 
     #[test]
     fn xz_larger_dictionary_archive_round_trips() {
         let input = b"CIX xz dictionary fixture: abcdef0123456789 ".repeat(8192);
         let archive = encode_xz_dictionary("size", &input, 128 * 1024 * 1024).unwrap();
         assert_eq!(decode(&archive, 1024 * 1024 * 1024).unwrap(), input);
+    }
+
+    #[test]
+    fn pinned_zpaq715_level5_cixb1_round_trips_and_rejects_corruption() {
+        let input = b"CIX ZPAQ 7.15 adaptive context fixture\n".repeat(4096);
+        let archive = encode_zpaq("size", &input, 5).unwrap();
+        assert_eq!(&archive[..5], b"CIXB1");
+        assert_eq!(archive[5], 6);
+        assert_eq!(decode(&archive, 2 * 1024 * 1024 * 1024).unwrap(), input);
+
+        let mut corrupt = archive;
+        let last = corrupt.len() - 1;
+        corrupt[last] ^= 0x80;
+        assert!(decode(&corrupt, 2 * 1024 * 1024 * 1024).is_err());
+
+        let mut trailing = encode_zpaq("size", &input, 5).unwrap();
+        trailing.push(0);
+        let payload = u32::try_from(trailing.len() - HEADER).unwrap();
+        trailing[11..15].copy_from_slice(&payload.to_le_bytes());
+        assert!(decode(&trailing, 2 * 1024 * 1024 * 1024).is_err());
+
+        let mut missing_payload = encode_zpaq("size", &[], 5).unwrap();
+        missing_payload.truncate(HEADER);
+        missing_payload[11..15].copy_from_slice(&0u32.to_le_bytes());
+        assert!(decode(&missing_payload, 2 * 1024 * 1024 * 1024).is_err());
+    }
+
+    #[test]
+    fn bsc_cixb1_round_trips_from_an_unaligned_envelope_payload() {
+        let input = b"CIX BSC native envelope alignment fixture. ".repeat(4096);
+        let archive = encode_bsc("size", &input, crate::bsc_ffi::BscOptions::default()).unwrap();
+        assert_eq!(&archive[..5], b"CIXB1");
+        assert_eq!(archive[5], 7);
+        assert_eq!(decode(&archive, 64 * 1024 * 1024).unwrap(), input);
+
+        let mut corrupt = archive;
+        let last = corrupt.len() - 1;
+        corrupt[last] ^= 0x40;
+        assert!(decode(&corrupt, 64 * 1024 * 1024).is_err());
+    }
+
+    #[test]
+    fn bsc_rejects_a_forged_stored_empty_archive() {
+        // CIXB1 itself can describe an empty archive, but backend 7 cannot:
+        // libbsc rejects empty memory blocks at encode time. Keep that rule
+        // equally strict for an attacker-controlled decoder header, even if
+        // the outer SHA-256 is the valid empty digest.
+        let mut archive = Vec::with_capacity(HEADER);
+        archive.extend_from_slice(b"CIXB1");
+        archive.push(7); // native libbsc backend
+        archive.push(3); // size effort profile
+        archive.extend_from_slice(&0u32.to_le_bytes());
+        archive.extend_from_slice(&0u32.to_le_bytes());
+        archive.extend_from_slice(&Sha256::digest([]));
+        assert_eq!(archive.len(), HEADER);
+        assert!(decode(&archive, 64 * 1024 * 1024)
+            .unwrap_err()
+            .contains("BSC backend does not encode empty"));
     }
 }

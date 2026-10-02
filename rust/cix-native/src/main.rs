@@ -13,6 +13,7 @@ use std::{
 
 mod adaptive;
 mod bitplane;
+mod bsc_ffi;
 mod bwt_legacy;
 mod chain;
 mod expertmix;
@@ -35,6 +36,7 @@ mod selection;
 mod sparse_runs;
 mod stateful;
 mod stdout_writer;
+mod streaming_backend;
 mod transform;
 mod wavelet;
 mod zpaq_context;
@@ -112,6 +114,7 @@ struct Opt {
     threads_set: bool,
     parallelism: String,
     memory: usize,
+    memory_set: bool,
     input: String,
     output: Option<String>,
     route: Option<String>,
@@ -132,7 +135,7 @@ struct Opt {
     verbose: bool,
 }
 fn usage() {
-    println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] [FILE]\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] [FILE]\n       cixcat [FILE]\n\nFILE defaults to '-' (standard input); use '--' before a dash-prefixed filename. Input files are kept by default. Use '-' for standard input or output. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format auto|cixg1|cixg2|cixm6|cixf1  Select or constrain the container version\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Set the maximum CIXG1/CIXG2 block\n  --memory SIZE               Bound working memory\n  --threads N                 Bound CPU workers (1..4; default up to 4)\n  --parallelism blocks|candidates  Choose ordered blocks or within-block trials\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Emit partial CIXG1/CIXG2 blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
+    println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] [FILE]\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] [FILE]\n       cixcat [FILE]\n\nFILE defaults to '-' (standard input); use '--' before a dash-prefixed filename. Input files are kept by default. Use '-' for standard input or output. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format auto|cixg1|cixg2|cixm6|cixf1  Select or constrain the container version\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Constrain maximum uncompressed block size\n  --memory SIZE               Bound working memory (FAST/default 512 MiB; BEST/decode 2 GiB)\n  --threads N                 Bound CPU workers (1..4; default up to 4)\n  --parallelism blocks|candidates  Choose ordered blocks or within-block trials\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Flush framed partial blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
 }
 fn parse() -> Result<Opt, String> {
     let mut o = Opt {
@@ -163,11 +166,11 @@ fn parse() -> Result<Opt, String> {
             files.push(a.clone())
         } else if a == "--help" || a == "-h" {
             usage();
-            println!("\nBEST automatically compares eligible complete native CIXG2 and CIXB1 backend archives for named regular files within --memory. Pipes, --stream, and expert framing constraints retain bounded CIXG streaming; use --verbose or --explain to see the selection or exclusion reason.");
+            println!("\nBEST compares complete compatible native containers and native-library backend archives within --memory. Streaming uses bounded framed candidates and retained history where supported. Expert controls constrain their specified dimensions. Use --verbose or --explain for evaluated candidates and resource exclusions.");
             process::exit(0)
         } else if a == "--version" {
             println!(
-                "cix-native {} (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1)",
+                "cix-native {} (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)",
                 env!("CARGO_PKG_VERSION")
             );
             process::exit(0)
@@ -237,7 +240,10 @@ fn parse() -> Result<Opt, String> {
                     o.threads_set = true;
                 }
                 "--parallelism" => o.parallelism = args[i].clone(),
-                "--memory" => o.memory = parse_size(&args[i])?,
+                "--memory" => {
+                    o.memory = parse_size(&args[i])?;
+                    o.memory_set = true;
+                }
                 "--route" => o.route = Some(args[i].clone()),
                 "--backend" => {
                     o.backend = args[i].clone();
@@ -301,6 +307,9 @@ fn parse() -> Result<Opt, String> {
     }
     if o.threads == 0 {
         return Err("--threads must be positive".into());
+    }
+    if o.decode && !o.memory_set {
+        o.memory = 2 * 1024 * 1024 * 1024;
     }
     Ok(o)
 }
@@ -2502,6 +2511,98 @@ fn cixg_candidate(data: &[u8], route: Option<u8>, level: u8) -> Result<Vec<u8>, 
     Ok(out)
 }
 
+/// The raw CIXG1 fallback is always available before portfolio search.  Keep
+/// a conservative complete-archive bound so source plus fallback can be
+/// admitted before allocating either.  Every raw frame carries its route,
+/// lengths and digest, followed by the terminal frame.
+fn portfolio_raw_fallback_bytes(input_len: usize) -> Result<usize, String> {
+    let blocks = input_len
+        .checked_add(MAX_BLOCK as usize - 1)
+        .ok_or("portfolio raw fallback block count overflow")?
+        / MAX_BLOCK as usize;
+    let frame_overhead = blocks
+        .checked_mul(48)
+        .and_then(|value| value.checked_add(64))
+        .ok_or("portfolio raw fallback size overflow")?;
+    input_len
+        .checked_add(frame_overhead)
+        .ok_or("portfolio raw fallback size overflow".into())
+}
+
+/// Explicit portfolio profiles retain their established candidate families,
+/// while each entry is a fully configured CIXB1 descriptor.  BEST-like size
+/// candidates therefore retain their exact native dictionary/model settings
+/// instead of rebuilding an uncharged backend from a backend name.
+fn portfolio_descriptors(profile: &str) -> Vec<&'static external::CandidateDescriptor> {
+    external::best_candidates()
+        .iter()
+        .filter(|descriptor| match profile {
+            "fast" => matches!(descriptor.id, "gzip-fast" | "zstd-fast" | "brotli-fast-0"),
+            "default" => matches!(
+                descriptor.id,
+                "gzip-size" | "bzip2-size" | "xz-default-6" | "zstd-default-3"
+            ),
+            "size" => descriptor.profile == "size",
+            _ => false,
+        })
+        .collect()
+}
+
+/// The direct `--external` spelling has no configuration syntax.  Keep its
+/// historical backend/profile interface, but attach the same resource model
+/// as the automatic descriptor before a native call is made.
+fn direct_external_descriptor(
+    backend: &str,
+    profile: &str,
+) -> Result<external::CandidateDescriptor, String> {
+    let profile: &'static str = match profile {
+        "fast" => "fast",
+        "default" | "current" => "default",
+        "size" => "size",
+        _ => return Err(format!("unsupported CIXB1 profile: {profile}")),
+    };
+    let backend: &'static str = match backend {
+        "gzip" => "gzip",
+        "bzip2" => "bzip2",
+        "xz" => "xz",
+        "zstd" => "zstd",
+        "brotli" => "brotli",
+        "zpaq" => "zpaq",
+        "bsc" => "bsc",
+        _ => return Err(format!("unsupported CIXB1 backend: {backend}")),
+    };
+    let config = match (backend, profile) {
+        ("zpaq", _) => external::CandidateConfig::Zpaq { level: 5 },
+        ("bsc", _) => external::CandidateConfig::Bsc {
+            lzp_hash_size: 15,
+            lzp_min_len: 72,
+            adaptive_coder: false,
+            fast_mode: true,
+        },
+        ("brotli", "size") => external::CandidateConfig::BrotliQuality {
+            quality: 11,
+            lgwin: 22,
+            mode: external::BrotliMode::Generic,
+        },
+        _ => external::CandidateConfig::Canonical,
+    };
+    // Validate the actual direct encoder profile now.  This retains the
+    // established diagnostics for unsupported backend/profile combinations.
+    match (backend, profile) {
+        ("gzip" | "bzip2" | "xz" | "zstd", "fast" | "default" | "size")
+        | ("brotli", "fast" | "size")
+        | ("zpaq" | "bsc", "default" | "size") => Ok(external::CandidateDescriptor {
+            id: "explicit-external",
+            backend,
+            profile,
+            config,
+        }),
+        _ => Err(format!(
+            "CIXB1 backend {backend} is not eligible for profile {profile}"
+        )),
+    }
+}
+
 fn encode_portfolio<R: Read, W: Write>(
     src: R,
     mut dst: W,
@@ -2516,11 +2617,15 @@ fn encode_portfolio<R: Read, W: Write>(
     if !matches!(profile, "fast" | "default" | "size") {
         return Err("--portfolio accepts fast, default or size".into());
     }
-    let required = if profile == "size" {
+    let profile_minimum = if profile == "size" {
         384 * 1024 * 1024
     } else {
         128 * 1024 * 1024
     };
+    let fallback_required = external::MAX_INPUT
+        .checked_add(portfolio_raw_fallback_bytes(external::MAX_INPUT)?)
+        .ok_or("portfolio fallback memory estimate overflow")?;
+    let required = profile_minimum.max(fallback_required);
     if memory < required {
         return Err(format!(
             "{profile} portfolio requires --memory of at least {} MiB",
@@ -2532,7 +2637,10 @@ fn encode_portfolio<R: Read, W: Write>(
         .read_to_end(&mut data)
         .map_err(ioerr)?;
     if data.len() > external::MAX_INPUT {
-        return Err("native portfolio input exceeds 64 MiB".into());
+        return Err(format!(
+            "native portfolio input exceeds {} MiB",
+            external::MAX_INPUT / (1024 * 1024)
+        ));
     }
     let total_search_seconds = match profile {
         "fast" => 60,
@@ -2549,32 +2657,58 @@ fn encode_portfolio<R: Read, W: Write>(
     // selector does this first too; otherwise one expensive model can prevent
     // the caller from receiving even a usable fallback.
     let mut winner = cixg_candidate(&data, Some(0), level)?;
-    let mut winner_name = "cix-route:raw".to_string();
-    let backends: &[&str] = if profile == "fast" {
-        &["gzip", "zstd", "brotli"]
-    } else {
-        &["gzip", "bzip2", "xz", "zstd"]
-    };
-    for backend in backends {
-        check_interrupted()?;
-        let candidate = external::encode(backend, profile, &data)?;
-        if candidate.len() < winner.len() && portfolio_candidate_matches(&candidate, &data, memory)
-        {
-            winner = candidate;
-            winner_name = format!("{backend}:direct");
-        }
+    if data.capacity().saturating_add(winner.capacity()) > memory {
+        return Err("portfolio source plus raw fallback exceeds --memory".into());
     }
-    if profile == "size" && memory >= 768 * 1024 * 1024 {
-        let candidate = external::encode_xz_dictionary("size", &data, 128 * 1024 * 1024)?;
-        if candidate.len() < winner.len() && portfolio_candidate_matches(&candidate, &data, memory)
-        {
-            winner = candidate;
-            winner_name = "xz:direct-dict128".into();
+    let mut winner_name = "cix-route:raw".to_string();
+    let mut omitted = Vec::new();
+    for descriptor in portfolio_descriptors(profile) {
+        check_interrupted()?;
+        let available = memory
+            .saturating_sub(data.capacity())
+            .saturating_sub(winner.capacity());
+        if let Err(omission) = descriptor.admit(data.len(), available) {
+            omitted.push(format!("{} ({})", descriptor.id, omission.reason));
+            continue;
         }
-        let tuned = external::encode_xz_dictionary_preset("size", &data, 128 * 1024 * 1024, 6)?;
-        if tuned.len() < winner.len() && portfolio_candidate_matches(&tuned, &data, memory) {
-            winner = tuned;
-            winner_name = "xz:dict128-preset6".into();
+        let candidate = match descriptor.full_archive_encode(&data) {
+            Ok(candidate) => candidate,
+            // BSC can decline uncompressible input.  It is a measured
+            // candidate rejection, while real backend errors remain fatal.
+            Err(error) if error.contains("BSC candidate rejected") => {
+                omitted.push(format!("{} ({error})", descriptor.id));
+                continue;
+            }
+            Err(error) => return Err(error),
+        };
+        if data
+            .capacity()
+            .saturating_add(winner.capacity())
+            .saturating_add(candidate.capacity())
+            > memory
+        {
+            return Err(format!(
+                "CIXB1 {} exceeded its admitted --memory accounting",
+                descriptor.id
+            ));
+        }
+        if candidate.len() < winner.len() {
+            match portfolio_candidate_matches(
+                &candidate,
+                candidate.capacity(),
+                &data,
+                data.capacity().saturating_add(winner.capacity()),
+                memory,
+                Some(descriptor),
+            )? {
+                PortfolioVerification::Verified => {
+                    winner = candidate;
+                    winner_name = descriptor.id.to_string();
+                }
+                PortfolioVerification::MemoryOmission(reason) => {
+                    omitted.push(format!("{} ({reason})", descriptor.id));
+                }
+            }
         }
     }
     // Give size routes more time than the default profile while retaining an
@@ -2585,7 +2719,6 @@ fn encode_portfolio<R: Read, W: Write>(
         "size" => 180,
         _ => 90,
     };
-    let mut omitted = Vec::new();
     // Candidate encoders run in child processes so each route has a real
     // deadline. Joining a Rust thread after a timeout would leave the route
     // consuming CPU, defeating the bounded portfolio contract.
@@ -2594,13 +2727,31 @@ fn encode_portfolio<R: Read, W: Write>(
         .as_secs();
     if remaining == 0 {
         omitted.push("cix-adaptive:overall-budget".to_string());
-    } else if let Some(candidate) =
-        portfolio_cix_candidate(&data, level, memory, None, candidate_seconds.min(remaining))?
-    {
-        if candidate.len() < winner.len() && portfolio_candidate_matches(&candidate, &data, memory)
-        {
-            winner = candidate;
-            winner_name = "cix-adaptive".into();
+    } else if let Some(candidate) = portfolio_cix_candidate(
+        &data,
+        level,
+        memory,
+        data.capacity().saturating_add(winner.capacity()),
+        None,
+        candidate_seconds.min(remaining),
+    )? {
+        if candidate.len() < winner.len() {
+            match portfolio_candidate_matches(
+                &candidate,
+                candidate.capacity(),
+                &data,
+                data.capacity().saturating_add(winner.capacity()),
+                memory,
+                None,
+            )? {
+                PortfolioVerification::Verified => {
+                    winner = candidate;
+                    winner_name = "cix-adaptive".into();
+                }
+                PortfolioVerification::MemoryOmission(reason) => {
+                    omitted.push(format!("cix-adaptive ({reason})"));
+                }
+            }
         }
     } else {
         omitted.push("cix-adaptive".to_string());
@@ -2632,14 +2783,27 @@ fn encode_portfolio<R: Read, W: Write>(
                 &data,
                 level,
                 memory,
+                data.capacity().saturating_add(winner.capacity()),
                 Some(route),
                 candidate_seconds.min(remaining),
             )? {
-                if candidate.len() < winner.len()
-                    && portfolio_candidate_matches(&candidate, &data, memory)
-                {
-                    winner = candidate;
-                    winner_name = format!("cix-route:{route}");
+                if candidate.len() < winner.len() {
+                    match portfolio_candidate_matches(
+                        &candidate,
+                        candidate.capacity(),
+                        &data,
+                        data.capacity().saturating_add(winner.capacity()),
+                        memory,
+                        None,
+                    )? {
+                        PortfolioVerification::Verified => {
+                            winner = candidate;
+                            winner_name = format!("cix-route:{route}");
+                        }
+                        PortfolioVerification::MemoryOmission(reason) => {
+                            omitted.push(format!("cix-route:{route} ({reason})"));
+                        }
+                    }
                 }
             } else {
                 omitted.push(format!("cix-route:{route}"));
@@ -2656,34 +2820,94 @@ fn encode_portfolio<R: Read, W: Write>(
     Ok(())
 }
 
-fn portfolio_candidate_matches(archive: &[u8], source: &[u8], memory: usize) -> bool {
+enum PortfolioVerification {
+    Verified,
+    MemoryOmission(String),
+}
+
+/// Verify without pretending that the decode is free. During portfolio search
+/// the source, incumbent and candidate are all live. The reconstructed output
+/// and decoder working set must fit in the remaining declared budget before a
+/// candidate is eligible to replace the incumbent.
+fn portfolio_candidate_matches(
+    archive: &[u8],
+    archive_capacity: usize,
+    source: &[u8],
+    retained_bytes: usize,
+    memory: usize,
+    descriptor: Option<&external::CandidateDescriptor>,
+) -> Result<PortfolioVerification, String> {
+    let restored_bytes = source.len();
+    let remaining = memory
+        .checked_sub(retained_bytes)
+        .and_then(|value| value.checked_sub(archive_capacity))
+        .and_then(|value| value.checked_sub(restored_bytes));
+    let Some(decoder_memory) = remaining else {
+        return Ok(PortfolioVerification::MemoryOmission(
+            "source, incumbent, candidate and restored output exceed --memory".into(),
+        ));
+    };
+    if let Some(descriptor) = descriptor {
+        let required = descriptor.decoder_peak_bytes(source.len())?;
+        if required > decoder_memory {
+            return Ok(PortfolioVerification::MemoryOmission(format!(
+                "verification decoder needs {required} bytes, available {decoder_memory}"
+            )));
+        }
+    }
     let mut restored = Vec::with_capacity(source.len());
-    decode(
+    match decode(
         io::Cursor::new(archive),
         &mut restored,
         false,
         false,
         -1,
-        memory,
-    )
-    .is_ok()
-        && restored == source
+        decoder_memory,
+    ) {
+        Ok(()) => {}
+        Err(error) if error.contains("memory") || error.contains("resource") => {
+            return Ok(PortfolioVerification::MemoryOmission(format!(
+                "verification decoder cannot fit: {error}"
+            )));
+        }
+        Err(error) => return Err(format!("portfolio candidate decode failed: {error}")),
+    }
+    if restored != source {
+        return Err("portfolio candidate did not restore the original bytes".into());
+    }
+    Ok(PortfolioVerification::Verified)
 }
 
 fn portfolio_cix_candidate(
     data: &[u8],
     level: u8,
     memory: usize,
+    retained_bytes: usize,
     route: Option<&str>,
     timeout_seconds: u64,
 ) -> Result<Option<Vec<u8>>, String> {
+    // Parent-owned input clone and bounded stdout collection stay live while
+    // the child encodes. Give the child only the residual budget, rather than
+    // treating a subprocess as outside the portfolio's working-memory cap.
+    let input_len = data.len();
+    let output_cap = input_len.saturating_mul(2).saturating_add(2 * 1024 * 1024);
+    let child_memory = memory
+        .checked_sub(retained_bytes)
+        .and_then(|value| value.checked_sub(input_len))
+        .and_then(|value| value.checked_sub(output_cap));
+    let Some(child_memory) = child_memory else {
+        return Ok(None);
+    };
+    if child_memory < 128 * 1024 {
+        return Ok(None);
+    }
     let executable = env::current_exe().map_err(ioerr)?;
     let mut command = Command::new(executable);
     command
         .arg(format!("-{level}"))
         .args(["--format", "cixg1", "--stream", "--block-size", "65536B"])
         .arg("--memory")
-        .arg(format!("{memory}B"))
+        .arg(format!("{child_memory}B"))
         .args(["--threads", "1", "-c"]);
     if let Some(route) = route {
         command.args(["--route", route]);
@@ -2694,7 +2918,6 @@ fn portfolio_cix_candidate(
         .stdout(Stdio::piped())
         .stderr(Stdio::null());
     let mut child = command.spawn().map_err(ioerr)?;
-    let input_len = data.len();
     let mut child_stdin = child
         .stdin
         .take()
@@ -2705,7 +2928,6 @@ fn portfolio_cix_candidate(
         .stdout
         .take()
         .ok_or("portfolio child stdout unavailable")?;
-    let output_cap = input_len.saturating_mul(2).saturating_add(2 * 1024 * 1024);
     let reader = thread::spawn(move || {
         let mut out = Vec::with_capacity(input_len.saturating_add(1024));
         child_stdout
@@ -2753,13 +2975,14 @@ fn encode_external<R: Read, W: Write>(
     profile: &str,
     memory: usize,
 ) -> Result<(), String> {
-    let required = external::MAX_INPUT
-        .saturating_mul(2)
-        .saturating_add(external::MAX_PAYLOAD)
-        .saturating_add(47);
-    if memory < required {
+    let descriptor = direct_external_descriptor(backend, profile)?;
+    // The source buffer is bounded before its length is known. After it is
+    // read, admission uses the actual length so a small q11 Brotli request is
+    // not rejected merely because the format also supports a larger source.
+    if memory < external::MAX_INPUT {
         return Err(format!(
-            "CIXB1 external encoding requires about {required} bytes of --memory"
+            "CIXB1 external encoding requires at least {} bytes of --memory for its bounded source",
+            external::MAX_INPUT
         ));
     }
     let mut data = Vec::with_capacity(external::MAX_INPUT);
@@ -2767,9 +2990,24 @@ fn encode_external<R: Read, W: Write>(
         .read_to_end(&mut data)
         .map_err(ioerr)?;
     if data.len() > external::MAX_INPUT {
-        return Err("CIXB1 external input exceeds 64 MiB".into());
+        return Err(format!(
+            "CIXB1 external input exceeds {} MiB",
+            external::MAX_INPUT / (1024 * 1024)
+        ));
     }
-    let archive = external::encode(backend, profile, &data)?;
+    let available = memory.saturating_sub(data.capacity());
+    descriptor
+        .admit(data.len(), available)
+        .map_err(|omission| {
+            format!(
+                "CIXB1 external encoding cannot admit {}: {}",
+                descriptor.backend, omission.reason
+            )
+        })?;
+    let archive = descriptor.full_archive_encode(&data)?;
+    if data.capacity().saturating_add(archive.capacity()) > memory {
+        return Err("CIXB1 external archive exceeded --memory accounting".into());
+    }
     dst.write_all(&archive).map_err(ioerr)?;
     dst.flush().map_err(ioerr)
 }
@@ -3262,7 +3500,10 @@ fn decode<R: Read, W: Write>(
         let expected = u32::from_le_bytes(fields[2..6].try_into().unwrap()) as usize;
         if payload_size > external::MAX_PAYLOAD
             || expected > external::MAX_INPUT
-            || 47usize.saturating_add(expected).saturating_add(payload_size) > memory
+            || 47usize
+                .saturating_add(expected)
+                .saturating_add(payload_size)
+                > memory
         {
             return Err("CIXB1 archive exceeds --memory or format limit".into());
         }
@@ -3271,7 +3512,8 @@ fn decode<R: Read, W: Write>(
         archive.extend_from_slice(&fields);
         archive.resize(47 + payload_size, 0);
         read_exact_poll(&mut src, &mut archive[47..], input_fd)?;
-        let decoder_memory = memory.checked_sub(archive.capacity())
+        let decoder_memory = memory
+            .checked_sub(archive.capacity())
             .ok_or("CIXB1 archive exceeds --memory or format limit")?;
         let data = external::decode(&archive, decoder_memory)?;
         loop {
@@ -3295,6 +3537,9 @@ fn decode<R: Read, W: Write>(
             dst.flush().map_err(ioerr)?;
         }
         return Ok(());
+    }
+    if &archive_magic == streaming_backend::MAGIC {
+        return streaming_backend::decode(src, dst, verify_only, list, input_fd, memory);
     }
     let mut h = [0; HEADER];
     h[..5].copy_from_slice(&archive_magic);
@@ -3805,9 +4050,71 @@ fn atomic_file(
     Ok(())
 }
 fn block_min(o: &Opt) -> usize {
-    o.block
-        .unwrap_or(default_block(o.level))
-        .min(MAX_BLOCK) as usize
+    o.block.unwrap_or(default_block(o.level)).min(MAX_BLOCK) as usize
+}
+
+fn automatic_persistent_stream_eligible(o: &Opt, whole_archive_best: bool, block: u32) -> bool {
+    o.level >= 9
+        && !whole_archive_best
+        && !o.decode
+        && !o.test
+        && !o.list
+        && o.external_backend.is_none()
+        && o.portfolio.is_none()
+        && o.route.as_deref().is_none_or(|route| route == "auto")
+        && !o.backend_set
+        && o.format == "auto"
+        && o.history == 0
+        && !o.independent_blocks
+        && streaming_backend::required_memory(block) <= o.memory
+}
+
+/// Commit an admitted non-seekable BEST source to the mixed CIXZ1 container.
+/// Every region still compares raw, a current-state zstd stream candidate,
+/// and a complete native CIXG2 block; reading the probe never seeks or spools.
+fn encode_automatic_persistent_stream<R: Read, W: Write>(
+    mut src: R,
+    dst: W,
+    block: u32,
+    input_fd: i32,
+    flush_interval: Option<Duration>,
+    memory: usize,
+    threads: usize,
+    explain: bool,
+    verbose: bool,
+) -> Result<(), String> {
+    let (first, first_eof) =
+        streaming_backend::read_probe(&mut src, block, input_fd, flush_interval)?;
+    // An empty input has no region to probe.  Starting and finishing a fresh
+    // zstd frame only to print a diagnostic is both needless and outside the
+    // fixed active-segment epilogue invariant used by CIXZ1 selection.
+    let zstd_payload = if first.is_empty() && first_eof {
+        None
+    } else {
+        Some(streaming_backend::probe_payload(&first, 9)?)
+    };
+    if explain || verbose {
+        if let Some(zstd_payload) = zstd_payload {
+            eprintln!(
+                "cix: effort=best stream_probe=enter-cixz1-mixed first_source_bytes={} fresh_zstd_complete_bytes={} all native CIXG2 routes remain eligible per region",
+                first.len(), zstd_payload
+            );
+        }
+    }
+    streaming_backend::encode(
+        src,
+        dst,
+        first,
+        first_eof,
+        block,
+        9,
+        input_fd,
+        flush_interval,
+        memory,
+        threads,
+        explain,
+        verbose,
+    )
 }
 
 fn run() -> Result<(), String> {
@@ -3854,6 +4161,12 @@ fn run() -> Result<(), String> {
             "size" => 9,
             _ => return Err("native --profile accepts fast, default or size".into()),
         };
+    }
+    // BEST searches memory-intensive native backends as well as block routes.
+    // An explicit resource constraint is authoritative; raising search effort
+    // alone must not silently exceed a caller's declared memory budget.
+    if o.level >= 9 && !o.memory_set && !o.decode && !o.test && !o.list {
+        o.memory = 2 * 1024 * 1024 * 1024;
     }
     if o.threads > 4 {
         return Err("--threads is limited to 4 workers by the current memory policy".into());
@@ -3991,9 +4304,7 @@ fn run() -> Result<(), String> {
             return Err(format!("unsupported native route: {r}"));
         }
     }
-    let requested_block = o
-        .block
-        .unwrap_or(default_block(o.level));
+    let requested_block = o.block.unwrap_or(default_block(o.level));
     if requested_block == 0 {
         return Err("--block-size must be positive".into());
     }
@@ -4057,6 +4368,7 @@ fn run() -> Result<(), String> {
         return Ok(());
     }
     let automatic_best = portfolio_auto::eligible(&o);
+    let automatic_persistent_best = automatic_persistent_stream_eligible(&o, automatic_best, block);
     if (o.explain || o.verbose) && !automatic_best {
         if let Some(reason) = portfolio_auto::exclusion_reason(&o) {
             eprintln!("cix: effort=best whole_archive=no reason={reason}");
@@ -4091,6 +4403,18 @@ fn run() -> Result<(), String> {
             encode_portfolio(src, &mut lock, profile, o.memory)
         } else if let Some(backend) = o.external_backend.as_deref() {
             encode_external(src, &mut lock, backend, &o.profile, o.memory)
+        } else if automatic_persistent_best {
+            encode_automatic_persistent_stream(
+                src,
+                &mut lock,
+                block,
+                fd,
+                o.flush_interval,
+                o.memory,
+                o.threads,
+                o.explain,
+                o.verbose,
+            )
         } else {
             encode_with_strategy(
                 src,
@@ -4142,6 +4466,18 @@ fn run() -> Result<(), String> {
                 encode_portfolio(src, dst, profile, o.memory)
             } else if let Some(backend) = o.external_backend.as_deref() {
                 encode_external(src, dst, backend, &o.profile, o.memory)
+            } else if automatic_persistent_best {
+                encode_automatic_persistent_stream(
+                    src,
+                    dst,
+                    block,
+                    fd,
+                    o.flush_interval,
+                    o.memory,
+                    o.threads,
+                    o.explain,
+                    o.verbose,
+                )
             } else {
                 encode_with_strategy(
                     src,
@@ -4192,8 +4528,14 @@ mod fast_path_tests {
         }
         let mut mixed = random[..16384].to_vec();
         mixed.extend_from_slice(&b"generic repeated dictionary records ".repeat(1200));
-        let cases = [Vec::new(), b"a".to_vec(), b"abcde".to_vec(),
-            vec![0x42; MAX_BLOCK as usize], random, mixed];
+        let cases = [
+            Vec::new(),
+            b"a".to_vec(),
+            b"abcde".to_vec(),
+            vec![0x42; MAX_BLOCK as usize],
+            random,
+            mixed,
+        ];
         for input in cases {
             for backend in ["deflate", "cix", "range", "huffman"] {
                 let payload = lz_encode(&input, 1, backend).unwrap();
@@ -4211,8 +4553,10 @@ mod fast_path_tests {
         assert_eq!(default_block(6), 32768);
         assert_eq!(default_block(9), 65536);
         assert!(candidate_memory(3, 65536, 1, "deflate") < 3 << 20);
-        assert_eq!(candidate_memory(3, 65536, 6, "deflate"),
-            route_minimum_memory(3, 65536));
+        assert_eq!(
+            candidate_memory(3, 65536, 6, "deflate"),
+            route_minimum_memory(3, 65536)
+        );
     }
 }
 

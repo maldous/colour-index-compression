@@ -23,11 +23,16 @@ fn registry_covers_every_existing_best_backend_configuration() {
             "zstd-default-3",
             "zstd-size-22",
             "brotli-fast-0",
+            "brotli-size-q11-generic-w22",
+            "xz-dict128-size-9e",
+            "xz-dict128-preset6",
+            "bsc-v3.3.12-bwt-qlfc-static-lzp15-72-fast",
+            "zpaq715-l5",
         ]
     );
     // The direct API has no distinct gzip default payload configuration.
     assert!(!ids.contains(&"gzip-default"));
-    for backend in ["gzip", "bzip2", "xz", "zstd", "brotli"] {
+    for backend in ["gzip", "bzip2", "xz", "zstd", "brotli", "zpaq", "bsc"] {
         assert!(!backend_version(backend).unwrap().is_empty(), "{backend}");
     }
 }
@@ -72,11 +77,11 @@ fn canonical_candidates_make_complete_decodable_cixb1_archives() {
 }
 
 #[test]
-fn experimental_registry_retains_typed_brotli_quality_11_with_self_describing_payload() {
-    let candidate = experimental_candidates()
+fn best_registry_retains_typed_brotli_quality_11_with_self_describing_payload() {
+    let candidate = best_candidates()
         .iter()
         .find(|candidate| candidate.id == "brotli-size-q11-generic-w22")
-        .expect("experimental Brotli quality-11 candidate");
+        .expect("BEST Brotli quality-11 candidate");
     assert_eq!(candidate.backend, "brotli");
     assert_eq!(candidate.profile, "size");
     assert_eq!(
@@ -101,6 +106,59 @@ fn experimental_registry_retains_typed_brotli_quality_11_with_self_describing_pa
 }
 
 #[test]
+fn brotli_cixb1_rejects_forged_trailing_payload_with_adjusted_wrapper_length() {
+    let candidate = best_candidates()
+        .iter()
+        .find(|candidate| candidate.id == "brotli-size-q11-generic-w22")
+        .expect("BEST Brotli quality-11 candidate");
+    let input = b"Brotli trailing-payload rejection fixture ".repeat(4096);
+    let mut archive = candidate.full_archive_encode(&input).unwrap();
+    let payload_len = u32::from_le_bytes(archive[11..15].try_into().unwrap());
+    archive.extend_from_slice(&[0xa5, 0x5a]);
+    archive[11..15].copy_from_slice(&(payload_len + 2).to_le_bytes());
+    let memory = candidate.decoder_peak_bytes(input.len()).unwrap();
+    assert!(
+        decode(&archive, memory).is_err(),
+        "a CIXB1 Brotli wrapper must reject trailing payload bytes"
+    );
+}
+
+#[test]
+fn bsc_descriptor_round_trips_corruption_truncation_and_resource_admission() {
+    let candidate = best_candidates()
+        .iter()
+        .find(|candidate| candidate.id == "bsc-v3.3.12-bwt-qlfc-static-lzp15-72-fast")
+        .expect("BEST BSC candidate");
+    assert_eq!(candidate.backend, "bsc");
+    assert!(matches!(
+        candidate.config,
+        CandidateConfig::Bsc {
+            lzp_hash_size: 15,
+            lzp_min_len: 72,
+            adaptive_coder: false,
+            fast_mode: true,
+        }
+    ));
+    let input = b"BSC CIXB1 exact native fixture with long repeated records\n".repeat(4096);
+    let archive = candidate.full_archive_encode(&input).unwrap();
+    assert_eq!(archive[5], 7);
+    let need = candidate.decoder_peak_bytes(input.len()).unwrap();
+    assert_eq!(decode(&archive, need).unwrap(), input);
+    // Candidate admission is deliberately conservative (`MAX_PAYLOAD` is
+    // reserved before the actual archive is known). Exercise the decoder's
+    // exact BSC workspace boundary instead of assuming that the published
+    // worst-case admission estimate is exact for this small fixture.
+    let exact_decode_need = archive.len() + input.len() + 1 + 16 * 1024 * 1024 + 7 * input.len();
+    assert!(decode(&archive, exact_decode_need - 1).is_err());
+
+    let mut corrupt = archive.clone();
+    let last = corrupt.len() - 1;
+    corrupt[last] ^= 0x80;
+    assert!(decode(&corrupt, need).is_err());
+    assert!(decode(&archive[..archive.len() - 1], need).is_err());
+}
+
+#[test]
 fn estimates_use_native_queries_and_never_underflow_output_storage() {
     let input_len = 123_456;
     for candidate in best_candidates() {
@@ -119,7 +177,7 @@ fn estimates_use_native_queries_and_never_underflow_output_storage() {
         .unwrap()
         .encoder_peak_bytes(input_len)
         .unwrap();
-    let xz_dict = experimental_candidates()
+    let xz_dict = best_candidates()
         .iter()
         .find(|candidate| candidate.id == "xz-dict128-size-9e")
         .unwrap()
@@ -155,13 +213,9 @@ fn descriptor_is_a_stable_public_configuration_value() {
 }
 
 #[test]
-fn unqualified_settings_are_not_automatically_selected() {
-    assert_eq!(experimental_candidates().len(), 3);
-    for candidate in experimental_candidates() {
-        assert!(!best_candidates()
-            .iter()
-            .any(|entry| entry.id == candidate.id));
-    }
+fn all_implemented_direct_settings_are_automatically_selected() {
+    assert!(experimental_candidates().is_empty());
+    assert_eq!(best_candidates().len(), 14);
 }
 
 #[test]

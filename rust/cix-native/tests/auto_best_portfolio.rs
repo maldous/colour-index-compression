@@ -92,11 +92,16 @@ fn named_best_compares_complete_archives_and_fresh_cli_decodes() {
             "BEST selected exact complete CIXB1 archive"
         );
     } else {
-        assert!(
-            selected == "cixg2:native-auto",
-            "unknown BEST winner {selected}"
-        );
-        assert!(bytes.starts_with(b"CIXG2"), "native winner magic");
+        let expected_magic = if selected.starts_with("cixg1:") {
+            b"CIXG1".as_slice()
+        } else if selected.starts_with("cixg2:") {
+            b"CIXG2".as_slice()
+        } else if selected.starts_with("cixm6:") {
+            b"CIXM6".as_slice()
+        } else {
+            panic!("unknown BEST winner {selected}");
+        };
+        assert!(bytes.starts_with(expected_magic), "native winner magic");
     }
     let restored = uncix(&archive.0);
     assert!(
@@ -121,6 +126,39 @@ fn canonical_direct_bzip2_is_a_deterministic_complete_cixb1_archive() {
 }
 
 #[test]
+fn block_override_retains_matching_cixm6_packaging_trial() {
+    let input = TempPath::new("block-input");
+    let archive = TempPath::new("block-archive.cix");
+    fs::write(&input.0, b"bounded framing records\n".repeat(384)).expect("write input");
+    let output = cix(&[
+        "--best",
+        "--threads",
+        "1",
+        "--memory",
+        "512MiB",
+        "--block-size",
+        "16KiB",
+        "--verbose",
+        "-o",
+        archive.0.to_str().expect("UTF-8 temp path"),
+        input.0.to_str().expect("UTF-8 temp path"),
+    ]);
+    assert!(
+        output.status.success(),
+        "BEST failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("packaging_candidate=cixm6:native-auto:block=16384"),
+        "--block-size must retain the matching complete CIXM6 trial: {stderr}"
+    );
+    let restored = uncix(&archive.0);
+    assert!(restored.status.success());
+    assert_eq!(restored.stdout, b"bounded framing records\n".repeat(384));
+}
+
+#[test]
 fn streaming_best_reports_whole_archive_exclusion_and_stays_framed() {
     let mut child = Command::new(env!("CARGO_BIN_EXE_cix"))
         .args(["--best", "--stream", "--verbose", "-c", "-"])
@@ -142,10 +180,42 @@ fn streaming_best_reports_whole_archive_exclusion_and_stays_framed() {
         "streaming BEST failed: {}",
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(output.stdout.starts_with(b"CIXG"));
+    assert!(
+        output.stdout.starts_with(b"CIXG") || output.stdout.starts_with(b"CIXZ1"),
+        "streaming BEST must remain framed"
+    );
     assert!(
         String::from_utf8_lossy(&output.stderr).contains("whole_archive=no"),
         "{}",
         String::from_utf8_lossy(&output.stderr)
     );
+}
+
+#[test]
+fn named_empty_best_rejects_bsc_candidate_and_retains_a_valid_archive() {
+    let input = TempPath::new("empty-input");
+    let archive = TempPath::new("empty-archive.cix");
+    fs::write(&input.0, []).expect("write empty input");
+    let output = cix(&[
+        "--best",
+        "--memory",
+        "512MiB",
+        "--verbose",
+        "-o",
+        archive.0.to_str().expect("UTF-8 temp path"),
+        input.0.to_str().expect("UTF-8 temp path"),
+    ]);
+    assert!(
+        output.status.success(),
+        "empty BEST failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("bsc-v3.3.12-bwt-qlfc-static-lzp15-72-fast (BSC candidate rejected:"),
+        "BSC rejection must be observable: {stderr}"
+    );
+    let restored = uncix(&archive.0);
+    assert!(restored.status.success());
+    assert!(restored.stdout.is_empty());
 }

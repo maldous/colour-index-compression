@@ -1,0 +1,62 @@
+fn main() {
+    println!("cargo:rerun-if-changed=src/zpaq_ffi.cpp");
+    println!("cargo:rerun-if-changed=vendor/libzpaq715/libzpaq.cpp");
+    println!("cargo:rerun-if-changed=vendor/libzpaq715/libzpaq.h");
+
+    // libzpaq is vendored from the pinned 7.15 source snapshot.  Compile it
+    // as portable C++ rather than inheriting the upstream `-march=native`
+    // Makefile default: CIX's optional CPU acceleration must remain a runtime
+    // decision and the ordinary archive decoder must run on the host baseline.
+    let mut build = cc::Build::new();
+    build
+        .cpp(true)
+        .std("c++17")
+        .define("unix", None)
+        // ZPAQ archive headers carry executable ZPAQL programs. Keeping the
+        // interpreter avoids RWX JIT pages, works on hardened W^X systems,
+        // and preserves portable decoder behaviour. It does not change the
+        // compressed format or its level-5 model semantics.
+        .define("NOJIT", None)
+        .flag_if_supported("-O3")
+        .flag_if_supported("-fno-strict-aliasing")
+        .include("vendor/libzpaq715")
+        .file("vendor/libzpaq715/libzpaq.cpp")
+        .file("src/zpaq_ffi.cpp")
+        .compile("cix_zpaq715");
+    // `cc` can omit this metadata when the static archive is referenced from
+    // a Rust extern block. The final linker still needs the C++ runtime for
+    // the bridge's exception and RTTI implementation. MSVC supplies it via
+    // its normal toolchain; Unix targets use their platform runtime.
+    let target = std::env::var("TARGET").unwrap_or_default();
+    if target.contains("apple") {
+        println!("cargo:rustc-link-lib=dylib=c++");
+    } else if !target.contains("msvc") {
+        println!("cargo:rustc-link-lib=dylib=stdc++");
+    }
+
+    println!("cargo:rerun-if-changed=src/bsc_ffi.rs");
+    println!("cargo:rerun-if-changed=vendor/libbsc/VERSION");
+    println!("cargo:rerun-if-changed=vendor/libbsc/libbsc");
+    // libbsc's optional OpenMP/CUDA paths are intentionally disabled. CIX
+    // owns coarse-grained scheduling, so nested codec worker pools would make
+    // the global resource budget inaccurate and reduce throughput under load.
+    let mut bsc = cc::Build::new();
+    bsc.cpp(true)
+        .std("c++17")
+        .flag_if_supported("-O3")
+        .flag_if_supported("-fno-strict-aliasing")
+        .include("vendor/libbsc/libbsc")
+        .file("vendor/libbsc/libbsc/adler32/adler32.cpp")
+        .file("vendor/libbsc/libbsc/bwt/bwt.cpp")
+        .file("vendor/libbsc/libbsc/bwt/libsais/libsais.c")
+        .file("vendor/libbsc/libbsc/coder/coder.cpp")
+        .file("vendor/libbsc/libbsc/coder/qlfc/qlfc.cpp")
+        .file("vendor/libbsc/libbsc/coder/qlfc/qlfc_model.cpp")
+        .file("vendor/libbsc/libbsc/filters/detectors.cpp")
+        .file("vendor/libbsc/libbsc/filters/preprocessing.cpp")
+        .file("vendor/libbsc/libbsc/libbsc/libbsc.cpp")
+        .file("vendor/libbsc/libbsc/lzp/lzp.cpp")
+        .file("vendor/libbsc/libbsc/platform/platform.cpp")
+        .file("vendor/libbsc/libbsc/st/st.cpp")
+        .compile("cix_bsc");
+}

@@ -1,8 +1,8 @@
-#[path = "../src/limits.rs"]
-mod limits;
 #[allow(dead_code)]
 #[path = "../src/bitplane.rs"]
 mod bitplane;
+#[path = "../src/limits.rs"]
+mod limits;
 #[allow(dead_code)]
 #[path = "../src/rank.rs"]
 mod rank;

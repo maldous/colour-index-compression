@@ -412,8 +412,18 @@ fn parallel_stream_can_exceed_its_working_memory_budget() {
 fn fast_lz_low_memory_stream_emits_before_eof_and_exceeds_budget() {
     let input = synthetic(20 * 1024 * 1024 + 313);
     let mut process = cix(&[
-        "--stream", "--fast", "--threads", "1", "--route", "lz",
-        "--memory", "8MiB", "--flush-interval", "50ms", "-c", "-",
+        "--stream",
+        "--fast",
+        "--threads",
+        "1",
+        "--route",
+        "lz",
+        "--memory",
+        "8MiB",
+        "--flush-interval",
+        "50ms",
+        "-c",
+        "-",
     ]);
     let mut stdin = take_stdin(&mut process);
     let stdout = drain(take_stdout(&mut process), Duration::ZERO);

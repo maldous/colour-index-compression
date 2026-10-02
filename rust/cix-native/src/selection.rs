@@ -102,10 +102,15 @@ fn nested_backends(route: u8, effort_name: &str) -> &'static [&'static str] {
     if !(2..=7).contains(&route) {
         &[]
     } else {
-        match (route, effort_name) {
-            (4, "fast") => &[],
-            (4, "balanced") => &["hybrid", "cix", "deflate"],
-            (4, _) => &[
+        match effort_name {
+            "fast" => &[],
+            "balanced" => &["hybrid", "cix", "deflate"],
+            // Context-range and Huffman are versioned CIXG2 substream
+            // coders, not predictor-specific coders.  BEST must generate
+            // each legal route (composition through phrases) × backend pair;
+            // the existing worker memory permits and deadlines then prune
+            // unaffordable trials with observable omissions.
+            _ => &[
                 "cix",
                 "deflate",
                 "hybrid",
@@ -116,9 +121,6 @@ fn nested_backends(route: u8, effort_name: &str) -> &'static [&'static str] {
                 "context-range-o2-b8",
                 "huffman",
             ],
-            (_, "fast") => &[],
-            (_, "balanced") => &["hybrid", "cix", "deflate"],
-            _ => &["cix", "deflate", "hybrid", "range", "count-range"],
         }
     }
 }
@@ -629,6 +631,21 @@ mod tests {
         assert!(best
             .iter()
             .any(|item| item.route == 4 && item.backend == "huffman"));
+        for route in 2..=7 {
+            for backend in [
+                "context-range-o1-b4",
+                "context-range-o1-b8",
+                "context-range-o2-b8",
+                "huffman",
+            ] {
+                assert!(
+                    best.iter()
+                        .any(|item| item.route == route && item.backend == backend),
+                    "BEST omitted legal route {} × {backend}",
+                    ROUTES[route as usize]
+                );
+            }
+        }
 
         let balanced = generate_candidates(&features, "balanced", None, None).unwrap();
         assert!(!balanced
@@ -663,5 +680,19 @@ mod tests {
                 .collect::<Vec<_>>(),
             [3, 2]
         );
+    }
+
+    #[test]
+    fn high_entropy_repetition_still_admits_lz() {
+        // Entropy is not a duplicate-detection veto.  This repeats all byte
+        // values (high global entropy) and must retain the input-derived LZ
+        // opportunity rather than treating entropy as compressed-data proof.
+        let mut input: Vec<u8> = (0..=255).collect();
+        input.extend(0..=255);
+        let features = profile(&input, input.len());
+        assert!(features.entropy > 7.9);
+        assert!(features.repeat_fraction > 0.01);
+        let candidates = generate_candidates(&features, "maximum", None, None).unwrap();
+        assert!(candidates.iter().any(|candidate| candidate.route == 3));
     }
 }
