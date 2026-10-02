@@ -3583,6 +3583,59 @@ fn read_cixg_header<R: Read>(src: &mut R, magic: [u8; 5], fd: i32) -> Result<Cix
     Ok(CixgHeader { magic, block: u32::from_le_bytes(header[5..9].try_into().unwrap()), history: u32::from_le_bytes(header[9..13].try_into().unwrap()) })
 }
 
+fn decode_cixb1<R: Read, W: Write>(mut src: R, mut dst: W, magic: [u8; 5], verify_only: bool, list: bool, fd: i32, memory: usize) -> Result<(), String> {
+    let mut fields = [0u8; 42]; read_exact_poll(&mut src, &mut fields, fd)?;
+    let payload_size = u32::from_le_bytes(fields[6..10].try_into().unwrap()) as usize;
+    let expected = u32::from_le_bytes(fields[2..6].try_into().unwrap()) as usize;
+    if payload_size > external::MAX_PAYLOAD || expected > external::MAX_INPUT || 47usize.saturating_add(expected).saturating_add(payload_size) > memory { return Err("CIXB1 archive exceeds --memory or format limit".into()); }
+    let mut archive = Vec::with_capacity(47 + payload_size); archive.extend_from_slice(&magic); archive.extend_from_slice(&fields); archive.resize(47 + payload_size, 0); read_exact_poll(&mut src, &mut archive[47..], fd)?;
+    let data = external::decode(&archive, memory.checked_sub(archive.capacity()).ok_or("CIXB1 archive exceeds --memory or format limit")?)?;
+    loop { let mut extra = [0u8;1]; match read_poll(&mut src, &mut extra, fd, None)? { Some(0)=>break, Some(_)=>return Err("trailing bytes after CIXB1 archive".into()), None=>continue } }
+    if list { eprintln!("CIXB1 stream: backend={}, profile={}, decoded {} bytes", archive[5], archive[6], data.len()); }
+    if !verify_only { dst.write_all(&data).map_err(ioerr)?; dst.flush().map_err(ioerr)?; }
+    Ok(())
+}
+
+fn finish_cixg<R: Read, W: Write>(src: &mut R, dst: &mut W, fd: i32, verify_only: bool, list: bool, magic: &[u8; 5], total: u64, n: u32, s: u32, sum: [u8; 32], whole: &Sha256) -> Result<(), String> {
+    if n != 0 || s != 0 || sum != <[u8; 32]>::from(whole.clone().finalize()) { return Err("archive checksum/terminator mismatch".into()); }
+    loop { let mut extra=[0]; match read_poll(src,&mut extra,fd,None)? { Some(0)=>break, Some(_)=>return Err("trailing archive bytes".into()), None=>continue } }
+    if !verify_only { dst.flush().map_err(ioerr)?; }
+    if list { eprintln!("{} stream: {} decoded bytes", std::str::from_utf8(magic).unwrap_or("CIXG?"), total); }
+    Ok(())
+}
+
+fn read_cixg_frame<R: Read>(src: &mut R, fd: i32) -> Result<(u8, u32, u32, [u8; 32]), String> {
+    let mut route = [0; 1]; read_exact_poll(src, &mut route, fd)?;
+    let n = read_u32(src, fd)?; let s = read_u32(src, fd)?; let mut sum = [0; 32]; read_exact_poll(src, &mut sum, fd)?;
+    Ok((route[0], n, s, sum))
+}
+
+fn read_cixg_payload<R: Read>(src: &mut R, fd: i32, block: u32, n: u32, s: u32, memory: usize) -> Result<Vec<u8>, String> {
+    if n == 0 || n > block || s as u64 > 8 * n as u64 + 4096 { return Err("invalid block descriptor".into()); }
+    let fixed = (n as usize).checked_add(s as usize).ok_or("CIXG frame buffer size overflow")?;
+    if fixed > memory { return Err(format!("CIXG frame needs {fixed} bytes for payload and output; raise --memory")); }
+    let mut payload = vec![0; s as usize]; read_exact_poll(src, &mut payload, fd)?; Ok(payload)
+}
+
+fn decode_cixg_route(route: u8, payload: Vec<u8>, length: usize, extended: bool) -> Result<Vec<u8>, String> {
+    match route {
+        0 => { if payload.len() != length { return Err("raw size mismatch".into()); } Ok(payload) }
+        1 => unrle(&payload, length), 2 | 10 => stream_decode(&payload, length, extended),
+        3 => lz_decode(&payload, length, extended),
+        4 => Ok(predictor_residual(&stream_decode(&payload, length, extended)?, true)),
+        5 => { if payload.len() < 4 { return Err("truncated BWT primary index".into()); } let primary=u32::from_le_bytes(payload[..4].try_into().unwrap()) as usize; let parts=streams_decode(&payload[4..], length.saturating_mul(4), extended)?; bwt_inverse(primary,&unmtf_runs(&parts,length)?) }
+        6 => { if payload.is_empty() { return Err("truncated stride descriptor".into()); } let restored=invert_stride(&join_streams(&payload[1..],length,extended)?,payload[0])?; if restored.len()!=length { return Err("stride output size mismatch".into()); } Ok(restored) }
+        7 => phrase_decode(&payload,length,extended), 8 => ppm::decode(&payload,length), 9 => fixedmix::decode(&payload,length),
+        _ => Err(format!("unsupported CIXG1 route ID {route}")),
+    }
+}
+
+fn check_cixg_live_memory(fixed: usize, route: usize, nested: usize, memory: usize, route_id: u8) -> Result<(), String> {
+    let total = fixed.checked_add(route).and_then(|bytes| bytes.checked_add(nested)).ok_or("CIXG decode memory estimate overflow")?;
+    if total > memory { return Err(format!("CIXG {} block needs about {total} bytes including frame buffers and model state; raise --memory", selection::ROUTES[route_id as usize])); }
+    Ok(())
+}
+
 fn decode<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
@@ -3597,49 +3650,7 @@ fn decode<R: Read, W: Write>(
         return decode_m6(src, dst, &archive_magic, input_fd, memory, verify_only);
     }
     if &archive_magic == b"CIXB1" {
-        let mut fields = [0u8; 42];
-        read_exact_poll(&mut src, &mut fields, input_fd)?;
-        let payload_size = u32::from_le_bytes(fields[6..10].try_into().unwrap()) as usize;
-        let expected = u32::from_le_bytes(fields[2..6].try_into().unwrap()) as usize;
-        if payload_size > external::MAX_PAYLOAD
-            || expected > external::MAX_INPUT
-            || 47usize
-                .saturating_add(expected)
-                .saturating_add(payload_size)
-                > memory
-        {
-            return Err("CIXB1 archive exceeds --memory or format limit".into());
-        }
-        let mut archive = Vec::with_capacity(47 + payload_size);
-        archive.extend_from_slice(&archive_magic);
-        archive.extend_from_slice(&fields);
-        archive.resize(47 + payload_size, 0);
-        read_exact_poll(&mut src, &mut archive[47..], input_fd)?;
-        let decoder_memory = memory
-            .checked_sub(archive.capacity())
-            .ok_or("CIXB1 archive exceeds --memory or format limit")?;
-        let data = external::decode(&archive, decoder_memory)?;
-        loop {
-            let mut extra = [0u8; 1];
-            match read_poll(&mut src, &mut extra, input_fd, None)? {
-                Some(0) => break,
-                Some(_) => return Err("trailing bytes after CIXB1 archive".into()),
-                None => continue,
-            }
-        }
-        if list {
-            eprintln!(
-                "CIXB1 stream: backend={}, profile={}, decoded {} bytes",
-                archive[5],
-                archive[6],
-                data.len()
-            );
-        }
-        if !verify_only {
-            dst.write_all(&data).map_err(ioerr)?;
-            dst.flush().map_err(ioerr)?;
-        }
-        return Ok(());
+        return decode_cixb1(src, dst, archive_magic, verify_only, list, input_fd, memory);
     }
     if &archive_magic == streaming_backend::MAGIC {
         return streaming_backend::decode(src, dst, verify_only, list, input_fd, memory);
@@ -3654,53 +3665,14 @@ fn decode<R: Read, W: Write>(
     let mut whole = Sha256::new();
     let mut total_bytes = 0u64;
     loop {
-        let mut r = [0; 1];
-        read_exact_poll(&mut src, &mut r, input_fd)?;
-        let n = read_u32(&mut src, input_fd)?;
-        let s = read_u32(&mut src, input_fd)?;
-        let mut sum = [0; 32];
-        read_exact_poll(&mut src, &mut sum, input_fd)?;
-        if r[0] == END {
-            if n != 0 || s != 0 || sum != <[u8; 32]>::from(whole.clone().finalize()) {
-                return Err("archive checksum/terminator mismatch".into());
-            }
-            let mut x = [0];
-            loop {
-                match read_poll(&mut src, &mut x, input_fd, None)? {
-                    Some(0) => break,
-                    Some(_) => return Err("trailing archive bytes".into()),
-                    None => continue,
-                }
-            }
-            if !verify_only {
-                dst.flush().map_err(ioerr)?;
-            }
-            if list {
-                eprintln!(
-                    "{} stream: {} decoded bytes",
-                    std::str::from_utf8(&archive_magic).unwrap_or("CIXG?"),
-                    total_bytes
-                );
-            }
-            return Ok(());
-        }
-        if n == 0 || n > block || s as u64 > 8 * n as u64 + 4096 {
-            return Err("invalid block descriptor".into());
-        }
+        let (route, n, s, sum) = read_cixg_frame(&mut src, input_fd)?;
+        if route == END { finish_cixg(&mut src, &mut dst, input_fd, verify_only, list, &archive_magic, total_bytes, n, s, sum, &whole)?; return Ok(()); }
+        let mut b = read_cixg_payload(&mut src, input_fd, block, n, s, memory)?;
+        let fixed_frame_bytes = n as usize + s as usize;
         // The payload remains live while route decoders build their output.
         // Charge both buffers before allocating the attacker-controlled
         // payload.  Per-route state is added below before a route can create
         // an unbounded context table.
-        let fixed_frame_bytes = (n as usize)
-            .checked_add(s as usize)
-            .ok_or("CIXG frame buffer size overflow")?;
-        if fixed_frame_bytes > memory {
-            return Err(format!(
-                "CIXG frame needs {fixed_frame_bytes} bytes for payload and output; raise --memory"
-            ));
-        }
-        let mut b = vec![0; s as usize];
-        read_exact_poll(&mut src, &mut b, input_fd)?;
         let source_bytes = n as usize;
         let source_scratch = |multiple: usize, reserve: usize, route: &str| {
             source_bytes
@@ -3779,7 +3751,7 @@ fn decode<R: Read, W: Write>(
             }
             Ok(maximum)
         };
-        let route_scratch = match r[0] {
+        let route_scratch = match route {
             // Stream decoding may hold decoded substreams while it validates
             // descriptors and returns the final part.  Keep one source-sized
             // temporary beyond the fixed payload/output frame buffers.
@@ -3844,9 +3816,9 @@ fn decode<R: Read, W: Write>(
             // Raw and RLE route output is already included in
             // `fixed_frame_bytes`; they need no second route buffer.
             0 | 1 => 0,
-            _ => return Err(format!("unsupported CIXG1 route ID {}", r[0])),
+            _ => return Err(format!("unsupported CIXG1 route ID {}", route)),
         };
-        let nested_coder_scratch = match r[0] {
+        let nested_coder_scratch = match route {
             2 | 4 | 10 => nested_stream_scratch(0, source_bytes)?,
             3 => nested_stream_scratch(0, source_bytes.saturating_mul(4))?,
             5 => nested_stream_scratch(4, source_bytes.saturating_mul(4))?,
@@ -3867,60 +3839,8 @@ fn decode<R: Read, W: Write>(
             }
             _ => 0,
         };
-        let total_live_bytes = fixed_frame_bytes
-            .checked_add(route_scratch)
-            .and_then(|bytes| bytes.checked_add(nested_coder_scratch))
-            .ok_or("CIXG decode memory estimate overflow")?;
-        if total_live_bytes > memory {
-            return Err(format!(
-                "CIXG {} block needs about {total_live_bytes} bytes including frame buffers and model state; raise --memory",
-                selection::ROUTES[r[0] as usize]
-            ));
-        }
-        let data = match r[0] {
-            0 => {
-                if b.len() != n as usize {
-                    return Err("raw size mismatch".into());
-                }
-                b
-            }
-            1 => unrle(&b, n as usize)?,
-            2 => stream_decode(&b, n as usize, allow_extended_coders)?,
-            3 => lz_decode(&b, n as usize, allow_extended_coders)?,
-            4 => {
-                let residual = stream_decode(&b, n as usize, allow_extended_coders)?;
-                predictor_residual(&residual, true)
-            }
-            5 => {
-                if b.len() < 4 {
-                    return Err("truncated BWT primary index".into());
-                }
-                let primary = u32::from_le_bytes(b[..4].try_into().unwrap()) as usize;
-                let parts = streams_decode(
-                    &b[4..],
-                    (n as usize).saturating_mul(4),
-                    allow_extended_coders,
-                )?;
-                let transformed = unmtf_runs(&parts, n as usize)?;
-                bwt_inverse(primary, &transformed)?
-            }
-            6 => {
-                if b.is_empty() {
-                    return Err("truncated stride descriptor".into());
-                }
-                let transformed = join_streams(&b[1..], n as usize, allow_extended_coders)?;
-                let restored = invert_stride(&transformed, b[0])?;
-                if restored.len() != n as usize {
-                    return Err("stride output size mismatch".into());
-                }
-                restored
-            }
-            7 => phrase_decode(&b, n as usize, allow_extended_coders)?,
-            8 => ppm::decode(&b, n as usize)?,
-            9 => fixedmix::decode(&b, n as usize)?,
-            10 => stream_decode(&b, n as usize, allow_extended_coders)?,
-            _ => return Err(format!("unsupported CIXG1 route ID {}", r[0])),
-        };
+        check_cixg_live_memory(fixed_frame_bytes, route_scratch, nested_coder_scratch, memory, route)?;
+        let data = decode_cixg_route(route, b, n as usize, allow_extended_coders)?;
         if <[u8; 32]>::from(Sha256::digest(&data)) != sum {
             return Err("block checksum mismatch".into());
         }
@@ -3932,7 +3852,7 @@ fn decode<R: Read, W: Write>(
             eprintln!(
                 "{} block: route={}, source={} bytes, payload={} bytes",
                 std::str::from_utf8(&archive_magic).unwrap_or("CIXG?"),
-                r[0],
+                route,
                 n,
                 s
             )
