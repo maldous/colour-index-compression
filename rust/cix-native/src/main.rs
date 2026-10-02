@@ -147,8 +147,9 @@ struct Opt {
 fn usage() {
     println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] [FILE]\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] [FILE]\n       cixcat [FILE]\n\nFILE defaults to '-' (standard input); use '--' before a dash-prefixed filename. Input files are kept by default. Use '-' for standard input or output. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format auto|cixg1|cixg2|cixm6|cixf1  Select or constrain the container version\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Constrain maximum uncompressed block size\n  --memory SIZE               Bound working memory (FAST/default 512 MiB; BEST/decode 2 GiB)\n  --threads N                 Bound CPU workers (1..20; default up to 4)\n  --parallelism blocks|candidates  Choose ordered blocks or within-block trials\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Flush framed partial blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
 }
-fn parse() -> Result<Opt, String> {
-    let mut o = Opt {
+
+fn default_options() -> Opt {
+    Opt {
         level: 6,
         threads: thread::available_parallelism().map_or(1, |n| n.get().min(4)),
         parallelism: "blocks".into(),
@@ -157,14 +158,160 @@ fn parse() -> Result<Opt, String> {
         profile: "default".into(),
         format: "auto".into(),
         ..Opt::default()
-    };
-    let args: Vec<String> = env::args().collect();
-    let prog = Path::new(args.first().map(String::as_str).unwrap_or("cix"))
+    }
+}
+
+fn decoder_program_name(args: &[String]) -> (bool, bool) {
+    let program = Path::new(args.first().map(String::as_str).unwrap_or("cix"))
         .file_name()
         .unwrap_or_default()
         .to_string_lossy();
-    o.decode = prog == "uncix" || prog == "unsix" || prog == "cixcat";
-    o.stdout = prog == "cixcat";
+    let decode = program == "uncix" || program == "unsix" || program == "cixcat";
+    (decode, program == "cixcat")
+}
+
+fn takes_option_value(argument: &str) -> bool {
+    matches!(
+        argument,
+        "--threads"
+            | "--parallelism"
+            | "--memory"
+            | "-o"
+            | "--output"
+            | "--route"
+            | "--backend"
+            | "--external"
+            | "--profile"
+            | "--portfolio"
+            | "--format"
+            | "--block"
+            | "--block-size"
+            | "--history"
+            | "--flush-interval"
+    )
+}
+
+fn set_backend(o: &mut Opt, value: String) -> Result<(), String> {
+    if !matches!(
+        value.as_str(),
+        "cix"
+            | "raw"
+            | "runs"
+            | "ppm"
+            | "mixture"
+            | "deflate"
+            | "hybrid"
+            | "range"
+            | "count-range"
+            | "context-range-o1-b4"
+            | "context-range-o1-b8"
+            | "context-range-o2-b8"
+            | "huffman"
+    ) {
+        return Err("unsupported backend".into());
+    }
+    o.backend = value;
+    o.backend_set = true;
+    Ok(())
+}
+
+fn set_option_value(o: &mut Opt, argument: &str, value: String) -> Result<(), String> {
+    match argument {
+        "--threads" => {
+            o.threads = value.parse().map_err(|_| "invalid thread count")?;
+            o.threads_set = true;
+        }
+        "--parallelism" => o.parallelism = value,
+        "--memory" => {
+            o.memory = parse_size(&value)?;
+            o.memory_set = true;
+        }
+        "--route" => o.route = Some(value),
+        "--backend" => set_backend(o, value)?,
+        "--external" => o.external_backend = Some(value),
+        "--profile" => {
+            o.profile = value;
+            o.profile_set = true;
+        }
+        "--portfolio" => o.portfolio = Some(value),
+        "--format" => o.format = value,
+        "--block" => o.block = Some(value.parse().map_err(|_| "invalid block size")?),
+        "--block-size" => {
+            o.block = Some(
+                parse_size(&value)?
+                    .try_into()
+                    .map_err(|_| "block size overflows")?,
+            )
+        }
+        "--history" => o.history = parse_size(&value)?,
+        "--flush-interval" => o.flush_interval = Some(parse_duration(&value)?),
+        "-o" | "--output" => o.output = Some(value),
+        _ => unreachable!("value-taking options are checked before dispatch"),
+    }
+    Ok(())
+}
+
+fn set_flag(o: &mut Opt, argument: &str) -> Result<bool, String> {
+    match argument {
+        "-d" => o.decode = true,
+        "-c" => o.stdout = true,
+        "-k" => o.keep = true,
+        "-f" => o.force = true,
+        "-t" => {
+            o.test = true;
+            o.decode = true;
+        }
+        "-l" => {
+            o.list = true;
+            o.decode = true;
+        }
+        "--fast" => {
+            o.level = 1;
+            o.level_set = true;
+        }
+        "--best" => {
+            o.level = 9;
+            o.level_set = true;
+        }
+        "--explain" => o.explain = true,
+        "--verbose" => o.verbose = true,
+        "--stream" => o.stream = true,
+        "--independent-blocks" => o.independent_blocks = true,
+        _ if matches!(
+            argument,
+            "-1" | "-2" | "-3" | "-4" | "-5" | "-6" | "-7" | "-8" | "-9"
+        ) =>
+        {
+            o.level = argument[1..].parse().unwrap();
+            o.level_set = true;
+        }
+        _ if argument.starts_with('-') && argument != "-" => {
+            return Err(format!("unsupported option: {argument}"));
+        }
+        _ => return Ok(false),
+    }
+    Ok(true)
+}
+
+fn handle_special_option(argument: &str) -> bool {
+    match argument {
+        "--help" | "-h" => {
+            usage();
+            println!("\nBEST compares complete compatible native containers and native-library backend archives within --memory. Streaming uses bounded framed candidates and retained history where supported. Expert controls constrain their specified dimensions. Use --verbose or --explain for evaluated candidates and resource exclusions.");
+            process::exit(0)
+        }
+        "--version" => {
+            println!(
+                "cix-native {} (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)",
+                env!("CARGO_PKG_VERSION")
+            );
+            process::exit(0)
+        }
+        _ => false,
+    }
+}
+
+fn parse_command_arguments(o: &mut Opt, args: &[String]) -> Result<Vec<String>, String> {
     let mut files = vec![];
     let mut options = true;
     let mut i = 1;
@@ -173,136 +320,24 @@ fn parse() -> Result<Opt, String> {
         if options && a == "--" {
             options = false;
         } else if !options {
-            files.push(a.clone())
-        } else if a == "--help" || a == "-h" {
-            usage();
-            println!("\nBEST compares complete compatible native containers and native-library backend archives within --memory. Streaming uses bounded framed candidates and retained history where supported. Expert controls constrain their specified dimensions. Use --verbose or --explain for evaluated candidates and resource exclusions.");
-            process::exit(0)
-        } else if a == "--version" {
-            println!(
-                "cix-native {} (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)",
-                env!("CARGO_PKG_VERSION")
-            );
-            process::exit(0)
-        } else if a == "-d" {
-            o.decode = true
-        } else if a == "-c" {
-            o.stdout = true
-        } else if a == "-k" {
-            o.keep = true
-        } else if a == "-f" {
-            o.force = true
-        } else if a == "-t" {
-            o.test = true;
-            o.decode = true
-        } else if a == "-l" {
-            o.list = true;
-            o.decode = true
-        } else if a == "--fast" {
-            o.level = 1;
-            o.level_set = true;
-        } else if a == "--best" {
-            o.level = 9;
-            o.level_set = true;
-        } else if a == "--explain" {
-            o.explain = true;
-        } else if a == "--verbose" {
-            o.verbose = true;
-        } else if a == "-1"
-            || a == "-2"
-            || a == "-3"
-            || a == "-4"
-            || a == "-5"
-            || a == "-6"
-            || a == "-7"
-            || a == "-8"
-            || a == "-9"
-        {
-            o.level = a[1..].parse().unwrap();
-            o.level_set = true;
-        } else if a == "--stream" {
-            o.stream = true
-        } else if a == "--independent-blocks" {
-            o.independent_blocks = true
-        } else if a == "--threads"
-            || a == "--parallelism"
-            || a == "--memory"
-            || a == "-o"
-            || a == "--output"
-            || a == "--route"
-            || a == "--backend"
-            || a == "--external"
-            || a == "--profile"
-            || a == "--portfolio"
-            || a == "--format"
-            || a == "--block"
-            || a == "--block-size"
-            || a == "--history"
-            || a == "--flush-interval"
-        {
+            files.push(a.clone());
+        } else if handle_special_option(a) {
+            unreachable!("special options exit before returning");
+        } else if takes_option_value(a) {
             i += 1;
             if i == args.len() {
                 return Err(format!("{a} requires a value"));
             }
-            match a.as_str() {
-                "--threads" => {
-                    o.threads = args[i].parse().map_err(|_| "invalid thread count")?;
-                    o.threads_set = true;
-                }
-                "--parallelism" => o.parallelism = args[i].clone(),
-                "--memory" => {
-                    o.memory = parse_size(&args[i])?;
-                    o.memory_set = true;
-                }
-                "--route" => o.route = Some(args[i].clone()),
-                "--backend" => {
-                    o.backend = args[i].clone();
-                    o.backend_set = true;
-                    if !matches!(
-                        o.backend.as_str(),
-                        "cix"
-                            | "raw"
-                            | "runs"
-                            | "ppm"
-                            | "mixture"
-                            | "deflate"
-                            | "hybrid"
-                            | "range"
-                            | "count-range"
-                            | "context-range-o1-b4"
-                            | "context-range-o1-b8"
-                            | "context-range-o2-b8"
-                            | "huffman"
-                    ) {
-                        return Err("unsupported backend".into());
-                    }
-                }
-                "--external" => o.external_backend = Some(args[i].clone()),
-                "--profile" => {
-                    o.profile = args[i].clone();
-                    o.profile_set = true;
-                }
-                "--portfolio" => o.portfolio = Some(args[i].clone()),
-                "--format" => o.format = args[i].clone(),
-                "--block" => o.block = Some(args[i].parse().map_err(|_| "invalid block size")?),
-                "--block-size" => {
-                    o.block = Some(
-                        parse_size(&args[i])?
-                            .try_into()
-                            .map_err(|_| "block size overflows")?,
-                    )
-                }
-                "--history" => o.history = parse_size(&args[i])?,
-                "--flush-interval" => o.flush_interval = Some(parse_duration(&args[i])?),
-                _ => o.output = Some(args[i].clone()),
-            }
-        } else if a.starts_with('-') && a != "-" {
-            return Err(format!("unsupported option: {a}"));
-        } else {
-            files.push(a.clone())
+            set_option_value(o, a, args[i].clone())?;
+        } else if !set_flag(o, a)? {
+            files.push(a.clone());
         }
         i += 1
     }
+    Ok(files)
+}
+
+fn finish_parse(o: &mut Opt, mut files: Vec<String>) -> Result<(), String> {
     if files.len() != 1 {
         if files.is_empty() {
             o.input = "-".into();
@@ -321,6 +356,15 @@ fn parse() -> Result<Opt, String> {
     if o.decode && !o.memory_set {
         o.memory = 2 * 1024 * 1024 * 1024;
     }
+    Ok(())
+}
+
+fn parse() -> Result<Opt, String> {
+    let mut o = default_options();
+    let args: Vec<String> = env::args().collect();
+    (o.decode, o.stdout) = decoder_program_name(&args);
+    let files = parse_command_arguments(&mut o, &args)?;
+    finish_parse(&mut o, files)?;
     Ok(o)
 }
 fn parse_size(s: &str) -> Result<usize, String> {
@@ -4238,8 +4282,7 @@ fn cixm6_file_name(o: &Opt) -> Result<Option<&str>, String> {
         .ok_or_else(|| "input basename is not valid UTF-8".into())
 }
 
-fn run() -> Result<(), String> {
-    let mut o = parse()?;
+fn validate_execution_mode(o: &mut Opt) -> Result<(), String> {
     if !matches!(o.parallelism.as_str(), "blocks" | "candidates") {
         return Err("--parallelism accepts blocks or candidates".into());
     }
@@ -4261,6 +4304,10 @@ fn run() -> Result<(), String> {
     {
         return Err("compression options cannot be used while decoding".into());
     }
+    Ok(())
+}
+
+fn apply_native_profile(o: &mut Opt) -> Result<(), String> {
     if matches!(o.format.as_str(), "cixm6" | "cixf1") && (o.independent_blocks || o.backend_set) {
         return Err("CIXM6 does not support --independent-blocks or --backend overrides".into());
     }
@@ -4283,6 +4330,10 @@ fn run() -> Result<(), String> {
             _ => return Err("native --profile accepts fast, default or size".into()),
         };
     }
+    Ok(())
+}
+
+fn validate_threads_and_format(o: &mut Opt) -> Result<(), String> {
     // BEST searches memory-intensive native backends as well as block routes.
     // An explicit resource constraint is authoritative; raising search effort
     // alone must not silently exceed a caller's declared memory budget.
@@ -4324,6 +4375,10 @@ fn run() -> Result<(), String> {
                 .into(),
         );
     }
+    Ok(())
+}
+
+fn validate_m6_options(o: &Opt) -> Result<(), String> {
     if o.format == "cixf1" && o.input == "-" {
         return Err("--format cixf1 requires a named input to store its basename".into());
     }
@@ -4337,6 +4392,10 @@ fn run() -> Result<(), String> {
             "CIXM6 encoder needs --memory for history, source and candidate buffers".into(),
         );
     }
+    Ok(())
+}
+
+fn validate_portfolio_options(o: &Opt) -> Result<(), String> {
     if let Some(p) = o.portfolio.as_deref() {
         if o.decode
             || o.test
@@ -4358,6 +4417,10 @@ fn run() -> Result<(), String> {
             return Err("--portfolio accepts fast, default or size".into());
         }
     }
+    Ok(())
+}
+
+fn validate_external_options(o: &Opt) -> Result<(), String> {
     if o.external_backend.is_some() {
         if o.decode || o.test || o.list {
             return Err("--external is an encoding option".into());
@@ -4377,6 +4440,10 @@ fn run() -> Result<(), String> {
             return Err("--profile accepts fast, default or size".into());
         }
     }
+    Ok(())
+}
+
+fn validate_route_memory(o: &Opt) -> Result<(), String> {
     if o.route.as_deref() == Some("lz")
         && !(o.level <= 2 && (!o.backend_set || o.backend == "deflate"))
         && o.memory < 16 * 1024 * 1024
@@ -4393,6 +4460,10 @@ fn run() -> Result<(), String> {
     if o.route.as_deref() == Some("mixture") && o.memory < 16 * 1024 * 1024 {
         return Err("--route mixture requires at least 16 MiB of --memory".into());
     }
+    Ok(())
+}
+
+fn validate_route_state(o: &Opt) -> Result<(), String> {
     if o.history != 0 {
         if o.independent_blocks {
             return Err("--history conflicts with --independent-blocks".into());
@@ -4405,6 +4476,10 @@ fn run() -> Result<(), String> {
     if o.flush_interval.is_some() && !cfg!(unix) {
         return Err("--flush-interval on non-seekable input requires Unix poll support".into());
     }
+    Ok(())
+}
+
+fn validate_route_name(o: &Opt) -> Result<(), String> {
     if let Some(r) = &o.route {
         if ![
             "auto",
@@ -4425,6 +4500,22 @@ fn run() -> Result<(), String> {
             return Err(format!("unsupported native route: {r}"));
         }
     }
+    Ok(())
+}
+
+fn validate_options(o: &mut Opt) -> Result<(), String> {
+    validate_execution_mode(o)?;
+    apply_native_profile(o)?;
+    validate_threads_and_format(o)?;
+    validate_m6_options(o)?;
+    validate_portfolio_options(o)?;
+    validate_external_options(o)?;
+    validate_route_memory(o)?;
+    validate_route_state(o)?;
+    validate_route_name(o)
+}
+
+fn prepare_block(o: &mut Opt) -> Result<u32, String> {
     let requested_block = o.block.unwrap_or(default_block(o.level));
     if requested_block == 0 {
         return Err("--block-size must be positive".into());
@@ -4450,7 +4541,10 @@ fn run() -> Result<(), String> {
     if !o.decode && estimated_working > o.memory {
         return Err(format!("block needs about {estimated_working} bytes working memory; reduce --block-size or raise --memory"));
     }
-    let forced = o.route.as_deref().filter(|r| *r != "auto");
+    Ok(block)
+}
+
+fn validate_candidate_selection(o: &Opt, forced: Option<&str>) -> Result<(), String> {
     if !o.decode
         && o.external_backend.is_none()
         && o.portfolio.is_none()
@@ -4474,72 +4568,126 @@ fn run() -> Result<(), String> {
             );
         }
     }
-    let out = o.output.clone().unwrap_or_else(|| {
+    Ok(())
+}
+
+fn selected_output_path(o: &Opt) -> String {
+    o.output.clone().unwrap_or_else(|| {
         if o.decode {
             cixf1_original_name(&o.input).unwrap_or_else(|| default_output(&o.input, true))
         } else {
             default_output(&o.input, false)
         }
-    });
-    if o.test || o.list {
-        let f = open_input(&o.input)?;
-        let fd = input_fd(&f);
-        decode(f, io::sink(), true, o.list, fd, o.memory)?;
-        eprintln!("archive OK");
-        return Ok(());
+    })
+}
+
+fn verify_or_list(o: &Opt) -> Result<bool, String> {
+    if !(o.test || o.list) {
+        return Ok(false);
     }
-    let automatic_best = portfolio_auto::eligible(&o);
-    let automatic_persistent_best = automatic_persistent_stream_eligible(&o, automatic_best, block);
+    let f = open_input(&o.input)?;
+    let fd = input_fd(&f);
+    decode(f, io::sink(), true, o.list, fd, o.memory)?;
+    eprintln!("archive OK");
+    Ok(true)
+}
+
+fn report_automatic_exclusion(o: &Opt, automatic_best: bool) {
     if (o.explain || o.verbose) && !automatic_best {
-        if let Some(reason) = portfolio_auto::exclusion_reason(&o) {
+        if let Some(reason) = portfolio_auto::exclusion_reason(o) {
             eprintln!("cix: effort=best whole_archive=no reason={reason}");
         }
     }
-    if o.stdout || out == "-" {
+}
+
+fn execute_to_stdout(
+    o: &Opt,
+    block: u32,
+    forced: Option<&str>,
+    automatic_best: bool,
+    automatic_persistent_best: bool,
+) -> Result<(), String> {
+    let src = open_input(&o.input)?;
+    let fd = input_fd(&src);
+    let mut lock = stdout_writer::StdoutWriter::new().map_err(ioerr)?;
+    if o.decode {
+        decode(src, &mut lock, false, false, fd, o.memory)
+    } else {
+        encode_selected(
+            o,
+            src,
+            &mut lock,
+            block,
+            forced,
+            fd,
+            automatic_best,
+            automatic_persistent_best,
+        )
+    }
+}
+
+fn execute_to_file(
+    o: &Opt,
+    out: &str,
+    block: u32,
+    forced: Option<&str>,
+    automatic_best: bool,
+    automatic_persistent_best: bool,
+) -> Result<(), String> {
+    if o.input == out {
+        return Err("input and output paths must differ".into());
+    }
+    atomic_file(out, o.force, |dst| {
         let src = open_input(&o.input)?;
         let fd = input_fd(&src);
-        let mut lock = stdout_writer::StdoutWriter::new().map_err(ioerr)?;
         if o.decode {
-            decode(src, &mut lock, false, false, fd, o.memory)
+            decode(src, dst, false, false, fd, o.memory)
         } else {
             encode_selected(
-                &o,
+                o,
                 src,
-                &mut lock,
+                dst,
                 block,
                 forced,
                 fd,
                 automatic_best,
                 automatic_persistent_best,
             )
-        }?
-    } else {
-        if o.input == out {
-            return Err("input and output paths must differ".into());
         }
-        atomic_file(&out, o.force, |dst| {
-            let src = open_input(&o.input)?;
-            let fd = input_fd(&src);
-            if o.decode {
-                decode(src, dst, false, false, fd, o.memory)
-            } else {
-                encode_selected(
-                    &o,
-                    src,
-                    dst,
-                    block,
-                    forced,
-                    fd,
-                    automatic_best,
-                    automatic_persistent_best,
-                )
-            }
-        })?;
-        eprintln!("{}", out)
+    })?;
+    eprintln!("{out}");
+    Ok(())
+}
+
+fn run() -> Result<(), String> {
+    let mut o = parse()?;
+    validate_options(&mut o)?;
+    let block = prepare_block(&mut o)?;
+    let forced = o.route.as_deref().filter(|r| *r != "auto");
+    validate_candidate_selection(&o, forced)?;
+    let out = selected_output_path(&o);
+    if verify_or_list(&o)? {
+        return Ok(());
+    }
+    let automatic_best = portfolio_auto::eligible(&o);
+    let automatic_persistent_best = automatic_persistent_stream_eligible(&o, automatic_best, block);
+    report_automatic_exclusion(&o, automatic_best);
+    if o.stdout || out == "-" {
+        execute_to_stdout(&o, block, forced, automatic_best, automatic_persistent_best)?;
+    } else {
+        execute_to_file(
+            &o,
+            &out,
+            block,
+            forced,
+            automatic_best,
+            automatic_persistent_best,
+        )?;
     }
     let _ = (o.keep, o.stream);
     Ok(())
 }
+
 fn main() {
     if let Err(e) = ctrlc::set_handler(|| INTERRUPTED.store(true, Ordering::Relaxed)) {
         eprintln!("cix: could not install interrupt handler: {e}");
