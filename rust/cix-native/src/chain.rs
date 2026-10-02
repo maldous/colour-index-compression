@@ -1222,48 +1222,69 @@ fn restore_words(
     let Some(first) = values.next() else {
         return Vec::new();
     };
-    let add = |left: u64, right: u64| left.wrapping_add(right) & mask;
     let mut restored = vec![first];
     match operation {
-        Operation::Xor => {
-            for encoded in values {
-                restored.push(restored.last().copied().unwrap() ^ encoded);
-            }
-        }
-        Operation::Delta => {
-            for delta in values {
-                restored.push(add(restored.last().copied().unwrap(), delta));
-            }
-        }
-        Operation::Delta2 => {
-            if let Some(mut previous_delta) = values.next() {
-                restored.push(add(restored[0], previous_delta));
-                for delta_delta in values {
-                    previous_delta = add(previous_delta, delta_delta);
-                    restored.push(add(restored.last().copied().unwrap(), previous_delta));
-                }
-            }
-        }
-        Operation::Delta2Zigzag => {
-            let unzigzag = |encoded: u64| {
-                if encoded & 1 == 0 {
-                    encoded >> 1
-                } else {
-                    0u64.wrapping_sub((encoded >> 1) + 1) & mask
-                }
-            };
-            if let Some(encoded_delta) = values.next() {
-                let mut previous_delta = unzigzag(encoded_delta);
-                restored.push(add(restored[0], previous_delta));
-                for encoded_delta_delta in values {
-                    previous_delta = add(previous_delta, unzigzag(encoded_delta_delta));
-                    restored.push(add(restored.last().copied().unwrap(), previous_delta));
-                }
-            }
-        }
+        Operation::Xor => restore_xor(&mut restored, values),
+        Operation::Delta => restore_delta(&mut restored, values, mask),
+        Operation::Delta2 => restore_delta2(&mut restored, values, mask),
+        Operation::Delta2Zigzag => restore_zigzag_delta2(&mut restored, values, mask),
         Operation::MatchXor => unreachable!(),
     }
     restored
+}
+
+fn add_masked(left: u64, right: u64, mask: u64) -> u64 {
+    left.wrapping_add(right) & mask
+}
+fn restore_xor(restored: &mut Vec<u64>, values: impl Iterator<Item = u64>) {
+    for value in values {
+        restored.push(restored.last().copied().unwrap() ^ value);
+    }
+}
+fn restore_delta(restored: &mut Vec<u64>, values: impl Iterator<Item = u64>, mask: u64) {
+    for value in values {
+        restored.push(add_masked(restored.last().copied().unwrap(), value, mask));
+    }
+}
+fn restore_delta2(restored: &mut Vec<u64>, mut values: impl Iterator<Item = u64>, mask: u64) {
+    let Some(mut previous) = values.next() else {
+        return;
+    };
+    restored.push(add_masked(restored[0], previous, mask));
+    for value in values {
+        previous = add_masked(previous, value, mask);
+        restored.push(add_masked(
+            restored.last().copied().unwrap(),
+            previous,
+            mask,
+        ));
+    }
+}
+fn unzigzag_masked(value: u64, mask: u64) -> u64 {
+    if value & 1 == 0 {
+        value >> 1
+    } else {
+        0u64.wrapping_sub((value >> 1) + 1) & mask
+    }
+}
+fn restore_zigzag_delta2(
+    restored: &mut Vec<u64>,
+    mut values: impl Iterator<Item = u64>,
+    mask: u64,
+) {
+    let Some(value) = values.next() else {
+        return;
+    };
+    let mut previous = unzigzag_masked(value, mask);
+    restored.push(add_masked(restored[0], previous, mask));
+    for value in values {
+        previous = add_masked(previous, unzigzag_masked(value, mask), mask);
+        restored.push(add_masked(
+            restored.last().copied().unwrap(),
+            previous,
+            mask,
+        ));
+    }
 }
 
 fn invert(data: &[u8], spec: Transform) -> Result<Vec<u8>, String> {
@@ -1394,6 +1415,147 @@ mod tests {
             decode_uints(&overflow, 1, 1).unwrap_err(),
             "Rice integer overflow"
         );
+    }
+
+    #[test]
+    fn restore_words_handles_all_numeric_operations_and_boundaries() {
+        for bits in [16usize, 32, 64] {
+            let mask = if bits == 64 {
+                u64::MAX
+            } else {
+                (1u64 << bits) - 1
+            };
+            let source = [mask.wrapping_sub(1), 1, 2, mask, 3];
+            let xor = [
+                source[0],
+                source[0] ^ source[1],
+                source[1] ^ source[2],
+                source[2] ^ source[3],
+                source[3] ^ source[4],
+            ];
+            let delta = [
+                source[0],
+                source[1].wrapping_sub(source[0]) & mask,
+                source[2].wrapping_sub(source[1]) & mask,
+                source[3].wrapping_sub(source[2]) & mask,
+                source[4].wrapping_sub(source[3]) & mask,
+            ];
+            let d1 = delta[1];
+            let d2 = delta[2];
+            let d3 = delta[3];
+            let d4 = delta[4];
+            let delta2 = [
+                source[0],
+                d1,
+                d2.wrapping_sub(d1) & mask,
+                d3.wrapping_sub(d2) & mask,
+                d4.wrapping_sub(d3) & mask,
+            ];
+            // The first word is stored verbatim.  Every operation must also
+            // preserve the empty, one-word, and two-word boundaries.
+            for (operation, encoded) in [
+                (Operation::Xor, xor.to_vec()),
+                (Operation::Delta, delta.to_vec()),
+                (Operation::Delta2, delta2.to_vec()),
+            ] {
+                assert!(restore_words(std::iter::empty(), operation, mask).is_empty());
+                assert_eq!(
+                    restore_words(encoded[..1].iter().copied(), operation, mask),
+                    source[..1]
+                );
+                assert_eq!(
+                    restore_words(encoded[..2].iter().copied(), operation, mask),
+                    source[..2]
+                );
+                assert_eq!(restore_words(encoded.into_iter(), operation, mask), source);
+            }
+
+            // Encode a delta2 sequence whose first and later changes cross
+            // zero, so the zigzag inverse sees both signs and wrapping.
+            let zigzag_source = [mask.wrapping_sub(1), 1, mask.wrapping_sub(2), 2, mask];
+            let signed = |value: u64| {
+                if bits == 64 {
+                    (value as i64) as i128
+                } else if value < (1u64 << (bits - 1)) {
+                    value as i128
+                } else {
+                    value as i128 - (1i128 << bits)
+                }
+            };
+            let zigzag = |value: i128| {
+                if value >= 0 {
+                    (value << 1) as u64
+                } else {
+                    ((-value << 1) - 1) as u64
+                }
+            };
+            let first_delta = zigzag_source[1].wrapping_sub(zigzag_source[0]) & mask;
+            let mut previous_delta = first_delta;
+            let mut zigzag_encoded = vec![zigzag_source[0], zigzag(signed(first_delta))];
+            for pair in zigzag_source.windows(2).skip(1) {
+                let delta = pair[1].wrapping_sub(pair[0]) & mask;
+                let delta_delta = delta.wrapping_sub(previous_delta) & mask;
+                zigzag_encoded.push(zigzag(signed(delta_delta)));
+                previous_delta = delta;
+            }
+            assert!(restore_words(std::iter::empty(), Operation::Delta2Zigzag, mask).is_empty());
+            assert_eq!(
+                restore_words(
+                    zigzag_encoded[..1].iter().copied(),
+                    Operation::Delta2Zigzag,
+                    mask
+                ),
+                zigzag_source[..1]
+            );
+            assert_eq!(
+                restore_words(
+                    zigzag_encoded[..2].iter().copied(),
+                    Operation::Delta2Zigzag,
+                    mask
+                ),
+                zigzag_source[..2]
+            );
+            assert_eq!(
+                restore_words(zigzag_encoded.into_iter(), Operation::Delta2Zigzag, mask),
+                zigzag_source
+            );
+        }
+    }
+
+    #[test]
+    fn mode7_multinomial_fixture_restores_fresh_archives() {
+        // This keeps mode 7 independent from the selector: each frame is
+        // constructed from one explicit transform and the fixed multinomial
+        // inner coder, matching the on-disk chain layout exactly.
+        let fixture_dir = std::env::var_os("CIX_MODE7_FIXTURE_DIR").map(PathBuf::from);
+        if let Some(directory) = &fixture_dir {
+            fs::create_dir_all(directory).unwrap();
+        }
+        for transform_id in [5u8, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 29, 30, 31] {
+            let source = (0..64)
+                .map(|index| ((index * 37 + index * index * 11 + 19) & 255) as u8)
+                .collect::<Vec<_>>();
+            let transformed = transform::apply_id(&source, transform_id).unwrap();
+            let mut payload = vec![CHAIN_VERSION, transform_id, INNER_MULTINOMIAL];
+            payload.extend(rank::encode_type_class(&transformed).unwrap());
+            assert_eq!(decode(&payload, source.len(), 1 << 16).unwrap(), source);
+            if let Some(directory) = &fixture_dir {
+                let mut archive = Vec::new();
+                archive.extend_from_slice(b"CIXM6");
+                put_var(1, &mut archive); // bounded history window
+                archive.push(7); // CIXM6 transform-chain route.
+                put_var(source.len(), &mut archive);
+                put_var(payload.len(), &mut archive);
+                archive.extend_from_slice(&payload);
+                archive.push(255);
+                put_var(source.len(), &mut archive);
+                archive.extend_from_slice(&crc32fast::hash(&source).to_le_bytes());
+                let stem = format!("mode7-transform-{transform_id}");
+                fs::write(directory.join(format!("{stem}.source")), &source).unwrap();
+                fs::write(directory.join(format!("{stem}.payload")), &payload).unwrap();
+                fs::write(directory.join(format!("{stem}.cix")), archive).unwrap();
+            }
+        }
     }
 
     #[test]
