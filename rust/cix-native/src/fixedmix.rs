@@ -768,6 +768,14 @@ pub fn decode_with_history(
 mod tests {
     use super::*;
 
+    fn legacy_stretch_table() -> [i32; 4096] {
+        let mut table = [0; 4096];
+        for p in 1..4096 {
+            table[p] = fixed_log2(p as u32) - fixed_log2((4096 - p) as u32);
+        }
+        table
+    }
+
     fn fixture() -> Vec<u8> {
         (0..4096)
             .map(|index| ((index * 37 + (index >> 3) * 11) & 255) as u8)
@@ -775,20 +783,34 @@ mod tests {
     }
 
     #[test]
-    fn shared_stretch_table_keeps_fixedmix_versions_exact() {
+    fn shared_stretch_table_matches_legacy_construction_exactly() {
+        assert_eq!(*stretch_table(), legacy_stretch_table());
+    }
+
+    #[test]
+    fn shared_stretch_table_keeps_fixedmix_versions_and_history_exact() {
         let input = fixture();
+        let (history, payload_input) = input.split_at(512);
         let config = RecurrenceConfig {
             bucket_bits: 4,
             max_distance: 1024,
         };
         let payloads = [
-            encode_with_history_eta(&input, &[], 6).unwrap(),
-            encode_with_legacy_recurrence_eta(&input, &[], 6, config).unwrap(),
-            encode_with_recurrence_eta(&input, &[], 6, config).unwrap(),
+            encode_with_history_eta(payload_input, history, 6).unwrap(),
+            encode_with_legacy_recurrence_eta(payload_input, history, 6, config).unwrap(),
+            encode_with_recurrence_eta(payload_input, history, 6, config).unwrap(),
         ];
         for payload in payloads {
-            assert_eq!(decode(&payload, input.len()).unwrap(), input);
-            assert!(decode(&payload[..payload.len() - 1], input.len()).is_err());
+            assert_eq!(
+                decode_with_history(&payload, payload_input.len(), history).unwrap(),
+                payload_input
+            );
+            assert!(decode_with_history(
+                &payload[..payload.len() - 1],
+                payload_input.len(),
+                history
+            )
+            .is_err());
         }
     }
 

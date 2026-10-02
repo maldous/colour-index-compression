@@ -29,17 +29,26 @@ forced `--stream --route mixture --format cixg1 --block-size 4KiB --threads 1
 small bounded blocks, where table construction is paid repeatedly before the
 change.  It is a kernel experiment, not a corpus compression claim.
 
+The retained replication used six counterbalanced AB/BA pairs, with a fresh
+process for every encode and decode.  Odd pairs ran baseline then candidate;
+even pairs ran candidate then baseline.  The complete run had a predeclared
+600-second wall budget, `ulimit -v 1 GiB`, one pinned CPU, and completed in
+about 6.4 minutes.  Reported confidence intervals are two-sided 95% Student-t
+intervals over six paired process measurements.
+
 ## Results
 
 Complete archive SHA-256 was identical for every baseline/candidate repetition:
 `fd0554b163c1d61478d3df3a15fce0870c7a4117d186be40b3864c3138245166`
 (53,302 bytes).
 
-| metric | baseline (n=3) | shared table (n=3) | change |
+| metric | baseline (n=6) | shared table (n=6) | paired change |
 | --- | ---: | ---: | ---: |
-| encode wall time | 15.56, 14.95, 15.11 s (mean 15.21 s) | 15.13, 14.68, 14.62 s (mean 14.81 s) | -2.6% |
-| encode CPU time | 15.51, 14.89, 15.07 s (mean 15.16 s) | 15.09, 14.63, 14.56 s (mean 14.76 s) | -2.6% |
-| peak RSS | 5,888 KiB | 5,632–5,888 KiB | no reliable process-RSS change at this resolution |
+| encode wall time | 15.073 s, SD 0.148 s | 14.618 s, SD 0.148 s | -0.455 s, 95% CI -0.563 to -0.347 s; -3.0% |
+| encode CPU time | 15.010 s | 14.553 s | -3.0% |
+| decode wall time | 15.028 s, SD 0.188 s | 14.780 s, SD 0.112 s | -0.248 s, 95% CI -0.366 to -0.131 s; -1.7% |
+| decode CPU time | 14.970 s | 14.722 s | -1.7% |
+| peak RSS | 5,632–5,888 KiB | 5,632–5,888 KiB | no reliable process-RSS change at this resolution |
 
 One 4 KiB cold process run was also recorded with Linux `perf stat`.  Candidate
 task-clock/cycles/instructions were 28.52 ms / 133.66 M / 335.13 M, versus
@@ -54,6 +63,12 @@ fixedmix table construction.  Its effect is below process RSS granularity;
 the retained table occupies 16 KiB once per process and needs no unsafe code
 or dependency.
 
+As a negative control, FAST automatic selection on the 4 KiB fixture selected
+DEFLATE (its `--explain` output listed no fixedmix candidate).  Six
+counterbalanced pairs of 40 fresh invocations each reported 0.06–0.07 seconds
+per group for both binaries, with no directional difference.  This confirms
+that the change does not alter work when fixedmix is not selected.
+
 ## Validation
 
 * Archive byte equality was checked across all six repeated stream encodes.
@@ -61,8 +76,9 @@ or dependency.
   the 4 MiB candidate archive byte-for-byte.
 * A byte-flipped archive was rejected by fresh candidate `uncix -t` with
   `block checksum mismatch`.
-* `cargo test --locked --lib fixedmix::tests -- --test-threads=1` passed four
-  tests: V1, legacy V2, corrected V3 round trips; truncation rejection; and
+* `cargo test --locked --lib fixedmix::tests -- --test-threads=1` passed six
+  tests: all 4,096 table entries equal the legacy calculation; V1, legacy V2,
+  and corrected V3 round trips with primed history; truncation rejection; and
   cross-thread one-time table initialization.  The command compiles both the
   library fixedmix module and the CLI's format-compatible module.
 
