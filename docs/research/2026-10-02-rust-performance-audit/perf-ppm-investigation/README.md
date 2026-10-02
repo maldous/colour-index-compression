@@ -7,11 +7,15 @@ This is read-only analysis of
 It sampled the frozen `8865bfbcc` DEFAULT encode of Kennedy with Linux `perf`:
 549 core-cycle samples, zero lost samples, and an approximate event count of
 12,586,217,643. It is one profile, so percentages locate candidate work rather
-than predict a universal speedup.
+than predict a universal speedup. The complete 82,984-byte archive is byte-identical
+to the earlier post-Sonar DEFAULT control (SHA-256
+`3d934dfd0cdc5621516cc0c3edbb0688ff5ec006b140206562e12fd79b609358`).
+A fresh native decoder restored all 1,029,744 bytes to SHA-256
+`9af47239ca29dfe20e633f80bbbb9a4cc9783d0803d7b2b5626f42e4c3790420`.
 
 | Sample share | Symbol | Interpretation |
 |---:|---|---|
-| 25.20% | `num_bigint::BigUint::div_rem_cow` | exact-rank arithmetic, addressed separately by the merged colex work |
+| 25.20% | `num_bigint::BigUint::div_rem_cow` | exact-rank arithmetic remains a hotspot after the merged colex work |
 | 9.07% | `ppm::observe_from` | PPM context update and table maintenance |
 | 8.04% | `bwt_transforms::sort_unstable_by_key` | BWT route work |
 | 6.64% | `BigUint::scalar_mul` | exact-rank arithmetic |
