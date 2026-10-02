@@ -2400,6 +2400,28 @@ fn write_candidate_frame<W: Write>(
     dst.flush().map_err(ioerr)
 }
 
+fn candidate_archive_magic(format: &str, level: u8, backend: &str, backend_set: bool) -> &'static [u8; 5] {
+    if format == "cixg2"
+        || format == "auto"
+            && (level >= 9 || backend_set && (backend.starts_with("context-range-") || backend == "huffman"))
+    { MAGIC_V2 } else { MAGIC }
+}
+
+fn report_candidate_selection(
+    stats: &AutoSelectionStats, level: u8, archive_magic: &[u8; 5], forced: Option<&str>, archive_bytes: u64,
+) {
+    let route_bytes = stats.selected_source_bytes.iter().enumerate()
+        .filter(|(_, bytes)| **bytes != 0)
+        .map(|(route, bytes)| format!("{}:{bytes}", selection::ROUTES[route]))
+        .collect::<Vec<_>>().join(",");
+    eprintln!(
+        "cix: effort={} format={} route={} blocks={} candidates={} memory_skips={} budget_skips={} analyse_seconds={:.3} candidate_seconds={:.3} search_seconds={:.3} archive_bytes={} selected_source_bytes=[{}]",
+        effort_display_name(level), std::str::from_utf8(archive_magic).unwrap_or("CIXG?"), forced.unwrap_or("auto"),
+        stats.blocks, stats.candidate_attempts, stats.memory_skips, stats.budget_skips, stats.profile_seconds,
+        stats.candidate_seconds, stats.search_seconds, archive_bytes, route_bytes,
+    );
+}
+
 fn encode_candidates<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
@@ -2428,15 +2450,7 @@ fn encode_candidates<R: Read, W: Write>(
     }
     // CIXG2 is required for versioned substream coder 6 and extended PPM
     // orders. Existing efforts retain the byte-compatible CIXG1 header.
-    let archive_magic = if format == "cixg2"
-        || format == "auto"
-            && (level >= 9
-                || backend_set && (backend.starts_with("context-range-") || backend == "huffman"))
-    {
-        MAGIC_V2
-    } else {
-        MAGIC
-    };
+    let archive_magic = candidate_archive_magic(format, level, backend, backend_set);
     dst.write_all(archive_magic).map_err(ioerr)?;
     dst.write_all(&block.to_le_bytes()).map_err(ioerr)?;
     dst.write_all(&0u32.to_le_bytes()).map_err(ioerr)?;
@@ -2508,31 +2522,7 @@ fn encode_candidates<R: Read, W: Write>(
         .checked_add(41)
         .ok_or("archive length overflow")?;
     dst.flush().map_err(ioerr)?;
-    if verbose || explain {
-        let route_bytes = selection_stats
-            .selected_source_bytes
-            .iter()
-            .enumerate()
-            .filter(|(_, bytes)| **bytes != 0)
-            .map(|(route, bytes)| format!("{}:{bytes}", selection::ROUTES[route]))
-            .collect::<Vec<_>>()
-            .join(",");
-        eprintln!(
-            "cix: effort={} format={} route={} blocks={} candidates={} memory_skips={} budget_skips={} analyse_seconds={:.3} candidate_seconds={:.3} search_seconds={:.3} archive_bytes={} selected_source_bytes=[{}]",
-            effort_display_name(level),
-            std::str::from_utf8(archive_magic).unwrap_or("CIXG?"),
-            forced.unwrap_or("auto"),
-            selection_stats.blocks,
-            selection_stats.candidate_attempts,
-            selection_stats.memory_skips,
-            selection_stats.budget_skips,
-            selection_stats.profile_seconds,
-            selection_stats.candidate_seconds,
-            selection_stats.search_seconds,
-            archive_bytes,
-            route_bytes,
-        );
-    }
+    if verbose || explain { report_candidate_selection(&selection_stats, level, archive_magic, forced, archive_bytes); }
     Ok(())
 }
 
@@ -2644,7 +2634,7 @@ fn m6_try_legacy_candidates(
     Ok(())
 }
 
-fn m6_try_context_and_adaptive_candidates(ctx: &mut M6TrialContext<'_>) -> Result<Option<Vec<u8>>, String> {
+fn m6_try_context_candidates(ctx: &mut M6TrialContext<'_>) -> Result<Option<Vec<u8>>, String> {
     let (data, prefix, effort, available) = (ctx.data, ctx.prefix, ctx.effort, ctx.available);
     let selected = &mut *ctx.selected;
     let budget_skips = &mut *ctx.budget_skips;
@@ -2665,6 +2655,13 @@ fn m6_try_context_and_adaptive_candidates(ctx: &mut M6TrialContext<'_>) -> Resul
     } else if context_beam > 0 {
         budget_skips.insert(2);
     }
+    Ok(multinomial)
+}
+
+fn m6_try_adaptive_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(), String> {
+    let (data, prefix, effort, available) = (ctx.data, ctx.prefix, ctx.effort, ctx.available);
+    let selected = &mut *ctx.selected;
+    let budget_skips = &mut *ctx.budget_skips;
     if data.len() >= 2 {
         selected.consider(18, wavelet::encode(data), data.len());
         if available >= data.len().saturating_mul(32) {
@@ -2680,10 +2677,10 @@ fn m6_try_context_and_adaptive_candidates(ctx: &mut M6TrialContext<'_>) -> Resul
             budget_skips.insert(10);
         }
     }
-    Ok(multinomial)
+    Ok(())
 }
 
-fn m6_try_chain_numeric_histogram_candidates(ctx: &mut M6TrialContext<'_>, multinomial: Option<&[u8]>) -> Result<(), String> {
+fn m6_try_chain_and_numeric_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(), String> {
     let (data, effort, available) = (ctx.data, ctx.effort, ctx.available);
     let selected = &mut *ctx.selected;
     let budget_skips = &mut *ctx.budget_skips;
@@ -2697,6 +2694,13 @@ fn m6_try_chain_numeric_histogram_candidates(ctx: &mut M6TrialContext<'_>, multi
     if data.len() >= 6 {
         if available >= data.len().saturating_mul(128) { selected.consider(8, numeric::encode(data)?.payload, data.len()); } else { budget_skips.insert(8); }
     }
+    Ok(())
+}
+
+fn m6_try_histogram_candidate(ctx: &mut M6TrialContext<'_>, multinomial: Option<&[u8]>) -> Result<(), String> {
+    let (data, available) = (ctx.data, ctx.available);
+    let selected = &mut *ctx.selected;
+    let budget_skips = &mut *ctx.budget_skips;
     if data.len() >= 2 {
         if available >= data.len().saturating_mul(32) {
             if let Some(multinomial) = multinomial {
@@ -2720,7 +2724,7 @@ fn m6_try_record_periodic_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(),
     Ok(())
 }
 
-fn m6_try_prediction_mix_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(), String> {
+fn m6_try_ppm_candidate(ctx: &mut M6TrialContext<'_>) -> Result<(), String> {
     let (data, prefix, effort, available) = (ctx.data, ctx.prefix, ctx.effort, ctx.available);
     let selected = &mut *ctx.selected;
     let budget_skips = &mut *ctx.budget_skips;
@@ -2731,6 +2735,13 @@ fn m6_try_prediction_mix_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(), 
             selected.consider(16, ppm::encode_best(data, order, prefix, None, None, None)?, data.len());
         } else { budget_skips.insert(16); }
     }
+    Ok(())
+}
+
+fn m6_try_expert_and_fixedmix_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(), String> {
+    let (data, prefix, effort, available) = (ctx.data, ctx.prefix, ctx.effort, ctx.available);
+    let selected = &mut *ctx.selected;
+    let budget_skips = &mut *ctx.budget_skips;
     if data.len() >= 512 && effort >= 6 {
         let max_contexts = available / EXPERT_CONTEXT_MEMORY_ESTIMATE;
         if max_contexts > 0 {
@@ -2773,6 +2784,21 @@ fn m6_write_selected_frame<W: Write>(dst: &mut W, selected: &M6Selection, source
     dst.flush().map_err(ioerr)
 }
 
+fn m6_read_block<R: Read>(src: &mut R, block: &mut [u8]) -> Result<usize, String> {
+    let mut got = 0;
+    while got < block.len() {
+        check_interrupted()?;
+        let n = match src.read(&mut block[got..]) {
+            Ok(n) => n,
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            Err(error) => return Err(ioerr(error)),
+        };
+        if n == 0 { break; }
+        got += n;
+    }
+    Ok(got)
+}
+
 fn encode_m6<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
@@ -2798,19 +2824,7 @@ fn encode_m6<R: Read, W: Write>(
     let mut recent_bytes = 0usize;
     let mut budget_skips = std::collections::BTreeSet::<u8>::new();
     loop {
-        let mut got = 0;
-        while got < block.len() {
-            check_interrupted()?;
-            let n = match src.read(&mut block[got..]) {
-                Ok(n) => n,
-                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
-                Err(e) => return Err(ioerr(e)),
-            };
-            if n == 0 {
-                break;
-            }
-            got += n;
-        }
+        let got = m6_read_block(&mut src, &mut block)?;
         if got == 0 {
             break;
         }
@@ -2834,7 +2848,8 @@ fn encode_m6<R: Read, W: Write>(
             available,
             budget_skips: &mut budget_skips,
         };
-        let multinomial = m6_try_context_and_adaptive_candidates(&mut trials)?;
+        let multinomial = m6_try_context_candidates(&mut trials)?;
+        m6_try_adaptive_candidates(&mut trials)?;
 
         m6_try_sparse_candidates(trials.selected, data)?;
 
@@ -2843,9 +2858,11 @@ fn encode_m6<R: Read, W: Write>(
         m6_try_recent_reference(trials.selected, &recent, data);
 
         m6_try_legacy_candidates(trials.selected, data, prefix, effort, available, trials.budget_skips)?;
-        m6_try_chain_numeric_histogram_candidates(&mut trials, multinomial.as_deref())?;
+        m6_try_chain_and_numeric_candidates(&mut trials)?;
+        m6_try_histogram_candidate(&mut trials, multinomial.as_deref())?;
         m6_try_record_periodic_candidates(&mut trials)?;
-        m6_try_prediction_mix_candidates(&mut trials)?;
+        m6_try_ppm_candidate(&mut trials)?;
+        m6_try_expert_and_fixedmix_candidates(&mut trials)?;
         m6_try_persistent_candidate(&mut trials, &mut persistent_states)?;
         m6_write_selected_frame(&mut dst, &selected, got)?;
         crc.update(data);
