@@ -165,8 +165,7 @@ mod tests {
         // the host maximum: the prior `bit_length + 7` expression overflowed
         // before the decoder could reject the malformed payload.
         encoded.extend([0, 0].repeat(8));
-        encoded.extend([0xff; 9]);
-        encoded.push(1);
+        put_v(usize::MAX, &mut encoded);
         assert_eq!(
             decode(&encoded, 0).unwrap_err(),
             "bit-plane arithmetic payload length mismatch"
