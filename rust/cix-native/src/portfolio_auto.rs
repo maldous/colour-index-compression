@@ -380,37 +380,41 @@ fn available_for_trial(o: &Opt, data: &Vec<u8>, winner: &Vec<u8>, cap: usize) ->
         .filter(|available| *available >= NATIVE_MINIMUM)
 }
 
+struct TrialState<'a> {
+    o: &'a Opt,
+    winner: &'a mut Vec<u8>,
+    winner_name: &'a mut String,
+    evaluated: &'a mut usize,
+    omitted: &'a mut Vec<String>,
+    data: &'a Vec<u8>,
+}
+
 fn record_native_trial(
-    o: &Opt,
-    winner: &mut Vec<u8>,
-    winner_name: &mut String,
-    evaluated: &mut usize,
-    omitted: &mut Vec<String>,
+    state: &mut TrialState<'_>,
     name: String,
     output: CappedWriter,
     encoded: Result<(), String>,
-    data: &Vec<u8>,
 ) -> Result<(), String> {
     match encoded {
         Ok(()) => {
-            *evaluated += 1;
-            if o.explain || o.verbose {
+            *state.evaluated += 1;
+            if state.o.explain || state.o.verbose {
                 eprintln!(
                     "cix: packaging_candidate={name} archive_bytes={}",
                     output.bytes.len()
                 );
             }
             match consider(
-                winner,
-                winner_name,
+                state.winner,
+                state.winner_name,
                 &name,
                 output.into_inner(),
-                data,
-                o.memory,
+                state.data,
+                state.o.memory,
             ) {
                 Ok(_) => Ok(()),
                 Err(error) if is_resource_omission(&error) => {
-                    omitted.push(format!("{name} ({error})"));
+                    state.omitted.push(format!("{name} ({error})"));
                     Ok(())
                 }
                 Err(error) => Err(error),
@@ -418,7 +422,7 @@ fn record_native_trial(
         }
         Err(error) if is_interruption(&error) => Err(error),
         Err(error) if is_resource_omission(&error) || is_candidate_rejection(&error) => {
-            omitted.push(format!("{name} ({error})"));
+            state.omitted.push(format!("{name} ({error})"));
             Ok(())
         }
         Err(error) => Err(error),
@@ -475,22 +479,42 @@ fn run_cixg_trials(
         };
         let mut output = CappedWriter::new(search.cap);
         let guard = crate::limits::DeadlineGuard::new(budget);
-        let encoded = encode_with_strategy(io::Cursor::new(search.data.as_slice()), &mut output, super::EncodeOptions { block, level: o.level, forced: search.forced_route, backend: search.cixg_backend, backend_set: o.backend_set, format, input_fd: -1, flush_interval: None, memory: available, workers: o.threads, explain: o.explain, verbose: o.verbose, strategy: &o.parallelism });
+        let encoded = encode_with_strategy(
+            io::Cursor::new(search.data.as_slice()),
+            &mut output,
+            super::EncodeOptions {
+                block,
+                level: o.level,
+                forced: search.forced_route,
+                backend: search.cixg_backend,
+                backend_set: o.backend_set,
+                format,
+                input_fd: -1,
+                flush_interval: None,
+                memory: available,
+                workers: o.threads,
+                explain: o.explain,
+                verbose: o.verbose,
+                strategy: &o.parallelism,
+            },
+        );
         drop(guard);
         let name = format!(
             "{format}:{}:block={block}",
             search.forced_route.unwrap_or("native-auto")
         );
         record_native_trial(
-            o,
-            winner,
-            winner_name,
-            evaluated,
-            omitted,
+            &mut TrialState {
+                o,
+                winner,
+                winner_name,
+                evaluated,
+                omitted,
+                data: search.data,
+            },
             name,
             output,
             encoded,
-            search.data,
         )?;
     }
     Ok(())
@@ -577,15 +601,17 @@ fn run_m6_trials(
         drop(guard);
         let name = format!("cixm6:native-auto:block={block_size}");
         record_native_trial(
-            o,
-            winner,
-            winner_name,
-            evaluated,
-            omitted,
+            &mut TrialState {
+                o,
+                winner,
+                winner_name,
+                evaluated,
+                omitted,
+                data: search.data,
+            },
             name,
             output,
             encoded,
-            search.data,
         )?;
     }
     Ok(())
@@ -605,15 +631,7 @@ fn run_external_trials(
         return Ok(());
     }
     for descriptor in external::best_candidates() {
-        run_external_trial(
-            o,
-            descriptor,
-            data,
-            winner,
-            winner_name,
-            evaluated,
-            omitted,
-        )?;
+        run_external_trial(o, descriptor, data, winner, winner_name, evaluated, omitted)?;
     }
     Ok(())
 }
@@ -736,7 +754,25 @@ pub(super) fn select(o: &Opt) -> Result<SelectedArchive, String> {
     // candidate, so BEST never silently replaces `--route predictor` with
     // raw bytes.
     let mut raw_output = CappedWriter::new(cap);
-    encode_with_strategy(io::Cursor::new(data.as_slice()), &mut raw_output, super::EncodeOptions { block: cixg_block, level: o.level, forced: forced_route.or(Some("raw")), backend: cixg_backend, backend_set: o.backend_set, format: cixg_format, input_fd: -1, flush_interval: None, memory: fallback_available, workers: o.threads, explain: false, verbose: false, strategy: &o.parallelism })?;
+    encode_with_strategy(
+        io::Cursor::new(data.as_slice()),
+        &mut raw_output,
+        super::EncodeOptions {
+            block: cixg_block,
+            level: o.level,
+            forced: forced_route.or(Some("raw")),
+            backend: cixg_backend,
+            backend_set: o.backend_set,
+            format: cixg_format,
+            input_fd: -1,
+            flush_interval: None,
+            memory: fallback_available,
+            workers: o.threads,
+            explain: false,
+            verbose: false,
+            strategy: &o.parallelism,
+        },
+    )?;
     let mut winner = raw_output.into_inner();
     validate(&winner, winner.capacity(), &data, 0, o.memory)?;
     let mut winner_name = format!("{cixg_format}:{}-baseline", forced_route.unwrap_or("raw"));
