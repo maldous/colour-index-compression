@@ -1,7 +1,7 @@
 # Performance audit status
 
-Checkpoint source: `27dc7043e` on `research/silesia-competitive`; private remote SHA
-was verified at that commit. Reviewed streaming, portfolio and decoder admission
+Frozen combined source: `a628bda23` on `research/silesia-competitive`; the private remote
+was last verified at `e03b7af8b`. Subsequent reviewed checkpoints await the next private push. Reviewed streaming, portfolio and decoder admission
 helpers are merged. This is an interim checkpoint, not completed Sonar remediation
 or final corpus qualification. Repository privacy and disabled Actions were
 read back before the latest push.
@@ -54,6 +54,32 @@ The phase harness now parses unified cgroup paths correctly; an actual constrain
 process and sixteen local tests passed. Future plans must bind the new helper
 hash; historical missing readbacks are not retroactively qualified.
 
-An input allocation audit found that explicit CIXB1 encoding reserves 128 MiB
-before reading even tiny inputs. A capped reader is being reviewed and tested.
-It is not yet integrated and no throughput or peak RSS saving is claimed.
+The explicit CIXB1 input path now uses a capped, fallible reader instead of an
+unconditional 128 MiB reservation. Six boundary tests and six gzip/bzip2 CLI
+cases passed, including complete archive parity and fresh native restores.
+The conservative source allowance charges overlapping growth and leaves codec
+admission separate. It can reject a large source earlier under a small budget;
+it does not make this named-file path streaming.
+
+The isolated DHAT reader experiment used eight actual child-bound processes.
+Empty and 2 KiB input allocations fell from 128 MiB to 64 KiB; the 1 MiB case
+used 1 MiB final capacity and 2,031,616 cumulative allocation bytes. This is
+reader allocation evidence, not whole-CLI peak RSS or throughput evidence.
+See `external-reader-integration/` and `bounded-reader-allocation/`.
+
+## Final cleanup checkpoint (2026-10-03)
+
+Portfolio, TrialState, candidate selection, M6 trial families, BWT/sparse coding,
+and wavelet/bitplane helpers are merged with scoped restoration and byte-parity
+evidence. The word-reconstruction helper is merged after independent source review,
+boundary tests and 15 fresh archive restores with both current and pre-helper
+Rust decoders. Historical incomplete full-library
+runs remain labelled incomplete; scoped tests do not replace final validation.
+
+The combined source is frozen at `a628bda23`. A fresh matched pre-refactor
+`99f4f7319` build is running; final all-feature optimized validation, Criterion
+smoke and a fresh Sonar scan are in progress or queued behind that build. The
+hotspot runner is prepared with source/hash and actual descendant-resource
+checks; preparation is not profiling. Full repeated CCA comparisons, qualified
+scaling curves and build-profile replication remain open. No new corpus
+performance or ranking claim is made.
