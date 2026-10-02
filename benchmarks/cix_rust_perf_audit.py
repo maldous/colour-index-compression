@@ -124,6 +124,21 @@ def runtime_dsos(binary: Path) -> list[dict]:
     return sorted(result, key=lambda value: value["path"])
 
 
+def release_revision(value: dict) -> str:
+    """Support both release schemas without losing or inventing provenance."""
+    legacy = value.get("source_revision")
+    source = value.get("source")
+    current = source.get("revision") if isinstance(source, dict) else None
+    revisions = [revision for revision in (legacy, current) if revision is not None]
+    if not revisions or any(not isinstance(revision, str) or len(revision) != 40
+                            or any(char not in "0123456789abcdef" for char in revision)
+                            for revision in revisions):
+        raise RuntimeError("release metadata requires an exact source commit")
+    if len(set(revisions)) != 1:
+        raise RuntimeError("release metadata has conflicting source commits")
+    return revisions[0]
+
+
 def artifact(path: Path, name: str) -> dict:
     path = path.resolve()
     metadata = path / "native-release.json"
@@ -143,7 +158,7 @@ def artifact(path: Path, name: str) -> dict:
             raise RuntimeError(f"{name}: {binary} differs from release metadata")
         binaries[binary] = {"path": rel(target), "sha256": actual, "bytes": target.stat().st_size,
                             "runtime_dsos": runtime_dsos(target)}
-    return {"name": name, "directory": rel(path), "source_revision": value.get("source_revision"),
+    return {"name": name, "directory": rel(path), "source_revision": release_revision(value),
             "metadata": {"path": rel(metadata), "sha256": sha256(metadata)}, "binaries": binaries,
             "release_metadata": value}
 

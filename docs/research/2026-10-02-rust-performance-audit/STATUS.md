@@ -2,7 +2,7 @@
 
 Checkpoint source: `40d3520db63a7d54526cb22430b769e77cf601c9` on
 `research/silesia-competitive`. This is an interim checkpoint, not completed
-Sonar remediation or a final corpus qualification. The previous private push was verified at `ba4e19921`; subsequent completed
+Sonar remediation or a final corpus qualification. The previous private push was verified at `c27406598`; subsequent completed
 changes are queued for push. Repository privacy and disabled Actions were
 read back again on 2026-10-02 before the next push.
 
@@ -29,14 +29,14 @@ stubs; all 18 affected optimized example tests passed.
 | Requirement | Current evidence / next work |
 |---|---|
 | Pre-refactor versus current matched CLI | Three paired automatic BEST grammar runs: 14.2% lower mean wall time for combined `8865bfbcc`; wall-time paired confidence interval includes zero. One small input does not establish general improvement. |
-| Regression tests | Combined `8865bfbcc` passed 359 test executions; newer boundary and PPM targeted tests passed. Combined `9214e2f8b` exposed a rejecting numeric example stub, now repaired. The direct optimized `40d3520db` all-feature library/binary/integration/example suite exited zero; the separate Criterion smoke and durable evidence packet are pending. |
+| Regression tests | Combined `8865bfbcc` passed 359 test executions; newer boundary and PPM targeted tests passed. Combined `9214e2f8b` exposed a rejecting numeric example stub, now repaired. The direct optimized `40d3520db` all-feature library/binary/integration/example suite exited zero; the separate Criterion smoke also exited zero. Reviewed raw logs, exit receipts and artifact metadata are retained in `combined-40d-validation/` (598 repeated test executions, not unique tests). |
 | Profiling | DEFAULT Kennedy and BEST grammar perf recordings identify BigUint division, PPM, BWT and mixing work. Full cache/bandwidth, scheduling, lock and I/O attribution remains open. |
 | Allocations | Encoder-only count-range DHAT and controlled PPM kernel DHAT completed. Fixed PPM eligible-vector removal is retained with 80 cgroup-read-back ABBA processes and raw allocation receipts; no whole-CLI improvement is inferred from kernels. |
 | Streaming latency | Actual idle producer and slow-consumer pipes produced compressed and reconstructed bytes before EOF, including a root no-swap 128 MiB repetition. A 256 MiB raw-route pipe restored exactly inside a read-back 64 MiB aggregate cgroup with swap disabled, bounded relay and slow-consumer backpressure. This is a correctness/resource control, not a selector or persistent-history performance result. |
 | Scaling | A 120-cell DEFAULT G1 screen completed. One-thread restores passed; explicit two/four-thread decoding is rejected. All timing rows are unqualified because the executed harness source identity was not retained. Native receipts preserve the failures; a direct-child status supervisor fixes future experiments under a new identity. No qualified decoder scaling curve is claimed. |
 | Persistent history versus independent blocks | G1 is already independent; its reset flag cannot establish this tradeoff. Genuine persistent-format comparisons remain open. |
 | Compiler / PGO | Portable/native, LTO/codegen and held-out PGO screens exist. PGO improves some encode screens but regresses decode; no build-profile change retained. Some historical resource readbacks were not retained, so those results remain screens. |
-| Sonar | Corrected compact Clippy import exposed remaining findings. The corrected `40d3520db` scan has 26 native complexity findings, down from 30; its raw evidence packet is pending. Unsupported imported rules and raw/imported visibility differences remain recorded. No zero-warning claim; disjoint cleanup continues. |
+| Sonar | Corrected compact Clippy import exposed remaining findings. The corrected `40d3520db` scan has 26 native complexity findings, down from 30; its reviewed raw evidence packet is retained in `sonar-40d-corrected/`. Unsupported imported rules and raw/imported visibility differences remain recorded. No zero-warning claim; disjoint cleanup continues. |
 | Full CCA gate then Silesia | Paused until reviewed cleanup and a new immutable release are complete. Corpus execution policy remains four datasets concurrently, four threads each. |
 | Default thread/block recommendation | Pending qualified scaling, memory and history comparisons. Existing defaults remain. |
 

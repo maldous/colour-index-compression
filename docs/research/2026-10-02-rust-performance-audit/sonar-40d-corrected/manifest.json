@@ -1,0 +1,51 @@
+{
+  "scan_kind": "local corrected Sonar + Clippy import",
+  "source_revision": "40d3520db63a7d54526cb22430b769e77cf601c9",
+  "project_key": "cix-native-rust-local-review",
+  "endpoint": "http://127.0.0.1:9013",
+  "host": { "kernel": "Linux 6.8.0-138-generic amd64" },
+  "tools": {
+    "rustc": "1.98.1",
+    "clippy": "0.1.98",
+    "sonar_scanner_cli": "8.1.0.6389",
+    "sonarqube_community_build": "26.9.0.129388"
+  },
+  "images": {
+    "server": {
+      "reference": "sonarqube@sha256:4905574ab8584dcac1a06c01cdc43a4ce9e369723ac4a7ab1d029c1bf71e6fe9",
+      "image_id": "sha256:ff13864398f3a9bda32a7bdcc286cbce544b686243c83301befaa3099d989fce"
+    },
+    "scanner": {
+      "reference": "sonarsource/sonar-scanner-cli@sha256:a3f4215076706c95a17a68c19322ee916e40a3acd081a8c1a1e839e0194afa57",
+      "image_id": "sha256:040fa7248c0504dc6815541dffa7135eca00052bf72fa1b5b569d55e0b39dbd7"
+    }
+  },
+  "resources": {
+    "server_cpuset": "24,25",
+    "server_memory_bytes": 4294967296,
+    "server_memory_swap_bytes": 4294967296,
+    "scanner_cpuset": "24,25",
+    "scanner_memory_bytes": 1073741824,
+    "scanner_memory_swap_bytes": 1073741824
+  },
+  "clippy_import": {
+    "raw_compiler_messages": 743,
+    "deduplicated_compact_ndjson_records": 248,
+    "format": "one compact JSON compiler-message object per line",
+    "parse_errors": 0,
+    "importer_drops": 22
+  },
+  "sonar": {
+    "quality_gate": "FAILED",
+    "open_issues": 87,
+    "native_s3776": 26,
+    "imported_clippy": 61
+  },
+  "sha256": {
+    "clippy-raw.jsonl": "b12d2a52dd2f68262290604200f54bb01c094d494efd3d451c895c5b239ebd7f",
+    "clippy-unique.ndjson": "549c1ac7c58f48c53b9b07ee85326c38d21bd130929f6c3c76a7498ed5db9e0e",
+    "open-issues.json": "85c2ff013d725c2c789f96ee23dfc2bfc4526f6478355e1dddeea07df34db7ed",
+    "scanner.log": "9a1fd067cbbb78266b495d843211088948de7e85619bf51e0384546791e64448"
+  },
+  "credentials_recorded": false
+}
