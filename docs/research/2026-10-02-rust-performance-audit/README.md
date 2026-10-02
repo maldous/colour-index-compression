@@ -48,8 +48,11 @@ discarding its proof. Total retained interrupted-attempt evidence is capped at
 128 MiB; further retries stop for review rather than eroding the aggregate
 temporary-space budget.
 
-No benchmark has been dispatched by this directory. The cancelled 20-thread
-catalog and Hutter jobs are outside this protocol.
+This directory contains the original corpus-audit protocol and subsequent
+bounded kernel, profiling, compiler, streaming and regression checkpoints.
+See [the current status](STATUS.md) for their scope and open requirements.
+The complete post-cleanup corpus run has not been dispatched. The cancelled
+20-thread catalog and Hutter jobs are outside this protocol.
 
 The required order is Canterbury, Calgary and Artificial (33 gate fixtures),
 then Silesia. The runner rejects a Silesia stage until every requested gate
@@ -95,8 +98,8 @@ throughput with a single-file scaling curve.
 Profile before editing code. `profile-plan` writes the exact perf events,
 DHAT, Criterion and build/PGO queue. DHAT and Criterion are intentionally
 audit-only additions after a hotspot is measured; they are not production
-dependencies. There is currently no DHAT instrumented build, so the plan marks
-allocation profiling blocked rather than presenting a fictional command. Build
+dependencies. Optional DHAT and Criterion audit targets now exist; their
+qualified measurements are recorded separately from ordinary CLI RSS. Build
 variants and PGO require separate immutable artifacts and the PGO training
 fixture hashes must differ from held-out evaluation fixtures.
 
