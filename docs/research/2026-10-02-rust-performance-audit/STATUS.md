@@ -1,8 +1,8 @@
 # Performance audit status
 
-Checkpoint source: `40d3520db63a7d54526cb22430b769e77cf601c9` on
+Checkpoint source: `6dd09b6f7` (with reviewed PPM and integer guards) on
 `research/silesia-competitive`. This is an interim checkpoint, not completed
-Sonar remediation or a final corpus qualification. The previous private push was verified at `c27406598`; subsequent completed
+Sonar remediation or a final corpus qualification. The previous private push was verified at `5b4be0235`; subsequent completed
 changes are queued for push. Repository privacy and disabled Actions were
 read back again on 2026-10-02 before the next push.
 
@@ -15,13 +15,17 @@ read back again on 2026-10-02 before the next push.
 | Shared immutable fixedmix stretch table | Corrected six-pair screen: encode 2.48%, decode 2.27% faster on the declared forced-mixture input | Identical complete archives and fresh native restores |
 | Borrowed PPM context lookup | Controlled kernels: approximately 3–34% encode and 3–33% decode mean improvement depending on input; allocation events reduced | Identical payloads and fresh cross-decoding; not a general CLI speed claim |
 | Fixed PPM eligible scan without temporary vectors | Controlled fixed order-3 kernels: approximately 16–30% lower encode means; lower allocated bytes and events | 32 byte-identical payload cases and fresh cross-decoding; decoder path unchanged |
+| Integer decoder high-bit guards | 18 repeated boundary executions, 20 existing module executions and 16 integration tests passed; correctness evidence only | Valid maximum-width values preserved; oversized varints and Rice/PFOR components rejected |
 | Checked payload arithmetic and varints; PPM rescale spelling | Boundary, overflow, malformed-input and captured payload tests | Valid payload bytes unchanged |
 | Streaming setup/worker/output helpers | Independent review, G1/G2 byte identity, idle and slow-consumer pipe checks | Framing, ordering, model behavior and resource values preserved |
 
 Evidence is in `count-range/`, `colex-rank-0e8685/`, `fixedmix-table/`,
 `ppm-borrow/`, `ppm-eligible/`, `ppm-rescale-ceil/`, and `gstream-refactor/`.
 Reviewed helper refactors also cover numeric coding and CLI encode options.
-The numeric fixture now exercises real decoder modules rather than rejecting
+PPM model-control helpers and its varint guard are also reviewed and merged;
+all-method v3/v4 and SEE/prefix receipts are correctness evidence, with
+per-process resource coverage limitations disclosed. The numeric fixture now
+exercises real decoder modules rather than rejecting
 stubs; all 18 affected optimized example tests passed.
 
 ## Qualification and open work
@@ -36,7 +40,7 @@ stubs; all 18 affected optimized example tests passed.
 | Scaling | A 120-cell DEFAULT G1 screen completed. One-thread restores passed; explicit two/four-thread decoding is rejected. All timing rows are unqualified because the executed harness source identity was not retained. Native receipts preserve the failures; a direct-child status supervisor fixes future experiments under a new identity. No qualified decoder scaling curve is claimed. |
 | Persistent history versus independent blocks | G1 is already independent; its reset flag cannot establish this tradeoff. Genuine persistent-format comparisons remain open. |
 | Compiler / PGO | Portable/native, LTO/codegen and held-out PGO screens exist. PGO improves some encode screens but regresses decode; no build-profile change retained. Some historical resource readbacks were not retained, so those results remain screens. |
-| Sonar | Corrected compact Clippy import exposed remaining findings. The corrected `40d3520db` scan has 26 native complexity findings, down from 30; its reviewed raw evidence packet is retained in `sonar-40d-corrected/`. Unsupported imported rules and raw/imported visibility differences remain recorded. No zero-warning claim; disjoint cleanup continues. |
+| Sonar | Corrected compact Clippy import exposed remaining findings. The corrected `40d3520db` scan has 26 native complexity findings, down from 30; its reviewed raw evidence packet is retained in `sonar-40d-corrected/`. Unsupported imported rules and raw/imported visibility differences remain recorded. No zero-warning claim; disjoint cleanup continues. Later PPM and integer fixes have not yet had a combined scan or full optimized suite; chain/BWT, external portfolio and main decoder parity packets remain under qualification. |
 | Full CCA gate then Silesia | Paused until reviewed cleanup and a new immutable release are complete. Corpus execution policy remains four datasets concurrently, four threads each. |
 | Default thread/block recommendation | Pending qualified scaling, memory and history comparisons. Existing defaults remain. |
 
