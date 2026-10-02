@@ -1,0 +1,15 @@
+run-u119253.service
+  command suffix: cargo +stable test --locked --lib legacy_round_trip_after_helper_extraction -- --exact --test-threads=1
+  result: exit=0, but 0 tests ran (the unqualified --exact filter did not match a full test name).
+  status: retained only as an unsuccessful selection attempt; not qualifying evidence.
+
+run-u119264.service
+  command suffix: cargo +stable test --locked --lib legacy_round_trip_after_helper_extraction -- --test-threads=1
+  result: exit=0; 3 tests ran because three in-tree modules share that suffix.
+  status: supplementary only; it is not claimed as one isolated legacy_lz test.
+
+run-u119343.service
+  command: raw/focused-test.command.txt
+  result: exit=0; exactly 1 test ran:
+    legacy_lz::tests::legacy_round_trip_after_helper_extraction
+  status: the focused test receipt.

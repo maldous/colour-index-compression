@@ -1,0 +1,12 @@
+systemd-run --user --wait --pipe --collect \
+  --working-directory=/tmp/cix-legacy-lz-warnings-a628 \
+  -p AllowedCPUs=26 -p MemoryMax=1G -p MemorySwapMax=0 \
+  taskset -c 26 bash -lc '
+    fixture() { printf "\\0\\x08\\0\\0\\0\\0\\0\\0\\0history history history payload"; }
+    candidate=/tmp/cix-legacy-lz-candidate-target/debug/examples/encode_legacy_lz
+    baseline=/tmp/cix-legacy-lz-baseline-target/debug/examples/encode_legacy_lz
+    candidate_sha=$(fixture | "$candidate" | sha256sum | cut -d " " -f1)
+    baseline_sha=$(fixture | "$baseline" | sha256sum | cut -d " " -f1)
+    test "$candidate_sha" = "$baseline_sha"
+    printf "candidate_sha256=%s\\nbaseline_sha256=%s\\npayload_parity=pass\\n" "$candidate_sha" "$baseline_sha"
+  '
