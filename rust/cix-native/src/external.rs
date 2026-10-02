@@ -902,6 +902,9 @@ fn zpaq_payload(input: &[u8], level: u8) -> Result<Vec<u8>, String> {
 /// envelope. The CIXB1 backend ID identifies libzpaq semantics and its fixed
 /// embedded level, while the ZPAQ payload itself carries the decoder model.
 pub fn encode_zpaq(profile: &str, input: &[u8], level: u8) -> Result<Vec<u8>, String> {
+    if input.is_empty() {
+        return Err("ZPAQ candidate rejected: empty input emits no framed libzpaq block".into());
+    }
     if !matches!(profile, "default" | "current" | "size") {
         return Err(format!(
             "CIXB1 ZPAQ level-5 is not eligible for profile {profile}"

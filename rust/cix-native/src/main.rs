@@ -2675,7 +2675,10 @@ fn encode_portfolio<R: Read, W: Write>(
             Ok(candidate) => candidate,
             // BSC can decline uncompressible input.  It is a measured
             // candidate rejection, while real backend errors remain fatal.
-            Err(error) if error.contains("BSC candidate rejected") => {
+            Err(error)
+                if error.starts_with("BSC candidate rejected:")
+                    || error.starts_with("ZPAQ candidate rejected:") =>
+            {
                 omitted.push(format!("{} ({error})", descriptor.id));
                 continue;
             }

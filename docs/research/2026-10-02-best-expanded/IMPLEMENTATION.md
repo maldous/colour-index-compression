@@ -40,4 +40,8 @@ remain unqualified follow-up work. Explicit retained-history constraints are
 not supported in this mixed-stream path. BEST searches a finite legal candidate
 space with declared memory/deadline bounds; it is not a proof of the smallest
 possible lossless encoding. One-shot native calls can delay interruption.
-No new corpus rankings, timings, or Site records are published until verified.
+Release smoke exposed a zero-input libzpaq behavior: its compressor emits no
+framed block. The ZPAQ candidate now explicitly rejects empty input; ordinary
+BEST retains its valid CIXM6/native fallback. The 2 GiB default-memory empty
+CLI regression passes. No new corpus rankings, timings, or Site records are
+published until verified.

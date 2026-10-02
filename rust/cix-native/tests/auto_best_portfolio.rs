@@ -198,8 +198,6 @@ fn named_empty_best_rejects_bsc_candidate_and_retains_a_valid_archive() {
     fs::write(&input.0, []).expect("write empty input");
     let output = cix(&[
         "--best",
-        "--memory",
-        "512MiB",
         "--verbose",
         "-o",
         archive.0.to_str().expect("UTF-8 temp path"),
@@ -214,6 +212,10 @@ fn named_empty_best_rejects_bsc_candidate_and_retains_a_valid_archive() {
     assert!(
         stderr.contains("bsc-v3.3.12-bwt-qlfc-static-lzp15-72-fast (BSC candidate rejected:"),
         "BSC rejection must be observable: {stderr}"
+    );
+    assert!(
+        stderr.contains("zpaq715-l5 (ZPAQ candidate rejected:"),
+        "{stderr}"
     );
     let restored = uncix(&archive.0);
     assert!(restored.status.success());

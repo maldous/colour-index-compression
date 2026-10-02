@@ -235,7 +235,7 @@ fn is_resource_omission(error: &str) -> bool {
 // normal candidate outcome; the always-present CIX raw candidate is the
 // lossless fallback. Treat it as an observed rejection, not a BEST failure.
 fn is_candidate_rejection(error: &str) -> bool {
-    error.starts_with("BSC candidate rejected:")
+    error.starts_with("BSC candidate rejected:") || error.starts_with("ZPAQ candidate rejected:")
 }
 
 struct CompareWriter<'a> {
