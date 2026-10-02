@@ -1182,6 +1182,26 @@ mod tests {
     }
 
     #[test]
+    fn numeric_u64_varint_maximum_round_trips_canonically() {
+        let mut encoded = Vec::new();
+        put_varint_u64(u64::MAX, &mut encoded);
+        let mut position = 0;
+        assert_eq!(get_varint_u64(&encoded, &mut position).unwrap(), u64::MAX);
+        assert_eq!(position, encoded.len());
+    }
+
+    #[test]
+    fn numeric_u64_varint_rejects_high_bits_in_final_group() {
+        let mut encoded = vec![0xff; 9];
+        encoded.push(2);
+        let mut position = 0;
+        assert_eq!(
+            get_varint_u64(&encoded, &mut position).unwrap_err(),
+            "numeric varint overflow"
+        );
+    }
+
+    #[test]
     fn truncated_numeric_candidate_is_rejected() {
         let input: Vec<u8> = (0..128).map(|index| (index * 13) as u8).collect();
         let candidate = encode_candidates(&input)

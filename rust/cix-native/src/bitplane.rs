@@ -6,7 +6,12 @@ fn read_v(data: &[u8], p: &mut usize) -> Result<usize, String> {
     for shift in (0..usize::BITS as usize).step_by(7) {
         let byte = *data.get(*p).ok_or("truncated bit-plane varint")?;
         *p += 1;
-        value |= ((byte & 0x7f) as usize)
+        let low = (byte & 0x7f) as usize;
+        let remaining_bits = usize::BITS as usize - shift;
+        if remaining_bits < 7 && low >> remaining_bits != 0 {
+            return Err("bit-plane varint overflow".into());
+        }
+        value |= low
             .checked_shl(shift as u32)
             .ok_or("bit-plane varint overflow")?;
         if byte < 128 {
@@ -169,6 +174,28 @@ mod tests {
         assert_eq!(
             decode(&encoded, 0).unwrap_err(),
             "bit-plane arithmetic payload length mismatch"
+        );
+    }
+
+    #[test]
+    fn varint_maximum_round_trips_canonically() {
+        let mut encoded = Vec::new();
+        put_v(usize::MAX, &mut encoded);
+        let mut position = 0;
+        assert_eq!(read_v(&encoded, &mut position).unwrap(), usize::MAX);
+        assert_eq!(position, encoded.len());
+    }
+
+    #[test]
+    fn varint_rejects_high_bits_in_final_group() {
+        let groups = (usize::BITS as usize).div_ceil(7);
+        let final_bits = usize::BITS as usize - 7 * (groups - 1);
+        let mut encoded = vec![0xff; groups - 1];
+        encoded.push(1 << final_bits);
+        let mut position = 0;
+        assert_eq!(
+            read_v(&encoded, &mut position).unwrap_err(),
+            "bit-plane varint overflow"
         );
     }
 }
