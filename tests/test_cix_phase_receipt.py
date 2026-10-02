@@ -25,7 +25,7 @@ class ChildStatusTests(unittest.TestCase):
                 self.assertEqual(result["child_status"]["child_exit_code"], child)
 
     def test_missing_or_mismatched_receipt(self):
-        for value in [None, {"command": ["wrong"], "child_exit_code": 0},
+        for value in [None, [], {"command": ["wrong"], "child_exit_code": 0},
                       {"command": ["true"], "child_exit_code": False}]:
             with self.subTest(value=value), tempfile.TemporaryDirectory() as tmp:
                 def phase(**kwargs):

@@ -63,7 +63,8 @@ def execute_phase(**kwargs) -> dict:
     result["supervisor_exit_code"] = result["exit_code"]
     try:
         child = json.loads(receipt.read_text())
-        if child.get("command") != command or type(child.get("child_exit_code")) is not int:
+        if (not isinstance(child, dict) or child.get("command") != command
+                or type(child.get("child_exit_code")) is not int):
             raise ValueError("invalid child status receipt")
         result["child_status"] = child
         result["child_status_sha256"] = sha256(receipt)
