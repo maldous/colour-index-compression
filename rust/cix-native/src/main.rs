@@ -1167,208 +1167,98 @@ fn default_block(level: u8) -> u32 {
 /// Evaluate candidates in bounded batches. Only the current winner and at
 /// most `workers` transient payloads are resident, and ordered joins retain
 /// the historical first-candidate-wins rule for equal sizes.
-fn consider_cixg_candidates_parallel(
-    candidates: &[selection::Candidate],
-    data: &[u8],
+#[derive(Clone, Copy)]
+struct CandidateTrialBudget {
+    search_deadline: Option<Instant>,
+    trial_budget: Duration,
+}
+
+struct CandidateTrialPolicy {
     level: u8,
-    budget: &resources::MemoryBudget,
+    worker_memory: usize,
+    search_budget_seconds: f64,
+    limits: CandidateTrialBudget,
+}
+
+struct CandidateTrialContext<'a> {
+    candidates: &'a [selection::Candidate],
+    data: &'a [u8],
+    budget: &'a resources::MemoryBudget,
+    search_started: Instant,
+    policy: CandidateTrialPolicy,
+}
+
+struct CandidateWinner {
+    index: Option<usize>,
+    route: u8,
+    backend: String,
+    payload: Vec<u8>,
+}
+
+#[derive(Default)]
+struct CandidateTrialTotals {
+    seconds: f64,
+    attempts: u64,
+    memory_skips: u64,
+    budget_skips: u64,
+}
+
+struct CandidateTrialShared {
+    next: std::sync::atomic::AtomicUsize,
+    failed: AtomicBool,
+    first_error: std::sync::Mutex<Option<String>>,
+    winner: std::sync::Mutex<CandidateWinner>,
+    records: std::sync::Mutex<Vec<Option<String>>>,
+    totals: std::sync::Mutex<CandidateTrialTotals>,
+}
+
+struct CandidateSearchRequest<'a> {
+    candidates: &'a [selection::Candidate],
+    data: &'a [u8],
+    level: u8,
+    budget: &'a resources::MemoryBudget,
     workers: usize,
     search_budget_seconds: f64,
     trial_budget_seconds: f64,
     worker_memory_mib: usize,
+}
+
+struct CandidateSelectionState<'a> {
+    stats: &'a mut AutoSelectionStats,
+    best_route: &'a mut u8,
+    best_backend: &'a mut String,
+    best_payload: &'a mut Vec<u8>,
+    evaluated: &'a mut Vec<String>,
+}
+
+struct CandidateRunResult<'a> {
+    index: usize,
+    route: u8,
+    backend: &'a str,
+    label: String,
+    seconds: f64,
+    effective_trial_budget: Duration,
+    result: Result<Vec<u8>, String>,
+}
+
+fn candidate_wins(
+    within_budget: bool,
+    size: usize,
+    incumbent_size: usize,
+    index: usize,
+    incumbent_index: Option<usize>,
+) -> bool {
+    within_budget
+        && (size < incumbent_size
+            || (size == incumbent_size && incumbent_index.is_some_and(|old| index < old)))
+}
+
+fn record_candidate_results(
+    records: Vec<Option<String>>,
+    candidates: &[selection::Candidate],
     stats: &mut AutoSelectionStats,
-    best_route: &mut u8,
-    best_backend: &mut String,
-    best_payload: &mut Vec<u8>,
     evaluated: &mut Vec<String>,
-) -> Result<(), String> {
-    let workers = workers.max(1).min(candidates.len().max(1));
-    let worker_memory = budget
-        .capacity_bytes()
-        .min(worker_memory_mib.saturating_mul(1024 * 1024));
-    let search_started = Instant::now();
-    let search_deadline =
-        search_started.checked_add(Duration::from_secs_f64(search_budget_seconds));
-    let trial_budget = Duration::from_secs_f64(trial_budget_seconds);
-    let next = std::sync::atomic::AtomicUsize::new(0);
-    let failed = AtomicBool::new(false);
-    let first_error = std::sync::Mutex::new(None::<String>);
-    let winner = std::sync::Mutex::new((
-        None::<usize>,
-        *best_route,
-        best_backend.clone(),
-        std::mem::take(best_payload),
-    ));
-    let records = std::sync::Mutex::new(
-        std::iter::repeat_with(|| None::<String>)
-            .take(candidates.len())
-            .collect::<Vec<_>>(),
-    );
-    let totals = std::sync::Mutex::new((0.0f64, 0u64, 0u64, 0u64));
-    let evaluate_worker = || loop {
-        if failed.load(Ordering::Relaxed) {
-            break;
-        }
-        if let Err(error) = check_interrupted() {
-            let mut first = first_error.lock().unwrap();
-            if first.is_none() {
-                *first = Some(error);
-            }
-            failed.store(true, Ordering::Relaxed);
-            break;
-        }
-        if search_started.elapsed().as_secs_f64() >= search_budget_seconds {
-            break;
-        }
-        let index = next.fetch_add(1, Ordering::Relaxed);
-        let Some(candidate_spec) = candidates.get(index) else {
-            break;
-        };
-        let route = candidate_spec.route;
-        let backend = candidate_spec.backend.as_str();
-        let label = match candidate_spec.parameter {
-            Some(parameter) if route == 8 => {
-                format!(
-                    "{}:{backend}:order-{parameter}",
-                    selection::ROUTES[route as usize]
-                )
-            }
-            _ => format!("{}:{backend}", selection::ROUTES[route as usize]),
-        };
-        let needed = candidate_memory(route, data.len(), level, backend);
-        if worker_memory < needed {
-            records.lock().unwrap()[index] = Some(format!("{label}=skipped(memory-per-worker)"));
-            totals.lock().unwrap().2 += 1;
-            continue;
-        }
-        let permit = match budget.acquire(needed, search_deadline, || {
-            crate::limits::check().is_err() || failed.load(Ordering::Relaxed)
-        }) {
-            Ok(permit) => permit,
-            Err(resources::MemoryError::DeadlineExceeded) => {
-                records.lock().unwrap()[index] = Some(format!("{label}=skipped(search-budget)"));
-                totals.lock().unwrap().3 += 1;
-                continue;
-            }
-            Err(error) => {
-                let mut first = first_error.lock().unwrap();
-                if first.is_none() {
-                    *first = Some(error.to_string());
-                }
-                failed.store(true, Ordering::Relaxed);
-                break;
-            }
-        };
-        // Acquire can itself wait behind another candidate. Recompute
-        // after admission so that wait time is charged to the same
-        // whole-search budget as encoding time.
-        let remaining_search = match search_deadline {
-            Some(deadline) => match deadline.checked_duration_since(Instant::now()) {
-                Some(remaining) if !remaining.is_zero() => remaining,
-                _ => {
-                    records.lock().unwrap()[index] =
-                        Some(format!("{label}=skipped(search-budget)"));
-                    totals.lock().unwrap().3 += 1;
-                    break;
-                }
-            },
-            // Preserve the prior behaviour for an unrepresentable
-            // Instant: the resource acquire still has no deadline,
-            // while each candidate retains its finite trial limit.
-            None => trial_budget,
-        };
-        let started = Instant::now();
-        // A trial may never consume more than the time still left in
-        // this block's search budget.  DeadlineGuard also composes
-        // with an outer deadline installed by a streaming worker.
-        let effective_trial_budget = trial_budget.min(remaining_search);
-        let deadline_guard = crate::limits::DeadlineGuard::new(effective_trial_budget);
-        let result = encode_route(route, data, level, backend, candidate_spec.parameter);
-        drop(deadline_guard);
-        let seconds = started.elapsed().as_secs_f64();
-        let exhausted_search = search_deadline.is_some_and(|deadline| Instant::now() >= deadline);
-        match result {
-            Err(error) if error == crate::limits::DEADLINE_ERROR => {
-                let reason = if exhausted_search {
-                    "search-budget"
-                } else {
-                    "trial-budget"
-                };
-                records.lock().unwrap()[index] =
-                    Some(format!("{label}=skipped({reason},{seconds:.3}s)"));
-                let mut total = totals.lock().unwrap();
-                total.0 += seconds;
-                total.1 += 1;
-                total.3 += 1;
-            }
-            Err(error) => {
-                let mut first = first_error.lock().unwrap();
-                if first.is_none() {
-                    *first = Some(error);
-                }
-                failed.store(true, Ordering::Relaxed);
-                break;
-            }
-            Ok(payload) => {
-                let size = payload.len();
-                // Cheap routes may not reach a polling point before their
-                // copy/allocation work completes. The wall-clock check keeps
-                // such a completed payload out of a search whose total
-                // budget expired during that work.
-                let within_trial_budget =
-                    seconds <= effective_trial_budget.as_secs_f64() && !exhausted_search;
-                {
-                    let mut current = winner.lock().unwrap();
-                    let wins = within_trial_budget
-                        && (size < current.3.len()
-                            || (size == current.3.len()
-                                && current.0.is_some_and(|old_index| index < old_index)));
-                    if wins {
-                        // Winning payload lives in the pre-reserved
-                        // block result slot; discard spare capacity.
-                        *current = (
-                            Some(index),
-                            route,
-                            backend.to_owned(),
-                            payload.into_boxed_slice().into_vec(),
-                        );
-                    }
-                }
-                records.lock().unwrap()[index] = Some(if within_trial_budget {
-                    format!("{label}={size}B/{seconds:.3}s")
-                } else if exhausted_search {
-                    format!("{label}=skipped(search-budget,{seconds:.3}s)")
-                } else {
-                    format!("{label}=skipped(trial-budget,{seconds:.3}s)")
-                });
-                let mut total = totals.lock().unwrap();
-                total.0 += seconds;
-                total.1 += 1;
-                if !within_trial_budget {
-                    total.3 += 1;
-                }
-            }
-        }
-        drop(permit);
-    };
-    if workers == 1 {
-        evaluate_worker();
-    } else {
-        thread::scope(|scope| {
-            for _ in 0..workers {
-                scope.spawn(&evaluate_worker);
-            }
-        });
-    }
-    if let Some(error) = first_error.into_inner().unwrap() {
-        return Err(error);
-    }
-    let (seconds, attempts, skips, budget_skips) = totals.into_inner().unwrap();
-    stats.candidate_seconds += seconds;
-    stats.candidate_attempts += attempts;
-    stats.memory_skips += skips;
-    stats.budget_skips += budget_skips;
-    let records = records.into_inner().unwrap();
+) {
     stats.budget_skips += records.iter().filter(|record| record.is_none()).count() as u64;
     evaluated.extend(records.into_iter().enumerate().map(|(index, record)| {
         record.unwrap_or_else(|| {
@@ -1379,10 +1269,328 @@ fn consider_cixg_candidates_parallel(
             )
         })
     }));
-    let (_, route, backend, payload) = winner.into_inner().unwrap();
-    *best_route = route;
-    *best_backend = backend;
-    *best_payload = payload;
+}
+
+fn candidate_label(candidate: &selection::Candidate) -> String {
+    let route = candidate.route;
+    match candidate.parameter {
+        Some(parameter) if route == 8 => format!(
+            "{}:{}:order-{parameter}",
+            selection::ROUTES[route as usize],
+            candidate.backend
+        ),
+        _ => format!(
+            "{}:{}",
+            selection::ROUTES[route as usize],
+            candidate.backend
+        ),
+    }
+}
+
+fn record_candidate_skip(
+    shared: &CandidateTrialShared,
+    index: usize,
+    record: String,
+    memory: bool,
+) {
+    shared.records.lock().unwrap()[index] = Some(record);
+    let mut totals = shared.totals.lock().unwrap();
+    if memory {
+        totals.memory_skips += 1;
+    } else {
+        totals.budget_skips += 1;
+    }
+}
+
+fn fail_candidate_trial(shared: &CandidateTrialShared, error: String) {
+    let mut first = shared.first_error.lock().unwrap();
+    if first.is_none() {
+        *first = Some(error);
+    }
+    shared.failed.store(true, Ordering::Relaxed);
+}
+
+fn evaluate_cixg_candidate(
+    context: &CandidateTrialContext<'_>,
+    shared: &CandidateTrialShared,
+    index: usize,
+) -> bool {
+    let candidate = &context.candidates[index];
+    let route = candidate.route;
+    let backend = candidate.backend.as_str();
+    let label = candidate_label(candidate);
+    let needed = candidate_memory(route, context.data.len(), context.policy.level, backend);
+    if context.policy.worker_memory < needed {
+        record_candidate_skip(
+            shared,
+            index,
+            format!("{label}=skipped(memory-per-worker)"),
+            true,
+        );
+        return true;
+    }
+    let permit = match budget_acquire_for_candidate(context, shared, needed) {
+        Ok(permit) => permit,
+        Err(None) => {
+            record_candidate_skip(
+                shared,
+                index,
+                format!("{label}=skipped(search-budget)"),
+                false,
+            );
+            return true;
+        }
+        Err(Some(error)) => {
+            fail_candidate_trial(shared, error);
+            return false;
+        }
+    };
+    let remaining_search = match candidate_remaining_search(context) {
+        Some(remaining) => remaining,
+        None => {
+            record_candidate_skip(
+                shared,
+                index,
+                format!("{label}=skipped(search-budget)"),
+                false,
+            );
+            return false;
+        }
+    };
+    let started = Instant::now();
+    let effective_trial_budget = context.policy.limits.trial_budget.min(remaining_search);
+    let deadline_guard = crate::limits::DeadlineGuard::new(effective_trial_budget);
+    let result = encode_route(
+        route,
+        context.data,
+        context.policy.level,
+        backend,
+        candidate.parameter,
+    );
+    drop(deadline_guard);
+    let keep_working = record_candidate_result(
+        context,
+        shared,
+        CandidateRunResult {
+            index,
+            route,
+            backend,
+            label,
+            seconds: started.elapsed().as_secs_f64(),
+            effective_trial_budget,
+            result,
+        },
+    );
+    drop(permit);
+    keep_working
+}
+
+fn budget_acquire_for_candidate(
+    context: &CandidateTrialContext<'_>,
+    shared: &CandidateTrialShared,
+    needed: usize,
+) -> Result<resources::MemoryPermit, Option<String>> {
+    context
+        .budget
+        .acquire(needed, context.policy.limits.search_deadline, || {
+            crate::limits::check().is_err() || shared.failed.load(Ordering::Relaxed)
+        })
+        .map_err(|error| match error {
+            resources::MemoryError::DeadlineExceeded => None,
+            error => Some(error.to_string()),
+        })
+}
+
+fn candidate_remaining_search(context: &CandidateTrialContext<'_>) -> Option<Duration> {
+    match context.policy.limits.search_deadline {
+        Some(deadline) => deadline
+            .checked_duration_since(Instant::now())
+            .filter(|remaining| !remaining.is_zero()),
+        None => Some(context.policy.limits.trial_budget),
+    }
+}
+
+fn record_candidate_result(
+    context: &CandidateTrialContext<'_>,
+    shared: &CandidateTrialShared,
+    run: CandidateRunResult<'_>,
+) -> bool {
+    let CandidateRunResult {
+        index,
+        route,
+        backend,
+        label,
+        seconds,
+        effective_trial_budget,
+        result,
+    } = run;
+    let exhausted_search = context
+        .policy
+        .limits
+        .search_deadline
+        .is_some_and(|deadline| Instant::now() >= deadline);
+    match result {
+        Err(error) if error == crate::limits::DEADLINE_ERROR => {
+            let reason = if exhausted_search {
+                "search-budget"
+            } else {
+                "trial-budget"
+            };
+            shared.records.lock().unwrap()[index] =
+                Some(format!("{label}=skipped({reason},{seconds:.3}s)"));
+            let mut totals = shared.totals.lock().unwrap();
+            totals.seconds += seconds;
+            totals.attempts += 1;
+            totals.budget_skips += 1;
+            true
+        }
+        Err(error) => {
+            fail_candidate_trial(shared, error);
+            false
+        }
+        Ok(payload) => {
+            let size = payload.len();
+            let within_trial_budget =
+                seconds <= effective_trial_budget.as_secs_f64() && !exhausted_search;
+            {
+                let mut winner = shared.winner.lock().unwrap();
+                if candidate_wins(
+                    within_trial_budget,
+                    size,
+                    winner.payload.len(),
+                    index,
+                    winner.index,
+                ) {
+                    *winner = CandidateWinner {
+                        index: Some(index),
+                        route,
+                        backend: backend.to_owned(),
+                        payload: payload.into_boxed_slice().into_vec(),
+                    };
+                }
+            }
+            shared.records.lock().unwrap()[index] = Some(if within_trial_budget {
+                format!("{label}={size}B/{seconds:.3}s")
+            } else if exhausted_search {
+                format!("{label}=skipped(search-budget,{seconds:.3}s)")
+            } else {
+                format!("{label}=skipped(trial-budget,{seconds:.3}s)")
+            });
+            let mut totals = shared.totals.lock().unwrap();
+            totals.seconds += seconds;
+            totals.attempts += 1;
+            if !within_trial_budget {
+                totals.budget_skips += 1;
+            }
+            true
+        }
+    }
+}
+
+fn evaluate_cixg_candidate_worker(
+    context: &CandidateTrialContext<'_>,
+    shared: &CandidateTrialShared,
+) {
+    loop {
+        if shared.failed.load(Ordering::Relaxed) {
+            break;
+        }
+        if let Err(error) = check_interrupted() {
+            fail_candidate_trial(shared, error);
+            break;
+        }
+        if context.search_started.elapsed().as_secs_f64() >= context.policy.search_budget_seconds {
+            break;
+        }
+        let index = shared.next.fetch_add(1, Ordering::Relaxed);
+        if index >= context.candidates.len() || !evaluate_cixg_candidate(context, shared, index) {
+            break;
+        }
+    }
+}
+
+fn consider_cixg_candidates_parallel(
+    request: CandidateSearchRequest<'_>,
+    selection: CandidateSelectionState<'_>,
+) -> Result<(), String> {
+    let CandidateSearchRequest {
+        candidates,
+        data,
+        level,
+        budget,
+        workers,
+        search_budget_seconds,
+        trial_budget_seconds,
+        worker_memory_mib,
+    } = request;
+    let CandidateSelectionState {
+        stats,
+        best_route,
+        best_backend,
+        best_payload,
+        evaluated,
+    } = selection;
+    let workers = workers.max(1).min(candidates.len().max(1));
+    let worker_memory = budget
+        .capacity_bytes()
+        .min(worker_memory_mib.saturating_mul(1024 * 1024));
+    let search_started = Instant::now();
+    let context = CandidateTrialContext {
+        candidates,
+        data,
+        budget,
+        search_started,
+        policy: CandidateTrialPolicy {
+            level,
+            worker_memory,
+            search_budget_seconds,
+            limits: CandidateTrialBudget {
+                search_deadline: search_started
+                    .checked_add(Duration::from_secs_f64(search_budget_seconds)),
+                trial_budget: Duration::from_secs_f64(trial_budget_seconds),
+            },
+        },
+    };
+    let shared = CandidateTrialShared {
+        next: std::sync::atomic::AtomicUsize::new(0),
+        failed: AtomicBool::new(false),
+        first_error: std::sync::Mutex::new(None),
+        winner: std::sync::Mutex::new(CandidateWinner {
+            index: None,
+            route: *best_route,
+            backend: best_backend.clone(),
+            payload: std::mem::take(best_payload),
+        }),
+        records: std::sync::Mutex::new(vec![None; candidates.len()]),
+        totals: std::sync::Mutex::new(CandidateTrialTotals::default()),
+    };
+    if workers == 1 {
+        evaluate_cixg_candidate_worker(&context, &shared);
+    } else {
+        thread::scope(|scope| {
+            for _ in 0..workers {
+                scope.spawn(|| evaluate_cixg_candidate_worker(&context, &shared));
+            }
+        });
+    }
+    if let Some(error) = shared.first_error.lock().unwrap().clone() {
+        return Err(error);
+    }
+    let totals = shared.totals.into_inner().unwrap();
+    stats.candidate_seconds += totals.seconds;
+    stats.candidate_attempts += totals.attempts;
+    stats.memory_skips += totals.memory_skips;
+    stats.budget_skips += totals.budget_skips;
+    record_candidate_results(
+        shared.records.into_inner().unwrap(),
+        candidates,
+        stats,
+        evaluated,
+    );
+    let winner = shared.winner.into_inner().unwrap();
+    *best_route = winner.route;
+    *best_backend = winner.backend;
+    *best_payload = winner.payload;
     Ok(())
 }
 
@@ -1438,23 +1646,27 @@ fn select_cixg_fixed_route(
         .filter(|candidate| candidate.backend != "raw")
         .collect();
     consider_cixg_candidates_parallel(
-        &candidates,
-        data,
-        match effort_name {
-            "fast" => 1,
-            "maximum" => 9,
-            _ => 6,
+        CandidateSearchRequest {
+            candidates: &candidates,
+            data,
+            level: match effort_name {
+                "fast" => 1,
+                "maximum" => 9,
+                _ => 6,
+            },
+            budget,
+            workers,
+            search_budget_seconds: effort.search_seconds,
+            trial_budget_seconds: effort.trial_seconds,
+            worker_memory_mib: effort.worker_memory_mib,
         },
-        budget,
-        workers,
-        effort.search_seconds,
-        effort.trial_seconds,
-        effort.worker_memory_mib,
-        stats,
-        &mut selected_route,
-        &mut best_backend,
-        &mut best_payload,
-        &mut evaluated,
+        CandidateSelectionState {
+            stats,
+            best_route: &mut selected_route,
+            best_backend: &mut best_backend,
+            best_payload: &mut best_payload,
+            evaluated: &mut evaluated,
+        },
     )?;
     if explain {
         stats.explanations.push(format!(
@@ -1517,23 +1729,27 @@ fn select_cixg_auto(
         .filter(|candidate| candidate.route != 0)
         .collect();
     consider_cixg_candidates_parallel(
-        &candidates,
-        data,
-        match effort_name {
-            "fast" => 1,
-            "maximum" => 9,
-            _ => 6,
+        CandidateSearchRequest {
+            candidates: &candidates,
+            data,
+            level: match effort_name {
+                "fast" => 1,
+                "maximum" => 9,
+                _ => 6,
+            },
+            budget,
+            workers,
+            search_budget_seconds: effort.search_seconds,
+            trial_budget_seconds: effort.trial_seconds,
+            worker_memory_mib: effort.worker_memory_mib,
         },
-        budget,
-        workers,
-        effort.search_seconds,
-        effort.trial_seconds,
-        effort.worker_memory_mib,
-        stats,
-        &mut best_route,
-        &mut best_backend,
-        &mut best_payload,
-        &mut evaluated,
+        CandidateSelectionState {
+            stats,
+            best_route: &mut best_route,
+            best_backend: &mut best_backend,
+            best_payload: &mut best_payload,
+            evaluated: &mut evaluated,
+        },
     )?;
     stats.search_seconds += search_started.elapsed().as_secs_f64();
     stats.blocks += 1;
@@ -1978,7 +2194,21 @@ fn encode_with_strategy<R: Read, W: Write>(
     dst: W,
     options: EncodeOptions<'_>,
 ) -> Result<(), String> {
-    let EncodeOptions { block, level, forced, backend, backend_set, format, input_fd, flush_interval, memory, workers, explain, verbose, strategy } = options;
+    let EncodeOptions {
+        block,
+        level,
+        forced,
+        backend,
+        backend_set,
+        format,
+        input_fd,
+        flush_interval,
+        memory,
+        workers,
+        explain,
+        verbose,
+        strategy,
+    } = options;
     if block == 0 || block > MAX_BLOCK {
         return Err("invalid CIXG block size".into());
     }
@@ -2014,8 +2244,160 @@ fn encode_with_strategy<R: Read, W: Write>(
             },
         )
     } else {
-        encode_candidates(src, dst, EncodeOptions { block, level, forced, backend, backend_set, format, input_fd, flush_interval, memory, workers, explain, verbose, strategy })
+        encode_candidates(
+            src,
+            dst,
+            EncodeOptions {
+                block,
+                level,
+                forced,
+                backend,
+                backend_set,
+                format,
+                input_fd,
+                flush_interval,
+                memory,
+                workers,
+                explain,
+                verbose,
+                strategy,
+            },
+        )
     }
+}
+
+fn fill_candidate_block<R: Read>(
+    src: &mut R,
+    buf: &mut [u8],
+    input_fd: i32,
+    flush_interval: Option<Duration>,
+) -> Result<(usize, bool, [u32; 256]), String> {
+    let mut got = 0;
+    let mut eof = false;
+    let mut symbol_counts = [0u32; 256];
+    let mut buffered_since: Option<Instant> = None;
+    while got < buf.len() {
+        let timeout = match (flush_interval, buffered_since) {
+            (Some(interval), Some(since)) => {
+                let elapsed = since.elapsed();
+                if elapsed >= interval {
+                    break;
+                }
+                Some(interval - elapsed)
+            }
+            _ => None,
+        };
+        let n = match read_poll(src, &mut buf[got..], input_fd, timeout)? {
+            Some(n) => n,
+            None => continue,
+        };
+        if n == 0 {
+            eof = true;
+            break;
+        }
+        for &byte in &buf[got..got + n] {
+            symbol_counts[byte as usize] += 1;
+        }
+        got += n;
+        if buffered_since.is_none() {
+            buffered_since = Some(Instant::now());
+        }
+    }
+    Ok((got, eof, symbol_counts))
+}
+
+struct CandidateRouteSelection<'a> {
+    forced: Option<&'a str>,
+    level: u8,
+    backend: &'a str,
+    backend_set: bool,
+    format: &'a str,
+    budget: &'a resources::MemoryBudget,
+    workers: usize,
+    stats: &'a mut AutoSelectionStats,
+    explain: bool,
+}
+
+fn select_candidate_route(
+    data: &[u8],
+    selection: CandidateRouteSelection<'_>,
+) -> Result<(u8, Vec<u8>), String> {
+    let CandidateRouteSelection {
+        forced,
+        level,
+        backend,
+        backend_set,
+        format,
+        budget,
+        workers,
+        stats,
+        explain,
+    } = selection;
+    if let Some(forced) = forced {
+        let route = match forced {
+            "raw" => 0,
+            "runs" => 1,
+            "composition" => 2,
+            "lz" => 3,
+            "bwt" => 5,
+            "predictor" => 4,
+            "stride" => 6,
+            "phrases" => 7,
+            "ppm" => 8,
+            "mixture" => 9,
+            "deflate" => 10,
+            _ => return Err(format!("unsupported route: {forced}")),
+        };
+        select_cixg_fixed_route(
+            route,
+            data,
+            backend_set.then_some(backend),
+            format,
+            selector_effort_name(level),
+            budget,
+            workers,
+            stats,
+            explain,
+        )
+    } else {
+        select_cixg_auto(
+            data,
+            level,
+            backend_set.then_some(backend),
+            format,
+            budget,
+            workers,
+            stats,
+            explain,
+        )
+    }
+}
+
+struct CandidateFrame<'a> {
+    route: u8,
+    source_len: usize,
+    payload: &'a [u8],
+    digest: &'a [u8; 32],
+}
+
+fn write_candidate_frame<W: Write>(
+    dst: &mut W,
+    frame: CandidateFrame<'_>,
+    archive_bytes: &mut u64,
+) -> Result<(), String> {
+    *archive_bytes = archive_bytes
+        .checked_add(41 + frame.payload.len() as u64)
+        .ok_or("archive length overflow")?;
+    put_frame(
+        dst,
+        frame.route,
+        frame.source_len as u32,
+        frame.payload.len() as u32,
+        frame.digest,
+    )
+    .map_err(ioerr)?;
+    dst.write_all(frame.payload).map_err(ioerr)?;
+    dst.flush().map_err(ioerr)
 }
 
 fn encode_candidates<R: Read, W: Write>(
@@ -2023,7 +2405,21 @@ fn encode_candidates<R: Read, W: Write>(
     mut dst: W,
     options: EncodeOptions<'_>,
 ) -> Result<(), String> {
-    let EncodeOptions { block, level, forced, backend, backend_set, format, input_fd, flush_interval, memory, workers, explain, verbose, .. } = options;
+    let EncodeOptions {
+        block,
+        level,
+        forced,
+        backend,
+        backend_set,
+        format,
+        input_fd,
+        flush_interval,
+        memory,
+        workers,
+        explain,
+        verbose,
+        ..
+    } = options;
     if format == "cixg1"
         && backend_set
         && (backend.starts_with("context-range-") || backend == "huffman")
@@ -2048,7 +2444,6 @@ fn encode_candidates<R: Read, W: Write>(
     let mut total_bytes = 0u64;
     let mut archive_bytes = HEADER as u64;
     let mut buf = vec![0; block as usize];
-    let mut eof = false;
     let mut selection_stats = AutoSelectionStats::default();
     let retained = (block as usize)
         .saturating_mul(3)
@@ -2059,36 +2454,8 @@ fn encode_candidates<R: Read, W: Write>(
     }
     let budget = resources::MemoryBudget::new(memory.saturating_sub(retained));
     loop {
-        let mut got = 0;
-        let mut symbol_counts = [0u32; 256];
-        let mut buffered_since: Option<std::time::Instant> = None;
-        while got < buf.len() {
-            let timeout = match (flush_interval, buffered_since) {
-                (Some(interval), Some(since)) => {
-                    let elapsed = since.elapsed();
-                    if elapsed >= interval {
-                        break;
-                    }
-                    Some(interval - elapsed)
-                }
-                _ => None,
-            };
-            let n = match read_poll(&mut src, &mut buf[got..], input_fd, timeout)? {
-                Some(n) => n,
-                None => continue,
-            };
-            if n == 0 {
-                eof = true;
-                break;
-            }
-            for &byte in &buf[got..got + n] {
-                symbol_counts[byte as usize] += 1;
-            }
-            got += n;
-            if buffered_since.is_none() {
-                buffered_since = Some(std::time::Instant::now());
-            }
-        }
+        let (got, eof, symbol_counts) =
+            fill_candidate_block(&mut src, &mut buf, input_fd, flush_interval)?;
         if got == 0 {
             if eof {
                 break;
@@ -2104,53 +2471,33 @@ fn encode_candidates<R: Read, W: Write>(
         let data = &buf[..got];
         let rh: [u8; 32] = Sha256::digest(data).into();
         whole.update(data);
-        let (route, payload) = if let Some(f) = forced {
-            let id = match f {
-                "raw" => 0,
-                "runs" => 1,
-                "composition" => 2,
-                "lz" => 3,
-                "bwt" => 5,
-                "predictor" => 4,
-                "stride" => 6,
-                "phrases" => 7,
-                "ppm" => 8,
-                "mixture" => 9,
-                "deflate" => 10,
-                _ => return Err(format!("unsupported route: {f}")),
-            };
-            select_cixg_fixed_route(
-                id,
-                data,
-                if backend_set { Some(backend) } else { None },
-                format,
-                selector_effort_name(level),
-                &budget,
-                workers,
-                &mut selection_stats,
-                explain,
-            )?
-        } else {
-            select_cixg_auto(
-                data,
+        let (route, payload) = select_candidate_route(
+            data,
+            CandidateRouteSelection {
+                forced,
                 level,
-                if backend_set { Some(backend) } else { None },
+                backend,
+                backend_set,
                 format,
-                &budget,
+                budget: &budget,
                 workers,
-                &mut selection_stats,
+                stats: &mut selection_stats,
                 explain,
-            )?
-        };
+            },
+        )?;
         for explanation in selection_stats.explanations.drain(..) {
             eprintln!("cix: region={} {}", selection_stats.blocks, explanation);
         }
-        archive_bytes = archive_bytes
-            .checked_add(41 + payload.len() as u64)
-            .ok_or("archive length overflow")?;
-        put_frame(&mut dst, route, got as u32, payload.len() as u32, &rh).map_err(ioerr)?;
-        dst.write_all(&payload).map_err(ioerr)?;
-        dst.flush().map_err(ioerr)?;
+        write_candidate_frame(
+            &mut dst,
+            CandidateFrame {
+                route,
+                source_len: got,
+                payload: &payload,
+                digest: &rh,
+            },
+            &mut archive_bytes,
+        )?;
         if eof {
             break;
         }
