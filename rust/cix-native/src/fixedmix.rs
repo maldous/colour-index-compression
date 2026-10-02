@@ -3,7 +3,7 @@ use crate::{
     rank::{ArithmeticDecoder, ArithmeticEncoder},
     zpaq_context::{Config as RecurrenceConfig, Predictor as RecurrencePredictor},
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::OnceLock};
 
 const SCALE: i64 = 4096;
 const LOG_SCALE: i64 = 4096;
@@ -56,12 +56,20 @@ fn fixed_log2(value: u32) -> i32 {
     }
     (integer * 4096 + fraction) as i32
 }
-fn stretch_table() -> Vec<i32> {
-    let mut a = vec![0; 4096];
-    for p in 1..4096 {
-        a[p] = fixed_log2(p as u32) - fixed_log2((4096 - p) as u32);
-    }
-    a
+/// The stretch values are a pure function of fixed constants.  Build them once
+/// per process rather than rebuilding and allocating the same 16 KiB table for
+/// every encoded or decoded block.  The model state deliberately remains local
+/// to each stream; only this immutable lookup table is shared.
+static STRETCH_TABLE: OnceLock<[i32; 4096]> = OnceLock::new();
+
+fn stretch_table() -> &'static [i32; 4096] {
+    STRETCH_TABLE.get_or_init(|| {
+        let mut table = [0; 4096];
+        for p in 1..4096 {
+            table[p] = fixed_log2(p as u32) - fixed_log2((4096 - p) as u32);
+        }
+        table
+    })
 }
 fn squash(v: i64, t: &[i32]) -> i32 {
     if v <= t[1] as i64 {
@@ -583,7 +591,7 @@ pub fn encode_with_history_eta(
         .position(|&eta| eta == eta_shift)
         .ok_or("unsupported fixed-mix learning rate")?;
     let t = stretch_table();
-    let (payload, bits) = encode_eta_checked(data, eta_shift, &t, prefix_history)?;
+    let (payload, bits) = encode_eta_checked(data, eta_shift, t, prefix_history)?;
     let mut out = vec![1, id as u8];
     put_v(bits, &mut out);
     out.extend(payload);
@@ -609,7 +617,7 @@ pub fn encode_with_recurrence_eta(
     let (payload, bits) = encode_eta_with_recurrence(
         data,
         eta_shift,
-        &t,
+        t,
         prefix_history,
         recurrence,
         RecurrenceMode::CorrectV3,
@@ -637,7 +645,7 @@ pub fn encode_with_legacy_recurrence_eta(
     let (payload, bits) = encode_eta_with_recurrence(
         data,
         eta_shift,
-        &t,
+        t,
         prefix_history,
         recurrence,
         RecurrenceMode::LegacyV2,
@@ -652,7 +660,7 @@ pub fn encode_with_history(data: &[u8], prefix_history: &[u8]) -> Vec<u8> {
     let t = stretch_table();
     let mut best = None;
     for (id, &eta) in ETA.iter().enumerate() {
-        let (payload, bits) = encode_eta_unchecked(data, eta, &t, prefix_history);
+        let (payload, bits) = encode_eta_unchecked(data, eta, t, prefix_history);
         let mut out = vec![1, id as u8];
         put_v(bits, &mut out);
         out.extend(payload);
@@ -673,7 +681,7 @@ fn decoder_state(
     blob: &[u8],
     n: usize,
     prefix_history: &[u8],
-) -> Result<(usize, usize, State, Vec<i32>), String> {
+) -> Result<(usize, usize, State, &'static [i32; 4096]), String> {
     if blob.len() < 3 || !matches!(blob[0], 1..=3) || blob[1] > 2 {
         return Err("invalid fixed-mix version or learning rate".into());
     }
@@ -710,11 +718,11 @@ fn decoder_state(
             prefix_history,
             n,
             ETA[blob[1] as usize],
-            &table,
+            table,
             config,
             mode,
         )?,
-        None => prime_checked(prefix_history, n, ETA[blob[1] as usize], &table)?,
+        None => prime_checked(prefix_history, n, ETA[blob[1] as usize], table)?,
     };
     Ok((pos, bits, state, table))
 }
@@ -751,7 +759,45 @@ pub fn decode_with_history(
         if index & 255 == 0 {
             crate::limits::check()?;
         }
-        out.push(decode_byte(&mut state, &mut coder, &table));
+        out.push(decode_byte(&mut state, &mut coder, table));
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn fixture() -> Vec<u8> {
+        (0..4096)
+            .map(|index| ((index * 37 + (index >> 3) * 11) & 255) as u8)
+            .collect()
+    }
+
+    #[test]
+    fn shared_stretch_table_keeps_fixedmix_versions_exact() {
+        let input = fixture();
+        let config = RecurrenceConfig {
+            bucket_bits: 4,
+            max_distance: 1024,
+        };
+        let payloads = [
+            encode_with_history_eta(&input, &[], 6).unwrap(),
+            encode_with_legacy_recurrence_eta(&input, &[], 6, config).unwrap(),
+            encode_with_recurrence_eta(&input, &[], 6, config).unwrap(),
+        ];
+        for payload in payloads {
+            assert_eq!(decode(&payload, input.len()).unwrap(), input);
+            assert!(decode(&payload[..payload.len() - 1], input.len()).is_err());
+        }
+    }
+
+    #[test]
+    fn shared_stretch_table_initializes_once_across_threads() {
+        let local = stretch_table().as_ptr() as usize;
+        let joined = std::thread::spawn(|| stretch_table().as_ptr() as usize)
+            .join()
+            .unwrap();
+        assert_eq!(local, joined);
+    }
 }
