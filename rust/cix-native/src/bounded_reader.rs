@@ -8,6 +8,13 @@ use std::io::{self, Read};
 
 const CHUNK: usize = 64 * 1024;
 
+/// Conservative source allowance for a read budget that must cover both the
+/// old and replacement Vec allocations plus the stack chunk during growth.
+/// This is allocator accounting, not an RSS guarantee.
+pub fn conservative_allowance(total_read_budget: usize) -> usize {
+    total_read_budget.saturating_sub(CHUNK) / 2
+}
+
 pub fn read_bounded<R: Read>(mut source: R, maximum: usize, allowance: usize) -> io::Result<Vec<u8>> {
     if allowance > maximum {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "source allowance exceeds maximum"));
@@ -43,6 +50,9 @@ pub fn read_bounded<R: Read>(mut source: R, maximum: usize, allowance: usize) ->
         }
         if needed > out.capacity() {
             let target = out.capacity().max(1).saturating_mul(2).max(needed).min(allowance);
+            if out.capacity().saturating_add(target) > allowance.saturating_mul(2) {
+                return Err(io::Error::new(io::ErrorKind::OutOfMemory, "source growth exceeds admitted transient buffer"));
+            }
             // `try_reserve_exact` takes additional elements relative to len,
             // rather than relative to capacity.
             out.try_reserve_exact(target - out.len())

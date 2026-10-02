@@ -58,3 +58,11 @@ fn separate_admission_limit_is_enforced() {
     assert!(bounded_reader::read_bounded(&[1; 17][..], 32, 16).is_err());
     assert!(bounded_reader::read_bounded(&[][..], 16, 17).is_err());
 }
+
+#[test]
+fn zero_limits_and_conservative_budget_are_explicit() {
+    assert!(bounded_reader::read_bounded(&[][..], 0, 0).unwrap().is_empty());
+    assert!(bounded_reader::read_bounded(&[1][..], 0, 0).is_err());
+    assert_eq!(bounded_reader::conservative_allowance(64 * 1024), 0);
+    assert_eq!(bounded_reader::conservative_allowance(3 * 64 * 1024), 64 * 1024);
+}
