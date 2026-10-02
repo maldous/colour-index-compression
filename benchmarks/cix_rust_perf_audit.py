@@ -385,7 +385,7 @@ def phase_command(row: dict, release: dict, work: Path, decode: bool, *, output:
 
 def affinity_wrapped(command: list[str], affinity_path: Path, cgroup_path: Path) -> list[str]:
     """Record effective affinity and cgroup limits from inside the unit."""
-    script = ('set -e; taskset -pc $$ > "$1"; cg=$(awk -F:: \'$1 == "0" {print $3}\' /proc/self/cgroup); '
+    script = ('set -e; taskset -pc $$ > "$1"; cg=$(awk -F: \'$1 == "0" {print $3}\' /proc/self/cgroup); '
               'base=/sys/fs/cgroup$cg; test -r "$base/cpuset.cpus.effective"; test -r "$base/memory.max"; test -r "$base/memory.swap.max"; printf "cpuset=%s\\nmemory.max=%s\\nmemory.swap.max=%s\\n" '
               '"$(cat "$base/cpuset.cpus.effective")" "$(cat "$base/memory.max")" "$(cat "$base/memory.swap.max")" > "$2"; shift 2; exec "$@"')
     return ["/bin/bash", "-c", script, "cix-cgroup", str(affinity_path), str(cgroup_path), *command]

@@ -1,4 +1,6 @@
 import json
+import os
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -50,6 +52,49 @@ class ChildStatusTests(unittest.TestCase):
             binding.write_text(json.dumps({"implementation": {}}))
             with self.assertRaisesRegex(RuntimeError, "child-status supervisor"):
                 audit.validate_binding(destination, audit.sha256(binding))
+
+
+
+
+class CgroupReadbackTests(unittest.TestCase):
+    def test_wrapper_reads_unified_cgroup_third_colon_field(self):
+        script = audit.affinity_wrapped(["true"], Path("affinity"), Path("cgroup"))[2]
+        expression = script.split("cg=$(", 1)[1].split(");", 1)[0]
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "cgroup"
+            source.write_text("0::/system.slice/cix-test.scope\n")
+            expression = expression.replace("/proc/self/cgroup", '"$CIX_TEST_CGROUP_SOURCE"')
+            result = subprocess.run(["/bin/bash", "-c", expression],
+                                    env={**os.environ, "CIX_TEST_CGROUP_SOURCE": str(source)},
+                                    text=True, capture_output=True, check=True)
+        self.assertEqual(result.stdout.strip(), "/system.slice/cix-test.scope")
+
+    def test_wrapper_reads_unified_record_among_other_controllers(self):
+        script = audit.affinity_wrapped(["true"], Path("affinity"), Path("cgroup"))[2]
+        expression = script.split("cg=$(", 1)[1].split(");", 1)[0]
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "cgroup"
+            source.write_text("3:cpu:/legacy\n0::/user.slice/native.scope\n")
+            expression = expression.replace("/proc/self/cgroup", '"$CIX_TEST_CGROUP_SOURCE"')
+            result = subprocess.run(["/bin/bash", "-c", expression],
+                                    env={**os.environ, "CIX_TEST_CGROUP_SOURCE": str(source)},
+                                    text=True, capture_output=True, check=True)
+        self.assertEqual(result.stdout.strip(), "/user.slice/native.scope")
+
+
+class ReleaseIdentityTests(unittest.TestCase):
+    def test_legacy_and_nested_release_schema(self):
+        revision = "a" * 40
+        for value in [{"source_revision": revision}, {"source": {"revision": revision}},
+                      {"source_revision": revision, "source": {"revision": revision}}]:
+            self.assertEqual(audit.release_revision(value), revision)
+
+    def test_missing_invalid_and_conflicting_identity_rejected(self):
+        for value in [{}, {"source_revision": "short"}, {"source_revision": "z" * 40},
+                      {"source": {"revision": 123}},
+                      {"source_revision": "a" * 40, "source": {"revision": "b" * 40}}]:
+            with self.subTest(value=value), self.assertRaises(RuntimeError):
+                audit.release_revision(value)
 
 
 if __name__ == "__main__":

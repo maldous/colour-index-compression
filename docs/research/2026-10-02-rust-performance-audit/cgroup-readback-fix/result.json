@@ -1,0 +1,19 @@
+{
+  "purpose": "actual harness readback preflight, not a CIX benchmark",
+  "command": [
+    "/bin/bash",
+    "-c",
+    "set -e; taskset -pc $$ > \"$1\"; cg=$(awk -F: '$1 == \"0\" {print $3}' /proc/self/cgroup); base=/sys/fs/cgroup$cg; test -r \"$base/cpuset.cpus.effective\"; test -r \"$base/memory.max\"; test -r \"$base/memory.swap.max\"; printf \"cpuset=%s\\nmemory.max=%s\\nmemory.swap.max=%s\\n\" \"$(cat \"$base/cpuset.cpus.effective\")\" \"$(cat \"$base/memory.max\")\" \"$(cat \"$base/memory.swap.max\")\" > \"$2\"; shift 2; exec \"$@\"",
+    "cix-cgroup",
+    "/home/user/src/colour-index-compression/benchmark-work/rust-performance-audit/cgroup-readback-actual/affinity.txt",
+    "/home/user/src/colour-index-compression/benchmark-work/rust-performance-audit/cgroup-readback-actual/cgroup.txt",
+    "/bin/true"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": "",
+  "harness_sha256": "8ce983c1173e5abf04ec92f3c40559781f6e06d6a9ccb4aeee2e5dade9f9b8ad",
+  "affinity": "pid 203895's current affinity list: 8\n",
+  "cgroup": "cpuset=8\nmemory.max=1073741824\nmemory.swap.max=0\n",
+  "limits_match": true
+}
