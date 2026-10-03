@@ -11,6 +11,8 @@ use super::{
 use num_bigint::BigUint;
 use num_traits::{One, Zero};
 use std::collections::HashMap;
+#[cfg(test)]
+use std::cell::Cell;
 
 const CHAIN_VERSION: u8 = 1;
 const INNER_MULTINOMIAL: u8 = 1;
@@ -21,6 +23,12 @@ const INNER_BITPLANE: u8 = 5;
 const INNER_SPARSE: u8 = 6;
 const INNER_RUNS: u8 = 7;
 const CHAIN_SPEC_IDS: [u8; 9] = [12, 13, 16, 20, 21, 29, 30, 31, 33];
+const MAX_INNER_CANDIDATES: usize = 9;
+
+#[cfg(test)]
+thread_local! {
+    static CACHE_HITS: Cell<usize> = const { Cell::new(0) };
+}
 
 /// Bounded transform-chain selector controls.
 #[derive(Clone, Copy, Debug)]
@@ -52,6 +60,35 @@ pub struct EncodeResult {
     pub payload: Vec<u8>,
     pub description: String,
     pub candidates: Vec<CandidateSize>,
+}
+
+#[derive(Clone)]
+struct MaterializedInner {
+    mode: u8,
+    payload: Vec<u8>,
+    description: String,
+}
+
+/// A per-encode exact transformed-byte entry. The bounded outer vector is
+/// reserved to the frozen transform count; this entry accounts for every heap
+/// buffer it retains before admission.
+struct CachedTransform {
+    key: Vec<u8>,
+    inners: Vec<MaterializedInner>,
+}
+
+/// Retains a streaming candidate sequence only while every retained buffer
+/// fits the allowance. A failed capture is dropped before the next candidate.
+struct CacheCapture {
+    inners: Vec<MaterializedInner>,
+    retained_bytes: usize,
+    allowance: usize,
+}
+
+fn cache_table_bytes(slots: usize) -> usize {
+    std::mem::size_of::<Vec<CachedTransform>>().saturating_add(
+        slots.saturating_mul(std::mem::size_of::<CachedTransform>()),
+    )
 }
 
 #[derive(Clone, Copy)]
@@ -1004,59 +1041,65 @@ fn consider_transform(
     options: EncodeOptions,
     best: &mut Option<(Vec<u8>, String)>,
     measurements: &mut Vec<CandidateSize>,
+    capture: &mut Option<CacheCapture>,
 ) -> Result<(), String> {
-    record_candidate(
+    record_captured(
         best,
         measurements,
         transform_id,
         INNER_MULTINOMIAL,
         rank::encode_type_class(transformed)?,
         "multinomial",
+        capture,
     );
     for &(order, bucket_bits) in context_models(options.effort) {
-        record_candidate(
+        record_captured(
             best,
             measurements,
             transform_id,
             INNER_CONTEXT,
             rank::encode_context_type_classes(transformed, order, bucket_bits, &[])?,
             &format!("context-o{order}-b{bucket_bits}"),
+            capture,
         );
     }
     if options.effort >= 4 && transformed.len() >= 16 {
         let candidate = legacy_lz::encode(transformed, &[], options.effort)?;
-        record_candidate(
+        record_captured(
             best,
             measurements,
             transform_id,
             INNER_LZ,
             candidate.payload,
             &candidate.description,
+            capture,
         );
     }
     if options.effort >= 6 && (32..=65_536).contains(&transformed.len()) {
         let (payload, description) = bwt_legacy::encode(transformed)?;
-        record_candidate(
+        record_captured(
             best,
             measurements,
             transform_id,
             INNER_BWT,
             payload,
             description,
+            capture,
         );
     }
     if options.effort >= 3 && transformed.len() >= 2 {
-        record_candidate(
+        record_captured(
             best,
             measurements,
             transform_id,
             INNER_BITPLANE,
             bitplane::encode(transformed),
             "bitplanes",
+            capture,
         );
     }
     if options.effort >= 2 && transformed.len() >= 2 {
-        consider_simple_transforms(transformed, transform_id, best, measurements)?;
+        consider_simple_transforms(transformed, transform_id, best, measurements, capture)?;
     }
     Ok(())
 }
@@ -1066,19 +1109,21 @@ fn consider_simple_transforms(
     transform_id: u8,
     best: &mut Option<(Vec<u8>, String)>,
     measurements: &mut Vec<CandidateSize>,
+    capture: &mut Option<CacheCapture>,
 ) -> Result<(), String> {
     let mut counts = [0usize; 256];
     for &byte in transformed {
         counts[byte as usize] += 1;
     }
     if counts.iter().copied().max().unwrap_or(0) * 4 >= transformed.len() {
-        record_candidate(
+        record_captured(
             best,
             measurements,
             transform_id,
             INNER_SPARSE,
             encode_sparse(transformed)?,
             "sparse",
+            capture,
         );
     }
     let run_count = 1 + transformed
@@ -1086,21 +1131,120 @@ fn consider_simple_transforms(
         .filter(|pair| pair[0] != pair[1])
         .count();
     if run_count * 3 <= transformed.len() * 2 {
-        record_candidate(
+        record_captured(
             best,
             measurements,
             transform_id,
             INNER_RUNS,
             encode_runs(transformed)?,
             "runs",
+            capture,
         );
     }
     Ok(())
 }
 
+impl CacheCapture {
+    fn begin(key_capacity: usize, allowance: usize) -> Option<Self> {
+        let minimum_slots = MAX_INNER_CANDIDATES.saturating_mul(std::mem::size_of::<MaterializedInner>());
+        if key_capacity.saturating_add(minimum_slots) > allowance {
+            return None;
+        }
+        let mut inners = Vec::new();
+        if inners.try_reserve_exact(MAX_INNER_CANDIDATES).is_err() {
+            return None;
+        }
+        let retained_bytes = key_capacity.saturating_add(
+            inners
+                .capacity()
+                .saturating_mul(std::mem::size_of::<MaterializedInner>()),
+        );
+        (retained_bytes <= allowance).then_some(Self {
+            inners,
+            retained_bytes,
+            allowance,
+        })
+    }
+
+    fn retain(&mut self, mode: u8, payload: &[u8], description: &str) -> bool {
+        if self.inners.len() == self.inners.capacity() {
+            return false;
+        }
+        let minimum_bytes = payload.len().saturating_add(description.len());
+        if minimum_bytes > self.allowance.saturating_sub(self.retained_bytes) {
+            return false;
+        }
+        let inner = MaterializedInner {
+            mode,
+            payload: payload.to_vec(),
+            description: description.into(),
+        };
+        let bytes = inner
+            .payload
+            .capacity()
+            .saturating_add(inner.description.capacity());
+        if bytes > self.allowance.saturating_sub(self.retained_bytes) {
+            return false;
+        }
+        self.retained_bytes = self.retained_bytes.saturating_add(bytes);
+        self.inners.push(inner);
+        true
+    }
+}
+
+fn record_captured(
+    best: &mut Option<(Vec<u8>, String)>,
+    measurements: &mut Vec<CandidateSize>,
+    transform_id: u8,
+    inner_mode: u8,
+    inner: Vec<u8>,
+    inner_name: &str,
+    capture: &mut Option<CacheCapture>,
+) {
+    let failed = capture
+        .as_mut()
+        .is_some_and(|capture| !capture.retain(inner_mode, &inner, inner_name));
+    if failed {
+        *capture = None;
+    }
+    record_candidate(best, measurements, transform_id, inner_mode, inner, inner_name);
+}
+
+fn record_materialized_cached(
+    inners: &[MaterializedInner],
+    transform_id: u8,
+    best: &mut Option<(Vec<u8>, String)>,
+    measurements: &mut Vec<CandidateSize>,
+) {
+    for inner in inners {
+        let mut payload = Vec::with_capacity(3usize.saturating_add(inner.payload.len()));
+        payload.extend([CHAIN_VERSION, transform_id, inner.mode]);
+        payload.extend_from_slice(&inner.payload);
+        let description = format!("{}->{}", transform_name(transform_id), inner.description);
+        measurements.push(CandidateSize {
+            transform_id,
+            inner_mode: inner.mode,
+            bytes: payload.len(),
+            description: description.clone(),
+        });
+        if best
+            .as_ref()
+            .is_none_or(|(current, _)| payload.len() < current.len())
+        {
+            *best = Some((payload, description));
+        }
+    }
+}
+
 /// Materialize a bounded frozen transform-chain portfolio and select by complete
 /// payload bytes. The returned payload includes the three-byte chain header.
 pub fn encode(data: &[u8], options: EncodeOptions) -> Result<EncodeResult, String> {
+    encode_with_cache(data, options, 0)
+}
+
+/// Encode a frozen chain portfolio with a per-call, exact transformed-byte
+/// cache. A zero allowance preserves the historic uncached materialization.
+pub fn encode_with_cache(data: &[u8], options: EncodeOptions, cache_allowance: usize) -> Result<EncodeResult, String> {
     if data.is_empty() {
         return Err("cannot transform-chain encode an empty block".into());
     }
@@ -1126,16 +1270,77 @@ pub fn encode(data: &[u8], options: EncodeOptions) -> Result<EncodeResult, Strin
             .total_cmp(&right.0)
             .then_with(|| left.1.cmp(&right.1))
     });
+    let selected = options.beam;
+    let mut cacheable = [false; CHAIN_SPEC_IDS.len()];
+    if cache_allowance != 0 {
+        for left in 0..selected {
+            cacheable[left] =
+                ((left + 1)..selected).any(|right| profiled[left].2 == profiled[right].2);
+        }
+    }
+    let has_duplicate = cacheable[..selected].iter().any(|&value| value);
     let mut best = None::<(Vec<u8>, String)>;
     let mut measurements = Vec::new();
-    for (_, transform_id, transformed) in profiled.into_iter().take(options.beam) {
+    let mut cache = Vec::<CachedTransform>::new();
+    let mut cached_bytes = 0usize;
+    if has_duplicate
+        && cache_allowance >= std::mem::size_of::<Vec<CachedTransform>>()
+        && cache.try_reserve_exact(selected).is_ok()
+    {
+        let reserved_bytes = cache_table_bytes(cache.capacity());
+        if reserved_bytes <= cache_allowance {
+            cached_bytes = reserved_bytes;
+        } else {
+            cache = Vec::new();
+        }
+    }
+    for (index, (_, transform_id, transformed)) in profiled.into_iter().take(selected).enumerate() {
+        if let Some(entry) = cache.iter().find(|entry| entry.key == transformed) {
+            #[cfg(test)]
+            CACHE_HITS.with(|hits| hits.set(hits.get().saturating_add(1)));
+            record_materialized_cached(
+                &entry.inners,
+                transform_id,
+                &mut best,
+                &mut measurements,
+            );
+            continue;
+        }
+        if !cacheable[index] || cache.len() == cache.capacity() {
+            let mut no_capture = None;
+            consider_transform(
+                &transformed,
+                transform_id,
+                options,
+                &mut best,
+                &mut measurements,
+                &mut no_capture,
+            )?;
+            continue;
+        }
+        let mut capture = if cache.len() < cache.capacity() {
+            CacheCapture::begin(
+                transformed.capacity(),
+                cache_allowance.saturating_sub(cached_bytes),
+            )
+        } else {
+            None
+        };
         consider_transform(
             &transformed,
             transform_id,
             options,
             &mut best,
             &mut measurements,
+            &mut capture,
         )?;
+        if let Some(capture) = capture {
+            cached_bytes = cached_bytes.saturating_add(capture.retained_bytes);
+            cache.push(CachedTransform {
+                key: transformed,
+                inners: capture.inners,
+            });
+        }
     }
     let (payload, description) = best.ok_or("no transform-chain candidates")?;
     Ok(EncodeResult {
@@ -1709,5 +1914,73 @@ mod tests {
             verify_and_write(payload, &source, fixture_dir.as_ref(), &mut fixture_index);
         }
         assert_eq!(fixture_index, 20);
+    }
+
+    fn candidate_table(result: &EncodeResult) -> Vec<(u8, u8, usize, String)> {
+        result
+            .candidates
+            .iter()
+            .map(|candidate| (candidate.transform_id, candidate.inner_mode, candidate.bytes, candidate.description.clone()))
+            .collect()
+    }
+
+    #[test]
+    fn exact_inner_cache_preserves_chain_selection_and_fails_open_when_full() {
+        let duplicate = vec![0u8; 256];
+        let distinct = (0..256usize)
+            .map(|index| ((index.wrapping_mul(73) ^ (index >> 3)) & 255) as u8)
+            .collect::<Vec<_>>();
+        let options = EncodeOptions { beam: 9, effort: 9 };
+        for (source, expected_cache_hit) in [(&duplicate, true), (&distinct, false)] {
+            let uncached = encode(source, options).unwrap();
+            CACHE_HITS.with(|hits| hits.set(0));
+            let cached = encode_with_cache(source, options, 4 * 1024 * 1024).unwrap();
+            assert_eq!(CACHE_HITS.with(|hits| hits.get()) != 0, expected_cache_hit);
+            let table_rejected = encode_with_cache(
+                source,
+                options,
+                cache_table_bytes(options.beam).saturating_add(1),
+            )
+            .unwrap();
+            for result in [&cached, &table_rejected] {
+                assert_eq!(result.payload, uncached.payload);
+                assert_eq!(result.description, uncached.description);
+                assert_eq!(candidate_table(result), candidate_table(&uncached));
+                assert_eq!(
+                    decode(&result.payload, source.len(), 1 << 20)
+                        .unwrap()
+                        .as_slice(),
+                    source.as_slice()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn cache_capture_rejects_unfunded_payload_before_retaining_it() {
+        let key_capacity = 8usize;
+        let slots = CacheCapture::begin(key_capacity, usize::MAX)
+            .unwrap()
+            .retained_bytes;
+        let allowance = slots.saturating_add(1);
+        let mut capture = CacheCapture::begin(key_capacity, allowance).unwrap();
+        assert!(!capture.retain(INNER_MULTINOMIAL, &[1, 2], "x"));
+        assert!(capture.inners.is_empty());
+        assert_eq!(capture.retained_bytes, slots);
+
+        let mut best = None;
+        let mut measurements = Vec::new();
+        let mut capture = Some(capture);
+        record_captured(
+            &mut best,
+            &mut measurements,
+            12,
+            INNER_MULTINOMIAL,
+            vec![1, 2],
+            "test",
+            &mut capture,
+        );
+        assert!(capture.is_none());
+        assert_eq!(measurements.len(), 1);
     }
 }

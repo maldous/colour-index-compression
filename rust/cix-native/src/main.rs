@@ -2719,7 +2719,8 @@ fn m6_try_chain_and_numeric_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(
     if data.len() >= 2 { selected.consider(6, bitplane::encode(data), data.len()); }
     if data.len() >= 32 && effort >= 8 {
         if available >= data.len().saturating_mul(128) {
-            let encoded = chain::encode(data, chain::EncodeOptions { beam: usize::from(effort.min(9)), effort })?;
+            let cache_allowance = available.saturating_sub(data.len().saturating_mul(128)).min(4 * 1024 * 1024);
+            let encoded = chain::encode_with_cache(data, chain::EncodeOptions { beam: usize::from(effort.min(9)), effort }, cache_allowance)?;
             selected.consider(7, encoded.payload, data.len());
         } else { budget_skips.insert(7); }
     }
