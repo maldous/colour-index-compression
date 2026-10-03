@@ -44,7 +44,10 @@ On Unix, `--flush-interval` also supports explicit CIXM6/CIXF1 streams.
 It emits a partial framed block after input becomes idle; history and model
 state remain in the same stream. Timing is best effort and includes encoding
 and downstream delays. Final whole-stream integrity requires the footer.
-CIXM6 remains serial; reject unsupported thread combinations explicitly.
+CIXM6 remains serial and rejects explicit `--parallelism` overrides. Explicit
+`--parallelism blocks` keeps automatic streaming on the ordered CIXG block
+pipeline; persistent CIXZ1 uses candidate parallelism. Decoder footer metadata
+reads remain interruptible while awaiting EOF and are admitted against memory.
 
 `--fast` minimizes compression latency, no effort flag uses balanced DEFAULT, and `--best` expands the bounded candidate search for complete archive size. `-1`, `-6` and `-9` are aliases. `--explain` reports decisions and omissions; `--verbose` reports totals. Explicit route/backend overrides constrain their own dimension and retain compatible searches. Intrinsic coders reject contradictory pairs.
 

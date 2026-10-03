@@ -124,6 +124,7 @@ struct Opt {
     threads: usize,
     threads_set: bool,
     parallelism: String,
+    parallelism_set: bool,
     memory: usize,
     memory_set: bool,
     input: String,
@@ -222,7 +223,10 @@ fn set_option_value(o: &mut Opt, argument: &str, value: String) -> Result<(), St
             o.threads = value.parse().map_err(|_| "invalid thread count")?;
             o.threads_set = true;
         }
-        "--parallelism" => o.parallelism = value,
+        "--parallelism" => {
+            o.parallelism = value;
+            o.parallelism_set = true;
+        }
         "--memory" => {
             o.memory = parse_size(&value)?;
             o.memory_set = true;
@@ -3816,6 +3820,7 @@ fn m6_finish_stream<R: Read>(
     fd: i32,
     total: usize,
     crc: &crc32fast::Hasher,
+    footer_allowance: usize,
 ) -> Result<(), String> {
     let expected = read_stream_varint(src, fd)?;
     let mut checksum = [0u8; 4];
@@ -3823,9 +3828,46 @@ fn m6_finish_stream<R: Read>(
     if expected != total || u32::from_le_bytes(checksum) != crc.clone().finalize() {
         return Err("CIXM6 length or CRC32 checksum mismatch".into());
     }
+    const MAX_TAIL: usize = 1024 * 1024 + 9;
     let mut tail = Vec::new();
-    src.take((1024 * 1024 + 10) as u64).read_to_end(&mut tail).map_err(ioerr)?;
-    if tail.len() > 1024 * 1024 + 9 { return Err("CIXF1 filename footer exceeds limit".into()); }
+    let mut scratch = [0u8; 4096];
+    loop {
+        check_interrupted()?;
+        let read_limit = if tail.is_empty() {
+            1
+        } else if tail.len() < tail.capacity() {
+            scratch.len().min(tail.capacity() - tail.len())
+        } else {
+            // Probe EOF with a stack byte. Any input here would require a
+            // retained allocation beyond the admitted footer capacity.
+            1
+        };
+        let read = match read_poll(src, &mut scratch[..read_limit], fd, None)? {
+            Some(read) => read,
+            None => continue,
+        };
+        if read == 0 {
+            break;
+        }
+        if tail.is_empty() {
+            let capacity = footer_allowance.min(MAX_TAIL);
+            if capacity < 9 {
+                return Err("CIXF1 filename footer exceeds remaining decode memory".into());
+            }
+            tail.try_reserve_exact(capacity)
+                .map_err(|_| "CIXF1 filename footer allocation failed")?;
+            if tail.capacity() > footer_allowance || tail.capacity() > MAX_TAIL {
+                return Err("CIXF1 filename footer exceeds remaining decode memory".into());
+            }
+        }
+        if tail.len().saturating_add(read) > MAX_TAIL {
+            return Err("CIXF1 filename footer exceeds limit".into());
+        }
+        if tail.len().saturating_add(read) > tail.capacity() {
+            return Err("CIXF1 filename footer exceeds remaining decode memory".into());
+        }
+        tail.extend_from_slice(&scratch[..read]);
+    }
     if !tail.is_empty() {
         if tail.len() < 9 || &tail[tail.len() - 5..] != b"CIXF1" { return Err("trailing bytes after CIXM6 stream".into()); }
         let name_len = u32::from_le_bytes(tail[tail.len() - 9..tail.len() - 5].try_into().unwrap()) as usize;
@@ -4023,11 +4065,10 @@ fn decode_m6<R: Read, W: Write>(mut src: R, mut dst: W, options: M6DecodeOptions
     let mut recent: std::collections::VecDeque<Vec<u8>> = std::collections::VecDeque::new();
     let mut recent_bytes = 0usize;
     let reference_budget = memory.saturating_div(8).clamp(1, 16 * 1024 * 1024);
-    if history_limit
+    let retained_decode_state = history_limit
         .saturating_add(reference_budget)
-        .saturating_add(stateful::RETAINED_MEMORY_BOUND)
-        > memory
-    {
+        .saturating_add(stateful::RETAINED_MEMORY_BOUND);
+    if retained_decode_state > memory {
         return Err("CIXM6 history, references, and persistent models exceed --memory".into());
     }
     let admission = M6DecodeAdmission { memory, history_limit, reference_budget };
@@ -4035,7 +4076,13 @@ fn decode_m6<R: Read, W: Write>(mut src: R, mut dst: W, options: M6DecodeOptions
         let mut mode = [0u8; 1];
         read_exact_poll(&mut src, &mut mode, fd)?;
         if mode[0] == 255 {
-            m6_finish_stream(&mut src, fd, total, &crc)?;
+            m6_finish_stream(
+                &mut src,
+                fd,
+                total,
+                &crc,
+                memory.saturating_sub(retained_decode_state),
+            )?;
             break;
         }
         let source_len = read_stream_varint(&mut src, fd)?;
@@ -4644,6 +4691,7 @@ fn automatic_persistent_stream_eligible(o: &Opt, whole_archive_best: bool, block
         && o.format == "auto"
         && o.history == 0
         && !o.independent_blocks
+        && (!o.parallelism_set || o.parallelism == "candidates")
         && streaming_backend::required_memory(block) <= o.memory
 }
 
@@ -4785,7 +4833,8 @@ fn validate_execution_mode(o: &mut Opt) -> Result<(), String> {
             || o.block.is_some()
             || o.independent_blocks
             || o.level_set
-            || o.profile_set)
+            || o.profile_set
+            || o.parallelism_set)
     {
         return Err("compression options cannot be used while decoding".into());
     }
@@ -4866,6 +4915,9 @@ fn validate_threads_and_format(o: &mut Opt) -> Result<(), String> {
 fn validate_m6_options(o: &Opt) -> Result<(), String> {
     if o.format == "cixf1" && o.input == "-" {
         return Err("--format cixf1 requires a named input to store its basename".into());
+    }
+    if matches!(o.format.as_str(), "cixm6" | "cixf1") && o.parallelism_set {
+        return Err("--parallelism is not supported by CIXM6/CIXF1 encoding".into());
     }
     if matches!(o.format.as_str(), "cixm6" | "cixf1")
         && o.memory < (1 << 20) + block_min(o).saturating_mul(3) + (256 << 10)

@@ -3,8 +3,10 @@
 //! Every buffer, candidate, and queued result should acquire a permit before
 //! allocating the memory it estimates it will need.  A permit is charged until
 //! it is dropped, including while a worker is blocked on ordered output.  This
-//! makes the configured budget a process-wide upper bound rather than a
-//! best-effort per-worker hint.
+//! bounds the sum of reserved working-memory estimates across workers.
+//! It is not an exact process RSS limit: executable/library mappings, allocator
+//! bookkeeping and allocations outside this admission layer are not charged.
+//! Qualification measures total memory independently with a cgroup hard limit.
 
 use std::fmt;
 use std::sync::{Arc, Condvar, Mutex};
