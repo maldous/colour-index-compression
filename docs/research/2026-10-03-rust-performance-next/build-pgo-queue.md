@@ -45,7 +45,8 @@ example changes that profile automatically.
 
 ## Required qualification
 
-For every cell: five counterbalanced encode/decode repetitions, complete
+Latest user direction: use existing baselines and one encode/decode observation
+per declared cell; do not run repetitions for averages. For every cell: complete
 archive bytes and SHA, own and fresh cross-native decode hashes, wall/user/sys
 time, peak RSS and cgroup high water. Reject cells on changed output, missing
 receipt, limit breach, or fixture mismatch. This queue neither runs builds nor
