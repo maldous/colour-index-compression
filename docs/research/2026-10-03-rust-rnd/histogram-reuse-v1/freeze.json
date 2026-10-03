@@ -1,0 +1,136 @@
+{
+  "experiment_id": "histogram-reuse-v1",
+  "status": "FROZEN_PRE_EXECUTION",
+  "hypothesis": "Repeated, already-serialized CIXCCV1 per-tile histogram headers can be referenced exactly, while sequence bytes remain unchanged; archive framing and references determine net size.",
+  "input": "CIXCCV1 archives produced by conditional-cost-v1 or the driver fixtures only; no filename or corpus dispatch",
+  "controls": {
+    "strong": "fixture identical: 16 equal headers",
+    "weak": "fixture weak: eight headers, each twice",
+    "absent": "fixture absent: 16 distinct headers"
+  },
+  "build": {
+    "driver_sha256": "46ad72b002beb657383bb4acc4b0ef43adc17562d5467e67f06d1ef5176fb82f",
+    "header_boundary": "exact BigUint CIX formula; no fixed header width",
+    "crc_parsing": "verified envelope body excludes trailing CRC from all parser inputs"
+  },
+  "bounds": {
+    "native_archive_bytes": 1048576,
+    "packed_archive_bytes": 1114112,
+    "tiles": 1024,
+    "temporary_bytes": 1048576,
+    "one_pack_and_one_unpack_per_configuration": true
+  },
+  "promotion": "Exact original CIXCCV1 archive reconstruction, native and full-envelope CRC validation, then native rank decoder restoration. A result only measures representation metadata reuse, never prediction or model improvement.",
+  "decoded_source_sha256": {
+    "identical": "d11fc4b9c154a8975c4f7182c1e74a0df0658f176946a81080d90bd5101350ae",
+    "weak": "e4f64cd074e56bdb0d3e9cc79d0ee238d0122647c319560734e030dc8a1e0882",
+    "absent": "8e17c437eb44c15e8f618e3dc2028b08503874e7092e78e823d3313b3142c0cc"
+  },
+  "configurations": [
+    {
+      "label": "identical",
+      "kind": "fixture",
+      "decoded_source_sha256": "d11fc4b9c154a8975c4f7182c1e74a0df0658f176946a81080d90bd5101350ae"
+    },
+    {
+      "label": "weak",
+      "kind": "fixture",
+      "decoded_source_sha256": "e4f64cd074e56bdb0d3e9cc79d0ee238d0122647c319560734e030dc8a1e0882"
+    },
+    {
+      "label": "absent",
+      "kind": "fixture",
+      "decoded_source_sha256": "8e17c437eb44c15e8f618e3dc2028b08503874e7092e78e823d3313b3142c0cc"
+    },
+    {
+      "label": "alternating-exact-rank",
+      "kind": "existing_archive",
+      "path": "benchmark-work/conditional-cost-v1/runs/alternating-exact-rank.cixcc",
+      "sha256": "39d2aa33bfceae4e2040cc2bf6774d02a370d045e9c076d53f3b8ba06e5f5e29",
+      "decoded_source_sha256": "4628fed9afa26e7544794a1fb4b9504545bd06b105a8920a1b187fec07e3bcca"
+    },
+    {
+      "label": "alternating-remaining-count-range",
+      "kind": "existing_archive",
+      "path": "benchmark-work/conditional-cost-v1/runs/alternating-remaining-count-range.cixcc",
+      "sha256": "0ccaed128cb9c1b5439ec43197ba53e93c16f9ff16a578e66d66a9c246e31fc5",
+      "decoded_source_sha256": "4628fed9afa26e7544794a1fb4b9504545bd06b105a8920a1b187fec07e3bcca"
+    },
+    {
+      "label": "clustered-exact-rank",
+      "kind": "existing_archive",
+      "path": "benchmark-work/conditional-cost-v1/runs/clustered-exact-rank.cixcc",
+      "sha256": "8a38a01a314dcd1b7977cc256f4db0b9afedd2d4c2d2c615db5e21ed16927f74",
+      "decoded_source_sha256": "d11fc4b9c154a8975c4f7182c1e74a0df0658f176946a81080d90bd5101350ae"
+    },
+    {
+      "label": "clustered-remaining-count-range",
+      "kind": "existing_archive",
+      "path": "benchmark-work/conditional-cost-v1/runs/clustered-remaining-count-range.cixcc",
+      "sha256": "c74e1c21c202f4f486467840777a3f134f102f81ed182dda6088794e66af1f50",
+      "decoded_source_sha256": "d11fc4b9c154a8975c4f7182c1e74a0df0658f176946a81080d90bd5101350ae"
+    },
+    {
+      "label": "periodic-exact-rank",
+      "kind": "existing_archive",
+      "path": "benchmark-work/conditional-cost-v1/runs/periodic-exact-rank.cixcc",
+      "sha256": "af6bdfcc5cca3d81002d73845d59a5608f87de908844b274276f3ac40aad70bf",
+      "decoded_source_sha256": "7d0a6fd97963d2d8ea6531f1dbb485c23090883c4deef641fe96c2ae6ee57c59"
+    },
+    {
+      "label": "periodic-remaining-count-range",
+      "kind": "existing_archive",
+      "path": "benchmark-work/conditional-cost-v1/runs/periodic-remaining-count-range.cixcc",
+      "sha256": "f4e5f39f5f38e079421cf4af34fce0e9155c76461e981739664434603ac6271f",
+      "decoded_source_sha256": "7d0a6fd97963d2d8ea6531f1dbb485c23090883c4deef641fe96c2ae6ee57c59"
+    },
+    {
+      "label": "random-exact-rank",
+      "kind": "existing_archive",
+      "path": "benchmark-work/conditional-cost-v1/runs/random-exact-rank.cixcc",
+      "sha256": "dc57e53708f44f4b0df49ad28afbeda5eb3ad89ddb92641d152dc416fe1c0ddc",
+      "decoded_source_sha256": "97e5236b993cc0ccc87ec52b71a266eb7db2980e84e8927b1036970847a7d92b"
+    },
+    {
+      "label": "random-remaining-count-range",
+      "kind": "existing_archive",
+      "path": "benchmark-work/conditional-cost-v1/runs/random-remaining-count-range.cixcc",
+      "sha256": "2f17e5f3969777b7b457683eca9a4d12f1de88a7f1cf4f57fbf6c09b47b8bd13",
+      "decoded_source_sha256": "97e5236b993cc0ccc87ec52b71a266eb7db2980e84e8927b1036970847a7d92b"
+    }
+  ],
+  "decoder": {
+    "path": "benchmark-work/conditional-cost-v1/build/conditional-cost-v1",
+    "sha256": "de144a3723a33aaf51fc230e042c3c8ebd5849bbc0522571d88e31f4100f4da4"
+  },
+  "execution": {
+    "cpu": [
+      20
+    ],
+    "cpu_max": "100000 100000",
+    "memory_max": 805306368,
+    "memory_swap_max": 0,
+    "run_temp_max": 1048576,
+    "build_temp_max": 33554432,
+    "build_wall_seconds": 120,
+    "batch_wall_seconds": 120,
+    "scope": "11 named configurations: one pack and one fresh unpack each, six malformed archive checks; original fixture generation/decode outside row timing; no repeats",
+    "receipts": [
+      "cgroup cpuset/cpu.max/memory.max/current/peak/events/swap",
+      "affinity",
+      "per-pack/unpack GNUtime",
+      "aggregate temp highwater",
+      "exact archive/source SHA"
+    ]
+  },
+  "malformed_checks": [
+    "bad envelope CRC",
+    "invalid tag with valid envelope CRC",
+    "out-of-range reference with valid envelope CRC",
+    "truncated body with valid envelope CRC",
+    "trailing body byte with valid envelope CRC",
+    "native CRC mismatch with valid envelope CRC"
+  ],
+  "setup_amendment": "v1 failed during untimed fixture setup; frozen accounting decoder rejects varying rank widths. No pack/unpack row ran. v2 uses generic fresh-process decode-source, retains original v1 evidence, and same 11 configs each once.",
+  "generic_decoder": "same sealed histogram driver decode-source in fresh process; existing rank::decode_composition_tiles"
+}
