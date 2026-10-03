@@ -1,6 +1,6 @@
 # CIX 0.1 private release report
 
-**Status:** The named research, source-quality, performance, final qualification, package-artifact, and notice-qualification screens are complete. The package-version benchmark is running; the private portal is locally complete and remains undeployed until its owner chooses private publication after terminal results. This is private evidence, not a public release claim.
+**Status:** The named research, source-quality, performance, final qualification, package-artifact, and notice-qualification screens are complete. The package-version benchmark is running; the private portal is locally complete and will receive its authorized owner-private deployment after terminal results. This is private evidence, not a public release claim.
 
 ## Decision
 
@@ -47,12 +47,16 @@ The accepted throughput changes are the exact-prefix prune and T1's discarded-hi
 
 The shipping successor adds a complete 32-crate Rust notice bundle and only the documentation/install-rule changes needed to carry it. `dependency-notices/amendment.json` verifies that all 90 protected runtime/build files are byte-identical between the frozen export and successor. Notice qualification v2 checks the same notice hash in staged source/binary artifacts and package forms; it is a legal-distribution qualification, not a claim about third-party source quality beyond the documented scope.
 
+## Initial corpus qualification
+
+The complete Canterbury/Calgary/Artificial gate passed: 84 physical profile cells (87 logical memberships), all exact restores with successful resource-control receipts. [Gate results](CCA-GATE.md) contain the completed corpus totals and timing scope. The broader immutable local-data queue remains active. [Inventory arithmetic erratum](inventory-total-erratum.json) corrects three stale display totals without changing any frozen input or measurement.
+
 ## Root-owned evidence slots
 
 | Deliverable | Required fill before accepting a candidate |
 | --- | --- |
 | Successor distribution and package artifacts | **Complete.** Shipping source is `/home/user/src/cix-0.1-distribution`; packages are under `/home/user/src/cix-0.1-artifacts/distribution-v2/packages`. Notice qualification v2 passed with exact binary hashes, staged source build/install/uninstall, DEB, RPM, DSC, and binary-tar notice-hash checks. The retained v1 RPM packager failure is superseded by this corrected v2 result, not erased. |
-| Package-version benchmark | **Running.** The initial 12 plus 267 physical cells span 89 physical / 90 logical assets under four cores and 10 GiB. Two initial BEST timeouts are retained; the corrected native allowance is at least 900 seconds and the finite hourly continuation is configured. Fill FAST/DEFAULT/BEST complete archives, exact restores, resource receipts, dataset identities, and comparator scope when terminal. |
+| Package-version benchmark | **Running.** The frozen plan contains 267 profile cells across 89 physical / 90 logical assets; 85 cells are verified at this checkpoint under four cores and 10 GiB. Two initial BEST timeouts are retained; the corrected native allowance is at least 900 seconds and the finite hourly continuation is configured. Fill FAST/DEFAULT/BEST complete archives, exact restores, resource receipts, dataset identities, and comparator scope when terminal. |
 | Public-record table | Original source links plus matched/not-directly-comparable labels; no inferred rank. |
 | Private portal review | Local portal is complete. Populate final charts only from the terminal benchmark, then the owner may choose private publication; it is currently not deployed. |
 

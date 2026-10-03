@@ -5,11 +5,11 @@ This inventory freezes the source inputs for the final release-build measurement
 | Set | Complete inputs | Original bytes | Reporting rule |
 | --- | ---: | ---: | --- |
 | Canterbury | 11 | 2,810,784 | Aggregate and per-member |
-| Calgary canonical | 14 | 3,122,304 | Aggregate and per-member |
-| Calgary legacy extras | 4 | 111,871 | Per-member only; excluded from canonical aggregate |
+| Calgary canonical | 14 | 3,141,622 | Aggregate and per-member |
+| Calgary legacy extras | 4 | 109,871 | Per-member only; excluded from canonical aggregate |
 | Canterbury Artificial | 4 | 300,001 | Per-member only |
 | Silesia | 12 | 211,938,580 | Aggregate and per-member |
-| FCBench ready subset | 25 | 15,049,858,080 | Per-member and domain subtotal |
+| FCBench ready subset | 25 | 14,335,914,864 | Per-member and domain subtotal |
 | Compression Golf training JSONL | 1 | 200,727,388 | Per-input only; nonqualifying |
 | Baseline complete inputs | 5 | 2,200,001,548 | Per-input only |
 | Stored primary SRA | 1 | 242,333,315 | Per-input stored SRA bytes only |
@@ -25,6 +25,8 @@ The complete canonical 1,000,000,000-byte `enwik9` and 100,000,000-byte `enwik8`
 The domain-transfer audit also contains nine unique, directly usable primary assets: two complete NOAA monthly water-level CSV responses, three canonical PubChem SDF response batches, an uncompressed NIfTI example, one locally installed ELF binary, a World Bank CSV, and a declared 2,048-row UCI Adult subset. Acquisition containers and redundant PubChem component/inspection files are excluded. These inputs are reported only per input; no result can stand for the full Adult collection, all PubChem, NOAA generally, or a platform-independent ELF corpus.
 
 `local-assets.json` supplies the canonical paths, membership, byte counts, exclusion rules, and the status selector for FCBench. `public-records.json` supplies the external-comparison boundary. Both are inputs to the release benchmark report, not benchmark results.
+
+The frozen benchmark plan has the correct member-level identities and byte counts. [`inventory-total-erratum.json`](inventory-total-erratum.json) records three stale display aggregates retained in `local-assets.json` for provenance: Calgary-14, its four legacy extras, and the READY FCBench subset. The table above uses the reconciled totals; this does not alter the frozen plan or any measured result.
 
 ## Measurement contract
 

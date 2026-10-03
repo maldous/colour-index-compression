@@ -66,9 +66,9 @@ These are initial audits, not completed qualification receipts.
   result supersedes but preserves the earlier v1 packager failure.
 - Distribution-v2 packages are under
   `/home/user/src/cix-0.1-artifacts/distribution-v2/packages`.
-- The package-version benchmark is active: the initial 12 plus 267 physical
+- The package-version benchmark is active: 267 planned profile
   cells cover 89 physical / 90 logical assets within four cores and 10 GiB.
   Two initial BEST timeouts remain retained; the corrected native allowance is
   at least 900 seconds and a finite hourly continuation is configured.
-- The private Site is locally complete and not deployed. Its owner may choose
-  private publication only after terminal benchmark results.
+- The private Site is locally complete and not deployed. The authorized owner-private
+  deployment follows terminal benchmark results.
