@@ -1,0 +1,12 @@
+{
+  "experiment":"representation-closure-r1","status":"PREPARED_NOT_EXECUTED",
+  "source_revision":"ROOT_BIND_AT_DISPATCH",
+  "driver":{"path":"rust/cix-native/experiments/representation-closure-r1/main.rs","sha256":"5614636f9acb265293095dc90eb017fafeb297037d1414990291e3b3c3720f2a"},
+  "fixture_generator":{"path":"rust/cix-native/experiments/representation-closure-r1/fixtures.py","sha256":"0b759a1047205e078f995e44603abb35f64389ca74d30cca5439f73a0fa544d4","bytes":8192,"controls":{"strong":"adjacent-byte lag-2 relation","weak":"mixed 8-byte relation","absent":"xorshift64"},"output_sha256":"PREHASH_BEFORE_CODEC"},
+  "frame":{"magic":"R1C1","version":2,"instructions":"two bytes per operation","integrity":"CRC32 over header,lengths,ops,payload"},
+  "profiles":{"backend":"cixg1","profile":"fast","threads":1,"memory":"512MiB"},
+  "programs":["identity","literal","transpose:2,8,16","delta:2,8,16","xor:2,8,16","transpose2+delta2","delta2+transpose2","transpose8+delta8","delta8+transpose8","transpose16+xor16","xor16+transpose16"],
+  "program_count":17,"limits":{"input_bytes":8192,"cores":1,"ram_bytes":1073741824,"swap":0,"temporary_bytes":67108864,"child_wall_seconds":60},
+  "verification":["complete framed bytes","fresh uncix nested restore","archive-only outer restore","selected malformed frames reject"],
+  "selection":"minimum complete R1C1 bytes; declared order breaks ties"
+}

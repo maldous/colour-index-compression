@@ -20,3 +20,29 @@ historical baselines. Record source/tree, input SHA and range, flags, route,
 block/history, model and side-information bytes, binary/DSO identity, cgroup
 limits, full archive SHA and fresh decode SHA. Treat timing from concurrent
 work as descriptive until run under the stated qualification receipt.
+
+## Latest verified implementation and streaming milestone
+
+Release source 6ac05f8e9: exact-arithmetic redundant work removal measured
+2.26 → 2.13 s encoding on one matching instrumented Canterbury row, with
+identical 82,984-byte archive and exact fresh restoration. See perf-f579/REPORT.md.
+This is a 5.75% observation, not a replicated speed claim. No size tradeoff.
+
+G1 and restricted-budget M6 actual-pipe 32 MiB qualification passed, including
+idle output before EOF, slow-consumer backpressure, current/old native restoration,
+empty input, corrupt/truncated footer and interruption checks. See
+qualification-6ac0/REPORT.md; preserve the unsuccessful original M6 timing row.
+Latest release Clippy has no Clippy/unused-variable findings but retains 241
+dead-code target warning instances. Current Docker Sonar scan is pending a
+harness cgroup identity fix; do not treat the older Sonar checkpoint as current.
+Full current-suite, scaling/build matrix/PGO and held-out improvements remain queued.
+
+## Closure audit requested before packaging
+
+The finite [closure register](closure-queue/README.md) records all identified
+pending mechanisms; queued/absent/unqualified entries are not completed tests.
+R1 lane/residual now has51 exact candidate rows: strong278→129B, weak526→232B,
+random selects literal8221B. Conditional composition now has12 exact rows:
+strong global4302→context2 64B, weak4302→85B, random expands and selects raw.
+These are synthetic experimental complete-frame wins. Neither is promoted
+without frozen CCA and held-out replication. Packaging remains OPEN.

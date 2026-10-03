@@ -1,0 +1,37 @@
+{
+  "experiment_id": "conditional-context-closure-v1",
+  "status": "FROZEN_PRE_EXECUTION",
+  "source_commit": "c5df6465f6bf051dd0c2b11c55dfc4921e25959f",
+  "source": {
+    "driver": "rust/cix-native/experiments/conditional-context-closure/conditional_context_closure.rs",
+    "driver_sha256": "a147caa256518f4db0f535de3e21c6625370e743574b9fdac8339d45c6fbc86e",
+    "rank_rs_sha256": "55f443be9cfb1568b78b7b952af7932b1987368c0b6247e938111dd24cf2759f",
+    "cargo_lock_sha256": "e5e7288ebfecea3e754660a13176755499258eb674067d262374054ef1d85d68",
+    "cargo_toml_sha256": "749ae61244e654f40289db7fdac8643cb3222cab2b85e9da8b4fa286206afd97"
+  },
+  "archive": {
+    "magic_hex": "4349584354583100",
+    "version": 1,
+    "fields": ["magic", "version", "mode", "source_length_le_u64", "payload_length_le_u64", "payload", "crc32_le"],
+    "header_bytes": 26,
+    "crc_bytes": 4,
+    "max_archive_bytes": 1048576,
+    "modes": {"global": 0, "context-1-4": 1, "context-2-8": 2, "raw": 3}
+  },
+  "inputs": {
+    "bytes_per_case": 16384,
+    "cases": {
+      "strong": "periodic [0,16,1,17]; context-specific successor is deterministic after startup",
+      "weak": "periodic [0,16,1,16,0,17,1,17]; one context has two successors",
+      "absent": "frozen xorshift/multiply byte generator in driver"
+    },
+    "materialization": "Run `generate CASE OUTPUT` once before any measured encode and record SHA-256. The expected hashes are intentionally absent until that pre-measurement materialization receipt; no input is selected by filename."
+  },
+  "candidate_set": ["global", "context-1-4", "context-2-8", "raw"],
+  "best_tie_order": ["global", "context-1-4", "context-2-8", "raw"],
+  "context_parameters": {"context-1-4": {"order": 1, "bucket_bits": 4, "prefix_history": "empty/reset"}, "context-2-8": {"order": 2, "bucket_bits": 8, "prefix_history": "empty/reset"}},
+  "accounting": ["outer header", "outer CRC32", "payload bytes", "context parameters", "active-context count varint", "active-context colex rank", "lane-length composition rank", "all lane histogram/sequence bytes", "raw fallback bytes"],
+  "operations": "Exactly one encode and one fresh driver-process decode per CASE x VARIANT configuration. Malformed rejection checks do not create a replacement measurement row.",
+  "resource_request": {"cores": 1, "cpu": "scheduler-declared", "ram_bytes": 1073741824, "swap": "disabled", "retained_temporary_bytes": 1048576, "wall_seconds_per_operation": 60},
+  "promotion": "A context mode must beat global in complete CIXCTX1 bytes on strong and fresh-restore exactly. Weak and absent results, all side information, and malformed rejections are retained. No production selector or archive-format promotion follows this screen."
+}

@@ -1,0 +1,64 @@
+# Closure queue: prediction, conditional composition, and structural substreams
+
+Status: planning audit, 2026-10-03. This document records what the retained
+evidence does and does not establish. A queued cell is not a completed test or
+a promotion recommendation. No input identity may enter an encoder policy.
+
+## Evidence that can be reused
+
+| Area | Current source | Completed evidence | What it establishes | What it does not establish |
+|---|---|---|---|---|
+| Same-count coding | `rank::encode_composition_tiles`, `rank::encode_count_range` | `conditional-cost-v1` has four 16 KiB equal-histogram orderings, each encoded and fresh-decoded once | Canonical rank is 32 bytes smaller than remaining-count range in every row. Both have the same 64,529.341449-bit type-class ideal cost; the difference is range-length fields and termination/padding. | Neither coder learns ordering after counts are supplied. This does not test a context-conditioned composition. |
+| Histogram metadata reuse | `rank.rs` headers; experimental `histogram-reuse-v1` wrapper | 11 pack/unpack rows: identical −333 B, partial −158 B, absent +42 B; six malformed archives rejected | Reusing byte-identical tile headers can pay after wrapper costs. | It is metadata deduplication only, buffered and not a production archive. It does not encode related but unequal histograms or jointly model counts. |
+| Causal models already present | `adaptive.rs`, `ppm.rs`, `stateful.rs`, `fixedmix.rs`, `expertmix.rs`; CIXG predictor in `main.rs` | Existing route/decoder and focused compatibility evidence; `combined-bd2-validation` and later release receipts validate complete archives, not a model ablation | Bounded order contexts, PPM, adaptive buckets, a three-expert residual transform, fixed mixing and persistent adaptive state are implemented. | There is no current-Rust controlled ablation of complementary predictors, no probability-calibration result, and no ledger separating ideal probability cost, quantised interval cost and bytes emitted. |
+| Context type classes | `rank::encode_context_type_classes` / `decode_context_type_classes`; called by CIXM6 and chain internals | Unit-level exact/trailing-data coverage in `rank.rs`; no retained matched screening receipt located | The decoder has a stored order/bucket layout and validates lane consumption. | There is no full-archive strong/weak/absent comparison against the one-histogram control with partition cost included. |
+| Reversible representation search | `chain.rs`, CIXG routes in `main.rs` | `representation-search-v1`: 12 fixed shallow programs, identity wins. `word-palette-v2`: a matched strong nested saving loses after wrapper framing. | Shallow stored instructions and literal fallback can reconstruct exactly; these screens found no production size win. | These do not close generic structural split/join, shared skeleton, or typed-substream ablations. |
+
+Historical Python conditional and structural material, including
+`2026-09-29-grid-conditional-*.json` and the paused Wikipedia structure
+programme, is preserved provenance. It cannot close a current native Rust cell:
+its source, format, input policy and backend differ.
+
+## Finite missing cells
+
+Every cell uses one encode and one fresh-process archive decode per
+configuration, after a frozen source/input/configuration receipt and a scheduler
+lease. Report complete stored bytes, encode/decode elapsed time, peak memory,
+retained temporary bytes, archive SHA-256 and restored SHA-256 separately.
+All candidate selection is by fully serialized bytes. A result on a fixture is
+mechanism evidence only; it does not alter generic policy.
+
+| ID | Hypothesis and finite variants | Smallest matched controls and assets | Required implementation | Promotion criterion |
+|---|---|---|---|---|
+| PRED-COST-1 | The measured gap between a causal model's ideal probabilities, its integer arithmetic intervals, and its emitted payload identifies whether calibration can plausibly help. Variants: existing adaptive order 0, existing adaptive order 1/8-bit bucket, existing bounded PPM order 3, and fixedmix eta 6. | Start with one frozen 16 KiB conditional fixture plus one existing CCA development member. Use raw arithmetic output from the same model as the control; no backend substitution. | Add experiment-only counters at each symbol: `-log2(p_model)`, `-log2((high-low)/total)` using the stored integer interval, arithmetic bit length including finish, and framing/model bytes. Do not label a non-probability range length as CDF cost. | Each variant fresh-restores. A calibration cell may proceed only when its quantised interval gap is positive and separately reported. |
+| PRED-MIX-1 | Combining already available complementary causal signals can beat either alone after the fixed model header. Variants: current CIXG three-expert residual; fixedmix without recurrence; fixedmix v3 with one frozen recurrence configuration; PPM-only control. | Strong: frozen periodic/recurring generated bytes. Weak: alternating equal-histogram bytes. Absent: frozen random equal-histogram bytes. The source order and all model parameters are stored in each archive. | An experiment archive adaptor that calls existing public model encoders and records a model ID/configuration. It must expose a no-recurrence ablation and keep backend, block boundary, prefix history and arithmetic coder identical. | A variant must be smaller than both its no-recurrence/one-model parent and raw complete archive on the strong input, while weak and absent results are retained. No selector change until a CCA development cell repeats the complete-byte win. |
+| PRED-LONG-1 | A bounded long-match/recurrence predictor plus exact residuals captures repeated nonlocal bytes that the current three CIXG experts (lag 1, lag 4, two-byte context) miss. | Same strong/weak/absent fixtures as PRED-MIX-1; current predictor residual is the direct control. Existing `legacy_lz.rs` is a same-backend long-match reference, but its token stream is not a predictive-residual control. | New bounded causal match-table predictor with stored maximum history/window and literal residual fallback. Decoder rebuilds the table from restored bytes. Fix exactly two windows before execution; do not search window sizes at decode. | Exact restoration, charged window/model/configuration bytes, and a complete-byte win against the current predictor residual on strong without an absent-control win being hidden by fallback. |
+| PRED-CAL-1 | A simple deterministic calibration of a fixed mixture's emitted interval can reduce quantisation loss without changing available causal information. Variants: identity calibration and one frozen monotone lookup calibration after fixedmix's mixture. | PRED-COST-1 supplies the baseline cost ledger. Reuse its one CCA development member and the three controls. | A versioned experiment-only fixedmix payload records the 256-entry or smaller fixed calibration table, or derives it from a stored formula. Instrument pre/post ideal and integer-interval costs; use the same arithmetic implementation. | The calibrated variant needs a lower complete archive after its table bytes, fresh decode, and an interval-cost reduction consistent with the byte result. If ideal cost falls but integer/byte cost does not, retain it as a negative calibration result. |
+| COND-CONTEXT-1 | Causal context partitioning can reduce type-class cardinality enough to pay for active-bucket IDs, lane lengths, per-lane histograms and ranks. Variants: global `encode_composition_tiles`; `encode_context_type_classes(order=1,bits=4)`; `order=2,bits=8`. | Strong: generated two-context lanes with deliberately distinct conditional histograms but matched global histogram. Weak: same lane sizes with partly shared histograms. Absent: context labels permuted independently of bytes. Existing equal-histogram four-order controls remain the no-extra-relationship control. | A complete experimental archive frame around existing rank APIs, including prefix-history/reset signalling and raw fallback. The exact lane partition, q IDs, composition ranks and all per-lane payloads remain serialized. | Context variant wins complete bytes on strong versus global with fresh decode; weak/absent losses are recorded. It must not be promoted from ideal cardinality alone. |
+| COND-COUNT-1 | A joint or hierarchical representation of related tile histograms can beat independent headers after partition and reconstruction costs. Finite variants: literal independent headers; prior-header reference only (the completed reuse control); delta-from-previous count vector with sparse signed exceptions; one two-level group-total/within-group allocation. | Reuse `histogram-reuse-v1` identical, eight-pair and all-distinct native archives as strong/weak/absent metadata controls. For sequence bytes, preserve the original rank/range payload byte-for-byte. | Experiment-only header codec with bounded count totals, canonical signed-exception coding, group map and exact validation that reconstructed counts sum to each tile length. Retain the native archive CRC and envelope CRC. | All variants reconstruct byte-identical native archives and fresh native decode. A result must beat both independent-header and reference-only forms on related-count strong input after all instruction bytes; all-distinct must retain its loss. |
+| STRUCT-SUBSTREAM-1 | A bounded generic split into structural skeleton, values and literals can earn back its descriptors on repeated delimiters/record shape. Finite variants: identity; existing `streams_encode` on one stream; deterministic delimiter-class split with stored class table and join schedule; literal fallback. | Strong: a generated fixed-record byte fixture with repeated delimiters and varying values. Weak: same record width with less repeated skeleton. Absent: random bytes. For development replication, use one existing CCA member after the synthetic screen; fixture names never affect encoding. | A versioned experiment-only representation with fixed delimiter-class candidates, bounded stream count, serialized join schedule/lengths, and a literal fallback. Each substream uses the same selected native backend; decoder does no parser inference or search. | A strong synthetic complete-byte win plus fresh archive-only restoration is required before one CCA development replication. Promotion needs the CCA win after descriptor, substream framing and literal bytes. |
+| STRUCT-SHARED-1 | Sharing repeated exact structural descriptions or a dictionary across substreams may save bytes beyond individual compression. Variants: no sharing; exact-description reference; bounded dictionary with explicit insert/reference/literal operations. | Use STRUCT-SUBSTREAM-1 strong/weak/absent outputs. The completed transform-byte dedup cache is encoder work reuse only and is not a byte-saving control. | An experiment-only instruction stream with bounded dictionary capacity and exact decoder replay. Store every dictionary choice; no source model or search runs during decode. | Smaller complete archive than the unshared structural frame on strong, exact restore, and explicit absent-case overhead. No inferred semantic schema is permitted. |
+
+## Profile and CCA gate
+
+Fast, balanced and maximum profiles require separate eligibility after a
+mechanism passes its strong control. Fast may evaluate only one fixed variant;
+balanced may compare the frozen base/candidate pair; maximum may compare every
+finite variant listed above. The stored archive identifies the chosen variant,
+so decoder work never depends on profile or search.
+
+The smallest available quality gate is an existing CCA development member from
+`docs/research/2026-10-01-complete-benchmarks/cca-full-files-v4/`; its old
+codec result is a reference, not a rerun control. Reuse its retained input only
+after rehashing and freeze a new native source/binary receipt. Run Canterbury,
+Calgary and Artificial before any Silesia request. A CCA label may appear in a
+receipt but never in route or representation selection.
+
+## Closure condition
+
+The prompt's prediction/calibration, conditional-composition, and structural
+substream opportunities are closed only when every row is either verified with
+its stated controls or recorded as a bounded failure, resource limit, or
+implementation rejection with raw receipts. Existing rank/range and histogram
+reuse results close only their stated mechanisms. They do not close the queued
+context, calibration, hierarchy, joint-count, or structural cells.
