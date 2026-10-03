@@ -37,7 +37,14 @@ cat input | cix -c - > input.cix
 cat input.cix | cixcat - > restored
 cix --stream --block-size 1MiB --memory 64MiB --flush-interval 250ms -c < input.bin > output.cix
 uncix --stream -c < output.cix > restored.bin
+cix --best --format cixm6 --stream --flush-interval 250ms -c - < input.bin > legacy.cix
 ```
+
+On Unix, `--flush-interval` also supports explicit CIXM6/CIXF1 streams.
+It emits a partial framed block after input becomes idle; history and model
+state remain in the same stream. Timing is best effort and includes encoding
+and downstream delays. Final whole-stream integrity requires the footer.
+CIXM6 remains serial; reject unsupported thread combinations explicitly.
 
 `--fast` minimizes compression latency, no effort flag uses balanced DEFAULT, and `--best` expands the bounded candidate search for complete archive size. `-1`, `-6` and `-9` are aliases. `--explain` reports decisions and omissions; `--verbose` reports totals. Explicit route/backend overrides constrain their own dimension and retain compatible searches. Intrinsic coders reject contradictory pairs.
 

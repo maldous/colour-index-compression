@@ -2817,19 +2817,14 @@ fn m6_write_selected_frame<W: Write>(dst: &mut W, selected: &M6Selection, source
     dst.flush().map_err(ioerr)
 }
 
-fn m6_read_block<R: Read>(src: &mut R, block: &mut [u8]) -> Result<usize, String> {
-    let mut got = 0;
-    while got < block.len() {
-        check_interrupted()?;
-        let n = match src.read(&mut block[got..]) {
-            Ok(n) => n,
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-            Err(error) => return Err(ioerr(error)),
-        };
-        if n == 0 { break; }
-        got += n;
-    }
-    Ok(got)
+fn m6_fill_block<R: Read>(
+    src: &mut R,
+    block: &mut [u8],
+    input_fd: i32,
+    flush_interval: Option<Duration>,
+) -> Result<(usize, bool), String> {
+    let (got, eof, _) = fill_candidate_block(src, block, input_fd, flush_interval)?;
+    Ok((got, eof))
 }
 
 fn finish_m6_encode<W: Write>(
@@ -2862,12 +2857,25 @@ fn finish_m6_encode<W: Write>(
 }
 
 fn encode_m6<R: Read, W: Write>(
+    src: R,
+    dst: W,
+    block_size: usize,
+    file_name: Option<&str>,
+    effort: u8,
+    memory: usize,
+) -> Result<(), String> {
+    encode_m6_timed(src, dst, block_size, file_name, effort, memory, -1, None)
+}
+
+fn encode_m6_timed<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
     block_size: usize,
     file_name: Option<&str>,
     effort: u8,
     memory: usize,
+    input_fd: i32,
+    flush_interval: Option<Duration>,
 ) -> Result<(), String> {
     const HISTORY_LIMIT: usize = 1 << 20;
     let mut whole = 0usize;
@@ -2886,9 +2894,12 @@ fn encode_m6<R: Read, W: Write>(
     let mut recent_bytes = 0usize;
     let mut budget_skips = std::collections::BTreeSet::<u8>::new();
     loop {
-        let got = m6_read_block(&mut src, &mut block)?;
+        let (got, eof) = m6_fill_block(&mut src, &mut block, input_fd, flush_interval)?;
         if got == 0 {
-            break;
+            if eof {
+                break;
+            }
+            continue;
         }
         let data = &block[..got];
         let prefix = history.as_slice();
@@ -2940,7 +2951,7 @@ fn encode_m6<R: Read, W: Write>(
             }
             recent_bytes = recent_bytes.saturating_sub(recent.pop_front().unwrap().len());
         }
-        if got < block.len() {
+        if eof {
             break;
         }
     }
@@ -4714,7 +4725,16 @@ fn encode_selected<R: Read, W: Write>(
     }
     if o.format == "cixm6" || o.format == "cixf1" {
         let name = cixm6_file_name(o)?;
-        return encode_m6(src, dst, block as usize, name, o.level, o.memory);
+        return encode_m6_timed(
+            src,
+            dst,
+            block as usize,
+            name,
+            o.level,
+            o.memory,
+            input_fd,
+            o.flush_interval,
+        );
     }
     if let Some(profile) = o.portfolio.as_deref() {
         return encode_portfolio(src, dst, profile, o.memory);
@@ -4846,9 +4866,6 @@ fn validate_threads_and_format(o: &mut Opt) -> Result<(), String> {
 fn validate_m6_options(o: &Opt) -> Result<(), String> {
     if o.format == "cixf1" && o.input == "-" {
         return Err("--format cixf1 requires a named input to store its basename".into());
-    }
-    if matches!(o.format.as_str(), "cixm6" | "cixf1") && o.flush_interval.is_some() {
-        return Err("--flush-interval is not available for the CIXM6 encoder".into());
     }
     if matches!(o.format.as_str(), "cixm6" | "cixf1")
         && o.memory < (1 << 20) + block_min(o).saturating_mul(3) + (256 << 10)
