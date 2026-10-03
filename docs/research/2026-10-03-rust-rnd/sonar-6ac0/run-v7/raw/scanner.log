@@ -1,0 +1,31 @@
+05:47:06.370 INFO  Scanner configuration file: /opt/sonar-scanner/conf/sonar-scanner.properties
+05:47:06.375 INFO  Project root configuration file: NONE
+05:47:06.411 INFO  SonarScanner CLI 8.1.0.6389
+05:47:06.425 INFO  Linux 6.8.0-138-generic amd64
+05:47:08.718 INFO  Communicating with SonarQube Community Build 26.9.0.129388
+05:47:08.720 INFO  JRE provisioning: os[linux], arch[x86_64]
+05:47:09.992 INFO  EXECUTION FAILURE
+05:47:09.992 INFO  Total time: 3.638s
+05:47:09.992 ERROR Error during SonarScanner CLI execution
+java.lang.IllegalStateException: Failed to run the Java command
+	at org.sonarsource.scanner.lib.internal.facade.forked.JavaRunner.execute(JavaRunner.java:83)
+	at org.sonarsource.scanner.lib.internal.facade.forked.ScannerEngineLauncherFactory.jreSanityCheck(ScannerEngineLauncherFactory.java:68)
+	at org.sonarsource.scanner.lib.internal.facade.forked.ScannerEngineLauncherFactory.createLauncher(ScannerEngineLauncherFactory.java:62)
+	at org.sonarsource.scanner.lib.ScannerEngineBootstrapper.buildNewFacade(ScannerEngineBootstrapper.java:196)
+	at org.sonarsource.scanner.lib.ScannerEngineBootstrapper.bootstrapServer(ScannerEngineBootstrapper.java:176)
+	at org.sonarsource.scanner.lib.ScannerEngineBootstrapper.bootstrap(ScannerEngineBootstrapper.java:151)
+	at org.sonarsource.scanner.cli.Main.analyze(Main.java:76)
+	at org.sonarsource.scanner.cli.Main.main(Main.java:64)
+Caused by: java.io.IOException: Cannot run program "/tmp/.sonar/cache/e5038aae3ca9ff670bc696496b0728dbd23d280026bad30291cb919221ecfdcb/OpenJDK21U-jre_x64_linux_hotspot_21.0.11_10.tar.gz_extracted/jdk-21.0.11+10-jre/bin/java": Exec failed, error: 13 (Permission denied) 
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1170)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1089)
+	at org.sonarsource.scanner.lib.internal.facade.forked.JavaRunner.execute(JavaRunner.java:62)
+	... 7 common frames omitted
+Caused by: java.io.IOException: Exec failed, error: 13 (Permission denied) 
+	at java.base/java.lang.ProcessImpl.forkAndExec(Native Method)
+	at java.base/java.lang.ProcessImpl.<init>(ProcessImpl.java:295)
+	at java.base/java.lang.ProcessImpl.start(ProcessImpl.java:225)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1126)
+	... 9 common frames omitted
+05:47:09.995 ERROR 
+05:47:09.995 ERROR Re-run SonarScanner CLI using the -X switch to enable full debug logging.
