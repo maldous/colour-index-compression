@@ -110,3 +110,10 @@ trials,1344independent constructed inverse cases,20malformed rejections. Frozen
 numeric prefix gains20B over the best declared non-CIX control but loses126B
 to currentCIXBEST. All losses/ties and time/memory tradeoffs retained. Production
 is unchanged; arbitrary-streaming and new-theory claims remain unqualified.
+
+## Numeric representation × incumbent CIXM6 checkpoint
+
+[Complete composition evidence](segmentation/composition-evidence/REPORT.md):
+new frozen4KiB numeric slice, original CIXM61393B vs paid frozen representation
+1418B. Inner4B saving is outweighed by29B descriptor; no finite-neighbourhood
+win. Replication gate failed; branch closed, production unchanged.

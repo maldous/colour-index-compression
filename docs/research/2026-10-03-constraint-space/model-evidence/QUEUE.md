@@ -37,8 +37,18 @@ synthesis remains gated; production is unchanged.
 | Exact tiny reference and adversarial inverse | Complete lengths0..8 |1344constructed fresh native inverses,20malformed; raw-dominated zero-regret caveat. |
 | Frozen real-prefix transfer | Complete with losses |40archives; numeric20B vsnon-CIX but126Bbehindincumbent; no production promotion. |
 | Local segmentation/template-cache extension | Gated, not launched | No strongest-incumbent real win; do not open hierarchy to rescue this bank. |
-| Incumbent CIXM6 same-representation numeric ablation | Exactly one next action, queued | New predeclared local numeric slice; matched original and ordinary preprocessing controls. |
+| Incumbent CIXM6 same-representation numeric ablation | Complete, rejected | New frozen4KiB slice: original1393B, paidE1418B; no15-bank neighbour wins. Replication gate failed. ../segmentation/composition-evidence/REPORT.md. |
 
 See ../segmentation/latent-evidence/REPORT.md. The only next experiment is the
 matched CIXM6 backend/model ablation above; broader transforms, local geometry,
 learned DAGs and shared-template synthesis remain gated. Production stays unchanged.
+
+## Numeric composition closure
+
+The sole queued incumbent-CIXM6 ablation completed under
+`composition-m6-citytemp-v1-buildfix1`. Forty-eight measured compression trials,
+45 paid SMC1 archives,30 independent tiny cases and37 malformed/unsupported
+rejections qualify the bounded comparison. The4B inner M6 saving cannot pay
+the29B descriptor. Close this numeric branch; no wider search, local geometry,
+DAG or production selector work is authorised by these results. The conditional
+replication reservation was not extracted. See the linked composition report.

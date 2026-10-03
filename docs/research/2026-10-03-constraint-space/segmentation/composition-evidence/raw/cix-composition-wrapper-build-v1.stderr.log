@@ -1,0 +1,48 @@
+warning: unused import: `c_int`
+ --> /home/user/src/colour-index-compression/rust/cix-native/experiments/constraint-space/representation_m6_wrapper.rs:5:11
+  |
+5 |     ffi::{c_int, c_uint, c_void},
+  |           ^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0034]: multiple applicable items in scope
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/constraint-space/representation_m6_wrapper.rs:62:7
+   |
+62 |     f.by_ref()
+   |       ^^^^^^ multiple `by_ref` found
+   |
+   = note: candidate #1 is defined in an impl of the trait `std::io::Read` for the type `File`
+   = note: candidate #2 is defined in an impl of the trait `std::io::Write` for the type `File`
+help: disambiguate the method for candidate #1
+   |
+62 -     f.by_ref()
+62 +     std::io::Read::by_ref(&mut f)
+   |
+help: disambiguate the method for candidate #2
+   |
+62 -     f.by_ref()
+62 +     std::io::Write::by_ref(&mut f)
+   |
+
+error[E0277]: a value of type `usize` cannot be built from an iterator over elements of type `usize`
+   --> /home/user/src/colour-index-compression/rust/cix-native/experiments/constraint-space/representation_m6_wrapper.rs:297:24
+    |
+297 |             .collect::<Result<usize, _>>()?;
+    |              -------   ^^^^^^^^^^^^^^^^ value of type `usize` cannot be built from `std::iter::Iterator<Item=usize>`
+    |              |
+    |              required by a bound introduced by this call
+    |
+    = help: the trait `FromIterator<usize>` is not implemented for `usize`
+help: the trait `FromIterator<Result<A, E>>` is conditionally implemented for `Result<V, E>`
+   --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/result.rs:2114:14
+    |
+    = note: unsatisfied requirement introduced here: `usize: FromIterator<usize>`
+    = note: required for `Result<usize, String>` to implement `FromIterator<Result<usize, String>>`
+note: required by a bound in `collect`
+   --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/iter/traits/iterator.rs:2077:4
+
+error: aborting due to 2 previous errors; 1 warning emitted
+
+Some errors have detailed explanations: E0034, E0277.
+For more information about an error, try `rustc --explain E0034`.

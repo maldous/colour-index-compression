@@ -55,3 +55,9 @@ general metadata-language expansion. The bounded checkpoint and retained losses
 are in segmentation/latent-evidence/REPORT.md. Current real-prefix results do not
 justify production integration or broad qualification. Exactly one next matched
 incumbent-CIXM6 numeric backend ablation is queued; no new transform zoo.
+
+The queued numeric incumbent-CIXM6 composition ablation is now completed and
+rejected within its frozen finite family. Original1393B beats paidE1418B;
+no nearby representation wins. The failed gate prevented replication.
+Close this branch and retain unchanged incumbent/no-transform selection;
+see segmentation/composition-evidence/REPORT.md. No search expansion follows.
