@@ -18,9 +18,10 @@
 | Exact partition reference and adaptive routing | Complete bounded screen |204archives,9malformed; declared finite DP, held-seed38/43B gains vswhole/fixed; stronger controls win. |
 | Retained history with sufficient optimizer state | Complete restricted position-determined history |116archives,16dependency/compatibility probes; no adaptive gain, fixed reset savings. Paid template-cache state remains unimplemented. |
 | One bounded decomposition extension | Complete v1 and evidence-driven v2 |103+63archives,44v1compatibility decodes,12extra fresh contiguous controls; per-column masks and matchedZstd controls. ../segmentation/mask-evidence/REPORT.md. |
-| Shared lane-support descriptions | One next bounded experiment, queued | Same discovered supports, fixed payload order; packed/compressed metadata/decision representation controls first. No new rank/backend claim. |
+| Shared lane-support descriptions | Closed: no repeated support model | Native inspection of12existing archives; one global stride/mask already shared. See ../segmentation/support-evidence/REPORT.md. No imaginary compressed/diagram results. |
 
-The next experiment is shared-support model descriptions for the already
-qualified lane family, not another backend tournament. Grammar/shift-aware
-library synthesis and exact supersets remain gated by concrete cost justification.
-No production integration or broad benchmarks are authorised by this checkpoint.
+The shared-support applicability gate is closed: current lanes have no repeated
+transmitted support table. The next bounded programme is the matched representation
+attribution matrix, then frozen schema-free joint geometry/transform/backend
+selection. See ../segmentation/latent-evidence/PLAN.md. Broad grammar/library
+synthesis remains gated; production is unchanged.
