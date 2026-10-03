@@ -4,6 +4,9 @@ Latest controlling objective: minimum **complete archive length** with exact
 restoration and explicit encode/decode/memory budgets. Ordinary optimisation
 is paused. No new compression theory or production route is claimed.
 
+[Mandatory six-condition success gate](SUCCESS-GATE.md): all conditions must
+pass for the same frozen mechanism. **No current candidate passes.**
+
 ## Read in order
 
 1. [Research direction and objective](RESEARCH-DIRECTION.md): latest scope,
