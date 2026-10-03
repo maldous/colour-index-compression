@@ -29,6 +29,7 @@ are reused only within their documented scope; cancelled baselines stay stopped.
 |---|---|---|
 | R1 lane/residual | 51 candidate rows, all exact; strong 278→129 B, weak 526→232 B, random literal 8,221 B; malformed checks reject. [Evidence](r1-results/REPORT.md) | New fixed CCA development and held-out replication before any promotion. |
 | R2 word exceptions |18exact rows; strong matched wrapper273→267B (6B), all weak/absent palettes lose. [Evidence](word-exception-results/REPORT.md)| No plain-CIX production-size win; promotion remains open. |
+| N6 integer codes |21exact rows; delta888→556B strong,632→616B weak; varint wins random. [Evidence](integer-substream-results/REPORT.md)| Real structural substreams and same-backend integration remain open. |
 | COND-CONTEXT synthetic | 12 exact rows; order2 context 4,302→64 B strong, 4,302→85 B weak, expands on random; raw 16,414 B. [Evidence](conditional-context-results/REPORT.md) | CCA replication and appropriate profile/memory controls; no production-format promotion yet. |
 
 These are complete experimental stored-byte comparisons, not corpus records.
@@ -51,3 +52,14 @@ build/install/CLI examples plus a measured compatibility matrix. Only then packa
 One observation per configuration; no timing averages. Root dispatches all heavy
 jobs through WaveScheduler with four physical cores / decimal12GB memory /
 4GB active temporary / no swap. Local computation only, no Actions or publication.
+
+## Current refactor checkpoint
+
+Native source d3a2cd416e49f93403d1dbd348a3e9a45db66ec6 passed its release
+build, seven chain tests, eight focused footer/CLI checks and latest Docker
+Sonar (zero current Rust issues). Compiler dead-code target warnings remain241.
+Binaries are in benchmark-work/release-d3a2/final; [evidence](../release-d3a2/REPORT.md).
+This does not close the pending full-current suite, large-pipe replay, build/PGO,
+scaling or unexecuted compression experiments. The separate N6 integer-coder
+harness initially failed compilation before any encode; corrected v2 completed
+21 measured exact rows. Initial failure remains preserved, not silently replaced.

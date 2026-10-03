@@ -1,0 +1,58 @@
+{
+  "experiment": "N6-universal-integer-substream-closure",
+  "status": "prepared_not_executed",
+  "scope": "Synthetic tagged structural integer controls; not a real-LZ or production-format result.",
+  "source": {
+    "path": "rust/cix-native/experiments/integer-substream-closure/main.rs",
+    "sha256": "ecd8b037cf3fefad3313e953e7d128027780905da5233e65a82153d72283613a",
+    "base_revision": "9674fabb4af254ac5559e3444d6e15521d7ca2b2",
+    "language": "Rust std only; outside Cargo and production source"
+  },
+  "input_schema": {
+    "magic": "ISIN1",
+    "version": 1,
+    "tags": {
+      "0": "length",
+      "1": "distance",
+      "2": "count",
+      "3": "exception_position"
+    },
+    "count": 256,
+    "tail": "stored byte-for-byte",
+    "fixtures": {
+      "strong": {
+        "description": "eight values 0,1,4,16,64,255,u64::MAX,8 repeated 32 times; tags cycle; tail=tail",
+        "bytes": 846,
+        "sha256": "927cfb2e0f615934fc4493107bbc0368956be509b8675557a0028d3b3851626e"
+      },
+      "weak": {
+        "description": "six small frequent values; every ninth is xorshift64 value masked to 10 bits; tags cycle; tail=t",
+        "bytes": 590,
+        "sha256": "8f9473fa95a7d43429675cc53378556000444028344438935114b1b7341fdcc3"
+      },
+      "absent": {
+        "description": "xorshift64 values masked to 16 bits; tags cycle; tail=t",
+        "bytes": 972,
+        "sha256": "b578babbd2cafee8655d68eca4076a7e67672fd9c8084437debc763829b4f8a8"
+      }
+    }
+  },
+  "coders": ["varint", "gamma", "delta", "rice:0", "rice:2", "rice:4", "rice:8"],
+  "archive": {
+    "magic": "ISC1",
+    "version": 1,
+    "charged_fields": ["magic", "version", "coder", "rice_k", "schema", "count", "tag_length", "tail_length", "integer_bit_length", "integer_payload_length", "tags", "integer_payload", "tail", "crc32"],
+    "crc32_scope": "all bytes after magic through the final tail byte",
+    "caps": {"values": 4096, "tail_bytes": 1024, "integer_bits": 1048576, "rice_quotient": 65536, "archive_bytes": 131072},
+    "rice_wire_rule": "regular cost is q+k+2 bits; raw escape cost is 65 bits; use raw iff q > 63-k, preserve the equal-cost regular form, and reject the opposite noncanonical form while decoding"
+  },
+  "execution": {
+    "rows": 21,
+    "trials_per_row": 1,
+    "averages": false,
+    "root_dispatch_only": true,
+    "aggregate_resources": {"physical_cores": 1, "ram_mib": 256, "temporary_mib": 2, "swap": "disabled", "wall_seconds_per_row": 30},
+    "fresh_decoder": "new process; archive and output path only; parent byte-compares restored source",
+    "required_receipts": ["source_fixture_archive_hashes", "complete_byte_count", "resource_receipt", "fresh_child_status", "source_restored_byte_equality"]
+  }
+}

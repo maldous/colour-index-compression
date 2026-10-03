@@ -46,3 +46,9 @@ random selects literal8221B. Conditional composition now has12 exact rows:
 strong global4302→context2 64B, weak4302→85B, random expands and selects raw.
 These are synthetic experimental complete-frame wins. Neither is promoted
 without frozen CCA and held-out replication. Packaging remains OPEN.
+
+Current native source is nowd3a2cd416: seven chain tests/eightCLI controls
+andfreshDockerSonarzero currentissues. The earlier6ac/prediction timing
+evidence retains its source scope. R2word-exceptions has18exact rows,6B
+same-wrapper strongsaving but63B loss againstplainnative; rejectproduction
+promotion. Packaging remains blocked on [closure queue](closure-queue/README.md).
