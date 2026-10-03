@@ -2487,7 +2487,6 @@ fn encode_candidates<R: Read, W: Write>(
 ) -> Result<(), String> {
     let mut state = prepare_candidate_encoder(&mut dst, &options)?;
     let EncodeOptions {
-        block,
         level,
         forced,
         backend,
@@ -2495,7 +2494,6 @@ fn encode_candidates<R: Read, W: Write>(
         format,
         input_fd,
         flush_interval,
-        memory,
         workers,
         explain,
         verbose,
@@ -2868,7 +2866,21 @@ fn encode_m6<R: Read, W: Write>(
     effort: u8,
     memory: usize,
 ) -> Result<(), String> {
-    encode_m6_timed(src, dst, block_size, file_name, effort, memory, -1, None)
+    encode_m6_timed(
+        src,
+        dst,
+        block_size,
+        file_name,
+        effort,
+        memory,
+        M6ReadOptions { input_fd: -1, flush_interval: None },
+    )
+}
+
+#[derive(Clone, Copy)]
+struct M6ReadOptions {
+    input_fd: i32,
+    flush_interval: Option<Duration>,
 }
 
 fn encode_m6_timed<R: Read, W: Write>(
@@ -2878,9 +2890,9 @@ fn encode_m6_timed<R: Read, W: Write>(
     file_name: Option<&str>,
     effort: u8,
     memory: usize,
-    input_fd: i32,
-    flush_interval: Option<Duration>,
+    read_options: M6ReadOptions,
 ) -> Result<(), String> {
+    let M6ReadOptions { input_fd, flush_interval } = read_options;
     const HISTORY_LIMIT: usize = 1 << 20;
     let mut whole = 0usize;
     let mut crc = crc32fast::Hasher::new();
@@ -4780,8 +4792,7 @@ fn encode_selected<R: Read, W: Write>(
             name,
             o.level,
             o.memory,
-            input_fd,
-            o.flush_interval,
+            M6ReadOptions { input_fd, flush_interval: o.flush_interval },
         );
     }
     if let Some(profile) = o.portfolio.as_deref() {
