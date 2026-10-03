@@ -10,8 +10,9 @@ model description define useful exact spaces more cheaply than established
 representations, while COUNT/RANK/UNRANK stay practical?
 
 For fixed Ω compare complete model descriptions directly. For actual input
-compare complete archive bytes, including model, parameters, compiled state,
-exceptions, rank, padding, checksum and framing. Generic decoder code is shared
+compare complete archive bytes, including model, parameters, transmitted
+certificates, exceptions, rank, padding, checksum and framing. Decoder-regenerated
+compiled state is charged as construction time/memory, not imaginary wire bytes. Generic decoder code is shared
 software; no source-specific dictionary, generator identity or hidden assets.
 
 Prior art first: graph/factor/constraint languages, knowledge compilation,
@@ -44,3 +45,6 @@ public Sites, workflow/Actions use, or old Hutter runs. Root leases bounded
 local computation through the existing scheduler; agents prepare disjoint
 prior-art/control/design documents in parallel. Completed evidence is committed
 and pushed privately after checking Actions remain disabled.
+
+Latest addendum: noise-tolerant paid exceptions first, stronger same-space
+controls and paid nonuniform payload controls. See [safe-checkpoint delta](ADDENDUM-DELTA.md).

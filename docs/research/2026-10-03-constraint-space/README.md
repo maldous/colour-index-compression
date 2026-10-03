@@ -60,3 +60,15 @@ same exact state space across established representations and search for
 shared structural objects. Stop trying to beat a same-space uniform rank by
 changing terminology. Prior-art destruction precedes any new language design;
 production changes remain prohibited. See [the controlling direction](SDL-DIRECTION.md).
+
+## Same-space model descriptions and robustness addendum
+
+[Measured model-description instrument](model-evidence/REPORT.md):173new
+archives restore exactly. Shared selectors save1–3B versus naive flat metadata,
+but ordinary packing beats or ties them. Automatic structural discovery wins
+on four bounded synthetic cases against the declared controls; these wins
+do not establish a shared-description innovation.
+
+[Safe-checkpoint delta](ADDENDUM-DELTA.md): paid exact exceptions are next;
+stronger usage/grammar/shift-aware controls are explicitly tracked in the
+[focused ledger](model-evidence/QUEUE.md). No production integration.

@@ -1,0 +1,17 @@
+error[E0282]: type annotations needed for `Vec<_>`
+   --> /home/user/src/colour-index-compression/rust/cix-native/experiments/constraint-space/model_descriptions.rs:386:17
+    |
+386 |             let mut runs = Vec::new();
+    |                 ^^^^^^^^
+...
+389 |                     if last.0 + last.1 == v {
+    |                        ------ type must be known at this point
+    |
+help: consider giving `runs` an explicit type, where the type for type parameter `T` is specified
+    |
+386 |             let mut runs: Vec<T> = Vec::new();
+    |                         ++++++++
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0282`.
