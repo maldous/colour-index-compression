@@ -36,7 +36,12 @@ payload are supporting diagnostics, never substitutes for condition5.
 
 ## Current assessment
 
-**No candidate passes the gate.**
+**ERC1 passes the narrow pilot gate on the frozen synthetic family relative
+to its six declared controls.** It is not a novel theory, a general-purpose
+production route, or a claim against every established compressor. See
+[the complete four-cost evidence](record-evidence/REPORT.md).
+
+The earlier candidates below retain their negative/partial assessment:
 
 * The physical CSP1 experiment verifies exact representation and selected
   round trips at tiny scale; it does not automatically discover a useful
@@ -46,8 +51,13 @@ payload are supporting diagnostics, never substitutes for condition5.
   but does not provide an input-driven physical encoder/decoder or a paid pair
   win. Its logical counts and shared-implementation rank checks are preliminary
   evidence only.
-* Equality/affine plus histogram intersections remain candidate investigations,
-  with no qualified complete compression advantage.
+* Equality/count records now have two complete-size wins (12 and59bytes),
+  including a frozen held-out ten-position case. Both individual models lose
+  to the control while the intersection wins. Exact reconstruction, paid
+  metadata, independent selected ranks and128tiny all-rank cases are verified.
+  The gain over a direct dictionary is solely a cheaper model description.
+  Broader affine/histogram methods and real-data/streaming effectiveness remain
+  unqualified.
 
 Passing these six conditions establishes a **qualified compression mechanism**,
 not automatically a new theory. A novelty claim additionally needs the precise

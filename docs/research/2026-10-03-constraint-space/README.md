@@ -5,7 +5,9 @@ restoration and explicit encode/decode/memory budgets. Ordinary optimisation
 is paused. No new compression theory or production route is claimed.
 
 [Mandatory six-condition success gate](SUCCESS-GATE.md): all conditions must
-pass for the same frozen mechanism. **No current candidate passes.**
+pass for the same frozen mechanism. The ERC1 pilot passes at its declared
+synthetic scale and control set;
+**no new compression theory or production-ready method is established.**
 
 ## Read in order
 
@@ -24,7 +26,14 @@ pass for the same frozen mechanism. **No current candidate passes.**
    exact selected reconstruction, no gain against bare original.
 7. [Automated finite search evidence](search-evidence/REPORT.md):56,616pairs,
    7,810positive volume interactions, zero paid joint-pair wins.
-8. [Independent review](REVIEW.md): approvals and qualification limits.
+8. [Paid equality/count interaction evidence](record-evidence/REPORT.md):
+   four complete archive ablations, direct dictionary control, a held-out
+   emergence win, ties/losses, and independent all-rank validation.
+9. [Record interaction proof](record-interaction-theorem.md),
+   [source review](record-counts-review.md), and
+   [direct control review](record-dictionary-review.md).
+10. [Independent review](REVIEW.md): earlier checkpoint limits; the new
+    [evidence review](record-evidence-review.md) covers the ERC/RDIC experiment.
 
 Novelty classifications in the latest documents use the user's A–F scale:
 A established; B differently applied; C engineering combination; D potentially

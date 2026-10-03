@@ -265,7 +265,7 @@ distinction is an explicit rejection of an overly broad theory claim.
 |---|---|---|
 | ESTABLISHED THEORY | Set description plus rank; two-part codes; uniform constrained arithmetic equivalence; finite-set structure functions | No new coding principle demonstrated |
 | ESTABLISHED BUT POTENTIALLY UNDERUSED | Exact completion-count DP for relational structures; compiled model counting; generic paid intersections | Practical discovery and metadata costs must be measured |
-| NEW COMBINATION | Proposed explicit discovery + tractability contract + complete-cost selector | Project proposal only; not established new relative to all prior systems |
+| NEW COMBINATION | Isolated generic record discovery + exact indexing + complete-cost candidate selection | Now measured; engineering integration, not established new relative to all prior systems |
 | POTENTIALLY NEW FORMULATION | None substantiated | A resource-bounded constraint language alone does not justify this label |
 | POTENTIALLY NEW THEORETICAL RESULT | None substantiated | Elementary propositions above are consequences of known coding/counting theory |
 | DISPROVEN / REDISCOVERY | Free intersection savings; free quotienting; multiplying causal-context multinomials; treating smaller ranks as complete archive wins | Costs, fibers, path feasibility and complexity invalidate these arguments |
@@ -294,3 +294,29 @@ format changes, performance tuning, or integration are part of this work.
 Next evidence should extend independent rank verification, a same-information
 coder baseline, and a generic direct-description baseline. Only after that should a
 bounded tractable relational family be explored on arbitrary bytes.
+
+
+## 8. Subsequent paid-interaction checkpoint
+
+The isolated ERC1 prototype now automatically discovers equality and per-record
+count constraints, materializes four complete archive ablations and qualifies
+79archives with fresh exact reconstruction. The eight-position development
+case meets LE>=L0, LC>=L0 and LEC<L0 by12bytes; the frozen ten-position
+held-out case repeats it by59bytes. Six-position cases tie the direct dictionary
+and a four-position case loses4bytes. Weak/absent/empty losses remain explicit.
+[Full evidence, controls, proof and limits](record-evidence/REPORT.md).
+
+The direct learned dictionary control defines the same local admissible set;
+both emit the identical mixed-radix sequence rank. Their difference is exactly
+paid model description size. This is a concrete compression consequence of
+compact constraint descriptions within established enumerative/MDL theory.
+It does not establish a new possibility-space algebra or a novel entropy bound.
+A uniform completion-probability arithmetic implementation remains pending;
+its equivalence to the ideal rank cost is known and already derived above.
+
+Tiny independent oracle archives now exercise104ERC ranks plus24RDIC
+combinations through fresh native decoders, closing the earlier absence of
+independently verified rank values for this new family. The earlier CSP1 and
+predicate-search scope and failures are unchanged. Wider constraint closure,
+certified compilation width, automatic discovery of previously unsupported
+structure and real-data evidence remain research questions.

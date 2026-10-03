@@ -65,3 +65,28 @@ failed and negative trials. Expand to real compression comparisons only after
 independent rank values and actual archive grammar are qualified. Production
 integration and ordinary optimisation remain paused. Corpus acquisition,
 public publication and GitHub Actions remain outside scope.
+
+
+## Paid-record-intersection checkpoint
+
+Completed `erc-four-cost-discovery-v1`: heterogeneous rules discovered, exact
+COUNT/RANK/UNRANK implemented,79physical archives restored, independent128tiny
+rank cases verified, and two complete-size emergence wins including frozen
+held-out replication. See [measured report](record-evidence/REPORT.md).
+This closes the earlier lack of any paid interaction example within this
+bounded family; it does not close the novelty or real-data questions.
+
+The strongest remaining theoretical test is cross-factor discovery under a
+**certified exact prefix-counting resource bound**, with a direct constrained
+arithmetic model and a compact grammar/decision-diagram control. Prior art
+already supplies factorized counting and constrained enumeration. A candidate
+must demonstrate what its discovery/compilation algorithm adds, not merely
+translate relationships into those existing systems.
+
+Queued, not executed: investigate equality-component weights coupled through
+more than one overlapping count constraint, compile only instances with a
+certified bounded state count, and test whether joint discovery can be cheaper
+than singleton-greedy discovery after paying every certificate and description.
+Reject a new-theory claim if a conventional finite-state or knowledge-compiled
+model expresses the same information at the same cost. This queue does not
+resume ordinary production optimization or authorize new acquisition.
