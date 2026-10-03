@@ -1,6 +1,6 @@
 # Word palette v2
 
-Status: prepared only. No compilation, test, benchmark, or measurement has run.
+Status: VERIFIED_SINGLE_SCREEN. Six single-run controls passed fresh-process restoration. See [REPORT.md](REPORT.md) for measured wins, losses and production limitations.
 
 WPV2 is a separate buffered experiment at
 `rust/cix-native/experiments/word-palette-v2/main.rs`. It is not in Cargo and

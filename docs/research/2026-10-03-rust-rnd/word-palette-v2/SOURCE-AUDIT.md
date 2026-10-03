@@ -1,7 +1,7 @@
 # WPV2 source audit
 
 Prepared at repository revision `2ee5251bf947c71da5056ecd306ca601d8bb0b48`.
-No WPV2 build, test, benchmark, or measurement has run.
+At the source-freeze time, no WPV2 build or measurement had run. Subsequent single-screen evidence is recorded in REPORT.md and results.json.
 
 `rust/cix-native/src/numeric.rs` is relevant prior art: it implements CIXM6
 word FOR, delta, delta2, and PFOR payload candidates, including checked word
