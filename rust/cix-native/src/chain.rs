@@ -85,6 +85,14 @@ struct CacheCapture {
     allowance: usize,
 }
 
+struct CandidateSelectionState<'a> {
+    cache_allowance: usize,
+    cache: &'a mut Vec<CachedTransform>,
+    cached_bytes: &'a mut usize,
+    best: &'a mut Option<(Vec<u8>, String)>,
+    measurements: &'a mut Vec<CandidateSize>,
+}
+
 fn cache_table_bytes(slots: usize) -> usize {
     std::mem::size_of::<Vec<CachedTransform>>().saturating_add(
         slots.saturating_mul(std::mem::size_of::<CachedTransform>()),
@@ -1236,6 +1244,63 @@ fn record_materialized_cached(
     }
 }
 
+#[inline]
+fn consider_selected_transform(
+    transform_id: u8,
+    transformed: Vec<u8>,
+    cacheable: bool,
+    options: EncodeOptions,
+    state: &mut CandidateSelectionState<'_>,
+) -> Result<(), String> {
+    if let Some(entry) = state.cache.iter().find(|entry| entry.key == transformed) {
+        #[cfg(test)]
+        CACHE_HITS.with(|hits| hits.set(hits.get().saturating_add(1)));
+        record_materialized_cached(
+            &entry.inners,
+            transform_id,
+            &mut *state.best,
+            &mut *state.measurements,
+        );
+        return Ok(());
+    }
+    if !cacheable || state.cache.len() == state.cache.capacity() {
+        let mut no_capture = None;
+        consider_transform(
+            &transformed,
+            transform_id,
+            options,
+            &mut *state.best,
+            &mut *state.measurements,
+            &mut no_capture,
+        )?;
+        return Ok(());
+    }
+    let mut capture = if state.cache.len() < state.cache.capacity() {
+        CacheCapture::begin(
+            transformed.capacity(),
+            state.cache_allowance.saturating_sub(*state.cached_bytes),
+        )
+    } else {
+        None
+    };
+    consider_transform(
+        &transformed,
+        transform_id,
+        options,
+        &mut *state.best,
+        &mut *state.measurements,
+        &mut capture,
+    )?;
+    if let Some(capture) = capture {
+        *state.cached_bytes = (*state.cached_bytes).saturating_add(capture.retained_bytes);
+        state.cache.push(CachedTransform {
+            key: transformed,
+            inners: capture.inners,
+        });
+    }
+    Ok(())
+}
+
 /// Materialize a bounded frozen transform-chain portfolio and select by complete
 /// payload bytes. The returned payload includes the three-byte chain header.
 pub fn encode(data: &[u8], options: EncodeOptions) -> Result<EncodeResult, String> {
@@ -1294,52 +1359,24 @@ pub fn encode_with_cache(data: &[u8], options: EncodeOptions, cache_allowance: u
             cache = Vec::new();
         }
     }
-    for (index, (_, transform_id, transformed)) in profiled.into_iter().take(selected).enumerate() {
-        if let Some(entry) = cache.iter().find(|entry| entry.key == transformed) {
-            #[cfg(test)]
-            CACHE_HITS.with(|hits| hits.set(hits.get().saturating_add(1)));
-            record_materialized_cached(
-                &entry.inners,
-                transform_id,
-                &mut best,
-                &mut measurements,
-            );
-            continue;
-        }
-        if !cacheable[index] || cache.len() == cache.capacity() {
-            let mut no_capture = None;
-            consider_transform(
-                &transformed,
-                transform_id,
-                options,
-                &mut best,
-                &mut measurements,
-                &mut no_capture,
-            )?;
-            continue;
-        }
-        let mut capture = if cache.len() < cache.capacity() {
-            CacheCapture::begin(
-                transformed.capacity(),
-                cache_allowance.saturating_sub(cached_bytes),
-            )
-        } else {
-            None
+    {
+        let mut state = CandidateSelectionState {
+            cache_allowance,
+            cache: &mut cache,
+            cached_bytes: &mut cached_bytes,
+            best: &mut best,
+            measurements: &mut measurements,
         };
-        consider_transform(
-            &transformed,
-            transform_id,
-            options,
-            &mut best,
-            &mut measurements,
-            &mut capture,
-        )?;
-        if let Some(capture) = capture {
-            cached_bytes = cached_bytes.saturating_add(capture.retained_bytes);
-            cache.push(CachedTransform {
-                key: transformed,
-                inners: capture.inners,
-            });
+        for (index, (_, transform_id, transformed)) in
+            profiled.into_iter().take(selected).enumerate()
+        {
+            consider_selected_transform(
+                transform_id,
+                transformed,
+                cacheable[index],
+                options,
+                &mut state,
+            )?;
         }
     }
     let (payload, description) = best.ok_or("no transform-chain candidates")?;

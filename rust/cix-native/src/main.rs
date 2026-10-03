@@ -2883,6 +2883,68 @@ struct M6ReadOptions {
     flush_interval: Option<Duration>,
 }
 
+struct M6BlockEncoder<'a, W> {
+    dst: &'a mut W,
+    whole: usize,
+    crc: crc32fast::Hasher,
+    effort: u8,
+    memory: usize,
+    fixed_reserve: usize,
+    reference_budget: usize,
+    persistent_enabled: bool,
+    persistent_reserve: usize,
+    persistent_states: Option<stateful::PersistentAdaptiveStates>,
+    history: Vec<u8>,
+    recent: std::collections::VecDeque<Vec<u8>>,
+    recent_bytes: usize,
+    budget_skips: std::collections::BTreeSet<u8>,
+}
+
+impl<W: Write> M6BlockEncoder<'_, W> {
+    fn encode_block(&mut self, data: &[u8]) -> Result<(), String> {
+        const HISTORY_LIMIT: usize = 1 << 20;
+        let prefix = self.history.as_slice();
+        let mut selected = M6Selection::raw(data);
+        let available = self.memory
+            .saturating_sub(self.fixed_reserve)
+            .saturating_sub(self.reference_budget)
+            .saturating_sub(if self.persistent_enabled { self.persistent_reserve } else { 0 });
+        let mut trials = M6TrialContext {
+            selected: &mut selected,
+            data,
+            prefix,
+            effort: self.effort,
+            available,
+            budget_skips: &mut self.budget_skips,
+        };
+        let multinomial = m6_try_context_candidates(&mut trials)?;
+        m6_try_adaptive_candidates(&mut trials)?;
+        m6_try_sparse_candidates(trials.selected, data)?;
+        m6_try_recent_reference(trials.selected, &self.recent, data);
+        m6_try_legacy_candidates(trials.selected, data, prefix, self.effort, available, trials.budget_skips)?;
+        m6_try_chain_and_numeric_candidates(&mut trials)?;
+        m6_try_histogram_candidate(&mut trials, multinomial.as_deref())?;
+        m6_try_record_periodic_candidates(&mut trials)?;
+        m6_try_ppm_candidate(&mut trials)?;
+        m6_try_expert_and_fixedmix_candidates(&mut trials)?;
+        m6_try_persistent_candidate(&mut trials, &mut self.persistent_states)?;
+        m6_write_selected_frame(self.dst, &selected, data.len())?;
+        self.crc.update(data);
+        self.whole = self.whole.checked_add(data.len()).ok_or("CIXM6 stream length overflow")?;
+        append_bounded_history(&mut self.history, data, HISTORY_LIMIT);
+        self.recent_bytes = self.recent_bytes.saturating_add(data.len());
+        self.recent.push_back(data.to_vec());
+        while self.recent.len() > 1024 || self.recent_bytes > self.reference_budget {
+            if let Some(oldest) = self.recent.pop_front() {
+                self.recent_bytes = self.recent_bytes.saturating_sub(oldest.len());
+            } else {
+                break;
+            }
+        }
+        Ok(())
+    }
+}
+
 fn encode_m6_timed<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
@@ -2894,8 +2956,6 @@ fn encode_m6_timed<R: Read, W: Write>(
 ) -> Result<(), String> {
     let M6ReadOptions { input_fd, flush_interval } = read_options;
     const HISTORY_LIMIT: usize = 1 << 20;
-    let mut whole = 0usize;
-    let mut crc = crc32fast::Hasher::new();
     let mut block = vec![0u8; block_size.min(MAX_BLOCK as usize).max(1)];
     let (fixed_reserve, reference_budget, persistent_enabled) = m6_memory_plan(block.len(), memory)?;
     let persistent_reserve = stateful::RETAINED_MEMORY_BOUND.saturating_add(stateful::WORKING_MEMORY_BOUND);
@@ -2904,11 +2964,22 @@ fn encode_m6_timed<R: Read, W: Write>(
     put_varint(HISTORY_LIMIT, &mut header);
     dst.write_all(&header).map_err(ioerr)?;
 
-    let mut persistent_states = persistent_enabled.then(stateful::PersistentAdaptiveStates::new);
-    let mut history = Vec::with_capacity(HISTORY_LIMIT);
-    let mut recent = std::collections::VecDeque::<Vec<u8>>::new();
-    let mut recent_bytes = 0usize;
-    let mut budget_skips = std::collections::BTreeSet::<u8>::new();
+    let mut encoder = M6BlockEncoder {
+        dst: &mut dst,
+        whole: 0,
+        crc: crc32fast::Hasher::new(),
+        effort,
+        memory,
+        fixed_reserve,
+        reference_budget,
+        persistent_enabled,
+        persistent_reserve,
+        persistent_states: persistent_enabled.then(stateful::PersistentAdaptiveStates::new),
+        history: Vec::with_capacity(HISTORY_LIMIT),
+        recent: std::collections::VecDeque::new(),
+        recent_bytes: 0,
+        budget_skips: std::collections::BTreeSet::new(),
+    };
     loop {
         let (got, eof) = m6_fill_block(&mut src, &mut block, input_fd, flush_interval)?;
         if got == 0 {
@@ -2917,61 +2988,13 @@ fn encode_m6_timed<R: Read, W: Write>(
             }
             continue;
         }
-        let data = &block[..got];
-        let prefix = history.as_slice();
-        let mut selected = M6Selection::raw(data);
-
-        let available = memory
-            .saturating_sub(fixed_reserve)
-            .saturating_sub(reference_budget)
-            .saturating_sub(if persistent_enabled {
-                persistent_reserve
-            } else {
-                0
-            });
-        let mut trials = M6TrialContext {
-            selected: &mut selected,
-            data,
-            prefix,
-            effort,
-            available,
-            budget_skips: &mut budget_skips,
-        };
-        let multinomial = m6_try_context_candidates(&mut trials)?;
-        m6_try_adaptive_candidates(&mut trials)?;
-
-        m6_try_sparse_candidates(trials.selected, data)?;
-
-        // Recent identical blocks use a relative back-reference; retain only
-        // the configured bounded queue and compare its complete frame cost.
-        m6_try_recent_reference(trials.selected, &recent, data);
-
-        m6_try_legacy_candidates(trials.selected, data, prefix, effort, available, trials.budget_skips)?;
-        m6_try_chain_and_numeric_candidates(&mut trials)?;
-        m6_try_histogram_candidate(&mut trials, multinomial.as_deref())?;
-        m6_try_record_periodic_candidates(&mut trials)?;
-        m6_try_ppm_candidate(&mut trials)?;
-        m6_try_expert_and_fixedmix_candidates(&mut trials)?;
-        m6_try_persistent_candidate(&mut trials, &mut persistent_states)?;
-        m6_write_selected_frame(&mut dst, &selected, got)?;
-        crc.update(data);
-        whole = whole
-            .checked_add(got)
-            .ok_or("CIXM6 stream length overflow")?;
-        append_bounded_history(&mut history, data, HISTORY_LIMIT);
-        recent_bytes = recent_bytes.saturating_add(got);
-        recent.push_back(data.to_vec());
-        while recent.len() > 1024 || recent_bytes > reference_budget {
-            if recent.is_empty() {
-                break;
-            }
-            recent_bytes = recent_bytes.saturating_sub(recent.pop_front().unwrap().len());
-        }
+        encoder.encode_block(&block[..got])?;
         if eof {
             break;
         }
     }
-    finish_m6_encode(&mut dst, &budget_skips, whole, crc, file_name)
+    let M6BlockEncoder { dst, budget_skips, whole, crc, .. } = encoder;
+    finish_m6_encode(dst, &budget_skips, whole, crc, file_name)
 }
 
 fn varint_len(mut value: usize) -> usize {
@@ -3840,20 +3863,20 @@ fn m6_finish_stream<R: Read>(
     if expected != total || u32::from_le_bytes(checksum) != crc.clone().finalize() {
         return Err("CIXM6 length or CRC32 checksum mismatch".into());
     }
+    m6_validate_footer_tail(&m6_read_footer_tail(src, fd, footer_allowance)?)
+}
+
+fn m6_read_footer_tail<R: Read>(
+    src: &mut R,
+    fd: i32,
+    footer_allowance: usize,
+) -> Result<Vec<u8>, String> {
     const MAX_TAIL: usize = 1024 * 1024 + 9;
     let mut tail = Vec::new();
     let mut scratch = [0u8; 4096];
     loop {
         check_interrupted()?;
-        let read_limit = if tail.is_empty() {
-            1
-        } else if tail.len() < tail.capacity() {
-            scratch.len().min(tail.capacity() - tail.len())
-        } else {
-            // Probe EOF with a stack byte. Any input here would require a
-            // retained allocation beyond the admitted footer capacity.
-            1
-        };
+        let read_limit = m6_footer_read_limit(tail.len(), tail.capacity(), scratch.len());
         let read = match read_poll(src, &mut scratch[..read_limit], fd, None)? {
             Some(read) => read,
             None => continue,
@@ -3861,29 +3884,59 @@ fn m6_finish_stream<R: Read>(
         if read == 0 {
             break;
         }
-        if tail.is_empty() {
-            let capacity = footer_allowance.min(MAX_TAIL);
-            if capacity < 9 {
-                return Err("CIXF1 filename footer exceeds remaining decode memory".into());
-            }
-            tail.try_reserve_exact(capacity)
-                .map_err(|_| "CIXF1 filename footer allocation failed")?;
-            if tail.capacity() > footer_allowance || tail.capacity() > MAX_TAIL {
-                return Err("CIXF1 filename footer exceeds remaining decode memory".into());
-            }
-        }
-        if tail.len().saturating_add(read) > MAX_TAIL {
-            return Err("CIXF1 filename footer exceeds limit".into());
-        }
-        if tail.len().saturating_add(read) > tail.capacity() {
+        m6_append_footer_tail(&mut tail, &scratch[..read], footer_allowance, MAX_TAIL)?;
+    }
+    Ok(tail)
+}
+
+fn m6_footer_read_limit(tail_len: usize, tail_capacity: usize, scratch_len: usize) -> usize {
+    if tail_len == 0 || tail_len == tail_capacity {
+        // Probe EOF with a stack byte. Any input here would require a retained
+        // allocation beyond the admitted footer capacity.
+        1
+    } else {
+        scratch_len.min(tail_capacity - tail_len)
+    }
+}
+
+fn m6_append_footer_tail(
+    tail: &mut Vec<u8>,
+    bytes: &[u8],
+    footer_allowance: usize,
+    max_tail: usize,
+) -> Result<(), String> {
+    if tail.is_empty() {
+        let capacity = footer_allowance.min(max_tail);
+        if capacity < 9 {
             return Err("CIXF1 filename footer exceeds remaining decode memory".into());
         }
-        tail.extend_from_slice(&scratch[..read]);
+        tail.try_reserve_exact(capacity)
+            .map_err(|_| "CIXF1 filename footer allocation failed")?;
+        if tail.capacity() > footer_allowance || tail.capacity() > max_tail {
+            return Err("CIXF1 filename footer exceeds remaining decode memory".into());
+        }
     }
-    if !tail.is_empty() {
-        if tail.len() < 9 || &tail[tail.len() - 5..] != b"CIXF1" { return Err("trailing bytes after CIXM6 stream".into()); }
-        let name_len = u32::from_le_bytes(tail[tail.len() - 9..tail.len() - 5].try_into().unwrap()) as usize;
-        if name_len != tail.len() - 9 || std::str::from_utf8(&tail[..name_len]).is_err() { return Err("invalid CIXF1 filename footer".into()); }
+    let new_len = tail.len().saturating_add(bytes.len());
+    if new_len > max_tail {
+        return Err("CIXF1 filename footer exceeds limit".into());
+    }
+    if new_len > tail.capacity() {
+        return Err("CIXF1 filename footer exceeds remaining decode memory".into());
+    }
+    tail.extend_from_slice(bytes);
+    Ok(())
+}
+
+fn m6_validate_footer_tail(tail: &[u8]) -> Result<(), String> {
+    if tail.is_empty() {
+        return Ok(());
+    }
+    if tail.len() < 9 || &tail[tail.len() - 5..] != b"CIXF1" {
+        return Err("trailing bytes after CIXM6 stream".into());
+    }
+    let name_len = u32::from_le_bytes(tail[tail.len() - 9..tail.len() - 5].try_into().unwrap()) as usize;
+    if name_len != tail.len() - 9 || std::str::from_utf8(&tail[..name_len]).is_err() {
+        return Err("invalid CIXF1 filename footer".into());
     }
     Ok(())
 }
