@@ -48,3 +48,10 @@ and pushed privately after checking Actions remain disabled.
 
 Latest addendum: noise-tolerant paid exceptions first, stronger same-space
 controls and paid nonuniform payload controls. See [safe-checkpoint delta](ADDENDUM-DELTA.md).
+
+Latest follow-on steering: after the support-sharing applicability closure,
+prioritise latent byte geometry and joint representation/backend selection over
+general metadata-language expansion. The bounded checkpoint and retained losses
+are in segmentation/latent-evidence/REPORT.md. Current real-prefix results do not
+justify production integration or broad qualification. Exactly one next matched
+incumbent-CIXM6 numeric backend ablation is queued; no new transform zoo.

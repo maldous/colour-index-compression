@@ -25,3 +25,20 @@ transmitted support table. The next bounded programme is the matched representat
 attribution matrix, then frozen schema-free joint geometry/transform/backend
 selection. See ../segmentation/latent-evidence/PLAN.md. Broad grammar/library
 synthesis remains gated; production is unchanged.
+
+## Latent-layout follow-on completed checkpoint
+
+| Work | Status | Boundary |
+|---|---|---|
+| Shared-support applicability | Closed |12existing archives inspected; support already global; no fictitious diagram/compressed wins. |
+| BSS/residual/backend attribution | Complete |59new archives; representation and outer framing/backend separated. |
+| Prior-art Parquet/Lance/CAST | Complete scoped primary review | ../segmentation/latent-prior-art.md; no novelty by vocabulary. |
+| Joint width/phase/operator/backend selector | Complete bounded standalone |169selected/control archives; finite heuristic global shortlist, exact lane minimisation. |
+| Exact tiny reference and adversarial inverse | Complete lengths0..8 |1344constructed fresh native inverses,20malformed; raw-dominated zero-regret caveat. |
+| Frozen real-prefix transfer | Complete with losses |40archives; numeric20B vsnon-CIX but126Bbehindincumbent; no production promotion. |
+| Local segmentation/template-cache extension | Gated, not launched | No strongest-incumbent real win; do not open hierarchy to rescue this bank. |
+| Incumbent CIXM6 same-representation numeric ablation | Exactly one next action, queued | New predeclared local numeric slice; matched original and ordinary preprocessing controls. |
+
+See ../segmentation/latent-evidence/REPORT.md. The only next experiment is the
+matched CIXM6 backend/model ablation above; broader transforms, local geometry,
+learned DAGs and shared-template synthesis remain gated. Production stays unchanged.

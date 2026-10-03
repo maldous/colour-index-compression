@@ -1,0 +1,37 @@
+error[E0382]: borrow of moved value: `ops`
+   --> /home/user/src/colour-index-compression/rust/cix-native/experiments/constraint-space/latent_layout.rs:310:24
+    |
+296 | fn global(x: &[u8], w: usize, p: usize, ops: Vec<u8>, tag: &'static str) -> Result<C, String> {
+    |                                         --- move occurs because `ops` has type `Vec<u8>`, which does not implement the `Copy` trait
+...
+305 |         ops,
+    |         --- value moved here
+...
+310 |         bytes: H + p + ops.len() + 4 + z.len(),
+    |                        ^^^ value borrowed here after move
+    |
+help: consider cloning the value if the performance cost is acceptable
+    |
+305 |         ops: ops.clone(),
+    |            +++++++++++++
+
+error[E0382]: borrow of moved value: `z`
+   --> /home/user/src/colour-index-compression/rust/cix-native/experiments/constraint-space/latent_layout.rs:310:40
+    |
+301 |     let z = zenc(&q[p..])?;
+    |         - move occurs because `z` has type `Vec<u8>`, which does not implement the `Copy` trait
+...
+308 |         p: z,
+    |            - value moved here
+309 |         lanes: Vec::new(),
+310 |         bytes: H + p + ops.len() + 4 + z.len(),
+    |                                        ^ value borrowed here after move
+    |
+help: consider cloning the value if the performance cost is acceptable
+    |
+308 |         p: z.clone(),
+    |             ++++++++
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0382`.

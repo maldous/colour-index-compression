@@ -102,3 +102,11 @@ reversible representation/selection improvements, not new compression theory.
 All535new main archives +12new comparison controls restore;44oldv1archives
 restore throughv2. See [compact delta](segmentation/CHECKPOINT.md) for exact
 scope, source/binary paths and remaining work. Production stays sealed d3a2.
+
+## Follow-on latent byte geometry checkpoint
+
+[Consolidated report](segmentation/latent-evidence/REPORT.md):268new compression
+trials,1344independent constructed inverse cases,20malformed rejections. Frozen
+numeric prefix gains20B over the best declared non-CIX control but loses126B
+to currentCIXBEST. All losses/ties and time/memory tradeoffs retained. Production
+is unchanged; arbitrary-streaming and new-theory claims remain unqualified.
