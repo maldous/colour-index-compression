@@ -84,3 +84,21 @@ raw, but925B ordinary histogram is stronger. Four new noisy grid cases win
 [specific prior-art methods](addendum-prior-art.md), and
 [accounting derivation](addendum-bounds.md). Established coding, no new theory
 or production integration.
+
+## Paid positions and staged decomposition checkpoint
+
+[Position results](position-evidence/REPORT.md):49new archives; weak-six854B
+beats925B histogram, irregular positions remove the gain.
+[Current production audit](segmentation/current-audit.md),
+[partition/history theory](segmentation/prior-art.md),
+[independent segmentation](segmentation/evidence/REPORT.md),
+[retained-history result](segmentation/history-evidence/REPORT.md), and
+[immutable lane v1 losses](segmentation/lane-evidence/REPORT.md).
+
+[Heterogeneous lane-mask refinement](segmentation/mask-evidence/REPORT.md)
+beats whole/fixed/currentCIXBEST on three fresh bounded synthetic widths.
+The stronger same-transform Zstd controls remain smaller. These are established
+reversible representation/selection improvements, not new compression theory.
+All535new main archives +12new comparison controls restore;44oldv1archives
+restore throughv2. See [compact delta](segmentation/CHECKPOINT.md) for exact
+scope, source/binary paths and remaining work. Production stays sealed d3a2.
