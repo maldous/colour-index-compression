@@ -1,0 +1,109 @@
+{
+  "schema": "cix-performance-opportunities-v1",
+  "status": "RESEARCH_REVIEW_ONLY_NO_EXECUTION",
+  "audit_revision": "20e18503b1d208a552ff8efc1231bab2281fb82e",
+  "incumbent_revision": "d3a2cd416e49f93403d1dbd348a3e9a45db66ec6",
+  "production_source_difference_between_revisions": false,
+  "decision": {
+    "new_compression_codec": "REJECTED_NO_QUALIFIED_OPPORTUNITY",
+    "next_action": "P1 final-source profile of whole-archive BEST candidate work",
+    "execution_authorized_by_this_record": false
+  },
+  "closed": [
+    {
+      "id": "rank-cardinality",
+      "outcome": "INTEGRATED",
+      "evidence": "docs/research/2026-10-03-rust-rnd/perf-f579/REPORT.md",
+      "result": "byte-identical Kennedy archive; one instrumented encode observation 2.26s to 2.13s"
+    },
+    {
+      "id": "ppm-context-key-allocation",
+      "outcome": "INTEGRATED_KERNEL_ONLY",
+      "evidence": "docs/research/2026-10-02-rust-performance-audit/ppm-eligible/README.md",
+      "result": "temporary vectors removed; no whole-codec throughput claim"
+    },
+    {
+      "id": "predictive-mixture",
+      "outcome": "CLOSED_NO_CODEC",
+      "evidence": "docs/research/2026-10-04-predictive-information/REPORT.md",
+      "result": "fixed-share +0.5747% ideal bits over best single, below material gate; oracle non-causal"
+    },
+    {
+      "id": "decoder-parallelism",
+      "outcome": "NOT_A_V0_1_CANDIDATE",
+      "evidence": "docs/research/2026-10-03-rust-performance-next/README.md",
+      "result": "decode threads >1 rejected; retained multithread decode cells failed"
+    },
+    {
+      "id": "synthetic-structural-extensions",
+      "outcome": "NO_PRODUCTION_PROMOTION",
+      "evidence": "docs/research/2026-10-03-rust-rnd/closure-queue",
+      "result": "synthetic effects lack qualified ordinary-CIX held-out win; word exception loses to plain native"
+    }
+  ],
+  "remaining": [
+    {
+      "id": "portfolio-candidate-work",
+      "priority": 1,
+      "kind": "profile-before-optimization",
+      "source": [
+        "rust/cix-native/src/portfolio_auto.rs:432",
+        "rust/cix-native/src/portfolio_auto.rs:545",
+        "rust/cix-native/src/portfolio_auto.rs:620",
+        "rust/cix-native/src/portfolio_auto.rs:714",
+        "rust/cix-native/src/main.rs:3263"
+      ],
+      "scope": "eligible named-file BEST: baseline, up to 6 CIXG, 3 CIXM6 and 14 CIXB1 complete candidates; serial execution and validation",
+      "evidence_gap": "no final-source call graph or per-family wall/allocation attribution",
+      "acceptance": [
+        "isolated P1 profile with source/binary/input/archive/restore/resource binding",
+        "candidate count, winner, omissions, encode and validation attribution",
+        "any change preserves eligibility, deterministic tie order, exact archive bytes and fresh restoration"
+      ],
+      "release_decision": "retain current search unless profile identifies a named dominant non-winning cost and a parity-preserving change"
+    },
+    {
+      "id": "portable-build-policy",
+      "priority": 2,
+      "kind": "qualification",
+      "evidence_gap": "historical LTO/CGU/PGO screens are nonfinal or mixed",
+      "acceptance": [
+        "B0-B9 and G exact-output build screens",
+        "DEFAULT improvement in both wall and user CPU",
+        "no FAST or constrained-BEST regression"
+      ],
+      "release_decision": "keep portable fat-LTO/CGU-1 reference unless threshold passes"
+    },
+    {
+      "id": "encoder-scaling-policy",
+      "priority": 3,
+      "kind": "qualification",
+      "evidence_gap": "retained scaling packet unqualified",
+      "acceptance": [
+        "S1-S12 serial observations with deterministic archive equality",
+        "worker/task/ordered-queue peaks and memory admission"
+      ],
+      "release_decision": "do not alter thread defaults from historical timing"
+    },
+    {
+      "id": "code-hygiene",
+      "priority": 4,
+      "kind": "release-blocker",
+      "evidence": "final Sonar source d3a2cd416 reported 0 current Rust issues; compiler dead-code notices remained outside Sonar rule import",
+      "evidence_gap": "exported release source and all-target/all-feature Clippy still need package-bound verification",
+      "acceptance": [
+        "Q2 optimized full suite",
+        "Q4 current Sonar and all-target/all-feature Clippy",
+        "remove or feature/test-confine dead code; no new blanket suppression"
+      ],
+      "release_decision": "public packaging blocked until current static-analysis inventory is resolved or explicitly dispositioned"
+    }
+  ],
+  "prohibited_inferences": [
+    "hindsight-oracle bits are not physical archive savings",
+    "kernel allocation evidence is not whole-process RSS evidence",
+    "synthetic representation wins are not corpus or production wins",
+    "historical profiling is not evidence for a current-source change",
+    "serial external candidate execution is not proven waste without attribution"
+  ]
+}

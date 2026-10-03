@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-10-04",
+  "basis": {
+    "branch": "research/silesia-competitive",
+    "numeric_composition_checkpoint": "20e18503b",
+    "production_revision": "d3a2cd416",
+    "scope": "history and code evidence audit only; no experiment or native-source edit"
+  },
+  "conclusion": {
+    "release_ready_compression_gain": false,
+    "information_theoretic_limit_proved": false,
+    "highest_priority": "P2",
+    "do_not_reopen": ["C3", "P1"]
+  },
+  "oracle": {
+    "label": "HINDSIGHT ORACLE - NON-CAUSAL DIAGNOSTIC ONLY",
+    "best_single_ideal_bits": 163134.352,
+    "oracle_ideal_bits": 115970.789,
+    "oracle_gap_bits": 47163.564,
+    "oracle_gap_percent": 28.911,
+    "best_causal_method": "fixed_share",
+    "best_causal_improvement_bits": 937.523,
+    "best_causal_captured_gap_percent": 1.988,
+    "consequence": "The oracle chooses after seeing the byte. Null controls show large apparent oracle gaps without additional causal information."
+  },
+  "opportunities": [
+    {
+      "id": "P1",
+      "area": "predictive mixture",
+      "status": "closed-negative",
+      "evidence": ["docs/research/2026-10-04-predictive-information/REPORT.md"],
+      "finding": "The frozen 28-expert static, online, and context mixtures miss the material-gain gate.",
+      "next_action": "none; do not materialize a physical mixed codec"
+    },
+    {
+      "id": "P2",
+      "area": "corrected recurrence-v3",
+      "status": "available-measurement",
+      "evidence": ["docs/research/2026-10-04-predictive-information/INVENTORY.md", "rust/cix-native/src/fixedmix.rs"],
+      "finding": "Implemented causal signal omitted from CPI1; legacy v2 is invalid because lookup is after observation.",
+      "next_action": "freeze and trace v3/no-v3 on the existing CCA split before any codec work"
+    },
+    {
+      "id": "P3",
+      "area": "PPM/SEE probability interface",
+      "status": "available-measurement",
+      "evidence": ["docs/research/2026-10-04-predictive-information/REPORT.md", "docs/research/2026-10-04-predictive-information/EXPOSURE-AMENDMENT.md"],
+      "finding": "Method-1 reachable original-byte mass is 0.5; PPM is not an eligible common expert yet.",
+      "next_action": "prove a unit-mass outcome space or classify PPM as coding-path-only"
+    },
+    {
+      "id": "P4-P7",
+      "area": "predictor costs, long match, context/count models",
+      "status": "available-bounded",
+      "evidence": ["docs/research/2026-10-03-rust-rnd/closure-queue/prediction.md"],
+      "finding": "Finite source-bound cells exist but demonstrate no production gain.",
+      "next_action": "only declared one-cell controls after P2/P3"
+    },
+    {
+      "id": "R1-R7",
+      "area": "representations",
+      "status": "mixed",
+      "evidence": ["docs/research/2026-10-03-rust-rnd/closure-queue/representations.md", "docs/research/2026-10-03-rust-rnd/closure-queue/r1-results/REPORT.md", "docs/research/2026-10-03-rust-rnd/closure-queue/word-exception-results/REPORT.md"],
+      "finding": "Shallow transforms and wrapper palette results do not justify promotion; phrase, numeric, sparse, and bounded-language cells remain finite unmeasured work.",
+      "next_action": "preserve numeric-composition closure and do not expand transforms"
+    },
+    {
+      "id": "C1-C3",
+      "area": "constraint and structural composition",
+      "status": "closed-negative",
+      "evidence": ["docs/research/2026-10-03-constraint-space/REPORT.md", "docs/research/2026-10-03-constraint-space/model-evidence/QUEUE.md", "docs/research/2026-10-03-constraint-space/segmentation/composition-evidence/REPORT.md"],
+      "finding": "Paid descriptions and stronger controls defeat proposed structural mechanisms; numeric M6 composition loses 25 complete bytes.",
+      "next_action": "none; preserve checkpoint 20e18503b"
+    },
+    {
+      "id": "E1-E8",
+      "area": "codec-family coverage",
+      "status": "mixed",
+      "evidence": ["docs/research/2026-10-03-rust-rnd/closure-queue/coverage.md", "docs/research/2026-10-03-rust-rnd/closure-queue/integer-substream-results/REPORT.md"],
+      "finding": "Several named mechanism families remain bounded experiments; external backends are separate controls and PAQ -12L is resource-blocked.",
+      "next_action": "one named mechanism per cell or an explicit scoped blocker"
+    },
+    {
+      "id": "T1",
+      "area": "throughput hotspot",
+      "status": "available-measurement",
+      "evidence": ["docs/research/2026-10-03-rust-rnd/next-hotspot-proposal.md"],
+      "finding": "M6 discards the histogram built while fill_candidate_block reads each segment. This is an unused per-byte scan, not a duplicate input read; no size effect is claimed.",
+      "next_action": "profile and parity-qualify removal of the unused histogram scan before editing"
+    },
+    {
+      "id": "T2-T4",
+      "area": "release performance and qualification",
+      "status": "release-qualification",
+      "evidence": ["docs/research/2026-10-03-rust-rnd/closure-queue/performance-release.md", "docs/research/2026-10-03-rust-rnd/release-d3a2/REPORT.md"],
+      "finding": "Build, PGO, scaling, final compatibility, and static cleanliness are incomplete for the shipped artifact.",
+      "next_action": "complete B/G/A/S and Q1-Q5 on frozen release source"
+    }
+  ],
+  "closure_cells": [
+    {"id":"PRED-COST-1","status":"available-measurement","reason":"CPI1 lacks integer-interval, finish, and framing attribution","action":"trace adaptive and FixedMix first; PPM requires P3"},
+    {"id":"PRED-MIX-1","status":"superseded-partial","reason":"CPI1 closes only the 28-expert ideal mixture","action":"P2 before any physical recurrence ablation"},
+    {"id":"PRED-LONG-1","status":"available-bounded","reason":"no causal long-match residual predictor","action":"two fixed windows with charged frame"},
+    {"id":"PRED-CAL-1","status":"blocked-by-PRED-COST-1","reason":"no interval-loss budget","action":"one table only after positive cost audit"},
+    {"id":"COND-CONTEXT-1","status":"terminal-synthetic","reason":"12 exact synthetic archives only","action":"one CCA gate or exclude"},
+    {"id":"COND-COUNT-1","status":"available-bounded","reason":"unequal related count headers unmeasured","action":"delta/two-level versus independent/reference-only"},
+    {"id":"STRUCT-SUBSTREAM-1","status":"available-bounded","reason":"no complete generic skeleton/value/literal frame","action":"declared three-fixture cell"},
+    {"id":"STRUCT-SHARED-1","status":"blocked-by-STRUCT-SUBSTREAM-1","reason":"no base structure to share","action":"run only after positive predecessor"},
+    {"id":"R1","status":"terminal-synthetic","reason":"constructed wins; no transfer and numeric branch closed","action":"CCA gate or exclude transforms"},
+    {"id":"R2","status":"available-bounded","reason":"wrapper loses to plain native; in-format width-2/4 unmeasured","action":"one same-frame trial"},
+    {"id":"R3","status":"available-bounded","reason":"no phrase/grammar cardinality ablation","action":"one caps-8/16/32 cell"},
+    {"id":"R4","status":"available-bounded","reason":"numeric candidates lack native complete-frame cell","action":"one width-32/64 offsets/outliers cell"},
+    {"id":"R5","status":"available-bounded","reason":"histogram reuse does not price positions/values","action":"one sparse/run break-even cell"},
+    {"id":"R6","status":"blocked-by-R1-R3","reason":"do not start new transform tournament without positive atoms","action":"only after predecessor win"},
+    {"id":"R7","status":"blocked","reason":"no local pinned deterministic adapter; pretrained assets prohibited","action":"dependency blocker"},
+    {"id":"COPY","status":"terminal-integrated","reason":"mandatory raw control","action":"retain"},
+    {"id":"LZ-LAZY","status":"available-bounded","reason":"parser principle unmeasured","action":"one fixed-grammar lazy parse"},
+    {"id":"BWT-LOCAL","status":"available-bounded","reason":"no paid local stream split","action":"one primary-index control"},
+    {"id":"DICT-FILTER","status":"not-v0.1-candidate","reason":"static/type routing violates generic policy; serialized dictionary is R2","action":"none"},
+    {"id":"LZW","status":"available-bounded","reason":"resettable frame absent","action":"one frame or blocker"},
+    {"id":"FARI-LZHAM","status":"available-bounded","reason":"current range coding is uncoupled","action":"adaptive-range/count-range common stream"},
+    {"id":"XPRESS-HUFFMAN","status":"available-bounded","reason":"distinct command/table grammar absent","action":"one frame or blocker"},
+    {"id":"DEFLATE-RAW","status":"available-bounded","reason":"inner payload lacks complete-frame comparison","action":"one payload/frame control"},
+    {"id":"EXTERNAL-BACKENDS","status":"release-qualification","reason":"backend not native model","action":"settings/decode read-back only"},
+    {"id":"ZPAQ","status":"terminal-negative","reason":"CIXG wrapper expands by 431 bytes","action":"comparator only"},
+    {"id":"PAQ-12L","status":"blocked","reason":"requested setting exceeds 12 GB cap","action":"retain blocker"},
+    {"id":"SQUASH-ABI","status":"blocked","reason":"SDK unavailable and acquisition prohibited","action":"retain blocker"},
+    {"id":"N1","status":"superseded-partial","reason":"physical alias of PRED-MIX-1","action":"P2 first"},
+    {"id":"N2","status":"available-bounded","reason":"no periodic feature archive test","action":"one base/periodic frame"},
+    {"id":"N3","status":"available-bounded","reason":"rANS/FSE absent","action":"one four-stream payload"},
+    {"id":"N4","status":"alias-LZW","reason":"same resettable dictionary mechanism","action":"do not duplicate LZW run"},
+    {"id":"N5","status":"alias-XPRESS-HUFFMAN","reason":"same command/table mechanism","action":"do not duplicate XPRESS run"},
+    {"id":"N6","status":"available-bounded","reason":"real phrase/LZ length integration unmeasured","action":"one varint/Elias-or-Rice stream"},
+    {"id":"N7","status":"not-v0.1-candidate","reason":"new topology/protocol after release freeze","action":"defer post-v0.1"},
+    {"id":"Q1","status":"not-v0.1-candidate","reason":"post-release bounded counting research","action":"defer; do not reopen C3"},
+    {"id":"Q2","status":"not-v0.1-candidate","reason":"new BDD/circuit representation language","action":"defer"},
+    {"id":"Q3","status":"not-v0.1-candidate","reason":"higher-order interaction lacks paid direct-model case","action":"defer; do not reopen C3"},
+    {"id":"Q4","status":"not-v0.1-candidate","reason":"architecture research, not archive mechanism","action":"defer"}
+  ],
+  "v0_1_review": [
+    {"cells":["PRED-LONG-1"],"decision":"reviewed-unproven; defer","reason":"requires a new causal match-table model and residual frame; existing fixed_match4 has -10.399 ideal-bit fixed-share removal cost"},
+    {"cells":["COND-COUNT-1"],"decision":"reviewed-unproven; defer","reason":"exact reuse captures the measured header redundancy; unequal headers require a new language and later structural evidence does not beat incumbent"},
+    {"cells":["STRUCT-SUBSTREAM-1","STRUCT-SHARED-1"],"decision":"reviewed-unproven; defer","reason":"new skeleton/join grammar overlaps closed paid structural work and lacks a demonstrated generic delimiter signal"},
+    {"cells":["R2"],"decision":"reviewed-negative for v0.1","reason":"17-byte nested saving loses to 69-byte wrapper; best is 256 bytes versus 204 plain CIXG1"},
+    {"cells":["R3","R5","LZ-LAZY"],"decision":"reviewed-unproven; defer","reason":"existing phrase/LZ/sparse routes already compete in the portfolio; each queue item is a new frame or parser policy with no measured residual lead"},
+    {"cells":["R4"],"decision":"reviewed-unproven; defer","reason":"numeric codecs exist but no schema-free signal identifies substreams; cannot reopen numeric M6 composition closure"},
+    {"cells":["R6","R7"],"decision":"not-v0.1-candidate","reason":"new transform language or external transform interface, not an omitted existing optimizer"},
+    {"cells":["BWT-LOCAL","FARI-LZHAM","DEFLATE-RAW","N2","N6"],"decision":"reviewed-covered","reason":"current routes already contain the relevant BWT stream separation, range/count controls, raw DEFLATE, periodic lags/candidates, and varint/Rice alternatives"},
+    {"cells":["LZW","XPRESS-HUFFMAN","N3","N7"],"decision":"not-v0.1-candidate","reason":"each introduces a new grammar, coder, model, or decoder compatibility surface without evidence of a prioritized signal"},
+    {"cells":["Q1","Q2","Q3","Q4"],"decision":"future research only","reason":"established-theory questions lack a concrete release representation and cannot override C3"}
+  ]
+}
