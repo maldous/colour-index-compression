@@ -1,0 +1,49 @@
+{
+  "experiment": "word-palette-v2",
+  "status": "PREPARED_NOT_EXECUTED",
+  "source_revision": "2ee5251bf947c71da5056ecd306ca601d8bb0b48",
+  "driver": {
+    "path": "rust/cix-native/experiments/word-palette-v2/main.rs",
+    "sha256": "84a2a554d5fe4eac6d49892ba1361654d19585ce265bd3cacb02ca22bebf73c3",
+    "language": "Rust 2021 std-only standalone source",
+    "buffering": "whole input block only; experimental and not production streaming"
+  },
+  "format": {
+    "magic": "WPV2",
+    "version": 2,
+    "outer_header_bytes": 34,
+    "instructions_bytes": 35,
+    "crc": "IEEE CRC-32 of all instruction and payload bytes",
+    "variants": ["identity", "palette"],
+    "word_widths": [2, 4, 8],
+    "dictionary": "top 16 exact unsigned little-endian word bit patterns, count descending then unsigned word ascending",
+    "tokens": "five-bit index 0..15, escape=16 followed by a raw fixed-width word",
+    "tail": "0..width-1 raw bytes"
+  },
+  "fixtures": {
+    "generator": "xorshift64 state=0x9e3779b97f4a7c15 with shifts 13,7,17; values emitted little-endian",
+    "strong": {"bytes": 8192, "sha256": "dfe7631523fe3e2b82673cdfe4ac772de8c7b2a08ae99eda27ae241f2e969f09", "settings": "1024 generated words cycling eight u64 values in order (128 cycles)"},
+    "weak": {"bytes": 8192, "sha256": "34496c38dd77980c85808ad862a300a4f84bee372141453a36fd7f646ec63e4d", "settings": "first 16 generated u64 values repeat for 896 words; 128 following generated words are literal exceptions"},
+    "absent": {"bytes": 8192, "sha256": "4d59f363903e3625093112b71d92e8d31e98327f74ddfdce2d423a7f2a6fdf26", "settings": "1024 successive generated u64 values"}
+  },
+  "pre_execution_scope": {
+    "fixtures": ["strong", "weak", "absent"],
+    "width": 8,
+    "variants": ["identity", "palette"],
+    "row_count": 6,
+    "repetitions_per_config": 1,
+    "metric": "complete_cixg1_bytes",
+    "raw_fallback": "reported and independently decodable, never substituted for the matched CIXG1 metric"
+  },
+  "backend": {
+    "format": "cixg1",
+    "profile": "fast",
+    "threads": 1,
+    "memory": "512MiB",
+    "cix": {"path": "benchmark-work/ptt5-fixed-8439/final/cix", "sha256": "71bd7401a0be9a7289de72af3be94f7ca24b2e4ec3d9b38826aeab7f8e0e2b1c"},
+    "uncix": {"path": "benchmark-work/ptt5-fixed-8439/final/uncix", "sha256": "9fbf0a2c448e7f649c704b6827aa513792b9019bf6ed8216314c727f08edff0a"}
+  },
+  "limits": {"input_bytes": 8192, "representation_bytes": 65536, "nested_archive_bytes": 65536, "driver_temporary_bytes": 2097152, "aggregate_cgroup_memory_bytes": 805306368, "aggregate_cgroup_temporary_bytes": 2097152, "aggregate_batch_wall_seconds": 1200, "native_child_wall_seconds": 180, "cores": 1, "swap": "disabled", "lease_required": true},
+  "receipt_requirements": ["cgroup cpu.max and assigned CPU affinity", "cgroup memory.max/current/peak/events and memory.swap.max", "aggregate wall time and temporary high-water", "GNU-time RSS for every native child", "persisted native candidate and separate fresh native/selected restoration statuses"],
+  "promotion": ["same frozen input and native binary hashes on both CIXG1 rows", "complete CIXG1 bytes improve over identity", "native and selected fresh archive-only decodes are exact", "root records aggregate resource receipt"]
+}
