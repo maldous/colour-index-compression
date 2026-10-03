@@ -1,0 +1,120 @@
+{
+  "experiment": "rsl1-representation-search-v1",
+  "status": "PREPARED_NOT_EXECUTED",
+  "source_revision": "8439f4c414b06d0ff328c57c6bbc3b065f30c05a",
+  "prepared_driver_sha256": "eb9c57ec11b905e35c2a710733c245e3eab25eba8e024f86d348560c1856a48a",
+  "hypothesis": "A stored shallow reversible byte program can reduce complete nested-CIX archive bytes against identity on some arbitrary byte inputs.",
+  "candidate_language": {
+    "version": "RSL1-v2",
+    "integrity": "IEEE CRC-32 trailer over every preceding RSL1 frame byte: magic, version, operation count, backend tag, source length, payload length, serialized operations and payload",
+    "untrusted_input_limits": {
+      "archive_bytes_max": 134217792,
+      "source_bytes_max": 67108864,
+      "decoded_native_bytes_max": "stored source length",
+      "raw_fallback": "backend tag 1 accepts exactly one literal operation"
+    },
+    "max_depth": 2,
+    "full_candidate_count": 307,
+    "initial_screen_candidate_count": 12,
+    "initial_screen": [
+      "identity",
+      "literal",
+      "transpose:4",
+      "mod_delta:1,4",
+      "xor:1,4",
+      "previous_stride_residual:1,4",
+      "transpose:4+mod_delta:4",
+      "mod_delta:4+transpose:4",
+      "xor:4+transpose:4"
+    ],
+    "one_step_atoms": [
+      "identity",
+      "literal",
+      "transpose:2,4,8,16",
+      "mod_delta:1,4,8,16",
+      "xor:1,4,8,16",
+      "previous_stride_residual:1,4,8,16"
+    ],
+    "enumeration": "all atoms plus all ordered two-step pairs excluding literal in either position",
+    "pruning": "none; every candidate is fully encoded; this is finite enumeration only"
+  },
+  "backend_control": {
+    "format": "cixg1",
+    "threads": 1,
+    "cix_memory_bytes": 536870912,
+    "screen_profile": "fast",
+    "later_profiles": [
+      "default",
+      "size"
+    ],
+    "cix": "benchmark-work/ptt5-fixed-8439/final/cix",
+    "uncix": "benchmark-work/ptt5-fixed-8439/final/uncix",
+    "binary": "hash-bound at execution",
+    "binaries": {
+      "cix": {
+        "path": "benchmark-work/ptt5-fixed-8439/final/cix",
+        "sha256": "71bd7401a0be9a7289de72af3be94f7ca24b2e4ec3d9b38826aeab7f8e0e2b1c"
+      },
+      "uncix": {
+        "path": "benchmark-work/ptt5-fixed-8439/final/uncix",
+        "sha256": "9fbf0a2c448e7f649c704b6827aa513792b9019bf6ed8216314c727f08edff0a"
+      }
+    }
+  },
+  "resource_budget": {
+    "screen_input_bytes_max": 8192,
+    "full_input_bytes_max": 67108864,
+    "transformed_bytes_max": 134217728,
+    "cpu_cores": 1,
+    "ram_bytes_max": 1073741824,
+    "temporary_bytes_max": 3000000000,
+    "swap": "disabled",
+    "child_wall_seconds": 60,
+    "timeout_foreground": true,
+    "timeout_kill_after_seconds": 1,
+    "decoder_pipe_queue_chunks": 4,
+    "screen_wall_seconds": 60,
+    "full_wall_seconds": 300
+  },
+  "verification": {
+    "nested_decoder": "supplied uncix fresh process",
+    "outer_decoder": "rsl1 decode archive-only path",
+    "comparison": "exact byte equality",
+    "repetitions": 1,
+    "rss": "GNU time -v maximum resident set size per native child"
+  },
+  "selection": "minimum complete RSL1 serialized bytes; first declared candidate breaks ties",
+  "input": {
+    "path": "benchmark-work/representation-search-v1/runs/kennedy-prefix.input",
+    "bytes": 8192,
+    "sha256": "970d1bcb1e252abab6a58e1cedb79d2eb03689744fa09f97d2855cdecf8b4216",
+    "origin_path": "benchmark-work/canterbury/kennedy.xls",
+    "origin_sha256": "9af47239ca29dfe20e633f80bbbb9a4cc9783d0803d7b2b5626f42e4c3790420",
+    "range": [
+      0,
+      8192
+    ],
+    "exposure": "Existing authorized development data; not held out. Input label is evidence only, never encoder dispatch."
+  },
+  "promotion": [
+    "complete bytes improve over identity RSL1",
+    "independent nested and outer exact restoration",
+    "same backend/build/profile control",
+    "resource budget observed"
+  ],
+  "execution": {
+    "cpu": [
+      20
+    ],
+    "cpu_max": "100000 100000",
+    "memory_max": 1073741824,
+    "swap_max": 0,
+    "build_temp": 33554432,
+    "run_temp": 2097152,
+    "build_wall_seconds": 120,
+    "screen_wall_seconds": 60,
+    "single_screen": true,
+    "malformed_checks": "badCRC and valid-CRC invalidopcode, truncationbody, trailingbody; no candidate rerun",
+    "toolchain_path": "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin"
+  }
+}

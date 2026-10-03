@@ -1,0 +1,35 @@
+error[E0308]: mismatched types
+   --> /home/user/src/colour-index-compression/rust/cix-native/experiments/representation-search-v1/main.rs:111:347
+    |
+111 | ...itespace().next().map(str::to_owned).ok_or("missing sha256") }
+    |                                         ----- ^^^^^^^^^^^^^^^^ expected `String`, found `&str`
+    |                                         |
+    |                                         arguments to this method are incorrect
+    |
+help: the return type of this call is `&'static str` due to the type of the argument passed
+   --> /home/user/src/colour-index-compression/rust/cix-native/experiments/representation-search-v1/main.rs:111:235
+    |
+111 | ... } String::from_utf8(output.stdout).map_err(|e| e.to_string())?.split_whitespace().next().map(str::to_owned).ok_or("missing sha256") }
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^----------------^
+    |                                                                                                                       |
+    |                                                                                                                       this argument influences the return type of `ok_or`
+note: method defined here
+   --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/option.rs:1333:17
+help: try using a conversion method
+    |
+111 | fn sha256(path: &Path) -> Result<String, String> { let output = Command::new("sha256sum").arg(path).output().map_err(|e| e.to_string())?; if !output.status.success() { return Err(format!("sha256sum failed for {}", path.display())); } String::from_utf8(output.stdout).map_err(|e| e.to_string())?.split_whitespace().next().map(str::to_owned).ok_or("missing sha256".to_string()) }
+    |                                                                                                                                                                                                                                                                                                                                                                           ++++++++++++
+
+error[E0502]: cannot borrow `out` as immutable because it is also borrowed as mutable
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/representation-search-v1/main.rs:86:143
+   |
+86 | ...g); } out.extend_from_slice(coded); put_u32(&mut out, crc32(&out)); Ok(out)
+   |                                        ------- --------        ^^^^ immutable borrow occurs here
+   |                                        |       |
+   |                                        |       mutable borrow occurs here
+   |                                        mutable borrow later used by call
+
+error: aborting due to 2 previous errors
+
+Some errors have detailed explanations: E0308, E0502.
+For more information about an error, try `rustc --explain E0308`.
