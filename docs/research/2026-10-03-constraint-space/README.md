@@ -45,3 +45,18 @@ The search is targeted, not a certified exhaustive literature review. Methods
 not reviewed in full or not executed remain pending. No datasets, production
 selector, public Site or GitHub Actions were changed. Source and completed
 evidence are checkpointed privately; corpus bytes are absent from Git.
+
+
+## Model-cost normalisation and new primary direction
+
+[Equal paid model-cost experiment](normalised-evidence/REPORT.md):45frames
+restore exactly. The intersection shrinks rank space versus individual models,
+including positive beyond-additive surplus (342/217rounded bits on the two
+emergence cases). Once the direct dictionary describes that same joint space
+and pays the same fee, all five comparisons tie. [Proof and distinction](state-space-distinction.md).
+
+The user redirected research toward compact model descriptions: compare the
+same exact state space across established representations and search for
+shared structural objects. Stop trying to beat a same-space uniform rank by
+changing terminology. Prior-art destruction precedes any new language design;
+production changes remain prohibited. See [the controlling direction](SDL-DIRECTION.md).
