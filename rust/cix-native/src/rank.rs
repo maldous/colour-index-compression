@@ -455,11 +455,16 @@ fn cardinality(counts: &[usize]) -> BigUint {
     total
 }
 
-fn permutation_rank(data: &[u8], counts: &[usize]) -> Result<BigUint, String> {
+fn active_symbol_count(counts: &[usize]) -> usize {
+    counts.iter().filter(|&&count| count > 0).count()
+}
+
+// `ways` is the already computed cardinality of `counts`.  Keeping that
+// arbitrary-precision value avoids a second choose/divide pass in rank mode.
+fn permutation_rank(data: &[u8], counts: &[usize], mut ways: BigUint) -> Result<BigUint, String> {
     let mut mutable = counts.to_vec();
     let mut fenwick = Fenwick::new(&mutable);
     let mut remaining = data.len();
-    let mut ways = cardinality(counts);
     let mut rank = BigUint::zero();
     for (index, &symbol) in data.iter().enumerate() {
         if index & 255 == 0 {
@@ -482,11 +487,10 @@ fn permutation_rank(data: &[u8], counts: &[usize]) -> Result<BigUint, String> {
     Ok(rank)
 }
 
-fn permutation_unrank(mut rank: BigUint, counts: &[usize]) -> Result<Vec<u8>, String> {
+fn permutation_unrank(mut rank: BigUint, counts: &[usize], mut ways: BigUint) -> Result<Vec<u8>, String> {
     let mut mutable = counts.to_vec();
     let mut fenwick = Fenwick::new(&mutable);
     let mut remaining: usize = counts.iter().sum();
-    let mut ways = cardinality(counts);
     if rank >= ways {
         return Err("permutation rank outside type class".into());
     }
@@ -558,16 +562,20 @@ pub fn encode_type_class(data: &[u8]) -> Result<Vec<u8>, String> {
     if data.is_empty() {
         return Ok(out);
     }
-    let ways = cardinality(&counts);
-    let width = fixed_width(&(&ways - BigUint::one()));
-    if data.len() >= 2048 && ways > BigUint::one() {
+    // For a nonempty histogram, more than one active symbol is exactly the
+    // condition cardinality(counts) > 1.  Remaining-count range mode needs
+    // neither the cardinality nor its fixed rank width, so avoid BigUint
+    // choose/divide work on this large-tile path.
+    if data.len() >= 2048 && active_symbol_count(&counts) >= 2 {
         let (payload, bit_length) = encode_sequence_range(data, &counts)?;
         out.push(1);
         varint(bit_length, &mut out);
         out.extend_from_slice(&payload);
     } else {
+        let ways = cardinality(&counts);
+        let width = fixed_width(&(&ways - BigUint::one()));
         out.push(0); // canonical rank mode
-        out.extend(fixed_bytes(&permutation_rank(data, &counts)?, width));
+        out.extend(fixed_bytes(&permutation_rank(data, &counts, ways)?, width));
     }
     Ok(out)
 }
@@ -599,14 +607,15 @@ pub fn decode_type_class(data: &[u8], pos: &mut usize, n: usize) -> Result<Vec<u
     for (&symbol, count) in active.iter().zip(parts) {
         counts[symbol] = count;
     }
-    let ways = cardinality(&counts);
-    let width = fixed_width(&(&ways - BigUint::one()));
     let mode = *data.get(*pos).ok_or("missing CIX sequence mode")?;
     *pos += 1;
     match mode {
         0 => {
+            // Only canonical rank mode consumes a cardinality-derived width.
+            let ways = cardinality(&counts);
+            let width = fixed_width(&(&ways - BigUint::one()));
             let rank = read_fixed(data, pos, width)?;
-            permutation_unrank(rank, &counts)
+            permutation_unrank(rank, &counts, ways)
         }
         1 => {
             let bit_length = read_varint(data, pos)?;
@@ -967,6 +976,71 @@ mod tests {
         Ok(out)
     }
 
+    // Literal pre-optimization definition retained only to lock emitted
+    // type-class bytes.  It deliberately materializes cardinality before the
+    // large remaining-count-range decision.
+    fn legacy_encode_type_class(data: &[u8]) -> Result<Vec<u8>, String> {
+        let counts = type_class_counts(data)?;
+        let mut out = encode_type_class_header(data.len(), &counts)?;
+        if data.is_empty() {
+            return Ok(out);
+        }
+        let ways = cardinality(&counts);
+        let width = fixed_width(&(&ways - BigUint::one()));
+        if data.len() >= 2048 && ways > BigUint::one() {
+            let (payload, bit_length) = encode_sequence_range(data, &counts)?;
+            out.push(1);
+            varint(bit_length, &mut out);
+            out.extend_from_slice(&payload);
+        } else {
+            out.push(0);
+            // The former rank path computed cardinality once here and once
+            // inside permutation_rank.  Preserve that test-only work so this
+            // helper is a definition-level parity control.
+            out.extend(fixed_bytes(
+                &permutation_rank(data, &counts, cardinality(&counts))?,
+                width,
+            ));
+        }
+        Ok(out)
+    }
+
+    fn legacy_decode_type_class(data: &[u8], pos: &mut usize, n: usize) -> Result<Vec<u8>, String> {
+        let m = read_varint(data, pos)?;
+        if n == 0 {
+            if m != 0 { return Err("active symbols in empty CIX type class".into()); }
+            return Ok(Vec::new());
+        }
+        if m == 0 || m > 256 || m > n { return Err("invalid CIX active alphabet".into()); }
+        let active = if m == 256 { (0..256).collect() } else {
+            let width = fixed_width(&(choose(256, m) - BigUint::one()));
+            colex_unrank(read_fixed(data, pos, width)?, m, 256)?
+        };
+        let parts = if m == 1 { vec![n] } else {
+            let width = fixed_width(&(choose(n - 1, m - 1) - BigUint::one()));
+            composition_unrank(read_fixed(data, pos, width)?, n, m)?
+        };
+        let mut counts = vec![0usize; 256];
+        for (&symbol, count) in active.iter().zip(parts) { counts[symbol] = count; }
+        let ways = cardinality(&counts);
+        let width = fixed_width(&(&ways - BigUint::one()));
+        let mode = *data.get(*pos).ok_or("missing CIX sequence mode")?;
+        *pos += 1;
+        match mode {
+            0 => permutation_unrank(read_fixed(data, pos, width)?, &counts, ways),
+            1 => {
+                let bit_length = read_varint(data, pos)?;
+                let byte_length = bit_length.div_ceil(8);
+                let end = pos.checked_add(byte_length).ok_or("range stream length overflow")?;
+                if end > data.len() { return Err("truncated CIX range stream".into()); }
+                let result = decode_sequence_range(&data[*pos..end], bit_length, &counts)?;
+                *pos = end;
+                Ok(result)
+            }
+            _ => Err(format!("unsupported CIX type-class sequence mode {mode}")),
+        }
+    }
+
     fn deterministic_bytes(length: usize) -> Vec<u8> {
         let mut state = 0xD1CE_BA5Eu32;
         (0..length)
@@ -975,6 +1049,40 @@ mod tests {
                 (state >> 24) as u8
             })
             .collect()
+    }
+
+    #[test]
+    fn type_class_shortcut_preserves_prechange_exact_bytes_and_malformed_rejection() {
+        let mut cases = vec![Vec::new(), vec![7], vec![7; 2048]];
+        cases.push((0..2047).map(|i| (i & 1) as u8).collect());
+        cases.push((0..2048).map(|i| (i & 1) as u8).collect());
+        cases.push(deterministic_bytes(8193));
+        for input in cases {
+            let legacy = legacy_encode_type_class(&input).unwrap();
+            let current = encode_type_class(&input).unwrap();
+            assert_eq!(current, legacy);
+            let mut old_pos = 0;
+            let mut new_pos = 0;
+            assert_eq!(legacy_decode_type_class(&legacy, &mut old_pos, input.len()).unwrap(), input);
+            assert_eq!(decode_type_class(&current, &mut new_pos, input.len()).unwrap(), input);
+            assert_eq!(old_pos, legacy.len());
+            assert_eq!(new_pos, current.len());
+        }
+
+        let malformed_input: Vec<u8> = (0..2048).map(|i| (i & 1) as u8).collect();
+        let counts = type_class_counts(&malformed_input).unwrap();
+        let header = encode_type_class_header(malformed_input.len(), &counts).unwrap();
+        let mut mode_zero = header.clone();
+        mode_zero.push(0); // canonical rank payload is deliberately absent.
+        let mut mode_one = header;
+        mode_one.push(1);
+        varint(1, &mut mode_one); // declared range bit has no backing byte.
+        for malformed in [mode_zero, mode_one] {
+            let mut old_pos = 0;
+            let mut new_pos = 0;
+            assert!(legacy_decode_type_class(&malformed, &mut old_pos, malformed_input.len()).is_err());
+            assert!(decode_type_class(&malformed, &mut new_pos, malformed_input.len()).is_err());
+        }
     }
 
     #[test]
