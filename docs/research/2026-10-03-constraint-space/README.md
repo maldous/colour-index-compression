@@ -72,3 +72,15 @@ do not establish a shared-description innovation.
 [Safe-checkpoint delta](ADDENDUM-DELTA.md): paid exact exceptions are next;
 stronger usage/grammar/shift-aware controls are explicitly tracked in the
 [focused ledger](model-evidence/QUEUE.md). No production integration.
+
+## Noise-tolerant model checkpoint
+
+[Paid exceptions and stronger usage controls](exception-evidence/REPORT.md):
+83new archives restored. Weak-six retains its model at932B instead of12312B
+raw, but925B ordinary histogram is stronger. Four new noisy grid cases win
+14/31/8/82B against the smallest declared controls. Clean/absent losses remain.
+[Independent source review](exception-source-review.md),
+[evidence review](exception-evidence-review.md),
+[specific prior-art methods](addendum-prior-art.md), and
+[accounting derivation](addendum-bounds.md). Established coding, no new theory
+or production integration.

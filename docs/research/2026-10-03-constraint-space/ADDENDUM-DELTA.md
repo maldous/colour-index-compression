@@ -61,3 +61,17 @@ count variants are authorized merely to seek a rank advantage.
 Metadata savings remain useful compression even when established; the failed
 new-theory claim is not a reason to discard them. The immediate target is
 robust useful models with paid exceptions, not more spectacular exact toys.
+
+## Completed addendum checkpoint
+
+[Measured exception/control report](exception-evidence/REPORT.md):83new
+archives restore,190artifactbindings verified,8malformed reject. Four noisy
+grid wins survive dictionary/histogram/general controls, with held-out
+replication. Weak-six is932B versus1049B dictionary but loses to925B histogram.
+Specific comparator methods and limitations are in [addendum prior art](addendum-prior-art.md).
+
+No jobs remain running. The one evidence-selected next experiment is paid
+exception-position templates versus combinadic/compressed-gap controls.
+Broader shared grammars/variable-shift controls, a distinct paid probability
+model and resource-driven superset comparisons remain gated/unimplemented,
+not silently marked complete. See report section8.

@@ -190,22 +190,22 @@ cgroup figure is explicitly a polling lower bound, not the true peak; the
 enforced 2 GiB ceiling and zero-swap setting are the defensible resource facts.
 Evidence logs were outside the monitored active-work directory as declared.
 
-## Corrections and remaining limits
+## Resolved corrections and remaining limit
 
-No source or measurement rerun is required. Before sealing the narrative:
+No source or measurement rerun is required. The report now says `selected
+native MSL1 archive`, distinguishes fresh corresponding control decoders from
+the native model decoder, and `summary.csv` populates `unrank_ns` from the
+retained discovery decoder stderr. The corrected derived files reviewed here
+have SHA-256:
 
-1. `None beats the selected raw model` should say `selected native MSL1
-   archive` or `selected uncompressed-model MSL1 archive`; Raw is a distinct
-   route and did not win the nine structured rows.
-2. The 173 archives were restored with fresh corresponding decoder processes.
-   The 20 input controls use their own zstd/xz/bzip2/gzip/CIX decoders; only the
-   MSL candidates/discovery/MDC reconstruction end in the model decoder.
-3. `summary.csv` currently has an entirely blank `unrank_ns` column. Remove it,
-   label it unavailable, or populate it from the retained discovery decoder
-   stderr before presenting the table as complete timing data.
-4. A final checksum manifest or immutable repository commit must bind the
-   derived report, summary and this review. This is a packaging step, not a
-   gap in the executed archive evidence.
+* `REPORT.md`:
+  `14054b780072970cb10852c04b3f97cf8d4a5266e537efbb543fa0b7e278e89c`;
+* `summary.csv`:
+  `990aa14af84d6f977d684ab2b334b455f32266eeeae81a11cd3c67386f8613b9`.
+
+A final checksum manifest or immutable repository commit must still bind the
+derived report, summary and this review. This is a packaging step, not a gap in
+the executed archive evidence.
 
 With those narrative/table corrections and final seal, the v2 packet supports
 the bounded exactness, negative sharing result, and synthetic structural wins
