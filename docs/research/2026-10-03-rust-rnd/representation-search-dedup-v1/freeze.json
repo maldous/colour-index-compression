@@ -1,0 +1,106 @@
+{
+  "experiment": "rsl1-representation-search-dedup-v1",
+  "status": "PREPARED_NOT_EXECUTED",
+  "baseline": {
+    "experiment": "rsl1-representation-search-v1",
+    "results": "docs/research/2026-10-03-rust-rnd/representation-search-v1/results.json",
+    "input_sha256": "970d1bcb1e252abab6a58e1cedb79d2eb03689744fa09f97d2855cdecf8b4216",
+    "input_bytes": 8192,
+    "identity_complete_bytes": 2487,
+    "identity_native_bytes": 2458,
+    "selected": "identity",
+    "selected_archive": "benchmark-work/representation-search-v1/runs/selected.rsl1",
+    "selected_archive_sha256": "d31b9fb349e02b5ed4ed23a8e812b37f5d23c91dadd135c1990ab60b03ad67eb",
+    "results_sha256": "e4cc1089ecfe87a5a82c2e8bf25f9c73c287c09c84b2e822591689cdeba31591"
+  },
+  "backend": {
+    "format": "cixg1",
+    "profile": "fast",
+    "threads": 1,
+    "cix": "benchmark-work/ptt5-fixed-8439/final/cix",
+    "cix_sha256": "71bd7401a0be9a7289de72af3be94f7ca24b2e4ec3d9b38826aeab7f8e0e2b1c",
+    "uncix": "benchmark-work/ptt5-fixed-8439/final/uncix",
+    "uncix_sha256": "9fbf0a2c448e7f649c704b6827aa513792b9019bf6ed8216314c727f08edff0a"
+  },
+  "candidate_set": {
+    "count": 12,
+    "order": "identical to representation-search-v1",
+    "frame": "RSL1-v2 unchanged",
+    "tie": "first declared candidate"
+  },
+  "dedup": {
+    "match": "full transformed-byte equality",
+    "hash_lookup": false,
+    "raw_literal_cached": false,
+    "expected_native_trials": 9,
+    "nonliteral_candidates": 11,
+    "cache_bytes_max": 4194304,
+    "entry_capacity": 307,
+    "cache_accounting": "fixed entry-vector metadata plus exact-size key, payload and decoded-plaintext buffers"
+  },
+  "budget": {
+    "cpu_cores": 1,
+    "ram_bytes_max": 1073741824,
+    "temporary_bytes_max": 2097152,
+    "swap": "disabled",
+    "wall_seconds": 60
+  },
+  "verification": [
+    "each candidate frame and inverse proof",
+    "fresh selected archive-only process",
+    "all complete candidate sizes equal baseline",
+    "selected archive bytes equal baseline"
+  ],
+  "prepared_driver_sha256": "c6c8aecb2a2d2842d710c741d5c500b0ded78edf44373c51a5aa7b666d07152e",
+  "input": {
+    "path": "benchmark-work/representation-search-v1/runs/kennedy-prefix.input",
+    "bytes": 8192,
+    "sha256": "970d1bcb1e252abab6a58e1cedb79d2eb03689744fa09f97d2855cdecf8b4216",
+    "origin_path": "benchmark-work/canterbury/kennedy.xls",
+    "origin_sha256": "9af47239ca29dfe20e633f80bbbb9a4cc9783d0803d7b2b5626f42e4c3790420",
+    "range": [
+      0,
+      8192
+    ],
+    "exposure": "Existing authorized development data; not held out. Input label is evidence only, never encoder dispatch."
+  },
+  "backend_control": {
+    "format": "cixg1",
+    "threads": 1,
+    "cix_memory_bytes": 536870912,
+    "screen_profile": "fast",
+    "later_profiles": [
+      "default",
+      "size"
+    ],
+    "cix": "benchmark-work/ptt5-fixed-8439/final/cix",
+    "uncix": "benchmark-work/ptt5-fixed-8439/final/uncix",
+    "binary": "hash-bound at execution",
+    "binaries": {
+      "cix": {
+        "path": "benchmark-work/ptt5-fixed-8439/final/cix",
+        "sha256": "71bd7401a0be9a7289de72af3be94f7ca24b2e4ec3d9b38826aeab7f8e0e2b1c"
+      },
+      "uncix": {
+        "path": "benchmark-work/ptt5-fixed-8439/final/uncix",
+        "sha256": "9fbf0a2c448e7f649c704b6827aa513792b9019bf6ed8216314c727f08edff0a"
+      }
+    }
+  },
+  "execution": {
+    "cpu": [
+      20
+    ],
+    "cpu_max": "100000 100000",
+    "memory_max": 1073741824,
+    "swap_max": 0,
+    "build_temp": 33554432,
+    "run_temp": 2097152,
+    "build_wall_seconds": 120,
+    "screen_wall_seconds": 60,
+    "single_screen": true,
+    "malformed_checks": "badCRC and valid-CRC invalidopcode, truncationbody, trailingbody; no candidate rerun",
+    "toolchain_path": "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin",
+    "baseline_reuse": "Compare recorded baseline candidate sizes/native archives/selected bytes without re-encoding baseline."
+  }
+}
