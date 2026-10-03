@@ -1,0 +1,483 @@
+{
+  "schema": "cix-third-party-validation-v1",
+  "status": "passed",
+  "error": null,
+  "source_tar": "/home/user/src/cix-0.1-artifacts/distribution-v2/packages/cix-0.1.0.tar.gz",
+  "binary_tar": "/home/user/src/cix-0.1-artifacts/distribution-v2/packages/cix-0.1.0-linux-x86_64.tar.gz",
+  "deb": "/home/user/src/cix-0.1-artifacts/distribution-v2/packages/cix_0.1.0-1_amd64.deb",
+  "rpm": "/home/user/src/cix-0.1-artifacts/distribution-v2/packages/cix-0.1.0-1.x86_64.rpm",
+  "reference_bin": "/home/user/src/cix-0.1-artifacts/final/bin",
+  "cargo": "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+  "cargo_net_offline": true,
+  "cargo_build_jobs": 4,
+  "temporary_budget_bytes": 4000000000,
+  "events": [
+    {
+      "name": "source-tar-members",
+      "at_unix": 1791056672,
+      "member_count": 112,
+      "notice_member": "cix-0.1.0/THIRD_PARTY_NOTICES_RUST.md",
+      "notice_sha256": "5e5028e09813e5e76e5a35f3eb9aca043359f018aca83c8326d27da0258ed73b"
+    },
+    {
+      "name": "binary-tar-members",
+      "at_unix": 1791056672,
+      "member_count": 11,
+      "notice_member": "cix-0.1.0-linux-x86_64/THIRD_PARTY_NOTICES_RUST.md",
+      "notice_sha256": "5e5028e09813e5e76e5a35f3eb9aca043359f018aca83c8326d27da0258ed73b"
+    },
+    {
+      "name": "source-build-release-lto",
+      "at_unix": 1791056703,
+      "command": [
+        "make",
+        "PROFILE=release-lto",
+        "CARGO=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+        "CARGO_TARGET_DIR=/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/target",
+        "build"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/source/cix-0.1.0",
+      "exit_code": 0,
+      "elapsed_seconds": 30.56,
+      "stdout": "CARGO_TARGET_DIR=/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/target /home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo build --locked --profile release-lto --bins\n",
+      "stderr": "make: Warning: File 'Makefile' has modification time 15327 s in the future\n   Compiling find-msvc-tools v0.1.14\n   Compiling version_check v0.9.5\n   Compiling shlex v2.0.1\n   Compiling autocfg v1.5.1\n   Compiling cc v1.5.1\n   Compiling typenum v1.20.1\n   Compiling generic-array v0.14.7\n   Compiling cfg-if v1.0.5\n   Compiling num-traits v0.2.19\n   Compiling cfg_aliases v0.2.2\n   Compiling libc v0.2.189\n   Compiling pkg-config v0.3.34\n   Compiling vcpkg v0.2.15\n   Compiling nix v0.31.3\n   Compiling crc32fast v1.5.2\n   Compiling crypto-common v0.1.7\n   Compiling block-buffer v0.10.4\n   Compiling bitflags v2.13.2\n   Compiling libz-sys v1.1.29\n   Compiling cix-native v0.1.0 (/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/source/cix-0.1.0)\n   Compiling digest v0.10.7\n   Compiling num-integer v0.1.47\n   Compiling cpufeatures v0.2.17\n   Compiling sha2 v0.10.9\n   Compiling num-bigint v0.4.8\n   Compiling flate2 v1.1.10\n   Compiling ctrlc v3.5.2\nwarning: cix-native@0.1.0: In file included from vendor/libzpaq715/libzpaq.cpp:25:\nwarning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.h: In constructor 'libzpaq::Encoder::Encoder(libzpaq::ZPAQL&, int)':\nwarning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.h:1275:25: warning: unused parameter 'size' [-Wunused-parameter]\nwarning: cix-native@0.1.0:  1275 |   Encoder(ZPAQL& z, int size=0):\nwarning: cix-native@0.1.0:       |                     ~~~~^~~~~~\nwarning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.cpp: In function 'void libzpaq::allocx(U8*&, int&, int)':\nwarning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.cpp:73:33: warning: unused parameter 'newsize' [-Wunused-parameter]\nwarning: cix-native@0.1.0:    73 | void allocx(U8* &p, int &n, int newsize) {\nwarning: cix-native@0.1.0:       |                             ~~~~^~~~~~~\nwarning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.cpp: In function 'void libzpaq::pbkdf2(const char*, int, const char*, int, int, char*, int)':\nwarning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.cpp:585:24: warning: unused parameter 'c' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   585 |                    int c, char* buf, int dkLen) {\nwarning: cix-native@0.1.0:       |                    ~~~~^\nwarning: cix-native@0.1.0: In file included from src/zpaq_ffi.cpp:5:\nwarning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.h: In constructor 'libzpaq::Encoder::Encoder(libzpaq::ZPAQL&, int)':\nwarning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.h:1275:25: warning: unused parameter 'size' [-Wunused-parameter]\nwarning: cix-native@0.1.0:  1275 |   Encoder(ZPAQL& z, int size=0):\nwarning: cix-native@0.1.0:       |                     ~~~~^~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/adler32/adler32.cpp: In function 'unsigned int bsc_adler32(const unsigned char*, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/adler32/adler32.cpp:89:73: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:    89 | unsigned int ADLER32_FUNCTION_NAME (const unsigned char * T, int n, int features)\nwarning: cix-native@0.1.0:       |                                                                     ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp: In function 'int bsc_bwt_init(int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp:66:22: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:    66 | int bsc_bwt_init(int features)\nwarning: cix-native@0.1.0:       |                  ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp: In function 'int bsc_bwt_gpu_encode(unsigned char*, int, unsigned char*, int*, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp:73:40: warning: unused parameter 'T' [-Wunused-parameter]\nwarning: cix-native@0.1.0:    73 | int bsc_bwt_gpu_encode(unsigned char * T, int n, unsigned char * num_indexes, int * indexes, int features)\nwarning: cix-native@0.1.0:       |                        ~~~~~~~~~~~~~~~~^\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp:73:47: warning: unused parameter 'n' [-Wunused-parameter]\nwarning: cix-native@0.1.0:    73 | int bsc_bwt_gpu_encode(unsigned char * T, int n, unsigned char * num_indexes, int * indexes, int features)\nwarning: cix-native@0.1.0:       |                                           ~~~~^\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp:73:66: warning: unused parameter 'num_indexes' [-Wunused-parameter]\nwarning: cix-native@0.1.0:    73 | int bsc_bwt_gpu_encode(unsigned char * T, int n, unsigned char * num_indexes, int * indexes, int features)\nwarning: cix-native@0.1.0:       |                                                  ~~~~~~~~~~~~~~~~^~~~~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp:73:85: warning: unused parameter 'indexes' [-Wunused-parameter]\nwarning: cix-native@0.1.0:    73 | int bsc_bwt_gpu_encode(unsigned char * T, int n, unsigned char * num_indexes, int * indexes, int features)\nwarning: cix-native@0.1.0:       |                                                                               ~~~~~~^~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp: In function 'int bsc_bwt_gpu_decode(unsigned char*, int, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp:235:40: warning: unused parameter 'T' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   235 | int bsc_bwt_gpu_decode(unsigned char * T, int n, int index, int features)\nwarning: cix-native@0.1.0:       |                        ~~~~~~~~~~~~~~~~^\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp:235:47: warning: unused parameter 'n' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   235 | int bsc_bwt_gpu_decode(unsigned char * T, int n, int index, int features)\nwarning: cix-native@0.1.0:       |                                           ~~~~^\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp:235:54: warning: unused parameter 'index' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   235 | int bsc_bwt_gpu_decode(unsigned char * T, int n, int index, int features)\nwarning: cix-native@0.1.0:       |                                                  ~~~~^~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/bwt/bwt.cpp:235:65: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   235 | int bsc_bwt_gpu_decode(unsigned char * T, int n, int index, int features)\nwarning: cix-native@0.1.0:       |                                                             ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/coder/coder.cpp: In function 'int bsc_coder_num_blocks(int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/coder/coder.cpp:72:23: warning: comparison of integer expressions of different signedness: 'int' and 'long unsigned int' [-Wsign-compare]\nwarning: cix-native@0.1.0:    72 |     for (int i = 0; i < sizeof(break_points) / sizeof(break_points[0]); i += 1)\nwarning: cix-native@0.1.0:       |                     ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/coder/coder.cpp: In function 'int bsc_coder_compress(const unsigned char*, unsigned char*, int, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/coder/coder.cpp:249:99: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   249 | int bsc_coder_compress(const unsigned char * input, unsigned char * output, int n, int coder, int features)\nwarning: cix-native@0.1.0:       |                                                                                               ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/coder/coder.cpp: In function 'int bsc_coder_decompress(const unsigned char*, unsigned char*, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/coder/coder.cpp:278:94: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   278 | int bsc_coder_decompress(const unsigned char * input, unsigned char * output, int coder, int features)\nwarning: cix-native@0.1.0:       |                                                                                          ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/coder/qlfc/qlfc.cpp: In function 'int bsc_qlfc_init(int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/coder/qlfc/qlfc.cpp:2213:23: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:  2213 | int bsc_qlfc_init(int features)\nwarning: cix-native@0.1.0:       |                   ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/filters/preprocessing.cpp: In function 'int bsc_reverse_block(unsigned char*, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/filters/preprocessing.cpp:41:53: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:    41 | int bsc_reverse_block(unsigned char * T, int n, int features)\nwarning: cix-native@0.1.0:       |                                                 ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/filters/preprocessing.cpp: In function 'int bsc_reorder_forward(unsigned char*, int, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/filters/preprocessing.cpp:68:71: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:    68 | int bsc_reorder_forward(unsigned char * T, int n, int recordSize, int features)\nwarning: cix-native@0.1.0:       |                                                                   ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/filters/preprocessing.cpp: In function 'int bsc_reorder_reverse(unsigned char*, int, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/filters/preprocessing.cpp:123:71: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   123 | int bsc_reorder_reverse(unsigned char * T, int n, int recordSize, int features)\nwarning: cix-native@0.1.0:       |                                                                   ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/lzp/lzp.cpp: In function 'int bsc_lzp_num_blocks(int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/lzp/lzp.cpp:64:23: warning: comparison of integer expressions of different signedness: 'int' and 'long unsigned int' [-Wsign-compare]\nwarning: cix-native@0.1.0:    64 |     for (int i = 0; i < sizeof(break_points) / sizeof(break_points[0]); i += 1)\nwarning: cix-native@0.1.0:       |                     ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/lzp/lzp.cpp: In function 'int bsc_lzp_compress(const unsigned char*, unsigned char*, int, int, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/lzp/lzp.cpp:938:112: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   938 | int bsc_lzp_compress(const unsigned char * input, unsigned char * output, int n, int hashSize, int minLen, int features)\nwarning: cix-native@0.1.0:       |                                                                                                            ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/lzp/lzp.cpp: In function 'int bsc_lzp_decompress(const unsigned char*, unsigned char*, int, int, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/lzp/lzp.cpp:953:114: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   953 | int bsc_lzp_decompress(const unsigned char * input, unsigned char * output, int n, int hashSize, int minLen, int features)\nwarning: cix-native@0.1.0:       |                                                                                                              ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/platform/platform.cpp: In function 'int bsc_platform_init(int, void* (*)(size_t), void* (*)(size_t), void (*)(void*))':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/platform/platform.cpp:192:27: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   192 | int bsc_platform_init(int features, void* (* malloc)(size_t size), void* (* zero_malloc)(size_t size), void (* free)(void* address))\nwarning: cix-native@0.1.0:       |                       ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp: In function 'int bsc_st_init(int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp:47:21: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:    47 | int bsc_st_init(int features)\nwarning: cix-native@0.1.0:       |                 ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp: In function 'int bsc_st3_encode(unsigned char*, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp:870:50: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   870 | int bsc_st3_encode(unsigned char * T, int n, int features)\nwarning: cix-native@0.1.0:       |                                              ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp: In function 'int bsc_st4_encode(unsigned char*, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp:900:50: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   900 | int bsc_st4_encode(unsigned char * T, int n, int features)\nwarning: cix-native@0.1.0:       |                                              ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp: In function 'int bsc_st5_encode(unsigned char*, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp:930:50: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   930 | int bsc_st5_encode(unsigned char * T, int n, int features)\nwarning: cix-native@0.1.0:       |                                              ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp: In function 'int bsc_st6_encode(unsigned char*, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp:960:50: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:   960 | int bsc_st6_encode(unsigned char * T, int n, int features)\nwarning: cix-native@0.1.0:       |                                              ~~~~^~~~~~~~\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp: In function 'int bsc_st_decode(unsigned char*, int, int, int, int)':\nwarning: cix-native@0.1.0: vendor/libbsc/libbsc/st/st.cpp:1491:67: warning: unused parameter 'features' [-Wunused-parameter]\nwarning: cix-native@0.1.0:  1491 | int bsc_st_decode(unsigned char * T, int n, int k, int index, int features)\nwarning: cix-native@0.1.0:       |                                                               ~~~~^~~~~~~~\n    Finished `release-lto` profile [optimized] target(s) in 30.55s\nmake: warning:  Clock skew detected.  Your build may be incomplete.\n"
+    },
+    {
+      "name": "stage-install-only",
+      "at_unix": 1791056703,
+      "command": [
+        "make",
+        "PROFILE=release-lto",
+        "CARGO=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+        "CARGO_TARGET_DIR=/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/target",
+        "PREFIX=/usr",
+        "DESTDIR=/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage",
+        "install-only"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/source/cix-0.1.0",
+      "exit_code": 0,
+      "elapsed_seconds": 0.006,
+      "stdout": "install -d /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/man/man1 /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/doc/cix\nfor bin in cix uncix cixcat; do install -m 0755 /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/target/release-lto/$bin /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin/$bin; done\ninstall -m 0644 man/cix.1 man/uncix.1 man/cixcat.1 /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/man/man1\ninstall -m 0644 README.md LICENSE THIRD_PARTY_NOTICES.txt THIRD_PARTY_NOTICES_RUST.md /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/doc/cix\n",
+      "stderr": "make: Warning: File 'Makefile' has modification time 15296 s in the future\nmake: warning:  Clock skew detected.  Your build may be incomplete.\n"
+    },
+    {
+      "name": "source-stage-rust-notice",
+      "at_unix": 1791056703,
+      "path": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/doc/cix/THIRD_PARTY_NOTICES_RUST.md",
+      "sha256": "5e5028e09813e5e76e5a35f3eb9aca043359f018aca83c8326d27da0258ed73b"
+    },
+    {
+      "name": "source-stage-cix-version",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin/cix",
+        "--version"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "cix-native 0.1.0 (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "source-stage-uncix-version",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin/uncix",
+        "--version"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "cix-native 0.1.0 (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "source-stage-cixcat-version",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin/cixcat",
+        "--version"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "cix-native 0.1.0 (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "source-stage-compress",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin/cix",
+        "-f",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage/input.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage/input.bin"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage",
+      "exit_code": 0,
+      "elapsed_seconds": 0.017,
+      "stdout": "",
+      "stderr": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage/input.cix\n"
+    },
+    {
+      "name": "source-stage-test",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin/uncix",
+        "-t",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage/input.cix"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage",
+      "exit_code": 0,
+      "elapsed_seconds": 0.002,
+      "stdout": "",
+      "stderr": "archive OK\n"
+    },
+    {
+      "name": "source-stage-restore",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin/uncix",
+        "-f",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage/restored.bin",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage/input.cix"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage",
+      "exit_code": 0,
+      "elapsed_seconds": 0.01,
+      "stdout": "",
+      "stderr": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage/restored.bin\n"
+    },
+    {
+      "name": "source-stage-cixcat",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin/cixcat",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage/input.cix"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-source-stage",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "CIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\n",
+      "stderr": ""
+    },
+    {
+      "name": "stage-uninstall",
+      "at_unix": 1791056703,
+      "command": [
+        "make",
+        "PREFIX=/usr",
+        "DESTDIR=/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage",
+        "uninstall"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/source/cix-0.1.0",
+      "exit_code": 0,
+      "elapsed_seconds": 0.003,
+      "stdout": "for bin in cix uncix cixcat; do rm -f /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/bin/$bin; done\nrm -f /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/man/man1/cix.1 /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/man/man1/uncix.1 /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/man/man1/cixcat.1\nrm -f /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/doc/cix/README.md /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/doc/cix/LICENSE /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/doc/cix/THIRD_PARTY_NOTICES.txt /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/stage/usr/share/doc/cix/THIRD_PARTY_NOTICES_RUST.md\n",
+      "stderr": "make: Warning: File 'Makefile' has modification time 15296 s in the future\nmake: warning:  Clock skew detected.  Your build may be incomplete.\n"
+    },
+    {
+      "name": "stage-uninstall-empty",
+      "at_unix": 1791056703,
+      "remaining_files": []
+    },
+    {
+      "name": "extract-deb",
+      "at_unix": 1791056703,
+      "command": [
+        "/usr/bin/dpkg-deb",
+        "-x",
+        "/home/user/src/cix-0.1-artifacts/distribution-v2/packages/cix_0.1.0-1_amd64.deb",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_",
+      "exit_code": 0,
+      "elapsed_seconds": 0.007,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "deb-rust-notice",
+      "at_unix": 1791056703,
+      "path": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb/usr/share/doc/cix/THIRD_PARTY_NOTICES_RUST.md",
+      "sha256": "5e5028e09813e5e76e5a35f3eb9aca043359f018aca83c8326d27da0258ed73b"
+    },
+    {
+      "name": "deb-hashes",
+      "at_unix": 1791056703,
+      "expected": {
+        "cix": "09434a7f34b62691d0e187a22bd1b77fbb48a4b7f3f7d3ceea3857ca4e8b16a2",
+        "uncix": "51d08e1d297920032dabb40599e92fa6c640c13d2e72c5e77b6b281a0e1f58eb",
+        "cixcat": "095370fa7de767d552223ce7e3f2adfc6a5b339aed13d3962a19ff82d26b3449"
+      },
+      "actual": {
+        "cix": "09434a7f34b62691d0e187a22bd1b77fbb48a4b7f3f7d3ceea3857ca4e8b16a2",
+        "uncix": "51d08e1d297920032dabb40599e92fa6c640c13d2e72c5e77b6b281a0e1f58eb",
+        "cixcat": "095370fa7de767d552223ce7e3f2adfc6a5b339aed13d3962a19ff82d26b3449"
+      }
+    },
+    {
+      "name": "deb-cix-version",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb/usr/bin/cix",
+        "--version"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb/usr/bin",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "cix-native 0.1.0 (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "deb-uncix-version",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb/usr/bin/uncix",
+        "--version"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb/usr/bin",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "cix-native 0.1.0 (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "deb-cixcat-version",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb/usr/bin/cixcat",
+        "--version"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb/usr/bin",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "cix-native 0.1.0 (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "deb-compress",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb/usr/bin/cix",
+        "-f",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb/input.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb/input.bin"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb",
+      "exit_code": 0,
+      "elapsed_seconds": 0.017,
+      "stdout": "",
+      "stderr": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb/input.cix\n"
+    },
+    {
+      "name": "deb-test",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb/usr/bin/uncix",
+        "-t",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb/input.cix"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb",
+      "exit_code": 0,
+      "elapsed_seconds": 0.002,
+      "stdout": "",
+      "stderr": "archive OK\n"
+    },
+    {
+      "name": "deb-restore",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb/usr/bin/uncix",
+        "-f",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb/restored.bin",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb/input.cix"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb",
+      "exit_code": 0,
+      "elapsed_seconds": 0.009,
+      "stdout": "",
+      "stderr": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb/restored.bin\n"
+    },
+    {
+      "name": "deb-cixcat",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/deb/usr/bin/cixcat",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb/input.cix"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-deb",
+      "exit_code": 0,
+      "elapsed_seconds": 0.002,
+      "stdout": "CIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\n",
+      "stderr": ""
+    },
+    {
+      "name": "extract-rpm",
+      "at_unix": 1791056703,
+      "command": [
+        "/usr/bin/rpm2cpio",
+        "/home/user/src/cix-0.1-artifacts/distribution-v2/packages/cix-0.1.0-1.x86_64.rpm",
+        "|",
+        "/usr/bin/cpio",
+        "-idm",
+        "--quiet"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm",
+      "exit_code": 0,
+      "elapsed_seconds": 0.028,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "rpm-rust-notice",
+      "at_unix": 1791056703,
+      "path": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm/usr/share/doc/cix/THIRD_PARTY_NOTICES_RUST.md",
+      "sha256": "5e5028e09813e5e76e5a35f3eb9aca043359f018aca83c8326d27da0258ed73b"
+    },
+    {
+      "name": "rpm-hashes",
+      "at_unix": 1791056703,
+      "expected": {
+        "cix": "09434a7f34b62691d0e187a22bd1b77fbb48a4b7f3f7d3ceea3857ca4e8b16a2",
+        "uncix": "51d08e1d297920032dabb40599e92fa6c640c13d2e72c5e77b6b281a0e1f58eb",
+        "cixcat": "095370fa7de767d552223ce7e3f2adfc6a5b339aed13d3962a19ff82d26b3449"
+      },
+      "actual": {
+        "cix": "09434a7f34b62691d0e187a22bd1b77fbb48a4b7f3f7d3ceea3857ca4e8b16a2",
+        "uncix": "51d08e1d297920032dabb40599e92fa6c640c13d2e72c5e77b6b281a0e1f58eb",
+        "cixcat": "095370fa7de767d552223ce7e3f2adfc6a5b339aed13d3962a19ff82d26b3449"
+      }
+    },
+    {
+      "name": "rpm-cix-version",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm/usr/bin/cix",
+        "--version"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm/usr/bin",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "cix-native 0.1.0 (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "rpm-uncix-version",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm/usr/bin/uncix",
+        "--version"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm/usr/bin",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "cix-native 0.1.0 (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "rpm-cixcat-version",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm/usr/bin/cixcat",
+        "--version"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm/usr/bin",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "cix-native 0.1.0 (CIXG1/CIXG2/CIXM6/CIXF1/CIXB1/CIXZ1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "rpm-compress",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm/usr/bin/cix",
+        "-f",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm/input.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm/input.bin"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm",
+      "exit_code": 0,
+      "elapsed_seconds": 0.017,
+      "stdout": "",
+      "stderr": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm/input.cix\n"
+    },
+    {
+      "name": "rpm-test",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm/usr/bin/uncix",
+        "-t",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm/input.cix"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "",
+      "stderr": "archive OK\n"
+    },
+    {
+      "name": "rpm-restore",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm/usr/bin/uncix",
+        "-f",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm/restored.bin",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm/input.cix"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm",
+      "exit_code": 0,
+      "elapsed_seconds": 0.009,
+      "stdout": "",
+      "stderr": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm/restored.bin\n"
+    },
+    {
+      "name": "rpm-cixcat",
+      "at_unix": 1791056703,
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/rpm/usr/bin/cixcat",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm/input.cix"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/roundtrip-rpm",
+      "exit_code": 0,
+      "elapsed_seconds": 0.001,
+      "stdout": "CIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\nCIX release validation\n",
+      "stderr": ""
+    },
+    {
+      "name": "extract-dsc",
+      "at_unix": 1791056703,
+      "command": [
+        "/usr/bin/dpkg-source",
+        "-x",
+        "/home/user/src/cix-0.1-artifacts/distribution-v2/packages/cix_0.1.0-1.dsc",
+        "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/dsc"
+      ],
+      "cwd": "/home/user/src/cix-0.1-artifacts/distribution-v2/packages",
+      "exit_code": 0,
+      "elapsed_seconds": 0.061,
+      "stdout": "dpkg-source: info: extracting cix in /home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/dsc\ndpkg-source: info: unpacking cix_0.1.0.orig.tar.gz\ndpkg-source: info: unpacking cix_0.1.0-1.debian.tar.xz\n",
+      "stderr": "dpkg-source: warning: extracting unsigned source package (/home/user/src/cix-0.1-artifacts/distribution-v2/packages/cix_0.1.0-1.dsc)\ntar: cix-0.1.0/.gitignore: time stamp 2026-10-04 11:00:00 is 15296.267231403 s in the future\ntar: cix-0.1.0/Cargo.lock: time stamp 2026-10-04 11:00:00 is 15296.267208993 s in the future\ntar: cix-0.1.0/Cargo.toml: time stamp 2026-10-04 11:00:00 is 15296.267199506 s in the future\ntar: cix-0.1.0/LICENSE: time stamp 2026-10-04 11:00:00 is 15296.267192373 s in the future\ntar: cix-0.1.0/Makefile: time stamp 2026-10-04 11:00:00 is 15296.267185629 s in the future\ntar: cix-0.1.0/README.md: time stamp 2026-10-04 11:00:00 is 15296.267177191 s in the future\ntar: cix-0.1.0/SECURITY.md: time stamp 2026-10-04 11:00:00 is 15296.267169392 s in the future\ntar: cix-0.1.0/THIRD_PARTY_NOTICES.txt: time stamp 2026-10-04 11:00:00 is 15296.267154701 s in the future\ntar: cix-0.1.0/THIRD_PARTY_NOTICES_RUST.md: time stamp 2026-10-04 11:00:00 is 15296.266486514 s in the future\ntar: cix-0.1.0/build.rs: time stamp 2026-10-04 11:00:00 is 15296.266476731 s in the future\ntar: cix-0.1.0/docs/formats/COMPATIBILITY.md: time stamp 2026-10-04 11:00:00 is 15296.266451335 s in the future\ntar: cix-0.1.0/docs/formats/FORMAT-CIXB1.md: time stamp 2026-10-04 11:00:00 is 15296.266444029 s in the future\ntar: cix-0.1.0/docs/formats/FORMAT-CIXZ1.md: time stamp 2026-10-04 11:00:00 is 15296.266437349 s in the future\ntar: cix-0.1.0/docs/release/RELEASING.md: time stamp 2026-10-04 11:00:00 is 15296.266422348 s in the future\ntar: cix-0.1.0/docs/release/SUPPORT.md: time stamp 2026-10-04 11:00:00 is 15296.266414812 s in the future\ntar: cix-0.1.0/man/cix.1: time stamp 2026-10-04 11:00:00 is 15296.266398704 s in the future\ntar: cix-0.1.0/man/cixcat.1: time stamp 2026-10-04 11:00:00 is 15296.266387446 s in the future\ntar: cix-0.1.0/man/uncix.1: time stamp 2026-10-04 11:00:00 is 15296.266379948 s in the future\ntar: cix-0.1.0/packaging/homebrew/Cix.rb.in: time stamp 2026-10-04 11:00:00 is 15296.266358285 s in the future\ntar: cix-0.1.0/packaging/homebrew/README.md: time stamp 2026-10-04 11:00:00 is 15296.266350921 s in the future\ntar: cix-0.1.0/packaging/macos/README.md: time stamp 2026-10-04 11:00:00 is 15296.266335253 s in the future\ntar: cix-0.1.0/packaging/macos/build.sh: time stamp 2026-10-04 11:00:00 is 15296.266327034 s in the future\ntar: cix-0.1.0/packaging/rpm/cix.spec: time stamp 2026-10-04 11:00:00 is 15296.266311649 s in the future\ntar: cix-0.1.0/packaging/squash/README.md: time stamp 2026-10-04 11:00:00 is 15296.266295715 s in the future\ntar: cix-0.1.0/packaging/squash/build-plugin.sh: time stamp 2026-10-04 11:00:00 is 15296.266288542 s in the future\ntar: cix-0.1.0/packaging/squash/squash-cix.c: time stamp 2026-10-04 11:00:00 is 15296.266280176 s in the future\ntar: cix-0.1.0/packaging/squash/squash.ini: time stamp 2026-10-04 11:00:00 is 15296.266270646 s in the future\ntar: cix-0.1.0/packaging/windows/README.md: time stamp 2026-10-04 11:00:00 is 15296.266255896 s in the future\ntar: cix-0.1.0/packaging/windows/build.ps1: time stamp 2026-10-04 11:00:00 is 15296.266249152 s in the future\ntar: cix-0.1.0/src/adaptive.rs: time stamp 2026-10-04 11:00:00 is 15296.266231815 s in the future\ntar: cix-0.1.0/src/bitplane.rs: time stamp 2026-10-04 11:00:00 is 15296.266222719 s in the future\ntar: cix-0.1.0/src/bounded_reader.rs: time stamp 2026-10-04 11:00:00 is 15296.266214918 s in the future\ntar: cix-0.1.0/src/bsc_ffi.rs: time stamp 2026-10-04 11:00:00 is 15296.266204459 s in the future\ntar: cix-0.1.0/src/bwt_legacy.rs: time stamp 2026-10-04 11:00:00 is 15296.266064329 s in the future\ntar: cix-0.1.0/src/chain.rs: time stamp 2026-10-04 11:00:00 is 15296.265849595 s in the future\ntar: cix-0.1.0/src/cixcat.rs: time stamp 2026-10-04 11:00:00 is 15296.265842132 s in the future\ntar: cix-0.1.0/src/cli.rs: time stamp 2026-10-04 11:00:00 is 15296.265217922 s in the future\ntar: cix-0.1.0/src/combinatorics.rs: time stamp 2026-10-04 11:00:00 is 15296.265207632 s in the future\ntar: cix-0.1.0/src/expertmix.rs: time stamp 2026-10-04 11:00:00 is 15296.265117308 s in the future\ntar: cix-0.1.0/src/external.rs: time stamp 2026-10-04 11:00:00 is 15296.265006603 s in the future\ntar: cix-0.1.0/src/fast_lz.rs: time stamp 2026-10-04 11:00:00 is 15296.264909735 s in the future\ntar: cix-0.1.0/src/fixedmix.rs: time stamp 2026-10-04 11:00:00 is 15296.264895658 s in the future\ntar: cix-0.1.0/src/gstream.rs: time stamp 2026-10-04 11:00:00 is 15296.264795574 s in the future\ntar: cix-0.1.0/src/histogram.rs: time stamp 2026-10-04 11:00:00 is 15296.264696793 s in the future\ntar: cix-0.1.0/src/huffman.rs: time stamp 2026-10-04 11:00:00 is 15296.264684356 s in the future\ntar: cix-0.1.0/src/legacy_lz.rs: time stamp 2026-10-04 11:00:00 is 15296.264495442 s in the future\ntar: cix-0.1.0/src/lib.rs: time stamp 2026-10-04 11:00:00 is 15296.264487098 s in the future\ntar: cix-0.1.0/src/limits.rs: time stamp 2026-10-04 11:00:00 is 15296.264477705 s in the future\ntar: cix-0.1.0/src/main.rs: time stamp 2026-10-04 11:00:00 is 15296.264470089 s in the future\ntar: cix-0.1.0/src/numeric.rs: time stamp 2026-10-04 11:00:00 is 15296.264287493 s in the future\ntar: cix-0.1.0/src/parallel.rs: time stamp 2026-10-04 11:00:00 is 15296.264275162 s in the future\ntar: cix-0.1.0/src/portfolio_auto.rs: time stamp 2026-10-04 11:00:00 is 15296.26417796 s in the future\ntar: cix-0.1.0/src/ppm.rs: time stamp 2026-10-04 11:00:00 is 15296.264082019 s in the future\ntar: cix-0.1.0/src/rank.rs: time stamp 2026-10-04 11:00:00 is 15296.263980621 s in the future\ntar: cix-0.1.0/src/record_periodic.rs: time stamp 2026-10-04 11:00:00 is 15296.263872181 s in the future\ntar: cix-0.1.0/src/resources.rs: time stamp 2026-10-04 11:00:00 is 15296.263862093 s in the future\ntar: cix-0.1.0/src/selection.rs: time stamp 2026-10-04 11:00:00 is 15296.263767555 s in the future\ntar: cix-0.1.0/src/sparse_runs.rs: time stamp 2026-10-04 11:00:00 is 15296.263665591 s in the future\ntar: cix-0.1.0/src/stateful.rs: time stamp 2026-10-04 11:00:00 is 15296.263652131 s in the future\ntar: cix-0.1.0/src/stdout_writer.rs: time stamp 2026-10-04 11:00:00 is 15296.263566814 s in the future\ntar: cix-0.1.0/src/streaming_backend.rs: time stamp 2026-10-04 11:00:00 is 15296.263460616 s in the future\ntar: cix-0.1.0/src/transform.rs: time stamp 2026-10-04 11:00:00 is 15296.263446491 s in the future\ntar: cix-0.1.0/src/uncix.rs: time stamp 2026-10-04 11:00:00 is 15296.263438076 s in the future\ntar: cix-0.1.0/src/wavelet.rs: time stamp 2026-10-04 11:00:00 is 15296.263429899 s in the future\ntar: cix-0.1.0/src/zpaq_context.rs: time stamp 2026-10-04 11:00:00 is 15296.2633525 s in the future\ntar: cix-0.1.0/src/zpaq_ffi.cpp: time stamp 2026-10-04 11:00:00 is 15296.26334224 s in the future\ntar: cix-0.1.0/tests/cli_smoke.rs: time stamp 2026-10-04 11:00:00 is 15296.263325086 s in the future\ntar: cix-0.1.0/tests/streaming_pipe.rs: time stamp 2026-10-04 11:00:00 is 15296.263244659 s in the future\ntar: cix-0.1.0/vendor/libbsc/AUTHORS: time stamp 2026-10-04 11:00:00 is 15296.263222798 s in the future\ntar: cix-0.1.0/vendor/libbsc/LICENSE: time stamp 2026-10-04 11:00:00 is 15296.263211349 s in the future\ntar: cix-0.1.0/vendor/libbsc/UPSTREAM.md: time stamp 2026-10-04 11:00:00 is 15296.263204029 s in the future\ntar: cix-0.1.0/vendor/libbsc/VERSION: time stamp 2026-10-04 11:00:00 is 15296.263196362 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/adler32/adler32.cpp: time stamp 2026-10-04 11:00:00 is 15296.263151559 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/adler32/adler32.h: time stamp 2026-10-04 11:00:00 is 15296.263143456 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/bwt/bwt.cpp: time stamp 2026-10-04 11:00:00 is 15296.263124197 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/bwt/bwt.h: time stamp 2026-10-04 11:00:00 is 15296.26311498 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/bwt/libcubwt/LICENSE: time stamp 2026-10-04 11:00:00 is 15296.263060409 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/bwt/libcubwt/libcubwt.cuh: time stamp 2026-10-04 11:00:00 is 15296.263050782 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/bwt/libsais/LICENSE: time stamp 2026-10-04 11:00:00 is 15296.263027961 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/bwt/libsais/libsais.c: time stamp 2026-10-04 11:00:00 is 15296.262191173 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/bwt/libsais/libsais.h: time stamp 2026-10-04 11:00:00 is 15296.262107201 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/coder/coder.cpp: time stamp 2026-10-04 11:00:00 is 15296.26208283 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/coder/coder.h: time stamp 2026-10-04 11:00:00 is 15296.262074879 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/coder/common/predictor.h: time stamp 2026-10-04 11:00:00 is 15296.262003811 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/coder/common/rangecoder.h: time stamp 2026-10-04 11:00:00 is 15296.261993495 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/coder/common/tables.h: time stamp 2026-10-04 11:00:00 is 15296.261332563 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/coder/qlfc/qlfc.cpp: time stamp 2026-10-04 11:00:00 is 15296.261099488 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/coder/qlfc/qlfc.h: time stamp 2026-10-04 11:00:00 is 15296.261089176 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/coder/qlfc/qlfc_model.cpp: time stamp 2026-10-04 11:00:00 is 15296.261081777 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/coder/qlfc/qlfc_model.h: time stamp 2026-10-04 11:00:00 is 15296.261014394 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/filters.h: time stamp 2026-10-04 11:00:00 is 15296.261004509 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/filters/detectors.cpp: time stamp 2026-10-04 11:00:00 is 15296.260893868 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/filters/preprocessing.cpp: time stamp 2026-10-04 11:00:00 is 15296.260883904 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/filters/tables.h: time stamp 2026-10-04 11:00:00 is 15296.260629732 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/libbsc.h: time stamp 2026-10-04 11:00:00 is 15296.260563973 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/libbsc/libbsc.cpp: time stamp 2026-10-04 11:00:00 is 15296.260540719 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/lzp/lzp.cpp: time stamp 2026-10-04 11:00:00 is 15296.260477618 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/lzp/lzp.h: time stamp 2026-10-04 11:00:00 is 15296.260399481 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/platform/platform.cpp: time stamp 2026-10-04 11:00:00 is 15296.260379277 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/platform/platform.h: time stamp 2026-10-04 11:00:00 is 15296.260370195 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/st/st.cpp: time stamp 2026-10-04 11:00:00 is 15296.260198538 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/st/st.cuh: time stamp 2026-10-04 11:00:00 is 15296.260190581 s in the future\ntar: cix-0.1.0/vendor/libbsc/libbsc/st/st.h: time stamp 2026-10-04 11:00:00 is 15296.260183213 s in the future\ntar: cix-0.1.0/vendor/libzpaq715/UPSTREAM.md: time stamp 2026-10-04 11:00:00 is 15296.260166753 s in the future\ntar: cix-0.1.0/vendor/libzpaq715/libzpaq.cpp: time stamp 2026-10-04 11:00:00 is 15296.259288746 s in the future\ntar: cix-0.1.0/vendor/libzpaq715/libzpaq.h: time stamp 2026-10-04 11:00:00 is 15296.259065373 s in the future\n"
+    },
+    {
+      "name": "dsc-shape",
+      "at_unix": 1791056703,
+      "source_root": "/home/user/src/colour-index-compression/benchmark-work/release-notice-qualification-v2/third-party/cix-third-party-ouz6qzu_/dsc",
+      "expected_files": [
+        "debian/control",
+        "debian/rules",
+        "Cargo.toml",
+        "THIRD_PARTY_NOTICES_RUST.md"
+      ],
+      "notice_sha256": "5e5028e09813e5e76e5a35f3eb9aca043359f018aca83c8326d27da0258ed73b"
+    }
+  ]
+}

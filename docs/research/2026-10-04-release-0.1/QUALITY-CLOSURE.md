@@ -128,3 +128,27 @@ Static command-line review also confirmed that `-t` and `-l` both set
 `decode = true` before `finish_parse`. When no explicit `--memory` is given,
 `finish_parse` assigns the intended 2 GiB decode limit. No parse-path defect
 was found.
+
+## Distribution successor: notice-only amendment
+
+The shipping successor is `/home/user/src/cix-0.1-distribution`, with packages
+at `/home/user/src/cix-0.1-artifacts/distribution-v2/packages`. The measured
+binaries remain `/home/user/src/cix-0.1-artifacts/final/bin`.
+
+`dependency-notices/amendment.json` records a Rust third-party notice and the
+small associated README, Makefile, Debian, and RPM packaging changes. It also
+proves that all 90 protected runtime files are byte-identical to the measured
+tree: Cargo inputs, `src/**`, tests, vendored code, and the non-Debian/RPM
+platform integrations. Therefore the final runtime test, Clippy, and Rust-only
+Sonar receipts remain applicable; a code scan was not repeated for the
+notice-only amendment.
+
+The successor notice qualification passed in 34.53 seconds
+(`raw/notice-qualification-v2/result.json`).
+`notice-qualification-results-v2.json` and the retained third-party receipt
+verify matching notice hashes in the source and binary tarballs, source build,
+staged install/uninstall, Debian package, RPM package, and Debian source
+package extraction. The first attempt is retained: its generated RPM spec
+listed the new notice without installing it. The v2 correction derives install
+and ownership entries from one legal-file list; it changed no measured binary
+or runtime source.

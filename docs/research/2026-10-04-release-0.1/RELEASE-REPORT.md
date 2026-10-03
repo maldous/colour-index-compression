@@ -1,6 +1,6 @@
 # CIX 0.1 private release report
 
-**Status:** The named research, source-quality, performance, final qualification, and package-artifact screens are complete. The package-version benchmark is running; the private portal is locally complete but not deployed. This is private evidence, not a public release claim.
+**Status:** The named research, source-quality, performance, final qualification, package-artifact, and notice-qualification screens are complete. The package-version benchmark is running; the private portal is locally complete and remains undeployed until its owner chooses private publication after terminal results. This is private evidence, not a public release claim.
 
 ## Decision
 
@@ -45,14 +45,16 @@ On the frozen 1,029,744-byte Kennedy input, all completed CIXG1 scaling points r
 
 The accepted throughput changes are the exact-prefix prune and T1's discarded-histogram avoidance; no other optimization is selected. The prune preserved selected archive bytes in both matched controls: grammar BEST observed 10.14/10.17 user/wall seconds before and 10.22/10.24 after, while the Kennedy constrained predictor observed 1.18/1.19 before and 1.07/1.08 after. These one-off CPU rows establish equivalence and omission accounting, not a general speedup. Release-source cleanup removed research-only exports and Rust dead-code suppression while retaining decoder modules and optional Squash C ABI. The final tree is `bd28975a504abbeb011d2aaba36224af6b5c7f3fa844f491c224166750cab1e7`; its release build, 115 library tests, 4 CLI smoke tests, 7 streaming-pipe tests, warnings-denied Clippy, and Sonar v2 pass with zero Rust diagnostics/issues and an `OK` quality gate. The clean result excludes vendored C/C++ warning scope. Final qualification also passed package build/runtime, shared-library ABI, stream, and SquashFS checks. [Quality closure](QUALITY-CLOSURE.md) defines that boundary.
 
+The shipping successor adds a complete 32-crate Rust notice bundle and only the documentation/install-rule changes needed to carry it. `dependency-notices/amendment.json` verifies that all 90 protected runtime/build files are byte-identical between the frozen export and successor. Notice qualification v2 checks the same notice hash in staged source/binary artifacts and package forms; it is a legal-distribution qualification, not a claim about third-party source quality beyond the documented scope.
+
 ## Root-owned evidence slots
 
 | Deliverable | Required fill before accepting a candidate |
 | --- | --- |
-| Immutable package artifacts | **Complete.** Final B0 artifacts are frozen under `/home/user/src/cix-0.1-artifacts/final`; packages are under `/home/user/src/cix-0.1-artifacts/final/packages`, with final qualification all PASS. |
-| Package-version benchmark | **Running.** 267 cells across 89 physical / 90 logical assets use four cores and 10 GiB. Two initial BEST timeouts are retained; the corrected native allowance is at least 900 seconds. Fill FAST/DEFAULT/BEST complete archives, exact restores, resource receipts, dataset identities, and comparator scope when terminal. |
+| Successor distribution and package artifacts | **Complete.** Shipping source is `/home/user/src/cix-0.1-distribution`; packages are under `/home/user/src/cix-0.1-artifacts/distribution-v2/packages`. Notice qualification v2 passed with exact binary hashes, staged source build/install/uninstall, DEB, RPM, DSC, and binary-tar notice-hash checks. The retained v1 RPM packager failure is superseded by this corrected v2 result, not erased. |
+| Package-version benchmark | **Running.** The initial 12 plus 267 physical cells span 89 physical / 90 logical assets under four cores and 10 GiB. Two initial BEST timeouts are retained; the corrected native allowance is at least 900 seconds and the finite hourly continuation is configured. Fill FAST/DEFAULT/BEST complete archives, exact restores, resource receipts, dataset identities, and comparator scope when terminal. |
 | Public-record table | Original source links plus matched/not-directly-comparable labels; no inferred rank. |
-| Private portal review | Local portal is complete. Populate its final charts only from the terminal benchmark, then review privately; do not deploy. |
+| Private portal review | Local portal is complete. Populate final charts only from the terminal benchmark, then the owner may choose private publication; it is currently not deployed. |
 
 ## Exactly one evidence-selected next action
 

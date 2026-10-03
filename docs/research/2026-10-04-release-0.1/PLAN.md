@@ -49,11 +49,26 @@ perf-opportunities.json, QUALITY-AUDIT.md, quality-ledger.json,
 DISTRIBUTION-AUDIT.md, local-assets.json, public-records.json, SQUASHFS-PLAN.md.
 These are initial audits, not completed qualification receipts.
 
-## Status at creation
+## Current status
 
-- Production source at development HEAD 20e18503b matches d3a2cd416.
-- CPI1 completed; 0.53% preselected causal gain failed the material gate.
-- New isolated recurrence/PPM instrument prepared but not yet run.
-- Sonar d3a2 evidence is clean; public-export scan still required.
-- 241 all-target dead-code warning instances require actual disposition.
-- The public distribution directory and private release Site are not yet built.
+- The finite predictive follow-up is complete: recurrence-v3 loses to v1 and
+  PPM remains separate from the common mixture because its global compatibility
+  normalization contract is unresolved; no new codec route is selected.
+- The final Rust source-quality and qualification set is complete. Sonar v2
+  binds the final export tree and reports an `OK` gate with zero Rust issues;
+  vendored C/C++ remains outside that claim.
+- The shipping successor is `/home/user/src/cix-0.1-distribution`. It adds the
+  complete 32-crate Rust notice bundle and associated install documentation
+  only; `dependency-notices/amendment.json` records 90 protected runtime/build
+  files as byte-identical.
+- Notice qualification v2 passed staged build/install/uninstall and source,
+  binary-tar, DEB, RPM, and DSC notice-hash checks. Its corrected RPM package
+  result supersedes but preserves the earlier v1 packager failure.
+- Distribution-v2 packages are under
+  `/home/user/src/cix-0.1-artifacts/distribution-v2/packages`.
+- The package-version benchmark is active: the initial 12 plus 267 physical
+  cells cover 89 physical / 90 logical assets within four cores and 10 GiB.
+  Two initial BEST timeouts remain retained; the corrected native allowance is
+  at least 900 seconds and a finite hourly continuation is configured.
+- The private Site is locally complete and not deployed. Its owner may choose
+  private publication only after terminal benchmark results.

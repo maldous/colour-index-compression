@@ -1,0 +1,274 @@
+<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="style.css"><title>CIX — Command manual</title></head><body><header><a class="brand" href="index.html"><img src="mark.svg" width="36" alt="">CIX<span>/ six /</span></a><nav><a href="index.html#results">Results</a><a href="index.html#release">Downloads</a></nav></header><main class="doc"><h1>CIX command manual</h1><h1>NAME</h1>
+<p>cix - create a lossless CIX archive</p>
+<h1>SYNOPSIS</h1>
+<p><strong>cix</strong> [<strong>-1</strong> ... <strong>-9</strong> |
+<strong>--fast</strong> | <strong>--best</strong>] [<strong>-c</strong>]
+[<strong>-f</strong>] [<strong>-k</strong>] [<strong>-o</strong>
+<em>file</em>] [<em>file</em>]</p>
+<h1>DESCRIPTION</h1>
+<p><strong>cix</strong> compresses one file or standard input into a
+self-describing CIX archive. With a named input, the default output name
+appends <strong>.cix</strong>. Inputs are retained by default. Use
+<strong>-</strong> as FILE for standard input; use <strong>-c</strong>
+for standard output. CIX stores one byte stream per invocation; use an
+archiver such as tar when preserving a directory tree.</p>
+<h1>EFFORT AND RESOURCES</h1>
+<dl>
+<dt><strong>-1 ... -9</strong></dt>
+<dd>
+<p>Set compression effort. The default is <strong>-6</strong>.</p>
+</dd>
+<dt><strong>--fast</strong></dt>
+<dd>
+<p>Use effort 1 for lower compression latency.</p>
+</dd>
+<dt><strong>--best</strong></dt>
+<dd>
+<p>Use effort 9 for the broadest bounded archive search. With no
+explicit <strong>--memory</strong>, BEST raises the memory admission
+limit to 2 GiB. Decoding, testing, and listing also start at 2 GiB
+unless an explicit limit is supplied. Eligible whole-file native BEST
+work can use a 15-minute allowance plus up to 45 minutes based on input
+size. Direct external-library calls can add time and are not
+preemptible, so this is not a total wall-time limit.</p>
+</dd>
+<dt><strong>--memory</strong> <strong><em>SIZE</em></strong></dt>
+<dd>
+<p>Set the maximum admitted working memory. SIZE accepts the size syntax
+accepted by the command, such as <strong>512MiB</strong>. FAST and the
+default profile start at 512 MiB. An explicit value is never raised
+automatically.</p>
+</dd>
+<dt><strong>--threads</strong> <strong><em>N</em></strong></dt>
+<dd>
+<p>Set the worker limit from 1 through 20. The default is up to four
+available CPUs. More than one worker is supported only for native
+CIXG1/CIXG2 block or candidate selection.</p>
+</dd>
+<dt><strong>--parallelism</strong>
+<strong><em>blocks</em></strong>|<strong><em>candidates</em></strong></dt>
+<dd>
+<p>Choose parallel work across ordered blocks or among candidate trials
+within a block.</p>
+</dd>
+</dl>
+<h1>BASIC OPTIONS</h1>
+<dl>
+<dt><strong>-c</strong></dt>
+<dd>
+<p>Write the archive to standard output.</p>
+</dd>
+<dt><strong>-o</strong> <strong><em>FILE</em></strong></dt>
+<dd>
+<p>Write the archive to FILE.</p>
+</dd>
+<dt><strong>-f</strong></dt>
+<dd>
+<p>Replace an existing output file.</p>
+</dd>
+<dt><strong>-k</strong></dt>
+<dd>
+<p>Accepted for compatibility. Inputs are retained by default.</p>
+</dd>
+<dt><strong>-h</strong>,<strong> </strong>--help</dt>
+<dd>
+<p>Show command usage.</p>
+</dd>
+<dt><strong>--version</strong></dt>
+<dd>
+<p>Show the version and supported container identifiers.</p>
+</dd>
+</dl>
+<h1>FORMAT AND EXPERT CONTROLS</h1>
+<p>These controls constrain the encoder and can exclude otherwise
+eligible candidates. They are intended for diagnosis and controlled
+integration.</p>
+<dl>
+<dt><strong>--format</strong>
+<strong><em>auto</em></strong>|<strong><em>cixg1</em></strong>|<strong><em>cixg2</em></strong>|<strong><em>cixm6</em></strong>|<strong><em>cixf1</em></strong></dt>
+<dd>
+<p>Select or constrain the output container. The default,
+<strong>auto</strong>, selects among eligible native containers. CIXM6
+and CIXF1 are encoding-only formats and cannot be combined with route
+selection, external candidates, or portfolio selection. CIXF1 requires a
+named input so its basename can be stored.</p>
+</dd>
+<dt><strong>--route</strong>
+<strong><em>auto</em></strong>|<strong><em>raw</em></strong>|<strong><em>runs</em></strong>|<strong><em>composition</em></strong>|<strong><em>lz</em></strong>|<strong><em>predictor</em></strong>|<strong><em>bwt</em></strong>|<strong><em>stride</em></strong>|<strong><em>phrases</em></strong>|<strong><em>ppm</em></strong>|<strong><em>mixture</em></strong>|<strong><em>deflate</em></strong></dt>
+<dd>
+<p>Constrain the native route. Some routes need more memory: LZ and
+mixture need at least 16 MiB, and PPM needs at least 64 MiB.</p>
+</dd>
+<dt><strong>--backend</strong> <strong><em>NAME</em></strong></dt>
+<dd>
+<p>Constrain the nested substream backend. Supported names are
+<strong>cix</strong>, <strong>raw</strong>, <strong>runs</strong>,
+<strong>ppm</strong>, <strong>mixture</strong>,
+<strong>deflate</strong>, <strong>hybrid</strong>,
+<strong>range</strong>, <strong>count-range</strong>,
+<strong>context-range-o1-b4</strong>,
+<strong>context-range-o1-b8</strong>,
+<strong>context-range-o2-b8</strong>, and <strong>huffman</strong>. Some
+versioned substream coders require CIXG2 or automatic format
+selection.</p>
+</dd>
+<dt><strong>--block-size</strong> <strong><em>SIZE</em></strong></dt>
+<dd>
+<p>Set the maximum uncompressed block size. CIXG1 frames are limited to
+65536 bytes; larger requests are reduced to that limit with a
+diagnostic. The legacy <strong>--block</strong> form accepts a byte
+count.</p>
+</dd>
+<dt><strong>--history</strong> <strong><em>SIZE</em></strong></dt>
+<dd>
+<p>Request retained model history. The current native routes do not
+support a nonzero value and reject it.</p>
+</dd>
+<dt><strong>--independent-blocks</strong></dt>
+<dd>
+<p>Request model reset boundaries. It conflicts with retained history
+and is not available for CIXM6/CIXF1 or external/portfolio encoding.</p>
+</dd>
+<dt><strong>--stream</strong></dt>
+<dd>
+<p>Require streaming operation. Streaming uses bounded framed
+candidates; it cannot be used with whole-input external or portfolio
+selection.</p>
+</dd>
+<dt><strong>--flush-interval</strong>
+<strong><em>DURATION</em></strong></dt>
+<dd>
+<p>Flush framed partial blocks after an idle interval while encoding. It
+is not a decoding option. For non-seekable input, it requires Unix poll
+support.</p>
+</dd>
+<dt><strong>--profile</strong>
+<strong><em>fast</em></strong>|<strong><em>default</em></strong>|<strong><em>size</em></strong></dt>
+<dd>
+<p>Choose an external profile or map a native auto/CIXG1/CIXG2 encode to
+effort 1, 6, or 9. It cannot be combined with a numeric effort
+option.</p>
+</dd>
+<dt><strong>--portfolio</strong>
+<strong><em>fast</em></strong>|<strong><em>default</em></strong>|<strong><em>size</em></strong></dt>
+<dd>
+<p>Use bounded whole-input CIXB1 portfolio selection, comparing eligible
+native and direct external candidates before choosing one completed
+archive. This is whole-input portfolio selection, not per-symbol
+predictive mixing. It requires a named bounded input and conflicts with
+streaming, route, external, and profile controls.</p>
+</dd>
+<dt><strong>--external</strong> <strong><em>CODEC</em></strong></dt>
+<dd>
+<p>Explicitly wrap a direct external codec in CIXB1. It is an
+encoding-only, named-input operation and conflicts with streaming and
+route selection.</p>
+</dd>
+<dt><strong>--explain</strong></dt>
+<dd>
+<p>Report candidate costs and decisions.</p>
+</dd>
+<dt><strong>--verbose</strong></dt>
+<dd>
+<p>Report aggregate search statistics and resource exclusions.</p>
+</dd>
+</dl>
+<h1>EXIT STATUS</h1>
+<p>0 indicates success. A nonzero status indicates invalid arguments,
+I/O failure, resource admission failure, interruption, or compression
+failure.</p>
+<h1>SEE ALSO</h1>
+<p><strong>uncix</strong>(1), <strong>cixcat</strong>(1)</p>
+<h1>NAME</h1>
+<p>uncix - restore, test, or inspect a CIX archive</p>
+<h1>SYNOPSIS</h1>
+<p><strong>uncix</strong> [<strong>-c</strong>] [<strong>-f</strong>]
+[<strong>-k</strong>] [<strong>-t</strong>|<strong>-l</strong>]
+[<strong>-o</strong> <em>file</em>] [<em>archive</em>]</p>
+<h1>DESCRIPTION</h1>
+<p><strong>uncix</strong> restores a CIX archive to its original byte
+stream. With a named archive, the default output name removes a final
+<strong>.cix</strong> suffix when present. Existing outputs are not
+replaced unless <strong>-f</strong> is supplied. Omit ARCHIVE or use
+<strong>-</strong> to read an archive from standard input.</p>
+<h1>OPTIONS</h1>
+<dl>
+<dt><strong>-c</strong></dt>
+<dd>
+<p>Write restored bytes to standard output.</p>
+</dd>
+<dt><strong>-o</strong> <strong><em>FILE</em></strong></dt>
+<dd>
+<p>Write restored bytes to FILE.</p>
+</dd>
+<dt><strong>-f</strong></dt>
+<dd>
+<p>Replace an existing output file.</p>
+</dd>
+<dt><strong>-k</strong></dt>
+<dd>
+<p>Accepted for compatibility. Input archives are retained by
+default.</p>
+</dd>
+<dt><strong>-t</strong></dt>
+<dd>
+<p>Test archive integrity without writing restored bytes.</p>
+</dd>
+<dt><strong>-l</strong></dt>
+<dd>
+<p>List archive information on standard error while restoring.</p>
+</dd>
+<dt><strong>-h</strong>,<strong> </strong>--help</dt>
+<dd>
+<p>Show command usage.</p>
+</dd>
+<dt><strong>--version</strong></dt>
+<dd>
+<p>Show the CIX version and supported container identifiers.</p>
+</dd>
+</dl>
+<h1>RESOURCE LIMITS</h1>
+<p>The decoder starts with a 2 GiB working-memory admission limit unless
+an explicit limit is supplied. Use ordinary operating-system process
+limits when restoring untrusted archives. Compression options, including
+effort, route, format, block-size, profile, and parallelism, are
+rejected while decoding.</p>
+<h1>SECURITY</h1>
+<p>Archives from untrusted sources are untrusted input. Use
+<strong>uncix -t</strong> when an integrity check is needed without
+writing restored bytes.</p>
+<h1>SEE ALSO</h1>
+<p><strong>cix</strong>(1), <strong>cixcat</strong>(1)</p>
+<h1>NAME</h1>
+<p>cixcat - restore a CIX archive to standard output</p>
+<h1>SYNOPSIS</h1>
+<p><strong>cixcat</strong> [<em>archive</em>]</p>
+<h1>DESCRIPTION</h1>
+<p><strong>cixcat</strong> is the streaming-output form of
+<strong>uncix</strong>. It restores ARCHIVE, or standard input when
+ARCHIVE is omitted or <strong>-</strong>, to standard output. It is
+intended for pipelines.</p>
+<p>For example:</p>
+<pre><code>cixcat backup.tar.cix | tar -x</code></pre>
+<h1>OPTIONS</h1>
+<dl>
+<dt><strong>-h</strong>,<strong> </strong>--help</dt>
+<dd>
+<p>Show command usage.</p>
+</dd>
+<dt><strong>--version</strong></dt>
+<dd>
+<p>Show the CIX version and supported container identifiers.</p>
+</dd>
+</dl>
+<h1>RESOURCE LIMITS</h1>
+<p>The decoder starts with a 2 GiB working-memory admission limit unless
+an explicit limit is supplied. Apply normal operating-system process
+limits when using CIX in an automated pipeline.</p>
+<h1>EXIT STATUS</h1>
+<p>0 indicates success. A nonzero status indicates invalid input, an
+integrity failure, I/O failure, resource admission failure, or
+interruption.</p>
+<h1>SEE ALSO</h1>
+<p><strong>cix</strong>(1), <strong>uncix</strong>(1)</p>
+</main><footer class="wrap"><a href="index.html">← Return to CIX</a><p>Private release candidate · 0.1.0</p></footer><script>try{document.documentElement.dataset.theme=localStorage.getItem("cix-theme")||"dark"}catch{}</script></body></html>

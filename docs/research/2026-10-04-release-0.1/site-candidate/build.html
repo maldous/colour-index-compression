@@ -1,0 +1,105 @@
+<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="style.css"><title>CIX — Build & installation</title></head><body><header><a class="brand" href="index.html"><img src="mark.svg" width="36" alt="">CIX<span>/ six /</span></a><nav><a href="index.html#results">Results</a><a href="index.html#release">Downloads</a></nav></header><main class="doc"><h1>CIX</h1>
+<p>CIX (pronounced “six”) is a lossless command-line compressor for arbitrary
+byte streams. It writes self-describing CIX archives and provides separate
+commands to compress, restore, and stream restored bytes.</p>
+<p>This repository is the source-only 0.1.0 release-preparation candidate. Its
+project licence is pending owner confirmation; do not redistribute this copy
+until the notice at the top of <a href="LICENSE">LICENSE</a> is removed by that owner.</p>
+<h2>Commands</h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cix</code></td>
+<td>Compress a file or standard input.</td>
+</tr>
+<tr>
+<td><code>uncix</code></td>
+<td>Restore a CIX archive, test it, or list it.</td>
+</tr>
+<tr>
+<td><code>cixcat</code></td>
+<td>Restore a CIX archive to standard output.</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-sh">cix report.dat
+uncix report.dat.cix
+cix --fast -c input.bin &gt; input.cix
+cixcat input.cix | tar -x
+uncix -t input.cix
+</code></pre>
+<p>Input files are retained by default. Use <code>-f</code> to replace an existing output,
+<code>-c</code> for standard output, <code>--fast</code> for lower compression latency, and
+<code>--best</code> for a broader bounded search. Whole-file BEST can spend minutes even
+on small inputs: eligible native whole-file work has a 15-minute allowance plus
+up to 45 minutes based on input size. Direct external-library calls can add
+time and are not preemptible, so this is not a total wall-time limit. Run
+<code>cix --help</code>, <code>uncix --help</code>, or <code>cixcat --help</code> for the complete interface.</p>
+<p>Archives are CIX streams, not ZIP, gzip, or tar files. CIX processes one file
+per invocation; use tar or another archiver when preserving directory trees.</p>
+<h2>Build from source</h2>
+<p>CIX requires Rust 1.98 or later, a C++17 compiler, and development libraries
+for zlib, bzip2, liblzma, Zstandard, and Brotli. The locked dependency graph
+is fetched from crates.io by Cargo unless your build environment supplies it
+from an approved local mirror or vendor directory.</p>
+<p>Debian or Ubuntu:</p>
+<pre><code class="language-sh">sudo apt install cargo rustc build-essential pkg-config zlib1g-dev libbz2-dev liblzma-dev libzstd-dev libbrotli-dev
+rustc --version   # must report 1.98 or later
+make build
+</code></pre>
+<p>Fedora, RHEL-compatible systems, or derivatives:</p>
+<pre><code class="language-sh">sudo dnf install cargo rust gcc-c++ pkgconf-pkg-config zlib-devel bzip2-devel xz-devel libzstd-devel brotli-devel
+rustc --version   # must report 1.98 or later
+make build
+</code></pre>
+<p>Some distribution releases package an older Rust compiler. In that case, use
+a compatible Rust 1.98-or-later toolchain before building; do not assume the
+distribution package meets this requirement. The default build uses Cargo’s
+release profile. The LTO profile is available when a distribution policy
+permits a slower build:</p>
+<pre><code class="language-sh">make PROFILE=release-lto build
+</code></pre>
+<p>Install to the conventional local prefix:</p>
+<pre><code class="language-sh">make PREFIX=/usr/local install
+</code></pre>
+<p>For a user installation without Make:</p>
+<pre><code class="language-sh">cargo install --path . --locked --root &quot;$HOME/.local&quot;
+</code></pre>
+<h2 id="platforms">Platform status</h2>
+<p>The release recipes cover source builds on Linux, macOS, and Windows. Linux
+x86_64 is the only currently qualified host. macOS and Windows recipes are
+provided for native qualification; no binaries for those systems are claimed
+or supplied by this source candidate.</p>
+<p>The normal CLI links system zlib, bzip2, liblzma, Zstandard, Brotli, and the
+platform C++ runtime. Distribution packages should use their system libraries.
+Do not present an arbitrary copied binary as a portable standalone build.</p>
+<h2>Packaging</h2>
+<p><code>packaging/debian/</code> and <code>packaging/rpm/</code> contain source-package recipes.
+They install <code>cix</code>, <code>uncix</code>, <code>cixcat</code>, the three manual pages, licence,
+and third-party notices. <code>packaging/macos/</code> and <code>packaging/windows/</code>
+contain native source-build recipes; neither claims a qualified binary. The
+optional Squash 0.8 plugin is under
+<code>packaging/squash/</code>; it is not part of the base package and needs a separate
+plugin load test.</p>
+<h2>Security and compatibility</h2>
+<p>Use <code>uncix -t</code> before consuming data from an untrusted archive when you
+only need an integrity check. CIX validates its framing, length checks, and
+checksums, but decompression can require the resource limits selected by the
+archive mode. See <a href="SECURITY.md">SECURITY.md</a> for the supported
+reporting path.</p>
+<p>Current format references cover <a href="docs/formats/COMPATIBILITY.md">container compatibility</a>,
+<a href="docs/formats/FORMAT-CIXB1.md">CIXB1</a>, and
+<a href="docs/formats/FORMAT-CIXZ1.md">CIXZ1</a>. The public release should only make
+compatibility claims backed by the corresponding release test receipt.</p>
+<h2>Licence and notices</h2>
+<p>The proposed CIX project licence is MIT, pending owner approval. Vendored
+libzpaq and libbsc obligations are collected in
+<a href="THIRD_PARTY_NOTICES.txt">THIRD_PARTY_NOTICES.txt</a>. The locked Rust dependency
+attribution is in <a href="THIRD_PARTY_NOTICES_RUST.md">THIRD_PARTY_NOTICES_RUST.md</a>.
+Keep both files with every source or binary distribution.</p></main><footer class="wrap"><a href="index.html">← Return to CIX</a><p>Private release candidate · 0.1.0</p></footer><script>try{document.documentElement.dataset.theme=localStorage.getItem("cix-theme")||"dark"}catch{}</script></body></html>

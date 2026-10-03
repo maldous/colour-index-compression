@@ -23,6 +23,8 @@ from typing import Any
 
 COMMANDS = ("cix", "uncix", "cixcat")
 TEMPORARY_CAP_BYTES = 4_000_000_000
+RUST_NOTICE = "THIRD_PARTY_NOTICES_RUST.md"
+FORBIDDEN_ARCHIVE_PARTS = (".git/", "docs/research/", "benchmark", "target/", "raw/", "results/", "corpus")
 
 
 def parse_args() -> argparse.Namespace:
@@ -138,10 +140,48 @@ class Evidence:
         return result.stdout
 
 
+def assert_public_members(archive: tarfile.TarFile, label: str) -> list[str]:
+    names = archive.getnames()
+    forbidden = [name for name in names if any(part in name for part in FORBIDDEN_ARCHIVE_PARTS)]
+    if forbidden:
+        raise RuntimeError(f"{label} contains non-shipping members: {forbidden[:5]}")
+    return names
+
+
+def validate_tar_notice(archive_path: Path, label: str, expected_hash: str, evidence: Evidence) -> None:
+    with tarfile.open(archive_path, "r:gz") as archive:
+        names = assert_public_members(archive, label)
+        matches = [member for member in archive.getmembers() if member.name.endswith("/" + RUST_NOTICE)]
+        if len(matches) != 1:
+            raise RuntimeError(f"{label} must contain exactly one {RUST_NOTICE}")
+        handle = archive.extractfile(matches[0])
+        if handle is None:
+            raise RuntimeError(f"{label} cannot read {RUST_NOTICE}")
+        actual_hash = hashlib.sha256(handle.read()).hexdigest()
+        if actual_hash != expected_hash:
+            raise RuntimeError(f"{label} {RUST_NOTICE} hash differs from successor source")
+        evidence.record(f"{label}-members", member_count=len(names), notice_member=matches[0].name, notice_sha256=actual_hash)
+
+
+def find_shipped_notice(root: Path) -> Path:
+    matches = sorted(root.rglob(RUST_NOTICE))
+    if len(matches) != 1:
+        raise RuntimeError(f"expected exactly one shipped {RUST_NOTICE} under {root}; found {len(matches)}")
+    return matches[0]
+
+
+def validate_shipped_notice(label: str, root: Path, expected_hash: str, evidence: Evidence) -> None:
+    notice = find_shipped_notice(root)
+    actual_hash = sha256(notice)
+    evidence.record(f"{label}-rust-notice", path=str(notice), sha256=actual_hash)
+    if actual_hash != expected_hash:
+        raise RuntimeError(f"{label} {RUST_NOTICE} hash differs from successor source")
+
+
 def extract_source(source_tar: Path, destination: Path) -> Path:
     destination.mkdir(parents=True, exist_ok=True)
     with tarfile.open(source_tar, "r:gz") as archive:
-        names = archive.getnames()
+        names = assert_public_members(archive, "source-tar")
         roots = {name.split("/", 1)[0] for name in names if name and not name.startswith("/")}
         if roots != {"cix-0.1.0"}:
             raise RuntimeError(f"unexpected source archive root: {sorted(roots)}")
@@ -248,7 +288,7 @@ def validate_hashes(label: str, bin_dir: Path, expected: dict[str, str], evidenc
         raise RuntimeError(f"{label} command hashes differ from selected binaries")
 
 
-def validate_dsc(evidence: Evidence, packages_dir: Path, destination: Path, env: dict[str, str]) -> None:
+def validate_dsc(evidence: Evidence, packages_dir: Path, destination: Path, expected_notice_hash: str, env: dict[str, str]) -> None:
     dscs = sorted(packages_dir.glob("cix_0.1.0-1.dsc"))
     if not dscs:
         evidence.record("dsc-shape", skipped="no DSC artifact supplied")
@@ -257,11 +297,17 @@ def validate_dsc(evidence: Evidence, packages_dir: Path, destination: Path, env:
     if tool is None:
         raise RuntimeError("dpkg-source is required to inspect the DSC artifact")
     evidence.run("extract-dsc", [tool, "-x", str(dscs[0]), str(destination)], cwd=packages_dir, env=env)
-    expected = (destination / "debian/control", destination / "debian/rules", destination / "Cargo.toml")
+    expected = (destination / "debian/control", destination / "debian/rules", destination / "Cargo.toml", destination / RUST_NOTICE)
     missing = [str(path.relative_to(destination)) for path in expected if not path.is_file()]
     if missing:
         raise RuntimeError(f"DSC extraction has an unexpected shape; missing {', '.join(missing)}")
-    evidence.record("dsc-shape", source_root=str(destination), expected_files=[str(path.relative_to(destination)) for path in expected])
+    forbidden = [str(path.relative_to(destination)) for path in destination.rglob("*") if path.is_file() and any(part in path.relative_to(destination).as_posix() for part in FORBIDDEN_ARCHIVE_PARTS)]
+    if forbidden:
+        raise RuntimeError(f"DSC extraction contains non-shipping members: {forbidden[:5]}")
+    notice_hash = sha256(destination / RUST_NOTICE)
+    if notice_hash != expected_notice_hash:
+        raise RuntimeError("DSC Rust notice hash differs from successor source")
+    evidence.record("dsc-shape", source_root=str(destination), expected_files=[str(path.relative_to(destination)) for path in expected], notice_sha256=notice_hash)
 
 
 def main() -> None:
@@ -280,6 +326,7 @@ def main() -> None:
     if shutil.disk_usage(work_parent).free < TEMPORARY_CAP_BYTES:
         raise SystemExit("work directory needs at least 4 GB free")
     source_tar = find_one(packages_dir, "cix-0.1.0.tar.gz", "source tarball")
+    binary_tar = find_one(packages_dir, "cix-0.1.0-*.tar.gz", "binary tarball")
     deb = find_one(packages_dir, "cix_0.1.0-1_*.deb", "Debian package")
     rpm = find_one(packages_dir, "cix-0.1.0-1*.rpm", "RPM package")
     environment = os.environ.copy()
@@ -297,6 +344,12 @@ def main() -> None:
         root = Path(temporary)
         try:
             source_root = extract_source(source_tar, root / "source")
+            source_notice = source_root / RUST_NOTICE
+            if not source_notice.is_file():
+                raise RuntimeError(f"successor source archive is missing {RUST_NOTICE}")
+            expected_notice_hash = sha256(source_notice)
+            validate_tar_notice(source_tar, "source-tar", expected_notice_hash, evidence)
+            validate_tar_notice(binary_tar, "binary-tar", expected_notice_hash, evidence)
             enforce_budget(root)
             target_dir = root / "target"
             evidence.run(
@@ -316,6 +369,7 @@ def main() -> None:
                 env=environment,
             )
             source_bin = stage / "usr/bin"
+            validate_shipped_notice("source-stage", stage / "usr/share/doc/cix", expected_notice_hash, evidence)
             validate_versions(evidence, source_bin, "source-stage", environment)
             tiny_roundtrip(evidence, source_bin, root, "source-stage", environment)
             evidence.run(
@@ -330,7 +384,9 @@ def main() -> None:
                 raise RuntimeError("make uninstall left staged files")
 
             expected_hashes = command_hashes(reference_bin)
-            deb_bin = extract_deb(evidence, deb, root / "deb", environment)
+            deb_root = root / "deb"
+            deb_bin = extract_deb(evidence, deb, deb_root, environment)
+            validate_shipped_notice("deb", deb_root, expected_notice_hash, evidence)
             validate_hashes("deb", deb_bin, expected_hashes, evidence)
             validate_versions(evidence, deb_bin, "deb", environment)
             tiny_roundtrip(evidence, deb_bin, root, "deb", environment)
@@ -338,11 +394,12 @@ def main() -> None:
             rpm_root = root / "rpm"
             rpm_root.mkdir()
             rpm_bin = extract_rpm(evidence, rpm, rpm_root, environment)
+            validate_shipped_notice("rpm", rpm_root, expected_notice_hash, evidence)
             validate_hashes("rpm", rpm_bin, expected_hashes, evidence)
             validate_versions(evidence, rpm_bin, "rpm", environment)
             tiny_roundtrip(evidence, rpm_bin, root, "rpm", environment)
 
-            validate_dsc(evidence, packages_dir, root / "dsc", environment)
+            validate_dsc(evidence, packages_dir, root / "dsc", expected_notice_hash, environment)
             enforce_budget(root)
             status = "passed"
         except Exception as caught:  # retain structured evidence before failing
@@ -354,6 +411,7 @@ def main() -> None:
                 "status": status,
                 "error": error,
                 "source_tar": str(source_tar),
+                "binary_tar": str(binary_tar),
                 "deb": str(deb),
                 "rpm": str(rpm),
                 "reference_bin": str(reference_bin),

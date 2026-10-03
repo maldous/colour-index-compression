@@ -25,7 +25,8 @@ from typing import Iterable
 
 
 COMMANDS = ("cix", "uncix", "cixcat")
-LEGAL_FILES = ("README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt")
+BASE_LEGAL_FILES = ("README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt")
+RUST_NOTICE = "THIRD_PARTY_NOTICES_RUST.md"
 MANPAGES = ("man/cix.1", "man/uncix.1", "man/cixcat.1")
 TEMPORARY_CAP_BYTES = 4_000_000_000
 SOURCE_ARCHIVE_CAP_BYTES = 1_000_000
@@ -147,6 +148,14 @@ def write_tar_gz(destination: Path, entries: Iterable[tuple[Path, str]], epoch: 
                         archive.addfile(info, handle)
 
 
+def legal_files(source_dir: Path) -> tuple[str, ...]:
+    """Return notices present in this export; historical candidates lack Rust notice."""
+    files = list(BASE_LEGAL_FILES)
+    if (source_dir / RUST_NOTICE).is_file():
+        files.append(RUST_NOTICE)
+    return tuple(files)
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -233,7 +242,7 @@ def binary_tarball(
     manifest_path.write_text(json.dumps(binary_manifest(binary_dir), indent=2) + "\n")
     try:
         entries = [(binary_dir / name, f"{prefix}/bin/{name}") for name in COMMANDS]
-        entries.extend((source_dir / name, f"{prefix}/{name}") for name in LEGAL_FILES)
+        entries.extend((source_dir / name, f"{prefix}/{name}") for name in legal_files(source_dir))
         entries.extend((source_dir / name, f"{prefix}/{name}") for name in MANPAGES)
         entries.append((manifest_path, f"{prefix}/artifact.json"))
         destination = output_dir / f"{prefix}.tar.gz"
@@ -306,7 +315,7 @@ def build_deb(
             raise SystemExit("dpkg-shlibdeps did not report runtime dependencies")
         for name in MANPAGES:
             shutil.copy2(source_dir / name, man_path / Path(name).name)
-        for name in LEGAL_FILES:
+        for name in legal_files(source_dir):
             shutil.copy2(source_dir / name, doc_path / name)
         (control / "control").write_text(
             "\n".join(
@@ -391,7 +400,7 @@ def build_binary_rpm(
         staged.mkdir()
         for name in COMMANDS:
             shutil.copy2(binary_dir / name, staged / name)
-        for name in LEGAL_FILES:
+        for name in legal_files(source_dir):
             shutil.copy2(source_dir / name, staged / name)
         for name in MANPAGES:
             shutil.copy2(source_dir / name, staged / Path(name).name)
@@ -424,9 +433,7 @@ def build_binary_rpm(
                     "install -Dpm 0644 %{_sourcedir}/cix-binary/cix.1 %{buildroot}%{_mandir}/man1/cix.1",
                     "install -Dpm 0644 %{_sourcedir}/cix-binary/uncix.1 %{buildroot}%{_mandir}/man1/uncix.1",
                     "install -Dpm 0644 %{_sourcedir}/cix-binary/cixcat.1 %{buildroot}%{_mandir}/man1/cixcat.1",
-                    "install -Dpm 0644 %{_sourcedir}/cix-binary/LICENSE %{buildroot}%{_defaultdocdir}/%{name}/LICENSE",
-                    "install -Dpm 0644 %{_sourcedir}/cix-binary/THIRD_PARTY_NOTICES.txt %{buildroot}%{_defaultdocdir}/%{name}/THIRD_PARTY_NOTICES.txt",
-                    "install -Dpm 0644 %{_sourcedir}/cix-binary/README.md %{buildroot}%{_defaultdocdir}/%{name}/README.md",
+                    *[f"install -Dpm 0644 %{{_sourcedir}}/cix-binary/{name} %{{buildroot}}%{{_defaultdocdir}}/%{{name}}/{name}" for name in legal_files(source_dir)],
                     "",
                     "%files",
                     "%{_bindir}/cix",
@@ -436,8 +443,7 @@ def build_binary_rpm(
                     "%{_mandir}/man1/uncix.1*",
                     "%{_mandir}/man1/cixcat.1*",
                     "%license %{_defaultdocdir}/%{name}/LICENSE",
-                    "%doc %{_defaultdocdir}/%{name}/THIRD_PARTY_NOTICES.txt",
-                    "%doc %{_defaultdocdir}/%{name}/README.md",
+                    *[f"%doc %{{_defaultdocdir}}/%{{name}}/{name}" for name in legal_files(source_dir) if name != "LICENSE"],
                     "",
                 ]
             )

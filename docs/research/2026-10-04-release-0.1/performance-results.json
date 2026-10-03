@@ -24,5 +24,12 @@
   "scaling": {"cixg1_all_six_worker_results_equal": true, "cixg1_archive_sha256": "f1ecbcb6ba74f9dd005dfce74c9ea0a7e35e315e9109037ed6cd355395bc227f", "cixg2_auto_16k_256m_archive_sha256": "37b92040535f367a4b1616ddffd86627344bb9e8fd20409fd8d77c264b6e64a9", "cixg2_workers_1_4_equal": true, "cixg2_couples_block_size_and_memory": true},
   "m6": {"status": "INCOMPLETE_UNRANKED_WALL_BUDGET_EXHAUSTED", "wall_seconds": 300.948778815, "cpu_seconds": 300.019723},
   "allocation_audit": {"status": "PASS", "total_allocated_bytes": 118793993, "total_allocations": 59593, "peak_live_bytes": 13515278, "peak_live_allocations": 24, "decision": "no release-path rewrite justified"},
-  "follow_on_not_part_of_this_screen": ["G1 one-variable 16KiB block-size control", "G1 one-variable 256MiB memory control"]
+  "g1_one_variable_controls": {
+    "status": "PASS",
+    "observation_limit": "one observation each; no universal speed or memory-policy claim",
+    "baseline_64k_512m": {"archive_bytes": 70536, "user_seconds": 1.86, "wall_seconds": 1.88, "rss_kib": 8176, "restored": true},
+    "block_only_16k_512m": {"archive_bytes": 102668, "user_seconds": 1.84, "wall_seconds": 1.85, "rss_kib": 6912, "restored": true},
+    "memory_only_64k_256m": {"archive_bytes": 70536, "user_seconds": 1.85, "wall_seconds": 1.87, "rss_kib": 7904, "restored": true},
+    "finding": "16KiB costs 32132 complete archive bytes on the frozen input; 256MiB memory-only preserves its archive"
+  }
 }

@@ -1,0 +1,112 @@
+{
+  "schema": "cix-distribution-notice-amendment-v1",
+  "frozen_export": "/home/user/src/cix-0.1-release",
+  "successor_export": "/home/user/src/cix-0.1-distribution",
+  "changed_paths": [
+    {
+      "path": "Makefile",
+      "before": {
+        "sha256": "f0c76910b9aa7df3023873a8080f4fa18c3bfbb24018536923a9757b8db52337",
+        "mode": "0o664",
+        "bytes": 1219
+      },
+      "after": {
+        "sha256": "c30319b46a6343f90421328936e5cfcb508249a34eea6249ac837a8899b76a0f",
+        "mode": "0o664",
+        "bytes": 1285
+      }
+    },
+    {
+      "path": "README.md",
+      "before": {
+        "sha256": "be9c7d4f402f1551c9e793ca5692253bf57733189b4d3785946ea6cf3f790321",
+        "mode": "0o664",
+        "bytes": 4595
+      },
+      "after": {
+        "sha256": "d9e819a4d914377cde4325bbcd14f78d8ab2d6a4ca14de848810b81a78315c1f",
+        "mode": "0o664",
+        "bytes": 4711
+      }
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES_RUST.md",
+      "before": null,
+      "after": {
+        "sha256": "5e5028e09813e5e76e5a35f3eb9aca043359f018aca83c8326d27da0258ed73b",
+        "mode": "0o664",
+        "bytes": 315185
+      }
+    },
+    {
+      "path": "packaging/debian/copyright",
+      "before": {
+        "sha256": "49798aeed39641db27abf6aee57240aad03b671bf7d037e09307a5f4c40c5151",
+        "mode": "0o664",
+        "bytes": 670
+      },
+      "after": {
+        "sha256": "9410dcb8afc8c27fe7425cbdc9fba94d5355ab9054c58b4447cbc2adec28305e",
+        "mode": "0o664",
+        "bytes": 1060
+      }
+    },
+    {
+      "path": "packaging/debian/rules",
+      "before": {
+        "sha256": "b86139ec84bc7778581178a3dfed8a74cc968e1d3f147d3c2c9f924265749390",
+        "mode": "0o755",
+        "bytes": 689
+      },
+      "after": {
+        "sha256": "d51f3944ec6bf27e8f3921abb297b8d7c0f0ff94e4afeeacfb64ca8b63208c9f",
+        "mode": "0o755",
+        "bytes": 794
+      }
+    },
+    {
+      "path": "packaging/rpm/cix.spec",
+      "before": {
+        "sha256": "a42cab3180e8e3be66ec860a020042628118102c9cea45a64821d4e260b7211e",
+        "mode": "0o664",
+        "bytes": 1251
+      },
+      "after": {
+        "sha256": "623f6f95203a3ebcf1c77723f7508e94fcd0857ddfe7a57c05f305d23c39158b",
+        "mode": "0o664",
+        "bytes": 1279
+      }
+    }
+  ],
+  "runtime_equivalence": {
+    "byte_identical": true,
+    "protected_paths": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "build.rs",
+      "src/**",
+      "tests/**",
+      "vendor/**",
+      "packaging/homebrew/**",
+      "packaging/macos/**",
+      "packaging/windows/**",
+      "packaging/squash/**"
+    ],
+    "protected_file_count": 90,
+    "frozen_manifest_sha256": "5696c55bb6858b044de1c37879a3bdfc17b486f34b0f7e3983586ebae01b402d",
+    "successor_manifest_sha256": "5696c55bb6858b044de1c37879a3bdfc17b486f34b0f7e3983586ebae01b402d",
+    "all_other_export_files_byte_identical": true
+  },
+  "notice_integration": {
+    "notice": "THIRD_PARTY_NOTICES_RUST.md",
+    "sha256": "5e5028e09813e5e76e5a35f3eb9aca043359f018aca83c8326d27da0258ed73b",
+    "install_paths": [
+      "Makefile document install/uninstall",
+      "packaging/debian/rules",
+      "packaging/rpm/cix.spec"
+    ],
+    "rpm_ownership": "%license owns the notice without an explicit %install duplicate",
+    "private_validation_requirement": "third_party_validate.py requires matching notice hashes in source/binary tar, staged install, DEB, RPM, and DSC",
+    "private_packager": "package_release.py includes the Rust notice when present and supports historical exports where absent"
+  }
+}
