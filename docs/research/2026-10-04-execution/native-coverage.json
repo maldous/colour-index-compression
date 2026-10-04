@@ -1,10 +1,10 @@
 {
   "schema": "cix.native-coverage.v1",
   "created": "2026-10-05",
-  "scope": "read-only source inventory refreshed 2026-10-05 after catalogue-v4. It records the bounded library test receipt for full_engine and C streaming, but neither an ordinary-CLI integration nor a portfolio/benchmark result.",
+  "scope": "source inventory refreshed 2026-10-05 after catalogue-v4 and the focused interfaces-v7/v8 checkpoints. Source registration, bounded interface evidence, and ordinary CLI availability are distinct; the v7 SDK pass was interrupted on temporary budget and is not credited.",
   "reference_root": "runtime/cix_runtime (41 Python modules)",
   "native_root": "rust/cix-native/src/full_engine plus paq bridge/supervisor and generic engine",
-  "observed_dispatch_fact": "The current native tree has a compiled full_engine::catalogue and FullEngine archive dispatch/provider surface. catalogue-v4 tested that library surface. The ordinary CLI/generic portfolio selector still contains no call into full_engine catalogue/dispatch, so specialist routes remain unavailable to normal automatic CLI operation.",
+  "observed_dispatch_fact": "The native tree has compiled full_engine catalogue/FullEngine provider and frame dispatch surfaces. Focused v7 tests and the SDK-only v8 rerun exercised bounded interfaces. The ordinary CLI/generic portfolio selector still contains no automatic call into full_engine catalogue/dispatch, so specialist routes remain unavailable to normal automatic CLI operation. Current selection.rs NativeExecutor calls core::encode_buffer/engine::encode with the fixed 64 KiB CIXG1 backend; it is not yet equivalent to the retained historical native BEST portfolio (CIXG2 whole, CIXM6 and external complete archives).",
   "status_meanings": {
     "library_only": "reversible native functions exist, but no current generic/full-engine selector or top-level archive dispatcher calls them",
     "partial_unwired": "some native code or a descriptor exists, but a required transform, backend stack, envelope, or dispatch edge is absent",
@@ -44,20 +44,20 @@
     "unsupported_historical_frames": {
       "CIXB\\x1f": "grid_context reference decoder not found in FullEngine dispatch",
       "CIXB\\x20": "grid_conditional reference decoder not found in FullEngine dispatch",
-      "CIXY\\x01": "grid_feedback outer frame not found in FullEngine dispatch",
+      "CIXY\\x01": "grid_feedback frame code and SGFB1 raw mode/model transforms are library-tested, but FullEngine dispatch does not route the CIXY envelope",
       "CIXZ\\x01": "grid_interval outer frame not found in FullEngine dispatch",
-      "CIXI\\x01 mode 2/3": "reference JPEG-2000/JPEG-LS providers are not linked; current JXL provider is mode 1 only"
+      "CIXI\\x01 mode 2/3": "spatial provider bridge has bounded source-bound roundtrip evidence, but historical image-envelope/FullEngine dispatch integration is pending"
     }
   },
   "modules": [
     {
       "runtime_module": "__init__.py",
       "family": "shared package surface",
-      "native_evidence": "c_stream_api.rs has C incremental stream surface; generic CLI remains separate",
+      "native_evidence": "generic CLI plus c_stream_api.rs and c_format_api.rs; standard_formats.rs is registered",
       "historical_wire_or_raw_identity": "generic CIX stream ABI, not a specialist envelope",
       "implementation_status": "library_tested_unwired",
-      "dispatch_status": "seven C stream contract tests passed; CLI does not expose FullEngine automatic selection",
-      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
+      "dispatch_status": "focused C stream/C format contracts and explicit nine-format CLI contract tests passed; CLI does not expose FullEngine automatic selection",
+      "qualification": "bounded interface evidence only; not ordinary specialist CLI or release qualification"
     },
     {
       "runtime_module": "backends.py",
@@ -71,11 +71,11 @@
     {
       "runtime_module": "cli.py",
       "family": "CLI adapter",
-      "native_evidence": "c_stream_api.rs has C incremental stream surface; generic CLI remains separate",
+      "native_evidence": "generic CLI plus c_stream_api.rs and c_format_api.rs; standard_formats.rs is registered",
       "historical_wire_or_raw_identity": "generic CIX stream ABI, not a specialist envelope",
       "implementation_status": "library_tested_unwired",
-      "dispatch_status": "seven C stream contract tests passed; CLI does not expose FullEngine automatic selection",
-      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
+      "dispatch_status": "focused C stream/C format contracts and explicit nine-format CLI contract tests passed; CLI does not expose FullEngine automatic selection",
+      "qualification": "bounded interface evidence only; not ordinary specialist CLI or release qualification"
     },
     {
       "runtime_module": "engine.py",
@@ -84,7 +84,7 @@
       "historical_wire_or_raw_identity": "specialist frames listed by recipe",
       "implementation_status": "library_tested_unwired",
       "dispatch_status": "explicit recipe encode/decode exists; ordinary CLI does not call it",
-      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
+      "qualification": "bounded focused source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "heterogeneous.py",
@@ -93,7 +93,7 @@
       "historical_wire_or_raw_identity": "CIXH1",
       "implementation_status": "library_tested_unwired",
       "dispatch_status": "carrier decode is dispatched; automatic region-to-recipe mixed encoding is absent",
-      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
+      "qualification": "bounded focused source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "image_grid.py",
@@ -125,11 +125,11 @@
     {
       "runtime_module": "legacy/ecoff_call_entries.py",
       "family": "ECOFF call-entry transform",
-      "native_evidence": "address_relations.rs",
-      "historical_wire_or_raw_identity": "reference raw trailer",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "inactive helper only; retained native SectionPointers mode 4 does not select it",
+      "historical_wire_or_raw_identity": "ECBR2 raw helper history; no supported CIXB production frame",
+      "implementation_status": "inactive_history_not_required",
+      "dispatch_status": "no production route is missing: ECBR2 is only used by inactive SectionPointers mode 6",
+      "qualification": "not a required production wire"
     },
     {
       "runtime_module": "legacy/ecoff_constraints.py",
@@ -188,11 +188,11 @@
     {
       "runtime_module": "legacy/ecoff_relocated_pointers.py",
       "family": "ECOFF relocated-pointer transform",
-      "native_evidence": "candidate parsing private only; no public transform/frame integration",
-      "historical_wire_or_raw_identity": "ECRP1 raw trailer",
-      "implementation_status": "partial_unwired",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "address_relations.rs::relocated_pointer_candidates feeds supported pointer_delta_process",
+      "historical_wire_or_raw_identity": "ECRP1 raw helper history; supported production identity is ECRD1 under CIXB\\x0b",
+      "implementation_status": "internal_dependency_tested",
+      "dispatch_status": "no separate ECRP1 production frame is required; v5 fixture covers ECRD1 mode 5",
+      "qualification": "narrow raw parity evidence; no separate wire needed"
     },
     {
       "runtime_module": "legacy/ecoff_section_pointers.py",
@@ -260,11 +260,11 @@
     {
       "runtime_module": "legacy/grid_feedback.py",
       "family": "grid feedback transform",
-      "native_evidence": "bounded_values.rs supplies retained raw parents and CIXB\\x1e backend envelope only",
-      "historical_wire_or_raw_identity": "reference CIXY\\x01 / CIXZ\\x01 are not dispatched as such",
-      "implementation_status": "partial_unwired",
-      "dispatch_status": "raw-parent evidence exists; exact historical outer frame IDs remain unsupported",
-      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
+      "native_evidence": "grid_context.rs implements all six SGFB1 feedback mode/model raw transforms and a distinct CIXY\\x01 envelope",
+      "historical_wire_or_raw_identity": "SGFB1 raw; CIXY\\x01 feedback envelope",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "all six raw reference identities and CIXY envelope identity passed focused tests; FullEngine does not dispatch CIXY and CLI selection is absent",
+      "qualification": "bounded source-bound fixture evidence only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/grid_grouped.py",
@@ -278,11 +278,11 @@
     {
       "runtime_module": "legacy/grid_interval.py",
       "family": "grid interval transform",
-      "native_evidence": "bounded_values.rs supplies retained raw parents and CIXB\\x1e backend envelope only",
-      "historical_wire_or_raw_identity": "reference CIXY\\x01 / CIXZ\\x01 are not dispatched as such",
+      "native_evidence": "bounded_values.rs retained raw interval parents; no CIXZ outer envelope dispatcher",
+      "historical_wire_or_raw_identity": "CIXZ\\x01",
       "implementation_status": "partial_unwired",
-      "dispatch_status": "raw-parent evidence exists; exact historical outer frame IDs remain unsupported",
-      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
+      "dispatch_status": "CIXZ outer frame remains unsupported by FullEngine dispatch",
+      "qualification": "not qualified as a historical outer-frame route"
     },
     {
       "runtime_module": "legacy/image_grid.py",
@@ -377,11 +377,11 @@
     {
       "runtime_module": "legacy/spatial_image_codec.py",
       "family": "spatial image frame",
-      "native_evidence": "volume_lifting.rs, jxl_provider.rs and dispatch Recipe bindings",
-      "historical_wire_or_raw_identity": "CIXI\\x01,CIXI\\x02,CIXV\\x01",
+      "native_evidence": "spatial_provider.rs bridges CharLS 2.4.2 and OpenJPEG 2.5.0; volume_lifting/jxl_provider remains separate",
+      "historical_wire_or_raw_identity": "historical spatial image envelopes, including CIXI modes 2/3",
       "implementation_status": "library_tested_unwired",
-      "dispatch_status": "JXL library frames tested narrowly; ordinary CLI selection absent",
-      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
+      "dispatch_status": "14 bounded provider roundtrips passed; historical CIXI mode-2/3 envelope and FullEngine dispatch integration remain pending, and CLI selection is absent",
+      "qualification": "bounded generated-image provider evidence only; not historical-envelope cross-decoding or ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/volume_image_codec.py",
@@ -408,7 +408,7 @@
       "historical_wire_or_raw_identity": "CIXH1 region boundaries",
       "implementation_status": "library_tested_unwired",
       "dispatch_status": "discovery/catalogue is tested; no automatic mixed encoder is wired to CLI",
-      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
+      "qualification": "bounded focused source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "specialized.py",
@@ -491,17 +491,52 @@
     }
   },
   "highest_priority_missing_edges": [
-    "Wire FullEngine catalogue admission, explicit candidate evaluation/tie policy, resource accounting and archive dispatch into the ordinary CLI/portfolio path; preserve generic whole-file alternatives and no silent fallback.",
-    "Implement automatic CIXH1 mixed encoding: regions and carrier exist, but no automatic region-to-candidate policy, paid comparison, or CLI surface selects it.",
-    "Port/register exact historical grid_context CIXB\\x1f and grid_conditional CIXB\\x20 frames. Retain CIXY\\x01 feedback and CIXZ\\x01 interval outer decoders separately from the new CIXB\\x1e bounded route.",
-    "Add native JPEG-LS and JPEG-2000 provider support only with pinned build/dispatch/limit contracts, so CIXI\\x01 modes 3 and 2 can decode; current JXL support covers mode 1 only.",
-    "Port call-entry and relocated-pointer executable routes if retained, with their exact frame identities, inverses, fixtures and catalogue entries.",
+    "Complete and qualify the ordinary CLI integration of full_engine catalogue/selection/dispatch without weakening generic whole-input alternatives or adding silent fallback.",
+    "Complete automatic mixed CIXH1 selection integration: mixed_selection source is not a top-level selected route, and paid mixed comparison must be explicit.",
+    "Restore a pure-library complete native portfolio for selection: current selection.rs NativeExecutor is fixed 64 KiB CIXG1 and does not yet preserve historical native BEST CIXG2-whole, CIXM6 and external complete-archive candidates.",
+    "Port/register exact historical grid_context CIXB\\x1f and grid_conditional CIXB\\x20 frames. Retain CIXY\\x01 feedback and CIXZ\\x01 interval outer decoders separately from CIXB\\x1e bounded.",
+    "Qualify native JPEG-LS and JPEG-2000 provider support for CIXI\\x01 modes 3 and 2. Current JXL evidence does not qualify the new spatial provider.",
     "Account for the historical LSTM/prediction route: no native implementation or frame decoder was found. Its recorded -12L comparison remains resource-excluded under the stated 12 GB bound."
   ],
   "acceptance_per_route": "For each retained route: source-to-archive parity fixture where applicable; fresh native encode; separate archive-only native decode; malformed/limit tests; resource accounting; no Python process or PATH lookup; and candidate/decoder registration evidence.",
   "tested_module_scope": {
     "catalogue_v4": "docs/research/2026-10-04-execution/jobs/catalogue-v4/checks.json records offline check/build and 73 passing full_engine tests; the same source-bound run recorded seven C stream contract tests.",
     "provider_frames": "catalogue-v4 installed-provider test encoded and decoded 12 PAQ-backed complete frames (chemical, database, grouped/bounded grids and address families) and two JXL complete frames. This is focused library evidence under pinned test paths, not normal CLI execution or broad route qualification.",
-    "ordinary_cli_gap": "No current cli.rs or generic portfolio selector call into full_engine::catalogue or FullEngine. Mixed automatic encoding remains absent."
+    "ordinary_cli_gap": "No current cli.rs or generic portfolio selector automatically calls full_engine::catalogue or FullEngine. Current selection.rs NativeExecutor calls core::encode_buffer/engine::encode with a fixed 64 KiB CIXG1 backend, rather than historical native BEST CIXG2-whole/CIXM6/external complete-archive portfolio candidates. Mixed automatic encoding remains absent.",
+    "address_helper_audit": "docs/research/2026-10-05-native-rc/address-helper-audit.md and the pointer-delta v5 fixture establish ECRD1 mode-5 raw parity for the supported CIXB\\x0b path. ECRP1 and ECBR2 are retained inactive helper history, not separate production frame gaps.",
+    "interfaces_v7": "jobs/interfaces-v7/source.json binds the frozen source; all-target build and 29 focused tests passed: selection 5, mixed selection 4, spatial provider 3, grid context 2, backend provider 3, address 1, and C/dictionary/standard-format contracts 11. The later SDK stage was interrupted at the temporary-space cap and is not credited.",
+    "interfaces_v8": "jobs/interfaces-v8 reran SDK-only checks against the same source/binary prerequisites: shared and static installation/relocation plus C buffer, C stream, C standard-gzip and C++ installed consumers passed. This is SDK interface evidence, not a whole release or ordinary CLI qualification.",
+    "grid_feedback": "jobs/grid-feedback-fixture-v1/outputs.json binds all six SGFB1 raw feedback mode/model fixtures and CIXY envelope identity to the Python reference. FullEngine dispatch of CIXY remains absent.",
+    "spatial_provider": "interfaces-v6 source identity is retained by v7; focused v7 tests cover the packaged CharLS/OpenJPEG bridge and 14 generated roundtrips. Historical CIXI image envelopes and reference cross-decoding remain pending."
+  },
+  "new_registered_source_surfaces": {
+    "full_engine/selection.rs": "registered and covered by five focused v7 tests; its current NativeExecutor is fixed 64 KiB CIXG1 and is not historical native BEST portfolio parity or ordinary automatic CLI selection",
+    "standard_formats.rs": "registered native one-shot streams; explicit CLI --output-format/--input-format has focused contracts for gzip, zlib, raw deflate, bzip2, XZ, Zstd, Brotli, LZ4 frame and Snappy framed. They are not automatic portfolio candidates.",
+    "dictionaries.rs": "registered owned Zstd dictionary handles; two focused dictionary contracts and SDK C-format consumer evidence exist, not distribution/CLI route qualification.",
+    "full_engine/spatial_provider.rs": "registered CharLS/OpenJPEG package bridge; focused v7 provider tests and 14 generated roundtrips passed. Historical image envelopes and FullEngine dispatch remain pending.",
+    "full_engine/grid_context.rs": "registered SGFB1/CIXY feedback implementation; all six raw reference identities and envelope identity passed focused tests, but CIXY dispatch is pending.",
+    "full_engine/mixed_selection.rs": "registered and covered by four focused tests, but it is not wired into the top-level automatic selection/CLI path; no automatic mixed-encode claim."
+  },
+  "interface_checkpoint": {
+    "interfaces_v7": "29 focused tests passed; all-target build completed; SDK stage interrupted by temporary-budget cap and not credited.",
+    "interfaces_v8": "same-source/same-binary SDK-only rerun passed shared/static relocation and installed C/C++ consumers.",
+    "explicit_standard_format_cli": {
+      "count": 9,
+      "formats": [
+        "gzip",
+        "zlib",
+        "raw DEFLATE",
+        "bzip2",
+        "XZ",
+        "Zstd",
+        "Brotli",
+        "LZ4 frame",
+        "Snappy framed"
+      ],
+      "status": "focused-tested explicit operation only",
+      "automatic_portfolio_selection": false
+    },
+    "full_engine_automatic_cli": false,
+    "source_manifest": "interfaces-v7/source.json binds the frozen source snapshot; the interface evidence is bounded and is not a release qualification."
   }
 }

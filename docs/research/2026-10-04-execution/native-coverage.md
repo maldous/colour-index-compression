@@ -1,114 +1,99 @@
 # Native retained-port coverage and historical dispatch contract
 
-**Status: source inventory refreshed 2026-10-05.** This is not a full-route
-qualification or portfolio receipt. It reads the current 41-module Python
-reference tree and current native tree, and records only the bounded
-`catalogue-v4` library-test evidence cited below. It does not reopen a benchmark
-or claim a current portfolio result.
+**Status: source and bounded-interface inventory refreshed 2026-10-05.** This
+is not full-route, portfolio, or release qualification. It records the current
+41-module Python reference tree, the native source tree, and the constrained
+catalogue-v4 and interfaces-v7/v8 evidence cited below. The stopped benchmark
+remains stopped.
 
-The current native tree now has a compiled content-only catalogue, a
-`FullEngine` provider/frame dispatcher, a CIXH1 carrier, region discovery, and
-a C incremental-stream API. The recorded catalogue-v4 run exercised that
-library boundary. The ordinary CLI and generic portfolio selector still do not
-call the catalogue or `FullEngine`, and there is no automatic mixed-region
-encoder. A route can therefore be *library-tested but unwired* without being
-an available normal CIX command-line route.
-
+The native tree has a compiled content-only catalogue, `FullEngine` provider and
+frame dispatch, a CIXH1 carrier, region discovery, C stream/C format APIs,
+registered selection/mixed-selection/grid-feedback/spatial-provider modules,
+and explicit standard-format CLI handling. The ordinary CLI and generic
+portfolio selector still do **not** call the full-engine catalogue or automatic
+specialist selector. Current `selection.rs::NativeExecutor` uses the fixed 64 KiB
+`core::encode_buffer`/CIXG1 path; it is not yet parity with the retained
+historical native BEST portfolio (CIXG2 whole, CIXM6 and external complete archives). A route can therefore be library-tested but unwired,
+without being a normal CIX command-line route.
 
 ## Wire boundary
 
-`CIXB1` is an ASCII generic portfolio container. It is not the same format as
-the binary historical specialist prefixes `CIXB\x03`, `CIXB\x0b`, `CIXB\x0c`,
-`CIXB\x13`, `CIXB\x1d`, `CIXB\x1e`, `CIXB\x1f`, and `CIXB\x20`. Generic
-`CIXG1`, `CIXG2`, `CIXM5`, `CIXM6`, `CIXF1`, and `CIXZ1` likewise remain
-separate from the binary historical `CIXG\x01`, `CIXD\x01`, and related
-specialist envelopes. Dispatch must identify exact bytes before choosing an
-inverse; it must never infer a family merely from a printable prefix.
+`CIXB1` is an ASCII generic portfolio container. It is separate from binary
+historical specialist prefixes `CIXB\x03`, `CIXB\x0b`, `CIXB\x0c`,
+`CIXB\x13`, `CIXB\x1d`, `CIXB\x1e`, `CIXB\x1f`, and `CIXB\x20`.
+Generic `CIXG1`, `CIXG2`, `CIXM5`, `CIXM6`, `CIXF1`, and `CIXZ1` are likewise
+separate from historical `CIXG\x01`, `CIXD\x01`, and specialist envelopes.
+Dispatch must use exact bytes, never infer a family from a printable prefix.
 
-The complete machine-readable module and wire map is
-[native-coverage.json](native-coverage.json). Status words mean:
+The machine-readable 41-module map is [native-coverage.json](native-coverage.json).
+Status means:
 
-- **library-only**: native reversible functions exist but no full route claim is made.
-- **library-tested-unwired**: a narrow provider/frame library path is tested,
-  but normal CLI selection and encoding do not reach it.
-- **partial-unwired**: source has part of the route, but lacks a required
-  transform, provider stack, envelope, or dispatch edge.
-- **declared-but-unlinked**: native source explicitly rejects the transform.
-- **absent**: no native equivalent was found in this inventory.
+- **library-only**: reversible native functions exist, with no route claim.
+- **library-tested-unwired**: bounded source-bound tests pass but normal CLI
+  selection/encoding does not reach the route.
+- **partial-unwired**: source has part of the route but lacks a transform,
+  provider, envelope, or dispatch edge.
+- **internal dependency / inactive history**: a helper belongs inside a
+  supported route or is not reachable from a supported production wire.
+- **absent**: no equivalent native implementation was found.
 
-## Actual native coverage by reference module
+## Current coverage
 
-| Reference module(s) | Current native evidence | Status | Remaining gap |
+| Reference family | Current native evidence | Status | Boundary still open |
 |---|---|---|---|
-| `backends.py` | `backend_provider.rs`, PAQ bridge/supervisor and `FullEngine` | library-tested-unwired | CLI/portfolio has no FullEngine call. |
-| `engine.py`, `specialized.py` | `catalogue.rs::catalog`, `dispatch.rs::FullEngine` | library-tested-unwired | Candidate evaluation, winner selection and CLI binding. |
-| `heterogeneous.py`, `regions.py` | `mixed.rs`, `regions.rs`, recursive CIXH1 library decode | library-tested-unwired | Automatic region-to-candidate encoding and CLI binding. |
-| `chemical_db.py`, `sdf_geometry.py`, `sdf_hydrogen.py` | Graph/structured frames through FullEngine | library-tested-unwired | Normal CLI selection. |
-| `mysql_record_constraints.py`, `mysql_fixed_columns.py`, `mysql_remaining_counts.py` | `record_ordering.rs`; mode-three remaining-count route is exact and dispatched | library-tested-unwired | Normal CLI selection. |
-| `ecoff_constraints.py`, `ecoff_fields.py`, `ecoff_got.py`, `ecoff_pointer_deltas.py`, `ecoff_section_pointers.py`, `ecoff_pdata.py`, `ecoff_pdata_symbols.py`, `ecoff_symbol_loads.py`, `executable.py` | `address_relations.rs` plus FullEngine, including `ECSP1`/`ECSL1`/`ECPD1`/`ECPD2` | library-tested-unwired | Normal CLI selection; call-entry and relocated-pointer routes remain unported. |
-| `ecoff_call_entries.py`, `ecoff_relocated_pointers.py` | No complete native route | absent / partial | Exact transform, inverse, frame binding and fixtures. |
-| `grid_backend.py` | `bounded_values.rs`; `CIXB\x1e` is dispatched | library-tested-unwired | Normal CLI selection. |
-| `grid_grouped.py` | `conditional_values.rs`; `CIXB\x21` is dispatched | library-tested-unwired | Normal CLI selection. |
-| `grid_feedback.py`, `grid_interval.py` | Raw parent work in `bounded_values.rs` | partial-unwired | Their historical `CIXY\x01` / `CIXZ\x01` outer-frame decoders are absent. |
-| `grid_context.py`, `grid_conditional.py`, `image_grid.py` | No matching native historical frame route | absent | `CIXB\x1f`, `CIXB\x20`, and image-grid transform/frame routes. |
-| `record_float_grid.py` | `strided_values.rs` handles `CIXS\x01`/`SAGR1`; FullEngine decodes it | library-tested-unwired | Catalogue recipe and normal CLI encode. |
-| `multiscale_volume.py`, `spatial_image_codec.py`, `volume_image_codec.py` | Volume/JXL frames via FullEngine | library-tested-unwired | Normal CLI selection; J2K/JLS modes remain unsupported. |
-| `ordered_subset.py`, `multinomial.py`, `framing.py` | `arithmetic.rs` primitives | library-only | Each consumer owns exact wire compatibility. |
-| `cli.py`, `__init__.py`, `legacy/__init__.py` | Generic CLI plus `c_stream_api.rs` | partial-unwired | Seven C stream contract tests passed; CLI has no specialist automatic route. |
+| Backends, catalogue, records, structured/address, bounded/grouped grids | `catalogue.rs`, `dispatch.rs`, providers and retained transform modules | library-tested-unwired | Ordinary CLI candidate evaluation, winner selection and FullEngine binding. |
+| Regions / heterogeneous carrier | `mixed.rs`, `regions.rs`, recursive CIXH1 decode, `mixed_selection.rs` | library-tested-unwired | Automatic region-to-recipe encoding and CLI binding. |
+| Grid feedback | `grid_context.rs`: all six SGFB1 mode/model raw transforms and CIXY\x01 envelope | library-tested-unwired | `FullEngine` does not dispatch CIXY; no CLI selection. |
+| Historical context/conditional/interval grids | `CIXB\x1f`, `CIXB\x20`, and CIXZ1 routes remain separate | absent / partial-unwired | Exact legacy frame dispatch and any missing transforms. |
+| Spatial image providers | `spatial_provider.rs` bridges CharLS 2.4.2 and OpenJPEG 2.5.0; JXL remains distinct | library-tested-unwired | Historical CIXI mode-2/3 envelopes, FullEngine dispatch, reference cross-decoding and CLI selection. |
+| Volume and strided values | `volume_lifting.rs`, `jxl_provider.rs`, `strided_values.rs` | library-tested-unwired | Catalogue recipe where absent and normal CLI encoding. |
+| Explicit standard streams | `standard_formats.rs`, `c_format_api.rs`, generic CLI | focused-tested explicit operation | Not an automatic portfolio/full-engine selection route. |
+| C buffer/stream/C++ SDK | `c_api.rs`, `c_stream_api.rs`, `c_format_api.rs` | focused-tested SDK surface | Broader SDK/release/platform qualification. |
 
+`ECRP1` and `ECBR2` are not missing production frames: `ECRP1` is the
+relocated-pointer helper beneath supported `ECRD1`/`CIXB\x0b`, and `ECBR2`
+belongs only to inactive SectionPointers mode 6. The pointer-delta mode-5
+fixture is narrow raw parity evidence for the supported `ECRD1` path.
 
-## Remaining native frames and integrations before engine completion
+## Interfaces checkpoint
 
-The library catalogue and dispatcher now cover focused PAQ/JXL frames, but the
-following items remain distinct from that progress:
+`interfaces-v7` bound a frozen source snapshot, completed its all-target build,
+and passed 29 focused tests: selection (5), mixed selection (4), spatial
+provider (3), grid context (2), backend provider (3), address reference (1),
+and C/dictionary/standard-format contracts (11). This covers all six SGFB1
+raw feedback identities plus CIXY\x01 envelope identity, and 14 generated
+CharLS/OpenJPEG provider round trips. It does **not** establish image-envelope
+or FullEngine dispatch compatibility.
 
-1. **Ordinary CLI integration.** Bind content-derived catalogue admission,
-   explicit candidate comparison, resource accounting, and `FullEngine` archive
-   dispatch into `cix`/`uncix`. Keep generic whole-file alternatives eligible.
-2. **Automatic mixed encoding.** CIXH1 decode/carrier and region discovery are
-   present, but no policy chooses per-region recipes or compares the complete
-   paid carrier with whole-file candidates.
-3. **Historical grid frame gaps.** `CIXB\x1e` bounded and `CIXB\x21` grouped
-   are present. `CIXB\x1f` context, `CIXB\x20` conditional, `CIXY\x01`
-   feedback, and `CIXZ\x01` interval remain separate unsupported historical
-   decoder identities.
-4. **Image provider gaps.** Current pinned JXL supports the mode-1 image paths.
-   `CIXI\x01` JPEG-2000 mode 2 and JPEG-LS mode 3 still require their own
-   pinned native providers and bounded dispatch; they must not be aliased to JXL.
-5. **Executable and prediction gaps.** Call-entry and relocated-pointer routes
-   lack complete native ports. No LSTM/prediction route was found. The latter’s
-   recorded `-12L` reference remains outside the stated 12 GB bound.
+The v7 SDK stage was interrupted after temporary use reached 4,007,783,035
+bytes. It is not credited. The narrow `interfaces-v8` rerun used the same
+source and binary prerequisites for SDK work only: shared/static installation
+and relocation, then installed C buffer, C stream, C standard-gzip and C++
+consumers all passed. That is bounded SDK evidence, not a complete release,
+ordinary CLI, or platform qualification.
 
+The generic CLI’s explicit `--output-format` and `--input-format` contracts
+cover nine one-shot byte-stream formats: gzip, zlib, raw DEFLATE, bzip2, XZ,
+Zstd, Brotli, LZ4 frame and Snappy framed. These use complete buffers with a
+128 MiB ceiling; they do not imply streaming standard-format support or
+portfolio admission.
 
+## Required work before engine completion
 
-## Narrow tested-module evidence
+1. Restore a pure-library complete native portfolio before CLI binding: the
+   current selector is fixed 64 KiB CIXG1, not historical native BEST CIXG2
+   whole/CIXM6/external complete-archive parity.
+2. Bind full-engine catalogue, bounded automatic selection and exact dispatch
+   into ordinary CLI operation with resource accounting.
+3. Bind automatic mixed selection and paid CIXH1 comparison into that route.
+4. Complete and qualify remaining legacy CIXB context/conditional, CIXZ
+   interval and image-envelope decoder/dispatch edges.
+5. Qualify image envelope/reference compatibility beyond the current provider
+   bridge tests.
+6. Complete full quality, package, cross-platform, SquashFS and final release
+   checks before any public release claim.
 
-The source-bound `catalogue-v4` receipt records offline check/build, 73 passing
-`full_engine` tests, and seven C-stream contract tests. Its installed-provider
-probe encoded and restored 12 PAQ-backed complete frames and two JXL frames.
-This supports the specific library paths tested under pinned test paths. It does
-not exercise the ordinary CLI’s automatic specialist selection, automatic CIXH1
-encoding, full JPEG-LS/JPEG-2000 support, or a portfolio/benchmark claim.
-
-
-
-## Required dispatch shape
-
-A completed native route needs all of these edges:
-
-```mermaid
-flowchart LR
-  A[Input bytes] --> B[Bounded input-derived admission]
-  B --> C[Candidate registry and resource reservation]
-  C --> D[Exact transform plus named native provider]
-  D --> E[Paid frame and route ID]
-  E --> F[Top-level native archive decoder]
-  F --> G[Bounded provider plus exact inverse]
-  G --> H[Checksum and original bytes]
-```
-
-The current source supplies portions of D/E for several families, but not the
-complete path. Each retained route needs focused source-to-frame parity where
-applicable, fresh native encoding, separately started archive-only native
-restoration, malformed/limit cases, resource accounting, and proof that no
-Python process, PATH lookup, or undeclared backend is involved.
+A completed native route needs admission, a named candidate/provider, a paid
+exact frame ID, a top-level native decoder, bounded inverse, checksum/original
+byte verification, malformed/limit cases, resource accounting and proof that
+no Python process, PATH lookup or undeclared backend is involved.
