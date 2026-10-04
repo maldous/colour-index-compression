@@ -1,0 +1,90 @@
+CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-spatial-counts-v2/codecs/spatial', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-build-v8', '-G', 'Ninja', '-DCIX_SPATIAL_ROOT=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v8']
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-build-v8
+CHECK ['cmake', '--build', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-build-v8', '--parallel', '4']
+[1/2] Building CXX object CMakeFiles/cix_spatial_bridge.dir/cix_spatial_bridge.cpp.o
+[2/2] Linking CXX shared library libcix_spatial_bridge.so
+CHECK ['cmake', '--install', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-build-v8']
+-- Install configuration: ""
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v8/lib/libcix_spatial_bridge.so
+-- Set non-toolchain portion of runtime path of "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v8/lib/libcix_spatial_bridge.so" to "$ORIGIN"
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v8/include/cix/cix_spatial_bridge.h
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-spatial-counts-v2/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-spatial-counts-v2/Cargo.toml', '--lib', 'full_engine::grid_counts', '--', '--test-threads=1']
+
+running 3 tests
+test full_engine::grid_counts::tests::frames_are_bounded_and_reject_trailing_payloads ... FAILED
+test full_engine::grid_counts::tests::sgcc1_frozen_modes_restore_exactly ... FAILED
+test full_engine::grid_counts::tests::sgcc2_frozen_contexts_codings_restore_exactly ... ok
+
+failures:
+
+---- full_engine::grid_counts::tests::frames_are_bounded_and_reject_trailing_payloads stdout ----
+
+thread 'full_engine::grid_counts::tests::frames_are_bounded_and_reject_trailing_payloads' (2608015) panicked at src/full_engine/grid_counts.rs:600:10:
+called `Result::unwrap()` on an `Err` value: "grid-count output exceeds limit"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- full_engine::grid_counts::tests::sgcc1_frozen_modes_restore_exactly stdout ----
+
+thread 'full_engine::grid_counts::tests::sgcc1_frozen_modes_restore_exactly' (2608016) panicked at src/full_engine/grid_counts.rs:561:50:
+called `Result::unwrap()` on an `Err` value: "count output exceeds admission"
+
+
+failures:
+    full_engine::grid_counts::tests::frames_are_bounded_and_reject_trailing_payloads
+    full_engine::grid_counts::tests::sgcc1_frozen_modes_restore_exactly
+
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 246 filtered out; finished in 0.51s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-spatial-counts-v2/Cargo.toml', '--lib', 'full_engine::conditional_values', '--', '--test-threads=1']
+
+running 4 tests
+test full_engine::conditional_values::tests::grouped_frame_charges_backend_and_inverse_working_space ... ok
+test full_engine::conditional_values::tests::matches_frozen_context_three_raw_ids_and_restores ... ok
+test full_engine::conditional_values::tests::rejects_unimplemented_codings_and_count_driven_truncation ... ok
+test full_engine::conditional_values::tests::singleton_coordinate_rank_has_no_payload_byte ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 245 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-spatial-counts-v2/Cargo.toml', '--lib', 'full_engine::spatial_provider', '--', '--test-threads=1']
+
+running 3 tests
+test full_engine::spatial_provider::tests::conservative_admission_counts_all_cix_owned_encode_copies ... ok
+test full_engine::spatial_provider::tests::decode_admission_requires_working_estimate_before_output_allocation ... ok
+test full_engine::spatial_provider::tests::packaged_bridge_roundtrips_tiny_lossless_spatial_codecs ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 246 filtered out; finished in 0.01s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-spatial-counts-v2/Cargo.toml', '--lib', 'full_engine::spatial_frames', '--', '--test-threads=1']
+
+running 5 tests
+test full_engine::spatial_frames::tests::framing_rejects_trailing_and_overflowed_region ... ok
+test full_engine::spatial_frames::tests::frozen_python_cixi1_members_retain_modes_and_container_bytes ... ok
+test full_engine::spatial_frames::tests::historical_field_order_and_modes_parse_without_shape ... ok
+test full_engine::spatial_frames::tests::packaged_bridge_crossdecodes_frozen_jls_and_jp2_regions ... ok
+test full_engine::spatial_frames::tests::source_precision_matches_historical_backends ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 244 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-spatial-counts-v2/Cargo.toml', '--lib', 'counts_legacy_frames', '--', '--test-threads=1']
+
+running 1 test
+test full_engine::dispatch::tests::counts_legacy_frames_dispatch_all_modes_and_codings ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 248 filtered out; finished in 0.79s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-spatial-counts-v2/Cargo.toml', '--lib', 'installed_spatial_legacy_frames', '--', '--test-threads=1']
+
+running 1 test
+test full_engine::dispatch::tests::installed_spatial_legacy_frames_and_native_candidates ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 248 filtered out; finished in 0.00s
+

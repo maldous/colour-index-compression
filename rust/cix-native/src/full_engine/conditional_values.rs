@@ -415,6 +415,9 @@ fn unfold(value: u64) -> Result<i64, String> {
 }
 
 fn big_bytes(value: &BigUint, bits: usize) -> Vec<u8> {
+    if bits == 0 {
+        return Vec::new();
+    }
     let mut out = value.to_bytes_be();
     let length = bits.div_ceil(8);
     if out.len() < length {
@@ -824,6 +827,14 @@ pub(crate) fn write_base_field(values: &[i64], width: usize) -> Result<Vec<u8>, 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn singleton_coordinate_rank_has_no_payload_byte() {
+        let values = [7; 8];
+        let encoded = encode_integers(&values).unwrap();
+        assert_eq!(encoded, [0x80, 0x20, 3, 3, 14, 1]);
+        assert_eq!(decode_integers(&encoded, values.len()).unwrap(), values);
+    }
 
     #[test]
     fn matches_frozen_context_three_raw_ids_and_restores() {

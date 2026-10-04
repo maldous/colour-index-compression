@@ -158,6 +158,7 @@ fn is_paq(candidate: &Candidate) -> bool {
         Recipe::RecordConstraints { paq, .. } | Recipe::Address { paq, .. } => *paq,
         Recipe::FixedColumns
         | Recipe::Spatial { .. }
+        | Recipe::SpatialAlternative { .. }
         | Recipe::Volume { .. }
         | Recipe::VolumeSharedIdentity { .. } => false,
     }
@@ -692,6 +693,7 @@ mod tests {
                 },
             },
             images: None,
+            spatial: None,
         };
         let limits = OperationLimits {
             memory_bytes: 64 << 20,

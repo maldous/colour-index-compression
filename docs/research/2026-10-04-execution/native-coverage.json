@@ -1,10 +1,10 @@
 {
   "schema": "cix.native-coverage.v1",
   "created": "2026-10-05",
-  "scope": "source inventory refreshed 2026-10-05 after catalogue-v4 and the focused interfaces-v7/v8 checkpoints. Source registration, bounded interface evidence, and ordinary CLI availability are distinct; the v7 SDK pass was interrupted on temporary budget and is not credited.",
+  "scope": "source and bounded-checkpoint inventory refreshed 2026-10-05. It preserves failed/interrupted job scopes, records only passing scoped evidence, and does not claim ordinary CLI, release, adapter, or benchmark qualification.",
   "reference_root": "runtime/cix_runtime (41 Python modules)",
   "native_root": "rust/cix-native/src/full_engine plus paq bridge/supervisor and generic engine",
-  "observed_dispatch_fact": "The native tree has compiled full_engine catalogue/FullEngine provider and frame dispatch surfaces. Focused v7 tests and the SDK-only v8 rerun exercised bounded interfaces. The ordinary CLI/generic portfolio selector still contains no automatic call into full_engine catalogue/dispatch, so specialist routes remain unavailable to normal automatic CLI operation. Current selection.rs NativeExecutor calls core::encode_buffer/engine::encode with the fixed 64 KiB CIXG1 backend; it is not yet equivalent to the retained historical native BEST portfolio (CIXG2 whole, CIXM6 and external complete archives).",
+  "observed_dispatch_fact": "FullEngine dispatch now contains CIXY feedback, CIXZ interval, CIXB\\x1f SGCC1 count and CIXB\\x20 SGCC2 conditional routes, plus historical CIXI\\x01 JPEG-2000/JPEG-LS spatial frames. Native BEST portfolio parity was restored as a library selection surface. Ordinary CLI/generic portfolio binding, release/adapters, and broad qualification remain open.",
   "status_meanings": {
     "library_only": "reversible native functions exist, but no current generic/full-engine selector or top-level archive dispatcher calls them",
     "partial_unwired": "some native code or a descriptor exists, but a required transform, backend stack, envelope, or dispatch edge is absent",
@@ -41,12 +41,12 @@
       "ECPD1": "pdata transform payload",
       "ECPD2": "combined pdata-symbol transform payload"
     },
-    "unsupported_historical_frames": {
-      "CIXB\\x1f": "grid_context reference decoder not found in FullEngine dispatch",
-      "CIXB\\x20": "grid_conditional reference decoder not found in FullEngine dispatch",
-      "CIXY\\x01": "grid_feedback frame code and SGFB1 raw mode/model transforms are library-tested, but FullEngine dispatch does not route the CIXY envelope",
-      "CIXZ\\x01": "grid_interval outer frame not found in FullEngine dispatch",
-      "CIXI\\x01 mode 2/3": "spatial provider bridge has bounded source-bound roundtrip evidence, but historical image-envelope/FullEngine dispatch integration is pending"
+    "scoped_dispatch_evidence": {
+      "CIXY\\x01": "grid-feedback dispatch qualified in bounded fixtures",
+      "CIXZ\\x01": "interval-grid dispatch qualified in bounded fixtures",
+      "CIXB\\x1f": "SGCC1 count grid; five frozen raw modes restored exactly",
+      "CIXB\\x20": "SGCC2 conditional grid; twelve frozen context/coding combinations restored exactly",
+      "CIXI\\x01 representations 2/3": "historical JPEG-2000/JPEG-LS frame parsing and frozen-region cross-decode qualified in bounded fixtures"
     }
   },
   "modules": [
@@ -56,7 +56,7 @@
       "native_evidence": "generic CLI plus c_stream_api.rs and c_format_api.rs; standard_formats.rs is registered",
       "historical_wire_or_raw_identity": "generic CIX stream ABI, not a specialist envelope",
       "implementation_status": "library_tested_unwired",
-      "dispatch_status": "focused C stream/C format contracts and explicit nine-format CLI contract tests passed; CLI does not expose FullEngine automatic selection",
+      "dispatch_status": "focused C stream/C format, dictionary, explicit nine-format CLI contracts passed; ordinary CLI does not expose automatic FullEngine selection",
       "qualification": "bounded interface evidence only; not ordinary specialist CLI or release qualification"
     },
     {
@@ -74,17 +74,17 @@
       "native_evidence": "generic CLI plus c_stream_api.rs and c_format_api.rs; standard_formats.rs is registered",
       "historical_wire_or_raw_identity": "generic CIX stream ABI, not a specialist envelope",
       "implementation_status": "library_tested_unwired",
-      "dispatch_status": "focused C stream/C format contracts and explicit nine-format CLI contract tests passed; CLI does not expose FullEngine automatic selection",
+      "dispatch_status": "focused C stream/C format, dictionary, explicit nine-format CLI contracts passed; ordinary CLI does not expose automatic FullEngine selection",
       "qualification": "bounded interface evidence only; not ordinary specialist CLI or release qualification"
     },
     {
       "runtime_module": "engine.py",
       "family": "specialist catalogue / decode dispatch",
-      "native_evidence": "full_engine/catalogue.rs::catalog and dispatch.rs::FullEngine",
+      "native_evidence": "full_engine catalogue/dispatch/selection with restored native BEST library portfolio parity",
       "historical_wire_or_raw_identity": "specialist frames listed by recipe",
       "implementation_status": "library_tested_unwired",
-      "dispatch_status": "explicit recipe encode/decode exists; ordinary CLI does not call it",
-      "qualification": "bounded focused source-bound tests only; not ordinary CLI qualification"
+      "dispatch_status": "scoped library candidate and dispatch paths pass; ordinary CLI does not call automatic full-engine selection",
+      "qualification": "bounded source-bound evidence only; not ordinary CLI or portfolio qualification"
     },
     {
       "runtime_module": "heterogeneous.py",
@@ -242,29 +242,29 @@
     {
       "runtime_module": "legacy/grid_conditional.py",
       "family": "grid conditional transform",
-      "native_evidence": "none",
-      "historical_wire_or_raw_identity": "CIXB\\x20",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "grid_counts.rs::encode/decode_conditional_frame plus FullEngine dispatch",
+      "historical_wire_or_raw_identity": "SGCC2 raw; CIXB\\x20",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "twelve frozen SGCC2 context/coding cases restore exactly; CIXB\\x20 dispatcher covered in scoped archive tests; CLI selection absent",
+      "qualification": "bounded frozen-fixture and archive-dispatch evidence only"
     },
     {
       "runtime_module": "legacy/grid_context.py",
       "family": "grid context transform",
-      "native_evidence": "none",
-      "historical_wire_or_raw_identity": "CIXB\\x1f",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "grid_counts.rs::encode/decode_counts_frame plus FullEngine dispatch",
+      "historical_wire_or_raw_identity": "SGCC1 raw; CIXB\\x1f",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "five frozen SGCC1 raw modes restore exactly; CIXB\\x1f dispatcher covered in scoped archive tests; CLI selection absent",
+      "qualification": "bounded frozen-fixture and archive-dispatch evidence only"
     },
     {
       "runtime_module": "legacy/grid_feedback.py",
       "family": "grid feedback transform",
-      "native_evidence": "grid_context.rs implements all six SGFB1 feedback mode/model raw transforms and a distinct CIXY\\x01 envelope",
-      "historical_wire_or_raw_identity": "SGFB1 raw; CIXY\\x01 feedback envelope",
+      "native_evidence": "grid_context.rs all six SGFB1 feedback transforms plus CIXY\\x01 envelope and FullEngine dispatch",
+      "historical_wire_or_raw_identity": "SGFB1 raw; CIXY\\x01",
       "implementation_status": "library_tested_unwired",
-      "dispatch_status": "all six raw reference identities and CIXY envelope identity passed focused tests; FullEngine does not dispatch CIXY and CLI selection is absent",
-      "qualification": "bounded source-bound fixture evidence only; not ordinary CLI qualification"
+      "dispatch_status": "all six raw identities and CIXY archive dispatch passed scoped fixtures; CLI selection absent",
+      "qualification": "bounded source-bound fixture and dispatch evidence only"
     },
     {
       "runtime_module": "legacy/grid_grouped.py",
@@ -278,11 +278,11 @@
     {
       "runtime_module": "legacy/grid_interval.py",
       "family": "grid interval transform",
-      "native_evidence": "bounded_values.rs retained raw interval parents; no CIXZ outer envelope dispatcher",
-      "historical_wire_or_raw_identity": "CIXZ\\x01",
-      "implementation_status": "partial_unwired",
-      "dispatch_status": "CIXZ outer frame remains unsupported by FullEngine dispatch",
-      "qualification": "not qualified as a historical outer-frame route"
+      "native_evidence": "interval_context.rs SGBI1/CIXZ\\x01 plus FullEngine dispatch",
+      "historical_wire_or_raw_identity": "SGBI1 raw; CIXZ\\x01",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "CIXZ archive dispatch passed scoped fixtures; CLI selection absent",
+      "qualification": "bounded source-bound fixture and dispatch evidence only"
     },
     {
       "runtime_module": "legacy/image_grid.py",
@@ -377,11 +377,11 @@
     {
       "runtime_module": "legacy/spatial_image_codec.py",
       "family": "spatial image frame",
-      "native_evidence": "spatial_provider.rs bridges CharLS 2.4.2 and OpenJPEG 2.5.0; volume_lifting/jxl_provider remains separate",
-      "historical_wire_or_raw_identity": "historical spatial image envelopes, including CIXI modes 2/3",
+      "native_evidence": "spatial_provider.rs and spatial_frames.rs package bridge; catalogue appends JLS/J2K alternatives after retained order",
+      "historical_wire_or_raw_identity": "CIXI\\x01 representations 2=JPEG-2000, 3=JPEG-LS",
       "implementation_status": "library_tested_unwired",
-      "dispatch_status": "14 bounded provider roundtrips passed; historical CIXI mode-2/3 envelope and FullEngine dispatch integration remain pending, and CLI selection is absent",
-      "qualification": "bounded generated-image provider evidence only; not historical-envelope cross-decoding or ordinary CLI qualification"
+      "dispatch_status": "frozen Python JLS/JP2/raw-J2K cross-decode, historical dispatch, and both native candidates passed scoped tests; CLI selection absent",
+      "qualification": "bounded source-bound spatial frame/dispatch evidence only; not ordinary CLI or release qualification"
     },
     {
       "runtime_module": "legacy/volume_image_codec.py",
@@ -413,11 +413,11 @@
     {
       "runtime_module": "specialized.py",
       "family": "candidate enumeration / selection",
-      "native_evidence": "full_engine/catalogue.rs fixed-order Recipe registry",
+      "native_evidence": "full_engine catalogue/dispatch/selection with restored native BEST library portfolio parity",
       "historical_wire_or_raw_identity": "route-specific specialist frames",
       "implementation_status": "library_tested_unwired",
-      "dispatch_status": "catalogue creates candidates but does not select a winner or feed CLI",
-      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
+      "dispatch_status": "scoped library candidate and dispatch paths pass; ordinary CLI does not call automatic full-engine selection",
+      "qualification": "bounded source-bound evidence only; not ordinary CLI or portfolio qualification"
     }
   ],
   "historical_portfolio26_dispatch": {
@@ -491,31 +491,39 @@
     }
   },
   "highest_priority_missing_edges": [
-    "Complete and qualify the ordinary CLI integration of full_engine catalogue/selection/dispatch without weakening generic whole-input alternatives or adding silent fallback.",
-    "Complete automatic mixed CIXH1 selection integration: mixed_selection source is not a top-level selected route, and paid mixed comparison must be explicit.",
-    "Restore a pure-library complete native portfolio for selection: current selection.rs NativeExecutor is fixed 64 KiB CIXG1 and does not yet preserve historical native BEST CIXG2-whole, CIXM6 and external complete-archive candidates.",
-    "Port/register exact historical grid_context CIXB\\x1f and grid_conditional CIXB\\x20 frames. Retain CIXY\\x01 feedback and CIXZ\\x01 interval outer decoders separately from CIXB\\x1e bounded.",
-    "Qualify native JPEG-LS and JPEG-2000 provider support for CIXI\\x01 modes 3 and 2. Current JXL evidence does not qualify the new spatial provider.",
-    "Account for the historical LSTM/prediction route: no native implementation or frame decoder was found. Its recorded -12L comparison remains resource-excluded under the stated 12 GB bound."
+    "Bind the restored native BEST library portfolio, full-engine catalogue/selection/dispatch and exact resource accounting into ordinary CLI operation without weakening generic alternatives or adding silent fallback.",
+    "Bind automatic mixed CIXH1 selection and paid comparison into the ordinary CLI route.",
+    "Complete final installed-path qualification for full_engine::installed; dictionary-grid-v3 only proves path-presence checks, not final installed runtime behavior.",
+    "Complete release adapters, packages, cross-platform and SquashFS qualification; no broad benchmark or public-release claim follows from these scoped receipts.",
+    "Account for the historical LSTM/prediction route: no native implementation or frame decoder was found; recorded -12L remains resource-excluded under the stated 12 GB bound."
   ],
   "acceptance_per_route": "For each retained route: source-to-archive parity fixture where applicable; fresh native encode; separate archive-only native decode; malformed/limit tests; resource accounting; no Python process or PATH lookup; and candidate/decoder registration evidence.",
   "tested_module_scope": {
     "catalogue_v4": "docs/research/2026-10-04-execution/jobs/catalogue-v4/checks.json records offline check/build and 73 passing full_engine tests; the same source-bound run recorded seven C stream contract tests.",
     "provider_frames": "catalogue-v4 installed-provider test encoded and decoded 12 PAQ-backed complete frames (chemical, database, grouped/bounded grids and address families) and two JXL complete frames. This is focused library evidence under pinned test paths, not normal CLI execution or broad route qualification.",
-    "ordinary_cli_gap": "No current cli.rs or generic portfolio selector automatically calls full_engine::catalogue or FullEngine. Current selection.rs NativeExecutor calls core::encode_buffer/engine::encode with a fixed 64 KiB CIXG1 backend, rather than historical native BEST CIXG2-whole/CIXM6/external complete-archive portfolio candidates. Mixed automatic encoding remains absent.",
+    "ordinary_cli_gap": "The restored native BEST portfolio is available at the library selection boundary. No current cli.rs or generic portfolio selector automatically calls full_engine::catalogue or FullEngine, and mixed automatic encoding remains absent.",
     "address_helper_audit": "docs/research/2026-10-05-native-rc/address-helper-audit.md and the pointer-delta v5 fixture establish ECRD1 mode-5 raw parity for the supported CIXB\\x0b path. ECRP1 and ECBR2 are retained inactive helper history, not separate production frame gaps.",
     "interfaces_v7": "jobs/interfaces-v7/source.json binds the frozen source; all-target build and 29 focused tests passed: selection 5, mixed selection 4, spatial provider 3, grid context 2, backend provider 3, address 1, and C/dictionary/standard-format contracts 11. The later SDK stage was interrupted at the temporary-space cap and is not credited.",
     "interfaces_v8": "jobs/interfaces-v8 reran SDK-only checks against the same source/binary prerequisites: shared and static installation/relocation plus C buffer, C stream, C standard-gzip and C++ installed consumers passed. This is SDK interface evidence, not a whole release or ordinary CLI qualification.",
     "grid_feedback": "jobs/grid-feedback-fixture-v1/outputs.json binds all six SGFB1 raw feedback mode/model fixtures and CIXY envelope identity to the Python reference. FullEngine dispatch of CIXY remains absent.",
-    "spatial_provider": "interfaces-v6 source identity is retained by v7; focused v7 tests cover the packaged CharLS/OpenJPEG bridge and 14 generated roundtrips. Historical CIXI image envelopes and reference cross-decoding remain pending."
+    "spatial_provider": "interfaces-v6 source identity is retained by v7; focused v7 tests cover the packaged CharLS/OpenJPEG bridge and 14 generated roundtrips. Historical CIXI image envelopes and reference cross-decoding remain pending.",
+    "native_best_portfolio": "root checkpoint 4dcdf533 records native BEST library portfolio completion. This closes the prior fixed-64-KiB-CIXG1 parity gap at the library boundary only; ordinary CLI integration remains open.",
+    "dictionary_grid_v3": "dictionary-grid-v3 passed after the helper zero-rank correction and fixture-bound repair: grid_counts has SGCC1 five-mode and SGCC2 twelve-context/coding raw parity; 17 Brotli-backed archive dispatch cases pass; C dictionary retained-capacity/lifecycle contracts and shared/static installed dictionary consumers pass.",
+    "spatial_counts_v1": "spatial-counts-v1 installed C/C++/stream/formats SDK work passed, but grid and encode checks failed in that job. Its successful SDK substeps are recorded only at that scope; it is not a whole-job pass.",
+    "spatial_counts_v2": "spatial-counts-v2 passed scoped spatial_provider (3), spatial_frames (5), frozen Python JLS/JP2/raw-J2K cross-decode, historical spatial dispatch and both native candidates after the JP2 seek fix. The job still has its recorded grid failure; do not treat it as a complete checkpoint.",
+    "installed_path_hold": "installed-discovery-v1 passed all-target check plus four focused full_engine::installed tests: exact missing/present records for six names, explicit multiarch directory, invalid paths, and no temporary-root creation. This is filesystem-discovery evidence only; ABI/provider loading and platform qualification remain open."
   },
   "new_registered_source_surfaces": {
-    "full_engine/selection.rs": "registered and covered by five focused v7 tests; its current NativeExecutor is fixed 64 KiB CIXG1 and is not historical native BEST portfolio parity or ordinary automatic CLI selection",
+    "full_engine/selection.rs": "registered and covered by focused tests; native BEST library portfolio parity is restored, while ordinary automatic CLI selection remains unwired",
     "standard_formats.rs": "registered native one-shot streams; explicit CLI --output-format/--input-format has focused contracts for gzip, zlib, raw deflate, bzip2, XZ, Zstd, Brotli, LZ4 frame and Snappy framed. They are not automatic portfolio candidates.",
     "dictionaries.rs": "registered owned Zstd dictionary handles; two focused dictionary contracts and SDK C-format consumer evidence exist, not distribution/CLI route qualification.",
     "full_engine/spatial_provider.rs": "registered CharLS/OpenJPEG package bridge; focused v7 provider tests and 14 generated roundtrips passed. Historical image envelopes and FullEngine dispatch remain pending.",
     "full_engine/grid_context.rs": "registered SGFB1/CIXY feedback implementation; all six raw reference identities and envelope identity passed focused tests, but CIXY dispatch is pending.",
-    "full_engine/mixed_selection.rs": "registered and covered by four focused tests, but it is not wired into the top-level automatic selection/CLI path; no automatic mixed-encode claim."
+    "full_engine/mixed_selection.rs": "registered and covered by four focused tests, but it is not wired into the top-level automatic selection/CLI path; no automatic mixed-encode claim.",
+    "full_engine/grid_counts.rs": "CIXB\\x1f SGCC1 and CIXB\\x20 SGCC2 routes are registered and scoped-fixture/dispatch tested; normal CLI selection remains unwired.",
+    "full_engine/interval_context.rs": "CIXZ\\x01 route is registered and scoped dispatch-tested; normal CLI selection remains unwired.",
+    "full_engine/spatial_frames.rs": "historical CIXI\\x01 representation-2/3 framing is registered and scoped frozen-region cross-decoding/dispatch tested; normal CLI selection remains unwired.",
+    "c_dictionary_api.rs": "five bounded Rust C-dictionary lifecycle/capacity checks plus relocated shared/static installed dictionary consumers passed; final installed-runtime qualification is pending."
   },
   "interface_checkpoint": {
     "interfaces_v7": "29 focused tests passed; all-target build completed; SDK stage interrupted by temporary-budget cap and not credited.",
@@ -537,6 +545,11 @@
       "automatic_portfolio_selection": false
     },
     "full_engine_automatic_cli": false,
-    "source_manifest": "interfaces-v7/source.json binds the frozen source snapshot; the interface evidence is bounded and is not a release qualification."
+    "source_manifest": "interfaces-v7/source.json binds the frozen source snapshot; the interface evidence is bounded and is not a release qualification.",
+    "dictionary_grid_v3": "passed bounded grid/dictionary/SDK consumer checks; includes SGCC1 5, SGCC2 12 and 17 Brotli archive dispatch cases.",
+    "spatial_counts_v1": "overall failed due grid/encode checks; record only its passing installed C/C++/stream/formats SDK substeps.",
+    "spatial_counts_v2": "overall contains a grid failure; record only passing spatial provider/frame/cross-decode/dispatch substeps.",
+    "installed_runtime": "installed-discovery-v1 passed focused filesystem discovery only (six-name presence/absence, explicit multiarch, invalid paths, no temporary-root creation); it does not qualify ABI, provider loading, or platforms.",
+    "native_best_library_portfolio": "complete at root checkpoint 4dcdf533; ordinary CLI remains unwired."
   }
 }

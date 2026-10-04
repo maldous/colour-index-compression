@@ -1,15 +1,16 @@
-pub mod core;
 pub mod c_api;
+pub mod c_dictionary_api;
 pub mod c_format_api;
 pub mod c_stream_api;
 mod cli;
-pub mod full_engine;
+pub mod core;
 pub mod dictionaries;
-pub mod standard_formats;
+pub mod full_engine;
 pub mod jxl_bridge;
 pub mod paq_bridge;
-mod paq_worker;
 mod paq_supervisor;
+mod paq_worker;
+pub mod standard_formats;
 
 /// Retained Squash callback ABI; it is implemented by the native core.
 pub use core::cix_squash_splice;

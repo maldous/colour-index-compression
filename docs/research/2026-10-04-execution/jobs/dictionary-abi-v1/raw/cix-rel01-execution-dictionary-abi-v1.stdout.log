@@ -1,0 +1,18 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-abi-v1/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-abi-v1/Cargo.toml', '--lib', 'c_dictionary_api', '--', '--test-threads=1']
+
+running 2 tests
+test c_dictionary_api::tests::lifecycle_identity_and_caller_buffer_contract ... ok
+test c_dictionary_api::tests::rejects_wrong_identity_small_output_and_malformed_training ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 236 filtered out; finished in 0.01s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-abi-v1/Cargo.toml', '--test', 'dictionary_contract', '--', '--test-threads=1']
+
+running 3 tests
+test dictionary_contract_charges_trained_retained_capacity ... ok
+test dictionary_contract_rejects_invalid_training_and_trailing ... ok
+test dictionary_contract_roundtrip_wrong_identity_and_cap ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

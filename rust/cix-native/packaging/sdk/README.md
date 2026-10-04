@@ -1,7 +1,7 @@
 # CIX native SDK package skeleton
 
 This is a source-side installation helper for the current **native-buffer-v1**
-ABI. It installs `cix.h`, `cix_stream.h`, the C++17 RAII convenience header
+ABI. It installs `cix.h`, `cix_stream.h`, `cix_formats.h`, `cix_dictionary.h`, the C++17 RAII convenience header
 `cix.hpp`, one already-built `libcix_native` library, `find_package(CIX CONFIG)` metadata, and
 `pkg-config` metadata. It does not build Rust itself, create an SDK artifact, or
 qualify an installed consumer.
@@ -22,6 +22,23 @@ is not a full-engine route, retained-history decoder, specialist selector, or
 streaming archive adapter. The installed C stream consumer in
 `packaging/sdk/tests/c_stream_installed_consumer.c` exercises fragmented input
 and output using only public C headers.
+
+`cix_formats.h` provides complete-buffer ordinary gzip, zlib, raw DEFLATE,
+bzip2, XZ, Zstd, Brotli, LZ4 frame and Snappy framed operations. These explicit
+format APIs do not imply incremental standard-format streaming.
+
+`cix_dictionary.h` provides owned Zstd dictionary handles, training/import,
+SHA-256 and native dictionary identity, and caller-buffer encode/decode of
+ordinary Zstd frames. Decode requires the exact declared dictionary identity.
+Export trained bytes with `cix_zstd_dictionary_bytes_v1` and import them with
+`cix_zstd_dictionary_create_v1` to persist a dictionary or share it with a later
+decoder. Identity values alone cannot reconstruct dictionary contents.
+Calls on a handle serialize; the caller must not free a handle concurrently.
+The installed `examples/dictionary.c` exercises training, identity and exact
+restoration. Dictionary memory admission includes retained allocation capacity,
+the opaque handle, caller output, temporary output and estimated codec state;
+it is not a hard process RSS ceiling. Other codecs do not gain dictionary
+support through this Zstd-specific API.
 
 A library found through `CIX::native` is not proof that PAQ/JXL bridges,
 historical full-engine decoders, automatic specialist selection, platform

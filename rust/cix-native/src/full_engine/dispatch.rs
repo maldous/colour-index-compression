@@ -9,9 +9,11 @@ use super::{
     backend_provider::*,
     bounded_values,
     catalogue::{Candidate, Recipe},
-    conditional_values, containers, graph_residuals, grid_context, interval_context,
+    conditional_values, containers, graph_residuals, grid_context, grid_counts, interval_context,
     jxl_provider::JxlProvider,
-    mixed, record_ordering, strided_values, structured_frames, volume_lifting,
+    mixed, record_ordering, spatial_frames,
+    spatial_provider::SpatialProvider,
+    strided_values, structured_frames, volume_lifting,
 };
 use crate::{core, paq_bridge::PaqVariant};
 use std::{
@@ -71,6 +73,31 @@ impl OperationLimits {
 pub struct FullEngine {
     pub backends: BackendProvider,
     pub images: Option<JxlProvider>,
+    pub spatial: Option<SpatialProvider>,
+}
+
+struct SpatialMetadata<'a> {
+    engine: &'a FullEngine,
+    limits: &'a OperationLimits,
+}
+impl spatial_frames::SpatialMetadataBackend for SpatialMetadata<'_> {
+    fn compress(&self, source: &[u8], maximum: usize, memory: usize) -> Result<Vec<u8>, String> {
+        self.engine.backends.encode(
+            source,
+            &self
+                .limits
+                .request(BackendVariant::Xz { preset: 9 }, memory, maximum),
+        )
+    }
+    fn decompress(&self, source: &[u8], expected: usize, memory: usize) -> Result<Vec<u8>, String> {
+        self.engine.backends.decode(
+            source,
+            expected,
+            &self
+                .limits
+                .request(BackendVariant::Xz { preset: 9 }, memory, expected),
+        )
+    }
 }
 fn brotli(window: u32) -> BackendVariant {
     BackendVariant::Brotli {
@@ -321,6 +348,20 @@ impl FullEngine {
                 *effort,
                 self.image_provider()?,
             )?,
+            Recipe::SpatialAlternative { region, codec } => spatial_frames::encode_spatial_frame(
+                source,
+                region,
+                *codec,
+                self.spatial
+                    .as_ref()
+                    .ok_or("packaged spatial provider is unavailable")?,
+                &SpatialMetadata {
+                    engine: self,
+                    limits,
+                },
+                limits.output_bytes,
+                limits.memory_bytes,
+            )?,
             Recipe::Volume {
                 region,
                 mode,
@@ -490,6 +531,17 @@ impl FullEngine {
                     _ => Err("invalid feedback backend".into()),
                 },
             )
+        } else if archive.starts_with(grid_counts::COUNT_MAGIC) {
+            grid_counts::decode_counts_frame(archive, maximum, workspace, &|payload, memory| {
+                decode(payload, memory, brotli(22), false)
+            })
+        } else if archive.starts_with(grid_counts::CONDITIONAL_MAGIC) {
+            grid_counts::decode_conditional_frame(
+                archive,
+                maximum,
+                workspace,
+                &|payload, memory| decode(payload, memory, brotli(22), false),
+            )
         } else if archive.starts_with(interval_context::MAGIC) {
             interval_context::decode_frame(archive, maximum, workspace, &|payload, memory| {
                 decode(payload, memory, brotli(22), false)
@@ -515,7 +567,22 @@ impl FullEngine {
         } else if address::recognizes_magic(archive) {
             self.decode_address(archive, maximum, workspace, limits)
         } else if archive.starts_with(volume_lifting::SPATIAL_MAGIC) {
-            volume_lifting::decode_spatial(archive, maximum, workspace, self.image_provider()?)
+            if matches!(archive.get(5), Some(2 | 3)) {
+                spatial_frames::decode_spatial_frame(
+                    archive,
+                    maximum,
+                    limits.memory_bytes,
+                    self.spatial
+                        .as_ref()
+                        .ok_or("packaged spatial provider is unavailable")?,
+                    &SpatialMetadata {
+                        engine: self,
+                        limits,
+                    },
+                )
+            } else {
+                volume_lifting::decode_spatial(archive, maximum, workspace, self.image_provider()?)
+            }
         } else if archive.starts_with(volume_lifting::VOLUME_MAGIC) {
             volume_lifting::decode_volume(archive, maximum, workspace, self.image_provider()?)
         } else if archive.starts_with(volume_lifting::MULTISCALE_MAGIC) {
@@ -645,6 +712,7 @@ mod tests {
                 },
             },
             images: None,
+            spatial: None,
         }
     }
     fn limits() -> OperationLimits {
@@ -717,6 +785,77 @@ mod tests {
             trailing.push(0);
             assert!(engine.decode(&trailing, &limits).is_err());
         }
+    }
+
+    #[test]
+    fn counts_legacy_frames_dispatch_all_modes_and_codings() {
+        let source = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/grid_counts/input.bin"
+        ));
+        let engine = engine();
+        let limits = limits();
+        let backend = |raw: &[u8]| crate::external::raw_brotli_encode(raw, 11, 22, 1 << 20);
+        for mode in 0..5 {
+            let frame = grid_counts::encode_counts_frame(source, mode, &backend).unwrap();
+            assert_eq!(engine.decode(&frame, &limits).unwrap(), source);
+        }
+        for context in 0..4 {
+            for coding in 0..3 {
+                let frame =
+                    grid_counts::encode_conditional_frame(source, context, coding, &backend)
+                        .unwrap();
+                assert_eq!(engine.decode(&frame, &limits).unwrap(), source);
+                let mut trailing = frame;
+                trailing.push(0);
+                assert!(engine.decode(&trailing, &limits).is_err());
+            }
+        }
+    }
+
+    #[test]
+    fn installed_spatial_legacy_frames_and_native_candidates() {
+        let Some(path) = std::env::var_os("CIX_TEST_SPATIAL_BRIDGE") else {
+            return;
+        };
+        let mut engine = engine();
+        engine.spatial = Some(
+            SpatialProvider::load_package_bridge(std::path::Path::new(&path), 1 << 20).unwrap(),
+        );
+        let limits = limits();
+        let source = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/spatial_frames/jls-input.bin"
+        ));
+        let frame = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/spatial_frames/jls.cix"
+        ));
+        assert_eq!(engine.decode(frame, &limits).unwrap(), source);
+        let j2k_source = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/spatial_frames/j2k-input.bin"
+        ));
+        let frame = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/spatial_frames/j2k.cix"
+        ));
+        assert_eq!(engine.decode(frame, &limits).unwrap(), j2k_source);
+        let candidates = super::super::catalogue::catalog(source).unwrap();
+        let mut encoded = 0;
+        for candidate in candidates.candidates {
+            if matches!(candidate.recipe, Recipe::SpatialAlternative { .. }) {
+                let frame = engine
+                    .encode_candidate(&candidate, source, &limits)
+                    .unwrap();
+                assert_eq!(engine.decode(&frame, &limits).unwrap(), source);
+                encoded += 1;
+            }
+        }
+        assert_eq!(
+            encoded, 2,
+            "both restored spatial candidates must be content-admitted"
+        );
     }
 
     #[test]
@@ -803,6 +942,7 @@ mod tests {
                     temporary_root: temporary.into(),
                 },
             },
+            spatial: None,
             images: std::env::var_os("CIX_TEST_JXL_BRIDGE").map(|p| {
                 JxlProvider::load_package_bridge(std::path::Path::new(&p), 1 << 20).unwrap()
             }),

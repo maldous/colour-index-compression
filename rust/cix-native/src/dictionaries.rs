@@ -175,6 +175,18 @@ impl ZstdDictionary {
     pub fn identity(&self) -> &DictionaryIdentity {
         &self.identity
     }
+
+    /// Exact serialized dictionary bytes for persistence or transfer.
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+
+    /// Bytes retained by the owned dictionary allocation, including spare
+    /// capacity left by dictionary training.
+    pub fn retained_bytes(&self) -> usize {
+        self.bytes.capacity()
+    }
+
     pub fn encode(
         &self,
         input: &[u8],
@@ -192,8 +204,7 @@ impl ZstdDictionary {
             return Err("Zstd encode memory estimate unavailable".into());
         }
         if self
-            .bytes
-            .len()
+            .retained_bytes()
             .checked_add(input.len())
             .and_then(|n| n.checked_add(cap))
             .and_then(|n| n.checked_add(cctx))
@@ -257,8 +268,7 @@ impl ZstdDictionary {
             return Err("Zstd decode memory estimate unavailable".into());
         }
         if self
-            .bytes
-            .len()
+            .retained_bytes()
             .checked_add(ddict)
             .and_then(|n| n.checked_add(payload.len()))
             .and_then(|n| n.checked_add(limit))

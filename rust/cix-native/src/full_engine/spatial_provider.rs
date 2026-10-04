@@ -28,6 +28,7 @@ struct RawInfo {
 type EncodeFn =
     unsafe extern "C" fn(u32, *const u8, usize, u32, u32, u32, usize, *mut RawBuffer) -> c_int;
 type ProbeFn = unsafe extern "C" fn(u32, *const u8, usize, u32, u32, u32, *mut RawInfo) -> c_int;
+type ProbeAnyFn = unsafe extern "C" fn(u32, *const u8, usize, usize, usize, *mut RawInfo) -> c_int;
 type DecodeFn = unsafe extern "C" fn(u32, *const u8, usize, u32, u32, u32, *mut u8, usize) -> c_int;
 type FreeFn = unsafe extern "C" fn(*mut RawBuffer);
 type VersionFn = unsafe extern "C" fn() -> u32;
@@ -67,13 +68,30 @@ pub struct SpatialProvider {
     _library: Library,
     encode: EncodeFn,
     probe: ProbeFn,
+    probe_any: ProbeAnyFn,
     decode: DecodeFn,
     free: FreeFn,
     _charls_version: VersionFn,
     _openjpeg_version: VersionFn,
     max_output_bytes: usize,
 }
+
+/// Dimensions recovered from an embedded JPEG-LS/JPEG 2000 codestream. CIXI1
+/// stores the region byte length but no shape, so callers must obtain this
+/// bounded result before they allocate a canonical u16 output buffer.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct SpatialImageInfo {
+    pub width: usize,
+    pub height: usize,
+    pub bits_per_sample: u32,
+}
 impl SpatialProvider {
+    /// CIX-owned maximum returned payload size configured for this bridge.
+    /// Envelope builders reserve against this cap before calling native encode.
+    pub fn max_output_bytes(&self) -> usize {
+        self.max_output_bytes
+    }
+
     pub fn load_package_bridge(
         path: &Path,
         max_output_bytes: usize,
@@ -93,6 +111,7 @@ impl SpatialProvider {
         let library = Library::open(path)?;
         let encode = unsafe { library.symbol::<EncodeFn>("cix_spatial_encode_u16_gray")? };
         let probe = unsafe { library.symbol::<ProbeFn>("cix_spatial_probe_gray")? };
+        let probe_any = unsafe { library.symbol::<ProbeAnyFn>("cix_spatial_probe_any_gray")? };
         let decode = unsafe { library.symbol::<DecodeFn>("cix_spatial_decode_u16_gray")? };
         let free = unsafe { library.symbol::<FreeFn>("cix_spatial_free_buffer")? };
         let charls = unsafe { library.symbol::<VersionFn>("cix_spatial_charls_version")? };
@@ -106,6 +125,7 @@ impl SpatialProvider {
             _library: library,
             encode,
             probe,
+            probe_any,
             decode,
             free,
             _charls_version: charls,
@@ -161,8 +181,36 @@ impl SpatialProvider {
         bits: u32,
         memory: usize,
     ) -> Result<Vec<u8>, SpatialProviderError> {
+        self.encode_with_output_limit(
+            codec,
+            pixels,
+            width,
+            height,
+            bits,
+            self.max_output_bytes,
+            memory,
+        )
+    }
+
+    /// Encode with a tighter per-call cap than the package-wide cap. Envelope
+    /// builders use this to admit an archive whose frame cap is smaller than
+    /// the installed bridge's general output ceiling.
+    pub fn encode_with_output_limit(
+        &self,
+        codec: SpatialCodec,
+        pixels: &[u8],
+        width: usize,
+        height: usize,
+        bits: u32,
+        output_cap: usize,
+        memory: usize,
+    ) -> Result<Vec<u8>, SpatialProviderError> {
         let expected = Self::bytes(width, height)?;
-        if pixels.len() != expected || !(1..=16).contains(&bits) {
+        if pixels.len() != expected
+            || !(1..=16).contains(&bits)
+            || output_cap == 0
+            || output_cap > self.max_output_bytes
+        {
             return Err(SpatialProviderError::InvalidImage);
         }
         let maximum = pixels
@@ -173,7 +221,7 @@ impl SpatialProvider {
         if bits < 16 && u32::from(maximum) >= (1_u32 << bits) {
             return Err(SpatialProviderError::InvalidImage);
         }
-        Self::encode_budget(pixels.len(), self.max_output_bytes, memory)?;
+        Self::encode_budget(pixels.len(), output_cap, memory)?;
         let width = u32::try_from(width).map_err(|_| SpatialProviderError::InvalidImage)?;
         let height = u32::try_from(height).map_err(|_| SpatialProviderError::InvalidImage)?;
         let mut out = RawBuffer {
@@ -188,7 +236,7 @@ impl SpatialProvider {
                 width,
                 height,
                 bits,
-                self.max_output_bytes,
+                output_cap,
                 &mut out,
             )
         };
@@ -200,7 +248,7 @@ impl SpatialProvider {
         }
         if out.data.is_null()
             || out.size == 0
-            || out.size > self.max_output_bytes
+            || out.size > output_cap
             || out.size > isize::MAX as usize
         {
             unsafe { (self.free)(&mut out) };
@@ -214,6 +262,9 @@ impl SpatialProvider {
         result
             .try_reserve_exact(guard.raw.size)
             .map_err(|_| SpatialProviderError::ResourceLimit)?;
+        if result.capacity() > output_cap {
+            return Err(SpatialProviderError::ResourceLimit);
+        }
         unsafe {
             result.extend_from_slice(std::slice::from_raw_parts(guard.raw.data, guard.raw.size))
         };
@@ -278,6 +329,50 @@ impl SpatialProvider {
             return Err(SpatialProviderError::BridgeStatus(status));
         };
         Ok(output)
+    }
+
+    /// Recover the one-plane, unsigned shape of an embedded historical
+    /// codestream. `max_output_bytes` is the paid CIXI1 region byte count;
+    /// probe limits are enforced by the C bridge before Rust allocates output.
+    pub fn probe_embedded(
+        &self,
+        codec: SpatialCodec,
+        payload: &[u8],
+        max_output_bytes: usize,
+    ) -> Result<SpatialImageInfo, SpatialProviderError> {
+        if payload.is_empty() || max_output_bytes < 2 || max_output_bytes % 2 != 0 {
+            return Err(SpatialProviderError::InvalidImage);
+        }
+        let mut info = RawInfo {
+            width: 0,
+            height: 0,
+            bits_per_sample: 0,
+        };
+        let status = unsafe {
+            (self.probe_any)(
+                codec as u32,
+                payload.as_ptr(),
+                payload.len(),
+                max_output_bytes / 2,
+                max_output_bytes,
+                &mut info,
+            )
+        };
+        if status != 0 {
+            return Err(SpatialProviderError::BridgeStatus(status));
+        }
+        let width = usize::try_from(info.width).map_err(|_| SpatialProviderError::InvalidImage)?;
+        let height =
+            usize::try_from(info.height).map_err(|_| SpatialProviderError::InvalidImage)?;
+        let exact = Self::bytes(width, height)?;
+        if exact > max_output_bytes || info.bits_per_sample == 0 || info.bits_per_sample > 16 {
+            return Err(SpatialProviderError::InvalidImage);
+        }
+        Ok(SpatialImageInfo {
+            width,
+            height,
+            bits_per_sample: info.bits_per_sample,
+        })
     }
 }
 #[cfg(target_os = "linux")]
@@ -361,6 +456,21 @@ mod tests {
                     .unwrap_or_else(|error| {
                         panic!("native spatial encode {codec:?} bits={bits}: {error}")
                     });
+                assert_eq!(
+                    provider
+                        .probe_embedded(codec, &payload, pixels.len())
+                        .unwrap_or_else(|error| panic!(
+                            "native spatial embedded probe {codec:?} bits={bits}: {error}"
+                        )),
+                    SpatialImageInfo {
+                        width: 2,
+                        height: 2,
+                        bits_per_sample: bits,
+                    }
+                );
+                assert!(provider
+                    .probe_embedded(codec, &payload, pixels.len() - 2)
+                    .is_err());
                 assert_eq!(
                     provider
                         .decode(codec, &payload, 2, 2, bits, 128 << 20)

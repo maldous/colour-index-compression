@@ -15,6 +15,7 @@ use super::{
     dispatch::{FullEngine, OperationLimits},
     jxl_provider::JxlProvider,
     mixed_selection, native_portfolio,
+    spatial_provider::SpatialProvider,
 };
 use crate::paq_bridge::PaqVariant;
 use std::{
@@ -56,6 +57,7 @@ pub struct ProviderConfig {
     /// An absolute installed bridge path.  It is loaded afresh per trial;
     /// `JxlProvider` itself is intentionally not shared across threads.
     pub jxl_bridge: Option<PathBuf>,
+    pub spatial_bridge: Option<PathBuf>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -297,11 +299,27 @@ pub struct NativeExecutor {
     pub providers: ProviderConfig,
 }
 impl NativeExecutor {
-    fn engine(&self, output: usize) -> Result<FullEngine, String> {
-        let images = match &self.providers.jxl_bridge {
+    fn engine(
+        &self,
+        output: usize,
+        need_jxl: bool,
+        need_spatial: bool,
+    ) -> Result<FullEngine, String> {
+        let images = match self.providers.jxl_bridge.as_ref().filter(|_| need_jxl) {
             Some(path) => {
                 Some(JxlProvider::load_package_bridge(path, output).map_err(|e| e.to_string())?)
             }
+            None => None,
+        };
+        let spatial = match self
+            .providers
+            .spatial_bridge
+            .as_ref()
+            .filter(|_| need_spatial)
+        {
+            Some(path) => Some(
+                SpatialProvider::load_package_bridge(path, output).map_err(|e| e.to_string())?,
+            ),
             None => None,
         };
         Ok(FullEngine {
@@ -309,6 +327,7 @@ impl NativeExecutor {
                 paths: self.providers.backends.clone(),
             },
             images,
+            spatial,
         })
     }
 }
@@ -329,7 +348,7 @@ impl CandidateExecutor for NativeExecutor {
         match &plan.kind {
             PlanKind::Mixed { profile } => {
                 return mixed_selection::encode(
-                    &self.engine(limits.output_bytes)?,
+                    &self.engine(limits.output_bytes, true, true)?,
                     data,
                     *profile,
                     &OperationLimits {
@@ -401,17 +420,28 @@ impl CandidateExecutor for NativeExecutor {
                 )?;
                 containers::wrap_paq(&member, *variant, limits.output_bytes)
             }
-            PlanKind::Specialist(candidate) => self.engine(limits.output_bytes)?.encode_candidate(
-                candidate,
-                data,
-                &OperationLimits {
-                    memory_bytes: plan.memory,
-                    output_bytes: limits.output_bytes,
-                    intermediate_bytes: limits.intermediate_bytes,
-                    deadline: limits.deadline,
-                    cancellation: limits.cancellation.clone(),
-                },
-            ),
+            PlanKind::Specialist(candidate) => self
+                .engine(
+                    limits.output_bytes,
+                    matches!(
+                        candidate.recipe,
+                        Recipe::Spatial { .. }
+                            | Recipe::Volume { .. }
+                            | Recipe::VolumeSharedIdentity { .. }
+                    ),
+                    matches!(candidate.recipe, Recipe::SpatialAlternative { .. }),
+                )?
+                .encode_candidate(
+                    candidate,
+                    data,
+                    &OperationLimits {
+                        memory_bytes: plan.memory,
+                        output_bytes: limits.output_bytes,
+                        intermediate_bytes: limits.intermediate_bytes,
+                        deadline: limits.deadline,
+                        cancellation: limits.cancellation.clone(),
+                    },
+                ),
         }
         .map(CandidateExecution::bare)
     }

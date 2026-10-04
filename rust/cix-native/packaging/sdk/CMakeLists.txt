@@ -49,6 +49,7 @@ install(FILES
     "${CIX_SOURCE_ROOT}/include/cix.hpp"
     "${CIX_SOURCE_ROOT}/include/cix_stream.h"
     "${CIX_SOURCE_ROOT}/include/cix_formats.h"
+    "${CIX_SOURCE_ROOT}/include/cix_dictionary.h"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 install(FILES "${CIX_NATIVE_LIBRARY}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 install(FILES
@@ -59,3 +60,5 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/cix-native.pc"
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 install(FILES "${CMAKE_CURRENT_LIST_DIR}/README.md"
     DESTINATION "${CMAKE_INSTALL_DOCDIR}")
+install(FILES "${CIX_SOURCE_ROOT}/examples/dictionary.c"
+    DESTINATION "${CMAKE_INSTALL_DOCDIR}/examples")

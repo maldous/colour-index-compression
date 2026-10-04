@@ -7,7 +7,9 @@
 
 use super::{
     address_relations::{self, ExecutableKind, HistoricalFrame},
-    record_ordering, strided_values,
+    record_ordering,
+    spatial_provider::SpatialCodec,
+    strided_values,
     volume_lifting::{self, DicomRegion},
 };
 
@@ -46,6 +48,10 @@ pub enum Recipe {
     Spatial {
         region: DicomRegion,
         effort: u8,
+    },
+    SpatialAlternative {
+        region: DicomRegion,
+        codec: SpatialCodec,
     },
     Volume {
         region: DicomRegion,
@@ -227,6 +233,25 @@ fn add_dicom_candidates(candidates: &mut Vec<Candidate>, regions: &[DicomRegion]
                 "volume-multiscale-identity",
                 Recipe::VolumeSharedIdentity { region },
                 VOLUME_MEMORY,
+            );
+        }
+    }
+    // Append newly restored alternatives after the established image/volume
+    // recipes so earlier equal-size choices retain their original priority.
+    for (index, region) in regions.iter().cloned().enumerate() {
+        for (name, codec) in [
+            ("jls", SpatialCodec::JpegLs),
+            ("j2k", SpatialCodec::Jpeg2000),
+        ] {
+            add(
+                candidates,
+                &format!("image-{name}-{index}"),
+                "spatial-image",
+                Recipe::SpatialAlternative {
+                    region: region.clone(),
+                    codec,
+                },
+                SPATIAL_MEMORY,
             );
         }
     }
@@ -434,14 +459,14 @@ pub fn catalog(data: &[u8]) -> Result<Catalogue, String> {
     diagnostics.push(Diagnostic {
         family: "spatial-jls",
         admitted: !dicom.is_empty(),
-        available: false,
-        reason: "jls-library-not-linked",
+        available: true,
+        reason: "native-jls-recipe-requires-installed-spatial-bridge",
     });
     diagnostics.push(Diagnostic {
         family: "spatial-j2k",
         admitted: !dicom.is_empty(),
-        available: false,
-        reason: "j2k-library-not-linked",
+        available: true,
+        reason: "native-j2k-recipe-requires-installed-spatial-bridge",
     });
 
     // One bounded discovery pass handles both standalone and later TAR-member

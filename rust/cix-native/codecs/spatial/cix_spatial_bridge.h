@@ -36,6 +36,12 @@ CIX_SPATIAL_API int cix_spatial_probe_gray(
   uint32_t codec, const uint8_t* input, size_t input_size,
   uint32_t expected_width, uint32_t expected_height,
   uint32_t expected_bits_per_sample, struct cix_spatial_info* info);
+/* Recover a gray codestream's paid shape without installing an image output.
+ * The bridge rejects a shape whose canonical LE-u16 sample count or byte count
+ * exceeds the supplied limits. */
+CIX_SPATIAL_API int cix_spatial_probe_any_gray(
+  uint32_t codec, const uint8_t* input, size_t input_size,
+  size_t max_pixels, size_t max_output_bytes, struct cix_spatial_info* info);
 CIX_SPATIAL_API int cix_spatial_decode_u16_gray(
   uint32_t codec, const uint8_t* input, size_t input_size,
   uint32_t expected_width, uint32_t expected_height,
