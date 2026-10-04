@@ -1,0 +1,60 @@
+{
+  "hypothesis": "Available PAQ v216 DEFLATE reconstruction may equal or exceed the material research gzip wins; complete its missing specialist control before final RC disposition. Bzip2 archive is included as an opaque established-backend control, not a claim of a bzip2-specific PAQ reconstructor.",
+  "matched_control": "Frozen exact-reconstruction closure candidate on identical existing independent asset, original and ordinary zlib/XZ controls.",
+  "input": {
+    "path": "/usr/share/doc/xz-utils/NEWS.gz",
+    "offset": 0,
+    "length": 20796,
+    "sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b",
+    "label": "xz-news"
+  },
+  "configuration": {
+    "experiment": "codec-reconstruction-controls-v1",
+    "reference": "paq8px-v216",
+    "option": "-4B",
+    "simd": "AVX2",
+    "binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+    "pretraining": false
+  },
+  "mechanism": "Unmodified existing PAQ archive, documented brute-force DEFLATE detection enabled; source inspection confirms zlib reconstruction filter and DISABLE_ZLIB=OFF.",
+  "budget": {
+    "cpu": 8,
+    "wall_seconds": 45,
+    "max_rss_bytes": 1500000000,
+    "max_temp_bytes": 128000000
+  },
+  "promotion_criteria": "Complete physical PAQ archive and separately measured source-inaccessible exact decode; preserve timeout/failure unranked; no setting search/retry and no production change.",
+  "encode_command": [
+    "/usr/bin/time",
+    "-v",
+    "-o",
+    "{workdir}/encode.time.txt",
+    "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+    "-4B",
+    "-simd",
+    "AVX2",
+    "{source}",
+    "{workdir}/candidate.bin"
+  ],
+  "decode_command": [
+    "/usr/bin/time",
+    "-v",
+    "-o",
+    "{workdir}/decode.time.txt",
+    "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+    "-d",
+    "-simd",
+    "AVX2",
+    "{workdir}/candidate.bin",
+    "{workdir}/restored.bin"
+  ],
+  "artifacts": {
+    "archive": "{workdir}/candidate.bin",
+    "restored": "{workdir}/restored.bin"
+  },
+  "build_paths": [
+    "benchmark-work/references/paq8px-v216/build-local/paq8px"
+  ],
+  "initial_state": "empty; no saved dictionary/pretraining; one process per phase",
+  "stage": "screening"
+}

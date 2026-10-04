@@ -1,0 +1,43 @@
+{
+  "experiment": "codec-reconstruction-controls-v1",
+  "purpose": "Finite completion of an available specialist control discovered during final source audit; separate experiment identity preserves earlier closure freeze.",
+  "selection": "Exactly the two material independent gzip wins plus the single independent bzip2 archive. The tiny gzip gain and negative gzip case are not re-run. This is a follow-up control selection, not a blind corpus sample.",
+  "inputs": [
+    {
+      "id": "bzip2-manual",
+      "manifest": "docs/research/2026-10-04-native-rc/codec-reconstruction-controls-v1/manifests/bzip2-manual.json",
+      "input_sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861"
+    },
+    {
+      "id": "xz-news",
+      "manifest": "docs/research/2026-10-04-native-rc/codec-reconstruction-controls-v1/manifests/xz-news.json",
+      "input_sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b"
+    },
+    {
+      "id": "nvidia-init",
+      "manifest": "docs/research/2026-10-04-native-rc/codec-reconstruction-controls-v1/manifests/nvidia-init.json",
+      "input_sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b"
+    }
+  ],
+  "configuration": {
+    "paq": "-4B -simd AVX2",
+    "binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+    "no_parameter_search": true
+  },
+  "evidence": {
+    "zlib_filter": "benchmark-work/references/paq8px-v216/paq8px-216/src/filter/zlib.hpp",
+    "feature_setting": "build-local/CMakeCache.txt has DISABLE_ZLIB:BOOL=OFF",
+    "flag": "upstream README documents B as brute-force DEFLATE stream detection",
+    "qualification": "Runtime stdout will show whether DEFLATE was actually detected; code capability alone does not establish application on a specific input."
+  },
+  "resources": {
+    "cpu": 8,
+    "jobs": 1,
+    "per_cell_wall_seconds": 45,
+    "aggregate_launch_wall_seconds": 180,
+    "max_rss_bytes": 1500000000,
+    "max_temp_bytes": 128000000,
+    "swap": false
+  },
+  "terminal_rule": "Stop after these3controls, no new mechanism search, no source changes; conclude include/exclude/research-only with explicit limits."
+}

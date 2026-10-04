@@ -1,0 +1,65 @@
+{
+  "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+  "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+  "input": {
+    "path": "/usr/share/doc/nvidia-compute-utils-580/nvidia-persistenced-init.tar.bz2",
+    "offset": 0,
+    "length": 7189,
+    "sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b",
+    "label": "nvidia-init"
+  },
+  "configuration": {
+    "experiment": "codec-reconstruction-closure-v1",
+    "family": "bzip2",
+    "gzip_levels": [
+      1,
+      6,
+      9
+    ],
+    "bzip2_levels": [
+      1,
+      9
+    ],
+    "inner_xz": [
+      1,
+      6
+    ],
+    "outer_xz": 1
+  },
+  "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+  "budget": {
+    "cpu": 8,
+    "wall_seconds": 45,
+    "max_rss_bytes": 1500000000,
+    "max_temp_bytes": 128000000
+  },
+  "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+  "encode_command": [
+    "/bin/python3",
+    "/home/user/src/colour-index-compression/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+    "bzip2",
+    "{source}",
+    "{workdir}/candidate.bin"
+  ],
+  "decode_command": [
+    "/bin/python3",
+    "/home/user/src/colour-index-compression/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+    "decode",
+    "{workdir}/candidate.bin",
+    "{workdir}/restored.bin"
+  ],
+  "artifacts": {
+    "archive": "{workdir}/candidate.bin",
+    "restored": "{workdir}/restored.bin"
+  },
+  "build_paths": [
+    "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+    "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py",
+    "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py",
+    "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py",
+    "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py"
+  ],
+  "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+  "stage": "screening",
+  "exposure": "one unique independently supplied archive; identical driver package copy excluded"
+}
