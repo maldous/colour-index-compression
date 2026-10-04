@@ -25,6 +25,7 @@ const ECOFF_OPTIONAL_HEADER: u16 = 80;
 const CONSTRAINT_TRAILER: &[u8; 5] = b"ECFX1";
 const FIELDS_TRAILER: &[u8; 5] = b"ECFC1";
 const GOT_TRAILER: &[u8; 5] = b"ECGT1";
+const POINTER_DELTA_TRAILER: &[u8; 5] = b"ECRD1";
 const GOT_BLOCK: usize = 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -645,7 +646,8 @@ fn zigzag_delta(value: u64, previous: u64, bits: u32, inverse: bool) -> u64 {
         if signed >= 0 {
             (signed as u64) << 1
         } else {
-            ((-signed as u64) << 1) - 1
+            // Keep the intermediate wide: -2^63 maps exactly to u64::MAX.
+            (((-signed) << 1) - 1) as u64
         }
     }
 }
@@ -1397,6 +1399,225 @@ pub fn got_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
     Ok(output)
 }
 
+#[derive(Clone, Debug)]
+struct RelocatedPointerField {
+    where_: usize,
+    options: Vec<u64>,
+    key: usize,
+}
+
+/// The immediate `ecoff_relocated_pointers` dependency.  Every alphabet is
+/// derived from symbols carried in these object bytes; `key` preserves the
+/// reference implementation's per-symbol predictor identity even where two
+/// alphabets happen to contain the same numeric values.
+fn relocated_pointer_candidates(
+    source: &[u8],
+    shared: bool,
+) -> Result<Vec<RelocatedPointerField>, String> {
+    let tables = symbol_tables(source);
+    let definitions = if shared {
+        global_symbol_index(&tables)
+    } else {
+        BTreeMap::new()
+    };
+    let mut fields = Vec::new();
+    let mut next_key = 0usize;
+    for table in tables {
+        let Some(relocations) = table.sections.get(b".rel.dyn" as &[u8]) else {
+            continue;
+        };
+        let mut regions = Vec::new();
+        for name in [b".rdata" as &[u8], b".data", b".sdata"] {
+            if let Some(section) = table.sections.get(name) {
+                regions.push((section.virtual_address, section.size, section.offset));
+            }
+        }
+        let blob = &source[table.span.offset..table.span.offset + table.span.length];
+        let end = checked_end(relocations.offset, relocations.size / 16 * 16, blob.len())?;
+        let mut alphabets: BTreeMap<usize, (usize, Vec<u64>)> = BTreeMap::new();
+        for position in (relocations.offset..end).step_by(16) {
+            let address = le_u64(blob, position)?;
+            let info = le_u32(blob, position + 8)?;
+            let symbol = (info >> 8) as usize;
+            if info & 255 != 2 || symbol >= table.symbols.len() {
+                continue;
+            }
+            let mut location = None;
+            for (virtual_address, size, offset) in &regions {
+                let section_end = virtual_address.checked_add(*size as u64);
+                if *virtual_address <= address
+                    && section_end
+                        .is_some_and(|end| address.checked_add(8).is_some_and(|right| right <= end))
+                {
+                    let relative = usize::try_from(address - *virtual_address)
+                        .map_err(|_| "pointer location too large")?;
+                    let candidate = offset
+                        .checked_add(relative)
+                        .ok_or("pointer location overflow")?;
+                    if location.replace(candidate).is_some() {
+                        location = None;
+                        break;
+                    }
+                }
+            }
+            let Some(location) = location else { continue };
+            let (key, options) = if let Some(entry) = alphabets.get(&symbol) {
+                (entry.0, entry.1.clone())
+            } else {
+                let (name, value) = &table.symbols[symbol];
+                let mut options = vec![*value];
+                if shared {
+                    if let Some(values) = definitions.get(name) {
+                        let mut ranked = values
+                            .iter()
+                            .map(|(candidate, count)| (*candidate, *count))
+                            .collect::<Vec<_>>();
+                        ranked
+                            .sort_by(|left, right| right.1.cmp(&left.1).then(left.0.cmp(&right.0)));
+                        options.extend(
+                            ranked
+                                .into_iter()
+                                .map(|(candidate, _)| candidate)
+                                .filter(|candidate| *candidate != *value),
+                        );
+                    }
+                }
+                let key = next_key;
+                next_key = next_key.checked_add(1).ok_or("pointer alphabet overflow")?;
+                alphabets.insert(symbol, (key, options.clone()));
+                (key, options)
+            };
+            fields.push(RelocatedPointerField {
+                where_: table
+                    .span
+                    .offset
+                    .checked_add(location)
+                    .ok_or("pointer field overflow")?,
+                options,
+                key,
+            });
+        }
+    }
+    fields.sort_by_key(|field| field.where_);
+    let mut blocked = BTreeSet::new();
+    for (index, pair) in fields.windows(2).enumerate() {
+        if pair[0]
+            .where_
+            .checked_add(8)
+            .is_none_or(|end| end > pair[1].where_)
+        {
+            blocked.insert(index);
+            blocked.insert(index + 1);
+        }
+    }
+    Ok(fields
+        .into_iter()
+        .enumerate()
+        .filter_map(|(index, field)| (!blocked.contains(&index)).then_some(field))
+        .collect())
+}
+
+fn pointer_prediction(
+    mode: u8,
+    last: u64,
+    by_key: &BTreeMap<usize, u64>,
+    field: &RelocatedPointerField,
+) -> u64 {
+    match mode {
+        2 | 5 => *by_key.get(&field.key).unwrap_or(&field.options[0]),
+        3 => field.options[0],
+        _ => last,
+    }
+}
+
+fn pointer_delta_process(
+    source: &[u8],
+    mode: u8,
+    inverse: bool,
+    residuals: &[u8],
+) -> Result<(Vec<u8>, Vec<u8>), String> {
+    if mode > 5 {
+        return Err("invalid pointer-delta model".into());
+    }
+    let fields = relocated_pointer_candidates(source, true)?;
+    let mut output = source.to_vec();
+    let mut side = Vec::new();
+    let mut side_position = 0usize;
+    let mut last = 0u64;
+    let mut by_key = BTreeMap::new();
+    for field in fields {
+        let prediction = pointer_prediction(mode, last, &by_key, &field);
+        let value = if inverse {
+            let residual = if mode < 4 {
+                le_u64(&output, field.where_)?
+            } else {
+                if output[field.where_..field.where_ + 8]
+                    .iter()
+                    .any(|byte| *byte != 0)
+                {
+                    return Err("pointer-delta skeleton is not zero".into());
+                }
+                let (residual, next) = vdecode(residuals, side_position)?;
+                side_position = next;
+                residual
+            };
+            let value = if mode == 0 {
+                residual
+            } else {
+                zigzag_delta(residual, prediction, 64, true)
+            };
+            write_u64(&mut output, field.where_, value)?;
+            value
+        } else {
+            let value = le_u64(source, field.where_)?;
+            let residual = if mode == 0 {
+                value
+            } else {
+                zigzag_delta(value, prediction, 64, false)
+            };
+            if mode >= 4 {
+                output[field.where_..field.where_ + 8].fill(0);
+                side.extend_from_slice(&vencode(residual));
+            } else if mode != 0 {
+                write_u64(&mut output, field.where_, residual)?;
+            }
+            value
+        };
+        last = value;
+        by_key.insert(field.key, value);
+    }
+    if inverse && side_position != residuals.len() {
+        return Err("unused pointer delta bytes".into());
+    }
+    Ok((output, side))
+}
+
+pub fn pointer_delta_transform(source: &[u8], mode: u8) -> Result<Vec<u8>, String> {
+    let (raw, residuals) = pointer_delta_process(source, mode, false, &[])?;
+    let skeleton = got_transform(&raw, 3, true)?;
+    let mut metadata = vec![mode];
+    metadata.extend_from_slice(&pack(&residuals));
+    let mut output = skeleton;
+    output.extend_from_slice(&metadata);
+    output.extend_from_slice(&(metadata.len() as u64).to_le_bytes());
+    output.extend_from_slice(POINTER_DELTA_TRAILER);
+    Ok(output)
+}
+
+pub fn pointer_delta_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
+    let (skeleton, metadata) = split_trailer(raw, POINTER_DELTA_TRAILER, 2)?;
+    let mode = metadata[0];
+    if mode > 5 {
+        return Err("invalid pointer-delta model".into());
+    }
+    let (residuals, position) = read_packed(metadata, 1)?;
+    if position != metadata.len() || (mode < 4 && !residuals.is_empty()) {
+        return Err("invalid pointer-delta residual stream".into());
+    }
+    let data = got_inverse(&skeleton)?;
+    Ok(pointer_delta_process(&data, mode, true, residuals)?.0)
+}
+
 fn transform_encode(transform: Transform, source: &[u8]) -> Result<Vec<u8>, String> {
     match transform {
         // The constraints stage is independently reversible and is the parent
@@ -1405,9 +1626,8 @@ fn transform_encode(transform: Transform, source: &[u8]) -> Result<Vec<u8>, Stri
         Transform::Identity => Ok(source.to_vec()),
         Transform::Fields { mode } => fields_transform(source, mode),
         Transform::Got { mode } => got_transform(source, mode, true),
-        Transform::PointerDeltas { .. }
-        | Transform::SectionPointers { .. }
-        | Transform::PdataSymbols { .. } => {
+        Transform::PointerDeltas { mode } => pointer_delta_transform(source, mode),
+        Transform::SectionPointers { .. } | Transform::PdataSymbols { .. } => {
             Err("requested native executable transform is not linked into this build".into())
         }
     }
@@ -1419,9 +1639,8 @@ fn transform_decode(transform: Transform, raw: &[u8]) -> Result<Vec<u8>, String>
         Transform::Identity => Ok(raw.to_vec()),
         Transform::Fields { .. } => fields_inverse(raw),
         Transform::Got { .. } => got_inverse(raw),
-        Transform::PointerDeltas { .. }
-        | Transform::SectionPointers { .. }
-        | Transform::PdataSymbols { .. } => {
+        Transform::PointerDeltas { .. } => pointer_delta_inverse(raw),
+        Transform::SectionPointers { .. } | Transform::PdataSymbols { .. } => {
             Err("requested native executable inverse is not linked into this build".into())
         }
     }
@@ -1677,7 +1896,8 @@ pub fn admission(source: &[u8]) -> BTreeSet<String> {
 mod tests {
     use super::{
         crc32, decode_choices, decode_transformed_frame, encode_choices, fields_transform,
-        got_inverse, got_transform, vencode, HistoricalFrame, GOT_MAGIC,
+        got_inverse, got_transform, pointer_delta_inverse, pointer_delta_transform, vencode,
+        HistoricalFrame, GOT_MAGIC,
     };
 
     #[test]
@@ -1764,5 +1984,37 @@ mod tests {
         // stream is accepted by the historical decoder's zero padding rule.
         assert!(decode_choices(&[0x01], &[2], &[0], 2).is_err());
         assert!(decode_choices(&vencode(u64::MAX), &[2], &[0], 2).is_err());
+    }
+
+    #[test]
+    fn finite_word_delta_preserves_sign_boundary() {
+        for (value, previous, expected) in [
+            (1u64 << 63, 0, u64::MAX),
+            (0, 1u64 << 63, u64::MAX),
+            (u64::MAX, 0, 1),
+            (0, u64::MAX, 2),
+        ] {
+            assert_eq!(super::zigzag_delta(value, previous, 64, false), expected);
+            assert_eq!(super::zigzag_delta(expected, previous, 64, true), value);
+        }
+    }
+
+    #[test]
+    fn pointer_delta_empty_admission_round_trips_all_modes() {
+        let source = b"non-executable pointer-delta fixture";
+        for mode in 0..6 {
+            let transformed = pointer_delta_transform(source, mode).unwrap();
+            assert_eq!(pointer_delta_inverse(&transformed).unwrap(), source);
+        }
+    }
+
+    #[test]
+    fn pointer_delta_rejects_malformed_residual_metadata() {
+        let source = b"pointer metadata fixture";
+        let mut transformed = pointer_delta_transform(source, 4).unwrap();
+        let trailer = transformed.len() - 13;
+        transformed[trailer] = 4;
+        transformed[trailer + 1] = 0x80;
+        assert!(pointer_delta_inverse(&transformed).is_err());
     }
 }

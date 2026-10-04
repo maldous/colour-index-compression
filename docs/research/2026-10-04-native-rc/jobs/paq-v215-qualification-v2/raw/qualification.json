@@ -1,0 +1,53 @@
+{
+  "status": "component qualification passed; not full CIX worker integration",
+  "input_bytes": 2112,
+  "input_sha256": "c437ed35f5be654f63493a2da80e69bacb7f72868a12850c39f4dedbe7bf6367",
+  "archive_bytes": 61,
+  "archive_sha256": "59e8cc514d30c7d04da00b6e7f4727f473cb67d0b7c79d6ae72250963fcb2271",
+  "bridge_sha256": "645f2f80dbe219465640d4489a219a90ae0787c9c8900d165045fe69b0e43757",
+  "probe_sha256": "1c08c3d0b70079ae8dedbab58638776bcd6cbf7b010d6e274251b6e16959d968",
+  "exact_reference_archive": true,
+  "fresh_process_cross_decode": true,
+  "cases": [
+    {
+      "name": "bridge-encode-and-one-call-guard",
+      "returncode": 0,
+      "expected": 0
+    },
+    {
+      "name": "reference-encode",
+      "returncode": 0,
+      "expected": 0
+    },
+    {
+      "name": "bridge-decodes-bridge",
+      "returncode": 0,
+      "expected": 0
+    },
+    {
+      "name": "bridge-decodes-reference",
+      "returncode": 0,
+      "expected": 0
+    },
+    {
+      "name": "reference-decodes-bridge",
+      "returncode": 0,
+      "expected": 0
+    },
+    {
+      "name": "reject-existing-output",
+      "returncode": 1,
+      "expected": 1
+    },
+    {
+      "name": "reject-dangling-output",
+      "returncode": 1,
+      "expected": 1
+    },
+    {
+      "name": "reject-intentional-upstream-error",
+      "returncode": 3,
+      "expected": 3
+    }
+  ]
+}

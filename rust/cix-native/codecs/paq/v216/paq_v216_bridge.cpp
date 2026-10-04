@@ -1,10 +1,12 @@
 #include "paq_v216_bridge.h"
 
 #include <atomic>
+#include <cerrno>
 #include <cstdio>
 #include <cstring>
 #include <exception>
 #include <sys/stat.h>
+#include <string>
 #include <vector>
 
 /* Defined by unchanged upstream src/paq8px.cpp. */
@@ -21,7 +23,12 @@ void message(char *buffer, size_t size, const char *text) {
 
 bool regular_output_missing(const char *path) {
     struct stat state {};
-    return stat(path, &state) != 0;
+    #if defined(_WIN32)
+    const int result = stat(path, &state);
+#else
+    const int result = lstat(path, &state);
+#endif
+    return result != 0 && errno == ENOENT;
 }
 
 bool regular_output_present(const char *path) {
@@ -57,12 +64,20 @@ extern "C" int cix_paq_v216_process(
         return CIX_PAQ_V216_ALREADY_USED;
     }
 
-    std::vector<char *> mutable_argv;
-    mutable_argv.reserve(static_cast<size_t>(argc));
-    for (int index = 0; index < argc; ++index) {
-        mutable_argv.push_back(const_cast<char *>(argv[index]));
-    }
     try {
+        // Upstream owns a mutable argv API. Keep caller storage immutable and
+        // catch allocation errors before they can cross the C ABI boundary.
+        std::vector<std::string> argument_storage;
+        argument_storage.reserve(static_cast<size_t>(argc));
+        for (int index = 0; index < argc; ++index) {
+            argument_storage.emplace_back(argv[index]);
+        }
+        std::vector<char *> mutable_argv;
+        mutable_argv.reserve(static_cast<size_t>(argc) + 1);
+        for (auto &argument : argument_storage) {
+            mutable_argv.push_back(argument.data());
+        }
+        mutable_argv.push_back(nullptr);
         const int status = processCommandLine(argc, mutable_argv.data());
         if (status != 0) {
             message(error_buffer, error_buffer_size, "PAQ v216 returned a non-zero status");

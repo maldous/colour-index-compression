@@ -1,8 +1,24 @@
-# Native RC foundation checkpoint — 2026-10-04
+# Native RC integration checkpoint — 2026-10-04
 
 **Release candidate not ready; benchmark remains stopped.** This checkpoint
 preserves implementation progress and failed as well as passing checks. It is
 not full-engine qualification, a public release or a compression record.
+
+## Latest integration batch
+
+The latest [integration summary](integration-summary.json) extends the saved
+foundation checkpoint `0f1f65abd`. Four unchanged PAQ source variants now build
+as private codec libraries. Each passed exact reference archive and fresh
+cross-decode checks. The compiled CIX executable's internal worker subsequently
+passed 35 fresh-process cases and four unit checks; its parent supervisor and
+automatic full-engine integration remain unfinished. See [the worker contract](PAQ-WORKER.md).
+
+Native graph framing and six pointer-delta modes match all 12 generated reference
+archives exactly. The focused batch passed all-target compilation, 29 full-engine
+tests, three JXL mock boundary tests and two reference-vector integration tests.
+The JXL C++ bridge is implemented but not yet built against provisioned libjxl;
+mock tests do not qualify that codec. Failed first worker integration remains
+preserved with its option-handling correction. These checks are not benchmarks.
 
 ## Current source
 
@@ -16,11 +32,11 @@ standalone runtime and future distribution allowlist.
 | Library context | Rust Read/Write and buffer entry points; caller limits, cooperative cancellation/deadline scopes and worker context inheritance; CLI signal state excluded from native-library scopes | Full extraction from the CLI implementation, stable C/context/incremental ABI, complete error/resource contracts and installed SDK consumers |
 | Exact arithmetic | Checked varints, big integer rank/composition, Fenwick frequencies and arithmetic interval coding with reference/small exhaustive checks | Complete route/frame parity and final resource qualification |
 | Record ordering | Count-conditioned streams, permutation rank blocks and framing primitives | Complete retained column/fixed-record models and native dispatch |
-| Address relations | Validated object discovery, constraints, fields, GOT transforms and historical envelope helpers; golden choice-code bytes; corrected historical mode-0 inverse | Remaining pointer/section specialists, complete object/frame reference fixtures, model allocation budgets and end-to-end backend integration |
-| Graph residuals | Fixed-width coordinate extraction/restoration, graph/sequential residuals, canonical-field checks and mixed line-ending preservation | Complete palettes, hydrogen constraints, historical framing and dispatch |
+| Address relations | Validated object discovery, constraints, fields, GOT and pointer-delta transforms and historical envelope helpers; golden choice-code bytes; corrected historical mode-0 inverse | Remaining section/other specialists, broader object/frame reference fixtures, model allocation budgets and end-to-end backend integration |
+| Graph residuals | Fixed-width coordinate extraction/restoration, graph/sequential residuals, canonical-field checks, mixed line-ending preservation and historical varint/text framing | Complete palettes, hydrogen constraints and dispatch |
 | Strided values | Strict extent recognition and signed scalar mapping | Complete retained grid representations and frame qualification |
 | Volume lifting | Volume modes, finite-width residuals, axis layouts and bounded multiscale shape operations; explicit codec callbacks | Actual JXL bridge/dependency build, CIXI1 migration constraints and cross-decoding all retained physical frames |
-| PAQ boundary | Four variant bridge sources and explicit same-executable-worker contract; SDK rejection; bounded error text and exact Unix argument bytes | Build/link/load qualification, unchanged dependency closure, worker supervisor/environment/resource enforcement and platform paths |
+| PAQ boundary | Four variant libraries with exact archive/cross-decode checks; same-CIX child invocation, SDK rejection, bounded error text, exact Unix arguments, environment and per-child limits | Parent supervisor, candidate dispatch, aggregate resource/cancellation guarantees, all retained options and platform paths |
 | Analysis gating | CIX-owned CXX runner accepts the authenticated stopped-benchmark state while retaining idle/source/lease guards | Actual CXX scan, final integrated-source Sonar/Clippy and dead-code disposition |
 
 The current `core::codec` still includes the existing CLI implementation below a
@@ -62,7 +78,7 @@ rewritten as a success.
 | focused-v2 | All-target compilation, 11 full-engine primitive tests, 4 native-context tests, 3 PAQ descriptor tests, 7 pipeline tests and 6 CXX guard tests passed. |
 | focused-v3 | New GOT/graph source failed compilation on two explicit type/error-conversion issues; no tests ran. |
 | focused-v4 | All-target compilation passed; 19 primitive tests passed and 2 test assumptions failed. One expected the legacy zero-bit arithmetic padding to be rejected; the other accidentally joined CR and LF across an empty header line. Both test inputs corrected; decoder behavior was not tightened to hide the mismatch. |
-| focused-v5 | All-target compilation and all 140 library tests passed, with zero failures/ignored tests. Current 133-file source matches the tested immutable snapshot. |
+| focused-v5 | All-target compilation and all 140 library tests passed, with zero failures/ignored tests. Its 133-file source matched the tested immutable snapshot at that checkpoint. |
 
 The two GOT golden cases include repeated shared contexts, so adaptive and static
 arithmetic outputs differ. The [reference receipt](got-reference-vectors.json)
@@ -70,8 +86,8 @@ binds the frozen Python source hashes. These are generated tiny fixtures,
 not evaluation corpus data or a new benchmark.
 
 The CXX guard's six passing tests do not establish C++ analyzer coverage. Vendor
-compiler warnings remain visible. The C++ bridges have not been compiled by
-Cargo; all-target Rust compilation does not qualify their ABI or native linkage.
+compiler warnings remain visible. Cargo does not compile the C++ bridges. Separate CMake PAQ builds and physical
+checks now qualify the narrow PAQ boundary; JXL native linkage remains unqualified.
 The separate [JXL build plan](JXL-BUILD.md) records actual dependency and API
 requirements rather than treating a Python-wheel library as an installed SDK.
 
@@ -92,7 +108,7 @@ ports and actual codec-library integration, followed by SDK/adapters, installati
 final quality and independent readiness review. No source feature is waived by
 this foundation checkpoint. New benchmarking follows that review, not this log.
 
-The final [check summary](check-summary.json) binds the actual result and log
+The earlier foundation [check summary](check-summary.json) binds its result and log
 hashes. The job used 252.429 seconds wall time and 280.590 CPU seconds under
 four physical cores, no swap and a 6 GB host limit. Sampled cgroup memory reached
 1,664,053,248 bytes (a lower bound, not a true process peak); temporary files

@@ -1,9 +1,14 @@
-//! Exact V2000 coordinate skeleton and graph-residual primitives.
+//! Exact historical SDFG framing plus V2000 coordinate skeleton/residuals.
 //!
-//! This module does not choose a payload representation.  It only owns the
-//! byte-preserving record operation shared by the historical SDF specialists.
+//! It owns the byte-preserving record operation and the two native historical
+//! payload representations which do not depend on palette coding.
+
+use super::arithmetic::{vdecode, vencode};
 
 const COORDINATE_STARTS: [usize; 3] = [0, 10, 20];
+const MAGIC: &[u8; 5] = b"SDFG\x01";
+const SEP: &[u8] = b"$$$$\n";
+const DEFAULT_OUTPUT_LIMIT: usize = 1 << 30;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ExtractedRecord {
@@ -11,6 +16,101 @@ pub struct ExtractedRecord {
     pub residuals: Vec<[i64; 3]>,
     pub groups: Vec<u8>,
     pub parents: Vec<usize>,
+}
+
+fn checked_usize(value: u64, what: &str) -> Result<usize, String> {
+    usize::try_from(value).map_err(|_| format!("{what} exceeds platform size"))
+}
+
+fn signed(value: i64) -> Vec<u8> {
+    let encoded = if value >= 0 {
+        (value as u64) << 1
+    } else {
+        ((-(value + 1)) as u64) << 1 | 1
+    };
+    vencode(encoded)
+}
+
+fn read_signed(blob: &[u8], pos: usize) -> Result<(i64, usize), String> {
+    let (value, pos) = vdecode(blob, pos)?;
+    let half = (value >> 1) as i64;
+    Ok((if value & 1 == 0 { half } else { -half - 1 }, pos))
+}
+
+fn append_signed_vectors(out: &mut Vec<u8>, vectors: &[[i64; 3]]) {
+    for vector in vectors {
+        for value in vector {
+            out.extend_from_slice(&signed(*value));
+        }
+    }
+}
+
+fn split_records(data: &[u8]) -> Vec<&[u8]> {
+    let mut records = Vec::new();
+    let mut start = 0;
+    while let Some(relative) = data[start..]
+        .windows(SEP.len())
+        .position(|bytes| bytes == SEP)
+    {
+        let end = start + relative;
+        records.push(&data[start..end]);
+        start = end + SEP.len();
+    }
+    records.push(&data[start..]);
+    records
+}
+
+fn join_records(records: &[Vec<u8>]) -> Vec<u8> {
+    let size = records
+        .iter()
+        .map(Vec::len)
+        .sum::<usize>()
+        .saturating_add(SEP.len().saturating_mul(records.len().saturating_sub(1)));
+    let mut out = Vec::with_capacity(size);
+    for (index, record) in records.iter().enumerate() {
+        if index != 0 {
+            out.extend_from_slice(SEP);
+        }
+        out.extend_from_slice(record);
+    }
+    out
+}
+
+/// Matches `bytes.splitlines()` from the historical Python decoder: bytes
+/// recognize only CR, LF, and their combined form.
+fn next_text_line<'a>(blob: &'a [u8], pos: &mut usize) -> Option<&'a [u8]> {
+    if *pos == blob.len() {
+        return None;
+    }
+    let start = *pos;
+    let mut index = start;
+    while index < blob.len() {
+        let width = match blob[index] {
+            b'\r' if blob.get(index + 1) == Some(&b'\n') => 2,
+            b'\n' | b'\r' => 1,
+            _ => {
+                index += 1;
+                continue;
+            }
+        };
+        *pos = index + width;
+        return Some(&blob[start..index]);
+    }
+    *pos = blob.len();
+    Some(&blob[start..])
+}
+
+fn parse_text_vector(line: &[u8]) -> Result<[i64; 3], String> {
+    let fields = line.split(|byte| *byte == b',').collect::<Vec<_>>();
+    if fields.len() != 3 {
+        return Err("invalid coordinate list".into());
+    }
+    let mut vector = [0; 3];
+    for (index, field) in fields.into_iter().enumerate() {
+        let text = std::str::from_utf8(trim_ascii(field)).map_err(|_| "invalid coordinate list")?;
+        vector[index] = text.parse().map_err(|_| "invalid coordinate list")?;
+    }
+    Ok(vector)
 }
 
 pub fn fixed(value: i64) -> Result<[u8; 10], String> {
@@ -234,6 +334,200 @@ pub fn restore(skeleton: &[u8], mode: u8, residuals: &[[i64; 3]]) -> Result<Vec<
     Ok(rebuilt.concat())
 }
 
+/// Encodes the historical `SDFG\x01` geometry frame.  Unsupported records are
+/// retained literally and indicated by their clear record-flag bit.
+pub fn encode(data: &[u8], mode: u8, representation: u8) -> Result<Vec<u8>, String> {
+    if mode > 2 || representation > 2 {
+        return Err("unknown geometry mode".into());
+    }
+    if representation == 2 {
+        return Err("palette geometry representation is unsupported".into());
+    }
+
+    let records = split_records(data);
+    let mut skeletons = Vec::with_capacity(records.len());
+    let mut flags = vec![
+        0u8;
+        records
+            .len()
+            .checked_add(7)
+            .ok_or("record count overflow")?
+            / 8
+    ];
+    let mut vectors = Vec::new();
+    for (index, record) in records.iter().enumerate() {
+        match extract(record, mode) {
+            Ok(extracted) => {
+                flags[index / 8] |= 1 << (index % 8);
+                vectors.extend(extracted.residuals);
+                skeletons.push(extracted.skeleton);
+            }
+            Err(_) => skeletons.push((*record).to_vec()),
+        }
+    }
+    let skeleton = join_records(&skeletons);
+    let mut out = Vec::with_capacity(
+        MAGIC
+            .len()
+            .saturating_add(2)
+            .saturating_add(flags.len())
+            .saturating_add(skeleton.len()),
+    );
+    out.extend_from_slice(MAGIC);
+    out.push(mode);
+    out.push(representation);
+    out.extend_from_slice(&vencode(records.len() as u64));
+    out.extend_from_slice(&flags);
+    out.extend_from_slice(&vencode(skeleton.len() as u64));
+    out.extend_from_slice(&skeleton);
+    out.extend_from_slice(&vencode(vectors.len() as u64));
+    match representation {
+        0 => append_signed_vectors(&mut out, &vectors),
+        1 => {
+            for vector in vectors {
+                out.extend_from_slice(
+                    format!("{},{},{}\n", vector[0], vector[1], vector[2]).as_bytes(),
+                );
+            }
+        }
+        _ => unreachable!(),
+    }
+    Ok(out)
+}
+
+/// Decodes an `SDFG\x01` frame with a caller-selected cap on reconstructed
+/// bytes.  The cap covers both passed-through and rebuilt records.
+pub fn decode_with_limit(blob: &[u8], output_limit: usize) -> Result<Vec<u8>, String> {
+    if blob.len() < 7 || blob.get(..5) != Some(MAGIC) {
+        return Err("invalid geometry frame".into());
+    }
+    let mode = blob[5];
+    let representation = blob[6];
+    if mode > 2 || representation > 2 {
+        return Err("unknown geometry mode".into());
+    }
+    if representation == 2 {
+        return Err("palette geometry representation is unsupported".into());
+    }
+    let (records_count, mut pos) = vdecode(blob, 7)?;
+    let records_count = checked_usize(records_count, "record count")?;
+    let flag_size = records_count
+        .checked_add(7)
+        .ok_or("record count overflow")?
+        / 8;
+    let flags_end = pos.checked_add(flag_size).ok_or("frame offset overflow")?;
+    let flags = blob.get(pos..flags_end).ok_or("truncated flags")?;
+    pos = flags_end;
+    let (skeleton_size, after_size) = vdecode(blob, pos)?;
+    let skeleton_size = checked_usize(skeleton_size, "skeleton size")?;
+    let skeleton_end = after_size
+        .checked_add(skeleton_size)
+        .ok_or("frame offset overflow")?;
+    let skeleton = blob
+        .get(after_size..skeleton_end)
+        .ok_or("truncated skeleton")?;
+    if skeleton.len() > output_limit {
+        return Err("geometry output limit exceeded".into());
+    }
+    pos = skeleton_end;
+    let (vectors_count, after_vectors) = vdecode(blob, pos)?;
+    let vectors_count = checked_usize(vectors_count, "coordinate count")?;
+    pos = after_vectors;
+    let records = split_records(skeleton);
+    if records.len() != records_count {
+        return Err("record count mismatch".into());
+    }
+    let mut parsed_atoms = 0usize;
+    for (index, record) in records.iter().enumerate() {
+        if flags[index / 8] & (1 << (index % 8)) != 0 {
+            parsed_atoms = parsed_atoms
+                .checked_add(layout(&lines_keepends(record))?.0)
+                .ok_or("coordinate count overflow")?;
+        }
+    }
+    if parsed_atoms != vectors_count {
+        return Err("coordinate count mismatch".into());
+    }
+    let rebuilt_size = skeleton
+        .len()
+        .checked_add(
+            vectors_count
+                .checked_mul(30)
+                .ok_or("reconstructed output overflow")?,
+        )
+        .ok_or("reconstructed output overflow")?;
+    if rebuilt_size > output_limit {
+        return Err("geometry output limit exceeded".into());
+    }
+
+    let vectors = match representation {
+        0 => Vec::new(),
+        1 => {
+            let payload = &blob[pos..];
+            let mut payload_pos = 0;
+            let mut vectors = Vec::with_capacity(vectors_count);
+            for _ in 0..vectors_count {
+                let line =
+                    next_text_line(payload, &mut payload_pos).ok_or("invalid coordinate list")?;
+                vectors.push(parse_text_vector(line)?);
+            }
+            if next_text_line(payload, &mut payload_pos).is_some() {
+                return Err("invalid coordinate list".into());
+            }
+            pos = blob.len();
+            vectors
+        }
+        _ => unreachable!(),
+    };
+    let mut vector_at = 0usize;
+    let mut restored = Vec::with_capacity(records_count);
+    for (index, record) in records.iter().enumerate() {
+        if flags[index / 8] & (1 << (index % 8)) == 0 {
+            restored.push((*record).to_vec());
+            continue;
+        }
+        let residuals = if representation == 1 {
+            let atoms = layout(&lines_keepends(record))?.0;
+            let end = vector_at
+                .checked_add(atoms)
+                .ok_or("coordinate count overflow")?;
+            let values = vectors
+                .get(vector_at..end)
+                .ok_or("missing coordinate data")?;
+            vector_at = end;
+            values.to_vec()
+        } else {
+            let atoms = layout(&lines_keepends(record))?.0;
+            let mut values = Vec::with_capacity(atoms);
+            for _ in 0..atoms {
+                let (x, after_x) = read_signed(blob, pos)?;
+                let (y, after_y) = read_signed(blob, after_x)?;
+                let (z, after_z) = read_signed(blob, after_y)?;
+                pos = after_z;
+                values.push([x, y, z]);
+            }
+            vector_at = vector_at
+                .checked_add(atoms)
+                .ok_or("coordinate count overflow")?;
+            values
+        };
+        restored.push(restore(record, mode, &residuals)?);
+    }
+    if pos != blob.len() || vector_at != vectors_count {
+        return Err("unused or missing coordinate data".into());
+    }
+    let output = join_records(&restored);
+    if output.len() > output_limit {
+        return Err("geometry output limit exceeded".into());
+    }
+    Ok(output)
+}
+
+/// Decodes with the native full-engine default bounded-output policy.
+pub fn decode(blob: &[u8]) -> Result<Vec<u8>, String> {
+    decode_with_limit(blob, DEFAULT_OUTPUT_LIMIT)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -326,5 +620,98 @@ mod tests {
         assert!(fixed(i64::MIN).is_err());
         assert!(fixed(10_000_000_000).is_err());
         assert_eq!(fixed(-1).unwrap(), *b"   -0.0001");
+    }
+
+    #[test]
+    fn historical_frame_zero_is_exact_and_retains_unparsed_records() {
+        let mut input = fixture(&[b"\n"]);
+        input.extend_from_slice(SEP);
+        input.extend_from_slice(b"literal tail\r\n");
+        let extracted = extract(&fixture(&[b"\n"]), 0).unwrap();
+        let mut expected = Vec::new();
+        expected.extend_from_slice(MAGIC);
+        expected.extend_from_slice(&[0, 0, 2, 1]);
+        let mut skeleton = extracted.skeleton;
+        skeleton.extend_from_slice(SEP);
+        skeleton.extend_from_slice(b"literal tail\r\n");
+        expected.extend_from_slice(&vencode(skeleton.len() as u64));
+        expected.extend_from_slice(&skeleton);
+        expected.extend_from_slice(&[3]);
+        expected.extend_from_slice(&[
+            0xa0, 0x9c, 0x01, 0xbf, 0xb8, 0x02, 0, 0xe0, 0xd4, 0x03, 0xc0, 0xb8, 0x02, 0, 0x80,
+            0xf1, 0x04, 0x9f, 0x9c, 0x01, 0x90, 0x4e,
+        ]);
+        let encoded = encode(&input, 0, 0).unwrap();
+        assert_eq!(encoded, expected);
+        assert_eq!(decode(&encoded).unwrap(), input);
+    }
+
+    #[test]
+    fn text_frame_is_exact_for_all_prediction_modes() {
+        let input = fixture(&[b"\r\n"]);
+        for mode in 0..=2 {
+            let record = extract(&input, mode).unwrap();
+            let mut expected = Vec::new();
+            expected.extend_from_slice(MAGIC);
+            expected.extend_from_slice(&[mode, 1, 1, 1]);
+            expected.extend_from_slice(&vencode(record.skeleton.len() as u64));
+            expected.extend_from_slice(&record.skeleton);
+            expected.extend_from_slice(&[3]);
+            for vector in record.residuals {
+                expected.extend_from_slice(
+                    format!("{},{},{}\n", vector[0], vector[1], vector[2]).as_bytes(),
+                );
+            }
+            assert_eq!(encode(&input, mode, 1).unwrap(), expected);
+            assert_eq!(decode(&expected).unwrap(), input);
+        }
+    }
+
+    #[test]
+    fn frame_rejects_truncation_trailing_and_bounded_expansion() {
+        let input = fixture(&[b"\n"]);
+        let binary = encode(&input, 2, 0).unwrap();
+        let text = encode(&input, 2, 1).unwrap();
+        assert!(decode(&binary[..binary.len() - 1]).is_err());
+        let mut trailing = binary.clone();
+        trailing.push(0);
+        assert!(decode(&trailing).is_err());
+        assert!(decode_with_limit(&binary, input.len() - 1).is_err());
+        assert!(decode_with_limit(&binary, 0).is_err());
+        assert!(decode_with_limit(&binary, 1).is_err());
+        let mut malformed_text = text.clone();
+        malformed_text.extend_from_slice(b"not,a,vector");
+        assert!(decode(&malformed_text).is_err());
+        let mut palette = binary;
+        palette[6] = 2;
+        assert!(decode(&palette).is_err());
+        assert!(encode(&input, 0, 2).is_err());
+    }
+
+    #[test]
+    fn frame_validates_declared_coordinate_count_before_rebuild() {
+        let input = fixture(&[b"\n"]);
+        let frame = encode(&input, 2, 0).unwrap();
+        let (_, after_records) = vdecode(&frame, 7).unwrap();
+        let (skeleton_size, skeleton_start) = vdecode(&frame, after_records + 1).unwrap();
+        let count_at = skeleton_start + skeleton_size as usize;
+        let mut too_few = frame.clone();
+        too_few[count_at] = 2;
+        assert!(decode_with_limit(&too_few, usize::MAX).is_err());
+        let mut too_many = frame;
+        too_many[count_at] = 4;
+        assert!(decode_with_limit(&too_many, usize::MAX).is_err());
+    }
+
+    #[test]
+    fn text_payload_uses_bytes_splitlines_rules() {
+        let input = fixture(&[b"\n"]);
+        let mut frame = encode(&input, 0, 1).unwrap();
+        let (_, after_records) = vdecode(&frame, 7).unwrap();
+        let (skeleton_size, skeleton_start) = vdecode(&frame, after_records + 1).unwrap();
+        let payload_at = skeleton_start + skeleton_size as usize + 1;
+        frame[payload_at..]
+            .copy_from_slice(b"10000,-20000,0\x0b30000,20000,0\n40000,-10000,5000\n");
+        assert!(decode(&frame).is_err());
     }
 }

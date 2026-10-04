@@ -1,0 +1,48 @@
+BUILD ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/native-paq-cix-worker-v2/Cargo.toml', '--all-targets']
+BUILD ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/native-paq-cix-worker-v2/Cargo.toml', '--lib', 'paq_worker::', '--', '--test-threads=4']
+
+running 4 tests
+test paq_worker::tests::version_identity_matches_each_cix_header ... ok
+test paq_worker::tests::version_check_stops_at_short_string_and_rejects_mismatch ... ok
+test paq_worker::tests::request_rejects_ambiguous_levels_limits_and_modes ... ok
+test paq_worker::tests::argv_keeps_paths_separate_and_never_loads_external_models ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 151 filtered out; finished in 0.00s
+
+BUILD ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'build', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/native-paq-cix-worker-v2/Cargo.toml', '--bin', 'cix']
+CASE v215-encode
+CASE v215-decode-worker
+CASE v215-decode-reference
+CASE v215-reference-decode
+CASE v215-reject-existing
+CASE v215-reject-dangling
+CASE v215-output-limit
+CASE v216-encode
+CASE v216-decode-worker
+CASE v216-decode-reference
+CASE v216-reference-decode
+CASE v216-reject-existing
+CASE v216-reject-dangling
+CASE v216-output-limit
+CASE joint-discount-encode
+CASE joint-discount-decode-worker
+CASE joint-discount-decode-reference
+CASE joint-discount-reference-decode
+CASE joint-discount-reject-existing
+CASE joint-discount-reject-dangling
+CASE joint-discount-output-limit
+CASE store-state-encode
+CASE store-state-decode-worker
+CASE store-state-decode-reference
+CASE store-state-reference-decode
+CASE store-state-reject-existing
+CASE store-state-reject-dangling
+CASE store-state-output-limit
+CASE extensionless-output
+CASE reject-trailing-separator
+CASE reject-backslash-path
+CASE reject-insufficient-memory
+CASE reject-relative-library-path
+CASE reject-invalid-request
+CASE ordinary-cli-version
+{"status": "focused same-CIX worker passed; not full engine or RC qualification", "binary_sha256": "dd312d520985c678565271c931870cad10e162a965968a0ac4a13c1ef90f11bf", "profile": "Linux x86-64 AVX2, debug CIX, Release PAQ DSOs, level 1, two LSTM layers (LSTM not enabled)", "variants": ["v215", "v216", "joint-discount", "store-state"], "cases": [{"name": "v215-encode", "returncode": 0, "expected_success": true}, {"name": "v215-decode-worker", "returncode": 0, "expected_success": true}, {"name": "v215-decode-reference", "returncode": 0, "expected_success": true}, {"name": "v215-reference-decode", "returncode": 0, "expected_success": true}, {"name": "v215-reject-existing", "returncode": 1, "expected_success": false}, {"name": "v215-reject-dangling", "returncode": 1, "expected_success": false}, {"name": "v215-output-limit", "returncode": -25, "expected_success": false}, {"name": "v216-encode", "returncode": 0, "expected_success": true}, {"name": "v216-decode-worker", "returncode": 0, "expected_success": true}, {"name": "v216-decode-reference", "returncode": 0, "expected_success": true}, {"name": "v216-reference-decode", "returncode": 0, "expected_success": true}, {"name": "v216-reject-existing", "returncode": 1, "expected_success": false}, {"name": "v216-reject-dangling", "returncode": 1, "expected_success": false}, {"name": "v216-output-limit", "returncode": -25, "expected_success": false}, {"name": "joint-discount-encode", "returncode": 0, "expected_success": true}, {"name": "joint-discount-decode-worker", "returncode": 0, "expected_success": true}, {"name": "joint-discount-decode-reference", "returncode": 0, "expected_success": true}, {"name": "joint-discount-reference-decode", "returncode": 0, "expected_success": true}, {"name": "joint-discount-reject-existing", "returncode": 1, "expected_success": false}, {"name": "joint-discount-reject-dangling", "returncode": 1, "expected_success": false}, {"name": "joint-discount-output-limit", "returncode": -25, "expected_success": false}, {"name": "store-state-encode", "returncode": 0, "expected_success": true}, {"name": "store-state-decode-worker", "returncode": 0, "expected_success": true}, {"name": "store-state-decode-reference", "returncode": 0, "expected_success": true}, {"name": "store-state-reference-decode", "returncode": 0, "expected_success": true}, {"name": "store-state-reject-existing", "returncode": 1, "expected_success": false}, {"name": "store-state-reject-dangling", "returncode": 1, "expected_success": false}, {"name": "store-state-output-limit", "returncode": -25, "expected_success": false}, {"name": "extensionless-output", "returncode": 0, "expected_success": true}, {"name": "reject-trailing-separator", "returncode": 1, "expected_success": false}, {"name": "reject-backslash-path", "returncode": 1, "expected_success": false}, {"name": "reject-insufficient-memory", "returncode": 1, "expected_success": false}, {"name": "reject-relative-library-path", "returncode": 1, "expected_success": false}, {"name": "reject-invalid-request", "returncode": 1, "expected_success": false}, {"name": "ordinary-cli-version", "returncode": 0, "expected_success": true}]}

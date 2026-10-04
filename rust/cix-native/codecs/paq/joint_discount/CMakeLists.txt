@@ -27,6 +27,7 @@ set(PAQ_ZLIB
 
 add_library(cix_paq_joint_discount_bridge SHARED paq_joint_discount_bridge.cpp ${PAQ_CPP} ${PAQ_ZLIB})
 set_target_properties(cix_paq_joint_discount_bridge PROPERTIES
+    C_VISIBILITY_PRESET hidden
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN YES
     OUTPUT_NAME cix_paq_joint_discount_bridge)
@@ -41,7 +42,8 @@ target_include_directories(cix_paq_joint_discount_bridge PRIVATE
     "${CIX_PAQ_SOURCE_ROOT}/src"
     "${CIX_PAQ_SOURCE_ROOT}/zlib")
 target_compile_options(cix_paq_joint_discount_bridge PRIVATE
-    -O3 -fno-fast-math -ffp-contract=off -fno-strict-aliasing -fno-rtti)
+    -O3 -fno-fast-math -ffp-contract=off -fno-strict-aliasing
+    $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 if(UNIX)
     target_compile_options(cix_paq_joint_discount_bridge PRIVATE
         $<$<COMPILE_LANGUAGE:C>:-include>
@@ -50,7 +52,7 @@ endif()
 if(UNIX AND NOT APPLE)
     # Each variant is a separate DSO. Bind its upstream globals locally so a
     # later v216/joint-discount/store-state DSO cannot interpose them.
-    target_link_options(cix_paq_joint_discount_bridge PRIVATE -Wl,-Bsymbolic)
+    target_link_options(cix_paq_joint_discount_bridge PRIVATE -Wl,-Bsymbolic "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/exports.map")
 endif()
 
 include(GNUInstallDirs)
