@@ -1,0 +1,118 @@
+Decoding order, anchors and center-out: causal prediction screen
+2026-10-04
+
+Decision
+
+The frozen anchor-based and center-out proposals failed their information gate.
+On four previously exposed standard-corpus samples, reverse order was the best
+fixed order. Adaptive anchors cost 1.769% more ideal bits, fixed anchors 2.201%
+more, and center-out 0.430% more. None of these three beat the strongest
+directional control on any of the four individual samples. Do not construct a
+physical entropy-coded route from this result or reopen the old mixer branch.
+
+The experiment establishes that all tested schedules can be replayed causally
+and exactly. It does not demonstrate a compression opportunity for these model
+and schedule choices, or prove that every possible order/model must fail.
+
+Scope and predeclared procedure
+
+The user's request to try the proposed ideas authorized this bounded experiment.
+The later explicit center-out request added one order before any execution;
+plan.json is preserved and plan-amendment.json records that change. No source
+corpus acquisition, production modification or broad RC benchmark followed.
+
+All six 4,096-byte inputs and their hashes were inherited from the existing
+prediction-freeze.json ranges at offset 8,192. Four standard inputs are book1,
+progc, alice29.txt and kennedy.xls. The alphabet.txt and random.txt artificial
+inputs are separate controls, excluded from the promotion gate. These are
+exposed existing ranges, not pristine held-out data.
+
+One fixed sparse count model serves all five orders, with no training or
+hyperparameter search. It learns global byte counts and completed local tuples
+for left1, right1, left2, right2 and left1+right1 contexts. It can consult only
+already-decoded neighbours within each 256-byte block. Learned tables persist
+across blocks and reset for each sample/order. Only a context with at least four
+observed complete occurrences is used; declared context-length/support priorities
+select it. Conditional predictions back off to the same global Laplace prior.
+
+With global total T, context total N and counts C0/Cctx, the selected prediction is
+  P(x) = [Cctx(x)*(T+256) + 8*(C0(x)+1)] / [(N+8)*(T+256)].
+Without an eligible context it is (C0(x)+1)/(T+256). All symbols have positive
+mass and the distribution sums exactly to one. Integer numerators/denominators
+determine scheduling; floating-point logarithms are used only to report losses.
+
+Orders:
+  forward: ascending positions within each block;
+  reverse: descending positions within each block;
+  fixed anchors: positions 0,32,...,224,255 first, then remaining positions ascending;
+  adaptive anchors: same paid anchors, then choose a gap endpoint with highest
+    maximum predicted-symbol probability; exact fraction comparison and smallest
+    position tie-break; no target byte is read before choosing its position;
+  center-out: left-central byte first, then alternate right/left outward.
+
+The schedule is shared algorithmic state, so no per-byte permutation is stored.
+Every anchor's predictive loss counts. Modes need a format selector if eventually
+materialized; these diagnostic losses do not pretend to be complete archive sizes.
+
+Measured ideal bits
+
+Sample          Forward       Reverse       Fixed anchors   Adaptive anchors   Center-out
+book1           15,865.945    15,913.458       15,973.661       15,957.328        15,871.181
+progc           16,129.663    16,208.808       16,310.889       16,363.902        16,133.786
+alice29.txt     14,437.134    14,323.538       14,556.342       14,548.256        14,352.941
+kennedy.xls      8,752.898     8,130.862        8,936.866        8,672.764         8,453.295
+STANDARD TOTAL  55,185.640    54,576.666       55,777.758       55,542.250        54,811.204
+
+alphabet.txt     1,728.091     1,727.558        2,323.066        2,321.579         1,727.554
+random.txt      28,830.437    28,823.525       28,730.482       28,714.483        28,828.015
+
+The standard total covers 16,384 original bytes. These figures are sums of
+-log2 P(actual), not measured entropy-coded or archive bytes. Reverse improves
+over forward in aggregate, but each wins two standard inputs; the largest
+direction effect is the kennedy.xls sample. The artificial-file labels do not
+prove a uniform random source, and those outcomes do not select the method.
+
+The predeclared gate requires at least a 1% aggregate improvement and wins on
+at least three of four standard samples. Adaptive compares against the strongest
+other declared order; fixed-anchor and center-out compare against the strongest
+forward/reverse order. All three fail. Ordinary zlib/xz payload sizes are stored
+separately in results.json and are not compared to ideal losses as byte savings.
+
+Correctness evidence
+
+An XOR-triplet unit check confirms that already-decoded left/right values can
+support a stronger normalized forecast than the global prior, without consulting
+the hidden middle byte. Prediction leaves model counts/probabilities unchanged;
+it increments only a diagnostic evaluation counter.
+
+All-zero, alternating and deterministic pseudorandom 1,024-byte fixtures passed
+all five schedules. All lengths 0 through 17 also restored under all schedules.
+Thirty real sample/order pairs were transported and restored by fresh processes.
+
+The ORV1 replay transport is magic + length + mode + literal symbols in the
+selected order. It does NOT encode position indices. The fresh decoder knows
+only those transmitted values and the fixed algorithm; it regenerates all
+positions and predictions, reconstructs the original input hash, and matches a
+digest of every selected position, context ID and realized probability fraction.
+The 4,105-byte transport for 4,096 input bytes is explicitly NOT a compressed
+archive and supplies no compression-size claim. Fresh processes use the same
+reference implementation, not an independently implemented production decoder.
+
+Independent read-only review found no material error in causal scheduling,
+complete-context update-once handling, normalization, maximum-probability search,
+transport reconstruction or the gate. Source and amended-plan hashes are in
+results.json; replay artifacts remain outside Git in benchmark-work/decoding-order-v1.
+
+Cost and limitations
+
+One run took 7.80 seconds wall, 7.67 seconds user CPU and 0.12 seconds system CPU,
+25,684 KiB maximum resident memory, one core8, zero swap, exit0. This includes
+synthetic checks and fresh-process replays. It is not production throughput.
+For each 4,096-byte standard sample the fixed orders made 4,096 forecasts;
+adaptive scheduling made 47,011 to 48,920 forecasts and still lost the gate.
+
+Only this small neighbour-count model and finite schedules were tested. This is
+not incumbent FixedMix, PPM, PAQ, a neural inpainting model, an optimal schedule,
+or the more speculative expected-benefit-to-other-positions policy. Whole-file
+byte permutation is a different experiment, covered by directional-lanes-v1.
+No claim of novelty or a general limit follows from this finite negative result.

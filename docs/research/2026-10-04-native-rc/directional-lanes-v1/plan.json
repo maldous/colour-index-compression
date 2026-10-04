@@ -1,0 +1,42 @@
+{
+  "identity": "DIRECTIONAL-LANES-1",
+  "authorization": "User requested a bounded feasibility screen of reverse, bit-lane, and centre-out deterministic orders while other small decoding-order work proceeds. This is isolated research; it does not reopen closed composition work or resume the stopped broad benchmark.",
+  "frozen_at": "2026-10-04",
+  "inputs": {
+    "source_windows": [
+      {"id": "calgary-14--book1", "path": "/home/user/src/colour-index-compression/benchmark-work/calgary/book1", "offset": 8192, "bytes": 4096, "sample_sha256": "9495136a911a93a79ad34f0781e26a1b831f849fba2ff417ac7301c8b3940fa0", "category": "source-standard"},
+      {"id": "calgary-14--progc", "path": "/home/user/src/colour-index-compression/benchmark-work/calgary/progc", "offset": 8192, "bytes": 4096, "sample_sha256": "ad7d57d029fef6a0949895b484068013e3e99b2f9887cf2a4915dba6de65d37a", "category": "source-standard"},
+      {"id": "canterbury-11--alice29.txt", "path": "/home/user/src/colour-index-compression/benchmark-work/canterbury/alice29.txt", "offset": 8192, "bytes": 4096, "sample_sha256": "802aae323941ecf0b398fed4b866fd0b70f5b4757e2146f874a760631d4c6e00", "category": "source-standard"},
+      {"id": "canterbury-11--kennedy.xls", "path": "/home/user/src/colour-index-compression/benchmark-work/canterbury/kennedy.xls", "offset": 8192, "bytes": 4096, "sample_sha256": "fc55bf4a295e6dd2b88c90ce516afbdc4143abf13aae7c30d05e2e6cbb6c58aa", "category": "source-standard"},
+      {"id": "canterbury-artificial-4--alphabet.txt", "path": "/home/user/src/colour-index-compression/benchmark-work/artificial/alphabet.txt", "offset": 8192, "bytes": 4096, "sample_sha256": "458d6398bf401a28746238b00553a813b5e6d7567a984cbae69d311a61ce1692", "category": "source-artificial"},
+      {"id": "canterbury-artificial-4--random.txt", "path": "/home/user/src/colour-index-compression/benchmark-work/artificial/random.txt", "offset": 8192, "bytes": 4096, "sample_sha256": "f3a9fb34450af0e11f9a9dacdf6f1679ac34143001d3eaa989828963ba2cf616", "category": "source-artificial"}
+    ],
+    "compressed_middle_windows": [
+      {"id": "confirm-best-dickens--middle", "path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-automatic-specialised-models/qualification/silesia-confirmation-v1/results/confirm-best-dickens/archive.cix", "offset": 929792, "bytes": 4096, "sample_sha256": "4b028ec379681fd9a641b9bae59c5b113114eb9309d0682c14d3e86bc2582b7a", "category": "compressed-control"},
+      {"id": "confirm-default-dickens--middle", "path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-automatic-specialised-models/qualification/silesia-confirmation-v1/results/confirm-default-dickens/archive.cix", "offset": 1888256, "bytes": 4096, "sample_sha256": "4af8266d464f5e267c9d9079dc0135dab13fba4d9f2e81b3fdc4c2243bf72e4c", "category": "compressed-control"},
+      {"id": "confirm-default-mozilla--middle", "path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-automatic-specialised-models/qualification/silesia-confirmation-v1/results/confirm-default-mozilla/archive.cix", "offset": 6365184, "bytes": 4096, "sample_sha256": "2da8707a5ad76022ed89a1f7a0195fefbdcaf5a405200928f43a001cc3f0fc7e", "category": "compressed-control"}
+    ],
+    "note": "The six source ranges exactly repeat DECODING-ORDER-1. The three compressed ranges exactly repeat the existing compressed-asset screen's frozen middle windows. The runner verifies the declared hashes before testing."
+  },
+  "transforms": [
+    "identity bytes",
+    "reverse byte order",
+    "reverse the complete MSB-first bit sequence",
+    "centre-out bytes: c=floor((n-1)/2), then c,c+1,c-1,c+2,c-2,... while in range",
+    "global MSB-first bit lanes k=2,3,4; lane j contains positions j,j+k,...; final lane byte is zero padded"
+  ],
+  "coders": [
+    "zlib level 9",
+    "xz/LZMA preset 1"
+  ],
+  "lane_transport": [
+    "separate: each packed lane independently coded; all coded lengths are in the frame",
+    "concatenated: packed lanes concatenated before one coder stream; lane raw lengths derive from original bit length and k"
+  ],
+  "frame": "DLV1 | original_length:u32be | transform:u8 | codec:u8 | stream_count:u8 | repeated coded_length:u32be,coded_stream. Transform and codec tags are charged. The frame is self-contained; no input-specific order, permutation, or selector is transmitted.",
+  "controls": "Identity uses the same DLV1 wrapper and each coder. Report deltas versus same-coder identity and the smaller identity wrapper. The per-sample best transform is an outcome oracle unless a future encoder selection rule and its cost are specified; it is reported as diagnostic only.",
+  "validation": "For every byte length 0 through 17, test deterministic transforms and complete frames with both coders. Verify lane padding is zero and all inverse transforms restore byte-exactly. On real samples save one best physical frame per coder, reconstruct it in a fresh Python process using the frame alone, and compare SHA-256.",
+  "scope_limit": "A 9-window, 4 KiB fixed screen. It is not a CIX archive result, not broad qualification, and does not establish a production selector. A result neither revives nor refutes earlier lane/transform work outside these exact finite variants.",
+  "resources": {"cpu_affinity": [12], "wall_seconds": 30, "cpu_seconds": 30, "address_space_bytes": 300000000, "new_output_bytes": 16000000},
+  "failure_policy": "Preserve errors; no outcome-driven transform, coder, source, or parameter changes."
+}

@@ -1,0 +1,25 @@
+{
+  "experiment": "codec-decisions-v1",
+  "date": "2026-10-04",
+  "hypothesis": "A byte-exact, self-contained representation of a gzip member's DEFLATE syntax decisions may expose redundancy that a direct second pass over the gzip bytes misses.",
+  "scope": "Three existing local gzip corpus archives only; no CIX source or third-party changes.",
+  "inputs": [
+    {"path": "benchmark-work/artificial.tar.gz", "bytes": 76723, "sha256": "cc1818a084d61fe693fe2a9db7312da25fdb4b54313502a6920abf692b7a47ab"},
+    {"path": "benchmark-work/canterbury.tar.gz", "bytes": 739071, "sha256": "f140e8a5b73d3f53198555a63bfb827889394a42f20825df33c810c3d5e3f8fb"},
+    {"path": "benchmark-work/calgary.tar.gz", "bytes": 1070276, "sha256": "e109eebdc19c5cee533c58bd6a49a4be3a77cc52f84ba234a089148a4f2093b7"}
+  ],
+  "decoder": "A standalone Python standard-library parser/serializer records gzip header and trailer verbatim, DEFLATE block types, stored data, dynamic-tree header decisions, literal/match decisions, final padding bits, then deterministically rebuilds the original member. It rejects trailing/unsupported data.",
+  "candidates": [
+    "original gzip",
+    "ordinary gzip-byte zlib level 9",
+    "ordinary gzip-byte xz preset 1",
+    "unsplit self-contained decision container",
+    "decision container compressed with zlib level 9",
+    "decision container compressed with xz preset 1"
+  ],
+  "charges": "Every candidate includes container magic, original length, gzip header, DEFLATE decision representation, gzip trailer, and any wrapper produced by zlib/xz. Decoder/runtime is shared format definition, not per-file metadata.",
+  "correctness": "Before real inputs: tiny fixed-Huffman, dynamic-Huffman, and stored-block gzip members. For all real representations: semantic gzip inflation equality and exact original gzip-byte reconstruction. Retained physical candidates also undergo fresh-process archive-only inverse verification.",
+  "resources": {"cpu": "one core 10", "wall_seconds": 60, "address_space_bytes": 600000000, "temporary_output_bytes": 128000000, "swap": false},
+  "promotion": "Only a complete byte-exact candidate smaller than its source is a physical positive. This is an exploratory screen; it neither modifies nor ranks CIX and makes no novelty claim.",
+  "frozen_before_run": true
+}

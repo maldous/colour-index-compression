@@ -1,0 +1,77 @@
+CODEC-DECISION-PREDICTION-V1 — FIXED REFERENCE PLUS EXACT CORRECTION
+2026-10-04
+
+Question
+--------
+Can a decoder regenerate a fixed reference DEFLATE stream from plaintext and
+use that stream to predict the exact token syntax of an existing gzip member,
+so that plaintext plus corrections is smaller than the original gzip bytes?
+
+Frozen method
+-------------
+The complete pre-run contract is plan.json. Inputs were the same three local
+gzip archives and SHA-256 identities as codec-decisions-v1. The only predictor
+was raw DEFLATE from Python's runtime zlib 1.3, level 6, default strategy. The
+archive stores that version string and its decoder rejects any other runtime
+version. This makes the prototype deliberately non-portable and unsuitable for
+production as-is.
+
+DCP1 charges: magic; version string; xz-preset-1 compressed plaintext; original
+gzip header/trailer; original DEFLATE block, dynamic-tree and padding metadata;
+and correction tags. At each original token output offset, P means the reference
+token has identical literal or full match syntax; L means derive a literal from
+the plaintext; M stores the complete original length-code/extra and
+distance-code/extra; E closes a block. Stored blocks retain their bytes. Thus
+alternate valid syntax, including the 258-length form, is not silently replaced
+by semantic equivalence.
+
+Result
+------
+The reference predicted every non-end token exactly on all three streams. This
+is a strong syntax-reproduction result, but not a compression result: DCP1 must
+carry the plaintext so the decoder can produce the reference stream.
+
+                                     artificial   canterbury     calgary
+original gzip                            76,723      739,071   1,070,276
+GZB1 + gzip bytes, zlib-9               76,298      632,629   1,069,949
+GXB1 + gzip bytes, xz-1                 76,792      628,400   1,070,392
+DCP1 predictor/correction              178,274    1,041,198   1,622,932
+DCP1 change                         +101,551 B  +302,127 B  +552,656 B
+DCP1 percentage                         +132.36%     +40.88%     +51.64%
+
+Token accounting
+----------------
+                                  artificial   canterbury    calgary
+same-as-reference P                 97,892       463,082     630,443
+plaintext-derived literals L              0             0           0
+explicit matches M                       0             0           0
+end markers E                            4            23          33
+non-end predictor hit rate          100.00%       100.00%    100.00%
+
+This establishes that these historical gzip members appear to have used the
+same token decisions as the pinned reference zlib setup, even though reference
+and original block counts differ. The syntax correction stream therefore costs
+almost nothing; the irreducible cost in this representation is the separately
+encoded plaintext. A reference predictor cannot generate those plaintext bytes
+from the compressed stream without receiving them through some other lossless
+channel.
+
+Correctness and resources
+-------------------------
+The instrument first reconstructed byte-identical synthetic stored, fixed and
+dynamic DEFLATE gzip members. Every real DCP1 archive rebuilt exactly to its
+original gzip SHA-256 and inflated to identical plaintext. Each complete DCP1
+payload then passed a fresh Python-process, archive-only inverse check. Final
+screen resource use was one CPU (core 10), 16.54 seconds wall, 16.35 seconds
+user CPU, 305,692 KiB peak resident memory and zero swaps, within the fixed
+90-second/600-MB/128-MB limit. Machine-readable results.json and resources.txt
+are copied beside this report; payloads remain in benchmark-work.
+
+Decision
+--------
+Close this fixed reference-plus-plaintext representation as a compression path.
+It proves that exact decision prediction can be excellent without reducing the
+information required to recover the input. The ordinary whole-gzip controls
+remain separate generic outer-wrapper observations and do not validate DCP1.
+This one screen does not exhaust more advanced preflate-style structural
+predictors, and makes no novelty claim.

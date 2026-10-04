@@ -1,0 +1,94 @@
+# Directional lanes / centre-out feasibility screen
+
+This fixed 9-window, 4 KiB screen measures complete DLV1 transport frames, not CIX archives. DLV1 charges transform, coder, stream-count and stream-length fields. No input-specific permutation or selection metadata is omitted.
+
+All byte lengths 0 through 17 passed each transform/coder round trip. All real candidate frames restored in process; retained frames also restored in fresh processes.
+
+## Best per fixed sample
+
+| Sample | Category | Best identity bytes | Best diagnostic frame | Delta |
+|---|---|---:|---|---:|
+| calgary-14--book1 | source-standard | 2110 | reverse_bytes + zlib9 (2107) | -3 |
+| calgary-14--progc | source-standard | 1773 | identity + zlib9 (1773) | +0 |
+| canterbury-11--alice29.txt | source-standard | 1851 | identity + zlib9 (1851) | +0 |
+| canterbury-11--kennedy.xls | source-standard | 731 | reverse_bytes + xz1 (707) | -24 |
+| canterbury-artificial-4--alphabet.txt | source-artificial | 75 | reverse_bytes + zlib9 (74) | -1 |
+| canterbury-artificial-4--random.txt | source-artificial | 3133 | identity + zlib9 (3133) | +0 |
+| confirm-best-dickens--middle | compressed-control | 4122 | identity + zlib9 (4122) | +0 |
+| confirm-default-dickens--middle | compressed-control | 4122 | identity + zlib9 (4122) | +0 |
+| confirm-default-mozilla--middle | compressed-control | 4122 | identity + zlib9 (4122) | +0 |
+
+The transform and coder tags are already charged by each DLV1 frame. Therefore choosing the smallest finished DLV1 frame is a valid offline finite-portfolio result, with no extra imaginary selector, permutation or side channel. Across the four exposed standard source samples this portfolio is 27 bytes smaller than the corresponding best identity frames (3 + 24 bytes); it is not a claim about held-out data, a globally best transform, or CIX archive performance.
+
+## Aggregate physical-frame deltas
+
+Deltas are summed over each category's fixed samples. A negative number is smaller. ‘Wins’ means strictly smaller than the matching identity frame under the same coder.
+
+| Category | Transform | Coder | Total frame bytes | Delta vs same-coder identity | Delta vs best identity | Wins/ties |
+|---|---|---|---:|---:|---:|---:|
+| compressed-control | center_out | xz1 | 12513 | +0 | +147 | 0/3 |
+| compressed-control | identity | xz1 | 12513 | +0 | +147 | 0/3 |
+| compressed-control | lanes2_concatenated | xz1 | 12513 | +0 | +147 | 0/3 |
+| compressed-control | lanes2_separate | xz1 | 12705 | +192 | +339 | 0/0 |
+| compressed-control | lanes3_concatenated | xz1 | 12525 | +12 | +159 | 0/0 |
+| compressed-control | lanes3_separate | xz1 | 12921 | +408 | +555 | 0/0 |
+| compressed-control | lanes4_concatenated | xz1 | 12513 | +0 | +147 | 0/3 |
+| compressed-control | lanes4_separate | xz1 | 13089 | +576 | +723 | 0/0 |
+| compressed-control | reverse_bits | xz1 | 12513 | +0 | +147 | 0/3 |
+| compressed-control | reverse_bytes | xz1 | 12513 | +0 | +147 | 0/3 |
+| compressed-control | center_out | zlib9 | 12366 | +0 | +0 | 0/3 |
+| compressed-control | identity | zlib9 | 12366 | +0 | +0 | 0/3 |
+| compressed-control | lanes2_concatenated | zlib9 | 12366 | +0 | +0 | 0/3 |
+| compressed-control | lanes2_separate | zlib9 | 12411 | +45 | +45 | 0/0 |
+| compressed-control | lanes3_concatenated | zlib9 | 12372 | +6 | +6 | 0/0 |
+| compressed-control | lanes3_separate | zlib9 | 12462 | +96 | +96 | 0/0 |
+| compressed-control | lanes4_concatenated | zlib9 | 12366 | +0 | +0 | 0/3 |
+| compressed-control | lanes4_separate | zlib9 | 12501 | +135 | +135 | 0/0 |
+| compressed-control | reverse_bits | zlib9 | 12366 | +0 | +0 | 0/3 |
+| compressed-control | reverse_bytes | zlib9 | 12366 | +0 | +0 | 0/3 |
+| source-artificial | center_out | xz1 | 3578 | +24 | +370 | 0/1 |
+| source-artificial | identity | xz1 | 3554 | +0 | +346 | 0/2 |
+| source-artificial | lanes2_concatenated | xz1 | 3890 | +336 | +682 | 0/0 |
+| source-artificial | lanes2_separate | xz1 | 4030 | +476 | +822 | 0/0 |
+| source-artificial | lanes3_concatenated | xz1 | 4066 | +512 | +858 | 0/0 |
+| source-artificial | lanes3_separate | xz1 | 4358 | +804 | +1150 | 0/0 |
+| source-artificial | lanes4_concatenated | xz1 | 4002 | +448 | +794 | 0/0 |
+| source-artificial | lanes4_separate | xz1 | 4406 | +852 | +1198 | 0/0 |
+| source-artificial | reverse_bits | xz1 | 4194 | +640 | +986 | 0/0 |
+| source-artificial | reverse_bytes | xz1 | 3550 | -4 | +342 | 1/1 |
+| source-artificial | center_out | zlib9 | 3228 | +20 | +20 | 0/0 |
+| source-artificial | identity | zlib9 | 3208 | +0 | +0 | 0/2 |
+| source-artificial | lanes2_concatenated | zlib9 | 3965 | +757 | +757 | 0/0 |
+| source-artificial | lanes2_separate | zlib9 | 3565 | +357 | +357 | 0/0 |
+| source-artificial | lanes3_concatenated | zlib9 | 4154 | +946 | +946 | 0/0 |
+| source-artificial | lanes3_separate | zlib9 | 3755 | +547 | +547 | 0/0 |
+| source-artificial | lanes4_concatenated | zlib9 | 4005 | +797 | +797 | 0/0 |
+| source-artificial | lanes4_separate | zlib9 | 3741 | +533 | +533 | 0/0 |
+| source-artificial | reverse_bits | zlib9 | 3254 | +46 | +46 | 0/0 |
+| source-artificial | reverse_bytes | zlib9 | 3207 | -1 | -1 | 1/1 |
+| source-standard | center_out | xz1 | 9440 | +2572 | +2975 | 0/0 |
+| source-standard | identity | xz1 | 6868 | +0 | +403 | 0/4 |
+| source-standard | lanes2_concatenated | xz1 | 9624 | +2756 | +3159 | 0/0 |
+| source-standard | lanes2_separate | xz1 | 10080 | +3212 | +3615 | 0/0 |
+| source-standard | lanes3_concatenated | xz1 | 11396 | +4528 | +4931 | 0/0 |
+| source-standard | lanes3_separate | xz1 | 12288 | +5420 | +5823 | 0/0 |
+| source-standard | lanes4_concatenated | xz1 | 11052 | +4184 | +4587 | 0/0 |
+| source-standard | lanes4_separate | xz1 | 12248 | +5380 | +5783 | 0/0 |
+| source-standard | reverse_bits | xz1 | 7472 | +604 | +1007 | 0/0 |
+| source-standard | reverse_bytes | xz1 | 6880 | +12 | +415 | 1/0 |
+| source-standard | center_out | zlib9 | 8858 | +2220 | +2393 | 0/0 |
+| source-standard | identity | zlib9 | 6638 | +0 | +173 | 0/4 |
+| source-standard | lanes2_concatenated | zlib9 | 9435 | +2797 | +2970 | 1/0 |
+| source-standard | lanes2_separate | zlib9 | 8881 | +2243 | +2416 | 0/0 |
+| source-standard | lanes3_concatenated | zlib9 | 11568 | +4930 | +5103 | 0/0 |
+| source-standard | lanes3_separate | zlib9 | 10346 | +3708 | +3881 | 0/0 |
+| source-standard | lanes4_concatenated | zlib9 | 11045 | +4407 | +4580 | 1/0 |
+| source-standard | lanes4_separate | zlib9 | 10277 | +3639 | +3812 | 0/0 |
+| source-standard | reverse_bits | zlib9 | 6749 | +111 | +284 | 1/0 |
+| source-standard | reverse_bytes | zlib9 | 6637 | -1 | +172 | 2/0 |
+
+## Interpretation
+
+Reversal and centre-out are fixed permutations, so any physical change comes solely from the downstream coder's finite-context behaviour. Bit-lane partitioning is also reversible but changes coder history and incurs separate-stream framing where used. Some lane cases beat the matching same-coder identity frame, but no lane frame beats the strongest identity selection on these samples. This screen only assesses the exact requested variants and does not establish that lane partition is new theory, beneficial to CIX, or representative of full files.
+
+Evidence: `plan.json`, `results.json`; frame files are intentionally outside Git under `/home/user/src/colour-index-compression/benchmark-work/directional-lanes-v1`. Elapsed: 1.633s; fresh process decodes: 18.

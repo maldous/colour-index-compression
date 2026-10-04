@@ -1,0 +1,89 @@
+CODEC-DECISION-PREDICTION-V2 — ENTROPY-CODED COMPLETE PREDICTOR ARCHIVE
+2026-10-04
+
+Correction to v1 and fixed v2 method
+-------------------------------------
+DCP1 wrote a raw one-byte tag for every correctly predicted token. Its reported
+losses therefore included 97,896, 463,105 and 630,476 highly redundant tags.
+That prevented v1 from attributing the outcome to the required compact
+correction representation. V1 is preserved unchanged as the executed result.
+
+This one predeclared completion screen does not change the predictor. DCP2 is
+exactly:
+
+  ASCII "DCP2" + xz preset-1 compression of the entire completed DCP1 stream.
+
+Every byte of both the DCP1 inner archive and DCP2 outer wrapper is charged.
+The DCP1 archive contains xz-preset-1 plaintext, original gzip/header/trailer
+and DEFLATE tree/block/padding metadata, pinned zlib 1.3 reference requirement,
+and token corrections. Thus DCP2 compresses the physical metadata and P-marker
+stream; it does not receive entropy coding for free or introduce an outcome-led
+parameter search.
+
+Stored-block correction
+-----------------------
+V1's correction generator failed to advance its output offset past a stored
+block; its inverse already advanced it correctly. The three v1 real inputs
+contain only dynamic blocks (4, 23 and 33 respectively), so this encoding
+defect was not reached in their already-recorded DCP1 streams. The new v2
+module supplies corrections_fixed with the missing advance and uses the same
+correct offset traversal in its local inverse. Before the real screen it
+exactly rebuilt a synthetic gzip stream with a nonempty stored block followed
+by a fixed-Huffman block. No v1 artifact was modified.
+
+Complete byte results
+---------------------
+                                            artificial  canterbury    calgary
+original gzip                                  76,723     739,071  1,070,276
+best ordinary whole-gzip control               76,298     628,400  1,069,949
+  selected control                         GZB1/zlib-9  GXB1/xz-1 GZB1/zlib-9
+raw DCP1 predictor archive                    178,274   1,041,198 1,622,932
+DCP2 = xz-1(raw DCP1)                          80,508     572,700   983,216
+DCP2 versus original                         +3,785 B  -166,371 B -87,060 B
+DCP2 percentage                                +4.933%    -22.511%   -8.134%
+DCP2 versus best ordinary control             +4,210 B   -55,700 B -86,733 B
+
+Interpretation
+--------------
+This is a physical byte-exact win for the fixed predictor-plus-correction
+representation on Canterbury and Calgary, including the outer xz wrapper.
+It also beats the fixed ordinary whole-gzip controls on those two assets. It
+loses on Artificial. The winning mechanism is not merely decompression and
+recompression to a different gzip member: the DCP2 inverse first restores the
+complete DCP1 representation, regenerates the pinned reference stream from the
+stored plaintext, applies exact syntax corrections, and emits the original gzip
+bytes.
+
+This remains a narrow research result with material limitations. It depends on
+Python runtime zlib 1.3 behavior, rejects a mismatched zlib version, uses xz as
+an outer coder, and covers three historical gzip archives. It is not a portable
+CIX format or a production recommendation. It does not establish novelty and
+does not exhaust preflate-style prediction methods. Any future promotion needs
+a deterministic CIX-owned reference implementation, a formal format, broader
+predeclared qualification, speed/memory accounting and comparisons against
+established format-aware controls.
+
+Verification and resource record
+--------------------------------
+Each retained DCP1 identity was SHA-256 pinned before its DCP2 run. All three
+DCP2 payloads passed a fresh Python-process inverse using only the DCP2 file
+and expected original gzip SHA-256; the process decompressed DCP2, performed
+the corrected DCP1 inverse, and verified the original gzip bytes. The final
+screen used CPU core 10, 10.73 seconds wall, 10.57 seconds user CPU, 217,320
+KiB peak resident memory and zero swaps, within the fixed 30-second/600-MB/
+128-MB limits. Machine-readable results.json and resources.txt are included in
+this directory; binary payloads remain outside Git in benchmark-work.
+
+DCP2 payload SHA-256 identities are: Artificial
+d1b07faa8a672ab224f14d5b16306a0c98e29043dd1abd659ac20e6d91a5d4aa;
+Canterbury b653268659951b63e57f19c30c49cbc6f6781726bc22841df4006ff6032df14b;
+Calgary a72c2b99bfd546f2e2af6b3109e65834f7f547cdc8cbc7e3c2a6e6c3f10dd08b.
+
+Evidence-selected next action
+-----------------------------
+Freeze this as a candidate for a separately designed, deterministic
+format-aware gzip recompression research route. Before any implementation,
+compare a CIX-owned portable predictor/correction format against established
+DEFLATE-aware recompression controls on a predeclared held-out gzip set, with
+complete archive sizes, encode/decode speed and memory. Do not integrate DCP2
+directly into CIX from this screen.

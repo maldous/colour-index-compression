@@ -1,0 +1,83 @@
+CODEC-DECISIONS-V1 — EXACT GZIP/DEFLATE DECISION RECODING SCREEN
+2026-10-04
+
+Question
+--------
+Can an existing gzip member be represented more compactly by preserving its
+DEFLATE choices (block forms, dynamic-tree construction, literals and matches)
+and separately compressing that decision representation, while reproducing the
+original gzip bytes exactly?
+
+Scope and fixed protocol
+------------------------
+The frozen plan is plan.json. The screen used only these existing local assets:
+
+  artificial.tar.gz  76,723 B  cc1818a084d61fe693fe2a9db7312da25fdb4b54313502a6920abf692b7a47ab
+  canterbury.tar.gz 739,071 B  f140e8a5b73d3f53198555a63bfb827889394a42f20825df33c810c3d5e3f8fb
+  calgary.tar.gz   1,070,276 B e109eebdc19c5cee533c58bd6a49a4be3a77cc52f84ba234a089148a4f2093b7
+
+The standalone Python-standard-library instrument records the gzip header and
+trailer verbatim. It parses each DEFLATE block, including stored-block
+alignment/LEN/NLEN/data, dynamic-tree header run decisions, literal and match
+decisions, and final padding. Its inverse rebuilds the exact DEFLATE codes from
+the stored tree decisions. CDV1 is the unsplit container; CDZ1/CDX1 wrap its
+zlib-9/xz-1 form. GZB1/GXB1 are charged four-byte method-tagged ordinary
+second-pass controls over the original gzip bytes.
+
+The script first passed byte-exact stored, fixed-Huffman and dynamic-Huffman
+synthetic members (types [0], [1], and [2], respectively). All three real
+inputs then passed byte-identical gzip reconstruction and equal semantic
+inflation for every decision candidate. Any physically smaller complete
+candidate also passed a separate fresh Python process that received only its
+candidate file and the expected source SHA-256.
+
+Complete byte results
+---------------------
+                                           artificial  canterbury    calgary
+original gzip                                 76,723     739,071  1,070,276
+GZB1 + zlib level 9                           76,298     632,629  1,069,949
+GXB1 + xz preset 1                            76,792     628,400  1,070,392
+CDV1 unsplit decisions                       208,292   2,287,211  3,059,869
+CDZ1 + zlib level 9 decisions                100,556     859,533  1,564,687
+CDX1 + xz preset 1 decisions                  95,092     837,920  1,540,924
+
+Best decision representation versus source:
+
+  artificial: CDX1 is +18,369 B (+23.94%)
+  canterbury: CDX1 is +98,849 B (+13.37%)
+  calgary:    CDX1 is +470,648 B (+43.98%)
+
+No decision representation is a physical compression win. This faithful
+prototype exposes why: explicit per-token syntax expands a compact Huffman
+bitstream, and generic second-pass coding does not recover that added cost.
+It does not test a learned predictor that can recover decisions with a small
+correction stream; it establishes that a direct syntax split alone is not an
+opportunity on these assets.
+
+The ordinary controls are real outer-wrapper results, not byte-identical gzip
+members by themselves. Their inverse restores the original gzip bytes exactly:
+
+  artificial GZB1: -425 B (-0.554%)
+  canterbury GZB1: -106,442 B (-14.402%); GXB1: -110,671 B (-14.974%)
+  calgary GZB1: -327 B (-0.031%)
+
+These controls show residual redundancy in the selected historical gzip
+archives. They do NOT validate the proposed decision-prediction mechanism,
+and they cannot be attributed to CIX.
+
+Resource record
+---------------
+Final frozen screen: 18.33 seconds wall, 18.25 seconds user CPU, 162,300 KiB
+peak resident memory, one core (CPU 10), zero swaps. This stayed within the
+60-second/600 MB/128 MB limits. Exact recorded values are in
+benchmark-work/codec-decisions-v1/resources.txt.
+
+Decision
+--------
+Close direct DEFLATE-decision recoding for these assets. The one evidence-led
+follow-up, if this line is ever reopened, is a predeclared small causal
+predictor-plus-correction representation for a bounded decision field; it must
+beat both the complete gzip-byte second-pass control and the original bytes,
+while retaining byte-exact inverse reconstruction. Do not build a production
+route from this screen and do not claim novelty: DEFLATE-aware recompression
+has established prior art.
