@@ -93,8 +93,34 @@ complete mode or corpus qualification. Read the live `summary.json` and cell
 receipts for current progress.
 
 The current-task heartbeat `finish-frozen-cix-silesia-confirmation` checks every
-15 minutes solely to supervise this already-running pass and produce its final
-report. It must stay quiet on unchanged healthy state and pause after reporting.
+15 minutes to supervise this already-running pass and produce its final report.
+The user has additionally requested repair of the C/C++ analyzer limitation.
+After the Silesia report and all benchmark processes have finished, root must
+execute and verify the separately prepared SonarOpenCommunity CXX repair under
+the shared scheduler lease. The coordinating task owns `tools/sonar-cxx` and
+`docs/research/2026-10-04-sonar-cxx-repair`; its ready command will be supplied
+separately. Require actual analyzer execution and indexed-file/issue read-back
+for first-party native/squash and native/PAQ vendor scope. CXX is distinct from
+commercial CFamily; keep rule/coverage limitations explicit. No product change
+is implied, and no setup/build/scan may compete with this frozen pass. Preparation
+alone does not complete this new request. The heartbeat stays quiet on unchanged
+healthy state and pauses only after both reports are delivered.
+
+The coordinator has now delivered the ready command (run from the development
+repository only after all 36 cells verify and every benchmark process ends):
+
+```sh
+python3 tools/sonar-cxx/repair.py run --prepared docs/research/2026-10-04-sonar-cxx-repair/prepared-v1 --out docs/research/2026-10-04-sonar-cxx-repair/scan-v1
+```
+
+Prepared runner SHA-256:
+`6ba9316434fec91803c2e05be31f9e144dea8f651215e9767de7299c0659c6c0`.
+Root read-back matches. The manifest inventories 1,346 C/C++ files, with two
+disabled CUDA headers separately excluded. Three lightweight preparation tests
+passed in the coordinating task; actual server/probe/six-project scans have not
+run. Server/plugin compatibility and the absent generated Squash 0.8 SDK header
+remain validation limitations, not completed qualifications. Use new attempt
+directories if scanner setup needs correction; preserve every failed receipt.
 The older `complete-cix-0-1-release-qualification` automation remains PAUSED.
 No new dataset, public publication or Sites work follows before the Silesia report.
 
