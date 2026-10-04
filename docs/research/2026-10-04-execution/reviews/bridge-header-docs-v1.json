@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "scope": "comment-only documentation update for two CIX-owned public bridge headers",
+  "status": "SOURCE_IDENTITY_CHANGED_COMMENT_TOKENS_UNCHANGED",
+  "method": {
+    "description": "An independent C/C++ lexical pass removed line and block comments, ignored whitespace outside literals, preserved string and character literals, then compared the resulting token streams.",
+    "validation": "Both before and after token streams are byte-identical. This is a source-identity receipt, not a build, ABI, parser, or consumer qualification."
+  },
+  "headers": [
+    {
+      "path": "rust/cix-native/codecs/jxl/cix_jxl_bridge.h",
+      "before_sha256": "9798a4bf689b30301a86c852ea855e33334d9184c698cf0f0a4e5fede119b8c3",
+      "after_sha256": "8f7490105a6b0d780916bba82306699e59177cb4687c5e779049518ebcd0e59b",
+      "comment_stripped_token_sha256": "f8f45ae9e437f6e456ce70c23e02f98fb775bb2b1745d2d5ec49a59a5d760e65",
+      "comment_stripped_tokens_equal": true,
+      "implementation": "rust/cix-native/codecs/jxl/cix_jxl_bridge.cpp",
+      "consumer_contract": "rust/cix-native/codecs/jxl/tests/jxl_drain_contract.cpp"
+    },
+    {
+      "path": "rust/cix-native/codecs/spatial/cix_spatial_bridge.h",
+      "before_sha256": "049b7ec3e64b162b5a27d3e440ae90658c51696bdea572ad8c71f6899b39d07e",
+      "after_sha256": "dfd5d7284c7849ee0a14e9899e6a51f6a222591bf2c84ac137af926de7ff8dd7",
+      "comment_stripped_token_sha256": "d8c660bf954921ccbdc815da277c545f308fb143f8210e5f6e5d501b573a770c",
+      "comment_stripped_tokens_equal": true,
+      "implementation": "rust/cix-native/codecs/spatial/cix_spatial_bridge.cpp",
+      "consumer_contract": "rust/cix-native/codecs/spatial/tests/spatial_stride_contract.cpp"
+    }
+  ],
+  "prior_header_context_capture": {
+    "result": "docs/research/2026-10-04-execution/sonar-preparation/header-context-v3/result.json",
+    "scope_note": "The prior six-header capture is immutable. Its JXL and spatial source hashes predate this comment-only update; no parser run was repeated."
+  }
+}
