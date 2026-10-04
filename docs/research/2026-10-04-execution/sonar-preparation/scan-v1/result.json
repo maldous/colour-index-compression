@@ -1,0 +1,34 @@
+{
+  "analyzer": "SonarOpenCommunity CXX 2.3.0.1496 + Cppcheck 2.13.0",
+  "error": "Command '['docker', 'run', '-d', '--name', 'cix-hygiene-scanner-cxx-cix-native-adapters', '--hostname', 'cix-hygiene-scanner-cxx-cix-native-adapters', '--cgroup-parent', 'cix-cxx-hygiene.slice', '--cpuset-cpus', '8,10,12,14', '--cpu-period', '100000', '--cpu-quota', '400000', '--memory', '1073741824', '--memory-swap', '1073741824', '--network', 'host', '--read-only', '--log-driver', 'none', '--tmpfs', '/tmp:rw,exec,size=134217728', '--env', 'HOME=/tmp', '--env', 'XDG_CONFIG_HOME=/tmp', '--env', 'SONAR_USER_HOME=/tmp/.sonar', '--env', 'SCANNER_WORKDIR_PATH=/tmp/.scannerwork', '--env-file', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/sonar-preparation/scan-v1/raw/.scanner-env', '-v', '/home/user/src/colour-index-compression:/usr/src:ro', '-v', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/sonar-preparation/scan-v1/cix-native-adapters:/out:ro', '-v', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/sonar-preparation/scan-v1/cix-native-adapters/scanner.log:/scanner-log:rw', '-v', '/usr/include/blkid:/usr/include/blkid:ro', '-v', '/usr/include/glib-2.0:/usr/include/glib-2.0:ro', '-v', '/usr/include/libmount:/usr/include/libmount:ro', '-v', '/usr/include/node:/usr/include/node:ro', '-v', '/usr/lib/jvm/java-21-openjdk-amd64/include:/usr/lib/jvm/java-21-openjdk-amd64/include:ro', '-v', '/usr/lib/jvm/java-21-openjdk-amd64/include/linux:/usr/lib/jvm/java-21-openjdk-amd64/include/linux:ro', '-v', '/usr/lib/x86_64-linux-gnu/glib-2.0/include:/usr/lib/x86_64-linux-gnu/glib-2.0/include:ro', '-v', '/usr/src/linux-headers-6.8.0-142-generic:/usr/src/linux-headers-6.8.0-142-generic:ro', '-w', '/usr/src', '--entrypoint', 'bash', 'sonarsource/sonar-scanner-cli@sha256:a3f4215076706c95a17a68c19322ee916e40a3acd081a8c1a1e839e0194afa57', '-c', 'set -o pipefail; sonar-scanner -Dsonar.scanner.skipJreProvisioning=true -Dsonar.projectBaseDir=/usr/src -Dproject.settings=/out/properties -Dsonar.scanner.metadataFilePath=/tmp/report-task.txt 2>&1 | (ulimit -f 8192; cat > /scanner-log); statuses=(${PIPESTATUS[@]}); metadata_bytes=0; metadata_over_limit=0; if test -f /tmp/report-task.txt; then metadata_bytes=$(head -c 65537 /tmp/report-task.txt | wc -c); test \"$metadata_bytes\" -le 65536 || metadata_over_limit=1; fi; printf \\'\\\\n--CIX-SCANNER-STATUS--\\\\nscanner=%s\\\\nsink=%s\\\\nmetadata_bytes=%s\\\\nmetadata_over_limit=%s\\\\n--CIX-SCANNER-REPORT-TASK--\\\\n\\' \"${statuses[0]}\" \"${statuses[1]}\" \"$metadata_bytes\" \"$metadata_over_limit\" >> /scanner-log; test \"$metadata_bytes\" -eq 0 || head -c 65537 /tmp/report-task.txt >> /scanner-log; exit \"${statuses[0]}\"']' returned non-zero exit status 125.",
+  "plan_sha256": "749a223ecbe8569bd112ae53b5b74151013d693d055f507d9ac87e1eb80aedc7",
+  "probe": {
+    "cppcheck_diagnostics": {
+      "checkersReport": 1,
+      "constVariablePointer": 1,
+      "nullPointer": 1
+    },
+    "expected_files": 1,
+    "indexed_cxx_files": 1,
+    "issues": 5,
+    "parser_diagnostics": [],
+    "quality_gate": {
+      "projectStatus": {
+        "caycStatus": "compliant",
+        "conditions": [],
+        "ignoredConditions": false,
+        "status": "OK"
+      }
+    },
+    "rules": {
+      "cppcheck:constVariablePointer": 1,
+      "cppcheck:nullPointer": 1,
+      "cppcheck:unknown": 1,
+      "cxx:FileHeader": 1,
+      "cxx:TooManyStatementsPerLine": 1
+    },
+    "status": "SCANNED"
+  },
+  "projects": {},
+  "status": "FAILED"
+}

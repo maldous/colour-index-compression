@@ -1,0 +1,52 @@
+{
+  "source_sha256": {
+    "tools/sonar-cxx/compiler_refresh.py": "6bf0b4e7d3a230f34249f8190ea6f93c346b0da66171888d5a90efd76aea182a",
+    "tools/sonar-cxx/repair.py": "b57f29e6950e9a956a0a046d4a16efeb6f361893f901b71457e530c136cd975b",
+    "tools/sonar-cxx/test_compiler_refresh.py": "d6a6868a70fb488b94883c0c976018b2cd60a4d943ec030fe5824c666f339f35",
+    "tools/sonar-cxx/test_repair.py": "82803fe5006ebea72c60e5334191e6a6db6f7976e7cee931f76120f352097e18",
+    "tools/sonar-native/run.py": "718c3c66042a66f992026fa9d5ec2edb7c125f266481794d3f74e17b79d45615",
+    "tools/sonar-native/test_run.py": "bcb2856507a81f64a06c2973a091f8c908ceca6716dc979c871879845f8362a7",
+    "docs/research/2026-10-04-execution/reviews/validate_planning_graph.py": "ac187a7811dc943fcdc19918b2bf733123df73352eee6390fcec390aa84ded3d",
+    "docs/research/2026-10-04-execution/dependency-blockers.json": "2a75e42cf79fce075581b88ce4a9288f328f171a76f0a6001567a45d3a880878",
+    "docs/research/2026-10-04-rc-reconciliation/requirements.json": "9839e98398ac7cb2490e8b4a20977db1bb49ca9044b60cab7986b9b073726422"
+  },
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/home/user/src/colour-index-compression/tools/sonar-cxx",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "returncode": 1
+    },
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/home/user/src/colour-index-compression/tools/sonar-native",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "returncode": 0
+    },
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/reviews/validate_planning_graph.py"
+      ],
+      "returncode": 1
+    }
+  ],
+  "status": "fail",
+  "source_unchanged": true
+}

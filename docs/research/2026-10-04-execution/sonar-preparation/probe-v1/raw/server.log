@@ -1,0 +1,213 @@
+2026.10.04 18:47:06 INFO  app[][o.s.a.AppFileSystem] Cleaning or creating temp directory /opt/sonarqube/temp
+2026.10.04 18:47:06 INFO  app[][o.s.a.es.EsSettings] Elasticsearch listening on [HTTP: 127.0.0.1:9001, TCP: 127.0.0.1:{}]
+2026.10.04 18:47:06 INFO  app[][o.s.a.ProcessLauncherImpl] Launch process[ELASTICSEARCH] from [/opt/sonarqube/elasticsearch]: /opt/java/openjdk/bin/java -Xms4m -Xmx64m -XX:+UseSerialGC -cp /opt/sonarqube/elasticsearch/lib/tools/server-launcher/* org.elasticsearch.server.launcher.ServerLauncher
+2026.10.04 18:47:06 INFO  app[][o.s.a.SchedulerImpl] Waiting for Elasticsearch to be up and running
+Failed to load native library:jansi-2.4.0-63638e854dbd16d2-libjansi.so. The native library file at /opt/sonarqube/temp/jansi-2.4.0-63638e854dbd16d2-libjansi.so is not executable, make sure that the directory is mounted on a partition without the noexec flag, or set the jansi.tmpdir system property to point to a proper location.  osinfo: Linux/x86_64
+java.lang.UnsatisfiedLinkError: /opt/sonarqube/temp/jansi-2.4.0-63638e854dbd16d2-libjansi.so: /opt/sonarqube/temp/jansi-2.4.0-63638e854dbd16d2-libjansi.so: failed to map segment from shared object
+Oct 04, 2026 6:47:08 PM sun.util.locale.provider.LocaleProviderAdapter <clinit>
+INFO: Invalid locale provider adapter "COMPAT" ignored.
+Oct 04, 2026 6:47:08 PM sun.util.locale.provider.LocaleProviderAdapter <clinit>
+WARNING: COMPAT locale provider has been removed
+2026.10.04 18:47:08 INFO  es[][o.e.b.Elasticsearch] version[9.4.3], pid[109], build[tar/45f6a06b1b441b41fe711059b8720013173e7c89/2026-06-25T14:04:34.316306228Z], OS[Linux/6.8.0-142-generic/amd64], JVM[Eclipse Adoptium/OpenJDK 64-Bit Server VM/25.0.4.1/25.0.4.1+1-LTS]
+2026.10.04 18:47:08 INFO  es[][o.e.b.Elasticsearch] JVM home [/opt/java/openjdk], using bundled JDK [false]
+2026.10.04 18:47:08 INFO  es[][o.e.b.Elasticsearch] JVM arguments [-Des.networkaddress.cache.ttl=60, -Des.networkaddress.cache.negative.ttl=10, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -XX:-OmitStackTraceInFastThrow, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, --add-opens=org.apache.lucene.core/org.apache.lucene.codecs.lucene99=org.elasticsearch.server, --add-opens=org.apache.lucene.core/org.apache.lucene.codecs.hnsw=org.elasticsearch.server, --add-opens=org.apache.lucene.core/org.apache.lucene.internal.vectorization=org.elasticsearch.server, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j2.formatMsgNoLookups=true, -Djava.locale.providers=CLDR, -Dorg.apache.lucene.vectorization.upperJavaFeatureVersion=25, -Des.path.home=/opt/sonarqube/elasticsearch, -Des.distribution.type=tar, -Des.java.type=ES_JAVA_HOME, --enable-native-access=org.elasticsearch.nativeaccess,org.apache.lucene.core, --enable-native-access=ALL-UNNAMED, --illegal-native-access=deny, -XX:ReplayDataFile=logs/replay_pid%p.log, -XX:+EnableDynamicAgentLoading, -Djdk.attach.allowAttachSelf=true, --patch-module=java.base=/opt/sonarqube/elasticsearch/lib/entitlement-bridge/elasticsearch-entitlement-bridge-9.4.3.jar, --add-exports=java.base/org.elasticsearch.entitlement.bridge=org.elasticsearch.entitlement,java.logging,java.net.http,java.naming,jdk.net,jdk.zipfs,jdk.management.agent, -XX:+UseG1GC, -Djava.io.tmpdir=/opt/sonarqube/temp, -XX:ErrorFile=/opt/sonarqube/logs/es_hs_err_pid%p.log, -Xlog:disable, -Des.networkaddress.cache.ttl=60, -Des.networkaddress.cache.negative.ttl=10, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djna.tmpdir=/opt/sonarqube/temp, -XX:-OmitStackTraceInFastThrow, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dio.netty.allocator.numDirectArenas=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j2.formatMsgNoLookups=true, -Djava.locale.providers=COMPAT, -Xmx512m, -Xms512m, -XX:MaxDirectMemorySize=256m, -XX:+HeapDumpOnOutOfMemoryError, -XX:G1HeapRegionSize=4m, -XX:InitiatingHeapOccupancyPercent=30, -XX:G1ReservePercent=15, --module-path=/opt/sonarqube/elasticsearch/lib, --add-modules=jdk.net, --add-modules=jdk.management.agent, --add-modules=ALL-MODULE-PATH, -Djdk.module.main=org.elasticsearch.server]
+2026.10.04 18:47:08 INFO  es[][o.e.b.Elasticsearch] Default Locale [en_US]
+2026.10.04 18:47:08 INFO  es[][o.e.n.j.JdkVectorLibrary] vec_caps=1
+2026.10.04 18:47:08 INFO  es[][o.e.n.NativeAccess] Using native vector library; to disable start with -Dorg.elasticsearch.nativeaccess.enableVectorLibrary=false
+2026.10.04 18:47:08 INFO  es[][o.e.n.NativeAccess] Using [jdk] native provider and native methods for [Linux]
+2026.10.04 18:47:08 WARN  es[][o.a.l.i.v.VectorizationProvider] Java vector incubator module is not readable. For optimal vector performance, pass '--add-modules jdk.incubator.vector' to enable Vector API.
+2026.10.04 18:47:08 INFO  es[][o.e.b.Elasticsearch] Bootstrapping Entitlements
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-core]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-migrate]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [rest-root]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [reindex]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-redact]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-security]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-geoip-enterprise-downloader]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [lang-painless]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [rank-vectors]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-esql-core]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [parent-join]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [old-lucene-versions]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [counted-keyword]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-inference]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [analysis-common]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [dot-prefix-validation]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [health-shards-availability]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [transport-netty4]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [apm]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [aggregations]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [ingest-common]
+2026.10.04 18:47:09 INFO  es[][o.e.p.PluginsService] loaded module [user-agent]
+2026.10.04 18:47:09 INFO  es[][o.e.e.NodeEnvironment] using [1] data paths, mounts [[/opt/sonarqube/data (tmpfs)]], net usable_space [63.9mb], net total_space [64mb], types [tmpfs]
+2026.10.04 18:47:09 INFO  es[][o.e.e.NodeEnvironment] heap size [512mb], compressed ordinary object pointers [true]
+2026.10.04 18:47:09 INFO  es[][o.e.n.Node] node name [sonarqube], node ID [8jcht_2TQMOWsQ0eLuaFYg], cluster name [sonarqube], roles [ml, data_hot, transform, data_content, data_warm, master, remote_cluster_client, data, data_cold, ingest, data_frozen]
+2026.10.04 18:47:10 INFO  es[][o.e.f.FeatureService] Registered local node features [ES_V_8, ES_V_9, aggregate_metric_double.default_metric.deprecated, certificate_identity_field, cluster.reroute.ignores_metric_param, cluster.stats.source_modes, inference.auth_poller.persistent_task, inference.ccm.cache, inference.ccm.enablement_service, inference.embedding_task_type, inference.endpoint.cache, inference.metadata_field, ingest.field_access_pattern, lucene_10_1_upgrade, lucene_10_upgrade, resolve_index_returns_mode, security.queryable_built_in_roles, security_stats_endpoint, simulate.ignored.fields, snapshots.get.state_parameter]
+2026.10.04 18:47:10 INFO  es[][o.e.i.r.RecoverySettings] using rate limit [40mb] with [default=40mb, read=0b, write=0b, max=0b]
+2026.10.04 18:47:10 INFO  es[][o.e.c.m.DataStreamGlobalRetentionSettings] Updated global default retention to [null]
+2026.10.04 18:47:10 INFO  es[][o.e.c.m.DataStreamGlobalRetentionSettings] Updated global max retention to [null]
+2026.10.04 18:47:10 INFO  es[][o.e.c.m.DataStreamGlobalRetentionSettings] Updated failures default retention to [30d]
+2026.10.04 18:47:10 INFO  es[][o.e.c.m.DataStreamFailureStoreSettings] Updated data stream name patterns for enabling failure store to [[]]
+2026.10.04 18:47:10 INFO  es[][o.e.x.s.Security] Security is disabled
+2026.10.04 18:47:10 INFO  es[][o.e.x.i.s.e.a.AuthorizationTaskExecutor] Authorization task executor EIS URL: [https://inference.us-east-1.aws.svc.elastic.cloud]
+2026.10.04 18:47:10 INFO  es[][o.e.x.i.s.e.a.AuthorizationTaskExecutor] Starting authorization task executor
+2026.10.04 18:47:10 INFO  es[][o.e.t.a.APM] Sending apm metrics is disabled
+2026.10.04 18:47:10 INFO  es[][o.e.t.a.APM] Sending apm tracing is disabled
+2026.10.04 18:47:11 INFO  es[][o.e.t.n.NettyAllocator] creating NettyAllocator with the following configs: [name=unpooled, suggested_max_allocation_size=1mb, factors={es.unsafe.use_unpooled_allocator=null, g1gc_enabled=true, g1gc_region_size=4mb, heap_size=512mb}]
+2026.10.04 18:47:11 INFO  es[][o.e.d.DiscoveryModule] using discovery type [single-node] and seed hosts providers [settings]
+2026.10.04 18:47:11 INFO  es[][o.e.n.Node] initialized
+2026.10.04 18:47:11 INFO  es[][o.e.n.Node] starting ...
+2026.10.04 18:47:11 INFO  es[][o.e.t.TransportService] publish_address {127.0.0.1:33659}, bound_addresses {127.0.0.1:33659}
+2026.10.04 18:47:11 INFO  es[][o.e.c.c.ClusterBootstrapService] this node has not joined a bootstrapped cluster yet; [cluster.initial_master_nodes] is set to [sonarqube]
+2026.10.04 18:47:11 INFO  es[][o.e.c.c.Coordinator] setting initial configuration to VotingConfiguration[8jcht_2TQMOWsQ0eLuaFYg]
+2026.10.04 18:47:11 WARN  es[][i.o.usage] OpenTelemetry API usage issue detected. To see more details, enable FINEST logging for io.opentelemetry.usage. Stacktraces are includes to identify the offending call site.
+2026.10.04 18:47:11 INFO  es[][o.e.c.s.MasterService] elected-as-master ([1] nodes joined in term 1)[_FINISH_ELECTION_, {sonarqube}{8jcht_2TQMOWsQ0eLuaFYg}{LLSaSSUOS_KdC2b3OCB48Q}{sonarqube}{127.0.0.1}{127.0.0.1:33659}{cdfhilmrstw}{9.4.3}{8000099-9094000} completing election], term: 1, version: 1, delta: master node changed {previous [], current [{sonarqube}{8jcht_2TQMOWsQ0eLuaFYg}{LLSaSSUOS_KdC2b3OCB48Q}{sonarqube}{127.0.0.1}{127.0.0.1:33659}{cdfhilmrstw}{9.4.3}{8000099-9094000}]}
+2026.10.04 18:47:11 INFO  es[][o.e.c.c.CoordinationState] cluster UUID set to [Ki67kqn6QaegCDw4qvbXWQ]
+2026.10.04 18:47:11 INFO  es[][o.e.c.s.ClusterApplierService] master node changed {previous [], current [{sonarqube}{8jcht_2TQMOWsQ0eLuaFYg}{LLSaSSUOS_KdC2b3OCB48Q}{sonarqube}{127.0.0.1}{127.0.0.1:33659}{cdfhilmrstw}{9.4.3}{8000099-9094000}]}, term: 1, version: 1, reason: Publication{term=1, version=1}
+2026.10.04 18:47:11 INFO  es[][o.e.c.c.NodeJoinExecutor] node-join: [{sonarqube}{8jcht_2TQMOWsQ0eLuaFYg}{LLSaSSUOS_KdC2b3OCB48Q}{sonarqube}{127.0.0.1}{127.0.0.1:33659}{cdfhilmrstw}{9.4.3}{8000099-9094000}] with reason [completing election]
+2026.10.04 18:47:11 INFO  es[][o.e.h.AbstractHttpServerTransport] publish_address {127.0.0.1:9001}, bound_addresses {127.0.0.1:9001}
+2026.10.04 18:47:11 INFO  es[][o.e.n.Node] started {sonarqube}{8jcht_2TQMOWsQ0eLuaFYg}{LLSaSSUOS_KdC2b3OCB48Q}{sonarqube}{127.0.0.1}{127.0.0.1:33659}{cdfhilmrstw}{9.4.3}{8000099-9094000}{xpack.installed=true, rack_id=sonarqube}
+2026.10.04 18:47:11 INFO  es[][o.e.c.f.AbstractFileWatchingService] starting file watcher ...
+2026.10.04 18:47:11 INFO  es[][o.e.c.f.AbstractFileWatchingService] file settings service up and running [tid=54]
+2026.10.04 18:47:11 INFO  es[][o.e.r.s.FileSettingsService] setting file [/opt/sonarqube/data/es9/config/operator/settings.json] not found, initializing [file_settings] as empty
+2026.10.04 18:47:11 WARN  es[][o.e.x.i.s.e.ElasticsearchInternalService] Get deployment stats failed, cannot update the endpoint's number of allocations
+java.lang.IllegalStateException: failed to find action [cluster:internal/xpack/ml/trained_models/deployments/stats/get] to execute
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.node.NodeClient.transportAction(NodeClient.java:136)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.node.NodeClient.executeLocally(NodeClient.java:109)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.node.NodeClient.doExecute(NodeClient.java:85)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.support.AbstractClient.execute(AbstractClient.java:160)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.FilterClient.doExecute(FilterClient.java:57)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.OriginSettingClient.doExecute(OriginSettingClient.java:44)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.support.AbstractClient.execute(AbstractClient.java:160)
+	at org.elasticsearch.inference@9.4.3/org.elasticsearch.xpack.inference.services.elasticsearch.ElasticsearchInternalService.updateModelsWithDynamicFields(ElasticsearchInternalService.java:901)
+	at org.elasticsearch.inference@9.4.3/org.elasticsearch.xpack.inference.action.TransportGetInferenceModelAction.parseModels(TransportGetInferenceModelAction.java:164)
+	at org.elasticsearch.inference@9.4.3/org.elasticsearch.xpack.inference.action.TransportGetInferenceModelAction.lambda$getAllModels$2(TransportGetInferenceModelAction.java:119)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.common.util.concurrent.ThreadContext$ContextPreservingRunnable.run(ThreadContext.java:1047)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+2026.10.04 18:47:11 INFO  es[][o.e.g.GatewayService] recovered [0] indices into cluster_state
+2026.10.04 18:47:11 INFO  es[][o.e.x.c.t.IndexTemplateRegistry] adding ingest pipeline reindex-data-stream-pipeline
+2026.10.04 18:47:11 INFO  app[][o.s.a.SchedulerImpl] Process[es] is up
+2026.10.04 18:47:11 INFO  app[][o.s.a.ProcessLauncherImpl] Launch process[WEB_SERVER] from [/opt/sonarqube]: /opt/java/openjdk/bin/java -Djava.awt.headless=true -Dfile.encoding=UTF-8 -Djava.io.tmpdir=/opt/sonarqube/temp -XX:-OmitStackTraceInFastThrow --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.management/sun.management=ALL-UNNAMED --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED -Xmx512m -Xms128m -XX:+HeapDumpOnOutOfMemoryError -Dhttp.nonProxyHosts=localhost|127.*|[::1] -cp ./lib/sonar-application-26.9.0.129388.jar:/opt/sonarqube/lib/jdbc/h2/h2-2.3.232.jar org.sonar.server.app.WebServer /opt/sonarqube/temp/sq-process12273999887825748962properties
+2026.10.04 18:47:11 INFO  es[][o.e.l.ClusterStateLicenseService] license [bcc8ccab-7dce-40f0-99a6-96fca021c5e7] mode [basic] - valid
+2026.10.04 18:47:11 INFO  es[][o.e.h.n.s.HealthNodeTaskExecutor] Node [8jcht_2TQMOWsQ0eLuaFYg/sonarqube] is selected as the current health node.
+2026.10.04 18:47:11 INFO  web[][o.s.p.ProcessEntryPoint] Starting Web Server
+2026.10.04 18:47:11 INFO  web[][o.s.s.a.TomcatHttpConnectorFactory] Starting Tomcat on port 9000
+2026.10.04 18:47:11 WARN  web[][o.a.c.c.StandardHost] appBase on host [localhost] is a parent folder of CATALINA_BASE, which is a bad idea
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.LogServerVersion] SonarQube Server / 26.9.0.129388 / 7d3af781ec381ac1de3193498ffc6ff1dbd362c6
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.d.EmbeddedDatabase] Starting embedded database on port 9092 with url jdbc:h2:tcp://127.0.0.1:9092/sonar;NON_KEYWORDS=VALUE
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.d.EmbeddedDatabase] Embedded database started. Data stored in: /opt/sonarqube/data
+2026.10.04 18:47:12 INFO  web[][o.s.d.DefaultDatabase] Create JDBC data source for jdbc:h2:tcp://127.0.0.1:9092/sonar;NON_KEYWORDS=VALUE
+2026.10.04 18:47:12 INFO  web[][c.z.h.HikariDataSource] HikariPool-1 - Starting...
+2026.10.04 18:47:12 INFO  web[][c.z.h.p.HikariPool] HikariPool-1 - Added connection conn2: url=jdbc:h2:tcp://127.0.0.1:9092/sonar user=
+2026.10.04 18:47:12 INFO  web[][c.z.h.HikariDataSource] HikariPool-1 - Start completed.
+2026.10.04 18:47:12 WARN  web[][o.s.db.dialect.H2] H2 database should be used for evaluation purpose only.
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerFileSystemImpl] SonarQube home: /opt/sonarqube
+2026.10.04 18:47:12 INFO  web[][o.s.s.u.SystemPasscodeImpl] System authentication by passcode is disabled
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.d.m.h.MigrationHistoryTableImpl] Creating table schema_migrations
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy C# Code Quality and Security / 10.33.0.1635 / ea106bc601532a89b0ef80a86ec5b7b1ff3b7239
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy C++ (Community) / 2.3.0.1496 / 9024ea08095d0f27b3281368f83fd88c6c8b22fe
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Clean as You Code / 2.6.0.3665 / 55c5ecf4a75806328950c2526ed2660a69e5376b
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Flex Code Quality and Security / 2.18.0.6281 / 84cf021e37206d01e7f04ffe7172c40d0ee8ad85
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Go Code Quality and Security / 1.43.0.7704 / 3ceaf273e5cc26e33e28ef563f016b44a8f4f76a
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy HTML Code Quality and Security / 3.31.0.8334 / 420801ca5fcfd5d9875890ed46a6f152e58b0588
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy IaC Code Quality and Security / 2.16.0.22905 / null
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy JaCoCo / 1.6.0.5741 / d7ac50ea711e3321dabc2e4fbb7edf757507f892
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Java Advanced Code Quality Analyzer / 8.16.4.1912 / 8d1b73d26c83a998d7af4e4a8f10587654f2e12c
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Java Code Quality and Security / 8.41.0.47177 / 68605929e2ce0013fdbe7852937ab4e5681c411e
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy JavaScript/TypeScript/CSS Code Quality and Security / 13.8.0.44569 / 1eea9253f87b448684d1089dc7160eca388b21b6
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Kotlin Code Quality and Security / 3.9.0.9809 / de1144c967cef5fc537294d603aacdbba6bd91de
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy PHP Code Quality and Security / 3.60.0.16641 / null
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Python Code Quality and Security / 5.31.0.36502 / 67630d25ba3983fc0846795621935c475e761e80
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Ruby Code Quality and Security / 1.25.0.2597 / 310fea768e3c269667a008954d18844366fe2451
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Rust Code Quality and Security / 1.8.1.3395 / null
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Scala Code Quality and Security / 1.24.0.2554 / f8e0a83baf34dbe3fb8313eca792f0abd6e47ff5
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Text Code Quality and Security / 2.49.0.12346 / null
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy VB.NET Code Quality and Security / 10.33.0.1635 / ea106bc601532a89b0ef80a86ec5b7b1ff3b7239
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.ServerPluginManager] Deploy XML Code Quality and Security / 2.19.0.8138 / 86bebf89b5b8a93074cfdeff8437fabe40974701
+2026.10.04 18:47:12 WARN  web[][o.s.c.a.AnnotationConfigApplicationContext] Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'jdk.internal.loader.ClassLoaders$AppClassLoader@5bc2b487-org.sonar.server.plugins.ServerPluginManager': Fail to unzip plugin [kotlin] /opt/sonarqube/lib/extensions/sonar-kotlin-plugin-3.9.0.9809.jar to /opt/sonarqube/data/web/deploy/plugins/kotlin
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'jdk.internal.loader.ClassLoaders$AppClassLoader@5bc2b487-org.sonar.server.plugins.ServerPluginManager': Fail to unzip plugin [kotlin] /opt/sonarqube/lib/extensions/sonar-kotlin-plugin-3.9.0.9809.jar to /opt/sonarqube/data/web/deploy/plugins/kotlin
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:609)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:196)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1225)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1191)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1121)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:994)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:621)
+	at org.sonar.core.platform.SpringComponentContainer.startComponents(SpringComponentContainer.java:226)
+	at org.sonar.server.platform.platformlevel.PlatformLevel.start(PlatformLevel.java:80)
+	at org.sonar.server.platform.PlatformImpl.start(PlatformImpl.java:261)
+	at org.sonar.server.platform.PlatformImpl.startLevel2Container(PlatformImpl.java:234)
+	at org.sonar.server.platform.PlatformImpl.init(PlatformImpl.java:88)
+	at org.sonar.server.platform.web.PlatformServletContextListener.contextInitialized(PlatformServletContextListener.java:45)
+	at org.apache.catalina.core.StandardContext.listenerStart(StandardContext.java:4007)
+	at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:4430)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1162)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1158)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+	at org.apache.tomcat.util.threads.InlineExecutorService.execute(InlineExecutorService.java:81)
+	at java.base/java.util.concurrent.AbstractExecutorService.submit(AbstractExecutorService.java:149)
+	at org.apache.catalina.core.ContainerBase.startInternal(ContainerBase.java:714)
+	at org.apache.catalina.core.StandardHost.startInternal(StandardHost.java:780)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1162)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1158)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+	at org.apache.tomcat.util.threads.InlineExecutorService.execute(InlineExecutorService.java:81)
+	at java.base/java.util.concurrent.AbstractExecutorService.submit(AbstractExecutorService.java:149)
+	at org.apache.catalina.core.ContainerBase.startInternal(ContainerBase.java:714)
+	at org.apache.catalina.core.StandardEngine.startInternal(StandardEngine.java:201)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164)
+	at org.apache.catalina.core.StandardService.startInternal(StandardService.java:410)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164)
+	at org.apache.catalina.core.StandardServer.startInternal(StandardServer.java:864)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164)
+	at org.sonar.server.app.EmbeddedTomcat.start(EmbeddedTomcat.java:72)
+	at org.sonar.server.app.WebServer.start(WebServer.java:54)
+	at org.sonar.process.ProcessEntryPoint.launch(ProcessEntryPoint.java:97)
+	at org.sonar.process.ProcessEntryPoint.launch(ProcessEntryPoint.java:81)
+	at org.sonar.server.app.WebServer.main(WebServer.java:102)
+Caused by: java.lang.IllegalStateException: Fail to unzip plugin [kotlin] /opt/sonarqube/lib/extensions/sonar-kotlin-plugin-3.9.0.9809.jar to /opt/sonarqube/data/web/deploy/plugins/kotlin
+	at org.sonar.server.plugins.ServerPluginJarExploder.explode(ServerPluginJarExploder.java:60)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:214)
+	at java.base/java.util.HashMap$ValueSpliterator.forEachRemaining(HashMap.java:1788)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:635)
+	at java.base/java.util.stream.AbstractPipeline.evaluateToArrayNode(AbstractPipeline.java:291)
+	at java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:652)
+	at java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:658)
+	at java.base/java.util.stream.ReferencePipeline.toList(ReferencePipeline.java:663)
+	at org.sonar.server.plugins.ServerPluginManager.extractPlugins(ServerPluginManager.java:86)
+	at org.sonar.server.plugins.ServerPluginManager.start(ServerPluginManager.java:65)
+	at org.sonar.core.platform.StartableBeanPostProcessor.postProcessBeforeInitialization(StartableBeanPostProcessor.java:33)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:426)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1807)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:603)
+	... 45 common frames omitted
+Caused by: java.nio.file.FileSystemException: /opt/sonarqube/lib/extensions/sonar-kotlin-plugin-3.9.0.9809.jar -> /opt/sonarqube/data/web/deploy/plugins/kotlin/sonar-kotlin-plugin-3.9.0.9809.jar: No space left on device
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:100)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixFileSystem.copyFile(UnixFileSystem.java:653)
+	at java.base/sun.nio.fs.UnixFileSystem.copy(UnixFileSystem.java:1022)
+	at java.base/sun.nio.fs.UnixFileSystemProvider.copy(UnixFileSystemProvider.java:280)
+	at java.base/java.nio.file.Files.copy(Files.java:1192)
+	at org.apache.commons.io.FileUtils.copyFile(FileUtils.java:883)
+	at org.apache.commons.io.FileUtils.copyFile(FileUtils.java:909)
+	at org.apache.commons.io.FileUtils.copyFile(FileUtils.java:811)
+	at org.sonar.server.plugins.ServerPluginJarExploder.explode(ServerPluginJarExploder.java:56)
+	... 60 common frames omitted
+2026.10.04 18:47:12 INFO  web[][o.s.s.p.d.EmbeddedDatabase] Embedded database stopped
+2026.10.04 18:47:12 WARN  web[][o.a.c.l.WebappClassLoaderBase] The web application [ROOT] appears to have started a thread named [HikariPool-1:housekeeper] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:\n java.base/jdk.internal.misc.Unsafe.park(Native Method)\n java.base/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:271)\n java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1803)\n java.base/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1166)\n java.base/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:883)\n java.base/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1016)\n java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1076)\n java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)\n java.base/java.lang.Thread.run(Thread.java:1474)
+2026.10.04 18:47:12 WARN  web[][o.a.c.l.WebappClassLoaderBase] The web application [ROOT] appears to have started a thread named [HikariPool-1:connection-adder] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:\n java.base/jdk.internal.misc.Unsafe.park(Native Method)\n java.base/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:271)\n java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1803)\n java.base/java.util.concurrent.LinkedBlockingQueue.poll(LinkedBlockingQueue.java:460)\n java.base/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1015)\n java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1076)\n java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)\n java.base/java.lang.Thread.run(Thread.java:1474)
+2026.10.04 18:47:12 INFO  web[][o.s.p.ProcessEntryPoint] Hard stopping process
+2026.10.04 18:47:12 INFO  app[][o.s.a.SchedulerImpl] Process[Web Server] is stopped
+2026.10.04 18:47:12 INFO  app[][o.s.a.SchedulerImpl] Process[ElasticSearch] is stopped
+2026.10.04 18:47:12 WARN  app[][o.s.a.p.AbstractManagedProcess] Process exited with exit value [ElasticSearch]: 143
+2026.10.04 18:47:12 INFO  app[][o.s.a.SchedulerImpl] SonarQube is stopped

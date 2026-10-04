@@ -1,0 +1,53 @@
+{
+  "argv": [
+    "/usr/bin/bwrap",
+    "--die-with-parent",
+    "--ro-bind",
+    "/",
+    "/",
+    "--ro-bind",
+    "/home/user/src/cix-sonar-cxx-tools/cppcheck-runtime-v1/usr/bin",
+    "/usr/bin",
+    "--ro-bind",
+    "/home/user/src/cix-sonar-cxx-tools/cppcheck-runtime-v1/usr/lib/x86_64-linux-gnu",
+    "/usr/lib/x86_64-linux-gnu",
+    "--ro-bind",
+    "/home/user/src/cix-sonar-cxx-tools/cppcheck-runtime-v1/usr/lib64/ld-linux-x86-64.so.2",
+    "/usr/lib64/ld-linux-x86-64.so.2",
+    "--",
+    "/usr/bin/cppcheck",
+    "--xml",
+    "--xml-version=2",
+    "--enable=warning,style,performance,portability,information",
+    "--platform=unix64",
+    "--max-configs=12",
+    "-j",
+    "2",
+    "--library=/usr/lib/x86_64-linux-gnu/cppcheck/cfg/std.cfg",
+    "--library=/usr/lib/x86_64-linux-gnu/cppcheck/cfg/posix.cfg",
+    "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/sonar-preparation/probe-v4/probe-source/probe.cpp"
+  ],
+  "checked_translation_units": 0,
+  "configuration_limit": 12,
+  "cppcheck_argv": [
+    "/usr/bin/cppcheck",
+    "--xml",
+    "--xml-version=2",
+    "--enable=warning,style,performance,portability,information",
+    "--platform=unix64",
+    "--max-configs=12",
+    "-j",
+    "2",
+    "--library=/usr/lib/x86_64-linux-gnu/cppcheck/cfg/std.cfg",
+    "--library=/usr/lib/x86_64-linux-gnu/cppcheck/cfg/posix.cfg",
+    "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/sonar-preparation/probe-v4/probe-source/probe.cpp"
+  ],
+  "exit": 1,
+  "private_runtime_overlay": {
+    "binary_destination": "/usr/bin/cppcheck",
+    "host_mutation": false,
+    "library_destination": "/usr/lib/x86_64-linux-gnu",
+    "loader_destination": "/usr/lib64/ld-linux-x86-64.so.2",
+    "source": "/home/user/src/cix-sonar-cxx-tools/cppcheck-runtime-v1"
+  }
+}

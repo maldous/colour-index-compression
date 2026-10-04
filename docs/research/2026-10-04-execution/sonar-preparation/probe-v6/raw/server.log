@@ -1,0 +1,693 @@
+2026.10.04 19:22:09 INFO  app[][o.s.a.AppFileSystem] Cleaning or creating temp directory /opt/sonarqube/temp
+2026.10.04 19:22:09 INFO  app[][o.s.a.es.EsSettings] Elasticsearch listening on [HTTP: 127.0.0.1:9001, TCP: 127.0.0.1:{}]
+2026.10.04 19:22:09 INFO  app[][o.s.a.ProcessLauncherImpl] Launch process[ELASTICSEARCH] from [/opt/sonarqube/elasticsearch]: /opt/java/openjdk/bin/java -Xms4m -Xmx64m -XX:+UseSerialGC -cp /opt/sonarqube/elasticsearch/lib/tools/server-launcher/* org.elasticsearch.server.launcher.ServerLauncher
+2026.10.04 19:22:09 INFO  app[][o.s.a.SchedulerImpl] Waiting for Elasticsearch to be up and running
+Failed to load native library:jansi-2.4.0-31c6c54ef08b37f9-libjansi.so. The native library file at /opt/sonarqube/temp/jansi-2.4.0-31c6c54ef08b37f9-libjansi.so is not executable, make sure that the directory is mounted on a partition without the noexec flag, or set the jansi.tmpdir system property to point to a proper location.  osinfo: Linux/x86_64
+java.lang.UnsatisfiedLinkError: /opt/sonarqube/temp/jansi-2.4.0-31c6c54ef08b37f9-libjansi.so: /opt/sonarqube/temp/jansi-2.4.0-31c6c54ef08b37f9-libjansi.so: failed to map segment from shared object
+Oct 04, 2026 7:22:10 PM sun.util.locale.provider.LocaleProviderAdapter <clinit>
+INFO: Invalid locale provider adapter "COMPAT" ignored.
+Oct 04, 2026 7:22:10 PM sun.util.locale.provider.LocaleProviderAdapter <clinit>
+WARNING: COMPAT locale provider has been removed
+2026.10.04 19:22:10 INFO  es[][o.e.b.Elasticsearch] version[9.4.3], pid[109], build[tar/45f6a06b1b441b41fe711059b8720013173e7c89/2026-06-25T14:04:34.316306228Z], OS[Linux/6.8.0-142-generic/amd64], JVM[Eclipse Adoptium/OpenJDK 64-Bit Server VM/25.0.4.1/25.0.4.1+1-LTS]
+2026.10.04 19:22:10 INFO  es[][o.e.b.Elasticsearch] JVM home [/opt/java/openjdk], using bundled JDK [false]
+2026.10.04 19:22:10 INFO  es[][o.e.b.Elasticsearch] JVM arguments [-Des.networkaddress.cache.ttl=60, -Des.networkaddress.cache.negative.ttl=10, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -XX:-OmitStackTraceInFastThrow, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, --add-opens=org.apache.lucene.core/org.apache.lucene.codecs.lucene99=org.elasticsearch.server, --add-opens=org.apache.lucene.core/org.apache.lucene.codecs.hnsw=org.elasticsearch.server, --add-opens=org.apache.lucene.core/org.apache.lucene.internal.vectorization=org.elasticsearch.server, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j2.formatMsgNoLookups=true, -Djava.locale.providers=CLDR, -Dorg.apache.lucene.vectorization.upperJavaFeatureVersion=25, -Des.path.home=/opt/sonarqube/elasticsearch, -Des.distribution.type=tar, -Des.java.type=ES_JAVA_HOME, --enable-native-access=org.elasticsearch.nativeaccess,org.apache.lucene.core, --enable-native-access=ALL-UNNAMED, --illegal-native-access=deny, -XX:ReplayDataFile=logs/replay_pid%p.log, -XX:+EnableDynamicAgentLoading, -Djdk.attach.allowAttachSelf=true, --patch-module=java.base=/opt/sonarqube/elasticsearch/lib/entitlement-bridge/elasticsearch-entitlement-bridge-9.4.3.jar, --add-exports=java.base/org.elasticsearch.entitlement.bridge=org.elasticsearch.entitlement,java.logging,java.net.http,java.naming,jdk.net,jdk.zipfs,jdk.management.agent, -XX:+UseG1GC, -Djava.io.tmpdir=/opt/sonarqube/temp, -XX:ErrorFile=/opt/sonarqube/logs/es_hs_err_pid%p.log, -Xlog:disable, -Des.networkaddress.cache.ttl=60, -Des.networkaddress.cache.negative.ttl=10, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djna.tmpdir=/opt/sonarqube/temp, -XX:-OmitStackTraceInFastThrow, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dio.netty.allocator.numDirectArenas=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j2.formatMsgNoLookups=true, -Djava.locale.providers=COMPAT, -Xmx512m, -Xms512m, -XX:MaxDirectMemorySize=256m, -XX:+HeapDumpOnOutOfMemoryError, -XX:G1HeapRegionSize=4m, -XX:InitiatingHeapOccupancyPercent=30, -XX:G1ReservePercent=15, --module-path=/opt/sonarqube/elasticsearch/lib, --add-modules=jdk.net, --add-modules=jdk.management.agent, --add-modules=ALL-MODULE-PATH, -Djdk.module.main=org.elasticsearch.server]
+2026.10.04 19:22:10 INFO  es[][o.e.b.Elasticsearch] Default Locale [en_US]
+2026.10.04 19:22:10 INFO  es[][o.e.n.j.JdkVectorLibrary] vec_caps=1
+2026.10.04 19:22:10 INFO  es[][o.e.n.NativeAccess] Using native vector library; to disable start with -Dorg.elasticsearch.nativeaccess.enableVectorLibrary=false
+2026.10.04 19:22:10 INFO  es[][o.e.n.NativeAccess] Using [jdk] native provider and native methods for [Linux]
+2026.10.04 19:22:10 WARN  es[][o.a.l.i.v.VectorizationProvider] Java vector incubator module is not readable. For optimal vector performance, pass '--add-modules jdk.incubator.vector' to enable Vector API.
+2026.10.04 19:22:10 INFO  es[][o.e.b.Elasticsearch] Bootstrapping Entitlements
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-core]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-migrate]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [rest-root]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [reindex]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-redact]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-security]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-geoip-enterprise-downloader]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [lang-painless]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [rank-vectors]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-esql-core]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [parent-join]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [old-lucene-versions]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [counted-keyword]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-inference]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [analysis-common]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [dot-prefix-validation]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [health-shards-availability]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [transport-netty4]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [apm]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [aggregations]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [ingest-common]
+2026.10.04 19:22:11 INFO  es[][o.e.p.PluginsService] loaded module [user-agent]
+2026.10.04 19:22:12 INFO  es[][o.e.e.NodeEnvironment] using [1] data paths, mounts [[/opt/sonarqube/data (tmpfs)]], net usable_space [255.9mb], net total_space [256mb], types [tmpfs]
+2026.10.04 19:22:12 INFO  es[][o.e.e.NodeEnvironment] heap size [512mb], compressed ordinary object pointers [true]
+2026.10.04 19:22:12 INFO  es[][o.e.n.Node] node name [sonarqube], node ID [jT47LTECQ6e-Y4N0jGrkcw], cluster name [sonarqube], roles [data_warm, data_content, transform, data_hot, ml, data_frozen, ingest, data_cold, data, remote_cluster_client, master]
+2026.10.04 19:22:13 INFO  es[][o.e.f.FeatureService] Registered local node features [ES_V_8, ES_V_9, aggregate_metric_double.default_metric.deprecated, certificate_identity_field, cluster.reroute.ignores_metric_param, cluster.stats.source_modes, inference.auth_poller.persistent_task, inference.ccm.cache, inference.ccm.enablement_service, inference.embedding_task_type, inference.endpoint.cache, inference.metadata_field, ingest.field_access_pattern, lucene_10_1_upgrade, lucene_10_upgrade, resolve_index_returns_mode, security.queryable_built_in_roles, security_stats_endpoint, simulate.ignored.fields, snapshots.get.state_parameter]
+2026.10.04 19:22:13 INFO  es[][o.e.i.r.RecoverySettings] using rate limit [40mb] with [default=40mb, read=0b, write=0b, max=0b]
+2026.10.04 19:22:13 INFO  es[][o.e.c.m.DataStreamGlobalRetentionSettings] Updated global default retention to [null]
+2026.10.04 19:22:13 INFO  es[][o.e.c.m.DataStreamGlobalRetentionSettings] Updated global max retention to [null]
+2026.10.04 19:22:13 INFO  es[][o.e.c.m.DataStreamGlobalRetentionSettings] Updated failures default retention to [30d]
+2026.10.04 19:22:13 INFO  es[][o.e.c.m.DataStreamFailureStoreSettings] Updated data stream name patterns for enabling failure store to [[]]
+2026.10.04 19:22:13 INFO  es[][o.e.x.s.Security] Security is disabled
+2026.10.04 19:22:13 INFO  es[][o.e.x.i.s.e.a.AuthorizationTaskExecutor] Authorization task executor EIS URL: [https://inference.us-east-1.aws.svc.elastic.cloud]
+2026.10.04 19:22:13 INFO  es[][o.e.x.i.s.e.a.AuthorizationTaskExecutor] Starting authorization task executor
+2026.10.04 19:22:13 INFO  es[][o.e.t.a.APM] Sending apm metrics is disabled
+2026.10.04 19:22:13 INFO  es[][o.e.t.a.APM] Sending apm tracing is disabled
+2026.10.04 19:22:13 INFO  es[][o.e.t.n.NettyAllocator] creating NettyAllocator with the following configs: [name=unpooled, suggested_max_allocation_size=1mb, factors={es.unsafe.use_unpooled_allocator=null, g1gc_enabled=true, g1gc_region_size=4mb, heap_size=512mb}]
+2026.10.04 19:22:13 INFO  es[][o.e.d.DiscoveryModule] using discovery type [single-node] and seed hosts providers [settings]
+2026.10.04 19:22:13 INFO  es[][o.e.n.Node] initialized
+2026.10.04 19:22:13 INFO  es[][o.e.n.Node] starting ...
+2026.10.04 19:22:13 INFO  es[][o.e.t.TransportService] publish_address {127.0.0.1:36405}, bound_addresses {127.0.0.1:36405}
+2026.10.04 19:22:13 INFO  es[][o.e.c.c.ClusterBootstrapService] this node has not joined a bootstrapped cluster yet; [cluster.initial_master_nodes] is set to [sonarqube]
+2026.10.04 19:22:13 INFO  es[][o.e.c.c.Coordinator] setting initial configuration to VotingConfiguration[jT47LTECQ6e-Y4N0jGrkcw]
+2026.10.04 19:22:13 WARN  es[][i.o.usage] OpenTelemetry API usage issue detected. To see more details, enable FINEST logging for io.opentelemetry.usage. Stacktraces are includes to identify the offending call site.
+2026.10.04 19:22:13 INFO  es[][o.e.c.s.MasterService] elected-as-master ([1] nodes joined in term 1)[_FINISH_ELECTION_, {sonarqube}{jT47LTECQ6e-Y4N0jGrkcw}{DxtK9SGjR2ms81D8092xGw}{sonarqube}{127.0.0.1}{127.0.0.1:36405}{cdfhilmrstw}{9.4.3}{8000099-9094000} completing election], term: 1, version: 1, delta: master node changed {previous [], current [{sonarqube}{jT47LTECQ6e-Y4N0jGrkcw}{DxtK9SGjR2ms81D8092xGw}{sonarqube}{127.0.0.1}{127.0.0.1:36405}{cdfhilmrstw}{9.4.3}{8000099-9094000}]}
+2026.10.04 19:22:13 INFO  es[][o.e.c.c.CoordinationState] cluster UUID set to [KSd3xOSAQJOQXWjVqN3IWQ]
+2026.10.04 19:22:13 INFO  es[][o.e.c.s.ClusterApplierService] master node changed {previous [], current [{sonarqube}{jT47LTECQ6e-Y4N0jGrkcw}{DxtK9SGjR2ms81D8092xGw}{sonarqube}{127.0.0.1}{127.0.0.1:36405}{cdfhilmrstw}{9.4.3}{8000099-9094000}]}, term: 1, version: 1, reason: Publication{term=1, version=1}
+2026.10.04 19:22:13 INFO  es[][o.e.h.AbstractHttpServerTransport] publish_address {127.0.0.1:9001}, bound_addresses {127.0.0.1:9001}
+2026.10.04 19:22:13 INFO  es[][o.e.n.Node] started {sonarqube}{jT47LTECQ6e-Y4N0jGrkcw}{DxtK9SGjR2ms81D8092xGw}{sonarqube}{127.0.0.1}{127.0.0.1:36405}{cdfhilmrstw}{9.4.3}{8000099-9094000}{rack_id=sonarqube, xpack.installed=true}
+2026.10.04 19:22:13 INFO  es[][o.e.c.c.NodeJoinExecutor] node-join: [{sonarqube}{jT47LTECQ6e-Y4N0jGrkcw}{DxtK9SGjR2ms81D8092xGw}{sonarqube}{127.0.0.1}{127.0.0.1:36405}{cdfhilmrstw}{9.4.3}{8000099-9094000}] with reason [completing election]
+2026.10.04 19:22:13 INFO  es[][o.e.c.f.AbstractFileWatchingService] starting file watcher ...
+2026.10.04 19:22:13 INFO  es[][o.e.c.f.AbstractFileWatchingService] file settings service up and running [tid=55]
+2026.10.04 19:22:13 INFO  es[][o.e.r.s.FileSettingsService] setting file [/opt/sonarqube/data/es9/config/operator/settings.json] not found, initializing [file_settings] as empty
+2026.10.04 19:22:13 INFO  es[][o.e.g.GatewayService] recovered [0] indices into cluster_state
+2026.10.04 19:22:13 WARN  es[][o.e.x.i.s.e.ElasticsearchInternalService] Get deployment stats failed, cannot update the endpoint's number of allocations
+java.lang.IllegalStateException: failed to find action [cluster:internal/xpack/ml/trained_models/deployments/stats/get] to execute
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.node.NodeClient.transportAction(NodeClient.java:136)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.node.NodeClient.executeLocally(NodeClient.java:109)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.node.NodeClient.doExecute(NodeClient.java:85)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.support.AbstractClient.execute(AbstractClient.java:160)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.FilterClient.doExecute(FilterClient.java:57)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.OriginSettingClient.doExecute(OriginSettingClient.java:44)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.support.AbstractClient.execute(AbstractClient.java:160)
+	at org.elasticsearch.inference@9.4.3/org.elasticsearch.xpack.inference.services.elasticsearch.ElasticsearchInternalService.updateModelsWithDynamicFields(ElasticsearchInternalService.java:901)
+	at org.elasticsearch.inference@9.4.3/org.elasticsearch.xpack.inference.action.TransportGetInferenceModelAction.parseModels(TransportGetInferenceModelAction.java:164)
+	at org.elasticsearch.inference@9.4.3/org.elasticsearch.xpack.inference.action.TransportGetInferenceModelAction.lambda$getAllModels$2(TransportGetInferenceModelAction.java:119)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.common.util.concurrent.ThreadContext$ContextPreservingRunnable.run(ThreadContext.java:1047)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+2026.10.04 19:22:14 INFO  es[][o.e.x.c.t.IndexTemplateRegistry] adding ingest pipeline reindex-data-stream-pipeline
+2026.10.04 19:22:14 INFO  app[][o.s.a.SchedulerImpl] Process[es] is up
+2026.10.04 19:22:14 INFO  app[][o.s.a.ProcessLauncherImpl] Launch process[WEB_SERVER] from [/opt/sonarqube]: /opt/java/openjdk/bin/java -Djava.awt.headless=true -Dfile.encoding=UTF-8 -Djava.io.tmpdir=/opt/sonarqube/temp -XX:-OmitStackTraceInFastThrow --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.management/sun.management=ALL-UNNAMED --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED -Xmx512m -Xms128m -XX:+HeapDumpOnOutOfMemoryError -Dhttp.nonProxyHosts=localhost|127.*|[::1] -cp ./lib/sonar-application-26.9.0.129388.jar:/opt/sonarqube/lib/jdbc/h2/h2-2.3.232.jar org.sonar.server.app.WebServer /opt/sonarqube/temp/sq-process370181682235715958properties
+2026.10.04 19:22:14 INFO  es[][o.e.l.ClusterStateLicenseService] license [b2b226e6-e3e0-4912-862a-aab9525e8e8f] mode [basic] - valid
+2026.10.04 19:22:14 INFO  es[][o.e.h.n.s.HealthNodeTaskExecutor] Node [jT47LTECQ6e-Y4N0jGrkcw/sonarqube] is selected as the current health node.
+2026.10.04 19:22:14 INFO  web[][o.s.p.ProcessEntryPoint] Starting Web Server
+2026.10.04 19:22:14 INFO  web[][o.s.s.a.TomcatHttpConnectorFactory] Starting Tomcat on port 9000
+2026.10.04 19:22:14 WARN  web[][o.a.c.c.StandardHost] appBase on host [localhost] is a parent folder of CATALINA_BASE, which is a bad idea
+2026.10.04 19:22:14 INFO  web[][o.s.s.p.LogServerVersion] SonarQube Server / 26.9.0.129388 / 7d3af781ec381ac1de3193498ffc6ff1dbd362c6
+2026.10.04 19:22:14 INFO  web[][o.s.s.p.d.EmbeddedDatabase] Starting embedded database on port 9092 with url jdbc:h2:tcp://127.0.0.1:9092/sonar;NON_KEYWORDS=VALUE
+2026.10.04 19:22:14 INFO  web[][o.s.s.p.d.EmbeddedDatabase] Embedded database started. Data stored in: /opt/sonarqube/data
+2026.10.04 19:22:14 INFO  web[][o.s.d.DefaultDatabase] Create JDBC data source for jdbc:h2:tcp://127.0.0.1:9092/sonar;NON_KEYWORDS=VALUE
+2026.10.04 19:22:14 INFO  web[][c.z.h.HikariDataSource] HikariPool-1 - Starting...
+2026.10.04 19:22:14 INFO  web[][c.z.h.p.HikariPool] HikariPool-1 - Added connection conn2: url=jdbc:h2:tcp://127.0.0.1:9092/sonar user=
+2026.10.04 19:22:14 INFO  web[][c.z.h.HikariDataSource] HikariPool-1 - Start completed.
+2026.10.04 19:22:14 WARN  web[][o.s.db.dialect.H2] H2 database should be used for evaluation purpose only.
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.ServerFileSystemImpl] SonarQube home: /opt/sonarqube
+2026.10.04 19:22:15 INFO  web[][o.s.s.u.SystemPasscodeImpl] System authentication by passcode is disabled
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.d.m.h.MigrationHistoryTableImpl] Creating table schema_migrations
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.ServerPluginManager] Deploy C++ (Community) / 2.3.0.1496 / 9024ea08095d0f27b3281368f83fd88c6c8b22fe
+2026.10.04 19:22:15 INFO  web[][o.s.s.e.EsClientProvider] Connected to local Elasticsearch: [http://localhost:9001]
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.d.m.AutoDbMigration] Automatically perform DB migration on fresh install
+2026.10.04 19:22:15 INFO  web[][DbMigrations] Executing 97 DB migrations...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 1/97 #1 'Create initial schema'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 1/97 #1 'Create initial schema': success | time=87ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 2/97 #2 'Populate initial schema'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 2/97 #2 'Populate initial schema': success | time=14ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 3/97 #202601000 'Create 'components_copy_component_uuid' index'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 3/97 #202601000 'Create 'components_copy_component_uuid' index': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 4/97 #202601001 'Populate the 'analyses.counter.date' internal property'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 4/97 #202601001 'Populate the 'analyses.counter.date' internal property': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 5/97 #202601002 'Create unique partial index on 'snapshots' for root_component_uuid where islast = true'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 5/97 #202601002 'Create unique partial index on 'snapshots' for root_component_uuid where islast = true': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 6/97 #202601003 'Add 'part_number' column to 'ce_task_input''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 6/97 #202601003 'Add 'part_number' column to 'ce_task_input'': success | time=6ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 7/97 #202601004 'Add 'part_count' column to 'ce_queue''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 7/97 #202601004 'Add 'part_count' column to 'ce_queue'': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 8/97 #202602000 'Create 'sca_ir_cve_locations' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 8/97 #202602000 'Create 'sca_ir_cve_locations' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 9/97 #202602001 'Create 'integration_bindings' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 9/97 #202602001 'Create 'integration_bindings' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 10/97 #202603000 'Add epss_score, epss_percentile, known_exploited columns to 'sca_vulnerability_issues''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 10/97 #202603000 'Add epss_score, epss_percentile, known_exploited columns to 'sca_vulnerability_issues'': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 11/97 #202603001 'Alter 'sca_analyses.failed_reason' column type to clob'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 11/97 #202603001 'Alter 'sca_analyses.failed_reason' column type to clob': success | time=5ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 12/97 #202603002 'Add GitLab Planner role permission mapping'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 12/97 #202603002 'Add GitLab Planner role permission mapping': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 13/97 #202603003 'Add GitLab Security Manager role permission mapping'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 13/97 #202603003 'Add GitLab Security Manager role permission mapping': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 14/97 #202603004 'Add 'component_uuid' column to 'sca_issues_releases' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 14/97 #202603004 'Add 'component_uuid' column to 'sca_issues_releases' table': success | time=3ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 15/97 #202603005 'Backfill 'component_uuid' on 'sca_issues_releases' from 'sca_releases''...
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.d.m.v.v.BackfillComponentUuidOnScaIssuesReleases] No rows require component_uuid backfill in sca_issues_releases
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 15/97 #202603005 'Backfill 'component_uuid' on 'sca_issues_releases' from 'sca_releases'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 16/97 #202603006 'Make 'sca_issues_releases.component_uuid' not nullable'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 16/97 #202603006 'Make 'sca_issues_releases.component_uuid' not nullable': success | time=3ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 17/97 #202603007 'Create 'admin_alert_status' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 17/97 #202603007 'Create 'admin_alert_status' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 18/97 #202604000 'Drop redundant unique index 'uniq_iss_key_sof_qual' on 'issues_impacts''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 18/97 #202604000 'Drop redundant unique index 'uniq_iss_key_sof_qual' on 'issues_impacts'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 19/97 #202604001 'Drop redundant unique index 'uniq_rul_uuid_sof_qual' on 'rules_default_impacts''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 19/97 #202604001 'Drop redundant unique index 'uniq_rul_uuid_sof_qual' on 'rules_default_impacts'': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 20/97 #202604002 'Rename index 'uniq_iss_key_sof_qual' to 'pk_issues_impacts' on Oracle'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 20/97 #202604002 'Rename index 'uniq_iss_key_sof_qual' to 'pk_issues_impacts' on Oracle': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 21/97 #202604003 'Rename index 'uniq_rul_uuid_sof_qual' to 'pk_rules_default_impacts' on Oracle'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 21/97 #202604003 'Rename index 'uniq_rul_uuid_sof_qual' to 'pk_rules_default_impacts' on Oracle': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 22/97 #202604004 'Drop redundant index 'issue_changes_issue_key' on 'issue_changes''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 22/97 #202604004 'Drop redundant index 'issue_changes_issue_key' on 'issue_changes'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 23/97 #202604005 'Create index 'sca_issues_updated_at' on 'sca_issues.updated_at''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 23/97 #202604005 'Create index 'sca_issues_updated_at' on 'sca_issues.updated_at'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 24/97 #202604006 'Create index 'sca_releases_updated_at' on 'sca_releases.updated_at''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 24/97 #202604006 'Create index 'sca_releases_updated_at' on 'sca_releases.updated_at'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 25/97 #202604007 'Create index 'sca_issues_releases_updated_at' on 'sca_issues_releases.updated_at''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 25/97 #202604007 'Create index 'sca_issues_releases_updated_at' on 'sca_issues_releases.updated_at'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 26/97 #202604008 'Set portfolios as private when their matching component is private'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 26/97 #202604008 'Set portfolios as private when their matching component is private': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 27/97 #202604009 'Decommission 'Sonar way for AI Code' quality gate'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 27/97 #202604009 'Decommission 'Sonar way for AI Code' quality gate': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 28/97 #202604010 'Add organization_uuid to sca_encountered_licenses and update unique index'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 28/97 #202604010 'Add organization_uuid to sca_encountered_licenses and update unique index': success | time=3ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 29/97 #202604011 'Create table 'architecture_models''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 29/97 #202604011 'Create table 'architecture_models'': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 30/97 #202604012 'Drop table 'architecture_graphs''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 30/97 #202604012 'Drop table 'architecture_graphs'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 31/97 #202604013 'Add architectureadmin permission to existing project admins'...
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.d.m.s.MassUpdate] 0 rows processed (0 items/sec)
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.d.m.s.MassUpdate] 0 rows processed (0 items/sec)
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.d.m.s.MassUpdate] 0 rows processed (0 items/sec)
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.d.m.s.MassUpdate] 0 rows processed (0 items/sec)
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 31/97 #202604013 'Add architectureadmin permission to existing project admins': success | time=10ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 32/97 #202604014 'Add 'signature_type' to 'sca_ir_cve_locations''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 32/97 #202604014 'Add 'signature_type' to 'sca_ir_cve_locations'': success | time=3ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 33/97 #202604015 'Create table 'arch_graph_metadata''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 33/97 #202604015 'Create table 'arch_graph_metadata'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 34/97 #202604016 'Create table 'arch_graph_blobs''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 34/97 #202604016 'Create table 'arch_graph_blobs'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 35/97 #202604017 'Create table 'arch_scanner_data''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 35/97 #202604017 'Create table 'arch_scanner_data'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 36/97 #202604018 'Create table 'arch_directives''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 36/97 #202604018 'Create table 'arch_directives'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 37/97 #202604019 'Drop table 'architecture_models''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 37/97 #202604019 'Drop table 'architecture_models'': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 38/97 #202604020 'Create table 'arch_intended''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 38/97 #202604020 'Create table 'arch_intended'': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 39/97 #202604021 'Add 'origin' to 'arch_directives''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 39/97 #202604021 'Add 'origin' to 'arch_directives'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 40/97 #202605000 'Create table 'a3s_contexts''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 40/97 #202605000 'Create table 'a3s_contexts'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 41/97 #202605001 'Create table 'a3s_context_items''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 41/97 #202605001 'Create table 'a3s_context_items'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 42/97 #202605002 'Create table 'a3s_analysis_usages''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 42/97 #202605002 'Create table 'a3s_analysis_usages'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 43/97 #202605003 'Create table 'agent_schedules''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 43/97 #202605003 'Create table 'agent_schedules'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 44/97 #202605004 'Create table 'agent_sched_proc_issues''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 44/97 #202605004 'Create table 'agent_sched_proc_issues'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 45/97 #202605005 'Add 'reachability_analyzed' to 'sca_issues_releases''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 45/97 #202605005 'Add 'reachability_analyzed' to 'sca_issues_releases'': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 46/97 #202605006 'Seed global '*' row in 'agent_schedules''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 46/97 #202605006 'Seed global '*' row in 'agent_schedules'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 47/97 #202605007 'Create 'issue_count_dimensions' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 47/97 #202605007 'Create 'issue_count_dimensions' table': success | time=3ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 48/97 #202605008 'Create 'issue_count_history' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 48/97 #202605008 'Create 'issue_count_history' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 49/97 #202605009 'Create 'measure_key_mapping' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 49/97 #202605009 'Create 'measure_key_mapping' table': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 50/97 #202605010 'Create 'measure_history' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 50/97 #202605010 'Create 'measure_history' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 51/97 #202605011 'Increase issue_stats_by_rule_key.rule_key column size'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 51/97 #202605011 'Increase issue_stats_by_rule_key.rule_key column size': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 52/97 #202605012 'Create table 'sca_issue_dimensions''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 52/97 #202605012 'Create table 'sca_issue_dimensions'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 53/97 #202605013 'Create table 'sca_ttr_history''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 53/97 #202605013 'Create table 'sca_ttr_history'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 54/97 #202605014 'Make 'branch_name' nullable in 'a3s_contexts''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 54/97 #202605014 'Make 'branch_name' nullable in 'a3s_contexts'': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 55/97 #202605015 'Add 'producer' column to 'issues' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 55/97 #202605015 'Add 'producer' column to 'issues' table': success | time=3ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 56/97 #202605016 'Create table 'agentic_job''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 56/97 #202605016 'Create table 'agentic_job'': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 57/97 #202605017 'Create table 'llm_providers''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 57/97 #202605017 'Create table 'llm_providers'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 58/97 #202605018 'Create table 'llm_provider_mappings''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 58/97 #202605018 'Create table 'llm_provider_mappings'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 59/97 #202605019 'Create table 'arch_boundary_descriptors''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 59/97 #202605019 'Create table 'arch_boundary_descriptors'': success | time=5ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 60/97 #202605020 'Rename table 'arch_intended' to 'arch_models''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 60/97 #202605020 'Rename table 'arch_intended' to 'arch_models'': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 61/97 #202605021 'Rename index 'arch_intended_uuid' to 'arch_models_uuid''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 61/97 #202605021 'Rename index 'arch_intended_uuid' to 'arch_models_uuid'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 62/97 #202605022 'Create table 'arch_patterns''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 62/97 #202605022 'Create table 'arch_patterns'': success | time=3ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 63/97 #202605023 'Create table 'arch_model_patterns''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 63/97 #202605023 'Create table 'arch_model_patterns'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 64/97 #202605024 'Rename constraint 'pk_arch_intended' to 'pk_arch_models''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 64/97 #202605024 'Rename constraint 'pk_arch_intended' to 'pk_arch_models'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 65/97 #202605025 'Create table 'arch_org_placeholders''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 65/97 #202605025 'Create table 'arch_org_placeholders'': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 66/97 #202605026 'Create table 'arch_proj_relations''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 66/97 #202605026 'Create table 'arch_proj_relations'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 67/97 #202605027 'Create table 'arch_proj_org_compo''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 67/97 #202605027 'Create table 'arch_proj_org_compo'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 68/97 #202605028 'Create 'dashboards' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 68/97 #202605028 'Create 'dashboards' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 69/97 #202605029 'Create table 'issue_ttr_history''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 69/97 #202605029 'Create table 'issue_ttr_history'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 70/97 #202605030 'Drop index 'sca_ttr_history_uq_idx''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 70/97 #202605030 'Drop index 'sca_ttr_history_uq_idx'': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 71/97 #202605031 'Drop index 'sca_ttr_history_ent_type_epoch''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 71/97 #202605031 'Drop index 'sca_ttr_history_ent_type_epoch'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 72/97 #202605032 'Resize entity_id and entity_type columns in 'sca_ttr_history''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 72/97 #202605032 'Resize entity_id and entity_type columns in 'sca_ttr_history'': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 73/97 #202605033 'Add 'url' and 'repo_id' columns to 'project_alm_settings' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 73/97 #202605033 'Add 'url' and 'repo_id' columns to 'project_alm_settings' table': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 74/97 #202605034 'Create index 'sca_dependencies_updated_at' on 'sca_dependencies.updated_at''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 74/97 #202605034 'Create index 'sca_dependencies_updated_at' on 'sca_dependencies.updated_at'': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 75/97 #202605035 'Create index 'sca_ir_cve_loc_updated_at' on 'sca_ir_cve_locations.updated_at''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 75/97 #202605035 'Create index 'sca_ir_cve_loc_updated_at' on 'sca_ir_cve_locations.updated_at'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 76/97 #202605036 'Create 'agent_jobs' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 76/97 #202605036 'Create 'agent_jobs' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 77/97 #202605037 'Create 'remediation_agent_jobs' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 77/97 #202605037 'Create 'remediation_agent_jobs' table': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 78/97 #202605038 'Drop 'agentic_job' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 78/97 #202605038 'Drop 'agentic_job' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 79/97 #202605039 'Create 'findings' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 79/97 #202605039 'Create 'findings' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 80/97 #202605040 'Create 'finding_locations' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 80/97 #202605040 'Create 'finding_locations' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 81/97 #202605041 'Create 'organization_configs' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 81/97 #202605041 'Create 'organization_configs' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 82/97 #202605042 'Create 'project_configs' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 82/97 #202605042 'Create 'project_configs' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 83/97 #202605043 'Add 'selected_project_ids' column to 'agent_schedules' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 83/97 #202605043 'Add 'selected_project_ids' column to 'agent_schedules' table': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 84/97 #202605044 'Add 'dop_user_id' column to 'remediation_agent_jobs' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 84/97 #202605044 'Add 'dop_user_id' column to 'remediation_agent_jobs' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 85/97 #202605045 'Add 'issues_selection_strategy' column to 'remediation_agent_jobs' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 85/97 #202605045 'Add 'issues_selection_strategy' column to 'remediation_agent_jobs' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 86/97 #202605046 'Create 'hunter_scheduled_tasks' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 86/97 #202605046 'Create 'hunter_scheduled_tasks' table': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 87/97 #202605047 'Make legacy-id columns nullable in 'project_configs''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 87/97 #202605047 'Make legacy-id columns nullable in 'project_configs'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 88/97 #202605048 'Create 'agent_orch_tasks' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 88/97 #202605048 'Create 'agent_orch_tasks' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 89/97 #202605049 'Create 'remediation_sched_tasks' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 89/97 #202605049 'Create 'remediation_sched_tasks' table': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 90/97 #202605050 'Create table 'cag_usage''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 90/97 #202605050 'Create table 'cag_usage'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 91/97 #202605051 'Create 'hunter_agent_jobs' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 91/97 #202605051 'Create 'hunter_agent_jobs' table': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 92/97 #202605052 'Create 'dop_pr_snapshots' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 92/97 #202605052 'Create 'dop_pr_snapshots' table': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 93/97 #202605053 'Create 'hunter_agent_runs' table'...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 93/97 #202605053 'Create 'hunter_agent_runs' table': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 94/97 #202605054 'Create index 'group_roles_ent_role_grp' on 'group_roles''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 94/97 #202605054 'Create index 'group_roles_ent_role_grp' on 'group_roles'': success | time=0ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 95/97 #202605055 'Add the rule body to 'findings''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 95/97 #202605055 'Add the rule body to 'findings'': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 96/97 #202605056 'Add flow metadata to 'finding_locations''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 96/97 #202605056 'Add flow metadata to 'finding_locations'': success | time=1ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 97/97 #202605057 'Add 'expected_credits' to 'agent_jobs''...
+2026.10.04 19:22:15 INFO  web[][DbMigrations] 97/97 #202605057 'Add 'expected_credits' to 'agent_jobs'': success | time=2ms
+2026.10.04 19:22:15 INFO  web[][DbMigrations] Executed 97/97 DB migrations: success | time=264ms
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.Platform] Database has been automatically updated
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.WebServiceFilter@7d64a960 [pattern=UrlPattern{inclusions=[/api/system/migrate_db.*, ...], exclusions=[/api/components/update_key, ...]}]
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.NoCacheFilter@5817f1ca [pattern=UrlPattern{inclusions=[/api/v2/*], exclusions=[]}]
+2026.10.04 19:22:15 INFO  web[][o.s.s.p.DetectPluginChange] Detect plugin changes
+2026.10.04 19:22:15 INFO  web[][o.s.s.s.PropertiesDBCleaner] Clean up properties from db
+2026.10.04 19:22:16 INFO  web[][o.s.s.e.IndexCreator] Create index [metadatas]
+2026.10.04 19:22:16 INFO  web[][o.h.v.i.util.Version] HV000001: Hibernate Validator 9.1.0.Final
+2026.10.04 19:22:16 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [metadatas] in project [default], cause [api], templates [], shards [1]/[0]
+2026.10.04 19:22:16 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[metadatas][0]]])." previous.health="YELLOW" reason="shards started [[metadatas][0]]"
+2026.10.04 19:22:16 INFO  web[][o.s.s.e.IndexCreator] Create mapping metadatas
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by com.google.protobuf.UnsafeUtil (file:/opt/sonarqube/lib/sonar-application-26.9.0.129388.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.protobuf.UnsafeUtil
+WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release
+2026.10.04 19:22:16 INFO  es[][o.e.c.m.MetadataMappingService] [metadatas/RJ6feR__S6Or0XCh82VM6g] create_mapping
+2026.10.04 19:22:16 INFO  web[][o.s.s.e.IndexCreator] Create index [components]
+2026.10.04 19:22:16 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [components] in project [default], cause [api], templates [], shards [5]/[0]
+2026.10.04 19:22:16 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[components][4]]])." previous.health="YELLOW" reason="shards started [[components][4]]"
+2026.10.04 19:22:16 INFO  web[][o.s.s.e.IndexCreator] Create mapping components
+2026.10.04 19:22:16 INFO  es[][o.e.c.m.MetadataMappingService] [components/d6jAbcr8TESHporkTv4Gpw] create_mapping
+2026.10.04 19:22:16 INFO  web[][o.s.s.e.IndexCreator] Create index [projectmeasures]
+2026.10.04 19:22:16 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [projectmeasures] in project [default], cause [api], templates [], shards [5]/[0]
+2026.10.04 19:22:16 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[projectmeasures][4]]])." previous.health="YELLOW" reason="shards started [[projectmeasures][4]]"
+2026.10.04 19:22:16 INFO  web[][o.s.s.e.IndexCreator] Create mapping projectmeasures
+2026.10.04 19:22:16 INFO  es[][o.e.c.m.MetadataMappingService] [projectmeasures/Doy6_RkyRzSyzzC16dY7-Q] create_mapping
+2026.10.04 19:22:16 INFO  web[][o.s.s.e.IndexCreator] Create index [rules]
+2026.10.04 19:22:17 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [rules] in project [default], cause [api], templates [], shards [2]/[0]
+2026.10.04 19:22:17 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[rules][0], [rules][1]]])." previous.health="YELLOW" reason="shards started [[rules][0], [rules][1]]"
+2026.10.04 19:22:17 INFO  web[][o.s.s.e.IndexCreator] Create mapping rules
+2026.10.04 19:22:17 INFO  es[][o.e.c.m.MetadataMappingService] [rules/Fs24457ySvep4yO3L5FY6g] create_mapping
+2026.10.04 19:22:17 INFO  web[][o.s.s.e.IndexCreator] Create index [issues]
+2026.10.04 19:22:17 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [issues] in project [default], cause [api], templates [], shards [5]/[0]
+2026.10.04 19:22:17 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[issues][4]]])." previous.health="YELLOW" reason="shards started [[issues][4]]"
+2026.10.04 19:22:17 INFO  web[][o.s.s.e.IndexCreator] Create mapping issues
+2026.10.04 19:22:17 INFO  es[][o.e.c.m.MetadataMappingService] [issues/FemkqeVBQsequKBL312FoA] create_mapping
+2026.10.04 19:22:17 INFO  web[][o.s.s.e.IndexCreator] Create index [views]
+2026.10.04 19:22:17 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [views] in project [default], cause [api], templates [], shards [5]/[0]
+2026.10.04 19:22:17 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[views][4]]])." previous.health="YELLOW" reason="shards started [[views][4]]"
+2026.10.04 19:22:17 INFO  web[][o.s.s.e.IndexCreator] Create mapping views
+2026.10.04 19:22:17 INFO  es[][o.e.c.m.MetadataMappingService] [views/CcVp5i7IT8OxYLsEyQr3hQ] create_mapping
+2026.10.04 19:22:17 INFO  web[][o.s.s.s.LogServerId] Server ID: 147B411E-AaEIXe0CdE9DDdXzUo5h
+2026.10.04 19:22:17 INFO  web[][o.o.c.c.InitializationService] Initializing OpenSAML using the Java Services API
+2026.10.04 19:22:17 INFO  web[][o.o.x.a.AlgorithmRegistry] Algorithm failed runtime support check, will not be usable: http://www.w3.org/2001/04/xmlenc#ripemd160
+2026.10.04 19:22:17 INFO  web[][o.o.x.a.AlgorithmRegistry] Algorithm failed runtime support check, will not be usable: http://www.w3.org/2001/04/xmldsig-more#hmac-ripemd160
+2026.10.04 19:22:17 INFO  web[][o.o.x.a.AlgorithmRegistry] Algorithm failed runtime support check, will not be usable: http://www.w3.org/2001/04/xmldsig-more#rsa-ripemd160
+2026.10.04 19:22:17 WARN  web[][o.s.s.a.LogOAuthWarning] For security reasons, OAuth authentication should use HTTPS. You should set the property 'Administration > Configuration > Server base URL' to an HTTPS URL.
+2026.10.04 19:22:17 INFO  web[][o.s.s.p.UpdateCenterClient] Update center: https://downloads.sonarsource.com/sonarqube/update/update-center.properties
+2026.10.04 19:22:17 WARN  web[][o.s.a.s.w.WebService$Action] The response example is not set on action api/hotspots/migration_status
+2026.10.04 19:22:17 INFO  web[][o.s.s.a.p.ExpiredSessionsCleaner] Purge of expired session tokens has removed 0 elements
+2026.10.04 19:22:17 INFO  web[][o.s.s.a.p.ExpiredSessionsCleaner] Purge of expired SAML message ids has removed 0 elements
+2026.10.04 19:22:17 INFO  web[][o.s.s.n.NotificationDaemon] Notification service started (delay 60 sec.)
+2026.10.04 19:22:17 INFO  web[][o.s.t.TelemetryDaemon] Sharing of SonarQube statistics is enabled.
+2026.10.04 19:22:18 INFO  web[][o.s.s.r.r.RulesRegistrant] Register rules
+2026.10.04 19:22:20 WARN  es[][o.e.s.i.v.ESVectorizationProvider] Java vector incubator module is not readable. For optimal vector performance, pass '--add-modules jdk.incubator.vector' to enable Vector API.
+2026.10.04 19:22:22 INFO  web[][o.s.s.s.RegisterMetrics] Register metrics
+2026.10.04 19:22:22 INFO  web[][o.s.s.q.RegisterQualityGates] Quality Gate's conditions of [Sonar way] has been updated
+2026.10.04 19:22:22 INFO  web[][o.s.s.q.b.BuiltInQProfileRepositoryImpl] Load quality profiles
+2026.10.04 19:22:22 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register quality profiles
+2026.10.04 19:22:22 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile cxx/Sonar way
+2026.10.04 19:22:22 INFO  web[][o.s.s.s.RegisterPermissionTemplates] Register permission templates
+2026.10.04 19:22:22 INFO  web[][o.s.s.s.RenameDeprecatedPropertyKeys] Rename deprecated property keys
+2026.10.04 19:22:22 WARN  app[][startup] ####################################################################################################################
+2026.10.04 19:22:22 WARN  app[][startup] Plugin(s) detected. Plugins are not provided by SonarSource and are therefore installed at your own risk. A SonarQube administrator needs to acknowledge this risk once logged in.
+2026.10.04 19:22:22 WARN  app[][startup] ####################################################################################################################
+2026.10.04 19:22:22 INFO  web[][o.s.s.s.RegisterPlugins] Register plugins
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.SonarQubeIdeConnectionFilter@2944e03b [pattern=UrlPattern{inclusions=[/api/*], exclusions=[/api/v2/*]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.WebServiceFilter@4dcc6569 [pattern=UrlPattern{inclusions=[/api/issues/delete_comment.*, ...], exclusions=[/api/authentication/login.*, ...]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.NoCacheFilter@3a7b2f2a [pattern=UrlPattern{inclusions=[/api/v2/*], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.WebServiceReroutingFilter@25df9e85 [pattern=UrlPattern{inclusions=[/api/components/update_key, ...], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.DefaultAdminCredentialsVerifierFilter@2b14e73d [pattern=UrlPattern{inclusions=[/*], exclusions=[*.css, ...]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.InitFilter@5dd381b [pattern=UrlPattern{inclusions=[/sessions/init/*], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.SamlValidationRedirectionFilter@663c55f5 [pattern=UrlPattern{inclusions=[/oauth2/callback/saml], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.OAuth2CallbackFilter@3fcec401 [pattern=UrlPattern{inclusions=[/oauth2/callback/*], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.ResetPasswordFilter@33eff1ca [pattern=UrlPattern{inclusions=[/*], exclusions=[*.css, ...]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.ws.LoginAction@40b255d6 [pattern=UrlPattern{inclusions=[/api/authentication/login], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.ws.LogoutAction@1ecb9ef4 [pattern=UrlPattern{inclusions=[/api/authentication/logout], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.ws.ValidateAction@6af43b19 [pattern=UrlPattern{inclusions=[/api/authentication/validate], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.saml.ws.ValidationInitAction@73dd1ad9 [pattern=UrlPattern{inclusions=[/saml/validation_init], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.saml.ws.ValidationAction@463d315d [pattern=UrlPattern{inclusions=[/saml/validation], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.user.ws.ChangePasswordAction@5f9e1a4c [pattern=UrlPattern{inclusions=[/api/users/change_password], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.almsettings.ws.GithubManifestCallbackFilter@5b896fb7 [pattern=UrlPattern{inclusions=[/github/manifest/callback], exclusions=[]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.plugins.PluginsRiskConsentFilter@12ae460b [pattern=UrlPattern{inclusions=[/*], exclusions=[*.css, ...]}]
+2026.10.04 19:22:22 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [projectmeasures/auth/projectmeasure]...
+2026.10.04 19:22:23 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [projectmeasures/auth/projectmeasure] done | time=43ms
+2026.10.04 19:22:23 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [components/auth/component]...
+2026.10.04 19:22:23 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [components/auth/component] done | time=25ms
+2026.10.04 19:22:23 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [views/view]...
+2026.10.04 19:22:23 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [views/view] done | time=38ms
+2026.10.04 19:22:23 INFO  web[][o.s.s.e.IndexerStartupTask] Trigger asynchronous indexing of type [issues/auth/issue]...
+2026.10.04 19:22:23 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] 0 pending indexing task found to be deleted...
+2026.10.04 19:22:23 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] 0 completed indexing task found to be deleted...
+2026.10.04 19:22:23 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] Indexing task deletion complete.
+2026.10.04 19:22:23 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] Deleting tasks characteristics...
+2026.10.04 19:22:23 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] Tasks characteristics deletion complete.
+2026.10.04 19:22:23 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] 0 branch found in need of issue sync.
+2026.10.04 19:22:23 INFO  web[][o.s.s.e.IndexerStartupTask] Trigger asynchronous indexing of type [issues/auth/issue] done | time=20ms
+2026.10.04 19:22:23 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of types [components/auth],[projectmeasures/auth],[issues/auth]...
+2026.10.04 19:22:23 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of types [components/auth],[projectmeasures/auth],[issues/auth] done | time=24ms
+2026.10.04 19:22:23 INFO  web[][o.s.s.p.p.PlatformLevelStartup] Running Community Edition
+2026.10.04 19:22:23 WARN  app[][startup] ####################################################################################################################
+2026.10.04 19:22:23 WARN  app[][startup] Default Administrator credentials are still being used. Make sure to change the password or deactivate the account.
+2026.10.04 19:22:23 WARN  app[][startup] ####################################################################################################################
+2026.10.04 19:22:23 INFO  web[][o.s.s.p.Platform] Web Server is operational
+2026.10.04 19:22:23 INFO  app[][o.s.a.SchedulerImpl] Process[web] is up
+2026.10.04 19:22:23 INFO  app[][o.s.a.ProcessLauncherImpl] Launch process[COMPUTE_ENGINE] from [/opt/sonarqube]: /opt/java/openjdk/bin/java -Djava.awt.headless=true -Dfile.encoding=UTF-8 -Djava.io.tmpdir=/opt/sonarqube/temp -XX:-OmitStackTraceInFastThrow --add-opens=java.base/java.util=ALL-UNNAMED --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.management/sun.management=ALL-UNNAMED --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED -Xmx512m -Xms128m -XX:+HeapDumpOnOutOfMemoryError -Dhttp.nonProxyHosts=localhost|127.*|[::1] -cp ./lib/sonar-application-26.9.0.129388.jar:/opt/sonarqube/lib/jdbc/h2/h2-2.3.232.jar org.sonar.ce.app.CeServer /opt/sonarqube/temp/sq-process4406728572095634535properties
+2026.10.04 19:22:23 INFO  ce[][o.s.p.ProcessEntryPoint] Starting Compute Engine
+2026.10.04 19:22:23 INFO  ce[][o.s.ce.app.CeServer] Compute Engine starting up...
+2026.10.04 19:22:23 INFO  ce[][o.s.d.DefaultDatabase] Create JDBC data source for jdbc:h2:tcp://127.0.0.1:9092/sonar;NON_KEYWORDS=VALUE
+2026.10.04 19:22:23 INFO  ce[][c.z.h.HikariDataSource] HikariPool-1 - Starting...
+2026.10.04 19:22:23 INFO  ce[][c.z.h.p.HikariPool] HikariPool-1 - Added connection conn0: url=jdbc:h2:tcp://127.0.0.1:9092/sonar user=
+2026.10.04 19:22:23 INFO  ce[][c.z.h.HikariDataSource] HikariPool-1 - Start completed.
+2026.10.04 19:22:23 WARN  ce[][o.s.db.dialect.H2] H2 database should be used for evaluation purpose only.
+2026.10.04 19:22:24 INFO  ce[][o.s.s.p.ServerFileSystemImpl] SonarQube home: /opt/sonarqube
+2026.10.04 19:22:24 INFO  ce[][o.s.c.c.CePluginRepository] Load plugins
+2026.10.04 19:22:24 INFO  ce[][o.s.c.c.ComputeEngineContainerImpl] Running Community edition
+2026.10.04 19:22:24 INFO  ce[][o.s.ce.app.CeServer] Compute Engine is started
+2026.10.04 19:22:25 INFO  app[][o.s.a.SchedulerImpl] Process[ce] is up
+2026.10.04 19:22:25 INFO  app[][o.s.a.SchedulerImpl] SonarQube is operational
+2026.10.04 19:22:26 INFO  ce[][o.s.c.t.CeWorkerImpl] Execute task | type=HISTORY_PURGE | id=f5eaaa17-193d-4353-9c66-941fea5ba935
+2026.10.04 19:22:26 INFO  ce[f5eaaa17-193d-4353-9c66-941fea5ba935][o.s.c.t.p.h.HistoryPurgeStep] Purging history
+2026.10.04 19:22:26 INFO  ce[f5eaaa17-193d-4353-9c66-941fea5ba935][o.s.c.t.s.ComputationStepExecutor] Purge History | status=SUCCESS | time=18ms
+2026.10.04 19:22:27 INFO  ce[f5eaaa17-193d-4353-9c66-941fea5ba935][o.s.c.t.CeWorkerImpl] Executed task | type=HISTORY_PURGE | id=f5eaaa17-193d-4353-9c66-941fea5ba935 | status=SUCCESS | time=145ms
+2026.10.04 19:22:27 ERROR web[44a3e76a-9dd2-4aee-a433-93124f4df19e][o.s.s.v.c.RestResponseEntityExceptionHandler] An unexpected error occurred. Please contact support if the problem persists.
+org.springframework.web.context.request.async.AsyncRequestNotUsableException: ServletOutputStream failed to write: java.io.IOException: Broken pipe
+	at org.springframework.web.context.request.async.StandardServletAsyncWebRequest$LifecycleHttpServletResponse.handleIOException(StandardServletAsyncWebRequest.java:340)
+	at org.springframework.web.context.request.async.StandardServletAsyncWebRequest$LifecycleServletOutputStream.write(StandardServletAsyncWebRequest.java:399)
+	at org.springframework.util.StreamUtils$NonClosingOutputStream.write(StreamUtils.java:311)
+	at java.base/java.io.InputStream.transferTo(InputStream.java:796)
+	at java.base/java.io.FileInputStream.transferTo(FileInputStream.java:390)
+	at org.springframework.http.converter.ResourceHttpMessageConverter.writeContent(ResourceHttpMessageConverter.java:158)
+	at org.springframework.http.converter.ResourceHttpMessageConverter.writeInternal(ResourceHttpMessageConverter.java:114)
+	at org.springframework.http.converter.ResourceHttpMessageConverter.writeInternal(ResourceHttpMessageConverter.java:47)
+	at org.springframework.http.converter.AbstractHttpMessageConverter.write(AbstractHttpMessageConverter.java:232)
+	at org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor.writeWithMessageConverters(AbstractMessageConverterMethodProcessor.java:340)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor.handleReturnValue(RequestResponseBodyMethodProcessor.java:213)
+	at org.springframework.web.method.support.HandlerMethodReturnValueHandlerComposite.handleReturnValue(HandlerMethodReturnValueHandlerComposite.java:77)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:135)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:892)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.sonar.server.platform.web.ApiV2Servlet.service(ApiV2Servlet.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:128)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:376)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.sonar.server.v2.security.UserSessionAuthenticationFilter.doFilterInternal(UserSessionAuthenticationFilter.java:85)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.sonar.server.platform.web.ConditionalSpringSecurityFilter.doFilter(ConditionalSpringSecurityFilter.java:71)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.WebPagesFilter.doFilter(WebPagesFilter.java:80)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.MasterServletFilter$GodFilterChain.doFilter(MasterServletFilter.java:167)
+	at org.sonar.server.platform.web.MasterServletFilter$HttpFilterChainAdapter.doFilter(MasterServletFilter.java:208)
+	at org.sonar.server.platform.web.NoCacheFilter.doFilter(NoCacheFilter.java:34)
+	at org.sonar.server.platform.web.MasterServletFilter$JavaxFilterAdapter.doFilter(MasterServletFilter.java:194)
+	at org.sonar.server.platform.web.MasterServletFilter$GodFilterChain.doFilter(MasterServletFilter.java:165)
+	at org.sonar.server.platform.web.MasterServletFilter.doFilter(MasterServletFilter.java:126)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.UserSessionFilter.doFilter(UserSessionFilter.java:83)
+	at org.sonar.server.platform.web.UserSessionFilter.doFilter(UserSessionFilter.java:70)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.CspFilter.doFilter(CspFilter.java:67)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.CacheControlFilter.doFilter(CacheControlFilter.java:76)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.SecurityServletFilter.doHttpFilter(SecurityServletFilter.java:60)
+	at org.sonar.server.platform.web.SecurityServletFilter.doFilter(SecurityServletFilter.java:47)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.RedirectFilter.doFilter(RedirectFilter.java:56)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.EndpointPathFilter.doFilter(EndpointPathFilter.java:47)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.RequestIdFilter.doFilter(RequestIdFilter.java:66)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.RootFilter.doFilter(RootFilter.java:65)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.apache.catalina.filters.SetCharacterEncodingFilter.doFilter(SetCharacterEncodingFilter.java:115)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.UrlHandlerFilter.doFilterInternal(UrlHandlerFilter.java:98)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113)
+	at ch.qos.logback.access.tomcat.LogbackValve.invoke(LogbackValve.java:294)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:341)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:1272)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1801)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:946)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:480)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:57)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+Caused by: org.apache.catalina.connector.ClientAbortException: java.io.IOException: Broken pipe
+	at org.apache.catalina.connector.OutputBuffer.realWriteBytes(OutputBuffer.java:328)
+	at org.apache.catalina.connector.OutputBuffer.flushByteBuffer(OutputBuffer.java:764)
+	at org.apache.catalina.connector.OutputBuffer.append(OutputBuffer.java:661)
+	at org.apache.catalina.connector.OutputBuffer.writeBytes(OutputBuffer.java:363)
+	at org.apache.catalina.connector.OutputBuffer.write(OutputBuffer.java:341)
+	at org.apache.catalina.connector.CoyoteOutputStream.write(CoyoteOutputStream.java:99)
+	at org.springframework.security.web.util.OnCommittedResponseWrapper$SaveContextServletOutputStream.write(OnCommittedResponseWrapper.java:668)
+	at org.springframework.web.context.request.async.StandardServletAsyncWebRequest$LifecycleServletOutputStream.write(StandardServletAsyncWebRequest.java:396)
+	... 114 common frames omitted
+Caused by: java.io.IOException: Broken pipe
+	at java.base/sun.nio.ch.SocketDispatcher.write0(Native Method)
+	at java.base/sun.nio.ch.SocketDispatcher.write(SocketDispatcher.java:65)
+	at java.base/sun.nio.ch.IOUtil.writeFromNativeBuffer(IOUtil.java:137)
+	at java.base/sun.nio.ch.IOUtil.write(IOUtil.java:102)
+	at java.base/sun.nio.ch.IOUtil.write(IOUtil.java:58)
+	at java.base/sun.nio.ch.SocketChannelImpl.implWrite(SocketChannelImpl.java:562)
+	at java.base/sun.nio.ch.SocketChannelImpl.write(SocketChannelImpl.java:614)
+	at org.apache.tomcat.util.net.NioChannel.write(NioChannel.java:129)
+	at org.apache.tomcat.util.net.NioEndpoint$NioSocketWrapper.doWrite(NioEndpoint.java:1441)
+	at org.apache.tomcat.util.net.SocketWrapperBase.doWrite(SocketWrapperBase.java:747)
+	at org.apache.tomcat.util.net.SocketWrapperBase.writeBlocking(SocketWrapperBase.java:587)
+	at org.apache.tomcat.util.net.SocketWrapperBase.write(SocketWrapperBase.java:535)
+	at org.apache.coyote.http11.Http11OutputBuffer$SocketOutputBuffer.doWrite(Http11OutputBuffer.java:537)
+	at org.apache.coyote.http11.filters.ChunkedOutputFilter.doWrite(ChunkedOutputFilter.java:87)
+	at org.apache.coyote.http11.Http11OutputBuffer.doWrite(Http11OutputBuffer.java:193)
+	at org.apache.coyote.Response.doWrite(Response.java:630)
+	at org.apache.catalina.connector.OutputBuffer.realWriteBytes(OutputBuffer.java:316)
+	... 121 common frames omitted
+2026.10.04 19:22:27 WARN  web[44a3e76a-9dd2-4aee-a433-93124f4df19e][o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver] Failure in @ExceptionHandler org.sonar.server.v2.common.RestResponseEntityExceptionHandler#handleUnhandledException(Exception)
+org.springframework.http.converter.HttpMessageNotWritableException: No converter for [class org.sonar.server.v2.api.model.RestError] with preset Content-Type 'application/octet-stream'
+	at org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor.writeWithMessageConverters(AbstractMessageConverterMethodProcessor.java:363)
+	at org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor.handleReturnValue(HttpEntityMethodProcessor.java:261)
+	at org.springframework.web.method.support.HandlerMethodReturnValueHandlerComposite.handleReturnValue(HandlerMethodReturnValueHandlerComposite.java:77)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:135)
+	at org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver.doResolveHandlerMethodException(ExceptionHandlerExceptionResolver.java:460)
+	at org.springframework.web.servlet.handler.AbstractHandlerMethodExceptionResolver.doResolveException(AbstractHandlerMethodExceptionResolver.java:72)
+	at org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver.resolveException(AbstractHandlerExceptionResolver.java:176)
+	at org.springframework.web.servlet.handler.HandlerExceptionResolverComposite.resolveException(HandlerExceptionResolverComposite.java:78)
+	at org.springframework.web.servlet.DispatcherServlet.processHandlerException(DispatcherServlet.java:1227)
+	at org.springframework.web.servlet.DispatcherServlet.processDispatchResult(DispatcherServlet.java:1035)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:980)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:892)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:622)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.sonar.server.platform.web.ApiV2Servlet.service(ApiV2Servlet.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:128)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:376)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:132)
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:86)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.sonar.server.v2.security.UserSessionAuthenticationFilter.doFilterInternal(UserSessionAuthenticationFilter.java:85)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:385)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.sonar.server.platform.web.ConditionalSpringSecurityFilter.doFilter(ConditionalSpringSecurityFilter.java:71)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.WebPagesFilter.doFilter(WebPagesFilter.java:80)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.MasterServletFilter$GodFilterChain.doFilter(MasterServletFilter.java:167)
+	at org.sonar.server.platform.web.MasterServletFilter$HttpFilterChainAdapter.doFilter(MasterServletFilter.java:208)
+	at org.sonar.server.platform.web.NoCacheFilter.doFilter(NoCacheFilter.java:34)
+	at org.sonar.server.platform.web.MasterServletFilter$JavaxFilterAdapter.doFilter(MasterServletFilter.java:194)
+	at org.sonar.server.platform.web.MasterServletFilter$GodFilterChain.doFilter(MasterServletFilter.java:165)
+	at org.sonar.server.platform.web.MasterServletFilter.doFilter(MasterServletFilter.java:126)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.UserSessionFilter.doFilter(UserSessionFilter.java:83)
+	at org.sonar.server.platform.web.UserSessionFilter.doFilter(UserSessionFilter.java:70)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.CspFilter.doFilter(CspFilter.java:67)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.CacheControlFilter.doFilter(CacheControlFilter.java:76)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.SecurityServletFilter.doHttpFilter(SecurityServletFilter.java:60)
+	at org.sonar.server.platform.web.SecurityServletFilter.doFilter(SecurityServletFilter.java:47)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.RedirectFilter.doFilter(RedirectFilter.java:56)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.EndpointPathFilter.doFilter(EndpointPathFilter.java:47)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.RequestIdFilter.doFilter(RequestIdFilter.java:66)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.sonar.server.platform.web.RootFilter.doFilter(RootFilter.java:65)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.apache.catalina.filters.SetCharacterEncodingFilter.doFilter(SetCharacterEncodingFilter.java:115)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.springframework.web.filter.UrlHandlerFilter.doFilterInternal(UrlHandlerFilter.java:98)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113)
+	at ch.qos.logback.access.tomcat.LogbackValve.invoke(LogbackValve.java:294)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:341)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:1272)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1801)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:946)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:480)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:57)
+	at java.base/java.lang.Thread.run(Thread.java:1474)

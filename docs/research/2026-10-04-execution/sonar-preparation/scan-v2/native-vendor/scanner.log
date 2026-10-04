@@ -1,0 +1,77 @@
+20:18:30.512 INFO  Scanner configuration file: /opt/sonar-scanner/conf/sonar-scanner.properties
+20:18:30.513 INFO  Project root configuration file: /out/properties
+20:18:30.518 INFO  SonarScanner CLI 8.1.0.6389
+20:18:30.520 INFO  Linux 6.8.0-142-generic amd64
+20:18:30.926 INFO  Communicating with SonarQube Community Build 26.9.0.129388
+20:18:30.926 INFO  JRE provisioning is disabled
+20:18:30.926 INFO  Using the java executable '/usr/lib/jvm/java-21-amazon-corretto/bin/java' from JAVA_HOME
+20:18:31.204 INFO  Starting SonarScanner Engine...
+20:18:31.204 INFO  Java 21.0.12.1 Amazon.com Inc. (64-bit)
+20:18:31.696 INFO  Load global settings
+20:18:31.731 INFO  Load global settings (done) | time=33ms
+20:18:31.731 INFO  Server id: 147B411E-AaEIkMLfeWrY6-Hu4piE
+20:18:31.735 INFO  Loading required plugins
+20:18:31.736 INFO  Load plugins index
+20:18:31.740 INFO  Load plugins index (done) | time=5ms
+20:18:31.740 INFO  Load/download plugins
+20:18:31.740 INFO  Load/download plugins (done) | time=0ms
+20:18:31.823 INFO  Process project properties
+20:18:31.846 INFO  Process project properties (done) | time=20ms
+20:18:31.848 INFO  Project key: cix-cxx-native-vendor
+20:18:31.848 INFO  Base dir: /usr/src
+20:18:31.848 INFO  Working dir: /tmp/.scannerwork
+20:18:31.851 INFO  Load project settings for component key: 'cix-cxx-native-vendor'
+20:18:31.865 INFO  Load quality profiles
+20:18:31.878 INFO  Load quality profiles (done) | time=13ms
+20:18:31.891 INFO  Load active rules
+20:18:31.957 INFO  Load active rules (done) | time=65ms
+20:18:31.959 INFO  Load analysis cache
+20:18:31.962 INFO  Load analysis cache (404) | time=3ms
+20:18:32.026 INFO  Preprocessing files...
+20:18:32.032 INFO  1 language detected in 29 preprocessed files (done) | time=6ms
+20:18:32.034 INFO  Loading plugins for detected languages
+20:18:32.034 INFO  Load/download plugins
+20:18:32.089 INFO  Load/download plugins (done) | time=55ms
+20:18:32.174 INFO  Load project repositories
+20:18:32.177 INFO  Load project repositories (done) | time=2ms
+20:18:32.184 INFO  Indexing files...
+20:18:32.184 INFO  Project configuration:
+20:18:32.188 INFO  29 files indexed (done) | time=3ms
+20:18:32.188 INFO  Quality profile for cxx: CIX CXX and Cppcheck
+20:18:32.188 INFO  ------------- Run sensors on module cix-cxx-native-vendor
+20:18:32.196 INFO  Load metrics repository
+20:18:32.206 INFO  Load metrics repository (done) | time=10ms
+20:18:32.214 INFO  ------------- Run sensors on project
+20:18:32.345 INFO  Sensor CXX [cxx]
+20:18:34.323 INFO  Sensor CXX [cxx] (done) | time=1978ms
+20:18:34.324 INFO  Sensor CXX Cppcheck report import [cxx]
+20:18:34.325 INFO  Downloading rules for 'cppcheck' from server
+20:18:34.325 INFO  Download url for server is 'http://127.0.0.1:9017'
+20:18:34.329 INFO  trust store based on javax.net.ssl not loadable: The value for the system property [javax.net.ssl.keyStore] is absent
+20:18:34.485 INFO  Processing report '/out/cppcheck.xml'
+20:18:34.499 WARN  Cannot find the file '/usr/src/rust/cix-native/vendor/libbsc/libbsc/bwt/libcubwt/libcubwt.cuh' in project 'cix-cxx-native-vendor' with baseDir '/usr/src', skipping
+20:18:34.520 INFO  Rule 'checkersReport' is unknown in 'cppcheck' and will be mapped to 'unknown'
+20:18:34.522 INFO  Processing successful, saved new issues=260
+20:18:34.522 INFO  Sensor CXX Cppcheck report import [cxx] (done) | time=197ms
+20:18:34.522 INFO  Sensor Zero Coverage Sensor
+20:18:34.531 INFO  Sensor Zero Coverage Sensor (done) | time=9ms
+20:18:34.533 INFO  ------------- Gather SCA dependencies on project
+20:18:34.534 INFO  Dependency analysis skipped
+20:18:34.534 INFO  SCM Publisher is disabled
+20:18:34.546 INFO  CPD Executor 11 files had no CPD blocks
+20:18:34.546 INFO  CPD Executor Calculating CPD for 18 files
+20:18:34.563 INFO  CPD Executor CPD calculation finished (done) | time=16ms
+20:18:34.640 INFO  Analysis report generated in 74ms, dir size=3.7 MB
+20:18:34.705 INFO  Analysis report compressed in 65ms, zip size=692.8 kB
+20:18:34.799 INFO  Analysis report uploaded in 94ms
+20:18:34.799 INFO  ANALYSIS SUCCESSFUL, you can find the results at: http://127.0.0.1:9017/dashboard?id=cix-cxx-native-vendor
+20:18:34.799 INFO  Note that you will be able to access the updated dashboard once the server has processed the submitted analysis report
+20:18:34.799 INFO  More about the report processing at http://127.0.0.1:9017/api/ce/task?id=07e955c4-d3bb-439e-9cca-1a51c34399c3
+20:18:34.805 INFO  Executing post-job 'Final report'
+20:18:34.805 WARN  Preprocessor: 51 include directive error(s). This is only relevant if parser creates syntax errors. The preprocessor searches for include files in the with 'sonar.cxx.includeDirectories' defined directories and order.
+20:18:34.805 WARN  Source code parser: 1960 syntax error(s) detected. Syntax errors could cause invalid software metric values. Root cause are typically missing includes, missing macros or compiler specific extensions.
+20:18:34.805 INFO  Turn debug info on to get more details (sonar-scanner -X -Dsonar.verbose=true ...).
+20:18:34.807 INFO  Analysis total time: 3.055 s
+20:18:34.812 INFO  SonarScanner Engine completed successfully
+20:18:35.134 INFO  EXECUTION SUCCESS
+20:18:35.134 INFO  Total time: 4.624s

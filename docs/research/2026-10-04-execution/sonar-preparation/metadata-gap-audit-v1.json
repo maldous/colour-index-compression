@@ -1,0 +1,110 @@
+{
+  "schema": "cix.sonar.compile-metadata-gap-audit.v1",
+  "status": "AUDIT_ONLY_NOT_COMPILER_CLOSURE",
+  "basis": {
+    "current_compile_commands": 611,
+    "remaining_translation_units": 24,
+    "rules": [
+      "A source may be reused only after exact SHA-256 equality with its qualified source copy.",
+      "Object hashes, Ninja progress, and source-name matches are not compiler argv.",
+      "No flags in this audit are synthesized."
+    ]
+  },
+  "recoverable_after_source_identity_check": [
+    {
+      "path": "rust/cix-native/adapters/squashfs/kernel/cix_profile_portable.c",
+      "current_sha256": "6ac2a838c6d4e38acb9465f344ba2f73918ed51f5065c53cb8ab6ca30bf0bbb6",
+      "evidence": ["benchmark-work/native-rc-check-v1/kernel-module-v4/stage/.cix_profile_portable.o.cmd", "docs/research/2026-10-04-execution/jobs/kernel-module-v4/receipt.json"],
+      "action": "Parse the retained passed-job gcc-13 .cmd only after preserving this source equality."
+    },
+    {
+      "path": "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_decompressor.c",
+      "current_sha256": "40e7897a49a046b91edb2dc84eebb60ed0a4e185e07b27f1dad214223e8ef948",
+      "evidence": ["benchmark-work/native-rc-check-v1/kernel-module-v4/stage/.cix_squashfs_decompressor.o.cmd", "docs/research/2026-10-04-execution/jobs/kernel-module-v4/receipt.json"],
+      "action": "Parse the retained passed-job gcc-13 .cmd only after preserving this source equality."
+    },
+    {
+      "path": "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_fs_register.c",
+      "current_sha256": "027a5644fcdbb0f100a02d4ff24837837f606adb3ef4f4b413c75c22d163b6fd",
+      "evidence": ["benchmark-work/native-rc-check-v1/kernel-module-v4/stage/.cix_squashfs_fs_register.o.cmd", "docs/research/2026-10-04-execution/jobs/kernel-module-v4/receipt.json"],
+      "action": "Parse the retained passed-job gcc-13 .cmd only after preserving this source equality."
+    },
+    {
+      "path": "rust/cix-native/adapters/squashfs/profile/src/cix_squashfs_profile.c",
+      "current_sha256": "192e40b06d410cb689b581d5f8fc8128d83b8fdd0e5f16cba981f189756ac080",
+      "evidence": ["benchmark-work/native-rc-check-v1/squashfs-profile-qual-v2/profile-build/CMakeFiles/cix_squashfs_profile.dir/flags.make", "benchmark-work/native-rc-check-v1/squashfs-profile-qual-v2/profile-build/CMakeCache.txt"],
+      "action": "Without compiling, root may run `cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON benchmark-work/native-rc-check-v1/squashfs-profile-qual-v2/profile-build`; reuse only if exported source hashes match."
+    },
+    {
+      "path": "rust/cix-native/adapters/squashfs/profile/tests/profile_contract.c",
+      "current_sha256": "8a334b51a951b78f63699e7f5a89aae39217f44f119a871f5ac6f2d9ef45073c",
+      "evidence": ["benchmark-work/native-rc-check-v1/squashfs-profile-qual-v2/profile-build/CMakeFiles/cix_squashfs_profile_contract.dir/flags.make", "benchmark-work/native-rc-check-v1/squashfs-profile-qual-v2/profile-build/CMakeCache.txt"],
+      "action": "Without compiling, root may run `cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON benchmark-work/native-rc-check-v1/squashfs-profile-qual-v2/profile-build`; reuse only if exported source hashes match."
+    },
+    {
+      "path": "rust/cix-native/codecs/spatial/cix_spatial_bridge.cpp",
+      "current_sha256": "e54188e999a93b7dffaa13012dfbc5b23d976fab8a861766fb97781d9aefe54c",
+      "evidence": ["benchmark-work/native-rc-check-v1/spatial-build-v6/CMakeCache.txt", "benchmark-work/native-rc-check-v1/spatial-build-v6/build.ninja", "docs/research/2026-10-04-execution/jobs/spatial-counts-v1/receipt.json"],
+      "action": "Without compiling, root may run `cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON benchmark-work/native-rc-check-v1/spatial-build-v6`; its retained CMAKE_HOME_DIRECTORY is execution-interfaces-v6, which must hash-match first."
+    }
+  ],
+  "qualified_evidence_but_not_compiler_argv": [
+    {
+      "path": "rust/cix-native/codecs/jxl/cix_jxl_bridge.cpp",
+      "current_sha256": "577da0ceb3df4a4190c2792c68caf195b5a88653b7984c95d43056656132296b",
+      "evidence": ["docs/research/2026-10-04-execution/jobs/jxl-bridge-v2/source.json", "docs/research/2026-10-04-execution/jobs/jxl-bridge-v2/raw/cix-rel01-execution-jxl-bridge-v2.stdout.log"],
+      "limitation": "The passed bridge job retained only Ninja progress. jxl-build-v1 compile_commands covers upstream libjxl, not this bridge."
+    },
+    {
+      "path": "rust/cix-native/examples/dictionary.c",
+      "current_sha256": "c1be44eb30e49455b7260e843b0a94c0594e4ea5e1dc5b25243f63f82fbde3ac",
+      "evidence": ["docs/research/2026-10-04-execution/jobs/dictionary-grid-v3/raw/cix-rel01-execution-dictionary-grid-v3.stdout.log"],
+      "limitation": "Passed CMake build progress only; no retained argv/build directory."
+    },
+    {
+      "paths": ["rust/cix-native/packaging/sdk/tests/c_format_installed_consumer.c", "rust/cix-native/packaging/sdk/tests/c_stream_installed_consumer.c", "rust/cix-native/packaging/sdk/tests/cpp_installed_consumer.cpp"],
+      "current_sha256": ["9fa5265c3efd81d6df893f4d846c440077918b152c00ebbe21d84e5fefedf972", "ad2032c19261c562cd32b1139866254e74536ebe5710ba287c4f1507d5345649", "4d9502d8dc375e4a327a889799e7a64fc797b8981170ea5c51ae910bbd4d389b"],
+      "evidence": ["docs/research/2026-10-04-execution/jobs/sdk-evidence-compact-v2/receipts.json", "docs/research/2026-10-04-execution/jobs/interfaces-v8/raw/cix-rel01-execution-interfaces-v8.stdout.log"],
+      "limitation": "Object receipts and build progress, not flags or a compilation database."
+    },
+    {
+      "path": "rust/cix-native/tests/c_api_consumer.c",
+      "current_sha256": "fdb7953c4761535235de3e56deececd9fbbb0573d579e8daed8e2ab42845bb08",
+      "evidence": ["docs/research/2026-10-04-execution/jobs/interfaces-v8/raw/cix-rel01-execution-interfaces-v8.stdout.log"],
+      "limitation": "SDK_CHECK logs direct argv but lacks a per-command compiler exit receipt accepted by the fail-closed parser."
+    }
+  ],
+  "no_retained_exact_compiler_argv_found": [
+    {"path":"rust/cix-native/adapters/squashfs/kernel/tests/xattr_check.c","current_sha256":"c5a2aeede5a52c0088ad672de522c758e66c580ef30c0ee7ae5164e09c3e053b"},
+    {"path":"rust/cix-native/adapters/squashfs/tools/cix_compressor_table.c","current_sha256":"20c007667dc6f467f6ae4af083af586f481c76bc492886825b1ad9c19e46babf"},
+    {"path":"rust/cix-native/adapters/squashfs/tools/cix_wrapper.c","current_sha256":"e15b227f9fd15b414ffad375e0055b73a59ec279e3395081627d3c8a80958466"},
+    {"path":"rust/cix-native/adapters/squashfs/userspace/cix_sqfs_userspace.c","current_sha256":"15f195b5a59554e1943a006ecced6a9493104b384423c90bab7319c8a643a812"},
+    {"path":"rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_compressor.c","current_sha256":"773a119922e11b83692a8eec5ee8180c1c7d6df181e85f56b6a6a54ba267d4d6"},
+    {"path":"rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_decode.c","current_sha256":"7d773d9e312e5dc037c2dddcf3dfadd12a8d9186e8249818eeb575a9faa01374"},
+    {"path":"rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_read_super.c","current_sha256":"6a6bc154f017fcad48ad7cc06924d5f19cab0b9063ea32a1e94545dacd89bdbe"},
+    {"path":"rust/cix-native/adapters/squashfs/userspace/squashfuse/cix_squashfuse_decode.c","current_sha256":"bf5ae520e00b643c56924370c061918420b35c8c0619176af8cbe61cb600d24e"},
+    {"path":"rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_library_fixture_contract.c","current_sha256":"4e87e3f94a82b6c058cf0ea4d7807eec2c6bb5703f7bc3c01f575556f37203b2"},
+    {"path":"rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_xattr_contract.c","current_sha256":"6ac8af394f54338fb58f66b8772b9533c6e4834df526bc1b79486472ec72bf5a"},
+    {"path":"rust/cix-native/experiments/stream-qualification-v2/source-generator.c","current_sha256":"bdb7ac00c327aba5b108dfef3706d30fd87544da1d0e943b2ffec718d8dab0d6"},
+    {"path":"rust/cix-native/packaging/squash/squash-cix.c","current_sha256":"f18bf2ce13e4b67bbdb1d765f8761936fd23a052e76581d8580a74781cf16517"}
+  ],
+  "external_include_mount_requirements_for_later_full_analysis": {
+    "rule": "Mount only an existing, command-required root read-only; preserve the retained command and do not rewrite its include flags.",
+    "current_611_command_database": [
+      {"root":"/usr/include/glib-2.0","translation_units":["rust/cix-native/adapters/gio/cix-gconverter.c","rust/cix-native/adapters/gio/contract.c"]},
+      {"root":"/usr/lib/x86_64-linux-gnu/glib-2.0/include","translation_units":["rust/cix-native/adapters/gio/cix-gconverter.c","rust/cix-native/adapters/gio/contract.c"]},
+      {"root":"/usr/include/blkid","translation_units":["rust/cix-native/adapters/gio/cix-gconverter.c","rust/cix-native/adapters/gio/contract.c"]},
+      {"root":"/usr/include/libmount","translation_units":["rust/cix-native/adapters/gio/cix-gconverter.c","rust/cix-native/adapters/gio/contract.c"]},
+      {"root":"/usr/include/node","translation_units":["rust/cix-native/bindings/node/src/cix_node.c"]},
+      {"root":"/usr/lib/jvm/java-21-openjdk-amd64/include","translation_units":["rust/cix-native/bindings/java/src/main/c/cix_jni.c"]},
+      {"root":"/usr/lib/jvm/java-21-openjdk-amd64/include/linux","translation_units":["rust/cix-native/bindings/java/src/main/c/cix_jni.c"]}
+    ],
+    "recoverable_entries_not_yet_in_database": [
+      {"root":"benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/include","source":"spatial-build-v6/build.ninja","translation_unit":"rust/cix-native/codecs/spatial/cix_spatial_bridge.cpp"},
+      {"root":"benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/include/openjpeg-2.5","source":"spatial-build-v6/build.ninja","translation_unit":"rust/cix-native/codecs/spatial/cix_spatial_bridge.cpp"},
+      {"root":"benchmark-work/native-rc-check-v1/squashfs-profile-source-v2/profile/include","source":"squashfs-profile-qual-v2 profile flags.make","translation_units":["rust/cix-native/adapters/squashfs/profile/src/cix_squashfs_profile.c","rust/cix-native/adapters/squashfs/profile/tests/profile_contract.c"]},
+      {"root":"kernel-module-v4 build-tree roots `./arch`, `./include`, `./ubuntu/include`, and its stage include/profile include directories","source":"kernel-module-v4 retained .cmd","translation_units":["rust/cix-native/adapters/squashfs/kernel/cix_profile_portable.c","rust/cix-native/adapters/squashfs/kernel/cix_squashfs_decompressor.c","rust/cix-native/adapters/squashfs/kernel/cix_squashfs_fs_register.c"],"limitation":"These are relative to the qualified kernel build directory. A later runner must mount that exact retained tree read-only and retain its working directory; mounting /usr/src alone is insufficient."}
+    ]
+  },
+  "required_next_step_for_all_unresolved_entries": "Obtain a current-source qualified compiler argv or an export from the retained configured build named above; do not infer flags from this audit."
+}

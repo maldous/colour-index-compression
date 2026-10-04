@@ -1,0 +1,76 @@
+19:33:37.442 INFO  Scanner configuration file: /opt/sonar-scanner/conf/sonar-scanner.properties
+19:33:37.444 INFO  Project root configuration file: /out/properties
+19:33:37.449 INFO  SonarScanner CLI 8.1.0.6389
+19:33:37.451 INFO  Linux 6.8.0-142-generic amd64
+19:33:37.972 INFO  Communicating with SonarQube Community Build 26.9.0.129388
+19:33:37.972 INFO  JRE provisioning is disabled
+19:33:37.973 INFO  Using the java executable '/usr/lib/jvm/java-21-amazon-corretto/bin/java' from JAVA_HOME
+19:33:38.363 INFO  Starting SonarScanner Engine...
+19:33:38.363 INFO  Java 21.0.12.1 Amazon.com Inc. (64-bit)
+19:33:38.951 INFO  Load global settings
+19:33:38.995 INFO  Load global settings (done) | time=43ms
+19:33:38.996 INFO  Server id: 147B411E-AaEIaCqHSVaJS0J1cEzz
+19:33:39.000 INFO  Loading required plugins
+19:33:39.000 INFO  Load plugins index
+19:33:39.011 INFO  Load plugins index (done) | time=8ms
+19:33:39.012 INFO  Load/download plugins
+19:33:39.012 INFO  Load/download plugins (done) | time=1ms
+19:33:39.093 INFO  Process project properties
+19:33:39.101 INFO  Process project properties (done) | time=5ms
+19:33:39.107 INFO  Project key: cix-cxx-probe
+19:33:39.107 INFO  Base dir: /usr/src
+19:33:39.107 INFO  Working dir: /tmp/.scannerwork
+19:33:39.108 INFO  Load project settings for component key: 'cix-cxx-probe'
+19:33:39.128 INFO  Load quality profiles
+19:33:39.163 INFO  Load quality profiles (done) | time=33ms
+19:33:39.183 INFO  Load active rules
+19:33:39.313 INFO  Load active rules (done) | time=130ms
+19:33:39.321 INFO  Load analysis cache
+19:33:39.324 INFO  Load analysis cache (404) | time=4ms
+19:33:39.381 INFO  Preprocessing files...
+19:33:39.382 INFO  1 language detected in 1 preprocessed file (done) | time=3ms
+19:33:39.384 INFO  Loading plugins for detected languages
+19:33:39.384 INFO  Load/download plugins
+19:33:39.444 INFO  Load/download plugins (done) | time=59ms
+19:33:39.477 ERROR Error during SonarScanner Engine execution
+java.lang.IllegalStateException: Fail to open plugin [cxx]: /tmp/.sonar/cache/c6f760370fca8fb51d10d3231cea36af/sonar-cxx-plugin.jar
+	at org.sonar.scanner.bootstrap.ScannerPluginJarExploder.explode(ScannerPluginJarExploder.java:53)
+	at org.sonar.scanner.bootstrap.ScannerPluginRepository.lambda$installPluginsForLanguages$1(ScannerPluginRepository.java:109)
+	at java.base/java.util.stream.Collectors.lambda$uniqKeysMapAccumulator$1(Collectors.java:180)
+	at java.base/java.util.stream.ReduceOps$3ReducingSink.accept(ReduceOps.java:169)
+	at java.base/java.util.HashMap$EntrySpliterator.forEachRemaining(HashMap.java:1858)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:682)
+	at org.sonar.scanner.bootstrap.ScannerPluginRepository.installPluginsForLanguages(ScannerPluginRepository.java:109)
+	at org.sonar.scanner.scan.SpringProjectScanContainer.installPluginsForLanguages(SpringProjectScanContainer.java:97)
+	at org.sonar.scanner.scan.SpringProjectScanContainer.doBeforeStart(SpringProjectScanContainer.java:91)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:203)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringScannerContainer.doAfterStart(SpringScannerContainer.java:388)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringGlobalContainer.doAfterStart(SpringGlobalContainer.java:146)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.ServerScannerEngineRunner.execute(ServerScannerEngineRunner.java:39)
+	at org.sonar.scanner.bootstrap.ScannerMain.runScannerEngine(ScannerMain.java:144)
+	at org.sonar.scanner.bootstrap.ScannerMain.run(ScannerMain.java:65)
+	at org.sonar.scanner.bootstrap.ScannerMain.main(ScannerMain.java:45)
+Caused by: java.io.IOException: No space left on device
+	at java.base/java.io.FileOutputStream.writeBytes(Native Method)
+	at java.base/java.io.FileOutputStream.write(FileOutputStream.java:367)
+	at org.sonar.api.internal.apachecommons.io.IOUtils.copyLarge(IOUtils.java:1484)
+	at org.sonar.api.internal.apachecommons.io.IOUtils.copy(IOUtils.java:1107)
+	at org.sonar.api.internal.apachecommons.io.IOUtils.copyLarge(IOUtils.java:1456)
+	at org.sonar.api.internal.apachecommons.io.IOUtils.copy(IOUtils.java:1085)
+	at org.sonar.api.utils.ZipUtils.copy(ZipUtils.java:222)
+	at org.sonar.api.utils.ZipUtils.unzip(ZipUtils.java:206)
+	at org.sonar.scanner.bootstrap.ScannerPluginJarExploder.unzipFile(ScannerPluginJarExploder.java:68)
+	at org.sonar.scanner.bootstrap.ScannerPluginJarExploder.explode(ScannerPluginJarExploder.java:50)
+	... 24 common frames omitted
+
+19:33:39.495 INFO  EXECUTION FAILURE
+19:33:39.495 INFO  Total time: 2.054s
