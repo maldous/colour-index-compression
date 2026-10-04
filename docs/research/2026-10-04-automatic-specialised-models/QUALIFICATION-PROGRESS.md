@@ -6,6 +6,29 @@ freeze checkpoint `d026ee070` is pushed privately. The development checks below
 are separate from the fresh corpus results. The live summary is derived from
 individually verified cells and must remain labelled incomplete until all 36 pass.
 
+Checkpoint at 2026-10-04 02:21 UTC: **5/36 verified**, with all three Dickens
+modes and Mozilla FAST/DEFAULT complete. Mozilla BEST is encoding. All completed
+cells passed a fresh-process archive-only exact decode; no cell has failed.
+
+| Member | Mode | Complete archive bytes | Reduction | Full encode wall (s) | Decode wall (s) |
+| --- | --- | ---: | ---: | ---: | ---: |
+| dickens | FAST | 4,691,307 | 53.97% | 0.254 | 0.132 |
+| dickens | DEFAULT | 3,777,545 | 62.94% | 10.793 | 3.195 |
+| dickens | BEST | 1,862,182 | 81.73% | 3,656.663 | 1,965.579 |
+| mozilla | FAST | 20,527,632 | 59.92% | 1.260 | 0.360 |
+| mozilla | DEFAULT | 12,733,922 | 75.14% | 170.369 | 3.033 |
+
+Dickens BEST selected PAQ v215 -9L; all six admitted candidates completed.
+Its archive is 40,163 bytes smaller than portfolio26 and equals the retained
+known-better CIX reference. This is a verified restoration of that result, not
+a new public record. Kernel aggregate memory peaks were 4,565,573,632 bytes
+for the complete encode search and 3,917,266,944 bytes for independent decode.
+Mozilla DEFAULT automatically selected `ecoff-filter-mode0` at 12,733,922 bytes,
+compared with 19,359,815 bytes for the current native DEFAULT candidate in the
+same search; all seven admitted candidates completed. This is a measured
+specialist-selection benefit, not predictive mixing or a public record claim.
+The full mode/corpus comparison remains pending. Timings are single observations.
+
 * `integrated-dev-unit-5`: 31 focused Python tests passed. Earlier unit failures
   remain recorded: missing decoder helpers, malformed test expectations, a
   malformed ELF fixture and a subsequent indentation error were corrected.
@@ -87,10 +110,9 @@ is intentionally host-pinned Linux qualification material; integrated portable
 source builds, platform packages and public distribution remain unqualified.
 
 The root launched the full serial pass in exec session 85334, using absolute
-paths throughout. FAST and DEFAULT Dickens have completed fresh exact decode;
-BEST Dickens is active at this checkpoint. Do not mistake these two cells for
-complete mode or corpus qualification. Read the live `summary.json` and cell
-receipts for current progress.
+paths throughout. The completed cells above do not establish complete mode or
+corpus qualification. Read the live `summary.json` and cell receipts for current
+progress.
 
 The current-task heartbeat `finish-frozen-cix-silesia-confirmation` checks every
 15 minutes to supervise this already-running pass and produce its final report.
