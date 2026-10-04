@@ -2,6 +2,13 @@
 
 All unchecked implementation items are pending. The coordinating preflight hold is released; this checklist gates the 36-cell Silesia confirmation.
 
+## C/C++ remediation boundary
+
+The user's subsequent instruction permits scanning both CIX and third-party C/C++ but limits repairs to CIX-owned source, adapters/wrappers, build configuration and analysis tooling. Do not edit external upstream or vendored sources, including bundled/forked PAQ trees, to resolve findings. Preserve third-party source identities and report their findings separately without suppressions intended to manufacture a clean result. Distinguish analyzer setup corrections and CIX-owned boundary fixes from changes to external algorithms. This does not authorize changing the frozen benchmark source or running competing scans; execute the prepared CXX audit only after the Silesia pass and report.
+
+- [ ] Verify actual CXX execution, probe detection, expected file coverage and issue read-back for CIX and third-party scope.
+- [ ] Triage CIX-owned findings separately from external findings; resolve justified CIX changes under a new source identity after the frozen pass, preserving external source bytes and all scan evidence.
+
 ## Runtime independence and coverage
 
 - [ ] Enumerate all retained successful specialist/current generic candidates; map all 12 historical portfolio26 winners to a fresh admission path and actual decoder, or an explicit justified unresolved gap.

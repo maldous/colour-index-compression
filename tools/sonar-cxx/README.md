@@ -5,6 +5,13 @@ CFamily. This runner installs the checksummed SonarOpenCommunity CXX 2.3.0.1496
 plugin into each ephemeral scan server and imports real Cppcheck 2.13.0 findings.
 It does not claim to install or reproduce SonarSource's licensed analyzer.
 
+Remediation is restricted by the user's instruction to CIX-owned source,
+adapters, wrappers, build configuration and analysis tooling. Do not correct
+external upstream or vendored C/C++ source, including bundled/forked PAQ trees,
+to clear findings. Keep third-party source identities unchanged and report its
+findings separately. Scanning vendor code does not authorize editing it; retain
+its findings without suppressing them to manufacture a clean result.
+
 The six scan projects cover the first-party bridge and Squash adapter, native
 libbsc/libzpaq, and PAQ v215, v216, joint-discount and store-state source trees.
 There is no vendor exclusion. Two CUDA headers are inventoried separately:

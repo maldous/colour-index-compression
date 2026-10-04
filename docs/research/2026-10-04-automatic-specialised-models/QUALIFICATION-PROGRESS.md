@@ -106,6 +106,15 @@ is implied, and no setup/build/scan may compete with this frozen pass. Preparati
 alone does not complete this new request. The heartbeat stays quiet on unchanged
 healthy state and pauses only after both reports are delivered.
 
+The subsequent user instruction limits remediation to CIX-owned code and tooling.
+The audit still scans first-party and third-party C/C++ for visibility, but no
+external upstream or vendored source, including bundled/forked PAQ trees, may be
+edited to clear findings. Preserve third-party identities and report external
+issues separately, without suppressing them to manufacture a clean result.
+Analyzer setup corrections and any justified CIX-owned wrapper/boundary fixes
+must be distinguished from external repairs. The active heartbeat includes this
+boundary; it does not alter the running frozen source or benchmark schedule.
+
 The coordinator has now delivered the ready command (run from the development
 repository only after all 36 cells verify and every benchmark process ends):
 
