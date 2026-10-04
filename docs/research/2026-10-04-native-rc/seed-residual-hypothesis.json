@@ -1,0 +1,55 @@
+{
+  "schema": "cix.research.hypothesis.v1",
+  "date": "2026-10-04",
+  "hypothesis": "Generate reproducible pseudorandom bytes from a short seed, possibly a SHA hash or target-derived pattern, and encode the delta from an already-compressed target.",
+  "scope": "Theoretical assessment and primary-source review only; no compressor/source change, corpus access, search experiment or benchmark.",
+  "assessment": "Valid as generator-plus-residual modelling for correlated sources; random appearance alone provides no generic post-compression advantage.",
+  "representation": {
+    "encode": "R = X XOR G(S)",
+    "decode": "X = R XOR G(S)",
+    "complete_cost": "seed or reproducible seed-selection information + encoded residual + generator parameters/identifier + framing",
+    "promotion_condition": "complete representation smaller than unchanged current archive with independent exact restoration and justified computation"
+  },
+  "mathematical_findings": [
+    "Lossless compression preserves recoverable information; fewer bytes do not imply lower entropy per remaining bit.",
+    "For known fixed deterministic G and fixed output length, XOR is a bijection given S: H(R|S)=H(X|S).",
+    "If S=f(X), then H(S)+H(R|S)=H(X); if S includes extra randomness, the joint representation can contain more entropy.",
+    "For a uniform n-bit source, a fixed m-bit seed plus l-bit residual can distinguish at most 2^(m+l) targets. Covering every n-bit target requires m+l >= n. Variable-length codes obey the corresponding average uniquely-decodable-code bound; individual inputs can still become shorter.",
+    "Independently sampled uniform bit strings disagree in half the positions on average. Similar marginal randomness statistics do not establish mutual predictive information.",
+    "Trying more seeds can improve a hindsight residual, but the chosen candidate must be recoverable by the decoder. Search effort is a computation cost; it is not itself mandatory archive metadata if the search algorithm is fixed.",
+    "A hash of the undecoded whole target is not free shared side information. A hash does not by itself create a predictive relationship between G(hash(X)) and X."
+  ],
+  "valid_special_cases": [
+    "X=G(S) with a known generator and genuinely short seed; random-looking output can have a short algorithmic description.",
+    "X=G(S) XOR E where E is sparse or otherwise cheaply modelled and the whole seed/residual description is short.",
+    "Seed derived from already decoded causal context, with demonstrated target dependence.",
+    "Existing compressor leaves residual source structure or model mismatch that a reproducible generator model captures."
+  ],
+  "qualification_requirements_if_later_authorized": [
+    "Positive generated-source control, generated-source-plus-sparse-errors control and independent-noise null.",
+    "Charge seed, search-winner index or equivalent selection information; no hindsight oracle treated as a codec.",
+    "Fixed generator/search bounds and parameters before qualification; evaluate complete bytes, exact decode, CPU and memory.",
+    "Use an appropriate strongest existing model/control on identical data, separating payload from archive size.",
+    "A negative arbitrary-generator screen cannot prove every compressed stream incompressible; a synthetic generator win cannot establish general real-data benefit."
+  ],
+  "prior_art_boundary": "Source coding, algorithmic description length, codebook selection and predictive residual coding are established; no novelty claim.",
+  "primary_sources": [
+    {
+      "title": "Shannon, A Mathematical Theory of Communication (1948)",
+      "url": "https://people.math.harvard.edu/~ctm/home/text/others/shannon/entropy/entropy.pdf",
+      "relevance": "Entropy, noiseless coding theorem and deterministic sequence examples"
+    },
+    {
+      "title": "NIST SP 800-90A Rev.1",
+      "url": "https://csrc.nist.gov/pubs/sp/800/90/a/r1/final",
+      "relevance": "Deterministic random-bit generation using hash functions or block ciphers"
+    },
+    {
+      "title": "Paul Vitanyi, Kolmogorov Complexity",
+      "url": "https://homepages.cwi.nl/~paulv/kolmogorov.html",
+      "relevance": "Individual-string description length versus source-average entropy and incompressibility counting"
+    }
+  ],
+  "next_action": "Require a specific input-derived generator relationship before allocating a seed-search experiment; retain this as a source-model hypothesis, not a general random-to-random compression route.",
+  "release_gate": "Unchanged; no new RC feature or benchmark is admitted by this assessment."
+}
