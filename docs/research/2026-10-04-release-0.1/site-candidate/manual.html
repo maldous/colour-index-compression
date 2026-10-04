@@ -91,7 +91,8 @@ integration.</p>
 <strong>auto</strong>, selects among eligible native containers. CIXM6
 and CIXF1 are encoding-only formats and cannot be combined with route
 selection, external candidates, or portfolio selection. CIXF1 requires a
-named input so its basename can be stored.</p>
+named input so its basename can be stored. An explicit non-auto format forces
+a compatible whole-container wire and excludes unrelated automatic carriers.</p>
 </dd>
 <dt><strong>--route</strong>
 <strong><em>auto</em></strong>|<strong><em>raw</em></strong>|<strong><em>runs</em></strong>|<strong><em>composition</em></strong>|<strong><em>lz</em></strong>|<strong><em>predictor</em></strong>|<strong><em>bwt</em></strong>|<strong><em>stride</em></strong>|<strong><em>phrases</em></strong>|<strong><em>ppm</em></strong>|<strong><em>mixture</em></strong>|<strong><em>deflate</em></strong></dt>
@@ -109,15 +110,18 @@ mixture need at least 16 MiB, and PPM needs at least 64 MiB.</p>
 <strong>context-range-o1-b4</strong>,
 <strong>context-range-o1-b8</strong>,
 <strong>context-range-o2-b8</strong>, and <strong>huffman</strong>. Some
-versioned substream coders require CIXG2 or automatic format
-selection.</p>
+versioned substream coders require CIXG2 or automatic format selection. This
+is native-container tuning: without an explicit non-auto
+<strong>--format</strong>, independent automatic candidates remain eligible
+and do not claim to use the selected nested backend.</p>
 </dd>
 <dt><strong>--block-size</strong> <strong><em>SIZE</em></strong></dt>
 <dd>
 <p>Set the maximum uncompressed block size. CIXG1 frames are limited to
 65536 bytes; larger requests are reduced to that limit with a
-diagnostic. The legacy <strong>--block</strong> form accepts a byte
-count.</p>
+diagnostic. The legacy <strong>--block</strong> form accepts a byte count.
+This is native-container tuning; it restricts native block candidates without
+forcing the automatic search to one container wire.</p>
 </dd>
 <dt><strong>--history</strong> <strong><em>SIZE</em></strong></dt>
 <dd>

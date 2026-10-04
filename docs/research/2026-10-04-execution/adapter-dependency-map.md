@@ -1,6 +1,6 @@
 # Adapter and binding dependency map
 
-**Checkpoint: current adapter receipts through `host-adapters-v7`.** This is a scoped
+**Checkpoint: current adapter receipts through `host-adapters-v7` and `codec-hosts-v8`.** This is a scoped
 source-and-receipt inventory, not a release claim. A passing consumer contract
 covers only the recorded host, source snapshot, library and capability. It does
 not establish a package matrix, platform portability, streaming/full-engine
@@ -36,12 +36,23 @@ Earlier failing/incomplete records remain evidence: `cli-bindings-v1`–`v6`,
 passing substeps. Any post-receipt source fix requires a fresh qualification
 rather than inheriting an old result. The current constraints suite has 46 passing tests; runtime finalisation is still not a release.
 
+Current navigation is deliberately separate from those historical outcomes:
+the scoped stream/storage host evidence is in
+[STREAM-HOSTS-CHECKPOINT.md](STREAM-HOSTS-CHECKPOINT.md) and
+[stream-hosts-evidence.json](stream-hosts-evidence.json); bounded filesystem
+and VM evidence is in
+[filesystem-evidence-v1](jobs/filesystem-evidence-v1/FILESYSTEM-CHECKPOINT.md).
+The latest source-bound formatting and Clippy receipt is
+[native-quality-v10](jobs/native-quality-v10/receipt.json), with its full source
+identity in [source.json](jobs/native-quality-v10/source.json). These links do
+not upgrade any older adapter result or establish a platform/host matrix.
+
 ## External adapters and filesystem paths
 
 | Requirement | Current state | Remaining prerequisite and gate |
 |---|---|---|
 | RC27 libarchive/tar | `host-adapters-v3` passed GNU tar and an actual C program filter using explicit `--cix` path. | Remains a narrow Linux receipt: libarchive lifecycle, wider tar interoperability, error matrix and package/platform qualification are open. |
-| RC28 QuixDB Squash | SDK source is present/downloaded but uncompiled; existing libSquash 0.8 plugin candidate remains unqualified. | Build/load against the pinned SDK with splice/flush/bounds cases. It is not SquashFS. |
+| RC28 QuixDB Squash | `codec-hosts-v8` passed the actual pinned Squash0.8 plugin buffer, stream and custom-splice contracts. It makes no CAN_FLUSH claim. | Map the final package to the v8 source/SDK scope; accepted identifier, package/registry handling, host/version matrix and untested lifecycle claims remain open. It is not SquashFS. |
 | RC29 7-Zip | Source-only and uncompiled; no host acceptance. | Pinned SDK build, experimental method identity, decoder distribution and host test. |
 | RC30 HDF5/netCDF | `host-adapters-v6` passed HDF5 1.10.10/netCDF 4.9.2 reopen compression, raw-mask, corruption and limits with deployment caps of 64 MiB chunk/output, 512 MiB native memory and four workers; private filter ID 65001. `host-adapters-v7` passed h5py 3.10, HDF5 1.10.10 and NumPy 1.26.4 actual compressed mask-0 reopen exactness. | These remain bounded host receipts: h5py/HDF5/NumPy version and platform matrices plus registry/upstream acceptance remain open. |
 | RC32 Blosc2 | Source-only and uncompiled; no host acceptance. | Pinned Blosc2 plugin ABI, identity and incompressible/bounds host tests. |

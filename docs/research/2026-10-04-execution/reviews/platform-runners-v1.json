@@ -1,0 +1,126 @@
+{
+  "schema": "cix-platform-runner-inventory-v1",
+  "date": "2026-10-05",
+  "scope": "local runner and tool availability plus first-party receipts; no builds, downloads, network scans, or credential inspection",
+  "local_host": {
+    "os": "Ubuntu 24.04.4 LTS",
+    "architecture": "x86_64",
+    "installed_rust_targets": [
+      "x86_64-unknown-linux-gnu"
+    ],
+    "observed_tools": [
+      "qemu-system-aarch64",
+      "docker",
+      "rustup",
+      "cargo",
+      "clang",
+      "cmake",
+      "wine"
+    ],
+    "not_found_on_inspected_path": [
+      "qemu-aarch64",
+      "qemu-aarch64-static",
+      "qemu-x86_64",
+      "wine64",
+      "aarch64 cross GCC",
+      "MinGW GCC"
+    ]
+  },
+  "targets": {
+    "linux_x86_64": {
+      "native_runner_available": true,
+      "status": "baseline runner present",
+      "evidence": [
+        "current Ubuntu x86_64 host",
+        "rust/cix-native/README.md identifies Linux x86_64 as the only currently qualified host"
+      ],
+      "remaining_requirement": "Run final selected release acceptance matrix."
+    },
+    "linux_arm64": {
+      "native_runner_available": false,
+      "cross_compile_toolchain_available": false,
+      "emulated_execution_available_now": false,
+      "qemu_system_aarch64_available": true,
+      "status": "blocked",
+      "blockers": [
+        "no AArch64 Rust target or cross compiler",
+        "no AArch64 user-mode QEMU",
+        "no runnable local ARM64 guest kernel, firmware, or root filesystem"
+      ],
+      "actionable_path": "Provision the missing local ARM64 guest assets and AArch64 build toolchain, then run the target ELF in qemu-system-aarch64. Label the result emulated Linux ARM64 execution, never native ARM64 execution.",
+      "rc43_note": "Emulation is supplementary evidence unless the RC43 acceptance authority explicitly accepts it; it cannot support a native-runner claim."
+    },
+    "macos_arm64": {
+      "native_runner_available": false,
+      "status": "blocked",
+      "blockers": [
+        "no macOS host, SDK, or Apple toolchain locally"
+      ],
+      "required_runner": "Apple Silicon macOS runner with the dependencies and native checks specified by rust/cix-native/packaging/macos/README.md."
+    },
+    "macos_x86_64": {
+      "native_runner_available": false,
+      "status": "blocked",
+      "blockers": [
+        "no Intel macOS host, SDK, or Apple toolchain locally"
+      ],
+      "required_runner": "Intel macOS runner with the dependencies and native checks specified by rust/cix-native/packaging/macos/README.md."
+    },
+    "windows_x64": {
+      "native_runner_available": false,
+      "wine_available_but_not_native_windows": true,
+      "cross_compile_toolchain_available": false,
+      "status": "blocked",
+      "blockers": [
+        "no native Windows x64 runner",
+        "no Windows Rust target, MinGW compiler, or vcpkg x64-windows layout found locally",
+        "SDK helper rejects Windows DLL/import-library pairing",
+        "full-engine runtime staging is ELF/Linux only"
+      ],
+      "required_runner": "Actual Windows x64 environment with Rust/C++, vcpkg x64-windows, native build/test receipt, and clean-machine CLI checks."
+    }
+  },
+  "receipt_guardrails": {
+    "windows_jobs_mixed": "Names CIXW1 independent byte windows, not Microsoft Windows. v4 raw result is an x86_64 Linux cgroup command.",
+    "wasm_jobs": "Do not establish execution on Linux ARM64, macOS, or Windows native targets.",
+    "cross_compile": "Does not count as execution evidence."
+  },
+  "relevant_first_party_paths": [
+    "docs/research/2026-10-04-rc-reconciliation/REQUIREMENTS.md",
+    "rust/cix-native/README.md",
+    "rust/cix-native/packaging/macos/README.md",
+    "rust/cix-native/packaging/windows/README.md",
+    "rust/cix-native/packaging/sdk/CMakeLists.txt",
+    "rust/cix-native/packaging/sdk/README.md",
+    "rust/cix-native/packaging/runtime/CMakeLists.txt",
+    "rust/cix-native/packaging/runtime/README.md",
+    "docs/research/2026-10-04-execution/jobs/windows-jobs-mixed-v4/raw/result.json"
+  ],
+  "current_status_addendum": {
+    "source_revision_guard": "f2d670c8b; source-completeness guard added after the point-in-time inventory",
+    "scope": "Supersedes stale source-gap statements only. It is not native execution evidence for Linux ARM64, macOS ARM64, macOS x86-64, or Windows x64.",
+    "superseded_source_gaps": [
+      {
+        "former_claim": "Windows SDK helper rejects DLL/import-library pairing.",
+        "current_source_status": "resolved at SDK layout level: an explicitly selected cix_native.dll plus cix_native.lib or cix_native.dll.lib is required, installed to bin/lib, and represented by IMPORTED_LOCATION and IMPORTED_IMPLIB.",
+        "scoped_receipt": "docs/research/2026-10-04-execution/jobs/sdk-runtime-contract-v1/receipt.json",
+        "receipt_boundary": "Synthetic Windows-targeting CMake layout, find_package, and missing-pair negative case only; no Windows compiler, PE loader, ABI, or consumer execution."
+      },
+      {
+        "former_claim": "Non-Linux provider loading is implemented only as rejection stubs.",
+        "current_source_status": "resolved at source level: full_engine/dynamic_library.rs dispatches to explicit-path Unix dlopen or Windows LoadLibraryExW/GetProcAddress/FreeLibrary; installed discovery keeps platform suffixes and generic aliases.",
+        "receipt_boundary": "No native macOS or Windows bridge/provider load has been executed."
+      },
+      {
+        "former_claim": "Windows stdin streaming is unavailable.",
+        "current_source_status": "resolved for blocking stdin: the non-Unix CLI input adapter reads stdin directly in bounded codec blocks.",
+        "remaining_limit": "Timed --flush-interval waits still reject without Unix poll/readiness support."
+      }
+    ],
+    "remaining_external_runner_requirement": "Native target build and execution remain required for Linux ARM64, macOS ARM64, macOS x86-64, and Windows x64. The current review has no such receipts.",
+    "unchanged_open_contracts": [
+      "Windows and macOS full-engine runtime staging",
+      "target-specific PAQ isolation and resource-control qualification"
+    ]
+  }
+}

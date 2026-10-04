@@ -1,7 +1,7 @@
 {
   "schema": "cix.adapter-dependency-map.v2",
   "created": "2026-10-05",
-  "scope": "current narrow adapter inventory through host-adapters-v7 and relocated-providers-v4. Passing host receipts cover exactly the named source snapshot, library, host and cases; no RC ID is closed and runtime finalisation is not a release. No builds/downloads were performed for this refresh.",
+  "scope": "current narrow adapter inventory through host-adapters-v7, codec-hosts-v8 and relocated-providers-v4. Passing host receipts cover exactly the named source snapshot, library, host and cases; no RC ID is closed and runtime finalisation is not a release. No builds/downloads were performed for this refresh.",
   "existing_native_sdk": [
     "rust/cix-native/include/cix.h",
     "rust/cix-native/include/cix_stream.h",
@@ -58,14 +58,14 @@
     {
       "id": "RC28",
       "scope": "QuixDB Squash plugin",
-      "source_present": "Squash SDK source downloaded/present but uncompiled; existing libSquash 0.8 plugin candidate remains unqualified",
-      "local_host_evidence": "no SDK build/load receipt",
+      "source_present": "CIX Squash0.8 plugin contract source; codec-hosts-v8 pinned-host source snapshot",
+      "local_host_evidence": "codec-hosts-v8 PASS: actual Squash0.8 plugin buffer, stream and custom-splice contracts; no CAN_FLUSH claim",
       "proposed_disjoint_paths": [
         "adapters/quix_squash/cix_squash_plugin.c",
         "adapters/quix_squash/tests/plugin_contract.c (or retain package shim only after SDK binding)"
       ],
-      "qualification_blocker": "build/load pinned SDK and qualify splice/flush/bounds; distinct from SquashFS",
-      "status": "source_uncompiled"
+      "qualification_blocker": "map the final package to the v8 source/SDK receipt; accepted identifier, package/registry handling, host/version matrix and any untested lifecycle claims remain open; distinct from SquashFS",
+      "status": "narrow_host_receipt"
     },
     {
       "id": "RC29",
@@ -285,6 +285,11 @@
   "native_fullengine_boundary": "The public SDK exposes complete buffers, CIXG1 independent streams, explicit standard formats and dictionaries. The ordinary CLI has a separate bounded whole-input FullEngine path. Optional bindings do not expose full-engine selection, retained-history streaming, PAQ/JXL choice or specialist routing.",
   "research_boundary": "Adapter/binding work does not reopen closed numeric structural composition or the negative predictive-mixture first decision gate.",
   "recorded_evidence": {
+    "navigation_current_source_bound": {
+      "stream_hosts": "docs/research/2026-10-04-execution/STREAM-HOSTS-CHECKPOINT.md and stream-hosts-evidence.json: scoped stream/storage host evidence; no general filesystem or full-engine claim.",
+      "filesystem": "docs/research/2026-10-04-execution/jobs/filesystem-evidence-v1/FILESYSTEM-CHECKPOINT.md and filesystem-evidence.json: bounded filesystem/VM evidence only.",
+      "native_quality": "docs/research/2026-10-04-execution/jobs/native-quality-v10/receipt.json and source.json: source-bound fmt and Clippy receipt; it does not upgrade historical host outcomes."
+    },
     "cli_bindings_v8": "exit 0: installed SDK configure/install, Python and Go consumer checks, and relocated Linux runtime command checks; not every retained family or CLI mode.",
     "language_consumers_v2": "Node and Java configure/build/contract substeps exit 0; the job later failed during Python host dependency installation, so it is not a whole-job pass.",
     "language_consumers_v3": "Python core contract substeps passed; Python host integration later failed, so it is not a whole-job pass.",

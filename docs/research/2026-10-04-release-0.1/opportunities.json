@@ -36,26 +36,26 @@
     {
       "id": "P2",
       "area": "corrected recurrence-v3",
-      "status": "available-measurement",
-      "evidence": ["docs/research/2026-10-04-predictive-information/INVENTORY.md", "rust/cix-native/src/fixedmix.rs"],
-      "finding": "Implemented causal signal omitted from CPI1; legacy v2 is invalid because lookup is after observation.",
-      "next_action": "freeze and trace v3/no-v3 on the existing CCA split before any codec work"
+      "status": "research_closed_nonpromoted",
+      "evidence": ["docs/research/2026-10-04-predictive-information/INVENTORY.md", "docs/research/2026-10-04-release-0.1/PREDICTION-RESULTS.md", "docs/research/2026-10-04-release-0.1/prediction-results.json", "rust/cix-native/src/fixedmix.rs"],
+      "finding": "The corrected causal v3 N1/N2 follow-up on 49,152 held-out bytes loses to FixedMix v1 by 0.006298/0.006361 bit/B and the causal mixture gate fails. Legacy v2 remains invalid because lookup is after observation.",
+      "next_action": "none for v0.1; retain the historical CPI1 omission and corrected follow-up as separate scopes"
     },
     {
       "id": "P3",
       "area": "PPM/SEE probability interface",
-      "status": "available-measurement",
-      "evidence": ["docs/research/2026-10-04-predictive-information/REPORT.md", "docs/research/2026-10-04-predictive-information/EXPOSURE-AMENDMENT.md"],
-      "finding": "Method-1 reachable original-byte mass is 0.5; PPM is not an eligible common expert yet.",
-      "next_action": "prove a unit-mass outcome space or classify PPM as coding-path-only"
+      "status": "research_closed_nonpromoted_pending_interface_contract",
+      "evidence": ["docs/research/2026-10-04-predictive-information/REPORT.md", "docs/research/2026-10-04-predictive-information/EXPOSURE-AMENDMENT.md", "docs/research/2026-10-04-release-0.1/PREDICTION-RESULTS.md", "docs/research/2026-10-04-release-0.1/prediction-results.json"],
+      "finding": "CPI1 records method-1 subprobability on reachable states. The 49,152-byte follow-up's raw and paid valid-mass diagnostics are equal within rounding, so it found no normalization gain; PPM remains outside the common predictive pool.",
+      "next_action": "retain PPM as a standalone coding path unless a decoder-compatible unit-outcome contract is separately established; do not silently normalize it"
     },
     {
       "id": "P4-P7",
       "area": "predictor costs, long match, context/count models",
-      "status": "available-bounded",
-      "evidence": ["docs/research/2026-10-03-rust-rnd/closure-queue/prediction.md"],
-      "finding": "Finite source-bound cells exist but demonstrate no production gain.",
-      "next_action": "only declared one-cell controls after P2/P3"
+      "status": "reviewed_unproven_deferred",
+      "evidence": ["docs/research/2026-10-03-rust-rnd/closure-queue/prediction.md", "docs/research/2026-10-04-release-0.1/PREDICTION-RESULTS.md"],
+      "finding": "Finite source-bound cells remain unpromoted. The corrected v3 and PPM follow-up does not justify a successor calibration, physical mixture, or new predictive route.",
+      "next_action": "defer without reopening terminal predictive negatives; a later distinct mechanism needs its own fixed complete-byte case"
     },
     {
       "id": "R1-R7",

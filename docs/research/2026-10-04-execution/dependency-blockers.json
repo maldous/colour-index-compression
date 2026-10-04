@@ -2,7 +2,13 @@
   "schema": "cix.execution-dependency-blockers.v1",
   "date": "2026-10-04",
   "scope": "Read-only local dependency and execution-plan crosswalk. It does not accept any RC item, run a benchmark, or authorize implementation.",
-  "disposition_rule": "Each requirement has exactly one disposition enum. Planning edges are scheduling aids, not replacement acceptance evidence or a waiver.",
+  "disposition_rule": "Each requirement has exactly one disposition enum. Construction edges order work; acceptance backedges name evidence that must converge before RC51. Neither edge class replaces acceptance evidence or waives a requirement.",
+  "edge_model": {
+    "construction_edges": "A finite implementation or evidence-preparation dependency. These edges form the execution DAG after coordinated construction cohorts are collapsed.",
+    "acceptance_backedges": "A final evidence relationship. It is not a start-order edge and must not be used to create a construction cycle.",
+    "coordinated_construction_cohort": "Members may prepare mutually informative implementation inputs together under one source freeze, but each remains independently open until its ledger acceptance evidence is reviewed.",
+    "terminal_rule": "RC51 retains every required source row and the three owned external obligations as terminal acceptance prerequisites."
+  },
   "source_of_truth": [
     "docs/research/2026-10-04-rc-reconciliation/requirements.json",
     "docs/research/2026-10-04-rc-reconciliation/RESEARCH-CLOSURE.txt",
@@ -31,7 +37,8 @@
     },
     {
       "id": "S1-native-core",
-      "purpose": "one executable/library, automatic discovery, historical frames and paid representation",
+      "purpose": "coordinated construction cohort for one executable/library, automatic discovery, historical frames, paid representation and hidden-input closure",
+      "execution_mode": "coordinated_construction_cohort",
       "members": [
         "RC01",
         "RC02",
@@ -88,7 +95,8 @@
     },
     {
       "id": "S4-external-adapters",
-      "purpose": "host SDK adapters, bindings, filesystem work, registries and actual platform runners",
+      "purpose": "external-adapter construction, actual host/runner preparation and the three mandatory owned external-obligation nodes",
+      "execution_mode": "coordinated_construction_cohort",
       "members": [
         "RC27",
         "RC28",
@@ -107,17 +115,26 @@
         "RC41",
         "RC42",
         "RC43",
-        "RC54"
+        "RC54",
+        "RC42-owned",
+        "RC54-sdk-runners",
+        "RC54-identities"
       ],
       "entry_edges": [
-        "S3-sdk-and-formats",
-        "RC45"
+        "S3-sdk-and-formats"
       ],
+      "acceptance_backedges": ["RC43", "RC45"],
       "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/26"
     },
     {
       "id": "S5-distribution-quality",
-      "purpose": "distribution, licensing, analyzers, robustness and reproducible optimized builds",
+      "purpose": "distribution, licensing, analyzers, robustness and reproducible optimized builds; final evidence converges through the RC24/RC43/RC45 acceptance cohort",
+      "execution_mode": "construction_then_coordinated_acceptance",
+      "coordinated_acceptance_cohort": [
+        "RC24",
+        "RC43",
+        "RC45"
+      ],
       "members": [
         "RC44",
         "RC45",
@@ -191,6 +208,44 @@
       "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/52"
     }
   ],
+  "owned_external_obligation_nodes": [
+    {
+      "id": "RC42-owned",
+      "parent": "RC42",
+      "owner": "root supplies implementation/evidence; coordinator accepts against the authoritative ledger",
+      "dependent_ids": ["RC42"],
+      "promise": "Owned per-format proposals, feasible prototypes, source/compatibility evidence and explicit infeasibility evidence where applicable. A pending upstream decision does not excuse missing owned work.",
+      "evidence_target": "Current-RC proposal/prototype, source and compatibility disposition for each promised format; no stock-format claim without the separate RC42-upstream condition.",
+      "construction_prerequisite_edges": ["S3-sdk-and-formats"],
+      "acceptance_backedges": ["RC42", "RC54-identities"],
+      "status": "open",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/external_obligations/0"
+    },
+    {
+      "id": "RC54-sdk-runners",
+      "parent": "RC54",
+      "owner": "root supplies implementation/evidence; coordinator accepts against the authoritative ledger",
+      "dependent_ids": ["RC24", "RC28", "RC29", "RC30", "RC31", "RC32", "RC33", "RC34", "RC35", "RC36", "RC37", "RC38", "RC39", "RC40", "RC41", "RC43"],
+      "promise": "Real pinned host SDK/runtime/toolchain/runner evidence needed by actual promised consumer/platform qualification. Unavailable dependencies keep corresponding required IDs open.",
+      "evidence_target": "Pinned SDK/runtime/toolchain and actual runner receipts for each promised consumer or platform; cross-compilation and staging layouts are not runner evidence.",
+      "construction_prerequisite_edges": ["S3-sdk-and-formats"],
+      "acceptance_backedges": ["RC24", "RC43"],
+      "status": "open",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/external_obligations/1"
+    },
+    {
+      "id": "RC54-identities",
+      "parent": "RC54",
+      "owner": "root supplies implementation/evidence; coordinator accepts against the authoritative ledger",
+      "dependent_ids": ["RC26", "RC28", "RC29", "RC30", "RC32", "RC33", "RC34", "RC38", "RC40", "RC41", "RC42"],
+      "promise": "Each adapter/format has collision-free documented development identity and explicit experimental-versus-stock compatibility profile. No invented registration or existing codec-ID reuse.",
+      "evidence_target": "Per-adapter/format development identity and compatibility declaration, with stock/registered claims held for the separate RC54-registry-stock condition.",
+      "construction_prerequisite_edges": ["S3-sdk-and-formats"],
+      "acceptance_backedges": ["RC26", "RC42", "RC45"],
+      "status": "open",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/external_obligations/2"
+    }
+  ],
   "requirements": [
     {
       "id": "RC01",
@@ -219,9 +274,9 @@
       "existing_evidence": [],
       "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
       "planning_prerequisite_edges": [
-        "RC01",
-        "RC19"
+        "RC01"
       ],
+      "acceptance_backedges": ["RC19"],
       "acceptance_summary": "Rust API plus C ABI consumer tests; no process exits, signals, unsolicited output, global resource-limit changes or implicit child processes in native embedding.",
       "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/1"
     },
@@ -570,13 +625,13 @@
       "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
       "planning_prerequisite_edges": [
         "RC01",
-        "RC02",
         "RC03",
         "RC04",
         "RC05",
         "RC08",
         "RC18"
       ],
+      "acceptance_backedges": ["RC02"],
       "acceptance_summary": "Fresh-process offline/archive-only restore and clean dependency closure; dictionary identity/distribution explicit where deliberately used.",
       "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/18"
     },
@@ -658,6 +713,8 @@
       "area": "packaging",
       "gate_phase": "pre_benchmark",
       "stage": "S5-distribution-quality",
+      "construction_stage": "S3-sdk-and-formats",
+      "acceptance_stage": "S5-distribution-quality",
       "disposition": "required_open",
       "ledger_status": "open_for_new_rc",
       "existing_evidence": [],
@@ -666,10 +723,9 @@
         "RC01",
         "RC02",
         "RC18",
-        "RC19",
-        "RC43",
-        "RC45"
+        "RC19"
       ],
+      "acceptance_backedges": ["RC43", "RC45", "RC54-sdk-runners"],
       "acceptance_summary": "Build independent consumers from a clean install; link/load and uninstall checks; document supported capability and resource contracts.",
       "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/23"
     },
@@ -728,8 +784,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -755,8 +809,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -782,8 +834,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -809,8 +859,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -836,8 +884,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -863,8 +909,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -890,8 +934,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -917,8 +959,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -944,8 +984,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -971,8 +1009,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -998,8 +1034,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -1025,8 +1059,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -1052,8 +1084,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -1079,8 +1109,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -1106,8 +1134,6 @@
         "RC24",
         "RC25",
         "RC26",
-        "RC43",
-        "RC45",
         "RC54-sdk-runners",
         "RC54-identities"
       ],
@@ -1125,8 +1151,10 @@
       "existing_evidence": [],
       "missing_or_blocker": "Source/proposal obligations retained; stock/upstream acceptance depends on external parties and is not promised.",
       "planning_prerequisite_edges": [
-        "external_owner_or_host_evidence"
+        "RC42-owned",
+        "RC54-identities"
       ],
+      "conditional_external_claim_gate": "RC42-upstream applies only to a stock-format-extension claim; it is not a substitute for RC42-owned and is not a current construction edge.",
       "acceptance_summary": "Each target has design/prototype status, identity/licensing/upstream dependency and owner. Concrete promised proposal/prototype work remains required; upstream acceptance cannot be fabricated.",
       "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/41"
     },
@@ -1136,6 +1164,8 @@
       "area": "packaging",
       "gate_phase": "pre_benchmark",
       "stage": "S5-distribution-quality",
+      "construction_stage": "S4-external-adapters",
+      "acceptance_stage": "S5-distribution-quality",
       "disposition": "required_open",
       "ledger_status": "open_for_new_rc",
       "existing_evidence": [],
@@ -1146,8 +1176,9 @@
         "RC18",
         "RC19",
         "RC24",
-        "RC45"
+        "RC54-sdk-runners"
       ],
+      "acceptance_backedges": ["RC45"],
       "acceptance_summary": "Clean install and independent consumers per supported target; absent runners/dependencies listed as external blockers; no silent exclusion or false platform claim.",
       "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/42"
     },
@@ -1179,6 +1210,8 @@
       "area": "packaging",
       "gate_phase": "pre_benchmark",
       "stage": "S5-distribution-quality",
+      "construction_stage": "S5-distribution-quality",
+      "acceptance_stage": "S5-distribution-quality",
       "disposition": "required_open",
       "ledger_status": "open_for_new_rc",
       "existing_evidence": [],
@@ -1187,10 +1220,9 @@
         "RC01",
         "RC02",
         "RC18",
-        "RC19",
-        "RC24",
-        "RC43"
+        "RC19"
       ],
+      "acceptance_backedges": ["RC24", "RC43", "RC54-identities"],
       "acceptance_summary": "Source hashes, dependency manifest, install-size accounting and compatible package scopes; keep repository private and Actions disabled.",
       "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/44"
     },
@@ -1421,8 +1453,10 @@
       "existing_evidence": [],
       "missing_or_blocker": "Source/proposal obligations retained; stock/upstream acceptance depends on external parties and is not promised.",
       "planning_prerequisite_edges": [
-        "external_owner_or_host_evidence"
+        "RC54-sdk-runners",
+        "RC54-identities"
       ],
+      "conditional_external_claim_gate": "RC54-registry-stock applies only to a registered/stock-interoperability claim; it does not replace the three owned external obligations.",
       "acceptance_summary": "Explicit dependency owner and evidence, no invented registered ID or SDK qualification. Keep promised source deliverables open until accepted or user changes scope.",
       "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/53"
     },
