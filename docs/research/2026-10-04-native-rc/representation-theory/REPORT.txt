@@ -1,0 +1,258 @@
+Exact mathematical projections and recursive representation search
+2026-10-04
+
+Scope and conclusion
+
+This extends the user's seed/offset/function hypothesis to roots, reciprocals,
+other functions with arbitrary-precision binary outputs, and recursive search.
+The objective is valid as a bounded search for a shorter lossless representation
+than a particular existing compressor produces. It is not justified to conclude
+that a random-looking archive is already globally minimal. A mathematical change
+of coordinates can expose structure to a coder that previously missed it.
+
+However, an infinite expansion is not itself a finite archive. A usable candidate
+needs a finite description which reconstructs the original bytes exactly. New
+patterns, a smaller numeric magnitude or lower marginal digit entropy alone do
+not establish a smaller complete description. Infinite precision is not a source
+of free information or a prerequisite for useful transformations.
+
+No production code, real-data benchmark or closed numeric-composition branch was
+changed. The small checks here use all integers of a tiny fixed domain to verify
+precision and reconstruction, not to optimize CIX around synthetic results.
+
+Two concrete meanings of an 'infinite precision representation'
+
+1. An exact symbolic description: a rational, polynomial plus root selector,
+   continued-fraction rule, expression tree, recurrence, or finite program which
+   can generate as many digits as required. This is finite if all constants and
+   rules have finite descriptions. Their complete costs must be counted.
+
+2. A finite binary prefix plus a certified enclosing interval and an agreed
+   inverse rule. Increase precision until exactly one original integer/byte
+   string is consistent with the stored information, or transmit a residual/rank
+   identifying the original among several candidates. Arithmetic can use exact
+   integers/rationals or rigorous interval bounds. Ordinary floating-point
+   agreement and a matching checksum are not proofs of uniqueness.
+
+Symbolic and interval methods can be combined. Infinite real numbers generally
+cannot be serialized literally. Arbitrary precision means that finite requested
+precision may be increased; it does not mean finite memory stores infinitely many
+digits. A function containing an arbitrary real constant has not compressed the
+input if the input information is hidden in that constant.
+
+Represent an archive as (length, unsigned integer), retaining byte/bit order and
+leading-zero count through the length. X=0 and function-domain exceptions need
+explicit handling. Sign, scale, normalization, branch selection, precision and
+termination must be fixed by the format, derived from available information or
+transmitted. Do not count the same already-required metadata twice.
+
+Mathematical families beyond roots and reciprocals
+
+Rational and fractional-linear maps:
+  (aX+b)/(cX+d), other rational functions on certified injective domains.
+  Fractional-linear maps with ad-bc nonzero and no pole on the domain have a
+  rational inverse. Exact fractions may reveal common factors or simple rational
+  relationships. Count numerator/denominator or coefficient descriptions; putting
+  all of X in a denominator merely relocates its representation. Rational binary
+  expansions are eventually periodic, but a long period is not a free short code.
+
+Algebraic maps:
+  rational powers, roots of low-degree polynomials, bounded radical expressions,
+  and algebraic-number bases. Exact algebraic representation uses coefficients
+  and an isolating interval or root selector. Small coefficients/relations can
+  produce short descriptions. Writing 'root of z^2-X=0' stores X as a coefficient
+  and is not a saving by itself. Different algebraic expressions for the same
+  value should be canonicalized where practical.
+
+Elementary transcendental maps:
+  logarithm, exponential, log1p/expm1, arctangent and suitable monotonic branches
+  of trigonometric/hyperbolic functions. They can generate infinite nonperiodic
+  expansions and change distributions seen by a practical coder. Certified
+  inverse intervals are required. Periodic or many-to-one real maps require a
+  branch/domain or other disambiguation; do not assume that global real inversion
+  is available. Restricting to a finite integer domain can change injectivity,
+  but still needs a proof and an effective decoder.
+
+Continued fractions and alternate bases:
+  encode quotient sequences, finite/periodic rules or a certified convergent.
+  These are alternate exact number representations, not new entropy coders.
+  Some values have concise quotient/rule descriptions. Count quotient sizes,
+  coefficients, termination and any precision needed to distinguish X. A finite
+  continued fraction needs a canonical terminal convention. Base changes must be
+  compared in actual bits, not numbers of decimal characters versus binary bits.
+
+Series and iterative generators:
+  power-series expansions, bounded recurrences, iterated maps and computable
+  constants, including a second function applied to generated digits. A short
+  initial condition plus rule can describe a long sequence. If the initial
+  condition/coefficients contain X, account for them. Chaotic sensitivity may
+  demand more parameter precision, and many-to-one iterations can require branch
+  histories. Random-looking output is not itself evidence of useful prediction.
+
+Exact discrete controls:
+  invertible modular maps, binary linear maps and finite permutations provide
+  comparison mechanisms without creating infinite expansions. Their role here is
+  theoretical comparison and exact accounting. This does not reopen prior closed
+  numeric structural-composition experiments or authorize new production routes.
+
+For every family, admission depends on a finite decoder, proven reconstruction,
+the complete byte cost and bounded computation. No assertion is made that every
+member is useful, efficiently invertible or covered by one implementation.
+
+Where root/reciprocal information moves
+
+For an n-bit positive integer of typical magnitude 2^n and fixed k, the value
+Y=X^(1/k) has about n/k integer bits. Near X, adjacent roots are separated on the
+scale of (1/k) X^(1/k-1). Recovering the original arbitrary integer consequently
+needs about n(1-1/k)+O(log k) fractional bits under ordinary fixed-point coding.
+The total is about n+O(log k). This local-spacing argument does not exclude a
+short symbolic expression or unusually compressible digit sequence.
+
+For a reciprocal, adjacent inputs have separation
+  1/X - 1/(X+1) = 1/(X(X+1)).
+At n-bit magnitude this is about 2^-2n. A direct unnormalized fractional prefix
+therefore needs about 2n places, with roughly n leading zero places. Those zeros
+are easy to compress; their removal does not establish a saving over the original
+n-bit representation. Exponent/scale coding is valid and must be counted fairly.
+
+For logarithm at this scale, adjacent outputs differ by about 1/X, demanding
+roughly n fractional bits even though the integer part becomes small. Saturating
+functions can require much more precision. For example, a function approaching
+a constant exponentially in X can push the distinguishing information extremely
+far into its fractional tail. Smaller output magnitude is not smaller information.
+
+For a fixed injective transform T on a finite source domain, probabilities are
+relabeled: the Shannon entropy of the full transformed value is unchanged.
+Marginal digit frequencies, numerical differential entropy or entropy per output
+character can change. They are not interchangeable with the joint discrete
+information needed to recover the original finite file.
+
+Exact finite checks
+
+The plan was saved before execution; all computations use exact integers.
+
+Square root, all X=0..4095:
+  Integer part alone has only 64 distinct values and loses information.
+  q=floor(2^7 sqrt(X)) yields 4096 distinct prefixes, at most 13 bits long.
+  Decode using the integer interval
+    ceil(q^2/2^14) <= X <= ceil((q+1)^2/2^14)-1.
+  Every interval contains exactly its original X.
+
+Cube root, all X=0..4095:
+  Integer part alone has 16 distinct values and loses information.
+  q=floor(2^10 cuberoot(X)) yields 4096 distinct prefixes, at most 14 bits long.
+  Inversion uses the same exact inequality with cubes and denominator 2^30.
+  Every interval contains exactly its original X.
+
+Reciprocal, all X=1..4095:
+  q=floor(2^24/X) yields 4095 distinct prefixes. Decode by
+    floor(2^24/(q+1))+1 <= X <= floor(2^24/q).
+  Every interval contains exactly its original X. Zero is explicitly excluded.
+  For X=2048..4095, the 24 fractional places contain 10 or 11 initial zero bits,
+  while the 2048 distinct targets still carry 11 bits under a uniform distribution.
+
+The root precisions are conservative sufficient choices, not optimal encodings.
+The numbers above are prefix-integer widths or information counts, not physical
+archive sizes. They omit fixed/shared transform/length/precision fields and any
+actual digit compressor. They neither demonstrate nor rule out practical gains
+from coding those prefixes with a more suitable model.
+
+A genuine positive case
+
+If X is a perfect square, its integer square root reconstructs it exactly with
+no fractional tail. If an asset equals 3^1000, a format supporting integer powers
+can describe it through the base, exponent and original byte length. Near-perfect
+powers may be represented by a base/power plus a cheap signed residual. These are
+real short-description opportunities when the full cost wins, regardless of how
+random the ordinary binary digits may appear.
+
+The toy perfect-square control includes every 12-bit input:
+  64 perfect squares use a one-bit tag and six-bit root: 7 bits.
+  4032 other values use a one-bit tag and twelve raw bits: 13 bits.
+  Uniform average is 12.90625 bits versus 12 raw bits; every value decodes exactly.
+This preserves the positive special case and its limited prevalence. It is not an
+optimized code, a real-data prevalence estimate or proof of a CIX improvement.
+
+Recursive search and what 'optimal' can mean
+
+A chain is a finite reconstruction program. Charge its final payload and the
+inverse instructions/parameters/residuals actually needed at every retained
+stage. Do NOT charge full intermediate payloads if the decoder can regenerate
+them; conversely, do not discard required earlier corrections or precision.
+
+Some useful chains can temporarily expand. Rejecting every expanding intermediate
+representation may miss a later net win. A bounded search can retain a limited
+number of such intermediates and compare complete final descriptions, while
+tracking time, memory, depth and certified precision. This remains an inference
+about search design, not evidence of a useful chain on CIX archives.
+
+Canonicalize obvious identities such as exp(log X)=X on the defined exact domain,
+reciprocal of reciprocal, and compatible composed powers. Approximate implementations
+cannot silently use exact symbolic identities unless their correction/rounding
+semantics agree. Repeated states and equivalent programs should not consume
+separate search effort indefinitely.
+
+A chain whose complete stored bit length decreases at every accepted step has
+only finitely many such steps. Finite-length archives do not permit an infinite
+strictly descending sequence of nonnegative integer lengths. This does not mean
+every intermediate transform must shrink or that the first local minimum is best.
+
+For a fixed computable reversible transform with shared forward/inverse programs,
+algorithmic description length is preserved up to constants: a short description
+of T(X), followed by T^-1, already describes X. A practical compressor need not
+find that description. Consequently it is possible to improve 'best for today's
+coder', but impossible by definition to improve an actually shortest complete
+description while retaining the same decoding conventions and side information.
+
+A finite, total, resource-bounded grammar has a well-defined best admitted candidate
+and can in principle be exhaustively searched, though cost may be prohibitive.
+Unrestricted shortest-program search is not generally computable. We should say
+'best found within the declared functions, parameters, precision and compute
+budget', rather than claiming an absolute optimum or that all opportunities are
+exhausted. Primary theoretical reference:
+Vitanyi, How Incomputable Is Kolmogorov Complexity? (2020)
+https://homepages.cwi.nl/~paulv/papers/incomp.pdf
+
+Prior-art and implementation references
+
+Wu et al. (2014), A Test Data Compression Scheme Based on Irrational Numbers Stored
+Coding, describes storing circuit-test data through irrational-number expansions.
+The indexed primary text discusses don't-care bits, so its results cannot be
+transferred to arbitrary lossless files with every bit fixed. This is related
+prior description, not verified evidence for recursive recompression of CIX.
+Only indexed primary abstract/text passages were available during this review;
+the full-text endpoint returned a browser challenge. No claimed ratio was adopted.
+https://pubmed.ncbi.nlm.nih.gov/25258744/
+https://pmc.ncbi.nlm.nih.gov/articles/PMC4166428/
+
+Taurone et al. (2023), Lossless preprocessing of floating point data to enhance
+compression, investigates conditions for invertible numeric preprocessing and
+reports gains on its numeric datasets. It supports the distinction between a
+useful source-specific representation and a claim about arbitrary compressed
+bitstreams. Its results were not reproduced here or assigned to CIX.
+https://arxiv.org/abs/2308.03623
+
+Johansson's Arb work provides arbitrary-precision ball arithmetic with rigorous
+error bounds. Exact algebraic-number systems also use polynomial/root isolation.
+These are ways to implement certified precision, not compression results. No
+library was installed or selected as a distribution dependency in this work.
+https://arxiv.org/abs/1611.02831
+https://flintlib.org/doc/qqbar.html
+
+The earlier seed/parameter report remains complementary evidence:
+../seed-parameter-theory/REPORT.txt
+It covers checksum/sample availability, phase/state equivalence, generator search,
+second-stage composition, substring algorithms and the complete-code luck bound.
+
+Evidence and one next action
+
+The script, fixed plan, results and resource receipt are stored beside this report.
+All finite inverse-interval and positive-control checks passed. Independent review
+supplied the root precision, conditional information and recursive-search analysis.
+No real asset was inspected, no benchmark restarted and no production route added.
+
+Exactly one next action: consolidate these function families into a finite search
+grammar whose entries specify exact inverse/interval rules, paid metadata, canonical
+equivalences and encoder/decoder resource limits before any future real-data screen.
+The selected objective is complete reconstructed-archive cost; an infinite expansion
+or a favorable digit-entropy statistic alone is not an admission criterion.

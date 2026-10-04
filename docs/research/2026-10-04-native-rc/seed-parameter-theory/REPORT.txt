@@ -1,0 +1,267 @@
+Generator parameter spaces, search methods and second-stage models
+2026-10-04
+
+Decision
+
+The expanded hypothesis is best treated as search for a short reconstruction
+program plus a short correction, with the generator family, width, seed rule,
+offset rule and any second stage as model parameters. Multiple parameters can
+make a particular file more cheaply describable, and a lucky match is legitimate
+if all reconstruction information fits. This investigation identifies useful
+search reductions and conditional-model cases; it establishes no CIX archive
+gain, production feature or new general compression theory.
+
+This is theoretical research with two small finite algebra/counting checks, not
+a corpus experiment. The existing RC gate and benchmark stop remain unchanged.
+
+What counts as a candidate
+
+Let P be a complete decoder-readable program description and R its correction.
+The candidate is the exact decoded asset D(P,R). P includes any non-shared:
+  generator/function identifier and version;
+  arithmetic width, signedness, endianness and partial-word convention;
+  seed or reproducible seed rule;
+  substring offset, length and offset units;
+  stage count, operator order and stage parameters;
+  correction model and its parameters;
+  framing required to parse these fields.
+
+The representation cost is L(P) + L(R|P) + remaining archive overhead. Parameters
+may be coded jointly or derived from already decoded/shared information; summing
+naive fixed-width fields is not mandatory. Fixed decoder algorithms need not be
+repeated per archive. Input-specific constants cannot be concealed in a changed
+decoder or shared database and then treated as free.
+
+The encoder may inspect the whole input and search using it. The selected result
+must provide enough information for exact reconstruction without that original
+input. This representation question does not require the encoder's search to be
+causal; it requires the physical decoder's dependencies to be resolvable.
+
+This model-plus-data objective is established minimum-description-length/model
+selection territory. Prior sources: Vitanyi and Li, IEEE TIT 46(2), 2000,
+Minimum Description Length Induction, Bayesianism, and Kolmogorov Complexity:
+https://arxiv.org/abs/cs/9901014
+
+Seed derivation: real opportunities and circular cases
+
+Whole-file checksum: if the checksum is already required, stored outside the
+coded region, and available before this payload is reconstructed, it can supply
+a seed without an additional seed field. The checksum is counted once in the
+complete archive and in matched baselines. A checksum embedded only inside the
+as-yet-undecoded target is not available. Moving or duplicating it can add cost.
+Adding a new b-bit hash cannot supply more than b bits of side information.
+
+An existing checksum need not make the generated mask correlate usefully with
+the payload. A fixed short list of derivation functions can be tested, but its
+selected member must also be decodable. A hash alone generally cannot identify
+one arbitrary long file uniquely: collisions and multiple candidates must be
+handled. A decoder must never accept an ambiguous reconstruction merely because
+the checksum matches. Fixing checksum bytes may condition the target distribution;
+independence-based random-mask heuristics then need rechecking.
+
+Predetermined sampling: fixed sample positions avoid transmitting positions, but
+not necessarily the sample values. Values from the unknown target must be sent,
+decoded first or otherwise provided. Coding a prefix/header first and using it
+as the seed for later data is valid. Its benefit is conditional source modelling.
+A sample can be worthwhile if its total cost is amortized over a larger remainder.
+
+Brute force: trying many candidates costs CPU/memory. The failed candidates and
+search history need not be transmitted. Only the winning reconstruction recipe
+and corrections are needed. Conversely, 'the first seed that matches the input'
+does not let a decoder omit the seed when the input is still unknown.
+
+Derived second parameters: t=f(s,already_decoded_context) may be free to derive,
+but does not introduce another independently selectable parameter. If t is
+derived from unknown portions of X, the relevant values must be conveyed or
+decoded earlier. Different valid dependency orders are different format designs.
+
+Widths and offsets
+
+Re-grouping the same bits into 8-, 16- or 32-bit words alone does not change the
+bitstream. Width matters when it changes a generator, modular operation,
+residual model or field coding. Word boundaries, modulo-2^w arithmetic, carry,
+trailing bits and byte order must be specified. There is no universal best width:
+short blocks lower match/search cost but increase per-block parameter costs.
+
+A finite-state PRNG can emit indefinitely while eventually repeating. After any
+transient, offsets are redundant modulo its cycle. An offset may also be absorbed
+into a new starting state. Store whichever allowed description is shorter, without
+assuming that a full state is cheaper than a compact seed-plus-offset pair.
+
+Counter-based generators can compute values at selected counters directly and
+are suitable for parallel/CPU/GPU generation; this avoids generating the entire
+prefix. Fixed-width counters still have finite domains. Random123 is established
+prior work for this design, not a new compression method:
+Salmon et al., Parallel Random Numbers: As Easy as 1, 2, 3 (2011)
+https://www.thesalmons.org/john/random123/papers/random123sc11.pdf
+
+Pi has nonperiodic infinite digits, unlike an ordinary finite-state PRNG. Infinity
+and nonperiodicity alone do not guarantee every finite target occurs, much less
+that its position has a short usable description. Proven normal computable
+constants provide a stronger theoretical reference. Bailey and Crandall exhibit
+classes with proven normality and unusually fast isolated-digit computation,
+including positions as large as 10^100. Their result supports investigating
+random-access computable references; it does not demonstrate compression of
+arbitrary assets or fast search for a target substring.
+Bailey and Crandall, Random Generators and Normal Numbers (2002 journal article;
+the linked manuscript is dated 2003)
+https://www.davidhbailey.com/dhbpapers/bcnormal.pdf
+
+A huge offset represented as a short formula is allowed if the format defines the
+formula language and its evaluation. Its cost is the formula, not necessarily the
+literal integer. But few short formulas describe few offsets. Efficient evaluation
+of a chosen offset and finding an offset matching a target are distinct problems.
+
+Constructive exact-match example
+
+Take a fixed bijection F on n-bit integers and define a generated reference by
+concatenating F(0), F(1), ... F(2^n-1). Every n-bit asset occurs as an aligned block.
+If F has an efficient inverse, its block index is F^-1(X), found without brute
+force. This realizes the user's best-case exact-match scenario constructively.
+The index has n bits in ordinary fixed-width form, so exact existence and easy
+matching do not by themselves give compression. Unusually cheap indices/formulas
+can still help individual assets. The full format must include any width and
+alignment information that is not shared.
+
+Second-stage models
+
+An additive construction is X = G(s,o) XOR H(t,p) XOR E. It can represent a source
+containing two generated components plus simple corrections. Different functions
+or nonlinear stages can increase the set of available outputs. Stage choices and
+independent parameters are paid unless derivable. An invertible second transform
+can expose a cheap residual to a practical coder even though it preserves the
+number of possible target strings.
+
+Some apparent diversity is redundant. For a fixed linear recurrence, output is
+linear in the state: G(s) XOR G(t) = G(s XOR t). Two seeds and an XOR stage then
+reduce to one effective seed. Phase shifts can also be absorbed into states.
+Affine maps and repeated permutations have related algebraic equivalences where
+their particular families are closed under composition; do not assume closure
+for arbitrary nonlinear functions or differing recurrences.
+
+The exact finite check used two different four-bit recurrences and 64 output bits:
+  One recurrence, 16 seeds: 16 distinct outputs.
+  Same recurrence, 16 seeds x 15 phases: 240 descriptions, 16 outputs.
+  XOR of two seeds from the same recurrence: 256 descriptions, 16 outputs.
+  XOR of seeds from two different recurrences: 256 descriptions, 256 outputs.
+Every same-family seed pair obeyed the XOR-state identity. These are toy linear
+recurrences, not strong PRNGs or evidence of a real-data compression improvement.
+They justify canonicalization before expanding a search grid.
+
+Search methods worth considering
+
+Exact substring search: streaming KMP gives a linear-time baseline for scanning
+a materialized/generated prefix. Packed-string algorithms can process multiple
+symbols per machine operation. Indexing a reusable reference can amortize searches
+across assets, at a memory/preprocessing cost. None guarantees early occurrence.
+Primary sources:
+  Knuth, Morris and Pratt, Fast Pattern Matching in Strings (1977)
+  https://www.cs.jhu.edu/~misha/Spring23/Knuth77.pdf
+  Bille, Fast Searching in Packed Strings
+  https://arxiv.org/abs/0907.3135
+
+Few bit substitutions: XOR plus population count is a direct fixed-window
+distance computation. For many offsets, binary cross-correlation can yield all
+Hamming scores; mapping bits to +/-1 gives distance = (n-correlation)/2. Filtering
+and specialized mismatch algorithms are other options. Any approximate arithmetic
+used in search must be followed by exact candidate verification. Distance is only
+a proxy: it can miss cheap balanced/periodic corrections.
+Primary related algorithm research:
+  Chan et al., Approximating Text-to-Pattern Hamming Distances (2020)
+  https://arxiv.org/abs/2001.00211
+
+Insertions/deletions: bit-vector edit-distance methods such as Myers address a
+different metric. They are relevant only if a reversible edit-script model is
+admitted and every inserted value, deletion/position and alignment is accounted
+for. Do not substitute their score for XOR residual compressed length.
+  Myers, A Fast Bit-Vector Algorithm for Approximate String Matching (1999)
+  https://doi.org/10.1145/316542.316550
+
+Structured corrections: for a bounded known mask family E_j, search for
+X XOR E_j in the reference rather than generating every residual at every offset.
+Multiple queries can share scanning/index work. For an invertible block-local
+transform F, exact search for F^-1(X) can replace regenerating transformed
+reference blocks. Boundary state and parameters must be known. These are
+algebraic query transformations, not claimed new matching theory.
+
+Two independent XOR components permit meet-in-the-middle: store the A values and
+look up X XOR B. With 2^b values in each independent list, this examines 2^(2b)
+pairs through roughly 2^b list-generation/hash operations and corresponding
+storage, ignoring vector length/constants. A hash collision must be verified
+against complete values. Multi-list extensions have established prior work.
+  Wagner, A Generalized Birthday Problem (2002), with earlier work acknowledged
+  https://people.eecs.berkeley.edu/~daw/papers/genbday.html
+
+For an ideal 128-bit target and two independent lists from 32-bit seeds, there
+are 2^64 candidate pairs, but the expected number of exact matches is 2^-64.
+One explicit list of 128-bit vectors alone needs 68,719,476,736 bytes, excluding
+seed labels/table overhead. With 64-bit seeds in each list, expected matches
+reach one (this does not guarantee a match), but the two seeds already cost 128
+bits before any framing, and one
+list's vectors would require 295,147,905,179,352,825,856 bytes. These are analytical
+examples, not a proposed allocation or a claim that all time/memory tradeoffs
+require that much storage. No such list was constructed.
+
+Probability of a lucky complete representation
+
+Independent derivation for this investigation: fix a complete prefix-free format
+for all admitted parameter widths, functions, stage sequences and residuals.
+If k distinct n-bit targets have descriptions of at most n-g bits, each contributes
+at least 2^-(n-g) to Kraft's sum. Thus k <= 2^(n-g), and for a uniform n-bit input:
+  probability of at least g bits saved <= 2^-g.
+
+This bound already includes the entire search over the grammar. Trying more
+parameters does not multiply the bound without their descriptions being counted.
+If codewords are merely arbitrary externally delimited strings instead of a
+prefix/uniquely-decodable format, count the delimiter/length information or use
+the corresponding weaker finite count; do not apply the prefix bound silently.
+
+Examples of upper bounds (not estimates of achieved probability):
+  save 1 byte: <= 1/256;
+  save 2 bytes: <= 1/65,536;
+  save 4 bytes: <= 1/4,294,967,296;
+  save 8 bytes: <= 1/18,446,744,073,709,551,616.
+
+The bound is against n raw bits under its stated uniform-source assumptions.
+If a comparator adds c removable framing bits, a g-bit improvement over that
+comparator corresponds to g-c raw-bit saving. Pre-existing shared side information
+also changes the correct conditional problem. Real CIX archives are not assumed
+uniform, so these figures cannot be presented as probabilities of improving CIX.
+They quantify the 'getting lucky' argument for genuinely uniform data only.
+
+Searching efficiently under a cost budget
+
+A finite decoder grammar should prefer short descriptions before broad expensive
+search. Canonicalize provably equivalent seeds/states/phases/operations. Fix
+generator identity, integer semantics, offset coding and residual code first.
+Bound both encoder search work and decoder reconstruction work. Huge decoder
+work is an interoperability/resource cost even when metadata is small.
+
+Safe pruning: if unavoidable already-committed description bits alone exceed the
+target size budget, even an empty residual cannot rescue that candidate. Actual
+encoded residual prefixes can supply further bounds where termination semantics
+justify them. A high single-bit histogram entropy, high Hamming weight or a poor
+loss under one predictor is NOT a lower bound for every structured residual code.
+
+A second stage can improve a specific coder because it changes which structure
+is easy for that coder to express. Compare against a direct correction model or
+equivalent single-stage representation with the same information. Score complete
+bytes, reconstruction CPU/memory and encoder search cost separately. GPU/parallel
+generation and matching can improve computation; no local speedup is established.
+
+Reproducibility and scope
+
+plan.json predates the calculations. calculations.py and plan hashes are stored
+in results.json. All algebraic identities and finite cardinalities were checked
+exactly. Independent agent analysis reviewed the general counting, dependency and
+composition arguments. Execution receipt: 0.02 s wall, 0.01 s user CPU, 17,408 KiB
+peak resident memory, one CPU, zero swaps, exit 0. This is not a throughput result.
+No corpus was accessed, no production code changed, and no dependency was installed.
+
+Exactly one next action
+
+Retain a bounded generated-reference/structured-residual research candidate and
+freeze its canonical decoder grammar and complete field costs before any future
+real-data screen. The search must include a same-information direct residual
+control and report marginal benefit of a genuinely different second component.
+Current RC source/quality completion and the benchmark stop are unchanged.
