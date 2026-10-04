@@ -3,12 +3,15 @@
 //! It owns the byte-preserving record operation and all native historical
 //! payload representations.
 
-use super::arithmetic::{vdecode, vencode};
+use super::arithmetic::{vdecode, vencode, ArithmeticDecoder, ArithmeticEncoder};
 use crate::rank::{decode_type_class, encode_type_class};
+use num_bigint::BigUint;
+use num_traits::{ToPrimitive, Zero};
 use std::collections::HashMap;
 
 const COORDINATE_STARTS: [usize; 3] = [0, 10, 20];
 const MAGIC: &[u8; 5] = b"SDFG\x01";
+const HYDROGEN_MAGIC: &[u8; 5] = b"SDFH\x01";
 const SEP: &[u8] = b"$$$$\n";
 const DEFAULT_OUTPUT_LIMIT: usize = 1 << 30;
 const GROUP_COUNT: usize = 5;
@@ -738,6 +741,749 @@ pub fn decode(blob: &[u8]) -> Result<Vec<u8>, String> {
     decode_with_limit(blob, DEFAULT_OUTPUT_LIMIT)
 }
 
+fn hydrogen_extract(record: &[u8]) -> Result<(Vec<u8>, Vec<[i64; 3]>), String> {
+    let lines = lines_keepends(record);
+    let (atoms, _) = layout(&lines)?;
+    let mut coordinates = Vec::with_capacity(atoms);
+    let mut skeleton = Vec::new();
+    for (index, line) in lines.iter().enumerate() {
+        if !(4..4 + atoms).contains(&index) {
+            skeleton.extend_from_slice(line);
+            continue;
+        }
+        if line.len() < 34 {
+            return Err("short coordinate line".into());
+        }
+        let mut coordinate = [0; 3];
+        let mut signs = 0u8;
+        for (axis, start) in COORDINATE_STARTS.iter().enumerate() {
+            let field = &line[*start..*start + 10];
+            if field == b"   -0.0000" {
+                signs |= 1 << axis;
+            } else {
+                coordinate[axis] = parse_field(field)?;
+            }
+        }
+        coordinates.push(coordinate);
+        skeleton.push(b'0' + signs);
+        skeleton.extend_from_slice(&line[30..]);
+    }
+    Ok((skeleton, coordinates))
+}
+
+const TURN: i64 = 1i64 << 32;
+const ANGLES: [i64; 31] = [
+    536870912, 316933406, 167458907, 85004756, 42667331, 21354465, 10679838, 5340245, 2670163,
+    1335087, 667544, 333772, 166886, 83443, 41722, 20861, 10430, 5215, 2608, 1304, 652, 326, 163,
+    81, 41, 20, 10, 5, 3, 1, 1,
+];
+
+fn rounded(value: i128, denominator: i128) -> Result<i64, String> {
+    let half = denominator / 2;
+    let value = if value >= 0 {
+        (value + half) / denominator
+    } else {
+        -((-value + half) / denominator)
+    };
+    i64::try_from(value).map_err(|_| "hydrogen coordinate overflow".into())
+}
+
+fn hydrogen_angle(mut x: i64, mut y: i64) -> Result<i64, String> {
+    if x == 0 && y == 0 {
+        return Err("undefined hydrogen direction".into());
+    }
+    let magnitude = x.unsigned_abs().max(y.unsigned_abs());
+    let shift = 40i32
+        .saturating_sub(64 - magnitude.leading_zeros() as i32)
+        .max(0) as u32;
+    x = x.checked_shl(shift).ok_or("hydrogen direction overflow")?;
+    y = y.checked_shl(shift).ok_or("hydrogen direction overflow")?;
+    let mut base = 0i64;
+    if x < 0 {
+        x = x.checked_neg().ok_or("hydrogen direction overflow")?;
+        y = y.checked_neg().ok_or("hydrogen direction overflow")?;
+        base = TURN / 2;
+    }
+    let (mut x, mut y) = (i128::from(x), i128::from(y));
+    let mut z = 0i64;
+    for (index, step) in ANGLES.iter().enumerate() {
+        if y > 0 {
+            (x, y, z) = (x + (y >> index), y - (x >> index), z + step);
+        } else if y < 0 {
+            (x, y, z) = (x - (y >> index), y + (x >> index), z - step);
+        } else {
+            break;
+        }
+    }
+    Ok((base + z).rem_euclid(TURN))
+}
+
+fn hydrogen_direction(phase: i64, radius: i64) -> Result<[i64; 3], String> {
+    let mut z = (phase + TURN / 2).rem_euclid(TURN) - TURN / 2;
+    let mut sign = 1i128;
+    if z > TURN / 4 {
+        z -= TURN / 2;
+        sign = -1;
+    } else if z < -TURN / 4 {
+        z += TURN / 2;
+        sign = -1;
+    }
+    let (mut x, mut y) = (652032874i128, 0i128);
+    for (index, step) in ANGLES.iter().enumerate() {
+        if z >= 0 {
+            (x, y, z) = (x - (y >> index), y + (x >> index), z - step);
+        } else {
+            (x, y, z) = (x + (y >> index), y - (x >> index), z + step);
+        }
+    }
+    Ok([
+        rounded(sign * x * i128::from(radius), 1i128 << 30)?,
+        rounded(sign * y * i128::from(radius), 1i128 << 30)?,
+        0,
+    ])
+}
+
+fn hydrogen_topology(
+    lines: &[&[u8]],
+    stripped: bool,
+) -> Result<(usize, Vec<usize>, Vec<Vec<usize>>, Vec<Vec<u8>>), String> {
+    let (atoms, parents) = layout(lines)?;
+    let (_, bonds) = counts(lines)?;
+    let mut adjacency = vec![Vec::new(); atoms];
+    for line in &lines[4 + atoms..4 + atoms + bonds] {
+        let (a, b) = bond_parent(line, atoms)?;
+        adjacency[a].push(b);
+        adjacency[b].push(a);
+    }
+    for neighbours in &mut adjacency {
+        neighbours.sort_unstable();
+        neighbours.dedup();
+    }
+    let mut types = Vec::with_capacity(atoms);
+    for line in &lines[4..4 + atoms] {
+        let field = if stripped {
+            line.get(2..5)
+        } else {
+            line.get(31..34)
+        }
+        .ok_or("short coordinate line")?;
+        types.push(trim_ascii(field).to_vec());
+    }
+    Ok((atoms, parents, adjacency, types))
+}
+
+fn hydrogen_candidates(
+    index: usize,
+    coordinates: &[[i64; 3]],
+    parents: &[usize],
+    adjacency: &[Vec<usize>],
+    types: &[Vec<u8>],
+    slots: &mut HashMap<usize, Vec<[i64; 3]>>,
+    model: u8,
+    radius: i64,
+) -> Result<(Vec<[i64; 3]>, Option<usize>), String> {
+    let base = if parents[index] < coordinates.len() {
+        coordinates[parents[index]]
+    } else {
+        [0; 3]
+    };
+    if model == 0 || types[index].as_slice() != b"H" || adjacency[index].len() != 1 {
+        return Ok((vec![base], None));
+    }
+    let centre = adjacency[index][0];
+    if centre >= index {
+        return Ok((vec![base], None));
+    }
+    if let Some(options) = slots.get(&centre) {
+        return Ok((options.clone(), Some(centre)));
+    }
+    let hydrogens = adjacency[centre]
+        .iter()
+        .copied()
+        .filter(|atom| types[*atom].as_slice() == b"H")
+        .collect::<Vec<_>>();
+    let heavy = adjacency[centre]
+        .iter()
+        .copied()
+        .filter(|atom| types[*atom].as_slice() != b"H")
+        .collect::<Vec<_>>();
+    if !(1..=8).contains(&hydrogens.len())
+        || heavy.is_empty()
+        || heavy.iter().any(|atom| *atom >= index)
+        || hydrogens.first() != Some(&index)
+        || hydrogens.iter().any(|atom| adjacency[*atom].len() != 1)
+    {
+        return Ok((vec![base], None));
+    }
+    let origin = *coordinates
+        .get(centre)
+        .ok_or("hydrogen centre unavailable")?;
+    let vectors = heavy
+        .iter()
+        .map(|atom| {
+            Ok([
+                coordinates[*atom][0]
+                    .checked_sub(origin[0])
+                    .ok_or("hydrogen vector overflow")?,
+                coordinates[*atom][1]
+                    .checked_sub(origin[1])
+                    .ok_or("hydrogen vector overflow")?,
+                coordinates[*atom][2]
+                    .checked_sub(origin[2])
+                    .ok_or("hydrogen vector overflow")?,
+            ])
+        })
+        .collect::<Result<Vec<[i64; 3]>, String>>()?;
+    if vectors
+        .iter()
+        .any(|vector| vector[2] != 0 || (vector[0] == 0 && vector[1] == 0))
+    {
+        return Ok((vec![base], None));
+    }
+    let offsets = if model == 1 {
+        if heavy.len() != 2 || hydrogens.len() != 1 {
+            return Ok((vec![base], None));
+        }
+        let vector = [
+            vectors[0][0]
+                .checked_add(vectors[1][0])
+                .ok_or("hydrogen vector overflow")?,
+            vectors[0][1]
+                .checked_add(vectors[1][1])
+                .ok_or("hydrogen vector overflow")?,
+            vectors[0][2]
+                .checked_add(vectors[1][2])
+                .ok_or("hydrogen vector overflow")?,
+        ];
+        let norm = hydrogen_norm(vector)?;
+        let norm = integer_sqrt(norm);
+        if norm == 0 {
+            return Ok((vec![base], None));
+        }
+        vec![[
+            rounded(-i128::from(vector[0]) * i128::from(radius), norm as i128)?,
+            rounded(-i128::from(vector[1]) * i128::from(radius), norm as i128)?,
+            rounded(-i128::from(vector[2]) * i128::from(radius), norm as i128)?,
+        ]]
+    } else {
+        let mut phases = vectors
+            .iter()
+            .map(|vector| hydrogen_angle(vector[0], vector[1]))
+            .collect::<Result<Vec<_>, _>>()?;
+        phases.sort_unstable();
+        phases.dedup();
+        let mut chosen = (0i64, 0i64);
+        for (n, phase) in phases.iter().enumerate() {
+            let next = phases[(n + 1) % phases.len()];
+            let gap = (next - phase).rem_euclid(TURN);
+            if (gap, -phase) > (chosen.0, -chosen.1) {
+                chosen = (gap, *phase);
+            }
+        }
+        (0..hydrogens.len())
+            .map(|n| {
+                hydrogen_direction(
+                    chosen.1 + chosen.0 * (n as i64 + 1) / (hydrogens.len() as i64 + 1),
+                    radius,
+                )
+            })
+            .collect::<Result<Vec<_>, _>>()?
+    };
+    let options = offsets
+        .into_iter()
+        .map(|offset| {
+            Ok([
+                origin[0]
+                    .checked_add(offset[0])
+                    .ok_or("hydrogen coordinate overflow")?,
+                origin[1]
+                    .checked_add(offset[1])
+                    .ok_or("hydrogen coordinate overflow")?,
+                origin[2]
+                    .checked_add(offset[2])
+                    .ok_or("hydrogen coordinate overflow")?,
+            ])
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    slots.insert(centre, options.clone());
+    Ok((options, Some(centre)))
+}
+
+fn integer_sqrt(value: u128) -> u128 {
+    if value == 0 {
+        return 0;
+    }
+    let mut x = value;
+    let mut y = value / 2 + 1;
+    while y < x {
+        x = y;
+        y = (x + value / x) / 2;
+    }
+    x
+}
+
+fn hydrogen_norm(vector: [i64; 3]) -> Result<u128, String> {
+    vector.into_iter().try_fold(0u128, |total, value| {
+        let magnitude = u128::from(value.unsigned_abs());
+        total
+            .checked_add(
+                magnitude
+                    .checked_mul(magnitude)
+                    .ok_or("hydrogen vector overflow")?,
+            )
+            .ok_or_else(|| "hydrogen vector overflow".into())
+    })
+}
+
+fn hydrogen_prefix(coordinate: [i64; 3], signs: u8) -> Result<Vec<u8>, String> {
+    if signs >= 8 {
+        return Err("invalid zero signs".into());
+    }
+    let mut prefix = Vec::with_capacity(30);
+    for (axis, value) in coordinate.into_iter().enumerate() {
+        if signs & (1 << axis) != 0 {
+            if value != 0 {
+                return Err("sign mask on nonzero value".into());
+            }
+            prefix.extend_from_slice(b"   -0.0000");
+        } else {
+            prefix.extend_from_slice(&fixed(value)?);
+        }
+    }
+    Ok(prefix)
+}
+
+#[derive(Default)]
+struct HydrogenEncodeState {
+    skeletons: Vec<Vec<u8>>,
+    vectors: Vec<[i64; 3]>,
+    digits: Vec<u8>,
+    rank: BigUint,
+    product: BigUint,
+    frequencies: HashMap<usize, Vec<u64>>,
+    arithmetic: Option<ArithmeticEncoder>,
+}
+
+fn hydrogen_choice_encode(
+    state: &mut HydrogenEncodeState,
+    chosen: usize,
+    count: usize,
+    representation: u8,
+) -> Result<(), String> {
+    if count <= 1 {
+        return Ok(());
+    }
+    let chosen = u8::try_from(chosen).map_err(|_| "hydrogen candidate index overflow")?;
+    state.digits.push(chosen);
+    state.rank += BigUint::from(usize::from(chosen)) * &state.product;
+    state.product *= BigUint::from(count);
+    if representation >= 2 {
+        let frequencies = state
+            .frequencies
+            .entry(count)
+            .or_insert_with(|| vec![1; count]);
+        let lower = frequencies[..usize::from(chosen)].iter().sum::<u64>();
+        let total = frequencies.iter().sum::<u64>();
+        state
+            .arithmetic
+            .as_mut()
+            .ok_or("missing hydrogen arithmetic state")?
+            .encode(lower, lower + frequencies[usize::from(chosen)], total)?;
+        if representation == 3 {
+            frequencies[usize::from(chosen)] += 1;
+            if frequencies.iter().sum::<u64>() > 4096 {
+                for value in frequencies {
+                    *value = (*value + 1) / 2;
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+fn hydrogen_choice_payload(
+    mut state: HydrogenEncodeState,
+    representation: u8,
+) -> Result<(Vec<Vec<u8>>, Vec<[i64; 3]>, Vec<u8>), String> {
+    let mut payload = if representation == 0 {
+        state.digits.into_iter().map(|digit| b'0' + digit).collect()
+    } else {
+        let bits = if state.product.is_zero() {
+            0
+        } else {
+            (&state.product - BigUint::from(1u8)).bits() as usize
+        };
+        state.rank.to_bytes_le()[..bits.div_ceil(8)].to_vec()
+    };
+    if representation >= 2 {
+        let (packed, bits) = state
+            .arithmetic
+            .take()
+            .ok_or("missing hydrogen arithmetic state")?
+            .finish();
+        payload = vencode(u64::try_from(bits).map_err(|_| "hydrogen arithmetic length overflow")?);
+        payload.extend_from_slice(&packed);
+    }
+    Ok((state.skeletons, state.vectors, payload))
+}
+
+/// Encodes an exact historical SDFH frame for the requested geometry model and
+/// choice representation.  Existing callers retain model 0 / representation 0
+/// through `encode_hydrogen`; callers selecting models 1 or 2 use this entry.
+pub fn encode_hydrogen_with_options(
+    data: &[u8],
+    model: u8,
+    representation: u8,
+    radius: u64,
+) -> Result<Vec<u8>, String> {
+    if model > 2 || representation > 3 || !(1..=1_000_000).contains(&radius) {
+        return Err("invalid hydrogen mode".into());
+    }
+    let records = split_records(data);
+    let mut flags = vec![
+        0u8;
+        records
+            .len()
+            .checked_add(7)
+            .ok_or("record count overflow")?
+            / 8
+    ];
+    let mut state = HydrogenEncodeState {
+        skeletons: Vec::with_capacity(records.len()),
+        product: BigUint::from(1u8),
+        arithmetic: (representation >= 2).then(ArithmeticEncoder::new),
+        ..Default::default()
+    };
+    for (index, record) in records.iter().enumerate() {
+        let parsed = (|| -> Result<(Vec<u8>, Vec<[i64; 3]>, Vec<(usize, usize)>), String> {
+            let (skeleton, coordinates) = hydrogen_extract(record)?;
+            let lines = lines_keepends(record);
+            let (atoms, parents, adjacency, types) = hydrogen_topology(&lines, false)?;
+            if atoms != coordinates.len() {
+                return Err("hydrogen coordinate count mismatch".into());
+            }
+            let mut slots = HashMap::new();
+            let mut residuals = Vec::with_capacity(atoms);
+            let mut choices = Vec::with_capacity(atoms);
+            for (atom, actual) in coordinates.iter().enumerate() {
+                let (options, key) = hydrogen_candidates(
+                    atom,
+                    &coordinates[..atom],
+                    &parents,
+                    &adjacency,
+                    &types,
+                    &mut slots,
+                    model,
+                    radius as i64,
+                )?;
+                let chosen = options
+                    .iter()
+                    .enumerate()
+                    .min_by_key(|(choice, option)| {
+                        let dx = i128::from(actual[0]) - i128::from(option[0]);
+                        let dy = i128::from(actual[1]) - i128::from(option[1]);
+                        let dz = i128::from(actual[2]) - i128::from(option[2]);
+                        (dx * dx + dy * dy + dz * dz, *choice)
+                    })
+                    .ok_or("empty hydrogen candidates")?
+                    .0;
+                choices.push((chosen, options.len()));
+                residuals.push([
+                    actual[0]
+                        .checked_sub(options[chosen][0])
+                        .ok_or("hydrogen residual overflow")?,
+                    actual[1]
+                        .checked_sub(options[chosen][1])
+                        .ok_or("hydrogen residual overflow")?,
+                    actual[2]
+                        .checked_sub(options[chosen][2])
+                        .ok_or("hydrogen residual overflow")?,
+                ]);
+                if let Some(key) = key {
+                    slots
+                        .get_mut(&key)
+                        .ok_or("missing hydrogen slots")?
+                        .remove(chosen);
+                }
+            }
+            Ok((skeleton, residuals, choices))
+        })();
+        match parsed {
+            Ok((skeleton, residuals, choices)) => {
+                for (chosen, count) in choices {
+                    hydrogen_choice_encode(&mut state, chosen, count, representation)?;
+                }
+                state.skeletons.push(skeleton);
+                state.vectors.extend(residuals);
+                flags[index / 8] |= 1 << (index % 8);
+            }
+            Err(_) => state.skeletons.push((*record).to_vec()),
+        }
+    }
+    let (skeletons, vectors, choices) = hydrogen_choice_payload(state, representation)?;
+    let skeleton = join_records(&skeletons);
+    let mut out = Vec::new();
+    out.extend_from_slice(HYDROGEN_MAGIC);
+    out.extend_from_slice(&[model, representation]);
+    out.extend_from_slice(&vencode(radius));
+    out.extend_from_slice(&vencode(records.len() as u64));
+    out.extend_from_slice(&flags);
+    out.extend_from_slice(&vencode(skeleton.len() as u64));
+    out.extend_from_slice(&skeleton);
+    out.extend_from_slice(&vencode(choices.len() as u64));
+    out.extend_from_slice(&choices);
+    for vector in vectors {
+        out.extend_from_slice(format!("{},{},{}\n", vector[0], vector[1], vector[2]).as_bytes());
+    }
+    Ok(out)
+}
+
+/// The compatibility entry point retains the originally shipped model-0,
+/// literal-choice frame and its historical radius.
+pub fn encode_hydrogen(data: &[u8]) -> Result<Vec<u8>, String> {
+    encode_hydrogen_with_options(data, 0, 0, 6200)
+}
+
+struct HydrogenDecodeState<'a> {
+    rank: BigUint,
+    digit_at: usize,
+    frequencies: HashMap<usize, Vec<u64>>,
+    arithmetic: Option<ArithmeticDecoder<'a>>,
+}
+
+fn hydrogen_choice_decode(
+    state: &mut HydrogenDecodeState<'_>,
+    choices: &[u8],
+    representation: u8,
+    count: usize,
+) -> Result<usize, String> {
+    if count <= 1 {
+        return Ok(0);
+    }
+    match representation {
+        0 => {
+            let digit = *choices
+                .get(state.digit_at)
+                .ok_or("missing candidate index")?;
+            state.digit_at += 1;
+            if !(b'0'..b'0' + count as u8).contains(&digit) {
+                return Err("candidate index outside restricted alphabet".into());
+            }
+            Ok(usize::from(digit - b'0'))
+        }
+        1 => {
+            let divisor = BigUint::from(count);
+            let digit = (&state.rank % &divisor)
+                .to_usize()
+                .ok_or("hydrogen rank overflow")?;
+            state.rank /= divisor;
+            Ok(digit)
+        }
+        2 | 3 => {
+            let frequencies = state
+                .frequencies
+                .entry(count)
+                .or_insert_with(|| vec![1; count]);
+            let total = frequencies.iter().sum::<u64>();
+            let target = state
+                .arithmetic
+                .as_ref()
+                .ok_or("missing hydrogen arithmetic state")?
+                .target(total)?;
+            let mut lower = 0u64;
+            for (chosen, frequency) in frequencies.iter().copied().enumerate() {
+                if target < lower + frequency {
+                    state
+                        .arithmetic
+                        .as_mut()
+                        .ok_or("missing hydrogen arithmetic state")?
+                        .update(lower, lower + frequency, total)?;
+                    if representation == 3 {
+                        frequencies[chosen] += 1;
+                        if frequencies.iter().sum::<u64>() > 4096 {
+                            for value in frequencies {
+                                *value = (*value + 1) / 2;
+                            }
+                        }
+                    }
+                    return Ok(chosen);
+                }
+                lower += frequency;
+            }
+            Err("choice arithmetic symbol invalid".into())
+        }
+        _ => Err("unsupported hydrogen representation".into()),
+    }
+}
+
+pub fn decode_hydrogen_with_limit(blob: &[u8], output_limit: usize) -> Result<Vec<u8>, String> {
+    if blob.len() < 7 || blob.get(..5) != Some(HYDROGEN_MAGIC) {
+        return Err("invalid hydrogen stream".into());
+    }
+    let (model, representation) = (blob[5], blob[6]);
+    if model > 2 || representation > 3 {
+        return Err("invalid hydrogen mode".into());
+    }
+    let (radius, mut pos) = vdecode(blob, 7)?;
+    if !(1..=1_000_000).contains(&radius) {
+        return Err("invalid hydrogen mode".into());
+    }
+    let (record_count, after_records) = vdecode(blob, pos)?;
+    let record_count = checked_usize(record_count, "record count")?;
+    pos = after_records;
+    let flags_size = record_count.checked_add(7).ok_or("record count overflow")? / 8;
+    let flags_end = pos.checked_add(flags_size).ok_or("frame offset overflow")?;
+    let flags = blob.get(pos..flags_end).ok_or("truncated record flags")?;
+    let (skeleton_size, skeleton_start) = vdecode(blob, flags_end)?;
+    let skeleton_size = checked_usize(skeleton_size, "skeleton size")?;
+    let skeleton_end = skeleton_start
+        .checked_add(skeleton_size)
+        .ok_or("frame offset overflow")?;
+    let skeleton = blob
+        .get(skeleton_start..skeleton_end)
+        .ok_or("truncated skeleton")?;
+    if skeleton.len() > output_limit {
+        return Err("hydrogen output limit exceeded".into());
+    }
+    let (choice_size, choice_start) = vdecode(blob, skeleton_end)?;
+    let choice_size = checked_usize(choice_size, "choice size")?;
+    let choice_end = choice_start
+        .checked_add(choice_size)
+        .ok_or("frame offset overflow")?;
+    let choices = blob
+        .get(choice_start..choice_end)
+        .ok_or("truncated choices")?;
+    let records = split_records(skeleton);
+    if records.len() != record_count {
+        return Err("record count mismatch".into());
+    }
+    let mut atoms_total = 0usize;
+    for (index, record) in records.iter().enumerate() {
+        if flags[index / 8] & (1 << (index % 8)) != 0 {
+            atoms_total = atoms_total
+                .checked_add(layout(&lines_keepends(record))?.0)
+                .ok_or("coordinate count overflow")?;
+        }
+    }
+    let output_size = skeleton
+        .len()
+        .checked_add(
+            atoms_total
+                .checked_mul(29)
+                .ok_or("hydrogen output overflow")?,
+        )
+        .ok_or("hydrogen output overflow")?;
+    if output_size > output_limit {
+        return Err("hydrogen output limit exceeded".into());
+    }
+    let payload = &blob[choice_end..];
+    let mut text_at = 0usize;
+    let mut vectors = Vec::with_capacity(atoms_total);
+    for _ in 0..atoms_total {
+        let line = next_text_line(payload, &mut text_at).ok_or("missing coordinate residual")?;
+        vectors.push(parse_text_vector(line).map_err(|_| "invalid residual vector")?);
+    }
+    if next_text_line(payload, &mut text_at).is_some() {
+        return Err("unused residual state".into());
+    }
+    let mut state = HydrogenDecodeState {
+        rank: BigUint::zero(),
+        digit_at: 0,
+        frequencies: HashMap::new(),
+        arithmetic: None,
+    };
+    if representation == 1 {
+        state.rank = BigUint::from_bytes_le(choices);
+    }
+    if representation >= 2 {
+        let (bits, start) = vdecode(choices, 0)?;
+        let bits = checked_usize(bits, "hydrogen arithmetic bit length")?;
+        let bytes = bits
+            .checked_add(7)
+            .ok_or("hydrogen arithmetic length overflow")?
+            / 8;
+        let end = start
+            .checked_add(bytes)
+            .ok_or("hydrogen arithmetic length overflow")?;
+        if end != choices.len() {
+            return Err("invalid choice arithmetic framing".into());
+        }
+        state.arithmetic = Some(ArithmeticDecoder::new(&choices[start..], bits)?);
+    }
+    let mut vector_at = 0usize;
+    let mut restored = Vec::with_capacity(record_count);
+    for (index, record) in records.iter().enumerate() {
+        if flags[index / 8] & (1 << (index % 8)) == 0 {
+            restored.push((*record).to_vec());
+            continue;
+        }
+        let lines = lines_keepends(record);
+        let (atoms, parents, adjacency, types) = hydrogen_topology(&lines, true)?;
+        let mut rebuilt = lines.iter().map(|line| line.to_vec()).collect::<Vec<_>>();
+        let mut coordinates = Vec::with_capacity(atoms);
+        let mut slots = HashMap::new();
+        for atom in 0..atoms {
+            let signs = rebuilt[4 + atom]
+                .first()
+                .ok_or("short coordinate line")?
+                .checked_sub(b'0')
+                .ok_or("invalid zero signs")?;
+            if signs >= 8 {
+                return Err("invalid zero signs".into());
+            }
+            let (options, key) = hydrogen_candidates(
+                atom,
+                &coordinates,
+                &parents,
+                &adjacency,
+                &types,
+                &mut slots,
+                model,
+                radius as i64,
+            )?;
+            let chosen =
+                hydrogen_choice_decode(&mut state, choices, representation, options.len())?;
+            let residual = *vectors
+                .get(vector_at)
+                .ok_or("missing coordinate residual")?;
+            vector_at += 1;
+            let coordinate = [
+                options[chosen][0]
+                    .checked_add(residual[0])
+                    .ok_or("coordinate overflow")?,
+                options[chosen][1]
+                    .checked_add(residual[1])
+                    .ok_or("coordinate overflow")?,
+                options[chosen][2]
+                    .checked_add(residual[2])
+                    .ok_or("coordinate overflow")?,
+            ];
+            coordinates.push(coordinate);
+            if let Some(key) = key {
+                slots
+                    .get_mut(&key)
+                    .ok_or("missing hydrogen slots")?
+                    .remove(chosen);
+            }
+            let mut line = hydrogen_prefix(coordinate, signs)?;
+            line.extend_from_slice(&rebuilt[4 + atom][1..]);
+            rebuilt[4 + atom] = line;
+        }
+        restored.push(rebuilt.concat());
+    }
+    if vector_at != vectors.len()
+        || !state.rank.is_zero()
+        || (representation == 0 && state.digit_at != choices.len())
+    {
+        return Err("unused residual state".into());
+    }
+    Ok(join_records(&restored))
+}
+
+pub fn decode_hydrogen(blob: &[u8]) -> Result<Vec<u8>, String> {
+    decode_hydrogen_with_limit(blob, DEFAULT_OUTPUT_LIMIT)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -922,6 +1668,80 @@ mod tests {
         frame[payload_at..]
             .copy_from_slice(b"10000,-20000,0\x0b30000,20000,0\n40000,-10000,5000\n");
         assert!(decode(&frame).is_err());
+    }
+
+    #[test]
+    fn hydrogen_model_zero_preserves_masks_records_and_bounds() {
+        let mut input = fixture(&[b"\r\n", b"\n"]);
+        let zero = input
+            .windows(10)
+            .position(|field| field == b"    0.0000")
+            .unwrap();
+        input[zero..zero + 10].copy_from_slice(b"   -0.0000");
+        input.extend_from_slice(SEP);
+        input.extend_from_slice(b"literal tail");
+        let frame = encode_hydrogen(&input).unwrap();
+        assert_eq!(&frame[..5], HYDROGEN_MAGIC);
+        assert_eq!(decode_hydrogen(&frame).unwrap(), input);
+        assert!(decode_hydrogen_with_limit(&frame, input.len() - 1).is_err());
+        let mut trailing = frame;
+        trailing.push(0);
+        assert!(decode_hydrogen(&trailing).is_err());
+    }
+
+    fn hydrogen_candidate_fixture() -> Vec<u8> {
+        b"hydrogen fixture\nnative parity\ngenerated source\n  5  4  0  0  0  0            999 V2000\n    1.0000    0.0000    0.0000 O   0  0  0\n    0.0000    1.0000    0.0000 N   0  0  0\n    0.0000    0.0000    0.0000 C   0  0  0\n   -0.4384   -0.4384    0.0000 H   0  0  0\n   -0.4384   -0.4384    0.0000 H   0  0  0\n  3  1  1  0\n  3  2  1  0\n  3  4  1  0\n  3  5  1  0\nM  END\n".to_vec()
+    }
+
+    #[test]
+    fn hydrogen_extract_keeps_absolute_coordinates_for_candidate_selection() {
+        let (_, coordinates) = hydrogen_extract(&hydrogen_candidate_fixture()).unwrap();
+        assert_eq!(coordinates[0], [10_000, 0, 0]);
+        assert_eq!(coordinates[1], [0, 10_000, 0]);
+        assert_eq!(coordinates[2], [0, 0, 0]);
+    }
+
+    #[test]
+    fn hydrogen_all_models_and_choice_representations_match_reference_vectors() {
+        // Generated directly from runtime/cix_runtime/legacy/sdf_hydrogen.py;
+        // the two hydrogen slots make model 2 exercise all choice coders.
+        let input = hydrogen_candidate_fixture();
+        for model in 0..=2 {
+            for representation in 0..=3 {
+                let frame =
+                    encode_hydrogen_with_options(&input, model, representation, 6200).unwrap();
+                assert_eq!(
+                    decode_hydrogen(&frame).unwrap(),
+                    input,
+                    "model {model}, representation {representation}"
+                );
+                assert_eq!(
+                    &frame[..7],
+                    &[b'S', b'D', b'F', b'H', 1, model, representation]
+                );
+            }
+        }
+        // Model 2's reference vector selects the first of two CORDIC slots.
+        // These are the exact Python choice payloads for representations 0–3.
+        for (representation, expected) in [
+            (0, b"0".as_slice()),
+            (1, b"\0".as_slice()),
+            (2, b"\x03\x20".as_slice()),
+            (3, b"\x03\x20".as_slice()),
+        ] {
+            let frame = encode_hydrogen_with_options(&input, 2, representation, 6200).unwrap();
+            let (_, after_radius) = vdecode(&frame, 7).unwrap();
+            let (_, after_records) = vdecode(&frame, after_radius).unwrap();
+            let flags = (1usize + 7) / 8;
+            let (skeleton_size, skeleton_start) = vdecode(&frame, after_records + flags).unwrap();
+            let (choice_size, choice_start) =
+                vdecode(&frame, skeleton_start + skeleton_size as usize).unwrap();
+            assert_eq!(choice_size as usize, expected.len());
+            assert_eq!(
+                &frame[choice_start..choice_start + choice_size as usize],
+                expected
+            );
+        }
     }
 
     #[test]

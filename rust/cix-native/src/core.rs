@@ -8,11 +8,21 @@ use std::io::{Read, Write};
 use std::sync::{atomic::AtomicBool, Arc};
 use std::time::Duration;
 
+#[path = "incremental.rs"]
+pub mod incremental;
+
 // The reconciled native codec/container implementation is intentionally owned
 // below this library module.  `main.rs` is now only a CLI entry shim.
-#[path = "cli.rs"]
-pub mod codec;
-pub use codec::{cix_squash_splice, main_entry};
+#[path = "engine.rs"]
+pub(crate) mod engine;
+// Keep compatibility at the crate root through the codec primitives below;
+// do not expose the implementation module itself, which also hosts private
+// full-engine helpers used by the executable adapter.
+pub use engine::cix_squash_splice;
+pub use engine::{
+    adaptive, bsc_ffi, combinatorics, external, fixedmix, huffman, legacy_lz, limits, parallel,
+    ppm, rank, resources, stdout_writer, zpaq_context,
+};
 
 /// Native container operating profile.  It is intentionally distinct from a
 /// future full-engine specialist catalogue.
@@ -115,20 +125,20 @@ pub fn encode<R: Read, W: Write>(
     options: &NativeOptions,
 ) -> Result<(), NativeError> {
     validate(options)?;
-    let _library = codec::limits::LibraryGuard::new();
+    let _library = engine::limits::LibraryGuard::new();
     let _cancellation = options
         .cancellation
         .clone()
-        .map(codec::limits::CancellationGuard::new);
-    let _deadline = options.deadline.map(codec::limits::DeadlineGuard::new);
+        .map(engine::limits::CancellationGuard::new);
+    let _deadline = options.deadline.map(engine::limits::DeadlineGuard::new);
     let mut bounded = LimitedWriter {
         inner: dst,
         remaining: options.output_limit,
     };
-    codec::encode(
+    engine::encode(
         src,
         &mut bounded,
-        codec::EncodeOptions {
+        engine::EncodeOptions {
             block: 65536,
             level: level(options.profile),
             forced: None,
@@ -154,17 +164,17 @@ pub fn decode<R: Read, W: Write>(
     options: &NativeOptions,
 ) -> Result<(), NativeError> {
     validate(options)?;
-    let _library = codec::limits::LibraryGuard::new();
+    let _library = engine::limits::LibraryGuard::new();
     let _cancellation = options
         .cancellation
         .clone()
-        .map(codec::limits::CancellationGuard::new);
-    let _deadline = options.deadline.map(codec::limits::DeadlineGuard::new);
+        .map(engine::limits::CancellationGuard::new);
+    let _deadline = options.deadline.map(engine::limits::DeadlineGuard::new);
     let mut bounded = LimitedWriter {
         inner: dst,
         remaining: options.output_limit,
     };
-    codec::decode(src, &mut bounded, false, false, -1, options.memory_limit).map_err(codec_error)
+    engine::decode(src, &mut bounded, false, false, -1, options.memory_limit).map_err(codec_error)
 }
 
 pub fn encode_buffer(input: &[u8], options: &NativeOptions) -> Result<Vec<u8>, NativeError> {

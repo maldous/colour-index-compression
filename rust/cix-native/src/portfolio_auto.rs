@@ -6,7 +6,11 @@
 //! changes the streaming path: it reads the source once, rejects a metadata
 //! race, and owns every whole-input allocation explicitly.
 
-use super::{check_interrupted, decode, encode_with_strategy, external, ioerr, Opt, MAX_BLOCK};
+use crate::core::engine::{
+    check_interrupted, decode, encode_m6, encode_with_strategy, external, ioerr, EncodeOptions,
+    MAX_BLOCK,
+};
+use super::Opt;
 use std::fs::{self, File, Metadata};
 use std::io::{self, Read, Write};
 use std::time::{Duration, Instant};
@@ -50,7 +54,7 @@ pub(super) struct SelectedArchive {
 /// controls narrow the candidates below; they do not turn off BEST as a
 /// whole.  In particular, `--route predictor` still gets a complete archive
 /// trial and `--backend` still permits native framing selection.
-pub(super) fn eligible(o: &Opt) -> bool {
+pub(crate) fn eligible(o: &Opt) -> bool {
     let file_fits = fs::metadata(&o.input).is_ok_and(|metadata| {
         metadata.is_file()
             && metadata.len() <= external::MAX_INPUT as u64
@@ -77,7 +81,7 @@ pub(super) fn eligible(o: &Opt) -> bool {
         && file_fits
 }
 
-pub(super) fn exclusion_reason(o: &Opt) -> Option<&'static str> {
+pub(crate) fn exclusion_reason(o: &Opt) -> Option<&'static str> {
     if o.level < 9 || o.decode || o.test || o.list {
         return None;
     }
@@ -517,7 +521,7 @@ fn run_cixg_trials(
         let encoded = encode_with_strategy(
             io::Cursor::new(search.data.as_slice()),
             &mut output,
-            super::EncodeOptions {
+            EncodeOptions {
                 block,
                 level: o.level,
                 forced: search.forced_route,
@@ -625,7 +629,7 @@ fn run_m6_trials(
         };
         let mut output = CappedWriter::new(search.cap).with_competitive_cap(winner.len());
         let guard = crate::limits::DeadlineGuard::new(budget);
-        let encoded = super::encode_m6(
+        let encoded = encode_m6(
             io::Cursor::new(search.data.as_slice()),
             &mut output,
             block_size,
@@ -792,7 +796,7 @@ pub(super) fn select(o: &Opt) -> Result<SelectedArchive, String> {
     encode_with_strategy(
         io::Cursor::new(data.as_slice()),
         &mut raw_output,
-        super::EncodeOptions {
+        EncodeOptions {
             block: cixg_block,
             level: o.level,
             forced: forced_route.or(Some("raw")),
@@ -922,7 +926,7 @@ mod tests {
         let encoded = encode_with_strategy(
             io::Cursor::new(data.as_slice()),
             &mut output,
-            super::super::EncodeOptions {
+            EncodeOptions {
                 block: 16 * 1024,
                 level: 1,
                 forced: Some("raw"),
@@ -939,7 +943,7 @@ mod tests {
             },
         );
         assert!(is_competitive_prefix_prune(encoded.as_ref().unwrap_err()));
-        let o = super::super::Opt {
+        let o = crate::cli::Opt {
             memory: 64 << 20,
             ..Default::default()
         };
@@ -984,12 +988,12 @@ mod tests {
         // Materialize this bounded model directly: a debug selector can
         // legitimately time out the trial and choose raw, which would not
         // exercise the decoder's large-model admission being tested.
-        let payload = super::super::fixedmix::encode_with_history_eta(&data, &[], 6).unwrap();
+        let payload = crate::core::engine::fixedmix::encode_with_history_eta(&data, &[], 6).unwrap();
         let hash: [u8; 32] = Sha256::digest(&data).into();
-        output.write_all(super::super::MAGIC_V2).unwrap();
+        output.write_all(crate::core::engine::MAGIC_V2).unwrap();
         output.write_all(&MAX_BLOCK.to_le_bytes()).unwrap();
         output.write_all(&0u32.to_le_bytes()).unwrap();
-        super::super::put_frame(
+        crate::core::engine::put_frame(
             &mut output,
             9,
             data.len() as u32,
@@ -998,7 +1002,7 @@ mod tests {
         )
         .unwrap();
         output.write_all(&payload).unwrap();
-        super::super::put_frame(&mut output, 255, 0, 0, &hash).unwrap();
+        crate::core::engine::put_frame(&mut output, 255, 0, 0, &hash).unwrap();
         let archive = output.into_inner();
         assert_eq!(archive[13], 9, "fixture actually uses the mixer");
         validate(&archive, archive.capacity(), &data, 1 << 20, 512 << 20).unwrap();
@@ -1012,7 +1016,7 @@ mod tests {
         let data = b"CIXM6 packaging competition\n".repeat(192);
         let cap = archive_cap(data.len());
         let mut output = CappedWriter::new(cap);
-        super::super::encode_m6(
+        crate::core::engine::encode_m6(
             io::Cursor::new(data.as_slice()),
             &mut output,
             16 * 1024,
@@ -1040,7 +1044,7 @@ mod tests {
             b"predictable record\npredictable record\n".repeat(192),
         )
         .unwrap();
-        let selected = select(&super::super::Opt {
+        let selected = select(&crate::cli::Opt {
             level: 9,
             threads: 1,
             memory: 512 << 20,

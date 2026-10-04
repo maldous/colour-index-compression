@@ -7,11 +7,15 @@ description = "CIX lossless command-line compressor"
 readme = "README.md"
 license = "MIT"
 autobins = false
+# Research microbenchmarks are preserved outside the shipping target set.
+# They have independent harness dependencies and are not product build targets.
+autobenches = false
+autoexamples = false
 keywords = ["compression", "lossless", "archive", "cli"]
 categories = ["command-line-utilities", "compression"]
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib", "staticlib", "rlib"]
 
 [[bin]]
 name = "cix"
@@ -24,6 +28,10 @@ path = "src/uncix.rs"
 [[bin]]
 name = "cixcat"
 path = "src/cixcat.rs"
+
+[[example]]
+name = "native_buffer"
+path = "examples/native_buffer.rs"
 
 [dependencies]
 sha2 = "0.10"

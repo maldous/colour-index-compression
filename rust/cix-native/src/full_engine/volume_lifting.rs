@@ -295,6 +295,16 @@ pub fn volume_inverse(
     Ok(sample_bytes(&out))
 }
 
+/// Dimensions recovered from a bounded JXL basic-info probe. `ImageBackend`
+/// implementations return canonical little-endian u16 CIX samples from
+/// `jpegxl_decode`, even when the encoded plane used UINT8 samples.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct JpegxlImageInfo {
+    pub depth: usize,
+    pub height: usize,
+    pub width: usize,
+}
+
 pub trait ImageBackend {
     fn lzma_compress(&self, source: &[u8]) -> Result<Vec<u8>, String>;
     fn lzma_decompress(
@@ -312,6 +322,15 @@ pub trait ImageBackend {
         planar: bool,
         effort: u8,
     ) -> Result<Vec<u8>, String>;
+    /// Inspect a gray still JXL payload without an image output allocation.
+    /// `expected_pixels` comes from paid CIX framing and must be checked by the
+    /// provider before it returns dimensions.
+    fn jpegxl_probe(
+        &self,
+        payload: &[u8],
+        expected_pixels: usize,
+        memory: usize,
+    ) -> Result<JpegxlImageInfo, String>;
     fn jpegxl_decode(
         &self,
         payload: &[u8],
@@ -489,6 +508,152 @@ pub fn decode_volume<B: ImageBackend>(
     output.extend_from_slice(&metadata[offset..]);
     if output.len() != original || crc32(&output) != checksum {
         return Err("volume checksum mismatch".into());
+    }
+    Ok(output)
+}
+
+/// Encode the retained CIXI1 grayscale-JXL envelope. The CIX framing owns
+/// dimensions at encode time; the JXL provider receives canonical u16 region
+/// samples and chooses the frozen UINT8/UINT16 transport representation.
+pub fn encode_spatial<B: ImageBackend>(
+    data: &[u8],
+    region: &DicomRegion,
+    backend: &B,
+) -> Result<Vec<u8>, String> {
+    let pixels = region
+        .width
+        .checked_mul(region.height)
+        .ok_or("spatial dimensions overflow")?;
+    let length = pixels.checked_mul(2).ok_or("spatial bytes overflow")?;
+    if region.width == 0
+        || region.height == 0
+        || region.length != length
+        || region
+            .offset
+            .checked_add(region.length)
+            .is_none_or(|end| end > data.len())
+    {
+        return Err("invalid spatial region".into());
+    }
+    let payload = backend.jpegxl_encode(
+        &data[region.offset..region.offset + region.length],
+        1,
+        region.height,
+        region.width,
+        false,
+        7,
+    )?;
+    let metadata = backend.lzma_compress(
+        &[
+            &data[..region.offset],
+            &data[region.offset + region.length..],
+        ]
+        .concat(),
+    )?;
+    let mut frame = SPATIAL_MAGIC.to_vec();
+    frame.push(1); // Frozen CIXI1 JXL representation.
+    for value in [
+        data.len(),
+        region.offset,
+        region.length,
+        metadata.len(),
+        payload.len(),
+    ] {
+        frame.extend(vencode(value as u64));
+    }
+    frame.extend(crc32(data).to_be_bytes());
+    frame.extend(metadata);
+    frame.extend(payload);
+    Ok(frame)
+}
+
+/// Restore a bounded CIXI1 JXL envelope. Historical CIXI1 stores the paid
+/// region byte length but no image shape, so it first performs a JXL basic-info
+/// probe constrained by `length / 2`. The probe must not install an output
+/// buffer; only its checked dimensions are passed to the decode call.
+pub fn decode_spatial<B: ImageBackend>(
+    frame: &[u8],
+    maximum: usize,
+    memory: usize,
+    backend: &B,
+) -> Result<Vec<u8>, String> {
+    if frame.get(..5) != Some(SPATIAL_MAGIC) || frame.len() < 6 {
+        return Err("invalid spatial frame".into());
+    }
+    if frame[5] != 1 {
+        return Err("unsupported spatial representation".into());
+    }
+    let mut pos = 6;
+    let mut fields = [0usize; 5];
+    for field in &mut fields {
+        let (value, next) = vdecode(frame, pos)?;
+        *field = usize::try_from(value).map_err(|_| "spatial field overflow")?;
+        pos = next;
+    }
+    let [original, offset, length, metadata_len, payload_len] = fields;
+    if original > maximum || original > memory {
+        return Err("spatial output exceeds limit".into());
+    }
+    if length == 0
+        || length % 2 != 0
+        || original.checked_add(length).is_none_or(|sum| {
+            sum.checked_add(CODEC_OVERHEAD)
+                .is_none_or(|total| total > memory)
+        })
+    {
+        return Err("spatial resource estimate exceeds limit".into());
+    }
+    let checksum_at = pos;
+    let metadata_at = checksum_at.checked_add(4).ok_or("spatial frame overflow")?;
+    let payload_at = metadata_at
+        .checked_add(metadata_len)
+        .ok_or("spatial frame overflow")?;
+    if offset.checked_add(length).is_none_or(|end| end > original)
+        || payload_at.checked_add(payload_len) != Some(frame.len())
+    {
+        return Err("spatial framing mismatch".into());
+    }
+    let checksum = u32::from_be_bytes(
+        frame
+            .get(checksum_at..metadata_at)
+            .ok_or("truncated spatial checksum")?
+            .try_into()
+            .map_err(|_| "truncated spatial checksum")?,
+    );
+    let metadata = backend.lzma_decompress(
+        frame
+            .get(metadata_at..payload_at)
+            .ok_or("truncated spatial metadata")?,
+        original - length,
+        memory,
+    )?;
+    if metadata.len() != original - length {
+        return Err("spatial metadata mismatch".into());
+    }
+    let payload = frame.get(payload_at..).ok_or("truncated spatial payload")?;
+    let expected_pixels = length / 2;
+    let info = backend.jpegxl_probe(payload, expected_pixels, memory)?;
+    if info.depth != 1
+        || info.width == 0
+        || info.height == 0
+        || info
+            .width
+            .checked_mul(info.height)
+            .is_none_or(|pixels| pixels != expected_pixels)
+    {
+        return Err("spatial JPEG XL basic info mismatch".into());
+    }
+    let raw =
+        backend.jpegxl_decode(payload, length, info.depth, info.height, info.width, memory)?;
+    if raw.len() != length {
+        return Err("spatial JPEG XL output mismatch".into());
+    }
+    let mut output = Vec::with_capacity(original);
+    output.extend_from_slice(&metadata[..offset]);
+    output.extend_from_slice(&raw);
+    output.extend_from_slice(&metadata[offset..]);
+    if output.len() != original || crc32(&output) != checksum {
+        return Err("spatial checksum mismatch".into());
     }
     Ok(output)
 }
@@ -960,6 +1125,96 @@ mod tests {
         assert!(multiscale_join(&[], [0, 1, 1], &[], [0, 1, 1], 0, 0).is_err());
         assert!(multiscale_join(&[1], [1, 1, 1], &[], [0, 0, 1], 0, 0).is_err());
         assert!(multiscale_join(&[], [usize::MAX, 1, 1], &[], [usize::MAX, 1, 1], 0, 0,).is_err());
+    }
+
+    struct CopySpatialBackend;
+
+    impl ImageBackend for CopySpatialBackend {
+        fn lzma_compress(&self, source: &[u8]) -> Result<Vec<u8>, String> {
+            Ok(source.to_vec())
+        }
+
+        fn lzma_decompress(
+            &self,
+            source: &[u8],
+            expected: usize,
+            _memory: usize,
+        ) -> Result<Vec<u8>, String> {
+            if source.len() != expected {
+                return Err("mock metadata length mismatch".into());
+            }
+            Ok(source.to_vec())
+        }
+
+        fn jpegxl_encode(
+            &self,
+            pixels: &[u8],
+            depth: usize,
+            _height: usize,
+            _width: usize,
+            planar: bool,
+            effort: u8,
+        ) -> Result<Vec<u8>, String> {
+            if depth != 1 || planar || effort != 7 {
+                return Err("mock spatial encode contract mismatch".into());
+            }
+            Ok(pixels.to_vec())
+        }
+
+        fn jpegxl_probe(
+            &self,
+            payload: &[u8],
+            expected_pixels: usize,
+            _memory: usize,
+        ) -> Result<JpegxlImageInfo, String> {
+            if payload.len() != expected_pixels.checked_mul(2).ok_or("overflow")? {
+                return Err("mock paid pixel mismatch".into());
+            }
+            Ok(JpegxlImageInfo {
+                depth: 1,
+                height: 1,
+                width: expected_pixels,
+            })
+        }
+
+        fn jpegxl_decode(
+            &self,
+            payload: &[u8],
+            expected: usize,
+            depth: usize,
+            height: usize,
+            width: usize,
+            _memory: usize,
+        ) -> Result<Vec<u8>, String> {
+            if depth != 1
+                || height != 1
+                || width.checked_mul(height).and_then(|n| n.checked_mul(2)) != Some(expected)
+                || payload.len() != expected
+            {
+                return Err("mock spatial decode contract mismatch".into());
+            }
+            Ok(payload.to_vec())
+        }
+    }
+
+    #[test]
+    fn spatial_jxl_round_trip_probes_paid_pixels_before_decode() {
+        let data = [9_u8, 8, 1, 0, 2, 0, 3, 0, 4, 0, 7, 6];
+        let region = DicomRegion {
+            offset: 2,
+            length: 8,
+            width: 2,
+            height: 2,
+            slice_height: 2,
+        };
+        let backend = CopySpatialBackend;
+        let frame = encode_spatial(&data, &region, &backend).unwrap();
+        assert_eq!(
+            // The retained decoder reserves CODEC_OVERHEAD in addition to the
+            // reconstructed bytes, matching the CIXV1 and CIXI2 contracts.
+            decode_spatial(&frame, data.len(), 128 << 20, &backend).unwrap(),
+            data
+        );
     }
 
     #[test]

@@ -17,6 +17,7 @@ find_library(CIX_JXL_LIBRARY NAMES jxl
 find_library(CIX_JXL_THREADS_LIBRARY NAMES jxl_threads
     HINTS "${CIX_JXL_ROOT}/lib" "${CIX_JXL_ROOT}/lib64"
     NO_DEFAULT_PATH REQUIRED)
+find_library(CIX_LZMA_LIBRARY NAMES lzma REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -32,7 +33,8 @@ target_compile_definitions(cix_jxl_bridge PRIVATE CIX_JXL_BRIDGE_BUILDING)
 target_include_directories(cix_jxl_bridge PRIVATE "${CIX_JXL_INCLUDE_DIR}")
 target_link_libraries(cix_jxl_bridge PRIVATE
     "${CIX_JXL_LIBRARY}"
-    "${CIX_JXL_THREADS_LIBRARY}")
+    "${CIX_JXL_THREADS_LIBRARY}"
+    "${CIX_LZMA_LIBRARY}")
 if(MSVC)
     target_compile_options(cix_jxl_bridge PRIVATE /O2 /fp:strict)
 else()

@@ -1,0 +1,180 @@
+{
+  "schema": "cix-native-source-export-allowlist-v1",
+  "status": "skeleton_not_an_export_or_release_manifest",
+  "source_root": "rust/cix-native",
+  "export_prefix": "cix-{version}",
+  "layout": {
+    "bin": [
+      "cix",
+      "uncix",
+      "cixcat"
+    ],
+    "include": "include/cix.h",
+    "man": [
+      "man/cix.1",
+      "man/uncix.1",
+      "man/cixcat.1"
+    ],
+    "legal": [
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.txt",
+      "THIRD_PARTY_NOTICES_RUST.md"
+    ],
+    "source_build": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "build.rs",
+      "src/**",
+      "codecs/**",
+      "vendor/**",
+      "include/**",
+      "man/**",
+      "packaging/**",
+      "tests/*.rs",
+      "tests/c_api_consumer.c",
+      "tests/c_api_installed_consumer.sh",
+      "tests/fixtures/native_ports/**",
+      "tests/fixtures/record_stride/**",
+      "examples/native_buffer.rs",
+      "tests/fixtures/regions/**",
+      "tests/fixtures/address_relations/**"
+    ]
+  },
+  "required_exact_files": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
+    "THIRD_PARTY_NOTICES.txt",
+    "THIRD_PARTY_NOTICES_RUST.md",
+    "include/cix.h",
+    "man/cix.1",
+    "man/uncix.1",
+    "man/cixcat.1",
+    "packaging/debian/control",
+    "packaging/rpm/cix.spec",
+    "packaging/export/source-allowlist.json",
+    "packaging/export/validate_source_allowlist.py",
+    "Makefile",
+    "examples/native_buffer.rs",
+    "tests/c_api_consumer.c",
+    "tests/c_api_installed_consumer.sh",
+    "tests/native_port_vectors.rs",
+    "tests/fixtures/native_ports/README.md",
+    "tests/fixtures/record_stride/manifest.json",
+    "include/cix.hpp",
+    "packaging/sdk/CMakeLists.txt",
+    "packaging/sdk/CIXConfig.cmake.in",
+    "packaging/sdk/cix.pc.in",
+    "packaging/sdk/README.md",
+    "packaging/sdk/tests/CMakeLists.txt",
+    "packaging/sdk/tests/cpp_installed_consumer.cpp"
+  ],
+  "allowed_globs": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
+    "THIRD_PARTY_NOTICES.txt",
+    "THIRD_PARTY_NOTICES_RUST.md",
+    "FORMAT-*.md",
+    "build.rs",
+    "src/**",
+    "include/**",
+    "man/**",
+    "codecs/**",
+    "vendor/**",
+    "packaging/**",
+    "Makefile",
+    "tests/*.rs",
+    "tests/c_api_consumer.c",
+    "tests/c_api_installed_consumer.sh",
+    "tests/fixtures/native_ports/**",
+    "tests/fixtures/record_stride/**",
+    "examples/native_buffer.rs",
+    "tests/fixtures/regions/**",
+    "tests/fixtures/address_relations/**"
+  ],
+  "excluded_path_prefixes": [
+    ".git",
+    ".github",
+    "target",
+    "benches",
+    "examples",
+    "experiments",
+    ".gitignore",
+    "docs",
+    "src/bin",
+    "tests/fixtures/regions/make_fixtures.py"
+  ],
+  "excluded_suffixes": [
+    ".cix",
+    ".bin",
+    ".restored",
+    ".tmp",
+    ".pyc"
+  ],
+  "outside_source_root_exclusions": [
+    "benchmark-work",
+    "benchmarks",
+    "docs/research",
+    "results",
+    "raw",
+    "dist",
+    "runtime",
+    "cix",
+    "tests",
+    "figures",
+    ".private"
+  ],
+  "codec_dependency_contracts": [
+    {
+      "name": "PAQ v215/v216/joint_discount/store_state",
+      "source_need": "Package the unchanged, versioned source roots and notices selected by the final dependency freeze, or omit the bridge from that build. Do not rely on a workstation-only CIX_PAQ_SOURCE_ROOT.",
+      "evidence": "codecs/paq/v215/CMakeLists.txt:6-8; codecs/paq/v216/CMakeLists.txt:6-8; codecs/paq/joint_discount/CMakeLists.txt:6-8; codecs/paq/store_state/CMakeLists.txt:6-8"
+    },
+    {
+      "name": "libjxl bridge",
+      "source_need": "Package or declare the exact provisioned libjxl 0.12 dependency selected by the final freeze, or omit the bridge. The source bridge is not an installed SDK.",
+      "evidence": "codecs/jxl/CMakeLists.txt:4-18,43-44"
+    },
+    {
+      "name": "system codecs",
+      "source_need": "The final package must derive and verify target dependencies for zlib, bzip2, lzma, zstd and Brotli; this skeleton does not claim installed host compatibility.",
+      "evidence": "packaging/debian/control; packaging/rpm/cix.spec; docs/research/2026-10-04-release-0.1/package_release.py"
+    },
+    {
+      "name": "vendored source notices",
+      "source_need": "Preserve unchanged vendor source and its upstream/license records whenever it is selected for the build.",
+      "evidence": "vendor/libbsc/LICENSE; vendor/libbsc/UPSTREAM.md; vendor/libzpaq715/UPSTREAM.md"
+    }
+  ],
+  "non_claims": [
+    "No artifact is exported, frozen, signed, installed or qualified by this manifest.",
+    "The Python reference/runtime, research evidence, corpora and benchmark outputs are excluded from the native shipping source tree.",
+    "The full-engine RC source export is blocked until its selected PAQ, JXL, system-codec and retained-route dependency closure is recorded as accepted. Omitting a bridge is not an RC escape hatch.",
+    "A separately named optional native-core subset may omit a bridge only with an explicit feature declaration; it makes no full-engine RC, historical-route or platform-support claim.",
+    "No host adapter, plugin, external registry identifier or platform support is fabricated by a conventional source layout."
+  ],
+  "export_profiles": {
+    "full-engine-rc": {
+      "disposition": "blocked_until_dependency_closure",
+      "source_members": "the allowlist member set",
+      "required_dependency_closure": "packaging/export/final-dependency-closure.json",
+      "required_capabilities": [
+        "PAQ v215/v216/joint_discount/store_state source and notices selected by the final freeze",
+        "provisioned libjxl 0.12 source/binary dependency selected by the final freeze",
+        "target system-codec dependency receipt",
+        "all retained route/decoder closure required by RC05"
+      ],
+      "rule": "This profile must fail validation until a final dependency-closure receipt exists and declares status accepted_full_engine_rc. Omitting PAQ or JXL does not make this profile valid."
+    },
+    "native-core-optional": {
+      "disposition": "optional_subset_not_full_engine_rc",
+      "source_members": "the allowlist member set after an explicitly recorded feature subset is selected",
+      "rule": "It may omit a bridge only under a separately named feature/capability declaration. It cannot satisfy RC05, RC18, RC22, RC44, RC45 or RC51 and must not be labelled full-engine RC."
+    }
+  }
+}

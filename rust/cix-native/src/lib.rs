@@ -1,8 +1,11 @@
 pub mod core;
+pub mod c_api;
+mod cli;
 pub mod full_engine;
 pub mod jxl_bridge;
 pub mod paq_bridge;
 mod paq_worker;
+mod paq_supervisor;
 
 /// Retained Squash callback ABI; it is implemented by the native core.
 pub use core::cix_squash_splice;
@@ -12,11 +15,11 @@ pub fn main_entry() {
     if args.next().as_deref() == Some(std::ffi::OsStr::new(paq_worker::SWITCH)) {
         std::process::exit(paq_worker::main(&args.collect::<Vec<_>>()));
     }
-    core::main_entry();
+    cli::main_entry();
 }
-// Preserve the established library module paths while the implementation now
-// resides under `core::codec`.
-pub use core::codec::{
+// Preserve the established codec primitive paths without exposing the private
+// executable implementation module.
+pub use core::{
     adaptive, bsc_ffi, combinatorics, external, fixedmix, huffman, legacy_lz, limits, parallel,
     ppm, rank, resources, stdout_writer, zpaq_context,
 };

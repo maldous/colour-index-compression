@@ -126,3 +126,15 @@ four physical cores, no swap and a 6 GB host limit. Sampled cgroup memory reache
 1,664,053,248 bytes (a lower bound, not a true process peak); temporary files
 peaked at 1,157,203,097 bytes. These are correctness-check resource observations,
 not compression-throughput benchmark results.
+
+## Approved implementation wave — 5 October 2026
+
+The user-approved plan now has a [native foundation checkpoint](../2026-10-04-execution/FOUNDATION.md)
+with source-bound component evidence. Actual pinned gray/planar JXL crossdecode,
+all four supervised PAQ variants, new native transform reference vectors,
+Rust incremental framing, C buffer contexts, and relocated shared/static C/C++
+SDK consumers have passing focused checks. Earlier failures are preserved and
+are not relabelled as successful jobs. The detailed scope and remaining gaps
+are explicit; neither all 55 release requirements nor final-source quality,
+platform qualification, catalogue/CLI integration or the final benchmark is
+accepted by this checkpoint.

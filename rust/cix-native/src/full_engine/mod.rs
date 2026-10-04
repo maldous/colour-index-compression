@@ -5,8 +5,12 @@
 //! contracts and archive-only restoration have been qualified.
 pub mod address_relations;
 pub mod arithmetic;
+pub mod containers;
 pub mod graph_residuals;
+pub mod jxl_provider;
+pub mod mixed;
 pub mod record_ordering;
+pub mod regions;
 pub mod strided_values;
 pub mod structured_frames;
 pub mod volume_lifting;

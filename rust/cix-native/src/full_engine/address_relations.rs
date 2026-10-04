@@ -26,6 +26,10 @@ const CONSTRAINT_TRAILER: &[u8; 5] = b"ECFX1";
 const FIELDS_TRAILER: &[u8; 5] = b"ECFC1";
 const GOT_TRAILER: &[u8; 5] = b"ECGT1";
 const POINTER_DELTA_TRAILER: &[u8; 5] = b"ECRD1";
+const SECTION_POINTER_TRAILER: &[u8; 5] = b"ECSP1";
+const SYMBOL_LOAD_TRAILER: &[u8; 5] = b"ECSL1";
+const PDATA_TRAILER: &[u8; 5] = b"ECPD1";
+const PDATA_SYMBOL_TRAILER: &[u8; 5] = b"ECPD2";
 const GOT_BLOCK: usize = 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -1406,6 +1410,512 @@ struct RelocatedPointerField {
     key: usize,
 }
 
+#[derive(Clone, Debug)]
+enum SectionAlphabet {
+    Functions(Vec<u64>),
+    Section { virtual_address: u64, count: u64 },
+}
+
+#[derive(Clone, Debug)]
+struct SectionPointerField {
+    where_: usize,
+    declared: u64,
+    alphabet: SectionAlphabet,
+}
+
+fn section_pointer_candidates(source: &[u8], mode: u8) -> Result<Vec<SectionPointerField>, String> {
+    if mode != 4 {
+        return Err("unsupported section-pointer model".into());
+    }
+    let mut fields = Vec::new();
+    for table in symbol_tables(source) {
+        let Some(relocations) = table.sections.get(b".rel.dyn" as &[u8]) else {
+            continue;
+        };
+        let blob = source
+            .get(
+                table.span.offset
+                    ..table
+                        .span
+                        .offset
+                        .checked_add(table.span.length)
+                        .ok_or("section object overflow")?,
+            )
+            .ok_or("section object outside input")?;
+        let mut functions = BTreeSet::new();
+        for (_, value) in &table.symbols {
+            functions.insert(*value);
+        }
+        if let Some(pdata) = table.sections.get(b".pdata" as &[u8]) {
+            let end = checked_end(pdata.offset, pdata.size / 8 * 8, blob.len())?;
+            for position in (pdata.offset..end).step_by(8) {
+                let delta = le_u32(blob, position)? as i32 as i64;
+                functions.insert(pdata.virtual_address.wrapping_add((delta as u64) & !3));
+            }
+        }
+        let mut pools = BTreeMap::new();
+        for name in [b".text" as &[u8], b".init", b".fini"] {
+            if let Some(section) = table.sections.get(name) {
+                let end = section
+                    .virtual_address
+                    .checked_add(section.size as u64)
+                    .ok_or("section range overflow")?;
+                let pool = functions
+                    .iter()
+                    .copied()
+                    .filter(|value| {
+                        *value >= section.virtual_address
+                            && *value < end
+                            && (*value - section.virtual_address) % 4 == 0
+                    })
+                    .collect::<Vec<_>>();
+                if !pool.is_empty() && pool.len() <= 65_535 {
+                    pools.insert(name.to_vec(), pool);
+                }
+            }
+        }
+        let end = checked_end(relocations.offset, relocations.size / 16 * 16, blob.len())?;
+        for position in (relocations.offset..end).step_by(16) {
+            let address = le_u64(blob, position)?;
+            let info = le_u32(blob, position + 8)?;
+            let symbol = (info >> 8) as usize;
+            if info & 255 != 2 || symbol >= table.symbols.len() {
+                continue;
+            }
+            let (name, declared) = &table.symbols[symbol];
+            let Some(target) = table.sections.get(name.as_slice()) else {
+                continue;
+            };
+            let mut location = None;
+            for name in [b".rdata" as &[u8], b".data", b".sdata"] {
+                if let Some(data) = table.sections.get(name) {
+                    let Some(end) = data.virtual_address.checked_add(data.size as u64) else {
+                        continue;
+                    };
+                    if data.virtual_address <= address
+                        && address.checked_add(8).is_some_and(|right| right <= end)
+                    {
+                        let relative = usize::try_from(address - data.virtual_address)
+                            .map_err(|_| "section pointer location too large")?;
+                        let candidate = data
+                            .offset
+                            .checked_add(relative)
+                            .ok_or("section pointer location overflow")?;
+                        if location.replace(candidate).is_some() {
+                            location = None;
+                            break;
+                        }
+                    }
+                }
+            }
+            let Some(location) = location else { continue };
+            let alphabet = if let Some(pool) = pools.get(name) {
+                SectionAlphabet::Functions(pool.clone())
+            } else {
+                let count = (target.size as u64)
+                    .checked_add(3)
+                    .ok_or("section pointer size overflow")?
+                    / 4;
+                if count == 0 {
+                    continue;
+                }
+                SectionAlphabet::Section {
+                    virtual_address: target.virtual_address,
+                    count,
+                }
+            };
+            fields.push(SectionPointerField {
+                where_: table
+                    .span
+                    .offset
+                    .checked_add(location)
+                    .ok_or("section pointer field overflow")?,
+                declared: *declared,
+                alphabet,
+            });
+        }
+    }
+    fields.sort_by_key(|field| field.where_);
+    let mut blocked = BTreeSet::new();
+    for (index, pair) in fields.windows(2).enumerate() {
+        if pair[0]
+            .where_
+            .checked_add(8)
+            .is_none_or(|end| end > pair[1].where_)
+        {
+            blocked.insert(index);
+            blocked.insert(index + 1);
+        }
+    }
+    Ok(fields
+        .into_iter()
+        .enumerate()
+        .filter_map(|(index, field)| (!blocked.contains(&index)).then_some(field))
+        .collect())
+}
+
+fn section_pointer_digit(value: u64, alphabet: &SectionAlphabet) -> Option<u64> {
+    match alphabet {
+        SectionAlphabet::Functions(pool) => pool
+            .iter()
+            .position(|candidate| *candidate == value)
+            .map(|index| index as u64),
+        SectionAlphabet::Section {
+            virtual_address,
+            count,
+        } => value
+            .checked_sub(*virtual_address)
+            .filter(|delta| delta % 4 == 0)
+            .map(|delta| delta / 4)
+            .filter(|digit| *digit < *count),
+    }
+}
+
+fn section_pointer_value(digit: u64, alphabet: &SectionAlphabet) -> Result<u64, String> {
+    match alphabet {
+        SectionAlphabet::Functions(pool) => pool
+            .get(usize::try_from(digit).map_err(|_| "function index outside alphabet")?)
+            .copied()
+            .ok_or("function index outside alphabet".into()),
+        SectionAlphabet::Section {
+            virtual_address,
+            count,
+        } => {
+            if digit >= *count {
+                Err("section index outside interval".into())
+            } else {
+                virtual_address
+                    .checked_add(digit.checked_mul(4).ok_or("section pointer overflow")?)
+                    .ok_or("section pointer overflow".into())
+            }
+        }
+    }
+}
+
+fn section_pointer_transform(source: &[u8], mode: u8) -> Result<Vec<u8>, String> {
+    let fields = section_pointer_candidates(source, mode)?;
+    let mut output = source.to_vec();
+    let mut flags = vec![
+        0u8;
+        fields
+            .len()
+            .checked_add(7)
+            .ok_or("section pointer field count overflow")?
+            / 8
+    ];
+    for (index, field) in fields.iter().enumerate() {
+        let value = le_u64(source, field.where_)?;
+        if let Some(digit) = section_pointer_digit(value, &field.alphabet) {
+            flags[index / 8] |= 1 << (index % 8);
+            write_u64(
+                &mut output,
+                field.where_,
+                field.declared.wrapping_add(digit),
+            )?;
+        }
+    }
+    let skeleton = pointer_delta_transform(&output, 5)?;
+    let mut metadata = vec![mode];
+    metadata.extend_from_slice(&pack(&flags));
+    metadata.extend_from_slice(&pack(&[]));
+    let mut raw = skeleton;
+    raw.extend_from_slice(&metadata);
+    raw.extend_from_slice(&(metadata.len() as u64).to_le_bytes());
+    raw.extend_from_slice(SECTION_POINTER_TRAILER);
+    Ok(raw)
+}
+
+fn section_pointer_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
+    let (skeleton, metadata) = split_trailer(raw, SECTION_POINTER_TRAILER, 3)?;
+    let mode = metadata[0];
+    let (flags, position) = read_packed(metadata, 1)?;
+    let (choices, position) = read_packed(metadata, position)?;
+    if mode != 4 || position != metadata.len() || !choices.is_empty() {
+        return Err("invalid section-pointer metadata".into());
+    }
+    let mut output = pointer_delta_inverse(&skeleton)?;
+    let fields = section_pointer_candidates(&output, mode)?;
+    if flags.len()
+        != fields
+            .len()
+            .checked_add(7)
+            .ok_or("section pointer field count overflow")?
+            / 8
+    {
+        return Err("section-pointer membership mismatch".into());
+    }
+    for (index, field) in fields.iter().enumerate() {
+        if flags[index / 8] & (1 << (index % 8)) != 0 {
+            let encoded = le_u64(&output, field.where_)?;
+            let digit = encoded.wrapping_sub(field.declared);
+            write_u64(
+                &mut output,
+                field.where_,
+                section_pointer_value(digit, &field.alphabet)?,
+            )?;
+        }
+    }
+    Ok(output)
+}
+
+#[derive(Clone)]
+struct SymbolLoadField {
+    where_: usize,
+    forward: BTreeMap<u16, u16>,
+    reverse: BTreeMap<u16, u16>,
+}
+
+fn symbol_load_fields(source: &[u8]) -> Result<Vec<SymbolLoadField>, String> {
+    let tables = symbol_tables(source);
+    let mut frequency = BTreeMap::<Vec<u8>, usize>::new();
+    for table in &tables {
+        for (name, _) in &table.symbols {
+            if !name.is_empty() {
+                *frequency.entry(name.clone()).or_default() += 1;
+            }
+        }
+    }
+    let mut names = frequency.into_iter().collect::<Vec<_>>();
+    names.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+    let global = names
+        .into_iter()
+        .take(8192)
+        .enumerate()
+        .map(|(i, (name, _))| (name, i as u16))
+        .collect::<BTreeMap<_, _>>();
+    let mut output = Vec::new();
+    for table in tables {
+        let (Some(text), Some(got), Some(dynamic)) = (
+            table.sections.get(b".text" as &[u8]),
+            table.sections.get(b".got" as &[u8]),
+            table.sections.get(b".dynamic" as &[u8]),
+        ) else {
+            continue;
+        };
+        let blob = &source[table.span.offset..table.span.offset + table.span.length];
+        let tags = dynamic_tags(blob, dynamic)?;
+        let Some((starts, symbol_starts)) = tag_ranges(&tags, table.symbols.len()) else {
+            continue;
+        };
+        let got_virtual = got.virtual_address;
+        let gp = le_u64(blob, 96)?;
+        let mut slots = BTreeMap::new();
+        let mut previous = None;
+        let mut valid = true;
+        for group in 0..starts.len() {
+            let begin = symbol_starts[group] as usize;
+            let end = if group + 1 == starts.len() {
+                table.symbols.len()
+            } else {
+                symbol_starts[group + 1] as usize
+            };
+            if begin > end || end > table.symbols.len() {
+                valid = false;
+                break;
+            };
+            for symbol in begin..end {
+                let index = starts[group]
+                    .checked_add((symbol - begin) as u32)
+                    .ok_or("symbol slot overflow")?;
+                if previous.is_some_and(|old| index <= old)
+                    || usize::try_from(index)
+                        .ok()
+                        .and_then(|i| i.checked_mul(8))
+                        .and_then(|i| i.checked_add(8))
+                        .is_none_or(|end| end > got.size)
+                {
+                    valid = false;
+                    break;
+                };
+                previous = Some(index);
+                let displacement = got_virtual
+                    .wrapping_add(u64::from(index) * 8)
+                    .wrapping_sub(gp) as u16;
+                slots.insert(displacement, table.symbols[symbol].0.clone());
+            }
+        }
+        if !valid {
+            continue;
+        }
+        let mut grouped = BTreeMap::<Vec<u8>, Vec<u16>>::new();
+        for (disp, name) in slots {
+            if !name.is_empty() {
+                grouped.entry(name).or_default().push(disp);
+            }
+        }
+        let mut forward = BTreeMap::new();
+        for (name, values) in grouped {
+            if values.len() == 1 {
+                if let Some(index) = global.get(&name) {
+                    forward.insert(values[0], index.saturating_mul(8));
+                }
+            }
+        }
+        let reverse: BTreeMap<u16, u16> = forward.iter().map(|(a, b)| (*b, *a)).collect();
+        let end = checked_end(text.offset, text.size / 4 * 4, blob.len())?;
+        for position in (text.offset..end).step_by(4) {
+            let word = le_u32(blob, position)?;
+            if word >> 26 == 0x29 && ((word >> 16) & 31) == 29 {
+                output.push(SymbolLoadField {
+                    where_: table.span.offset + position,
+                    forward: forward.clone(),
+                    reverse: reverse.clone(),
+                });
+            }
+        }
+    }
+    Ok(output)
+}
+
+fn symbol_load_transform(source: &[u8], mode: u8) -> Result<Vec<u8>, String> {
+    if mode != 2 {
+        return Err("unsupported symbol-load model".into());
+    }
+    let fields = symbol_load_fields(source)?;
+    let mut output = source.to_vec();
+    let mut flags = vec![
+        0;
+        fields
+            .len()
+            .checked_add(7)
+            .ok_or("symbol-load count overflow")?
+            / 8
+    ];
+    for (i, field) in fields.iter().enumerate() {
+        let value = le_u16(source, field.where_)?;
+        if let Some(encoded) = field.forward.get(&value) {
+            flags[i / 8] |= 1 << (i % 8);
+            output[field.where_..field.where_ + 2].copy_from_slice(&encoded.to_le_bytes());
+        }
+    }
+    let skeleton = section_pointer_transform(&output, 4)?;
+    let mut metadata = vec![mode];
+    metadata.extend_from_slice(&pack(&flags));
+    let mut raw = skeleton;
+    raw.extend_from_slice(&metadata);
+    raw.extend_from_slice(&(metadata.len() as u64).to_le_bytes());
+    raw.extend_from_slice(SYMBOL_LOAD_TRAILER);
+    Ok(raw)
+}
+fn symbol_load_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
+    let (skeleton, metadata) = split_trailer(raw, SYMBOL_LOAD_TRAILER, 2)?;
+    if metadata[0] != 2 {
+        return Err("invalid symbol-load model".into());
+    }
+    let (flags, pos) = read_packed(metadata, 1)?;
+    if pos != metadata.len() {
+        return Err("unused symbol-load metadata".into());
+    }
+    let mut output = section_pointer_inverse(&skeleton)?;
+    let fields = symbol_load_fields(&output)?;
+    if flags.len()
+        != fields
+            .len()
+            .checked_add(7)
+            .ok_or("symbol-load count overflow")?
+            / 8
+    {
+        return Err("symbol-load flag count mismatch".into());
+    }
+    for (i, field) in fields.iter().enumerate() {
+        if flags[i / 8] & (1 << (i % 8)) != 0 {
+            let value = le_u16(&output, field.where_)?;
+            let original = field
+                .reverse
+                .get(&value)
+                .ok_or("symbol outside reachable load alphabet")?;
+            output[field.where_..field.where_ + 2].copy_from_slice(&original.to_le_bytes());
+        }
+    }
+    Ok(output)
+}
+
+fn pdata_tables(source: &[u8]) -> Vec<(usize, usize)> {
+    discover_ecoff_objects(source)
+        .into_iter()
+        .filter_map(|object| {
+            object
+                .sections
+                .get(b".pdata" as &[u8])
+                .filter(|s| s.size >= 8)
+                .map(|s| (object.span.offset + s.offset, s.size / 8))
+        })
+        .collect()
+}
+fn pdata_transform(source: &[u8], mode: u8) -> Result<Vec<u8>, String> {
+    if mode != 1 {
+        return Err("unsupported procedure model".into());
+    }
+    let skeleton = section_pointer_transform(source, 4)?;
+    let mut output = skeleton;
+    let tables = pdata_tables(&output);
+    for (start, count) in tables {
+        let mut previous = 0u32;
+        for i in 0..count {
+            let at = start + i * 8;
+            let word = le_u32(&output, at)?;
+            write_u32(&mut output, at, word.wrapping_sub(previous))?;
+            previous = word;
+        }
+    }
+    let metadata = [mode];
+    output.extend_from_slice(&metadata);
+    output.extend_from_slice(&(metadata.len() as u64).to_le_bytes());
+    output.extend_from_slice(PDATA_TRAILER);
+    Ok(output)
+}
+fn pdata_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
+    let (mut output, metadata) = split_trailer(raw, PDATA_TRAILER, 1)?;
+    if metadata != [1] {
+        return Err("invalid procedure metadata".into());
+    }
+    for (start, count) in pdata_tables(&output) {
+        let mut previous = 0u32;
+        for i in 0..count {
+            let at = start + i * 8;
+            let word = le_u32(&output, at)?.wrapping_add(previous);
+            write_u32(&mut output, at, word)?;
+            previous = word;
+        }
+    }
+    section_pointer_inverse(&output)
+}
+fn pdata_symbols_transform(source: &[u8], mode: u8) -> Result<Vec<u8>, String> {
+    if mode != 1 {
+        return Err("invalid combined procedure mode".into());
+    }
+    let skeleton = symbol_load_transform(source, 2)?;
+    let mut output = skeleton;
+    for (start, count) in pdata_tables(&output) {
+        let mut previous = 0u32;
+        for i in 0..count {
+            let at = start + i * 8;
+            let word = le_u32(&output, at)?;
+            write_u32(&mut output, at, word.wrapping_sub(previous))?;
+            previous = word;
+        }
+    }
+    output.push(mode);
+    output.extend_from_slice(PDATA_SYMBOL_TRAILER);
+    Ok(output)
+}
+fn pdata_symbols_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
+    if raw.len() < 6 || !raw.ends_with(PDATA_SYMBOL_TRAILER) || raw[raw.len() - 6] != 1 {
+        return Err("invalid combined procedure trailer".into());
+    }
+    let mut output = raw[..raw.len() - 6].to_vec();
+    for (start, count) in pdata_tables(&output) {
+        let mut previous = 0u32;
+        for i in 0..count {
+            let at = start + i * 8;
+            let word = le_u32(&output, at)?.wrapping_add(previous);
+            write_u32(&mut output, at, word)?;
+            previous = word;
+        }
+    }
+    symbol_load_inverse(&output)
+}
+
 /// The immediate `ecoff_relocated_pointers` dependency.  Every alphabet is
 /// derived from symbols carried in these object bytes; `key` preserves the
 /// reference implementation's per-symbol predictor identity even where two
@@ -1627,9 +2137,8 @@ fn transform_encode(transform: Transform, source: &[u8]) -> Result<Vec<u8>, Stri
         Transform::Fields { mode } => fields_transform(source, mode),
         Transform::Got { mode } => got_transform(source, mode, true),
         Transform::PointerDeltas { mode } => pointer_delta_transform(source, mode),
-        Transform::SectionPointers { .. } | Transform::PdataSymbols { .. } => {
-            Err("requested native executable transform is not linked into this build".into())
-        }
+        Transform::SectionPointers { mode } => section_pointer_transform(source, mode),
+        Transform::PdataSymbols { mode } => pdata_symbols_transform(source, mode),
     }
 }
 
@@ -1640,9 +2149,8 @@ fn transform_decode(transform: Transform, raw: &[u8]) -> Result<Vec<u8>, String>
         Transform::Fields { .. } => fields_inverse(raw),
         Transform::Got { .. } => got_inverse(raw),
         Transform::PointerDeltas { .. } => pointer_delta_inverse(raw),
-        Transform::SectionPointers { .. } | Transform::PdataSymbols { .. } => {
-            Err("requested native executable inverse is not linked into this build".into())
-        }
+        Transform::SectionPointers { .. } => section_pointer_inverse(raw),
+        Transform::PdataSymbols { .. } => pdata_symbols_inverse(raw),
     }
 }
 
@@ -1896,7 +2404,9 @@ pub fn admission(source: &[u8]) -> BTreeSet<String> {
 mod tests {
     use super::{
         crc32, decode_choices, decode_transformed_frame, encode_choices, fields_transform,
-        got_inverse, got_transform, pointer_delta_inverse, pointer_delta_transform, vencode,
+        got_inverse, got_transform, pdata_inverse, pdata_symbols_inverse, pdata_symbols_transform,
+        pdata_transform, pointer_delta_inverse, pointer_delta_transform, section_pointer_inverse,
+        section_pointer_transform, symbol_load_inverse, symbol_load_transform, vencode,
         HistoricalFrame, GOT_MAGIC,
     };
 
@@ -2016,5 +2526,101 @@ mod tests {
         transformed[trailer] = 4;
         transformed[trailer + 1] = 0x80;
         assert!(pointer_delta_inverse(&transformed).is_err());
+    }
+
+    #[test]
+    fn section_pointer_mode_four_keeps_paid_empty_admission_reversible() {
+        let source = b"non-executable section-pointer fixture";
+        let transformed = section_pointer_transform(source, 4).unwrap();
+        assert!(transformed.ends_with(b"ECSP1"));
+        assert_eq!(section_pointer_inverse(&transformed).unwrap(), source);
+        let footer = transformed.len() - 13;
+        let metadata_size =
+            u64::from_le_bytes(transformed[footer..footer + 8].try_into().unwrap()) as usize;
+        let metadata_start = footer - metadata_size;
+        let mut bad_mode = transformed.clone();
+        let original_mode = bad_mode[metadata_start];
+        bad_mode[metadata_start] = 255;
+        assert_ne!(bad_mode[metadata_start], original_mode);
+        assert!(section_pointer_inverse(&bad_mode).is_err());
+        let mut bad_length = transformed;
+        bad_length[footer] = bad_length[footer].checked_add(1).unwrap();
+        assert!(section_pointer_inverse(&bad_length).is_err());
+    }
+
+    #[test]
+    fn pdata_symbols_mode_one_keeps_nested_empty_admission_reversible() {
+        let source = b"non-executable pdata-symbol fixture";
+        let transformed = pdata_symbols_transform(source, 1).unwrap();
+        assert!(transformed.ends_with(b"ECPD2"));
+        assert_eq!(pdata_symbols_inverse(&transformed).unwrap(), source);
+        let mut malformed = transformed;
+        let mode = malformed.len() - 6;
+        malformed[mode] = 2;
+        assert!(pdata_symbols_inverse(&malformed).is_err());
+    }
+
+    #[test]
+    fn frozen_ecoff_relation_vectors_match_native_raw_transforms_and_inverses() {
+        const SOURCE: &[u8] = include_bytes!("../../tests/fixtures/address_relations/source.bin");
+        const AMBIGUOUS: &[u8] =
+            include_bytes!("../../tests/fixtures/address_relations/ambiguous_source.bin");
+        assert_eq!(
+            section_pointer_transform(SOURCE, 4).unwrap(),
+            include_bytes!("../../tests/fixtures/address_relations/section_mode4.raw")
+        );
+        assert_eq!(
+            symbol_load_transform(SOURCE, 2).unwrap(),
+            include_bytes!("../../tests/fixtures/address_relations/symbol_load_mode2.raw")
+        );
+        assert_eq!(
+            symbol_load_transform(AMBIGUOUS, 2).unwrap(),
+            include_bytes!(
+                "../../tests/fixtures/address_relations/ambiguous_symbol_load_mode2.raw"
+            )
+        );
+        assert_eq!(
+            pdata_transform(SOURCE, 1).unwrap(),
+            include_bytes!("../../tests/fixtures/address_relations/pdata_mode1.raw")
+        );
+        assert_eq!(
+            pdata_symbols_transform(SOURCE, 1).unwrap(),
+            include_bytes!("../../tests/fixtures/address_relations/pdata_symbols_mode1.raw")
+        );
+        assert_eq!(
+            section_pointer_inverse(include_bytes!(
+                "../../tests/fixtures/address_relations/section_mode4.raw"
+            ))
+            .unwrap(),
+            SOURCE
+        );
+        assert_eq!(
+            symbol_load_inverse(include_bytes!(
+                "../../tests/fixtures/address_relations/symbol_load_mode2.raw"
+            ))
+            .unwrap(),
+            SOURCE
+        );
+        assert_eq!(
+            symbol_load_inverse(include_bytes!(
+                "../../tests/fixtures/address_relations/ambiguous_symbol_load_mode2.raw"
+            ))
+            .unwrap(),
+            AMBIGUOUS
+        );
+        assert_eq!(
+            pdata_inverse(include_bytes!(
+                "../../tests/fixtures/address_relations/pdata_mode1.raw"
+            ))
+            .unwrap(),
+            SOURCE
+        );
+        assert_eq!(
+            pdata_symbols_inverse(include_bytes!(
+                "../../tests/fixtures/address_relations/pdata_symbols_mode1.raw"
+            ))
+            .unwrap(),
+            SOURCE
+        );
     }
 }

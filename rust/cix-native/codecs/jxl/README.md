@@ -7,21 +7,27 @@ refuses host-library discovery. The package recipe must ship the matching
 libjxl runtime beside `cix_jxl_bridge` and verify `cix_jxl_library_version() ==
 12000` before enabling this route.
 
-The bridge currently supports exactly one gray 2-D pixel plane. It accepts
-UINT8 only for 1–8 bit samples and UINT16 only for 9–16 bit samples; its CIX byte order is explicitly
-little-endian. It passes one worker to `JxlThreadParallelRunner`, sets `JXL_BIT_DEPTH_FROM_CODESTREAM`,
+The bridge supports one gray 2-D pixel plane and a bounded Z/H/W planar form.
+Planar plane zero is the gray image; planes 1 through Z−1 are JXL optional
+extra channels in increasing channel-index order. This is the frozen
+`imagecodecs` `planar=True, photometric="GRAY"` mapping, and all samples use a
+single unsigned depth and explicit little-endian transport. UINT8 is accepted
+only for 1–8 bit samples and UINT16 only for 9–16 bit samples. It passes one
+worker to `JxlThreadParallelRunner`, sets `JXL_BIT_DEPTH_FROM_CODESTREAM`,
 `JxlEncoderSetFrameLossless(..., JXL_TRUE)`, and a frame distance of `0.0`.
 Decode validates the advertised dimensions, unsigned sample depth, gray channel
 count, absence of extra channels, preview and animation *before* installing its
 caller-owned output buffer. It rejects unconsumed input after its single-image decode.
+`cix_jxl_probe_gray_2d` supplies the same gray-still validation without an
+output buffer and requires a CIX-paid exact pixel count; it is the only allowed
+shape recovery path for the legacy CIXI1 frame.
 
-That is enough to implement and qualify the frozen CIXI1 2-D JXL branch once
-its absent stored shape is resolved by the native frame reader. It does **not**
-claim frozen CIXV1/CIXI2 parity yet: those routes pass 3-D arrays with
-`planar=True` in selected cases. The frozen imagecodecs-to-libjxl planar mapping
-must be captured with 3-D 8/16-bit fixtures before a CIX 3-D/planar descriptor
-is introduced. Until then, a caller must report the route unsupported rather
-than flatten or transpose a volume.
+`cix_jxl_probe_planar` requires the CIX-paid depth and total Z×H×W pixel count
+before returning geometry. It rejects animation, preview, non-gray data,
+subsampling, non-optional extras, mixed extra-channel depth, and dimensional
+mismatches before any output buffer is supplied. `cix_jxl_decode_planar` then
+installs one bounded buffer per plane. This permits retained CIXV1 mode 3 and
+CIXI2 planar bands without flattening or changing their shape.
 
 Required qualification after provisioning:
 
@@ -30,11 +36,11 @@ Required qualification after provisioning:
 2. Round-trip gray 2-D 8-bit and each 9–16-bit depth through this bridge,
    including a value near each depth's maximum; compare every original byte.
 3. Cross-decode CIX-produced JXL with the pinned `djxl`, and decode
-   imagecodecs-produced **2-D** frozen CIXI1 payloads with this bridge. Record
+   imagecodecs-produced 2-D and generated planar fixtures with this bridge. Record
    semantic byte equality, not a claimed identical codestream.
 4. Run malformed/truncated input and geometry/type mismatch cases under the
    CIX output and memory policy; prove no output allocation occurs before
    basic-info bounds are checked.
-5. Only after an evidence-backed planar mapping exists, add CIXV1/CIXI2
-   volume/planar encode and cross-decode coverage. No 3-D behavior is implied
-   by this 2-D ABI.
+5. Run the generated Z/H/W 8- and 16-bit fixtures at depth 2, 3, and 5 in
+   `docs/research/2026-10-04-native-rc/jxl-completion/planar_fixture.py`,
+   including CIXV1 mode 3 and CIXI2 restore checks.
