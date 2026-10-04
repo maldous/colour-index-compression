@@ -1,0 +1,301 @@
+CIX global compression methodology and coverage review
+4 October 2026 — literature/source inspection only
+
+Finding
+
+CIX covers most major lossless-compression families, but the reviewed implementation
+and opportunity inventory is not exhaustive. This audit found useful additional
+implementations and concrete capability gaps. None has a new measured CIX gain.
+No compressor was installed, benchmark was run, corpus acquired, production code
+changed or release requirement accepted.
+
+The most useful immediate outcome is a corrected mechanism-level inventory.
+New candidates should be considered on their marginal value over the complete
+retained CIX portfolio, not simply because they have an unfamiliar name or a
+strong published result. Preserve already demonstrated specialists first.
+
+Scope and evidence
+
+The audit cross-checked existing methodology, source/port, GPU, predictive,
+constraint and reconstruction inventories; searched in English, German, Russian,
+Chinese and Japanese; and followed leads to papers, author repositories and
+released software. candidates.json contains 26 grouped entries and 71 distinct
+source URLs, with current CIX coverage, upstream implementation, exactness,
+maturity, license uncertainty, expected value and limits. These are grouped
+opportunities, not 26 independent new algorithms.
+
+Local-coverage-scan.json records a bounded scan of 8,832 text/source files and
+matching file hashes at checkpoint 9e7e1023ee6ed621834560d9085ae08080bfe442.
+Absence of a name from that scan is only absence of evidence in its stated scope.
+Direct source inspection establishes the narrower JPEG bridge finding below.
+Generic phrase matches in the lexical scan were rejected as false positives.
+The working tree may contain continuing implementation work; this is a
+point-in-time review, not a release manifest or a claim every line was audited.
+
+This is not a patent/priority search, an exhaustive world literature review, or
+proof that CIX is near a universal optimum. Native-language searches broaden
+coverage, but indexing/access gaps remain. In particular, the Chinese APCF listing
+could not be fully retrieved; it is an unresolved lead, not an endorsed method.
+German searches did not uncover a verified German-only breakthrough; the German
+research ecosystem's BtrBlocks/FSST/OptFSST and Precomp sources are mostly English.
+Japanese author material and repositories establish practical grammar research;
+Russian author pages establish detailed PPM and specialist-chain prior art.
+
+Priority decisions
+
+1. Highest near-term consideration: Pco for typed numerical streams; FSST/OptFSST
+   for string fields; BtrBlocks/FastLanes/Corra as references for structured
+   encodings and cross-field dependencies; original-JPEG reconstruction through
+   the already-retained JPEG XL library. These are candidates, not automatic RC
+   additions. The smallest useful comparison must retain original envelopes and
+   compete with existing CIX specialists and whole-input alternatives.
+
+2. Strong controls for specific hypotheses: Sprintz/FIRE before attributing a
+   gain to nonlinear autoregression; one grammar compressor for genuinely
+   long-range repetition; reversible zfp for scientific arrays. Existing ALP,
+   FPC, ndzip, native delta/delta2 and strong generic backends remain relevant.
+
+3. Product/workload-dependent opportunities: FastCDC/similarity grouping for
+   archive/filesystem redundancy; CLP/Logzip for structural text; WavPack/FLAC for
+   audio; SPRING for genomic records; ZipNN/DFloat11 for original model tensors.
+   These are not evidence of improvements on the current Silesia corpus and do
+   not authorize acquisition or a new benchmark programme.
+
+4. Correct the optional-GPU opportunity list: G-ALP (2025) and SLEEK lossless
+   (2026) have specific paper/implementation evidence. Existing provider
+   qualification remains unresolved. Their existence does not establish fit on
+   the local GTX1650/4GiB GPU, end-to-end benefit or an accepted CPU fallback.
+
+5. Keep large-model compression as a real research frontier, not a current
+   dependency. A stronger predictor is not excluded by the failed frozen-pool
+   mixer experiment. No ratio claim from an external paper establishes general
+   dominance or acceptable local decode time.
+
+Concrete corrections and distinctions
+
+* DMC is already present through retained PAQ v216; FSE through libzstd.
+  The parallel source review also confirms ZPAQ SSE/ISSE. Native/exposed expert
+  interfaces are different obligations from having those mechanisms in a backend.
+* CIX's inspected JXL bridge uses JxlEncoderAddImageFrame for grayscale pixels.
+  Upstream JxlEncoderAddJPEGFrame plus JxlEncoderStoreJPEGMetadata is a different,
+  documented original-JPEG reconstruction capability. Previous gzip research
+  does not evaluate it. Lepton was already mentioned, so JPEG research as a whole
+  is not a wholly new discovery.
+* zfp has an explicit reversible mode. Do not reject the entire codec as lossy;
+  conversely, do not treat zero tolerance in a different mode as proof of exactness.
+* Spatio-Temporal-Lab Elf is the erasing/recovery floating-point research line.
+  ds2-lab ELF explicitly describes near-lossless model compression. Their names
+  do not identify the same algorithm or exactness contract.
+* Current ts_zip documentation explicitly claims deterministic inference across
+  hardware/software configurations. Older same-GPU caveats should not be copied
+  into its current description. Experimental format compatibility, footprint and
+  actual local decoding still need qualification; NNCP/LibNC has a separate audit.
+* The earlier GPU review said it had not established an ALP GPU provider. G-ALP
+  supplies research implementation evidence, not proof of a production-qualified
+  CIX provider or of the complete FastLanes CUDA reader.
+* A numerical or semantic round trip is not a byte round trip. CSV formatting,
+  JSON order/escaping, NaN payloads, tails, compressed headers and permutation
+  indexes can erase apparent gains if omitted from the comparison.
+* The parallel review found UIQ's historical winner combines a representation
+  transform with contexts suited to its three-byte descriptors. This supports
+  representation-aware prediction; it does not establish short-seed inversion.
+  See the separate source-backed last-chance review.
+
+The two speculative approaches
+
+The other agent has now completed a theoretical review, with no experiment:
+(a) shared higher-order constraints exposed by feature lifting; (b) alternative
+expanded representations mapped back by one decoder, with adjustable auxiliary
+coordinates. Its latest nonlinear autoregressive residual proposal is a tractable
+hypothesis within (a). The relevant antecedents include enumerative coding,
+algorithmic statistics, nonlinear system identification, probabilistic circuits,
+don't-care filling/coset selection, homophonic and latent/bits-back coding.
+The exact proposed CIX combination may merit research, but no world-first claim
+or demonstrated practical gain is established.
+
+The meaningful question is whether a short, decoder-available model explains
+errors the strongest existing model still makes. Merely changing coordinates,
+increasing dimensions or searching many hashes cannot create short lossless
+descriptions for all arbitrary inputs. Equivalent direct predictors, paid
+model/exception costs and selection bias remain necessary controls. This audit
+adds Sprintz/FIRE and structured-column methods as relevant practical context,
+without scheduling the proposed nonlinear screen.
+
+Definitions and current coverage
+--------------------------------
+1. Literal, run-length and sparse coding
+   Definition: Store bytes, runs or exception positions when that is cheapest.
+   CIX: Existing native/reference mechanisms; fallback is essential.
+   Evidence: rust/cix-native/src/core.rs; cix/runs.py
+
+2. Enumerative/combinatorial coding
+   Definition: Transmit a count/model and an index among its valid objects; rank/unrank must be exact.
+   CIX: Existing native rank, multinomial/count and histogram machinery. This is established enumerative coding, not a new universal generator theorem.
+   Evidence: rust/cix-native/src/rank.rs; combinatorics.rs; histogram.rs
+
+3. Huffman, arithmetic/range and ANS/FSE
+   Definition: Turn a probability/count model into a uniquely decodable bitstream.
+   CIX: Native Huffman/range mechanisms; FSE through retained libzstd. A standalone native rANS expert stream is a separate unqualified route; earlier N3 disposition remains closed.
+   Evidence: rust/cix-native/src/huffman.rs; adaptive.rs; external.rs; last-chance review
+
+4. LZ and dictionaries
+   Definition: Replace recurring strings with earlier references or dictionary symbols.
+   CIX: Native bounded LZ and retained DEFLATE/LZMA/Brotli/Zstd backends. Trained reusable dictionaries are a separate required RC26 item, not proved by a phrase dictionary.
+   Evidence: rust/cix-native/src/fast_lz.rs; legacy_lz.rs; requirements.json
+
+5. LZP, ROLZ and context symbol ranking
+   Definition: Predict a match or rank using context, reducing the reference/symbol description.
+   CIX: libbsc supplies LZP. General ROLZ and original-order symbol-ranking coverage not established. BWT MTF ranks and combinadic ranks are different.
+   Evidence: docs/research/2026-10-04-last-chance-methodology-review/REPORT.txt
+
+6. BWT, move-to-front and sorting transforms
+   Definition: Reorder contexts before coding clustered symbols/ranks.
+   CIX: Native/reference BWT plus bzip2/libbsc backends; GPU acceleration unqualified.
+   Evidence: rust/cix-native/src/bwt_legacy.rs; bsc_ffi.rs
+
+7. PPM, CTW and DMC
+   Definition: Assign probabilities from context trees or dynamically adapted/cloned states.
+   CIX: Native PPM; binary CTW reference-only; DMC state cloning present in retained PAQ. They are not interchangeable algorithms.
+   Evidence: rust/cix-native/src/ppm.rs; cix/ctw.py; last-chance review
+
+8. Context mixing and calibration
+   Definition: Combine predictors and refine their output probabilities.
+   CIX: FixedMix and retained PAQ/ZPAQ. ZPAQ SSE/ISSE is distinct from FixedMix and PPM escape estimation. Frozen predictive trials did not qualify a new mixer.
+   Evidence: rust/cix-native/src/fixedmix.rs; expertmix.rs; zpaq_context.rs
+
+9. Neural probability prediction
+   Definition: Use a learned recurrent/transformer model to predict symbols before entropy coding.
+   CIX: LSTM-bearing PAQ configurations retained; NNCP/LibNC and larger learned models are research references, not accepted native routes.
+   Evidence: runtime-inventory.md; GPU methodologies; last-chance review
+
+10. Numeric and bit-layout transforms
+   Definition: Expose regularity using deltas, XOR, strides, planes, residuals and exact packing.
+   CIX: Existing numeric/chain/bitplane foundations; Pco/ALP/Elf-style implementations need separate comparison.
+   Evidence: rust/cix-native/src/numeric.rs; chain.rs; bitplane.rs
+
+11. Spatial prediction, lifting and image coding
+   Definition: Represent correlated neighbours/axes with reversible transforms and coded residuals.
+   CIX: Existing/reference wavelet and volume work; retained JXL/JLS/J2K specialists require full native parity. JXL bridge inspected is gray2d pixel coding.
+   Evidence: rust/cix-native/src/wavelet.rs; full_engine/volume_lifting.rs; codecs/jxl/cix_jxl_bridge.cpp
+
+12. Structured records, graphs and executable relationships
+   Definition: Separate fields and encode valid relations with exact exceptions and original envelopes.
+   CIX: Retained format-aware successes and partial native ports. Recognition must use supplied bytes and validated structure, never corpus identity.
+   Evidence: rust/cix-native/src/full_engine/{structured_frames,record_ordering,address_relations,graph_residuals,strided_values}.rs
+
+13. Grammar and reusable abstractions
+   Definition: Describe recurring phrases recursively and encode a grammar that generates the input.
+   CIX: Phrase mechanisms exist; no complete Re-Pair/GCIS/GLZA implementation established in the inspected source. Program-library synthesis was considered as research.
+   Evidence: cix/transforms.py; earlier methodology timeline
+
+14. Segmentation, typed graphs and paid selection
+   Definition: Choose complete representations for input-derived regions, paying boundaries, resets and model IDs.
+   CIX: Required heterogeneous architecture and partial orchestration; complete automatic native engine still unqualified. OpenZL/CAST and segmentation research were already considered.
+   Evidence: automatic-specialised-models/runtime-inventory.md; native-rc/PROGRESS.md
+
+15. Exact recompression and encoder residuals
+   Definition: Rebuild an original compressed stream from its content plus the encoder decisions needed for exact reproduction.
+   CIX: Retain demonstrated PAQ DEFLATE capability; finite gzip/bzip2/ZIP prototypes retain closed dispositions. JPEG and audio reconstruction are separate capabilities.
+   Evidence: native-rc/codec-reconstruction-closure-v1/REPORT.txt
+
+16. Constraints, latent variables and model-set indexes
+   Definition: Describe a tractable restricted set/model, then code the input or its residual within it.
+   CIX: BDD/DAG/counting, bits-back, SDL, seeded maps, conditional modelling and synthesis have known antecedents. Most CIX variants are bounded research with scoped negative results.
+   Evidence: constraint-lifting-review/REPORT.txt; rc-reconciliation/RESEARCH-CLOSURE.txt
+
+17. Parallelism and implementation efficiency
+   Definition: Reduce computation, allocation, memory movement and sequential dependence while preserving the coded contract.
+   CIX: CPU optimisation and bounded concurrency remain required; GPU work is conditional. Faster coding does not itself discover more statistical redundancy.
+   Evidence: automatic-specialised-models/performance-carry-forward.md; gpu-cuda/METHODOLOGIES.md
+
+
+Candidate index
+---------------
+Detailed maturity, exactness, costs, source links and uncertainty are in
+candidates.json. Every entry remains unqualified as a new CIX route.
+C01  Pco / Pcodec
+     High: focused future numeric comparison
+C02  ALP
+     Retain existing comparator
+C03  Elf / Elf+ / Elf*, Gorilla and Chimp
+     Conditional numeric research
+C04  zfp reversible mode
+     High: scientific array comparison
+C05  SPDP
+     Conditional scientific control
+C06  Sprintz / FIRE forecasting
+     High as control for proposed nonlinear AR work
+C07  FSST / FSST12 / OptFSST
+     High: strings, records and SDK access
+C08  BtrBlocks / FastLanes / Corra
+     High: structured-model and throughput reference
+C09  OpenZL
+     Retain architectural/comparison reference
+C10  CLP / Logzip
+     Conditional: stronger structural-text reference
+C11  Re-Pair / MR-RePair / FOLCA / SOLCA / GCIS / GLZA
+     Medium-high: one representative future control
+C12  Kanzi
+     Medium: released portfolio comparator
+C13  FreeArc, Tornado, PPMd/PPMII, PPMonstr and Durilca
+     Historical prior art; selected controls only
+C14  JPEG XL original-JPEG reconstruction; Lepton / Brunsli alternatives
+     High: concrete existing-library capability gap
+C15  Precomp / preflate / compressed-stream reconstruction
+     Preserve closed dispositions and existing PAQ route
+C16  WavPack / FLAC
+     Conditional domain expansion
+C17  SPRING and genomic specialists
+     Low until a relevant input class exists
+C18  FastCDC / similarity grouping / DwarFS
+     High for archive/filesystem design; conditional for single files
+C19  G-ALP
+     Correct prior GPU inventory; conditional accelerator
+C20  SLEEK lossless
+     Add to optional GPU/CPU shortlist
+C21  Existing GPU and component frameworks: libcubwt, nvCOMP, ndzip, LC, GPULZ, GFC/MPC, dietGPU, hipCOMP
+     Already considered; preserve current dispositions
+C22  ZipNN / DFloat11
+     Conditional tensor specialist
+C23  ts_zip, LMCompress, LLMZip and Language Modeling is Compression
+     Research frontier, not current RC dependency
+C24  Rice-Marlin / variable-to-fixed coding
+     Lower-priority entropy implementation reference
+C25  Near-lossless ELF; quantized SZ/cuSZ/SZx; semantic or perceptual compression
+     Do not admit these modes
+C26  Chinese APCF preprint
+     Evidence incomplete; no promotion
+
+Release implications
+
+No new candidate is mandatory merely because it appears in this review.
+The existing 55-item acceptance ledger and stopped benchmark gate are unchanged.
+The finite research closures are preserved; they do not imply global exhaustion.
+Existing successful routes still require native parity, automatic selection,
+one-executable/library integration, exact decoding, hygiene and optimized-build
+qualification before the frozen release-candidate confirmation pass.
+
+For a future selected candidate, use one predeclared bounded comparison when
+authorized: strongest existing appropriate CIX control; all original bytes and
+metadata counted; fresh archive-only exact decoding; total selection/encode and
+decode wall/CPU, peak memory and any transfer costs. Pin dependency, format,
+options and model assets; avoid corpus-specific recognition. Published speedups
+on other hardware and different input/container definitions are not transferable
+CIX measurements. A useful speed/size trade-off can justify consideration even
+without winning absolute size; it must be named accurately.
+
+Recommended decision now: carry the corrected coverage and ranked candidates
+into the implementation agent's review, finish the existing release obligations,
+and make any scope expansion explicit. There is enough evidence to say worthwhile
+opportunities remain; there is no evidence to promise a new record.
+
+Related local evidence
+----------------------
+../../../docs/research/2026-10-04-last-chance-methodology-review/REPORT.txt
+../../../docs/research/2026-10-04-constraint-lifting-review/REPORT.txt
+../../../docs/research/2026-10-04-native-rc/PROGRESS.md
+../../../docs/research/2026-10-04-native-rc/port-map.json
+../../../docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/REPORT.txt
+../../../docs/research/2026-10-04-gpu-cuda/METHODOLOGIES.md
+../../../docs/research/2026-10-04-rc-reconciliation/RESEARCH-CLOSURE.txt
+/home/user/src/cix-methodology-timeline-2026-10-04/methodologies-and-sources.md
