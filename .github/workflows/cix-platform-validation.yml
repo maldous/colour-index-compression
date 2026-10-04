@@ -1,0 +1,61 @@
+name: CIX private platform inventory
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact reviewed 40-character lowercase commit SHA
+        required: true
+        type: string
+      target:
+        description: Inventory target only; no build or qualification stage exists here
+        required: true
+        type: choice
+        options: [linux-arm64, windows-x64, macos-arm64, macos-x64]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cix-platform-validation
+  cancel-in-progress: false
+
+jobs:
+  inventory:
+    name: inventory (${{ inputs.target }})
+    timeout-minutes: 8
+    runs-on: ${{ fromJSON('{"linux-arm64":"ubuntu-24.04-arm","windows-x64":"windows-2022","macos-arm64":"macos-15","macos-x64":"macos-15-intel"}')[inputs.target] }}
+    steps:
+      - name: Validate reviewed source identity
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          TARGET: ${{ inputs.target }}
+        shell: pwsh
+        run: |
+          $python = Get-Command python -ErrorAction Stop
+          & $python.Source -c 'import os, re, sys; sys.exit(0 if re.fullmatch(r"[0-9a-f]{40}", os.environ["SOURCE_SHA"]) and os.environ["TARGET"] in {"linux-arm64", "windows-x64", "macos-arm64", "macos-x64"} else 2)' 
+      - name: Checkout reviewed inventory tool only
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5 tag resolved through GitHub API 2026-10-05
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            tools/platform-validation
+          sparse-checkout-cone-mode: false
+      - name: Record inventory
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          TARGET: ${{ inputs.target }}
+        shell: pwsh
+        run: |
+          $python = Get-Command python -ErrorAction Stop
+          & $python.Source -c "import os, subprocess, sys; raise SystemExit(subprocess.call([sys.executable, 'tools/platform-validation/inventory.py', '--source-sha', os.environ['SOURCE_SHA'], '--target', os.environ['TARGET'], '--output', 'platform-inventory.json']))"
+      - name: Upload bounded inventory receipt
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4 tag resolved through GitHub API 2026-10-05
+        with:
+          name: cix-platform-inventory-${{ inputs.target }}-${{ inputs.source_sha }}
+          path: platform-inventory.json
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 0

@@ -1,0 +1,78 @@
+CIX platform delivery direction and infrastructure discovery — 2026-10-05
+
+User direction
+Deliver a dependable command-line and SDK product. No graphical application.
+PAQ is mandatory. GPL-compatible distribution is authorised where required;
+there is no commercial-exploitation requirement. This resolves the earlier
+policy uncertainty about accepting GPL, not the remaining technical source,
+notice and compatible-version closure. Preserve third-party rights and source.
+Apple ID is available; Windows signing certification can be started. Signing
+and notarization are later distribution milestones; private functional testing
+can proceed first.
+
+Authority and ownership
+QEMU VMs and accessible online runners, including GitHub, may be provisioned
+for actual platform validation. The previous blanket Actions-disabled rule is
+superseded narrowly for this purpose. The repository remains private. Old
+research/benchmark workflows, corpus acquisition and publication remain held.
+Root owns scheduling, activation, workflow changes, commits and dispatch.
+Coordinator owns this direction and the acceptance ledger. Existing local
+4-core / 12 GB / 4 GB / no-swap limits have not been enlarged. No paid service
+purchase or account-budget change is implied.
+
+Observed infrastructure
+Both QEMU system emulators and /dev/kvm exist locally. Root reports about
+3.346 GB of retained work under the 4 GB cap, so a new guest image cannot simply
+be added without an admitted preservation/storage plan. ARM emulation can
+supply scoped functional evidence, but not native ARM performance evidence.
+
+GitHub access authenticates as maldous. The CIX repository is private; repository
+admin access is present. Repository-wide Actions is disabled, but all 44
+registered historical workflows still have active individual states. This is
+why enabling the repository without first isolating those workflows is wrong.
+The current token has no readable account plan/billing usage: the usage API
+returned 404 and gh reported missing user scope. Remaining included minutes
+and spending limits are unknown, not zero. No credentials were exposed or
+authentication scope expanded.
+
+Recommended bounded validation path
+Use private hosted runners for Linux ARM64, Windows x64, macOS ARM64 and macOS
+Intel, with the current Linux x86-64 checks as the control. The official current
+labels are ubuntu-24.04-arm, windows-2022, macos-15 and macos-15-intel. Record
+the actual image release, CPU architecture and toolchain; labels are not
+immutable environment identities. Standard private runners offer differing
+memory amounts (8 GB Linux/Windows, 7 GB Apple Silicon, 14 GB Intel Mac), so
+PAQ admission must leave room for the host and build tools. Availability in the
+official catalogue does not prove this account can dispatch every runner.
+
+The adjacent JSON gives a concrete proposed workflow: manual-only trigger,
+exact source SHA, fixed target/stage allowlist, read-only repository access,
+one admitted job at a time, two build workers, eight-minute inventory phase,
+initial 60-minute build/test ceiling and 64 MB/three-day private artifact cap.
+Root must reconcile account usage and admitted memory/workspace resources
+before dispatch. No YAML or remote configuration has been installed by this
+review. Do not make the repository public to obtain free runner usage.
+
+Before Actions enablement, preserve and individually disable the 44 old
+workflows, inspect selected/default-branch triggers, and install only the
+reviewed manual validation entrypoint through root's private checkpoint path.
+Keep access to source/provider inputs pinned and minimal, with generated tiny
+fixtures rather than corpus uploads. Stop on unavailable required PAQ/runtime
+capability; do not turn native-only smoke tests into full-product qualification.
+
+Validation stages
+1. Actual runner/toolchain/resource inventory.
+2. Target source build, clean relocated CLI/SDK use, aliases, round trips,
+   malformed data, path/cancellation/resource contracts.
+3. Platform-specific PAQ isolation and complete pinned provider operations.
+4. Cross-platform archive-only exact restoration with retained codec versions.
+5. Package installation, upgrades, uninstall and offline dependency closure.
+6. Signed/notarized public distribution later, after identities and release
+   approval exist. No public release follows from the validation authority.
+
+Evidence boundary
+No target guest or hosted job has started from this review. All 55 requirement
+statuses and RC51/benchmark HOLD remain unchanged. Existing native-only
+scaffolding remains partial while full PAQ coverage is unfinished. The user
+has authorised the direction and means, so no renewed permission request is
+needed to communicate or to prepare and execute properly scoped validation.

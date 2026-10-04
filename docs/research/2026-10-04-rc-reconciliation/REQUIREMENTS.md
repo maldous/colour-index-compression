@@ -6,6 +6,18 @@ This reconciles the current user instructions with delivered Rust migration/stre
 
 The current user direction supersedes every earlier “finish the 36 cells before fixing code” instruction. CIX-owned implementation and focused correctness/hygiene checks may proceed; no replacement benchmark may start while this gate is open. No product source was changed by this reconciliation.
 
+## Current platform delivery direction — 2026-10-05
+
+The user explicitly requires a dependable **CLI/SDK**, excludes a graphical app, and makes **PAQ mandatory** for the complete cross-platform product. GPL-compatible distribution is accepted where required; non-commercial intent is not a licence exemption, and exact dependency/source/notice obligations remain to be verified. The earlier proposed MIT-only framing is not a reason to omit PAQ. This authorises licence reconciliation, not relicensing third-party work or claiming a completed legal review.
+
+QEMU VMs and accessible online runners, including GitHub, are explicitly authorised for actual target-software validation. The blanket Actions-disabled instruction is superseded only for a bounded private platform-validation workflow. Before enabling Actions, the implementation owner must preserve and disable old research/benchmark/publication workflows, bind the validation to an exact revision, and retain declared resource/time/artifact/cost limits. Root still owns heavy scheduling, commits, enablement and dispatch. No publication, benchmark restart, corpus acquisition, third-party source modification, new paid service purchase or implicit resource-budget increase follows.
+
+Record target OS/architecture and whether execution is native, virtualized or emulated. QEMU correctness is useful scoped evidence; it is not a native CPU throughput measurement. Cross-compilation alone remains insufficient. Test archive exchange among supported targets and preserve the required versioned PAQ decoders.
+
+The user can begin Windows signing certification. A user-authorised private mailbox review on 2026-10-05 found Apple Developer Program enrolment confirmation dated 2026-03-08, correcting the earlier assumption that only an Apple ID was evidenced. Current membership status, Team ID and a usable Developer ID signing identity remain unverified; no Windows signing record was located in the targeted searches. Prepare signing/notarization as a later delivery milestone; private builds and functional validation need not wait. Private mailbox content and account identifiers are not copied into this repository.
+
+This changes direction and runner authority, not acceptance status: all 55 IDs and RC51/benchmark HOLD remain. See [PLATFORM-DELIVERY-2026-10-05.txt](PLATFORM-DELIVERY-2026-10-05.txt) and its machine record.
+
 ## Corrections recovered from previous sessions
 
 - The original delivered Rust user prompt says: **“The finished binaries must run without Python or a Python subprocess.”** One executable with codec libraries does not waive this. The provisional embedded-CPython shortcut is withdrawn. Python may remain reference/test tooling or an optional binding used by Python applications, not a required standalone CIX runtime. Retain successful specialist coverage through native implementation and codec libraries.

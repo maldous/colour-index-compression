@@ -1,0 +1,39 @@
+{
+  "schema": "cix-platform-workflow-review-v1",
+  "status": "prepared-not-enabled-not-dispatched",
+  "scope": "workflow_dispatch inventory only",
+  "targets": [
+    "linux-arm64",
+    "windows-x64",
+    "macos-arm64",
+    "macos-x64"
+  ],
+  "limits": {
+    "timeout_minutes": 8,
+    "artifact_limit_bytes": 64000000,
+    "retention_days": 3
+  },
+  "actions": {
+    "actions/checkout": {
+      "version": "v5",
+      "sha": "fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
+      "official_tag_ref": "https://api.github.com/repos/actions/checkout/git/ref/tags/v5"
+    },
+    "actions/upload-artifact": {
+      "version": "v4",
+      "sha": "ea165f8d65b6e75b540449e92b4886f43607fa02",
+      "official_tag_ref": "https://api.github.com/repos/actions/upload-artifact/git/ref/tags/v4"
+    }
+  },
+  "non_claims": [
+    "no platform qualification",
+    "no build or test",
+    "no billing or Actions activation",
+    "no provider or package validation"
+  ],
+  "action_pin_verification": {
+    "method": "read-only GET of official GitHub API tag-ref endpoints",
+    "observed_on": "2026-10-05",
+    "result": "tag objects resolved to the pinned immutable commit SHAs"
+  }
+}
