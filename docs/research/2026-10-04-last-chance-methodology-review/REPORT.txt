@@ -1,0 +1,226 @@
+Last-chance compression methodology cross-check
+2026-10-04 — literature and source inspection only
+
+Finding
+
+This review identifies useful distinctions and remaining unqualified avenues,
+but no new measured CIX gain. It does not establish that compression opportunities
+are exhausted. Broad family names such as LZ, context mixing or ANS are insufficient
+to determine what the current implementation actually includes.
+
+The Wikipedia overview [W] was read as a taxonomy and link index. Technical claims
+below use original source, specifications or author papers. Its general-purpose,
+media, executable and scientific categories are useful coverage prompts; dated
+benchmark rankings and file-type descriptions are not release evidence.
+
+UIQ: what the requested benchmark actually establishes
+
+Mahoney's Generic Compression Benchmark [U] uses a secret-seeded collection of
+short, delimited outputs of bounded random programs. Its displayed results are
+historical (2008–2011). Scores divide compressed bytes by ppmonstr's output, not
+input size. Its leader, uiq2_t4b followed by ZPAQ 1.04 with max_o2_msr settings,
+scores 0.8750: 12.5% below that reference. The benchmark does not measure speed,
+memory or decoder size, and entries may use different generated inputs. It is
+neither a current general-purpose ranking nor a CIX result.
+
+Actual source inspection [UT, UC], not inference from the route name:
+
+* uiq2_t4b processes NUL-terminated bitstring records. It removes up to seven
+  trailing zero bits, searches repeated suffix periods from 1 through 95 bits,
+  omits a reconstructible one bit, and emits three-byte descriptors separately
+  from remaining bits. Its decoder reconstructs the records and padding.
+* max_o2_msr.cfg combines order-0/1/2 and sparse contexts, multiple mixers and
+  secondary symbol estimation. Position modulo three enters its contexts.
+
+Our interpretation: the three-byte descriptor layout makes the modulo-three
+context natural. This is representation-conditioned prediction. It does not
+demonstrate inversion of the random generator. The transform assumes a particular
+record syntax and is not an arbitrary-file transform with a general fallback.
+Its historical result cannot identify how much each individual component adds.
+
+Random program outputs may have repetition and serialization regularities even
+when program instructions are random. Recovering a short generating program is
+a different problem from compressing its output statistically. Finite searches
+over seeds, projections and functions do not exhaust program space. Conversely,
+a finite generator benchmark cannot certify proximity to optimal compression.
+The primary prediction paper linked from UIQ [L] concerns the limits of universal
+prediction; it supplies no practical universal search algorithm for CIX.
+
+Additional sources and their useful scope
+
+1. Large Text Compression Benchmark [T], observed 2026-10-04, last-update label
+   2026-09-30. It ranks enwik9 compressed data plus zipped decoder/assets; times
+   come from heterogeneous machines. The listed leader is cmix-lex-transformer
+   lexth11c at 95,836,613 bytes. Its description marks Hutter adjudication pending.
+   This is a reported benchmark leader, not an independently reproduced result
+   here, an awarded prize, a Silesia record or a CIX comparison.
+
+   The author's README [LX] describes an int4 transformer combined with a
+   cmix/PAQ-style model stack, quantization-aware retraining, pruning and CPU
+   inference. It reports about 55.4 hours to encode and 59.4 hours to decode the
+   billion-byte input. GPU training and GPU compression are separate: this
+   compressor runs on CPU. Its archive includes its decoder and model assets;
+   the separately counted compressor makes a different, 99,313,750-byte total.
+
+   CIX implication: stronger learned predictors remain a real external frontier.
+   The frozen CIX expert-mixture failures did not test or exclude this family.
+   Target-corpus training with charged weights is not held-out generalization.
+   Reuse would require declared training provenance, exact reproducibility,
+   platform/resource qualification and complete costs. No new training or
+   Hutter run follows from this observation.
+
+2. lzbench [ZB] is an in-memory, common-build codec comparison that checks restored
+   bytes. Its displayed Silesia tar is 211,947,520 bytes; local canonical member
+   bytes sum to 211,938,580. Kanzi's own chart [K] uses a 211,957,760-byte tar.
+   Those totals, file boundaries and reset policies differ. The pages are useful
+   for throughput/Pareto and portability candidate discovery, not direct rankings
+   against CIX's sum of complete per-member archives. In-memory codec timing also
+   omits CIX's full CLI selection, framing and storage path.
+
+3. Squeeze Chart [SQ] exposes mixed file-type and recompression comparisons, but
+   its homepage's displayed updates are from 2018. Follow method/source links;
+   do not promote its historical chart to a latest-record claim.
+
+4. Precomp [PC] and preflate [PF] demonstrate a concrete route to further
+   compression of some already-compressed assets: expose the underlying stream
+   and retain reconstruction information sufficient to reproduce the original
+   compressed bytes. Preflate predicts DEFLATE decisions and codes differences;
+   it is a reconstruction library, not a general-purpose archive format.
+
+   This is closely related to the user's residual/delta proposal, with an
+   identifiable generating process. It is already partly covered by retained
+   PAQ DEFLATE reconstruction. The project's fresh finite reconstruction closure
+   found the two material gzip research wins were smaller with existing PAQ.
+   Preserve that capability and its native integration requirement. JPEG/MP3
+   and other reconstruction coverage must be checked separately; a DEFLATE win
+   does not establish them. No new Precomp dependency is adopted by this review.
+
+5. OpenZL [O, OP] is especially relevant to the required heterogeneous engine:
+   typed intermediate streams, a graph of modular codecs, input-dependent
+   selection, and a self-describing result interpreted by a common decoder.
+   This is meaningful architectural prior art for CIX's paid graph/stream work.
+   It is not the same as combining probabilities for one next symbol, and its
+   tailored compression graphs are not proof of automatic discovery on arbitrary
+   unknown files. Its repository explicitly distinguishes release compatibility
+   from unguaranteed development commits. Earlier exclusion of an external
+   transform interface was a release-scope disposition, not a negative benchmark.
+
+6. ANS [A] and the Zstandard specification [ZS] distinguish probability modelling
+   from coding efficiency and implementation cost. A different entropy coder can
+   improve speed or finite-precision overhead without discovering a new signal.
+   Zstandard already provides FSE internally. A native CIX rANS substream would
+   be a separate unqualified implementation, not the first ANS-family capability
+   in the portfolio. ANS's reverse coding order is also distinct from reversing
+   source data to improve its statistical predictability.
+
+Code-grounded coverage corrections
+
+These are presence/absence-of-evidence findings, not performance qualification.
+Local file hashes and anchors are recorded in evidence.json.
+
+Mechanism               Evidence and disposition
+----------------------  ------------------------------------------------------
+Adaptive counts,         Existing CIX primitives and previously traced experts.
+context/PPM, run,        A route with a parser/escape path is not automatically a
+match and lag signals   normalized causal next-byte expert. Retain CPI exclusions.
+
+DMC/state cloning       Present in retained PAQ v216 DmcModel/DmcForest source;
+                        bridge build includes it. Not an independently exposed
+                        native CIX probability expert. Do not label DMC absent.
+
+SSE/ISSE                Actual ZPAQ components. FixedMix's simpler internal
+                        adaptation and PPM secondary escape estimation are not
+                        equivalent implementations. Retain backend capability.
+
+CTW                     Genuine binary CTW/KT reference implementation in
+                        cix/ctw.py; no native dispatch/qualification established.
+                        Not subsumed merely by having PPM or FixedMix.
+
+LZP / ROLZ              libbsc includes LZP. Ordinary native LZ and that LZP
+                        do not establish a general ROLZ implementation.
+                        Standalone ROLZ coverage remains unestablished.
+
+Symbol ranking          BWT MTF ranks and combinatorial ranks exist, but neither
+                        establishes an original-order context symbol-ranking
+                        predictor. Do not infer coverage from the word rank.
+
+ANS/FSE                 libzstd is directly called by CIX. Standalone coding of
+                        CIX model outputs with rANS/FSE remains unqualified.
+                        Historical N3 is explicitly not a current RC candidate.
+
+Trained dictionaries    Within-input phrase dictionaries differ from trained
+                        reusable dictionaries. Zstd training/use APIs are already
+                        required by RC26; source presence does not close that gate.
+
+Recompression           Useful PAQ DEFLATE reconstruction already retained;
+                        broader format coverage is a separate question.
+
+Typed graphs / learned  External methodological precedents; neither new CIX
+neural predictors       measured gains nor proof of complete native parity.
+
+The preliminary local audit incorrectly called DMC and ANS absent across all
+backends. Direct PAQ source and libzstd call inspection corrected both statements
+before this report. Only the narrower native/exposed-expert gaps remain. Similarly,
+the old pending N3 label must not override its subsequent scoped closure.
+
+What this changes about the opportunity assessment
+
+There is no basis for claiming a universal compression limit has been reached.
+There is also no basis for reopening every failed transform or mixing experiment.
+The strong remaining engineering requirement is preserving and exposing useful
+capabilities already present while finishing the integrated native product.
+Distinct research possibilities include CTW/native expert exposure, richer learned
+prediction, conditional models on paid representations, ROLZ, and unsupported
+exact reconstruction formats. Their existence is not a measured marginal benefit
+over the current complete portfolio.
+
+The later RELEASE-PREDICTIVE-1 result remains a failure of its predeclared gate:
+12.569558 ideal bits captured on 49,152 bytes (0.000256 bits/input byte). CPI1 also
+retains its original frozen-pool closure. Neither excluded models nor transformed
+domain predictions may be silently added to those oracles. HINDSIGHT ORACLE —
+NON-CAUSAL DIAGNOSTIC ONLY remains the label for after-the-fact best predictions.
+
+A future candidate needs a reason to predict residual errors or reduce a measured
+cost, then a bounded comparison with the strongest available control. Charge
+model/weights, reconstruction data, headers, boundaries and termination as applicable;
+verify exact archive-only decoding. Do not turn published throughput on another
+machine, ideal log loss, or a single reconstructed stream into a product claim.
+
+Exactly one immediate action
+
+Reconcile this corrected mechanism-level coverage with the existing RC50 research
+review and native parity map, so release work preserves DMC/SSE/LZP/FSE and useful
+reconstruction capabilities without falsely treating unmeasured families as closed.
+The previously identified bounded nonlinear autoregressive residual hypothesis
+remains a research proposal; this review neither executes nor promotes it.
+
+No compression experiment, build, installation, corpus acquisition, benchmark
+restart, production change, public publication or acceptance-ledger mutation was
+performed. Only public documentation/small source files were read; ZIP source was
+inspected in memory without executing its bundled program. Current benchmark HOLD
+and the 55-item release register remain unchanged.
+
+Sources
+
+[W] https://en.wikipedia.org/wiki/Lossless_compression
+[U] https://mattmahoney.net/dc/uiq/
+[UT] https://mattmahoney.net/dc/uiq/uiq2_t4b.zip (uiq2_t4b.cpp)
+[UC] https://mattmahoney.net/dc/uiq/max_o2_msr.cfg
+[UG] https://mattmahoney.net/dc/uiq/uiq2.zip (uiq2.cpp; provenance check)
+[L] https://arxiv.org/abs/cs/0606070 (abstract checked)
+[T] https://mattmahoney.net/dc/text.html
+[LX] https://github.com/Neel49/cmix-lex-transformer/blob/main/README.md
+[ZB] https://github.com/inikep/lzbench
+[K] https://github.com/flanglet/kanzi-cpp
+[SQ] https://www.squeezechart.com/
+[PC] https://github.com/schnaader/precomp-cpp
+[PF] https://github.com/deus-libri/preflate
+[O] https://github.com/facebook/openzl
+[OP] https://arxiv.org/html/2510.03203v2
+[A] https://arxiv.org/abs/1311.2540 (abstract checked)
+[ZS] https://www.rfc-editor.org/rfc/rfc8878.html
+[ZD] https://github.com/facebook/zstd
+
+Upstream pages are mutable; evidence.json records observed retrieval hashes for
+key source/documents, and local source/report identities. No third-party program
+has been copied into the distribution by this review.
