@@ -1,0 +1,54 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v2/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v2/Cargo.toml', '--lib', 'full_engine::io::tests', '--', '--test-threads=1']
+
+running 4 tests
+test full_engine::io::tests::cancellation_and_short_prefix_do_not_publish ... ok
+test full_engine::io::tests::cap_and_truncation_fail ... ok
+test full_engine::io::tests::generic_and_raw_decode ... ok
+test full_engine::io::tests::prefixes_are_exact ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 259 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v2/Cargo.toml', '--lib', 'full_engine::selection::tests', '--', '--test-threads=1']
+
+running 5 tests
+test full_engine::selection::tests::default_512m_admits_and_records_a_generic_mixed_trial ... ok
+test full_engine::selection::tests::default_marks_paq_specialists_as_profile_omitted ... ok
+test full_engine::selection::tests::first_priority_wins_equal_complete_frames_and_generic_trials_overlap ... ok
+test full_engine::selection::tests::malformed_optional_providers_do_not_suppress_generic_mixed_carrier ... ok
+test full_engine::selection::tests::nested_diagnostics_survive_outer_selection ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 258 filtered out; finished in 0.02s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v2/Cargo.toml', '--lib', 'full_engine::mixed_selection::tests', '--', '--test-threads=1']
+
+running 4 tests
+test full_engine::mixed_selection::tests::default_profile_round_trips_interleaved_regions_through_native_providers ... ok
+test full_engine::mixed_selection::tests::generic_competition_preserves_stored_bytes_when_backends_fail ... ok
+test full_engine::mixed_selection::tests::late_and_interleaved_regions_remain_complete_partitions ... ok
+test full_engine::mixed_selection::tests::round_robin_alternates_catalogue_families ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 259 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v2/Cargo.toml', '--lib', 'full_engine::job_protocol::tests', '--', '--test-threads=1']
+
+running 4 tests
+test full_engine::job_protocol::tests::control_round_trip ... ok
+test full_engine::job_protocol::tests::decode_entry_counts_actual_native_output_and_finishes_stage ... FAILED
+test full_engine::job_protocol::tests::direct_selection_entry_applies_limits_cancel_and_reports_actual_output ... ok
+test full_engine::job_protocol::tests::rejects_unknown_version_oversize_truncated_and_utf8 ... ok
+
+failures:
+
+---- full_engine::job_protocol::tests::decode_entry_counts_actual_native_output_and_finishes_stage stdout ----
+
+thread 'full_engine::job_protocol::tests::decode_entry_counts_actual_native_output_and_finishes_stage' (2651920) panicked at src/full_engine/job_protocol.rs:1169:10:
+called `Result::unwrap()` on an `Err` value: Codec("input/profiler buffers exceed --memory; reduce --block-size")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    full_engine::job_protocol::tests::decode_entry_counts_actual_native_output_and_finishes_stage
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 259 filtered out; finished in 0.00s
+

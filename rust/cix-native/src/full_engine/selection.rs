@@ -103,6 +103,10 @@ impl CandidateExecution {
 pub struct SelectionReport {
     pub profile: SelectionProfile,
     pub input_bytes: usize,
+    /// Content-only recognizer outcomes. These are distinct from candidate
+    /// trials: a non-admitted format is a safe discovery result, not a failed
+    /// codec attempt.
+    pub discovery: Vec<catalogue::Diagnostic>,
     pub trials: Vec<Trial>,
     pub peak_reserved_memory: usize,
     pub peak_reserved_workers: usize,
@@ -151,6 +155,25 @@ fn scaled(base: usize, n: usize) -> Result<usize, String> {
         n.checked_mul(8).ok_or("selection reservation overflow")?,
     )
 }
+/// Minimum reservation for the stored baseline before whole-input selection.
+/// This does not guarantee admission of every later model or parallel trial.
+pub fn minimum_whole_input_memory(
+    input_bytes: usize,
+    output_bytes: usize,
+) -> Result<usize, String> {
+    checked_add(
+        checked_add(input_bytes, raw_plan_memory(input_bytes)?)?,
+        output_bytes,
+    )
+}
+fn raw_plan_memory(input_bytes: usize) -> Result<usize, String> {
+    checked_add(
+        input_bytes
+            .checked_mul(3)
+            .ok_or("raw reservation overflow")?,
+        32 * MIB,
+    )
+}
 fn temporary(n: usize, output: usize) -> Result<usize, String> {
     checked_add(n, output)
 }
@@ -173,20 +196,30 @@ fn specialist_is_paq(candidate: &Candidate) -> bool {
     }
 }
 
+fn affordable_mixed_memory(input_bytes: usize, limits: &SelectionLimits) -> Option<usize> {
+    // The scheduler retains the caller source, an incumbent reservation and a
+    // trial-result reservation while the mixed carrier is live. Give CIXH1
+    // precisely the remainder; it will then omit nested specialists that do
+    // not fit this actual operation budget.
+    limits
+        .memory_bytes
+        .checked_sub(input_bytes)?
+        .checked_sub(limits.output_bytes)?
+        .checked_sub(limits.output_bytes)
+}
+
 fn plans(
     data: &[u8],
     profile: SelectionProfile,
     limits: &SelectionLimits,
+    discovery: &mut Vec<catalogue::Diagnostic>,
     trials: &mut Vec<Trial>,
 ) -> Result<Vec<Plan>, String> {
     let n = data.len();
     let temp = temporary(n, limits.output_bytes)?;
     let mut out = Vec::new();
     let mut next_priority = 0usize;
-    let raw_memory = checked_add(
-        n.checked_mul(3).ok_or("raw reservation overflow")?,
-        32 * MIB,
-    )?;
+    let raw_memory = raw_plan_memory(n)?;
     out.push(Plan {
         id: "raw".into(),
         priority: next_priority,
@@ -249,7 +282,9 @@ fn plans(
     if profile == SelectionProfile::Fast {
         return Ok(out);
     }
-    for candidate in catalogue::catalog(data)?.candidates {
+    let catalogue = catalogue::catalog(data)?;
+    discovery.extend(catalogue.diagnostics);
+    for candidate in catalogue.candidates {
         let priority = next_priority;
         next_priority += 1;
         if profile == SelectionProfile::Default && specialist_is_paq(&candidate) {
@@ -272,14 +307,37 @@ fn plans(
             kind: PlanKind::Specialist(candidate),
         });
     }
-    out.push(Plan {
-        id: "heterogeneous-cixh1-v1".into(),
-        priority: next_priority,
-        kind: PlanKind::Mixed { profile },
-        memory: 5 << 30,
-        workers: 1,
-        temporary: checked_add(limits.intermediate_bytes, limits.output_bytes)?,
+    let mixed_temporary = checked_add(limits.intermediate_bytes, limits.output_bytes)?;
+    // BEST retains the established 5 GiB nested-search allowance where the
+    // caller can afford it. Lower budgets still admit a generic carrier with
+    // the exact remainder, whose nested policy records each resource omission.
+    let mixed_memory = affordable_mixed_memory(n, limits).map(|affordable| {
+        if profile == SelectionProfile::Best {
+            affordable.min(5 << 30)
+        } else {
+            affordable
+        }
     });
+    match mixed_memory {
+        Some(memory) if memory != 0 => out.push(Plan {
+            id: "heterogeneous-cixh1-v1".into(),
+            priority: next_priority,
+            kind: PlanKind::Mixed { profile },
+            memory,
+            workers: 1,
+            temporary: mixed_temporary,
+        }),
+        _ => trials.push(Trial {
+            id: "heterogeneous-cixh1-v1".into(),
+            priority: next_priority,
+            status: TrialStatus::BudgetOmitted,
+            reason: Some(
+                "source, retained archive and CIXH1 result reservations exhaust memory".into(),
+            ),
+            archive_bytes: None,
+            details: TrialDetails::None,
+        }),
+    }
     Ok(out)
 }
 
@@ -299,6 +357,63 @@ pub struct NativeExecutor {
     pub providers: ProviderConfig,
 }
 impl NativeExecutor {
+    fn provider_detail(name: &str, error: impl AsRef<str>) -> String {
+        const MAX: usize = 160;
+        let error = error.as_ref();
+        let mut detail = format!("{name} provider unavailable: {error}");
+        if detail.len() > MAX {
+            let mut end = MAX;
+            while !detail.is_char_boundary(end) {
+                end -= 1;
+            }
+            detail.truncate(end);
+        }
+        detail
+    }
+
+    /// A mixed carrier has valid generic backends without image/spatial
+    /// providers. Failed optional loads are diagnostic omissions rather than a
+    /// reason to suppress that carrier.
+    fn mixed_engine(&self, output: usize) -> (FullEngine, Vec<String>) {
+        let mut omissions = Vec::new();
+        let images = match &self.providers.jxl_bridge {
+            Some(path) => match JxlProvider::load_package_bridge(path, output) {
+                Ok(provider) => Some(provider),
+                Err(error) => {
+                    omissions.push(Self::provider_detail("JXL", error.to_string()));
+                    None
+                }
+            },
+            None => {
+                omissions.push("JXL provider unavailable: not configured".into());
+                None
+            }
+        };
+        let spatial = match &self.providers.spatial_bridge {
+            Some(path) => match SpatialProvider::load_package_bridge(path, output) {
+                Ok(provider) => Some(provider),
+                Err(error) => {
+                    omissions.push(Self::provider_detail("spatial", error.to_string()));
+                    None
+                }
+            },
+            None => {
+                omissions.push("spatial provider unavailable: not configured".into());
+                None
+            }
+        };
+        (
+            FullEngine {
+                backends: BackendProvider {
+                    paths: self.providers.backends.clone(),
+                },
+                images,
+                spatial,
+            },
+            omissions,
+        )
+    }
+
     fn engine(
         &self,
         output: usize,
@@ -347,8 +462,9 @@ impl CandidateExecutor for NativeExecutor {
         }
         match &plan.kind {
             PlanKind::Mixed { profile } => {
-                return mixed_selection::encode(
-                    &self.engine(limits.output_bytes, true, true)?,
+                let (engine, provider_omissions) = self.mixed_engine(limits.output_bytes);
+                return mixed_selection::encode_with_provider_omissions(
+                    &engine,
                     data,
                     *profile,
                     &OperationLimits {
@@ -358,11 +474,12 @@ impl CandidateExecutor for NativeExecutor {
                         deadline: limits.deadline,
                         cancellation: limits.cancellation.clone(),
                     },
+                    &provider_omissions,
                 )
                 .map(|result| CandidateExecution {
                     archive: result.archive,
                     details: TrialDetails::Mixed(result.diagnostics),
-                })
+                });
             }
             PlanKind::Raw => containers::encode_raw(data, limits.output_bytes),
             PlanKind::Native { profile } => {
@@ -465,8 +582,9 @@ pub fn select_whole_input<E: CandidateExecutor>(
     if cancelled(&limits) {
         return Err("whole-input selection cancelled or deadline exceeded".into());
     }
+    let mut discovery = Vec::new();
     let mut trials = Vec::new();
-    let queue = plans(data, profile, &limits, &mut trials)?;
+    let queue = plans(data, profile, &limits, &mut discovery, &mut trials)?;
     let mut pending: Vec<(usize, Plan)> = queue
         .into_iter()
         .map(|plan| (plan.priority, plan))
@@ -687,6 +805,7 @@ pub fn select_whole_input<E: CandidateExecutor>(
         report: SelectionReport {
             profile,
             input_bytes: data.len(),
+            discovery,
             trials,
             peak_reserved_memory: peak.0,
             peak_reserved_workers: peak.1,
@@ -787,6 +906,86 @@ mod tests {
             };
             assert_eq!(inner[0].id, "inner-size-trial");
         }
+    }
+
+    #[test]
+    fn default_512m_admits_and_records_a_generic_mixed_trial() {
+        let source = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/regions/mixed.bin"
+        ));
+        let limits = SelectionLimits {
+            memory_bytes: 512 << 20,
+            workers: 1,
+            temporary_bytes: 128 << 20,
+            output_bytes: 1 << 20,
+            intermediate_bytes: 64 << 20,
+            deadline: None,
+            cancellation: None,
+        };
+        let executor = NativeExecutor {
+            providers: ProviderConfig {
+                backends: TrustedBackendPaths {
+                    cix: "/not-used/cix".into(),
+                    paq_libraries: "/not-used/lib".into(),
+                    temporary_root: "/not-used/tmp".into(),
+                },
+                jxl_bridge: None,
+                spatial_bridge: None,
+            },
+        };
+        let result =
+            select_whole_input(source, SelectionProfile::Default, limits, executor).unwrap();
+        assert!(!result.report.discovery.is_empty());
+        assert!(result.report.trials.iter().any(|trial| {
+            trial.id == "heterogeneous-cixh1-v1"
+                && trial.status == TrialStatus::Completed
+                && matches!(trial.details, TrialDetails::Mixed(_))
+        }));
+    }
+
+    #[test]
+    fn malformed_optional_providers_do_not_suppress_generic_mixed_carrier() {
+        let source = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/regions/mixed.bin"
+        ));
+        let executor = NativeExecutor {
+            providers: ProviderConfig {
+                backends: TrustedBackendPaths {
+                    cix: "/not-used/cix".into(),
+                    paq_libraries: "/not-used/lib".into(),
+                    temporary_root: "/not-used/tmp".into(),
+                },
+                jxl_bridge: Some("/definitely/missing/cix-jxl-bridge.so".into()),
+                spatial_bridge: Some("/definitely/missing/cix-spatial-bridge.so".into()),
+            },
+        };
+        let plan = Plan {
+            id: "heterogeneous-cixh1-v1".into(),
+            priority: 0,
+            kind: PlanKind::Mixed {
+                profile: SelectionProfile::Default,
+            },
+            memory: 64 << 20,
+            workers: 1,
+            temporary: 2 << 20,
+        };
+        let limits = SelectionLimits {
+            memory_bytes: 64 << 20,
+            workers: 1,
+            temporary_bytes: 2 << 20,
+            output_bytes: 1 << 20,
+            intermediate_bytes: 1 << 20,
+            deadline: None,
+            cancellation: None,
+        };
+        let result = executor.run_detailed(&plan, source, &limits).unwrap();
+        assert!(result.archive.starts_with(b"CIXH1"));
+        let TrialDetails::Mixed(diagnostics) = result.details else {
+            panic!("mixed diagnostics missing");
+        };
+        assert_eq!(diagnostics.provider_omissions.len(), 2);
     }
 
     #[test]

@@ -50,6 +50,10 @@ pub struct MixedDiagnostic {
 pub struct MixedDiagnostics {
     pub entries: Vec<MixedDiagnostic>,
     pub omitted_entries: usize,
+    /// Optional provider-load failures retained separately from per-region
+    /// codec decisions. Generic CIXH1 selection stays available in their
+    /// presence.
+    pub provider_omissions: Vec<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -132,6 +136,7 @@ fn diagnostic_buffer() -> Result<MixedDiagnostics, String> {
     Ok(MixedDiagnostics {
         entries,
         omitted_entries: 0,
+        provider_omissions: Vec::new(),
     })
 }
 
@@ -363,6 +368,18 @@ pub fn encode(
     profile: SelectionProfile,
     limits: &OperationLimits,
 ) -> Result<MixedSelectionResult, String> {
+    encode_with_provider_omissions(engine, source, profile, limits, &[])
+}
+
+/// As [`encode`], while retaining bounded optional-provider load omissions.
+/// These omissions never make generic CIXH1 unavailable.
+pub fn encode_with_provider_omissions(
+    engine: &FullEngine,
+    source: &[u8],
+    profile: SelectionProfile,
+    limits: &OperationLimits,
+    provider_omissions: &[String],
+) -> Result<MixedSelectionResult, String> {
     check_limits(limits)?;
     if limits.output_bytes == 0 {
         return Err("invalid CIXH1 selection limits".into());
@@ -399,6 +416,12 @@ pub fn encode(
         .map_err(|_| "CIXH1 range allocation failed")?;
     ranges.extend(partitions.iter().map(|item| item.start..item.end));
     let mut diagnostics = diagnostic_buffer()?;
+    diagnostics.provider_omissions.extend(
+        provider_omissions
+            .iter()
+            .take(4)
+            .map(|reason| truncate_detail(reason)),
+    );
     let mut parent_bytes = HEADER_BYTES;
     let mut region_number = 0usize;
     let archive = mixed::encode_with(

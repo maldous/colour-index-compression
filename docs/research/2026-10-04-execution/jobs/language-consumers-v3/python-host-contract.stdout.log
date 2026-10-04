@@ -1,0 +1,60 @@
+.FF.                                                                     [100%]
+=================================== FAILURES ===================================
+____________ test_zarr_v2_reuses_numcodecs_codec_with_qualified_sdk ____________
+
+    def test_zarr_v2_reuses_numcodecs_codec_with_qualified_sdk() -> None:
+        pytest.importorskip("numcodecs")
+        zarr = pytest.importorskip("zarr")
+        numpy = pytest.importorskip("numpy")
+        from cix_native.integrations.zarr_v2 import CIXNativeV2Codec, register_zarr_v2
+    
+        library_path = native_library_path()
+        register_zarr_v2(library_path)
+        codec = CIXNativeV2Codec(library_path, output_limit=1 << 20, memory_limit=8 << 20)
+        source = b"zarr-v2-byte-neutral" * 300
+>       array = zarr.create_array(
+            store=zarr.storage.MemoryStore(),
+            shape=(len(source),),
+            chunks=(len(source),),
+            dtype="u1",
+            compressor=codec,
+            zarr_format=2,
+        )
+E       TypeError: create_array() got an unexpected keyword argument 'compressor'
+
+execution-language-consumers-v3/bindings/python/tests/test_integrations.py:43: TypeError
+______________ test_zarr_v3_bytes_bytes_codec_with_qualified_sdk _______________
+
+    def test_zarr_v3_bytes_bytes_codec_with_qualified_sdk() -> None:
+        zarr = pytest.importorskip("zarr")
+        numpy = pytest.importorskip("numpy")
+        from cix_native.integrations.zarr_v3 import (
+            CODEC_NAME,
+            CIXNativeBytesBytesCodec,
+            register_zarr_v3,
+        )
+    
+        library_path = native_library_path()
+        register_zarr_v3(library_path)
+        codec = CIXNativeBytesBytesCodec(
+            library_path=str(library_path), output_limit=1 << 20, memory_limit=8 << 20
+        )
+        assert codec.to_dict()["name"] == CODEC_NAME
+        restored = CIXNativeBytesBytesCodec.from_dict(codec.to_dict())
+        assert restored.configuration == codec.configuration
+        source = b"zarr-v3-byte-neutral" * 300
+>       array = zarr.create_array(
+            store=zarr.storage.MemoryStore(),
+            shape=(len(source),),
+            chunks=(len(source),),
+            dtype="u1",
+            codecs=[zarr.codecs.BytesCodec(), codec],
+            zarr_format=3,
+        )
+E       TypeError: create_array() got an unexpected keyword argument 'codecs'
+
+execution-language-consumers-v3/bindings/python/tests/test_integrations.py:73: TypeError
+=========================== short test summary info ============================
+FAILED execution-language-consumers-v3/bindings/python/tests/test_integrations.py::test_zarr_v2_reuses_numcodecs_codec_with_qualified_sdk
+FAILED execution-language-consumers-v3/bindings/python/tests/test_integrations.py::test_zarr_v3_bytes_bytes_codec_with_qualified_sdk
+2 failed, 2 passed in 0.19s

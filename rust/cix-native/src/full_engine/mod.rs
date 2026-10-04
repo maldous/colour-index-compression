@@ -15,6 +15,8 @@ pub mod graph_residuals;
 pub mod grid_context;
 pub mod grid_counts;
 pub mod installed;
+pub mod io;
+pub mod job_protocol;
 pub mod interval_context;
 pub mod jxl_provider;
 pub mod mixed;

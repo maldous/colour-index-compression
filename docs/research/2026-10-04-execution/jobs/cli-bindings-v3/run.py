@@ -1,0 +1,9 @@
+import subprocess
+commands = [['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v3/Cargo.toml', '--all-targets'], ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v3/Cargo.toml', '--lib', 'full_engine::job_protocol::tests', '--', '--test-threads=1'], ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v3/Cargo.toml', '--test', 'c_stream_contract', '--test', 'cli_full_engine', '--test', 'cli_smoke', '--test', 'standard_formats_cli', '--test', 'selection_overrides', '--', '--test-threads=1']]
+for command in commands:
+ print('CHECK', command, flush=True)
+ result = subprocess.run(command, check=False)
+ if result.returncode: raise SystemExit(result.returncode)
+
+subprocess.run(['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'build', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v3/Cargo.toml', '--lib', '--bin', 'cix'],check=True)
+subprocess.run(['python3', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/cli-bindings-v3/check_optional_bindings.py', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v3', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/cli-bindings-v3', 'cli-bindings-v3'],check=True)

@@ -20,12 +20,12 @@ CIX creates and restores lossless, self-describing CIX archives.
 %autosetup -n cix-%{version}
 
 %build
-cargo build --release --locked --bins
+cargo build --release --locked --bin cix
 
 %install
 install -Dpm 0755 target/release/cix %{buildroot}%{_bindir}/cix
-install -Dpm 0755 target/release/uncix %{buildroot}%{_bindir}/uncix
-install -Dpm 0755 target/release/cixcat %{buildroot}%{_bindir}/cixcat
+ln -s cix %{buildroot}%{_bindir}/uncix
+ln -s cix %{buildroot}%{_bindir}/cixcat
 install -Dpm 0644 man/cix.1 %{buildroot}%{_mandir}/man1/cix.1
 install -Dpm 0644 man/uncix.1 %{buildroot}%{_mandir}/man1/uncix.1
 install -Dpm 0644 man/cixcat.1 %{buildroot}%{_mandir}/man1/cixcat.1

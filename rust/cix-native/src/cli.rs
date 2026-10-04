@@ -2,13 +2,13 @@
 use crate::core::engine;
 use crate::standard_formats::{self, StandardFormat, StandardOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
-use std::sync::atomic::Ordering;
+use std::sync::{atomic::Ordering, Arc, OnceLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::{
     env,
     fs::{self, File, OpenOptions},
     io,
-    path::Path,
+    path::{Path, PathBuf},
     process, thread,
 };
 
@@ -54,7 +54,7 @@ fn input_fd(_file: &std::fs::File) -> i32 {
 #[path = "portfolio_auto.rs"]
 pub(crate) mod portfolio_auto;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(crate) struct Opt {
     pub(crate) decode: bool,
     pub(crate) stdout: bool,
@@ -70,6 +70,7 @@ pub(crate) struct Opt {
     pub(crate) memory: usize,
     pub(crate) memory_set: bool,
     pub(crate) input: String,
+    pub(crate) inputs: Vec<String>,
     pub(crate) output: Option<String>,
     pub(crate) route: Option<String>,
     pub(crate) backend: String,
@@ -90,10 +91,19 @@ pub(crate) struct Opt {
     pub(crate) flush_interval: Option<std::time::Duration>,
     pub(crate) explain: bool,
     pub(crate) verbose: bool,
+    pub(crate) private_library_directory: Option<String>,
+    pub(crate) temporary_root: Option<String>,
+}
+static CLI_CANCELLATION: OnceLock<Arc<std::sync::atomic::AtomicBool>> = OnceLock::new();
+pub(crate) fn cancellation_token() -> Arc<std::sync::atomic::AtomicBool> {
+    CLI_CANCELLATION
+        .get_or_init(|| Arc::new(std::sync::atomic::AtomicBool::new(false)))
+        .clone()
 }
 fn usage() {
-    println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] [FILE]\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] [FILE]\n       cixcat [FILE]\n\nFILE defaults to '-' (standard input); use '--' before a dash-prefixed filename. Input files are kept by default. Use '-' for standard input or output. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format auto|cixg1|cixg2|cixm6|cixf1  Select or constrain the container version\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Constrain maximum uncompressed block size\n  --memory SIZE               Bound working memory (FAST/default 512 MiB; BEST/decode 2 GiB)\n  --threads N                 Bound CPU workers (1..20; default up to 4)\n  --parallelism blocks|candidates  Choose ordered blocks or within-block trials\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Flush framed partial blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
+    println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] [FILE ...]\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] [FILE ...]\n       cixcat [FILE]\n\nFILE defaults to '-' (standard input); use '--' before a dash-prefixed filename. Input files are kept by default. Use '-' for standard input or output. Multiple named files receive their own derived output names; -o FILE and standard-output modes accept one input only. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format auto|cixg1|cixg2|cixm6|cixf1  Select or constrain the container version\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Constrain maximum uncompressed block size\n  --memory SIZE               Bound working memory (FAST/default 512 MiB; BEST/decode 2 GiB)\n  --threads N                 Bound CPU workers (1..20; default up to 4)\n  --parallelism blocks|candidates  Choose ordered blocks or within-block trials\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Flush framed partial blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
     println!("\nStandard streams: --output-format gzip|zlib|deflate|bzip2|xz|zstd|brotli|lz4|snappy writes a genuine one-shot standard stream. Use --input-format FORMAT with -d, -t or uncix to decode/test it; raw Deflate is never guessed. Standard streams are bounded to 128 MiB input/output and do not accept CIX route, container, portfolio, stream, history or block controls.");
+    println!("\nInstalled full-engine providers: --private-library-dir names an absolute private CIX provider directory; --temporary-root names an absolute private PAQ worker root. Provider files are never searched through PATH.");
 }
 
 fn default_options() -> Opt {
@@ -138,6 +148,8 @@ fn takes_option_value(argument: &str) -> bool {
             | "--block-size"
             | "--history"
             | "--flush-interval"
+            | "--private-library-dir"
+            | "--temporary-root"
     )
 }
 
@@ -220,6 +232,8 @@ fn set_option_value(o: &mut Opt, argument: &str, value: String) -> Result<(), St
         }
         "--history" => o.history = parse_size(&value)?,
         "--flush-interval" => o.flush_interval = Some(parse_duration(&value)?),
+        "--private-library-dir" => o.private_library_directory = Some(value),
+        "--temporary-root" => o.temporary_root = Some(value),
         "-o" | "--output" => o.output = Some(value),
         _ => unreachable!("value-taking options are checked before dispatch"),
     }
@@ -304,6 +318,18 @@ fn parse_command_arguments(o: &mut Opt, args: &[String]) -> Result<Vec<String>, 
                 return Err(format!("{a} requires a value"));
             }
             set_option_value(o, a, args[i].clone())?;
+        } else if a.starts_with('-') && !a.starts_with("--") && a.len() > 2 {
+            // Only value-free short options form a cluster. Validate the
+            // complete cluster before changing any option state.
+            if !a[1..]
+                .bytes()
+                .all(|flag| matches!(flag, b'd' | b'c' | b'k' | b'f' | b't' | b'l' | b'1'..=b'9'))
+            {
+                return Err(format!("unsupported option: {a}"));
+            }
+            for flag in a[1..].bytes() {
+                set_flag(o, &format!("-{}", char::from(flag)))?;
+            }
         } else if !set_flag(o, a)? {
             files.push(a.clone());
         }
@@ -312,18 +338,32 @@ fn parse_command_arguments(o: &mut Opt, args: &[String]) -> Result<Vec<String>, 
     Ok(files)
 }
 
-fn finish_parse(o: &mut Opt, mut files: Vec<String>) -> Result<(), String> {
-    if files.len() != 1 {
-        if files.is_empty() {
-            o.input = "-".into();
-        } else {
-            return Err("this build accepts one input at a time".into());
-        }
+fn finish_parse(o: &mut Opt, files: Vec<String>) -> Result<(), String> {
+    o.inputs = if files.is_empty() {
+        vec!["-".into()]
     } else {
-        o.input = files.remove(0);
-    }
+        files
+    };
+    o.input = o.inputs[0].clone();
     if o.stdout && o.output.as_deref().is_some_and(|output| output != "-") {
         return Err("-c conflicts with a named --output; use -o - for standard output".into());
+    }
+    if o.inputs.len() > 1 {
+        if o.output.is_some() {
+            return Err(
+                "--output accepts one input; omit it to derive an output name for each file".into(),
+            );
+        }
+        if o.stdout {
+            return Err("standard-output mode accepts one input at a time".into());
+        }
+        if o.inputs.iter().any(|input| input == "-") {
+            return Err("standard input cannot be combined with named input files".into());
+        }
+        let mut seen = std::collections::HashSet::new();
+        if let Some(input) = o.inputs.iter().find(|input| !seen.insert(input.as_str())) {
+            return Err(format!("input path appears more than once: {input}"));
+        }
     }
     if o.threads == 0 {
         return Err("--threads must be positive".into());
@@ -403,6 +443,51 @@ fn selected_output_path(o: &Opt) -> String {
     })
 }
 
+fn path_identity(path: &str) -> PathBuf {
+    fs::canonicalize(path).unwrap_or_else(|_| {
+        let path = Path::new(path);
+        if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            env::current_dir()
+                .unwrap_or_else(|_| PathBuf::from("."))
+                .join(path)
+        }
+    })
+}
+
+/// Reject output plans which could overwrite another requested input before
+/// processing the first file.  Individual writes retain `atomic_file`'s
+/// no-overwrite check for files created concurrently after this validation.
+fn validate_multi_file_plan(o: &Opt) -> Result<(), String> {
+    if o.inputs.len() < 2 || o.test || o.list {
+        return Ok(());
+    }
+    let inputs: std::collections::HashSet<_> =
+        o.inputs.iter().map(|input| path_identity(input)).collect();
+    let mut outputs = std::collections::HashSet::new();
+    for input in &o.inputs {
+        let mut file_options = o.clone();
+        file_options.input.clone_from(input);
+        let output = selected_output_path(&file_options);
+        if output == "-" {
+            return Err("standard-output mode accepts one input at a time".into());
+        }
+        let output_identity = path_identity(&output);
+        if inputs.contains(&output_identity) {
+            return Err(format!(
+                "derived output path conflicts with an input path: {output}"
+            ));
+        }
+        if !outputs.insert(output_identity) {
+            return Err(format!(
+                "multiple inputs derive the same output path: {output}"
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn standard_mode(o: &Opt) -> Option<StandardFormat> {
     if o.decode {
         o.input_format
@@ -474,8 +559,11 @@ fn read_standard_input(mut source: File, memory: usize) -> Result<Vec<u8>, Strin
         if next > cap {
             return Err("standard format input exceeds 128 MiB".into());
         }
-        if next.checked_add(bytes.capacity()).and_then(|n| n.checked_add(chunk.len()))
-            .is_none_or(|n| n > memory) {
+        if next
+            .checked_add(bytes.capacity())
+            .and_then(|n| n.checked_add(chunk.len()))
+            .is_none_or(|n| n > memory)
+        {
             return Err("standard format input exceeds memory limit".into());
         }
         bytes
@@ -544,8 +632,10 @@ fn verify_or_list(o: &Opt) -> Result<bool, String> {
         return Ok(false);
     }
     let f = open_input(&o.input)?;
-    let fd = input_fd(&f);
-    engine::decode(f, io::sink(), true, o.list, fd, o.memory)?;
+    let report = crate::cli_full_engine::decode(o, f, io::sink(), true)?;
+    if o.list {
+        eprintln!("{}", crate::cli_full_engine::list_line(&report));
+    }
     eprintln!("archive OK");
     Ok(true)
 }
@@ -565,11 +655,28 @@ fn execute_to_stdout(
     automatic_best: bool,
     automatic_persistent_best: bool,
 ) -> Result<(), String> {
+    if !o.decode {
+        if let Some(report) = crate::cli_full_engine::encode_whole(
+            o,
+            &mut engine::stdout_writer::StdoutWriter::new().map_err(ioerr)?,
+        )? {
+            if o.explain || o.verbose {
+                crate::cli_full_engine::report_selection(&report);
+            }
+            return Ok(());
+        }
+        if (o.explain || o.verbose) && crate::cli_full_engine::encode_ineligibility(o).is_some() {
+            eprintln!(
+                "cix: full_engine=not_admitted reason={}",
+                crate::cli_full_engine::encode_ineligibility(o).unwrap()
+            );
+        }
+    }
     let src = open_input(&o.input)?;
     let fd = input_fd(&src);
     let mut lock = engine::stdout_writer::StdoutWriter::new().map_err(ioerr)?;
     if o.decode {
-        engine::decode(src, &mut lock, false, false, fd, o.memory)
+        crate::cli_full_engine::decode(o, src, &mut lock, false).map(|_| ())
     } else {
         encode_selected(
             src,
@@ -598,10 +705,25 @@ fn execute_to_file(
         return Err("input and output paths must differ".into());
     }
     atomic_file(out, o.force, |dst| {
+        if !o.decode {
+            if let Some(report) = crate::cli_full_engine::encode_whole(o, dst)? {
+                if o.explain || o.verbose {
+                    crate::cli_full_engine::report_selection(&report);
+                }
+                return Ok(());
+            }
+            if (o.explain || o.verbose) && crate::cli_full_engine::encode_ineligibility(o).is_some()
+            {
+                eprintln!(
+                    "cix: full_engine=not_admitted reason={}",
+                    crate::cli_full_engine::encode_ineligibility(o).unwrap()
+                );
+            }
+        }
         let src = open_input(&o.input)?;
         let fd = input_fd(&src);
         if o.decode {
-            engine::decode(src, dst, false, false, fd, o.memory)
+            crate::cli_full_engine::decode(o, src, dst, false).map(|_| ())
         } else {
             encode_selected(
                 src,
@@ -621,38 +743,36 @@ fn execute_to_file(
     Ok(())
 }
 
-fn run() -> Result<(), String> {
-    let mut o = parse()?;
-    validate_options(&mut o)?;
-    if standard_mode(&o).is_some() {
+fn run_one(o: &mut Opt) -> Result<(), String> {
+    if standard_mode(o).is_some() {
         if o.test {
-            execute_standard(&o, &mut io::sink())?;
+            execute_standard(o, &mut io::sink())?;
             eprintln!("archive OK");
             return Ok(());
         }
-        let out = selected_output_path(&o);
+        let out = selected_output_path(o);
         if o.stdout || out == "-" {
-            execute_standard_to_stdout(&o)?;
+            execute_standard_to_stdout(o)?;
         } else {
-            execute_standard_to_file(&o, &out)?;
+            execute_standard_to_file(o, &out)?;
         }
         return Ok(());
     }
-    let block = prepare_block(&mut o)?;
+    let block = prepare_block(o)?;
     let forced = o.route.as_deref().filter(|r| *r != "auto");
-    validate_candidate_selection(&o, forced)?;
-    let out = selected_output_path(&o);
-    if verify_or_list(&o)? {
+    validate_candidate_selection(o, forced)?;
+    let out = selected_output_path(o);
+    if verify_or_list(o)? {
         return Ok(());
     }
-    let automatic_best = portfolio_auto::eligible(&o);
-    let automatic_persistent_best = automatic_persistent_stream_eligible(&o, automatic_best, block);
-    report_automatic_exclusion(&o, automatic_best);
+    let automatic_best = portfolio_auto::eligible(o);
+    let automatic_persistent_best = automatic_persistent_stream_eligible(o, automatic_best, block);
+    report_automatic_exclusion(o, automatic_best);
     if o.stdout || out == "-" {
-        execute_to_stdout(&o, block, forced, automatic_best, automatic_persistent_best)?;
+        execute_to_stdout(o, block, forced, automatic_best, automatic_persistent_best)?;
     } else {
         execute_to_file(
-            &o,
+            o,
             &out,
             block,
             forced,
@@ -664,10 +784,35 @@ fn run() -> Result<(), String> {
     Ok(())
 }
 
+fn run() -> Result<(), String> {
+    let mut o = parse()?;
+    validate_options(&mut o)?;
+    validate_multi_file_plan(&o)?;
+    let mut failures = 0usize;
+    for input in o.inputs.clone() {
+        let mut file_options = o.clone();
+        file_options.input = input.clone();
+        if let Err(error) = run_one(&mut file_options) {
+            failures += 1;
+            eprintln!("cix: {input}: {error}");
+        }
+    }
+    if failures == 0 {
+        Ok(())
+    } else {
+        Err(format!(
+            "{failures} of {} input files failed",
+            o.inputs.len()
+        ))
+    }
+}
+
 pub fn main_entry() {
-    if let Err(e) =
-        ctrlc::set_handler(|| engine::limits::INTERRUPTED.store(true, Ordering::Relaxed))
-    {
+    let cancellation = cancellation_token();
+    if let Err(e) = ctrlc::set_handler(move || {
+        engine::limits::INTERRUPTED.store(true, Ordering::Relaxed);
+        cancellation.store(true, Ordering::Relaxed);
+    }) {
         eprintln!("cix: could not install interrupt handler: {e}");
         process::exit(2);
     }

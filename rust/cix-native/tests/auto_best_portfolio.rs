@@ -38,6 +38,21 @@ fn uncix(archive: &std::path::Path) -> std::process::Output {
         .expect("run uncix")
 }
 
+fn report_value<'a>(line: &'a str, key: &str) -> Option<&'a str> {
+    line.split_once(key)
+        .and_then(|(_, tail)| tail.split_whitespace().next())
+}
+
+fn native_selected(stderr: &str) -> Option<&str> {
+    stderr.lines().find_map(|line| {
+        if line.contains("cix: native_candidate=") && line.contains(" status=Selected ") {
+            report_value(line, "native_candidate=")
+        } else {
+            None
+        }
+    })
+}
+
 #[test]
 fn named_best_compares_complete_archives_and_fresh_cli_decodes() {
     let input = TempPath::new("input");
@@ -64,21 +79,31 @@ fn named_best_compares_complete_archives_and_fresh_cli_decodes() {
         String::from_utf8_lossy(&output.stderr)
     );
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("whole_archive=yes"), "{stderr}");
+    let full_engine = stderr
+        .lines()
+        .find(|line| line.contains("cix: full_engine selected="))
+        .expect("whole-input full-engine report");
+    let outer_selected = report_value(full_engine, "selected=").expect("outer selected candidate");
+    let selected = if outer_selected == "native" {
+        native_selected(&stderr).expect("selected physical native candidate")
+    } else {
+        outer_selected
+    };
     for descriptor in cix_native::external::best_candidates() {
         let candidate = descriptor.id;
+        let diagnostic = stderr
+            .lines()
+            .find(|line| line.contains(&format!("native_candidate={candidate} status=")));
         assert!(
-            stderr.contains(&format!("packaging_candidate={candidate}"))
-                || stderr.contains(&format!("{candidate} (")),
-            "BEST neither evaluated nor reported {candidate}: {stderr}"
+            diagnostic.is_some_and(|line| {
+                line.contains("status=Completed")
+                    || line.contains("status=Omitted")
+                    || line.contains("status=Selected")
+            }),
+            "BEST lost external candidate {candidate}: {stderr}"
         );
     }
     let bytes = fs::read(&archive.0).expect("archive exists");
-    let selected = stderr
-        .split("selected=")
-        .nth(1)
-        .and_then(|tail| tail.split_whitespace().next())
-        .expect("BEST selected candidate");
     if let Some(descriptor) = cix_native::external::best_candidates()
         .iter()
         .find(|descriptor| descriptor.id == selected)
@@ -98,6 +123,8 @@ fn named_best_compares_complete_archives_and_fresh_cli_decodes() {
             b"CIXG2".as_slice()
         } else if selected.starts_with("cixm6:") {
             b"CIXM6".as_slice()
+        } else if selected == "raw" {
+            b"CIXG2".as_slice()
         } else {
             panic!("unknown BEST winner {selected}");
         };
@@ -210,11 +237,14 @@ fn named_empty_best_rejects_bsc_candidate_and_retains_a_valid_archive() {
     );
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("bsc-v3.3.12-bwt-qlfc-static-lzp15-72-fast (BSC candidate rejected:"),
+        stderr
+            .contains("native_candidate=bsc-v3.3.12-bwt-qlfc-static-lzp15-72-fast status=Omitted")
+            && stderr.contains("BSC candidate rejected:"),
         "BSC rejection must be observable: {stderr}"
     );
     assert!(
-        stderr.contains("zpaq715-l5 (ZPAQ candidate rejected:"),
+        stderr.contains("native_candidate=zpaq715-l5 status=Omitted")
+            && stderr.contains("ZPAQ candidate rejected:"),
         "{stderr}"
     );
     let restored = uncix(&archive.0);

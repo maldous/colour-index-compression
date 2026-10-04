@@ -1,0 +1,111 @@
+[
+  {
+    "label": "node-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-language-consumers-v2/bindings/node",
+      "-B",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/node-binding-language-consumers-v2",
+      "-DCIX_SDK_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+      "-DCIX_SDK_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+      "-DNODE_API_INCLUDE_DIR=/usr/include/node"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "node-build",
+    "command": [
+      "cmake",
+      "--build",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/node-binding-language-consumers-v2",
+      "--parallel",
+      "4"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "node-contract",
+    "command": [
+      "node",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-language-consumers-v2/bindings/node/test/contract.js"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "java-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-language-consumers-v2/bindings/java",
+      "-B",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/java-binding-language-consumers-v2",
+      "-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+      "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "java-build",
+    "command": [
+      "cmake",
+      "--build",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/java-binding-language-consumers-v2",
+      "--parallel",
+      "4"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "java-compile",
+    "command": [
+      "javac",
+      "-d",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/java-binding-language-consumers-v2/classes",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-language-consumers-v2/bindings/java/src/main/java/dev/cix/binding/NativeCix.java",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-language-consumers-v2/bindings/java/src/test/java/dev/cix/binding/Contract.java"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "java-contract",
+    "command": [
+      "java",
+      "-Xmx256m",
+      "-cp",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/java-binding-language-consumers-v2/classes",
+      "dev.cix.binding.Contract"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "python-venv",
+    "command": [
+      "python3",
+      "-m",
+      "venv",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/python-host-sdk-v1"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "python-host-dependencies",
+    "command": [
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/python-host-sdk-v1/bin/python",
+      "-m",
+      "pip",
+      "install",
+      "--disable-pip-version-check",
+      "--no-cache-dir",
+      "--only-binary=:all:",
+      "--index-url",
+      "https://pypi.org/simple",
+      "--report",
+      "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/language-consumers-v2/python-host-install.json",
+      "zarr==3.4.0",
+      "numcodecs==0.17.0",
+      "pytest==9.1.1"
+    ],
+    "exit_code": 1
+  }
+]

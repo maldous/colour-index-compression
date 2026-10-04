@@ -1,0 +1,287 @@
+{
+  "schema": "cix.adapter-dependency-map.v1",
+  "created": "2026-10-05",
+  "scope": "read-only inventory of RC27-43 and RC54. Host availability means only the named local path/tool/soname was observed; it is not API compatibility or qualification. No downloads, builds, tests, or host changes were performed.",
+  "existing_native_sdk": [
+    "rust/cix-native/include/cix.h",
+    "rust/cix-native/include/cix_stream.h",
+    "rust/cix-native/include/cix_formats.h",
+    "rust/cix-native/include/cix_dictionary.h",
+    "rust/cix-native/include/cix.hpp",
+    "rust/cix-native/packaging/sdk/"
+  ],
+  "known_local_tools": [
+    "/bin/tar",
+    "/bin/7z",
+    "/bin/7za",
+    "/bin/mksquashfs",
+    "/bin/unsquashfs",
+    "/bin/cmake",
+    "/bin/ninja",
+    "/bin/pkg-config",
+    "/bin/go",
+    "/bin/java",
+    "/bin/javac",
+    "/bin/node",
+    "/bin/npm"
+  ],
+  "known_local_shared_objects_without_development_contract": [
+    "libarchive.so.13",
+    "libhdf5_serial.so.103",
+    "libnetcdf.so.19",
+    "libfuse3.so.3",
+    "libfuse.so.2"
+  ],
+  "known_absences_or_unverified": [
+    "squash-0.8 pkg-config and headers",
+    "libarchive/HDF5/netCDF/FUSE/SquashFS development headers in inspected include paths",
+    "7-Zip SDK",
+    "protoc/grpc tools",
+    ".NET",
+    "WASM toolchain/runtime",
+    "platform execution runners"
+  ],
+  "entries": [
+    {
+      "id": "RC27",
+      "scope": "Tar and libarchive",
+      "source_present": "none",
+      "local_host_evidence": "tar is /bin/tar; libarchive shared object is visible but no archive.h/pkg-config development contract was found",
+      "proposed_disjoint_paths": [
+        "adapters/tar/cix-tar-filter.rs",
+        "adapters/libarchive/cix_archive_filter.c",
+        "adapters/tests/tar_interop.rs"
+      ],
+      "qualification_blocker": "tar -I/pipeline/-d and libarchive filter lifecycle, stdin/stdout/error contracts",
+      "status": "open"
+    },
+    {
+      "id": "RC28",
+      "scope": "QuixDB Squash plugin",
+      "source_present": "partial: src/lib.rs exports cix_squash_splice; packaging/squash/squash-cix.c, squash.ini and build-plugin.sh target Squash 0.8 plugin ABI",
+      "local_host_evidence": "no squash-0.8 pkg-config entry or Squash development headers found; existing source has no local load qualification",
+      "proposed_disjoint_paths": [
+        "adapters/quix_squash/cix_squash_plugin.c",
+        "adapters/quix_squash/tests/plugin_contract.c (or retain package shim only after SDK binding)"
+      ],
+      "qualification_blocker": "real pinned public Squash SDK, plugin load, buffer/stream/splice, flush/bounds and compatibility-wrapper evidence; distinct from SquashFS",
+      "status": "open"
+    },
+    {
+      "id": "RC29",
+      "scope": "7-Zip coder",
+      "source_present": "none; /bin/7z and /bin/7za are command-line tools only",
+      "local_host_evidence": "no 7-Zip SDK headers/source or registered method identifier evidence found",
+      "proposed_disjoint_paths": [
+        "adapters/7zip/CixCoder.h",
+        "adapters/7zip/CixCoder.cpp",
+        "adapters/7zip/CMakeLists.txt"
+      ],
+      "qualification_blocker": "pinned 7-Zip SDK, collision-free experimental method/version ID, decoder distribution and host integration",
+      "status": "open"
+    },
+    {
+      "id": "RC30",
+      "scope": "HDF5 / h5py / netCDF chunk filters",
+      "source_present": "none; runtime libhdf5_serial and libnetcdf are visible",
+      "local_host_evidence": "no HDF5/netCDF development headers or pkg-config contracts found in inspected include/pkg-config paths",
+      "proposed_disjoint_paths": [
+        "adapters/hdf5/cix_h5_filter.c",
+        "adapters/netcdf/cix_netcdf_filter.c",
+        "bindings/python/cix_h5py.py",
+        "adapters/tests/hdf_chunk_filter.c"
+      ],
+      "qualification_blocker": "pinned HDF5/netCDF headers, filter IDs/parameters, h5py/netCDF registration and chunk/incompressible/bounds tests",
+      "status": "open"
+    },
+    {
+      "id": "RC31",
+      "scope": "Numcodecs / Zarr",
+      "source_present": "none",
+      "local_host_evidence": "Python interpreter is present; no Numcodecs/Zarr API/version evidence was established",
+      "proposed_disjoint_paths": [
+        "bindings/python/cix_numcodecs.py",
+        "bindings/python/cix_zarr_v2.py",
+        "bindings/python/cix_zarr_v3.py",
+        "bindings/python/tests/test_zarr_codecs.py"
+      ],
+      "qualification_blocker": "pinned Numcodecs/Zarr v2 and v3 APIs; distinct v2 codec/v3 BytesBytesCodec registration and fixtures",
+      "status": "open"
+    },
+    {
+      "id": "RC32",
+      "scope": "Blosc2 plugin",
+      "source_present": "none",
+      "local_host_evidence": "no Blosc2 header/pkg-config SDK evidence was found",
+      "proposed_disjoint_paths": [
+        "adapters/blosc2/cix_blosc2_plugin.c",
+        "adapters/blosc2/CMakeLists.txt"
+      ],
+      "qualification_blocker": "pinned Blosc2 plugin ABI, bounded buffers, version/identity and host incompressible behavior",
+      "status": "open"
+    },
+    {
+      "id": "RC33",
+      "scope": "RocksDB / WiredTiger",
+      "source_present": "none",
+      "local_host_evidence": "no RocksDB or WiredTiger SDK/header evidence was found",
+      "proposed_disjoint_paths": [
+        "adapters/rocksdb/cix_compression_manager.cc",
+        "adapters/wiredtiger/cix_wt_compressor.c",
+        "adapters/tests/kv_adapters.rs"
+      ],
+      "qualification_blocker": "pinned experimental RocksDB CompressionManager and WiredTiger WT_COMPRESSOR headers plus sizing/compress/decompress tests",
+      "status": "open"
+    },
+    {
+      "id": "RC34",
+      "scope": "Hadoop and seekable chunks",
+      "source_present": "partial: src/c_stream_api.rs provides native independent CIXG1 stream contract",
+      "local_host_evidence": "no Hadoop Java SDK/tooling or seek-index host format contract was found; javac/java are available",
+      "proposed_disjoint_paths": [
+        "adapters/hadoop/CixCompressionCodec.java",
+        "adapters/hadoop/CixInputStream.java",
+        "adapters/seek/cix_seek_index.rs"
+      ],
+      "qualification_blocker": "pinned Hadoop APIs; lifecycle/stream tests; independent chunk framing and archive-identity-bound index before any splittable claim",
+      "status": "open"
+    },
+    {
+      "id": "RC35",
+      "scope": "C/C++/Rust/Python primary bindings",
+      "source_present": "partial: include/cix.h, cix_stream.h, cix_formats.h, cix_dictionary.h, cix.hpp; c_api.rs/c_stream_api.rs/c_format_api.rs/c_dictionary_api.rs; packaging/sdk",
+      "local_host_evidence": "Python consumer binding source is absent; current standalone runtime must remain Python-free",
+      "proposed_disjoint_paths": [
+        "bindings/python/cix_native_module.c",
+        "bindings/python/pyproject.toml",
+        "bindings/python/tests/test_native_binding.py"
+      ],
+      "qualification_blocker": "stable ABI freeze, wheel build/runtime matrices and proof Python is optional consumer only",
+      "status": "open"
+    },
+    {
+      "id": "RC36",
+      "scope": "Go / Java / .NET / Node bindings",
+      "source_present": "none; go, java/javac, node/npm exist; dotnet is absent",
+      "local_host_evidence": "no language SDK binding scaffold or host package ABI evidence exists",
+      "proposed_disjoint_paths": [
+        "bindings/go/cix.go",
+        "bindings/java/src/.../Cix.java",
+        "bindings/dotnet/CixNative.cs",
+        "bindings/node/cix_node.cc"
+      ],
+      "qualification_blocker": "pinned language toolchains/headers, disposal/cancellation/stream ownership contracts and per-runtime execution",
+      "status": "open"
+    },
+    {
+      "id": "RC37",
+      "scope": "Portable WASM subset",
+      "source_present": "none",
+      "local_host_evidence": "no wasm target/toolchain, wasmtime or wasm-pack found",
+      "proposed_disjoint_paths": [
+        "bindings/wasm/Cargo.toml",
+        "bindings/wasm/src/lib.rs",
+        "bindings/wasm/web.ts"
+      ],
+      "qualification_blocker": "portable target/toolchain, explicit native-subset capability matrix and browser stream tests; no process/full-engine claim",
+      "status": "open"
+    },
+    {
+      "id": "RC38",
+      "scope": "gRPC and HTTP",
+      "source_present": "partial: standard_formats.rs supports bounded standard streams",
+      "local_host_evidence": "no protoc/grpc tools or generated-service source found",
+      "proposed_disjoint_paths": [
+        "adapters/grpc/cix.proto",
+        "adapters/grpc/server.rs",
+        "adapters/http/cix_http.rs"
+      ],
+      "qualification_blocker": "pinned gRPC runtime/protoc, message limits and negotiation; HTTP gzip/br/zstd interop and controlled-endpoint CIX negotiation",
+      "status": "open"
+    },
+    {
+      "id": "RC39",
+      "scope": "GIO / GStreamer / storage examples",
+      "source_present": "none",
+      "local_host_evidence": "no GIO/GStreamer SDK/header evidence found",
+      "proposed_disjoint_paths": [
+        "adapters/gio/cix_converter.c",
+        "adapters/gstreamer/gstcix.c",
+        "examples/storage/manifest_backup.rs"
+      ],
+      "qualification_blocker": "pinned GIO/GStreamer APIs; flush/EOS/cancel and object-storage manifest/index integration tests",
+      "status": "open"
+    },
+    {
+      "id": "RC40",
+      "scope": "Native SquashFS userspace",
+      "source_present": "partial only: packaging/squash is a libSquash 0.8 plugin, explicitly not SquashFS; /bin/mksquashfs and /bin/unsquashfs are available",
+      "local_host_evidence": "no libsquashfs/squashfuse development headers or SDK package contracts found; existing plugin cannot satisfy RC40",
+      "proposed_disjoint_paths": [
+        "adapters/squashfs/cix_mksquashfs.c",
+        "adapters/squashfs/cix_unsquashfs.c",
+        "adapters/squashfs/libsquashfs.c",
+        "adapters/squashfuse/cix_squashfuse.c"
+      ],
+      "qualification_blocker": "pinned userspace APIs; independent bounded storage profile for data/metadata/fragments/xattrs and separate mksquashfs/unsquashfs/libsquashfs/squashfuse qualification",
+      "status": "open"
+    },
+    {
+      "id": "RC41",
+      "scope": "Restricted SquashFS decoder and VM mount",
+      "source_present": "none",
+      "local_host_evidence": "unsquashfs/mksquashfs do not provide a VM or kernel integration receipt",
+      "proposed_disjoint_paths": [
+        "adapters/squashfs/restricted_decoder.rs",
+        "adapters/squashfs/tests/differential.rs",
+        "adapters/squashfs/vm/mount_check.sh"
+      ],
+      "qualification_blocker": "chosen profile, Rust differential fixtures, disposable VM runner and experimental-kernel boundary",
+      "status": "open"
+    },
+    {
+      "id": "RC42",
+      "scope": "EROFS/Btrfs/OpenZFS/ZIP/Parquet/Arrow/OCI proposals",
+      "source_present": "none",
+      "local_host_evidence": "no source proposals or host SDK evidence established",
+      "proposed_disjoint_paths": [
+        "adapters/proposals/{erofs,btrfs,zfs,zip,parquet,arrow,oci}/README.md",
+        "one bounded CIX-owned prototype per accepted proposal"
+      ],
+      "qualification_blocker": "per-format compatibility proposal, experimental identity, feasible prototype and explicit upstream/stock separation",
+      "status": "open"
+    },
+    {
+      "id": "RC43",
+      "scope": "Platform qualification",
+      "source_present": "Linux x86-64 local tooling only; native CMake/Cargo/package recipes exist",
+      "local_host_evidence": "no ARM64/macOS/Windows execution runners or platform SDK receipts; cross-compilation alone is insufficient",
+      "proposed_disjoint_paths": [
+        "ci-independent qualification manifests under docs/research/2026-10-04-execution/platforms/ (evidence only",
+        "no workflow implied)"
+      ],
+      "qualification_blocker": "actual Linux x86-64/ARM64, macOS ARM64/x86-64 and Windows x64 build/binding execution receipts",
+      "status": "open"
+    },
+    {
+      "id": "RC54",
+      "scope": "External registries and host acceptance",
+      "source_present": "base SDK packaging exists, but adapter IDs/registries are not allocated",
+      "local_host_evidence": "local tool/soname presence is not SDK acceptance; absent SDK/header/runners above keep RC54 open",
+      "proposed_disjoint_paths": [
+        "docs/research/2026-10-04-execution/adapter-identities.json",
+        "per-adapter compatibility manifest adjacent to each adapter"
+      ],
+      "qualification_blocker": "real pinned SDK/runners and collision-free development identities; registry/upstream release only before stock claims",
+      "status": "open"
+    }
+  ],
+  "dependency_order": [
+    "RC35/RC24 ABI freeze and native resource contracts",
+    "RC28/RC40/RC41 filesystem and Squash boundaries",
+    "RC27/RC29/RC30/RC32/RC33/RC34 host adapters",
+    "RC31/RC36/RC37/RC38/RC39 bindings/protocols",
+    "RC42 proposals and RC54 identities/SDK evidence",
+    "RC43 platform execution qualification"
+  ]
+}

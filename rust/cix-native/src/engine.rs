@@ -81,7 +81,6 @@ const HEADER: usize = 13;
 const END: u8 = 255;
 pub(crate) const MAX_BLOCK: u32 = 65536;
 const EXPERT_CONTEXT_MEMORY_ESTIMATE: usize = 8192;
-use crate::core::engine::limits::INTERRUPTED;
 pub(crate) fn check_interrupted() -> Result<(), String> {
     crate::core::engine::limits::check()
 }

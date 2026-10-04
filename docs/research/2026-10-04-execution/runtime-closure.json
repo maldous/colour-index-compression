@@ -1,0 +1,108 @@
+{
+  "schema": "cix.runtime-closure.v1",
+  "date": "2026-10-05",
+  "scope": "Read-only provider dependency inspection plus source-only runtime CMake staging design. No artifact was copied, built, loaded, or qualified.",
+  "provider_layout": {
+    "bridges": [
+      "libcix_paq_v215_bridge.so",
+      "libcix_paq_v216_bridge.so",
+      "libcix_paq_joint_discount_bridge.so",
+      "libcix_paq_store_state_bridge.so",
+      "libcix_jxl_bridge.so",
+      "libcix_spatial_bridge.so"
+    ],
+    "discovery_directory": "<prefix>/lib/cix",
+    "discovery_rule": "exact six names only; no PATH, environment, directory scan, or fallback"
+  },
+  "observed_elf_dependencies": {
+    "PAQ bridges": [
+      "libstdc++.so.6",
+      "libm.so.6",
+      "libgcc_s.so.1",
+      "libc.so.6"
+    ],
+    "JXL bridge": [
+      "libjxl.so.0.12",
+      "libjxl_threads.so.0.12",
+      "liblzma.so.5",
+      "libstdc++.so.6",
+      "libc.so.6"
+    ],
+    "libjxl.so.0.12": [
+      "libjxl_cms.so.0.12",
+      "libbrotlidec.so.1",
+      "libbrotlienc.so.1",
+      "libstdc++.so.6",
+      "libm.so.6",
+      "libgcc_s.so.1",
+      "libc.so.6"
+    ],
+    "spatial bridge": [
+      "libcharls.so.2",
+      "libopenjp2.so.7",
+      "libstdc++.so.6",
+      "libgcc_s.so.1",
+      "libc.so.6"
+    ]
+  },
+  "explicit_linux_companions": [
+    [
+      "libjxl.so.0.12.0",
+      "libjxl.so.0.12"
+    ],
+    [
+      "libjxl_threads.so.0.12.0",
+      "libjxl_threads.so.0.12"
+    ],
+    [
+      "libjxl_cms.so.0.12.0",
+      "libjxl_cms.so.0.12"
+    ],
+    [
+      "libbrotlidec.so.1.2.0",
+      "libbrotlidec.so.1"
+    ],
+    [
+      "libbrotlienc.so.1.2.0",
+      "libbrotlienc.so.1"
+    ],
+    [
+      "libbrotlicommon.so.1.2.0",
+      "libbrotlicommon.so.1"
+    ],
+    [
+      "libcharls.so.2.4.2",
+      "libcharls.so.2"
+    ],
+    [
+      "libopenjp2.so.2.5.0",
+      "libopenjp2.so.7"
+    ]
+  ],
+  "rpath_policy": "full-engine Linux staging requires caller-selected absolute readelf and read-only inspection of both bridges plus all JXL/Brotli companions for RUNPATH and $ORIGIN; it never invokes destructive CMake file(RPATH_CHECK).",
+  "remaining_blockers": [
+    "No staged provider-load, archive roundtrip, or relocation receipt has been run against the inspected selected inputs.",
+    "No loader test, provider ABI test, archive roundtrip, or relocation receipt has been run against a staged full-engine tree.",
+    "System/transitive dependencies (including liblzma, libc++, libc, libm, libgcc) are not bundled or asserted by this installer.",
+    "macOS and Windows companion naming, loader paths, signing/bundle policy, and target qualification are unimplemented.",
+    "Third-party licenses/notices and package dependency declarations must be bound to the selected companion artifacts before release."
+  ],
+  "inspected_selected_inputs": {
+    "jxl_bridge": {
+      "path": "benchmark-work/native-rc-check-v1/jxl-prefix-v3/lib/libcix_jxl_bridge.so",
+      "sha256": "06557f893f26ce312b97e5e5755d6365046c1616f66a45b3de140fcf04e19b4b",
+      "runpath": "$ORIGIN"
+    },
+    "jxl_library": {
+      "path": "benchmark-work/native-rc-check-v1/jxl-prefix-v3/lib/libjxl.so.0.12.0",
+      "sha256": "57cf38e4920052bda1204636b179de9b2b4d79982b6dd45a414db2fe17b960b4",
+      "runpath": "$ORIGIN"
+    },
+    "spatial_bridge": {
+      "path": "benchmark-work/native-rc-check-v1/spatial-prefix-v8/lib/libcix_spatial_bridge.so",
+      "sha256": "51636cb3cbd9830d3f869142915d9e86345909a98cc57f38c86f6bf0f15c31cf",
+      "runpath": "$ORIGIN"
+    },
+    "jxl_threads_jxl_cms_brotli_dec_enc_common": "all six inspected installed files carry $ORIGIN RUNPATH"
+  }
+}

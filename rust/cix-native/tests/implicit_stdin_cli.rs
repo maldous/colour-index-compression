@@ -92,7 +92,16 @@ fn dash_prefixed_filename_requires_and_accepts_option_terminator() {
         "{}",
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(output.stdout.starts_with(b"CIXG"));
+    // Automatic whole-input selection may legitimately choose stored CIXR1.
+    // The option-terminator contract is successful exact restoration, not a
+    // particular automatically selected wire family.
+    let restored = uncix(&["-c"], &output.stdout);
+    assert!(
+        restored.status.success(),
+        "{}",
+        String::from_utf8_lossy(&restored.stderr)
+    );
+    assert_eq!(restored.stdout, b"dash filename fixture\n");
 }
 
 #[test]

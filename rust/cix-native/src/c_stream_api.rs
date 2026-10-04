@@ -24,14 +24,18 @@ pub struct cix_stream_result_v1 {
     pub produced: usize,
     pub state: u32,
 }
-pub struct cix_stream_encoder {
+pub struct CixStreamEncoder {
     inner: Mutex<IncrementalEncoder>,
-    error: Mutex<String>,
 }
-pub struct cix_stream_decoder {
+// C ABI compatibility name; the public header intentionally uses this spelling.
+#[allow(non_camel_case_types)]
+pub type cix_stream_encoder = CixStreamEncoder;
+pub struct CixStreamDecoder {
     inner: Mutex<IncrementalDecoder>,
-    error: Mutex<String>,
 }
+// C ABI compatibility name; the public header intentionally uses this spelling.
+#[allow(non_camel_case_types)]
+pub type cix_stream_decoder = CixStreamDecoder;
 
 fn options(raw: *const cix_options_v1) -> Result<NativeOptions, &'static str> {
     unsafe { native_options_from_ptr(raw) }
@@ -94,6 +98,25 @@ fn valid_result(
 fn valid_context<T>(context: *mut T) -> bool {
     !context.is_null() && (context as usize) % std::mem::align_of::<T>() == 0
 }
+fn valid_create_out<T>(out: *mut *mut T, options: *const cix_options_v1) -> bool {
+    if out.is_null()
+        || (out as usize) % std::mem::align_of::<*mut T>() != 0
+        || (!options.is_null() && (options as usize) % std::mem::align_of::<cix_options_v1>() != 0)
+    {
+        return false;
+    }
+    let Some(out_end) = (out as usize).checked_add(std::mem::size_of::<*mut T>()) else {
+        return false;
+    };
+    if options.is_null() {
+        return true;
+    }
+    let start = options as usize;
+    let Some(options_end) = start.checked_add(std::mem::size_of::<cix_options_v1>()) else {
+        return false;
+    };
+    out_end <= start || options_end <= out as usize
+}
 fn map(error: NativeError) -> i32 {
     match error {
         NativeError::InvalidOptions(_) => CIX_STATUS_INVALID_OPTIONS,
@@ -133,9 +156,11 @@ macro_rules! create {
             out: *mut *mut $ty,
         ) -> i32 {
             catch_unwind(AssertUnwindSafe(|| {
-                if out.is_null() {
+                if !valid_create_out::<$ty>(out, options_ptr) {
                     return CIX_STATUS_INVALID_ARGUMENT;
                 }
+                // Preserve the established failure contract once the caller's
+                // output slot itself has passed alignment/range/overlap checks.
                 unsafe { ptr::write(out, ptr::null_mut()) };
                 let options = match options(options_ptr) {
                     Ok(v) => v,
@@ -153,19 +178,17 @@ macro_rules! create {
         }
     };
 }
-impl cix_stream_encoder {
+impl CixStreamEncoder {
     fn new(options: NativeOptions) -> Result<Self, NativeError> {
         Ok(Self {
             inner: Mutex::new(IncrementalEncoder::new(options)?),
-            error: Mutex::new(String::new()),
         })
     }
 }
-impl cix_stream_decoder {
+impl CixStreamDecoder {
     fn new(options: NativeOptions) -> Result<Self, NativeError> {
         Ok(Self {
             inner: Mutex::new(IncrementalDecoder::new(options)?),
-            error: Mutex::new(String::new()),
         })
     }
 }

@@ -9,7 +9,7 @@ unsafe extern "C" {}
 unsafe extern "C" {}
 
 use flate2::{
-    bufread::{GzDecoder, ZlibDecoder},
+    bufread::GzDecoder,
     write::ZlibEncoder,
     Compression, GzBuilder,
 };

@@ -1,34 +1,46 @@
 # Native retained-port coverage and historical dispatch contract
 
-**Status: scoped source and interface evidence refreshed 2026-10-05.** This is
-not release, ordinary CLI, adapter, or benchmark qualification. It records the
-current 41-module Python reference map, current native source, and only the
-bounded passing evidence named below. Failed and interrupted job scopes remain
-preserved; no passing substep upgrades its whole job.
+**Status: scoped source and interface evidence refreshed 2026-10-05.** This
+inventory records the current 41-module Python reference map, current native
+source, and only the bounded evidence named below. It preserves failed and
+interrupted job scopes: no passing substep upgrades a whole job, and no scoped
+CLI result is a release or benchmark claim.
 
-Native BEST portfolio parity is now restored at the library selection boundary.
-`FullEngine` dispatch also now contains CIXY feedback, CIXZ interval,
-CIXB\x1f SGCC1 count, CIXB\x20 SGCC2 conditional, and CIXI\x01 JPEG-2000/
-JPEG-LS spatial paths. The ordinary CLI and generic portfolio selector still do
-not automatically bind the full-engine catalogue/selector/dispatch. Therefore
-these retained routes remain **library-tested-unwired**, rather than normal CIX
-command-line routes.
+Native BEST portfolio parity is restored at the library selection boundary.
+`FullEngine` dispatch contains CIXY feedback, CIXZ interval, CIXB\x1f SGCC1
+count, CIXB\x20 SGCC2 conditional, and CIXI\x01 JPEG-2000/JPEG-LS spatial
+paths. The ordinary CLI now calls automatic full-engine selection for a narrow,
+explicitly bounded input class: an unconstrained named regular file of at most
+128 MiB, with the selected memory/output reservations available. It writes the
+selected complete archive and ordinary CLI decode dispatches its full archive.
+
+That is **scoped CLI reachability**, not a blanket per-family CLI qualification.
+The whole-engine path declines stdin, stream/flush, history/reset,
+independent-block, explicit format/route/backend/block/external/portfolio
+controls, non-regular files, oversized files, and insufficient budget. Those
+uses retain their existing bounded streaming or legacy paths. Explicit
+whole-engine dimensions, stdin and large-stream specialist admission remain
+open. Individual retained modules below therefore keep their library-focused
+status unless their own ordinary CLI contract has been qualified.
 
 ## Wire boundary
 
 `CIXB1` is an ASCII generic portfolio container. It is separate from binary
 historical specialist prefixes `CIXB\x03`, `CIXB\x0b`, `CIXB\x0c`,
 `CIXB\x13`, `CIXB\x1d`, `CIXB\x1e`, `CIXB\x1f`, and `CIXB\x20`.
-Generic `CIXG1`, `CIXG2`, `CIXM5`, `CIXM6`, `CIXF1`, and `CIXZ1` are likewise
-separate from `CIXG\x01`, `CIXD\x01`, and other specialist envelopes.
-Dispatch uses exact bytes; it must never infer a family from a printable prefix.
+Generic `CIXG1`, `CIXG2`, `CIXM5`, `CIXM6`, and `CIXZ1` are likewise separate
+from `CIXG\x01`, `CIXD\x01`, and other specialist envelopes. There is no
+`CIXF1` wire magic: the compatibility option maps to the M6 format and its M6
+footer. Dispatch uses exact bytes; it must never infer a family from a printable
+prefix.
 
 The complete 41-module and wire map is
 [native-coverage.json](native-coverage.json). Status terms mean:
 
 - **library-only**: reversible native functions exist without a route claim.
-- **library-tested-unwired**: bounded source-bound tests pass, while ordinary
-  CLI selection/encoding does not reach the route.
+- **library-tested-unwired**: bounded source-bound tests cover the library
+  route. A retained candidate can be considered by scoped automatic CLI
+  selection where admitted, but it has no per-family ordinary CLI qualification.
 - **partial-unwired**: source has part of a route but lacks an edge.
 - **internal dependency / inactive history**: a helper sits inside a retained
   route or is not reachable from a supported production wire.
@@ -38,11 +50,11 @@ The complete 41-module and wire map is
 
 | Reference family | Native evidence | Status | Boundary still open |
 |---|---|---|---|
-| Native BEST portfolio | Restored pure-library portfolio selection | library-tested-unwired | Ordinary CLI binding and full resource/route qualification. |
-| FullEngine retained families | Catalogue, providers, transforms and exact frame dispatcher | library-tested-unwired | Automatic CLI admission, selection and output path. |
-| Grid feedback / interval | SGFB1/CIXY\x01 and SGBI1/CIXZ\x01 transforms and dispatch | library-tested-unwired | Normal CLI selection. |
-| Count / conditional grids | SGCC1/CIXB\x1f and SGCC2/CIXB\x20 transforms and dispatch | library-tested-unwired | Normal CLI selection. |
-| Spatial JPEG-LS / JPEG-2000 | Provider bridge, CIXI1 representation-2/3 framing, dispatch and appended catalogue alternatives | library-tested-unwired | Normal CLI selection and broader release qualification. |
+| Native BEST portfolio | Library selection, with scoped ordinary CLI automatic admission for eligible whole inputs | scoped CLI reachable | Per-profile/per-candidate CLI qualification and broader resource qualification. |
+| FullEngine retained families | Catalogue, providers, transforms, exact frame dispatcher, and selected complete archive output through eligible CLI inputs | scoped CLI reachable | Per-family paid selection and ordinary CLI qualification. |
+| Grid feedback / interval | SGFB1/CIXY\x01 and SGBI1/CIXZ\x01 transforms and dispatch | library-tested; scoped candidate admission only | Normal per-family CLI selection/qualification. |
+| Count / conditional grids | SGCC1/CIXB\x1f and SGCC2/CIXB\x20 transforms and dispatch | library-tested; scoped candidate admission only | Normal per-family CLI selection/qualification. |
+| Spatial JPEG-LS / JPEG-2000 | Provider bridge, CIXI1 representation-2/3 framing, dispatch and appended catalogue alternatives | library-tested; scoped candidate admission only | Per-family CLI and broader release/provider qualification. |
 | Dictionary C API | Retained-capacity/lifecycle contract plus relocated shared/static consumers | focused-tested SDK surface | ABI/provider loading and platform qualification. |
 | Explicit standard streams | Nine one-shot formats via generic CLI and C format API | focused-tested explicit operation | Not an automatic portfolio/full-engine route. |
 
@@ -51,6 +63,25 @@ relocated-pointer helper below supported `ECRD1`/`CIXB\x0b`; `ECBR2` belongs
 only to inactive SectionPointers mode 6.
 
 ## Scoped evidence
+
+Source reachability is bounded in
+[`cli_full_engine.rs`](../../../rust/cix-native/src/cli_full_engine.rs):
+`whole_encode_ineligibility` rejects the controls listed above;
+`whole_input_ineligibility` requires a regular input file no larger than 128
+MiB and enough baseline memory; `encode_whole` runs selection and writes its
+complete chosen archive. Its decode path treats a recognized full frame as a
+full-frame buffered decode. This source observation says nothing about every
+candidate being selected for every input.
+
+The older `cli-bindings-v2` through `cli-bindings-v6` runs ended nonzero and
+remain negative or incomplete evidence. `cli-bindings-v8` completed with exit
+code 0, including installed C/C++ SDK relocation, Python/Go binding checks, and
+relocated runtime stream-command checks. Its scope is recorded in
+[`jobs/cli-bindings-v8/spec.json`](jobs/cli-bindings-v8/spec.json) and its
+individual results in
+[`jobs/cli-bindings-v8/consumer-results.json`](jobs/cli-bindings-v8/consumer-results.json).
+It does not exercise every retained specialist family through ordinary CLI
+automatic selection.
 
 `interfaces-v7` completed its all-target build and passed 29 focused tests. Its
 later SDK stage was interrupted at the temporary-space cap and is not credited.
@@ -62,7 +93,11 @@ release or platform qualification.
 fixture-bound repair. It establishes SGCC1 raw parity across five modes, SGCC2
 raw parity across twelve context/coding combinations, 17 Brotli-backed archive
 dispatch cases, five Rust C-dictionary retained-capacity/lifecycle checks, and
-relocated shared/static installed dictionary consumers. `installed-discovery-v1` passed four focused `full_engine::installed` filesystem-discovery tests: six exact names present/missing, explicit multiarch directory, invalid paths, and no temporary-root creation. It does not qualify ABI/provider loading or platforms.
+relocated shared/static installed dictionary consumers.
+`installed-discovery-v1` passed four focused `full_engine::installed`
+filesystem-discovery tests: six exact names present/missing, explicit multiarch
+directory, invalid paths, and no temporary-root creation. It does not qualify
+ABI/provider loading or platforms.
 
 `spatial-counts-v2` supplies passing scoped evidence for spatial provider (3),
 spatial frames (5), frozen Python JPEG-LS/JP2/raw-J2K cross-decoding,
@@ -79,9 +114,13 @@ not imply standard-format streaming or automatic portfolio admission.
 
 ## Work still required
 
-1. Bind restored native BEST, full-engine catalogue/selection/dispatch and
-   explicit resource accounting into ordinary CLI operation.
-2. Bind automatic mixed CIXH1 selection and paid comparison into that route.
+1. Qualify each retained family that is expected to win or decode through the
+   ordinary CLI automatic path, including paid exact framing, malformed/limit
+   cases and candidate-admission diagnostics. Do not infer this from the scoped
+   selector or smoke evidence.
+2. Extend or explicitly decline whole-engine specialist admission for stdin,
+   inputs larger than 128 MiB, and explicit dimensions/controls. The present
+   bounded streaming and legacy paths are not evidence of full-engine coverage.
 3. Qualify installed ABI/provider loading and platforms beyond the completed
    filesystem-discovery receipt.
 4. Complete release adapters, packages, cross-platform/SquashFS, quality and

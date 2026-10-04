@@ -272,3 +272,37 @@ fn corrupted_decoder_poison_requires_reset() {
         cix_stream_decoder_destroy(handle);
     }
 }
+
+#[test]
+fn create_rejects_misaligned_overflow_and_options_overlap_before_write() {
+    unsafe {
+        let valid_options = options();
+        #[repr(align(16))]
+        struct Aligned([u8; std::mem::size_of::<*mut cix_stream_encoder>() + 8]);
+        let mut bytes = Aligned([0; std::mem::size_of::<*mut cix_stream_encoder>() + 8]);
+        let misaligned = bytes
+            .0
+            .as_mut_ptr()
+            .add(1)
+            .cast::<*mut cix_stream_encoder>();
+        assert_eq!(
+            cix_stream_encoder_create(&valid_options, misaligned),
+            CIX_STATUS_INVALID_ARGUMENT
+        );
+        let overflow = (usize::MAX - std::mem::size_of::<*mut cix_stream_encoder>() + 1)
+            as *mut *mut cix_stream_encoder;
+        assert_eq!(
+            cix_stream_encoder_create(&valid_options, overflow),
+            CIX_STATUS_INVALID_ARGUMENT
+        );
+
+        let mut overlapping = options();
+        let before = overlapping.abi_version;
+        let out = (&mut overlapping as *mut cix_options_v1).cast::<*mut cix_stream_encoder>();
+        assert_eq!(
+            cix_stream_encoder_create(&overlapping, out),
+            CIX_STATUS_INVALID_ARGUMENT
+        );
+        assert_eq!(overlapping.abi_version, before);
+    }
+}
