@@ -1513,6 +1513,7 @@ fn encode_from_mtf(primary: usize, mtf: &[u8], version: u8) -> Result<Option<Vec
 
 /// Encode a specific legacy BWT payload version. Version 6 returns `None` when
 /// the frozen estimator or complete-size gate rejects its optional PPM route.
+#[cfg(test)]
 pub fn encode_version(data: &[u8], version: u8) -> Result<Option<Vec<u8>>, String> {
     if data.len() > MAX_ENCODE_BLOCK {
         return Err("legacy BWT block exceeds 65536-byte format bound".into());

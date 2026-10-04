@@ -46,6 +46,7 @@ impl Default for EncodeOptions {
 }
 
 /// Complete chain-payload byte count for one materialized candidate.
+#[cfg(test)]
 #[derive(Clone, Debug)]
 pub struct CandidateSize {
     pub transform_id: u8,
@@ -58,9 +59,18 @@ pub struct CandidateSize {
 #[derive(Clone, Debug)]
 pub struct EncodeResult {
     pub payload: Vec<u8>,
+    #[cfg(test)]
     pub description: String,
+    #[cfg(test)]
     pub candidates: Vec<CandidateSize>,
 }
+
+#[cfg(test)]
+type Measurements = Vec<CandidateSize>;
+
+#[cfg(not(test))]
+#[derive(Default)]
+struct Measurements;
 
 #[derive(Clone)]
 struct MaterializedInner {
@@ -90,7 +100,7 @@ struct CandidateSelectionState<'a> {
     cache: &'a mut Vec<CachedTransform>,
     cached_bytes: &'a mut usize,
     best: &'a mut Option<(Vec<u8>, String)>,
-    measurements: &'a mut Vec<CandidateSize>,
+    measurements: &'a mut Measurements,
 }
 
 fn cache_table_bytes(slots: usize) -> usize {
@@ -1011,7 +1021,7 @@ fn typeclass_score(data: &[u8], log_factorials: &[f64]) -> f64 {
 
 fn record_candidate(
     best: &mut Option<(Vec<u8>, String)>,
-    measurements: &mut Vec<CandidateSize>,
+    measurements: &mut Measurements,
     transform_id: u8,
     inner_mode: u8,
     inner: Vec<u8>,
@@ -1020,12 +1030,15 @@ fn record_candidate(
     let mut payload = vec![CHAIN_VERSION, transform_id, inner_mode];
     payload.extend(inner);
     let description = format!("{}->{inner_name}", transform_name(transform_id));
+    #[cfg(test)]
     measurements.push(CandidateSize {
         transform_id,
         inner_mode,
         bytes: payload.len(),
         description: description.clone(),
     });
+    #[cfg(not(test))]
+    let _ = measurements;
     if best
         .as_ref()
         .is_none_or(|(current, _)| payload.len() < current.len())
@@ -1048,7 +1061,7 @@ fn consider_transform(
     transform_id: u8,
     options: EncodeOptions,
     best: &mut Option<(Vec<u8>, String)>,
-    measurements: &mut Vec<CandidateSize>,
+    measurements: &mut Measurements,
     capture: &mut Option<CacheCapture>,
 ) -> Result<(), String> {
     record_captured(
@@ -1116,7 +1129,7 @@ fn consider_simple_transforms(
     transformed: &[u8],
     transform_id: u8,
     best: &mut Option<(Vec<u8>, String)>,
-    measurements: &mut Vec<CandidateSize>,
+    measurements: &mut Measurements,
     capture: &mut Option<CacheCapture>,
 ) -> Result<(), String> {
     let mut counts = [0usize; 256];
@@ -1202,7 +1215,7 @@ impl CacheCapture {
 
 fn record_captured(
     best: &mut Option<(Vec<u8>, String)>,
-    measurements: &mut Vec<CandidateSize>,
+    measurements: &mut Measurements,
     transform_id: u8,
     inner_mode: u8,
     inner: Vec<u8>,
@@ -1222,19 +1235,22 @@ fn record_materialized_cached(
     inners: &[MaterializedInner],
     transform_id: u8,
     best: &mut Option<(Vec<u8>, String)>,
-    measurements: &mut Vec<CandidateSize>,
+    measurements: &mut Measurements,
 ) {
     for inner in inners {
         let mut payload = Vec::with_capacity(3usize.saturating_add(inner.payload.len()));
         payload.extend([CHAIN_VERSION, transform_id, inner.mode]);
         payload.extend_from_slice(&inner.payload);
         let description = format!("{}->{}", transform_name(transform_id), inner.description);
+        #[cfg(test)]
         measurements.push(CandidateSize {
             transform_id,
             inner_mode: inner.mode,
             bytes: payload.len(),
             description: description.clone(),
         });
+        #[cfg(not(test))]
+        let _ = measurements;
         if best
             .as_ref()
             .is_none_or(|(current, _)| payload.len() < current.len())
@@ -1301,12 +1317,6 @@ fn consider_selected_transform(
     Ok(())
 }
 
-/// Materialize a bounded frozen transform-chain portfolio and select by complete
-/// payload bytes. The returned payload includes the three-byte chain header.
-pub fn encode(data: &[u8], options: EncodeOptions) -> Result<EncodeResult, String> {
-    encode_with_cache(data, options, 0)
-}
-
 /// Encode a frozen chain portfolio with a per-call, exact transformed-byte
 /// cache. A zero allowance preserves the historic uncached materialization.
 pub fn encode_with_cache(data: &[u8], options: EncodeOptions, cache_allowance: usize) -> Result<EncodeResult, String> {
@@ -1345,7 +1355,10 @@ pub fn encode_with_cache(data: &[u8], options: EncodeOptions, cache_allowance: u
     }
     let has_duplicate = cacheable[..selected].iter().any(|&value| value);
     let mut best = None::<(Vec<u8>, String)>;
-    let mut measurements = Vec::new();
+    #[cfg(test)]
+    let mut measurements = Measurements::new();
+    #[cfg(not(test))]
+    let mut measurements = Measurements;
     let mut cache = Vec::<CachedTransform>::new();
     let mut cached_bytes = 0usize;
     if has_duplicate
@@ -1380,9 +1393,13 @@ pub fn encode_with_cache(data: &[u8], options: EncodeOptions, cache_allowance: u
         }
     }
     let (payload, description) = best.ok_or("no transform-chain candidates")?;
+    #[cfg(not(test))]
+    let _ = description;
     Ok(EncodeResult {
         payload,
+        #[cfg(test)]
         description,
+        #[cfg(test)]
         candidates: measurements,
     })
 }
@@ -1854,7 +1871,7 @@ mod tests {
         let mut fixture_index = 0usize;
         let mut inner_modes = BTreeSet::new();
         for (index, source) in cases.iter().enumerate() {
-            let encoded = encode(source, EncodeOptions { beam: 9, effort: 9 }).unwrap();
+            let encoded = encode_with_cache(source, EncodeOptions { beam: 9, effort: 9 }, 0).unwrap();
             assert!(!encoded.description.is_empty());
             verify_and_write(
                 encoded.payload.clone(),
@@ -1969,7 +1986,7 @@ mod tests {
             .collect::<Vec<_>>();
         let options = EncodeOptions { beam: 9, effort: 9 };
         for (source, expected_cache_hit) in [(&duplicate, true), (&distinct, false)] {
-            let uncached = encode(source, options).unwrap();
+            let uncached = encode_with_cache(source, options, 0).unwrap();
             CACHE_HITS.with(|hits| hits.set(0));
             let cached = encode_with_cache(source, options, 4 * 1024 * 1024).unwrap();
             assert_eq!(CACHE_HITS.with(|hits| hits.get()) != 0, expected_cache_hit);

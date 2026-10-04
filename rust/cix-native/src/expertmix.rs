@@ -241,18 +241,6 @@ fn push_history(history: &mut Vec<u8>, symbol: u8, max_order: usize) {
     }
 }
 
-pub fn encode_with_history(
-    data: &[u8],
-    orders: &[u8],
-    prefix_history: &[u8],
-) -> Result<Vec<u8>, String> {
-    encode_bounded(data, orders, prefix_history, usize::MAX)
-}
-
-pub fn encode(data: &[u8], orders: &[u8]) -> Result<Vec<u8>, String> {
-    encode_with_history(data, orders, &[])
-}
-
 /// Decode while enforcing a cap on the total number of allocated contexts.
 ///
 /// Prefix bytes seed only the causal context window.  The Python reference
@@ -314,18 +302,6 @@ pub fn decode_bounded(
         push_history(&mut history, symbol, max_order);
     }
     Ok(out)
-}
-
-pub fn decode_with_history(
-    blob: &[u8],
-    source_length: usize,
-    prefix_history: &[u8],
-) -> Result<Vec<u8>, String> {
-    decode_bounded(blob, source_length, prefix_history, usize::MAX)
-}
-
-pub fn decode(blob: &[u8], source_length: usize) -> Result<Vec<u8>, String> {
-    decode_with_history(blob, source_length, &[])
 }
 
 #[cfg(test)]

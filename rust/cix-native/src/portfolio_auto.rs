@@ -33,6 +33,8 @@ fn native_whole_archive_budget(input_len: usize, level: u8) -> Duration {
 }
 const OUTPUT_SLACK: usize = 2 * 1024 * 1024;
 const NATIVE_MINIMUM: usize = 16 * 1024 * 1024;
+const COMPETITIVE_PREFIX_PRUNED: &str =
+    "whole-archive candidate prefix cannot improve the incumbent";
 
 #[derive(Debug)]
 pub(super) struct SelectedArchive {
@@ -174,6 +176,7 @@ fn read_regular_once(path: &str) -> Result<Vec<u8>, String> {
 struct CappedWriter {
     bytes: Vec<u8>,
     cap: usize,
+    competitive_cap: Option<usize>,
 }
 
 impl CappedWriter {
@@ -181,7 +184,17 @@ impl CappedWriter {
         Self {
             bytes: Vec::with_capacity(cap),
             cap,
+            competitive_cap: None,
         }
+    }
+
+    /// Keep the existing absolute admission cap separate from the exact
+    /// competitive cap. A serialized archive only grows, so once its prefix
+    /// is longer than a snapshotted incumbent it cannot win this stable tie
+    /// policy. Equality remains materializable and is compared normally.
+    fn with_competitive_cap(mut self, incumbent_len: usize) -> Self {
+        self.competitive_cap = Some(incumbent_len);
+        self
     }
 
     fn into_inner(self) -> Vec<u8> {
@@ -195,6 +208,14 @@ impl Write for CappedWriter {
             return Err(io::Error::new(
                 io::ErrorKind::WriteZero,
                 "whole-archive candidate output exceeded admission",
+            ));
+        }
+        if self.competitive_cap.is_some_and(|incumbent_len| {
+            data.len() > incumbent_len.saturating_sub(self.bytes.len())
+        }) {
+            return Err(io::Error::new(
+                io::ErrorKind::WriteZero,
+                COMPETITIVE_PREFIX_PRUNED,
             ));
         }
         self.bytes.extend_from_slice(data);
@@ -228,6 +249,10 @@ fn is_resource_omission(error: &str) -> bool {
         || error.starts_with("mixture route needs")
         || error.starts_with("block needs about")
         || error == "whole-archive candidate output exceeded admission"
+}
+
+fn is_competitive_prefix_prune(error: &str) -> bool {
+    error == COMPETITIVE_PREFIX_PRUNED || error.contains(COMPETITIVE_PREFIX_PRUNED)
 }
 
 // A direct BSC block has no stored fallback in its payload: libbsc returns
@@ -421,6 +446,12 @@ fn record_native_trial(
             }
         }
         Err(error) if is_interruption(&error) => Err(error),
+        Err(error) if is_competitive_prefix_prune(&error) => {
+            state.omitted.push(format!(
+                "{name} (exact archive prefix exceeded incumbent; cannot improve)"
+            ));
+            Ok(())
+        }
         Err(error) if is_resource_omission(&error) || is_candidate_rejection(&error) => {
             state.omitted.push(format!("{name} ({error})"));
             Ok(())
@@ -477,7 +508,11 @@ fn run_cixg_trials(
             ));
             continue;
         };
-        let mut output = CappedWriter::new(search.cap);
+        // Snapshot before starting the candidate. A deadline may make later
+        // candidate availability differ after this exact prune, but this
+        // candidate itself cannot beat this stable incumbent once its emitted
+        // prefix exceeds it.
+        let mut output = CappedWriter::new(search.cap).with_competitive_cap(winner.len());
         let guard = crate::limits::DeadlineGuard::new(budget);
         let encoded = encode_with_strategy(
             io::Cursor::new(search.data.as_slice()),
@@ -588,7 +623,7 @@ fn run_m6_trials(
             ));
             continue;
         };
-        let mut output = CappedWriter::new(search.cap);
+        let mut output = CappedWriter::new(search.cap).with_competitive_cap(winner.len());
         let guard = crate::limits::DeadlineGuard::new(budget);
         let encoded = super::encode_m6(
             io::Cursor::new(search.data.as_slice()),
@@ -857,6 +892,79 @@ pub(super) fn encode<W: Write>(o: &Opt, mut dst: W) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn competitive_cap_prunes_only_after_the_incumbent_boundary() {
+        let mut output = CappedWriter::new(32).with_competitive_cap(3);
+        output.write_all(b"abc").unwrap();
+        let error = output.write_all(b"d").unwrap_err();
+        assert_eq!(error.to_string(), COMPETITIVE_PREFIX_PRUNED);
+        assert_eq!(output.bytes, b"abc");
+    }
+
+    #[test]
+    fn competitive_cap_allows_an_exact_tie_to_materialize() {
+        let mut output = CappedWriter::new(32).with_competitive_cap(3);
+        output.write_all(b"abc").unwrap();
+        assert_eq!(output.into_inner(), b"abc");
+    }
+
+    #[test]
+    fn native_cixg_losing_prefix_is_omitted_without_replacing_the_winner() {
+        let data = b"native archive prefix prune\n".repeat(16);
+        let mut winner = vec![0x5a];
+        let original_winner = winner.clone();
+        let mut winner_name = "incumbent".to_string();
+        let mut evaluated = 0;
+        let mut omitted = Vec::new();
+        let mut output =
+            CappedWriter::new(archive_cap(data.len())).with_competitive_cap(winner.len());
+        let encoded = encode_with_strategy(
+            io::Cursor::new(data.as_slice()),
+            &mut output,
+            super::super::EncodeOptions {
+                block: 16 * 1024,
+                level: 1,
+                forced: Some("raw"),
+                backend: "hybrid",
+                backend_set: false,
+                format: "cixg1",
+                input_fd: -1,
+                flush_interval: None,
+                memory: 64 << 20,
+                workers: 1,
+                explain: false,
+                verbose: false,
+                strategy: "blocks",
+            },
+        );
+        assert!(is_competitive_prefix_prune(encoded.as_ref().unwrap_err()));
+        let o = super::super::Opt {
+            memory: 64 << 20,
+            ..Default::default()
+        };
+        record_native_trial(
+            &mut TrialState {
+                o: &o,
+                winner: &mut winner,
+                winner_name: &mut winner_name,
+                evaluated: &mut evaluated,
+                omitted: &mut omitted,
+                data: &data,
+            },
+            "cixg1:raw:block=16384".into(),
+            output,
+            encoded,
+        )
+        .unwrap();
+        assert_eq!(winner, original_winner);
+        assert_eq!(winner_name, "incumbent");
+        assert_eq!(evaluated, 0);
+        assert_eq!(
+            omitted,
+            vec!["cixg1:raw:block=16384 (exact archive prefix exceeded incumbent; cannot improve)"]
+        );
+    }
 
     #[test]
     fn validation_uses_the_charged_aggregate_remainder() {

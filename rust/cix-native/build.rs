@@ -7,11 +7,11 @@ fn main() {
     // as portable C++ rather than inheriting the upstream `-march=native`
     // Makefile default: CIX's optional CPU acceleration must remain a runtime
     // decision and the ordinary archive decoder must run on the host baseline.
+    let target = std::env::var("TARGET").unwrap_or_default();
     let mut build = cc::Build::new();
     build
         .cpp(true)
         .std("c++17")
-        .define("unix", None)
         // ZPAQ archive headers carry executable ZPAQL programs. Keeping the
         // interpreter avoids RWX JIT pages, works on hardened W^X systems,
         // and preserves portable decoder behaviour. It does not change the
@@ -21,13 +21,22 @@ fn main() {
         .flag_if_supported("-fno-strict-aliasing")
         .include("vendor/libzpaq715")
         .file("vendor/libzpaq715/libzpaq.cpp")
-        .file("src/zpaq_ffi.cpp")
-        .compile("cix_zpaq715");
+        .file("src/zpaq_ffi.cpp");
+    if target.contains("windows") {
+        // libzpaq's non-Unix random-number helper uses CryptoAPI even though
+        // CIX disables its optional JIT with NOJIT.
+        println!("cargo:rustc-link-lib=advapi32");
+    } else {
+        // libzpaq uses this historical macro to select POSIX facilities.
+        // Do not define it for Windows targets: that would select mmap and
+        // /dev/urandom paths which are unavailable there.
+        build.define("unix", None);
+    }
+    build.compile("cix_zpaq715");
     // `cc` can omit this metadata when the static archive is referenced from
     // a Rust extern block. The final linker still needs the C++ runtime for
     // the bridge's exception and RTTI implementation. MSVC supplies it via
     // its normal toolchain; Unix targets use their platform runtime.
-    let target = std::env::var("TARGET").unwrap_or_default();
     if target.contains("apple") {
         println!("cargo:rustc-link-lib=dylib=c++");
     } else if !target.contains("msvc") {

@@ -1,0 +1,18 @@
+class Cix < Formula
+  desc "Lossless command-line compressor"
+  homepage "RELEASE_HOMEPAGE"
+  url "RELEASE_SOURCE_URL"
+  sha256 "RELEASE_SOURCE_SHA256"
+  license "MIT"
+
+  depends_on "rust" => :build
+  depends_on "bzip2"
+  depends_on "brotli"
+  depends_on "xz"
+  depends_on "zstd"
+
+  def install
+    system "cargo", "install", *std_cargo_args(path: "."), "--locked"
+    man1.install "man/cix.1", "man/uncix.1", "man/cixcat.1"
+  end
+end

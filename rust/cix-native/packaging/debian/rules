@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	cargo build --release --locked --bins
+
+override_dh_auto_install:
+	install -D -m 0755 target/release/cix debian/cix/usr/bin/cix
+	install -D -m 0755 target/release/uncix debian/cix/usr/bin/uncix
+	install -D -m 0755 target/release/cixcat debian/cix/usr/bin/cixcat
+	install -D -m 0644 man/cix.1 debian/cix/usr/share/man/man1/cix.1
+	install -D -m 0644 man/uncix.1 debian/cix/usr/share/man/man1/uncix.1
+	install -D -m 0644 man/cixcat.1 debian/cix/usr/share/man/man1/cixcat.1
+	install -D -m 0644 LICENSE debian/cix/usr/share/doc/cix/copyright
+	install -D -m 0644 THIRD_PARTY_NOTICES.txt debian/cix/usr/share/doc/cix/THIRD_PARTY_NOTICES.txt
+	install -D -m 0644 THIRD_PARTY_NOTICES_RUST.md debian/cix/usr/share/doc/cix/THIRD_PARTY_NOTICES_RUST.md

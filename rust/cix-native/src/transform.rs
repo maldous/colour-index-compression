@@ -397,6 +397,7 @@ pub fn apply_id(data: &[u8], id: u8) -> Result<Vec<u8>, String> {
 /// Encode with one explicit frozen transform ID.
 ///
 /// This API is useful to a bounded selector that has already chosen a route.
+#[cfg(test)]
 pub fn encode_id(data: &[u8], id: u8) -> Result<Vec<u8>, String> {
     let transformed = apply_id(data, id)?;
     let mut out = vec![1, id];

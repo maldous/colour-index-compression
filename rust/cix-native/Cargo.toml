@@ -1,7 +1,14 @@
 [package]
 name = "cix-native"
-version = "0.2.0"
+version = "0.1.0"
 edition = "2021"
+rust-version = "1.98"
+description = "CIX lossless command-line compressor"
+readme = "README.md"
+license = "MIT"
+autobins = false
+keywords = ["compression", "lossless", "archive", "cli"]
+categories = ["command-line-utilities", "compression"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -26,48 +33,9 @@ libc = "0.2"
 ctrlc = { version = "3", features = ["termination"] }
 num-bigint = "0.4"
 num-traits = "0.2"
-dhat = { version = "0.3.3", optional = true }
-
-[features]
-# Audit-only allocator instrumentation. Normal CIX binaries keep the default
-# allocator and do not link DHAT.
-audit-dhat = ["dep:dhat"]
 
 [build-dependencies]
 cc = "1"
-
-[dev-dependencies]
-criterion = "0.5.1"
-
-[[bench]]
-name = "cix_hot_kernels"
-harness = false
-
-[[bench]]
-name = "count_range_audit"
-harness = false
-
-[[bench]]
-name = "ppm_borrow_kernel"
-harness = false
-
-[[bench]]
-name = "ppm_eligible_kernel"
-harness = false
-
-[[bench]]
-name = "ppm_sonar_audit"
-harness = false
-
-[[bin]]
-name = "cix-dhat-audit"
-path = "src/bin/cix_dhat_audit.rs"
-required-features = ["audit-dhat"]
-
-[[bin]]
-name = "bounded-reader-allocation"
-path = "src/bin/bounded_reader_allocation.rs"
-required-features = ["audit-dhat"]
 
 [profile.release-lto]
 inherits = "release"

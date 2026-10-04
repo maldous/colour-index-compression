@@ -209,30 +209,6 @@ impl PersistentAdaptiveState {
         Ok(working[bucket].as_deref_mut().unwrap())
     }
 
-    fn estimate_bits(
-        &self,
-        data: &[u8],
-        prefix_history: &[u8],
-        memory_budget: usize,
-    ) -> Result<f64, String> {
-        let bucket_limit = self.working_bucket_limit(data.len(), memory_budget)?;
-        let mut working = self.new_working_models();
-        let mut working_count = 0usize;
-        let mut tail = self.initial_tail(prefix_history);
-        let mut bits = 0.0f64;
-
-        for &symbol in data {
-            let bucket = self.bucket(&tail);
-            let model =
-                self.working_model(&mut working, &mut working_count, bucket, bucket_limit)?;
-            let (low, high, total) = model.interval(symbol as usize);
-            bits += (total as f64).log2() - ((high - low) as f64).log2();
-            model.add(symbol as usize)?;
-            self.advance_tail(&mut tail, symbol);
-        }
-        Ok(bits)
-    }
-
     fn encode(
         &self,
         data: &[u8],
@@ -347,27 +323,6 @@ impl PersistentAdaptiveStates {
                 .map(|&(order, bucket_bits)| PersistentAdaptiveState::new(order, bucket_bits))
                 .collect(),
         }
-    }
-
-    /// Return the frozen `(order, bucket_bits)` pair for a model ID.
-    pub fn model_spec(&self, model_id: usize) -> Option<(usize, usize)> {
-        SPECS.get(model_id).copied()
-    }
-
-    /// Estimate the arithmetic log loss for one model from the same private
-    /// working state used by Python's bounded candidate gate.
-    pub fn estimate_bits(
-        &self,
-        model_id: usize,
-        data: &[u8],
-        prefix_history: &[u8],
-        memory_budget: usize,
-    ) -> Result<f64, String> {
-        let state = self
-            .states
-            .get(model_id)
-            .ok_or("unknown persistent adaptive model ID")?;
-        state.estimate_bits(data, prefix_history, memory_budget)
     }
 
     /// Encode a complete mode 13 payload, including its leading model ID.
