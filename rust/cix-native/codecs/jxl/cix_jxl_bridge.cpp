@@ -109,6 +109,34 @@ int encoder_status(const Encoder& encoder, JxlEncoderStatus status) {
              : CIX_JXL_ENCODE_FAILURE;
 }
 
+// Both public encoders use this one bounded ownership transfer.  Keep the
+// output-limit admission before vector growth so the returned C buffer is
+// unchanged on every failure path.
+int drain_encoder(Encoder* encoder, size_t max_output_bytes,
+                  cix_jxl_buffer* output) {
+  std::vector<uint8_t> encoded;
+  encoded.reserve(std::min(max_output_bytes, static_cast<size_t>(4096)));
+  uint8_t scratch[4096];
+  for (;;) {
+    uint8_t* next = scratch;
+    size_t available = sizeof(scratch);
+    const JxlEncoderStatus status =
+        JxlEncoderProcessOutput(encoder->get(), &next, &available);
+    const size_t produced = sizeof(scratch) - available;
+    if (produced > max_output_bytes - encoded.size()) {
+      return CIX_JXL_OUTPUT_LIMIT;
+    }
+    encoded.insert(encoded.end(), scratch, next);
+    if (status == JXL_ENC_SUCCESS) break;
+    if (status != JXL_ENC_NEED_MORE_OUTPUT) return encoder_status(*encoder, status);
+  }
+  uint8_t* allocated = new uint8_t[encoded.size()];
+  std::memcpy(allocated, encoded.data(), encoded.size());
+  output->data = allocated;
+  output->size = encoded.size();
+  return CIX_JXL_OK;
+}
+
 bool supported_info(const JxlBasicInfo& info, uint32_t width, uint32_t height,
                     uint32_t bits) {
   return info.xsize == width && info.ysize == height &&
@@ -272,29 +300,7 @@ extern "C" int cix_jxl_encode_gray_2d(const cix_jxl_gray_image* image,
       return CIX_JXL_ENCODE_FAILURE;
     }
     JxlEncoderCloseInput(encoder.get());
-
-    std::vector<uint8_t> encoded;
-    encoded.reserve(std::min(max_output_bytes, static_cast<size_t>(4096)));
-    uint8_t scratch[4096];
-    for (;;) {
-      uint8_t* next = scratch;
-      size_t available = sizeof(scratch);
-      const JxlEncoderStatus status =
-          JxlEncoderProcessOutput(encoder.get(), &next, &available);
-      const size_t produced = sizeof(scratch) - available;
-      if (produced > max_output_bytes - encoded.size()) {
-        return CIX_JXL_OUTPUT_LIMIT;
-      }
-      encoded.insert(encoded.end(), scratch, next);
-      if (status == JXL_ENC_SUCCESS) break;
-      if (status != JXL_ENC_NEED_MORE_OUTPUT) return encoder_status(encoder, status);
-    }
-
-    uint8_t* allocated = new uint8_t[encoded.size()];
-    std::memcpy(allocated, encoded.data(), encoded.size());
-    output->data = allocated;
-    output->size = encoded.size();
-    return CIX_JXL_OK;
+    return drain_encoder(&encoder, max_output_bytes, output);
   } catch (const std::bad_alloc&) {
     return CIX_JXL_ALLOCATION_FAILURE;
   } catch (...) {
@@ -493,24 +499,7 @@ extern "C" int cix_jxl_encode_planar(const cix_jxl_planar_image* image,
               plane_bytes, index) != JXL_ENC_SUCCESS) return CIX_JXL_ENCODE_FAILURE;
     }
     JxlEncoderCloseInput(encoder.get());
-    std::vector<uint8_t> encoded;
-    encoded.reserve(std::min(max_output_bytes, static_cast<size_t>(4096)));
-    uint8_t scratch[4096];
-    for (;;) {
-      uint8_t* next = scratch;
-      size_t available = sizeof(scratch);
-      const JxlEncoderStatus status = JxlEncoderProcessOutput(encoder.get(), &next, &available);
-      const size_t produced = sizeof(scratch) - available;
-      if (produced > max_output_bytes - encoded.size()) return CIX_JXL_OUTPUT_LIMIT;
-      encoded.insert(encoded.end(), scratch, next);
-      if (status == JXL_ENC_SUCCESS) break;
-      if (status != JXL_ENC_NEED_MORE_OUTPUT) return encoder_status(encoder, status);
-    }
-    uint8_t* allocated = new uint8_t[encoded.size()];
-    std::memcpy(allocated, encoded.data(), encoded.size());
-    output->data = allocated;
-    output->size = encoded.size();
-    return CIX_JXL_OK;
+    return drain_encoder(&encoder, max_output_bytes, output);
   } catch (const std::bad_alloc&) { return CIX_JXL_ALLOCATION_FAILURE; }
     catch (...) { return CIX_JXL_EXCEPTION; }
 }
