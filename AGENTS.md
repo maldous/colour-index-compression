@@ -1,3 +1,31 @@
+# Current platform direction — 2026-10-05
+
+The user requires a dependable CLI/SDK, no graphical app, and mandatory PAQ in
+the complete cross-platform product. GPL-compatible distribution is accepted
+where needed; preserve each dependency's actual terms and source obligations.
+Signing/notarization may follow functional qualification. The coordinator has
+verified historical Apple Developer Program enrolment confirmation. Current
+membership, Team ID and a usable Developer ID identity remain unverified;
+private mailbox content and account identifiers stay outside this repository.
+
+The user explicitly authorizes QEMU and accessible hosted runners, including
+GitHub, for actual target-software validation. This supersedes the blanket
+Actions-disabled wording below **only for bounded private platform validation**.
+Root owns workflow preparation, enablement and dispatch. Before enabling
+Actions, preserve and individually disable every old research, benchmark and
+publication workflow; bind each manual validation to an exact source revision,
+declared resource/time/artifact limits and understood account usage/cost limits.
+The repository remains private. No publication, benchmark restart, corpus
+acquisition, third-party source edits, new paid service purchase or implicit
+increase to the shared four-core / 12 GB / 4 GB / no-swap policy is authorized.
+
+Record target OS/architecture and native, virtualized or emulated execution.
+Cross-compilation alone does not establish platform support, and QEMU timing
+does not establish native throughput. Preserve PAQ variant decoders and test
+archive exchange between qualified targets. Full requirements and the runner
+discovery are in `docs/research/2026-10-04-rc-reconciliation/PLATFORM-DELIVERY-2026-10-05.txt`
+and its JSON companion. All 55 requirement IDs and the RC51 benchmark HOLD remain.
+
 # Current controlling direction — benchmark stopped; complete the integrated RC
 
 The controlling cross-session gate is `docs/research/2026-10-04-rc-reconciliation/REQUIREMENTS.md` and `requirements.json`: 55 items (52 required RC, two explicit external dependencies, one user-paused reporting programme). The coordinator owns those ledger files; root owns implementation/evidence and communicates item receipts for acceptance. Read the full contracts before assigning work. Stages order implementation and do not defer practical source features out of the next RC. Root is reconciling canonical `rust/cix-native` from the qualified frozen native snapshot before library-first extraction/native ports; preserve reference Python and old research evidence outside the shipping allowlist. No benchmark until the new source/quality/readiness gate is accepted; RC52 is the later required confirmation, not permission to launch now.

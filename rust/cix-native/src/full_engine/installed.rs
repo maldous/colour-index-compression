@@ -84,7 +84,11 @@ impl fmt::Display for InstalledProviderError {
 }
 impl std::error::Error for InstalledProviderError {}
 
-fn shared_library_filename(basename: &str) -> String {
+/// Return the one package filename for a CIX-owned shared bridge on this target.
+///
+/// Callers supply a fixed CIX descriptor basename; this is deliberately not a
+/// dynamic-library search helper.
+pub(crate) fn shared_library_filename(basename: &str) -> String {
     #[cfg(target_os = "windows")]
     {
         format!("{basename}.dll")

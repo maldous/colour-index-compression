@@ -54,6 +54,18 @@
       "source_url": "https://github.com/google/skcms",
       "commit": "96d9171c94b937a1b5f0293de7309ac16311b722",
       "pinned_as_submodule_of": "libjxl"
+    },
+    "paq_v215": {
+      "source_url": "https://codeload.github.com/hxim/paq8px/tar.gz/refs/tags/v215",
+      "version_tag": "v215",
+      "commit": "e80eed27ae8a673ccb016f1b158cff1b7150fcf6",
+      "archive_sha256": "e3a86a08961f90bab73b01cb3db27327471a701b6ac2dde0c972e5b6f78c0737"
+    },
+    "paq_v216": {
+      "source_url": "https://codeload.github.com/hxim/paq8px/tar.gz/refs/tags/v216",
+      "version_tag": "v216",
+      "commit": "bf7b658fdcfc045a892920d01e830e6c6a790c21",
+      "archive_sha256": "d231d814a0dc79657a2691ed166692a5dfbfa740388357654253ecadbdf8ef75"
     }
   },
   "package_identities": {
@@ -106,7 +118,9 @@
         "local_root": "benchmark-work/references/paq8px-v215/paq8px-215",
         "readme_sha256": "211a9d3a590de44b1b1956b4dc634b28faf2f4c3d600a1d7b617105febf13fdd",
         "receipt": "docs/research/2026-10-04-native-rc/jobs/paq-v215-build-v1/source.json",
-        "receipt_sha256": "1792dba1dd584111e0a71a49c0748204b310fc7de8468ea96860c2be319860e3"
+        "receipt_sha256": "1792dba1dd584111e0a71a49c0748204b310fc7de8468ea96860c2be319860e3",
+        "source_identity": "paq_v215",
+        "tree_receipt_sha256": "1792dba1dd584111e0a71a49c0748204b310fc7de8468ea96860c2be319860e3"
       },
       "notices": [
         "licenses/GPL-2.0.txt"
@@ -119,7 +133,9 @@
         "local_root": "benchmark-work/references/paq8px-v216/paq8px-216",
         "readme_sha256": "88134d8f7367e51cbccd3b70a36c113b3f8e453608350e36b5e78819360e76a6",
         "receipt": "docs/research/2026-10-04-native-rc/jobs/paq-v216-qualification-v1/source.json",
-        "receipt_sha256": "b3471beaf7f1e1549c008401eed3657698231c858d9e333d9eed2fba769b1204"
+        "receipt_sha256": "b3471beaf7f1e1549c008401eed3657698231c858d9e333d9eed2fba769b1204",
+        "source_identity": "paq_v216",
+        "tree_receipt_sha256": "b3471beaf7f1e1549c008401eed3657698231c858d9e333d9eed2fba769b1204"
       },
       "notices": [
         "licenses/GPL-2.0.txt"
@@ -132,7 +148,11 @@
         "local_root": "benchmark-work/references/paq8px-cix-joint-discount/source",
         "readme_sha256": "211a9d3a590de44b1b1956b4dc634b28faf2f4c3d600a1d7b617105febf13fdd",
         "receipt": "docs/research/2026-10-04-native-rc/jobs/paq-joint-discount-qualification-v1/source.json",
-        "receipt_sha256": "dbcab9f9a962112bc19d2fae4c0e031b1bdfa150db0f6444a2a13cd10bac5cea"
+        "receipt_sha256": "dbcab9f9a962112bc19d2fae4c0e031b1bdfa150db0f6444a2a13cd10bac5cea",
+        "source_identity": "paq_v215",
+        "tree_receipt_sha256": "dbcab9f9a962112bc19d2fae4c0e031b1bdfa150db0f6444a2a13cd10bac5cea",
+        "fork_derivation_commit": "b2aef743662c3cf51e3c779ef7410ac5cc4412c5",
+        "fork_provenance_sha256": "9b9ed8a588a5b664f2a627e031e2c3c30f440ccdb3899c0469e76837e786eb22"
       },
       "notices": [
         "licenses/GPL-2.0.txt"
@@ -145,7 +165,11 @@
         "local_root": "benchmark-work/references/paq8px-cix-store-state/source",
         "readme_sha256": "88134d8f7367e51cbccd3b70a36c113b3f8e453608350e36b5e78819360e76a6",
         "receipt": "docs/research/2026-10-04-native-rc/jobs/paq-store-state-qualification-v1/source.json",
-        "receipt_sha256": "3eb431a2cdad6b69b2862a55d235b0068e3c5d4995033ea52c5aae59a463399b"
+        "receipt_sha256": "3eb431a2cdad6b69b2862a55d235b0068e3c5d4995033ea52c5aae59a463399b",
+        "source_identity": "paq_v216",
+        "tree_receipt_sha256": "3eb431a2cdad6b69b2862a55d235b0068e3c5d4995033ea52c5aae59a463399b",
+        "fork_derivation_commit": "b0a5528ce35976e97ae628b6f49a9b88a67eb07a",
+        "fork_provenance_sha256": "716eabd2b87346032b8083acc141ec6b2b3b89b9b6bfcae99f2c8159456b60e3"
       },
       "notices": [
         "licenses/GPL-2.0.txt"
@@ -325,7 +349,7 @@
   },
   "staging_direction": "For every selected provider, copy the listed exact notice text(s) with hash verification. Source availability is separately recorded above; this manifest does not infer that any source material must be redistributed.",
   "unresolved": [
-    "The PAQ evidence fixes local source trees, README hashes and source receipts, but does not record a canonical upstream URL or immutable upstream revision for those four trees.",
+    "The PAQ canonical base archives and immutable commits are recorded above. Distribution assembly still needs to carry their source identities, exact tree receipts, and fork derivation records with each selected PAQ bridge.",
     "The codec package evidence fixes package filenames, versions, architectures and archive hashes, but does not record an archive base URL or upstream source-package URL/checksum for CharLS or OpenJPEG.",
     "A final distribution review must determine the applicable legal obligations from the staged texts and package/source evidence. This engineering manifest makes no legal conclusion."
   ]

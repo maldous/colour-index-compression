@@ -229,6 +229,19 @@ CPPHECK_PROJECTED_RELATIVES = frozenset({
     "rust/cix-native/adapters/sevenzip/cix_7zip_coder.cpp",
     "rust/cix-native/adapters/sevenzip/cix_7zip_contract.cpp",
 })
+# The adapter-context-v2 probe identifies only these additional raw commands.
+# They are projected through their retained compilers; no Cppcheck macro is
+# injected and no general adapter class is enabled.
+CPPHECK_PROBE_V2_CONFIRMED_RELATIVES = frozenset({
+    "rust/cix-native/adapters/blosc2/tests/blosc2_cix_contract.c",
+    "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_decompressor.c",
+    "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_fs_register.c",
+})
+CPPHECK_NEW_ANALYSIS_KERNEL_RELATIVES = frozenset({
+    "rust/cix-native/adapters/squashfs/kernel/cix_profile_portable.c",
+    "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_decompressor.c",
+    "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_fs_register.c",
+})
 ANALYSIS_COVERAGE_CPPHECK_IDS = frozenset({
     "unknownMacro",
     "preprocessorErrorDirective",
@@ -1315,7 +1328,8 @@ def project_cppcheck_translation_units(source: Path, selected: list[dict], out: 
                                       budget: EvidenceBudget) -> tuple[list[dict], list[dict]]:
     """Project the reviewed compiler-incompatible TUs with recorded build options."""
     context = load_module("cix_projection_context", Path(__file__).with_name("translation_context.py"))
-    eligible = CPPHECK_PROJECTED_RELATIVES | set(context.PROJECTABLE_RELATIVES)
+    eligible = (CPPHECK_PROJECTED_RELATIVES | set(context.PROJECTABLE_RELATIVES)
+                | CPPHECK_PROBE_V2_CONFIRMED_RELATIVES)
     candidates = [row for row in selected
                   if Path(row["file"]).resolve().relative_to(source).as_posix() in eligible]
     if not candidates:
@@ -1345,6 +1359,24 @@ def project_cppcheck_translation_units(source: Path, selected: list[dict], out: 
                                     "recorded_compiler": row}
                 save(out / "kernel-analysis-inputs.json", context_evidence, budget)
             context.validate_translation_context(row, source, bound_inputs)
+        if relative in CPPHECK_NEW_ANALYSIS_KERNEL_RELATIVES and context_evidence is None:
+            # These raw Kbuild commands were selected by the context probe,
+            # but the historical module build did not retain per-header
+            # identities.  Bind the current forced headers only for this new,
+            # isolated analysis action; do not present them as old-build proof.
+            operands = context._forced_includes(row["arguments"])
+            bound_inputs = {}
+            for value in operands:
+                input_path = (Path(row["directory"]) / value).resolve()
+                if not input_path.is_file():
+                    raise RuntimeError("kernel projection forced input is absent: " + str(input_path))
+                bound_inputs[str(input_path)] = digest(input_path)
+            context_evidence = {
+                "kind": "NEW_ANALYSIS_INPUT_FREEZE_NOT_HISTORICAL_BUILD_PROOF",
+                "historical_gaps": ["raw kernel forced-header identities were not retained by the module build"],
+                "sha256": bound_inputs,
+                "recorded_compiler": row,
+            }
         reservation = f"cppcheck-projected-{index}"
         suffix = Path(row["file"]).suffix
         destination = projected_root / f"{index}{suffix}"

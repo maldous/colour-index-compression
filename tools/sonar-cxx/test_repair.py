@@ -63,6 +63,20 @@ class RepairAcceptanceTests(unittest.TestCase):
         argv = repair._projected_command(row, Path("/evidence/unit.cpp"))
         self.assertEqual(argv, ["/usr/bin/c++", "-DVALUE=1", "/source/unit.cpp", "-E", "-o", "/evidence/unit.cpp"])
 
+    def test_context_probe_projection_selection_is_exactly_the_three_confirmed_raw_tus(self):
+        self.assertEqual(repair.CPPHECK_PROBE_V2_CONFIRMED_RELATIVES, frozenset({
+            "rust/cix-native/adapters/blosc2/tests/blosc2_cix_contract.c",
+            "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_decompressor.c",
+            "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_fs_register.c",
+        }))
+        self.assertNotIn("rust/cix-native/adapters/blosc2/src/cix_blosc2_adapter.c",
+                         repair.CPPHECK_PROBE_V2_CONFIRMED_RELATIVES)
+        self.assertEqual(repair.CPPHECK_NEW_ANALYSIS_KERNEL_RELATIVES, frozenset({
+            "rust/cix-native/adapters/squashfs/kernel/cix_profile_portable.c",
+            "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_decompressor.c",
+            "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_fs_register.c",
+        }))
+
     def test_projected_rows_replace_their_original_source_rows(self):
         original = {"file": "/source/unit.cpp", "arguments": ["c++", "-c", "/source/unit.cpp"]}
         projected = {"file": "/evidence/projected.cpp", "arguments": ["c++", "-c", "/evidence/projected.cpp"]}

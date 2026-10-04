@@ -2,6 +2,9 @@
 //!
 //! Only `main_entry` dispatches this module, before CLI signal handlers or
 //! threads exist. The full-engine supervisor and public job protocol are separate.
+#[cfg(target_os = "linux")]
+use crate::full_engine::dynamic_library::{DynamicLibrary, DynamicLibraryError};
+use crate::full_engine::installed::shared_library_filename;
 use crate::paq_bridge::{
     PaqBridge, PaqExecutionScope, PaqInvocation, PaqVariant, PaqWorkerEnvironment,
 };
@@ -196,7 +199,7 @@ impl Request {
             .canonicalize()
             .map_err(|e| format!("cannot resolve package library directory: {e}"))?;
         let descriptor = self.variant.descriptor().ok_or("unknown PAQ descriptor")?;
-        let library = directory.join(format!("lib{}.so", descriptor.library_basename));
+        let library = directory.join(shared_library_filename(descriptor.library_basename));
         let metadata = std::fs::symlink_metadata(&library)
             .map_err(|e| format!("missing packaged bridge: {e}"))?;
         if !metadata.file_type().is_file() {
@@ -268,7 +271,7 @@ fn run(request: &Request) -> Result<(), String> {
             .push(("CIX_JOINT_DISCOUNT".into(), mode.to_string().into()));
     }
     apply_limits(request.memory, request.output_limit)?;
-    let library = Library::open(&library_path)?;
+    let library = load_library(&library_path)?;
     let descriptor = request
         .variant
         .descriptor()
@@ -277,13 +280,13 @@ fn run(request: &Request) -> Result<(), String> {
     // Both signatures are defined by CIX-owned headers. The private DSO
     // handle outlives every call and returned function pointer.
     let version: unsafe extern "C" fn() -> *const libc::c_char =
-        unsafe { std::mem::transmute(library.symbol(symbol)?) };
+        unsafe { library.symbol(symbol) }.map_err(map_symbol_error)?;
     let actual = unsafe { version() };
     if !unsafe { exact_version(actual, expected) } {
         return Err("packaged PAQ bridge ABI/variant mismatch".into());
     }
     let process: crate::paq_bridge::PaqProcess =
-        unsafe { std::mem::transmute(library.symbol(descriptor.process_symbol)?) };
+        unsafe { library.symbol(descriptor.process_symbol) }.map_err(map_symbol_error)?;
     let invocation = PaqInvocation {
         scope: PaqExecutionScope::IsolatedWorker,
         variant: request.variant,
@@ -356,36 +359,29 @@ fn apply_limits(memory: u64, output: u64) -> Result<(), String> {
 }
 
 #[cfg(target_os = "linux")]
-struct Library(*mut libc::c_void);
+fn load_library(path: &Path) -> Result<DynamicLibrary, String> {
+    DynamicLibrary::open(path).map_err(map_load_error)
+}
+
 #[cfg(target_os = "linux")]
-impl Library {
-    fn open(path: &Path) -> Result<Self, String> {
-        use std::os::unix::ffi::OsStrExt;
-        let path =
-            std::ffi::CString::new(path.as_os_str().as_bytes()).map_err(|_| "NUL library path")?;
-        let handle = unsafe { libc::dlopen(path.as_ptr(), libc::RTLD_NOW | libc::RTLD_LOCAL) };
-        if handle.is_null() {
-            return Err("cannot load packaged PAQ bridge or its installed dependencies".into());
+fn map_load_error(error: DynamicLibraryError) -> String {
+    match error {
+        DynamicLibraryError::InvalidPath => "NUL library path".into(),
+        DynamicLibraryError::LoadFailed => {
+            "cannot load packaged PAQ bridge or its installed dependencies".into()
         }
-        Ok(Self(handle))
-    }
-    fn symbol(&self, name: &str) -> Result<*mut libc::c_void, String> {
-        let name = std::ffi::CString::new(name).map_err(|_| "NUL symbol")?;
-        let symbol = unsafe { libc::dlsym(self.0, name.as_ptr()) };
-        if symbol.is_null() {
-            return Err(format!(
-                "packaged PAQ symbol is unavailable: {}",
-                name.to_string_lossy()
-            ));
-        }
-        Ok(symbol)
+        DynamicLibraryError::MissingSymbol(_) => unreachable!("open cannot resolve a symbol"),
     }
 }
+
 #[cfg(target_os = "linux")]
-impl Drop for Library {
-    fn drop(&mut self) {
-        unsafe {
-            libc::dlclose(self.0);
+fn map_symbol_error(error: DynamicLibraryError) -> String {
+    match error {
+        DynamicLibraryError::MissingSymbol(name) => {
+            format!("packaged PAQ symbol is unavailable: {name}")
+        }
+        DynamicLibraryError::InvalidPath | DynamicLibraryError::LoadFailed => {
+            unreachable!("symbol lookup cannot open a library")
         }
     }
 }
@@ -479,6 +475,35 @@ mod tests {
             assert_eq!(symbol, format!("{}_version", d.library_basename));
             assert!(version.ends_with(b"-bridge/1"));
         }
+    }
+    #[test]
+    fn library_name_uses_the_installed_platform_rule() {
+        let nonce = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock after epoch")
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!(
+            "cix-paq-library-name-{}-{nonce}",
+            std::process::id()
+        ));
+        let library_directory = root.join("library");
+        let input = root.join("input");
+        let output = root.join("output");
+        std::fs::create_dir_all(&library_directory).unwrap();
+        std::fs::write(&input, b"input").unwrap();
+        let expected = library_directory.join(shared_library_filename(
+            PaqVariant::V215.descriptor().unwrap().library_basename,
+        ));
+        std::fs::write(&expected, b"bridge").unwrap();
+
+        let mut arguments = args();
+        arguments[2] = library_directory.into_os_string();
+        arguments[3] = input.into_os_string();
+        arguments[4] = output.into_os_string();
+        let request = Request::parse(&arguments).unwrap();
+        assert_eq!(request.library().unwrap(), expected);
+
+        std::fs::remove_dir_all(root).unwrap();
     }
     #[test]
     fn all_pinned_variants_reject_level_zero_before_native_invocation() {

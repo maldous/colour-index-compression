@@ -1,0 +1,35 @@
+--- a/rust/cix-native/bindings/node/src/cix_node.c
++++ b/rust/cix-native/bindings/node/src/cix_node.c
+@@ -136,7 +136,11 @@
+         || !ok(e, napi_check_object_type_tag(e, th, expected_tag, &matches))) return 0;
+     if (!matches) return fail(e, "invalid CIX receiver type"), 0;
+     if (!ok(e, napi_unwrap(e, th, p))) return 0;
+-    return *p != NULL || (fail(e, "invalid CIX object"), 0);
++    if (*p == NULL) {
++        fail(e, "invalid CIX object");
++        return 0;
++    }
++    return 1;
+ }
+ 
+ static napi_value context_new(napi_env e, napi_callback_info i) {
+--- a/rust/cix-native/bindings/node/test/contract.js
++++ b/rust/cix-native/bindings/node/test/contract.js
+@@ -9,12 +9,13 @@
+ const ctx = new cix.Context({ outputLimit: 1 << 20, memoryLimit: 128 << 20 });
+ const source = Buffer.from('node installed SDK contract '.repeat(64));
+ assert.deepStrictEqual(ctx.decode(ctx.encode(source)), source);
+-ctx.dispose(); ctx.dispose(); assert.throws(() => ctx.encode(source));
++ctx.dispose(); ctx.dispose(); assert.throws(() => ctx.encode(source), /invalid CIX object/);
+ const encoder = new cix.Encoder({ outputLimit: 1 << 20, memoryLimit: 128 << 20 });
+-assert.throws(() => cix.Context.prototype.encode.call(encoder, source));
+-assert.throws(() => cix.Encoder.prototype.process.call(ctx, source, 4096));
+-assert.throws(() => cix.Context.prototype.decode.call({}, source));
++assert.throws(() => cix.Context.prototype.encode.call(encoder, source), /invalid CIX receiver type/);
++assert.throws(() => cix.Encoder.prototype.process.call(ctx, source, 4096), /invalid CIX receiver type/);
++assert.throws(() => cix.Context.prototype.decode.call({}, source), /invalid CIX receiver type/);
+ encoder.cancel(); assert.throws(() => encoder.process(source, 4096)); encoder.reset();
+ assert.throws(() => encoder.process(source, 1 << 21)); encoder.dispose(); encoder.dispose();
++assert.throws(() => encoder.process(source, 4096), /invalid CIX object/);
+ 
+ function drain(stream, method) {

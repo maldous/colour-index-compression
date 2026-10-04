@@ -23,7 +23,13 @@ typedef struct {
     uint32_t seen;
 } model;
 
-#define MODEL_ALIGNMENT offsetof(struct { char padding; model value; }, value)
+/* Private probe: its value member defines model's required workspace alignment. */
+typedef struct {
+    char padding;
+    model value;
+} model_alignment_probe;
+
+#define MODEL_ALIGNMENT offsetof(model_alignment_probe, value)
 
 #ifndef CIX_SQUASHFS_PROFILE_DECODER_ONLY
 typedef struct {

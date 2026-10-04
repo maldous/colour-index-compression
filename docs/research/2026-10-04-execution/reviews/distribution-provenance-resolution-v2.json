@@ -1,0 +1,34 @@
+{
+  "schema": "cix-distribution-provenance-resolution-v2",
+  "target": {"os": "linux", "architecture": "x86_64", "scope": "mandatory PAQ CLI/SDK closure"},
+  "existing_evidence": {
+    "provider_binary_map": "docs/research/2026-10-04-execution/jobs/distribution-engineering-v4/selected-provider-closure.json",
+    "paq_source_stager": "rust/cix-native/packaging/export/stage_provider_sources.py",
+    "jxl_source": "docs/research/2026-10-04-execution/jobs/jxl-bridge-v3/source.json",
+    "jxl_installed_manifest": "docs/research/2026-10-04-execution/jobs/jxl-bridge-v3/installed.json",
+    "jxl_canonical_source": {"url": "https://github.com/libjxl/libjxl.git", "branch": "v0.12.0", "commit": "a7a9c787341cf703dede03c2009fa460cae5e5df"},
+    "jxl_submodules": {"testdata": "73695d303670c90e4d506ea89d9901b081385089", "brotli": "028fb5a23661f123017c060daa546b55cf4bde29", "googletest": "6910c9d9165801d8827d628cb72eb7ea9dd538c5", "highway": "457c891775a7397bdb0376bb1031e6e027af1c48", "lcms": "5176347635785e53ee5cee92328f76fda766ecc6", "libjpeg_turbo": "8ecba3647edb6dd940463fedf38ca33a8e2a73d1", "libpng": "872555f4ba910252783af1507f9e7fe1653be252", "sjpeg": "94e0df6d0f8b44228de5be0ff35efb9f946a13c9", "skcms": "96d9171c94b937a1b5f0293de7309ac16311b722", "zlib": "51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf"},
+    "paq_tree_receipts": {
+      "v215": {"receipt": "docs/research/2026-10-04-native-rc/jobs/paq-v215-build-v1/source.json", "candidate_tree": "/home/user/src/cix-integrated-source-candidate/vendor/paq/v215", "retained_tree": "benchmark-work/references/paq8px-v215/paq8px-215", "files": 351, "identity": "complete per-file SHA-256 map; exact retained-tree match", "canonical_base": "benchmark-work/references/v215-source.json"},
+      "v216": {"receipt": "docs/research/2026-10-04-native-rc/jobs/paq-v216-qualification-v1/source.json", "candidate_tree": "/home/user/src/cix-integrated-source-candidate/vendor/paq/v216", "retained_tree": "benchmark-work/references/paq8px-v216/paq8px-216", "files": 350, "identity": "complete per-file SHA-256 map; exact retained-tree match", "canonical_base": "benchmark-work/references/v216-source.json"},
+      "joint_discount": {"receipt": "docs/research/2026-10-04-native-rc/jobs/paq-joint-discount-qualification-v1/source.json", "candidate_tree": "/home/user/src/cix-integrated-source-candidate/vendor/paq/joint-discount", "retained_tree": "benchmark-work/references/paq8px-cix-joint-discount/source", "files": 354, "identity": "complete per-file SHA-256 map; exact retained-tree match", "base": "v215", "fork_provenance": "benchmark-work/references/paq8px-cix-joint-discount/provenance.json", "fork_provenance_sha256": "9b9ed8a588a5b664f2a627e031e2c3c30f440ccdb3899c0469e76837e786eb22", "cix_repository": "https://github.com/maldous/colour-index-compression.git", "cix_commit": "b2aef743662c3cf51e3c779ef7410ac5cc4412c5"},
+      "store_state": {"receipt": "docs/research/2026-10-04-native-rc/jobs/paq-store-state-qualification-v1/source.json", "candidate_tree": "/home/user/src/cix-integrated-source-candidate/vendor/paq/store-state", "retained_tree": "benchmark-work/references/paq8px-cix-store-state/source", "files": 350, "identity": "complete per-file SHA-256 map; exact retained-tree match", "base": "v216", "fork_provenance": "benchmark-work/references/paq8px-cix-store-state/provenance.json", "fork_provenance_sha256": "716eabd2b87346032b8083acc141ec6b2b3b89b9b6bfcae99f2c8159456b60e3", "cix_repository": "https://github.com/maldous/colour-index-compression.git", "cix_commit": "b0a5528ce35976e97ae628b6f49a9b88a67eb07a"}
+    },
+    "paq_canonical_bases": {
+      "v215": {"url": "https://codeload.github.com/hxim/paq8px/tar.gz/refs/tags/v215", "archive_sha256": "e3a86a08961f90bab73b01cb3db27327471a701b6ac2dde0c972e5b6f78c0737", "commit": "e80eed27ae8a673ccb016f1b158cff1b7150fcf6"},
+      "v216": {"url": "https://codeload.github.com/hxim/paq8px/tar.gz/refs/tags/v216", "archive_sha256": "d231d814a0dc79657a2691ed166692a5dfbfa740388357654253ecadbdf8ef75", "commit": "bf7b658fdcfc045a892920d01e830e6c6a790c21"}
+    }
+  },
+  "mandatory_provider_record": {
+    "required_fields": ["artifact_sha256", "source_locator", "source_identity", "build_identity", "notice_hashes", "target"],
+    "consumer": "rust/cix-native/packaging/export/final-dependency-closure.json (reserved path; absent at review time)",
+    "rule": "fail export when any mandatory provider field is absent or mismatched"
+  },
+  "blockers": {
+    "paq": ["package manifest must carry the retained resolved base and fork provenance records", "current nested Git metadata points to CIX repository commit 8d143466274ad2aaaadbf6f1ef0b9c7ec23c3cc8 and is not PAQ provenance"],
+    "jxl": ["source identity tied to every selected installed shared library"],
+    "spatial": ["current CIX bridge source-to-installed-binary record"],
+    "charls_openjpeg": ["source-package locator/checksum and binary relation"]
+  },
+  "smallest_cix_owned_fix": "Create and enforce the reserved final-dependency-closure gate; reuse PAQ SOURCE-IDENTITY.json rather than writing another PAQ stager."
+}

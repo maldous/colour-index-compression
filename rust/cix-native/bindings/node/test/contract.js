@@ -9,13 +9,14 @@ assert.throws(() => new cix.Context({ outputLimit: Number.MAX_SAFE_INTEGER + 1 }
 const ctx = new cix.Context({ outputLimit: 1 << 20, memoryLimit: 128 << 20 });
 const source = Buffer.from('node installed SDK contract '.repeat(64));
 assert.deepStrictEqual(ctx.decode(ctx.encode(source)), source);
-ctx.dispose(); ctx.dispose(); assert.throws(() => ctx.encode(source));
+ctx.dispose(); ctx.dispose(); assert.throws(() => ctx.encode(source), /context is disposed/);
 const encoder = new cix.Encoder({ outputLimit: 1 << 20, memoryLimit: 128 << 20 });
 assert.throws(() => cix.Context.prototype.encode.call(encoder, source));
 assert.throws(() => cix.Encoder.prototype.process.call(ctx, source, 4096));
 assert.throws(() => cix.Context.prototype.decode.call({}, source));
 encoder.cancel(); assert.throws(() => encoder.process(source, 4096)); encoder.reset();
 assert.throws(() => encoder.process(source, 1 << 21)); encoder.dispose(); encoder.dispose();
+assert.throws(() => encoder.process(source, 4096), /stream is disposed/);
 
 function drain(stream, method) {
   const out = [];

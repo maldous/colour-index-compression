@@ -136,7 +136,11 @@ static int unwrap(
         || !ok(e, napi_check_object_type_tag(e, th, expected_tag, &matches))) return 0;
     if (!matches) return fail(e, "invalid CIX receiver type"), 0;
     if (!ok(e, napi_unwrap(e, th, p))) return 0;
-    return *p != NULL || (fail(e, "invalid CIX object"), 0);
+    if (*p == NULL) {
+        fail(e, "invalid CIX object");
+        return 0;
+    }
+    return 1;
 }
 
 static napi_value context_new(napi_env e, napi_callback_info i) {
