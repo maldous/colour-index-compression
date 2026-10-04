@@ -1,5 +1,6 @@
 pub mod core;
 pub mod c_api;
+pub mod c_stream_api;
 mod cli;
 pub mod full_engine;
 pub mod jxl_bridge;

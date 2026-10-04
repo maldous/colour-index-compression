@@ -6,6 +6,7 @@
 
 use crate::full_engine::arithmetic::{vdecode, vencode};
 use crc32fast::hash as crc32;
+use sha2::{Digest, Sha256};
 
 pub const SPATIAL_MAGIC: &[u8; 5] = b"CIXI\x01";
 pub const VOLUME_MAGIC: &[u8; 5] = b"CIXV\x01";
@@ -19,6 +20,29 @@ pub struct DicomRegion {
     pub width: usize,
     pub height: usize,
     pub slice_height: usize,
+}
+
+/// The complete archive chosen between the equivalent mode-3 CIXV1 and
+/// zero-lifting CIXI2 envelopes. The shared JPEG XL payload is encoded once.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SharedIdentityArchive {
+    pub archive: Vec<u8>,
+    pub report: SharedIdentityReport,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SharedIdentityFormat {
+    CixV1,
+    CixI2,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SharedIdentityReport {
+    pub cixv1_logical_bytes: usize,
+    pub cixi2_logical_bytes: usize,
+    pub selected_format: SharedIdentityFormat,
+    pub payload_sha256: [u8; 32],
+    pub shared_current_encode: bool,
 }
 
 fn le16(data: &[u8], at: usize) -> Option<u16> {
@@ -435,6 +459,83 @@ pub fn encode_volume<B: ImageBackend>(
     Ok(frame)
 }
 
+/// Encode the current bytes once as CIXV1 mode 3 at effort 10, then construct
+/// the equivalent CIXI2 axes=0/levels=0/predictor=0 envelope around that same
+/// metadata and JPEG XL payload. This is framing selection, not a payload
+/// cache: each call encodes the supplied bytes exactly once.
+pub fn encode_volume_shared_identity<B: ImageBackend>(
+    data: &[u8],
+    region: &DicomRegion,
+    backend: &B,
+) -> Result<SharedIdentityArchive, String> {
+    let cixv1 = encode_volume(data, region, 3, 10, backend)?;
+    let mut pos = 6usize;
+    if cixv1.get(..5) != Some(VOLUME_MAGIC) || cixv1.get(5) != Some(&3) {
+        return Err("unexpected mode-3 volume frame".into());
+    }
+    let mut fields = [0usize; 8];
+    for field in &mut fields {
+        let (value, next) = vdecode(&cixv1, pos)?;
+        *field = usize::try_from(value).map_err(|_| "mode-3 field overflow")?;
+        pos = next;
+    }
+    let [original, offset, length, depth, height, width, metadata_len, payload_len] = fields;
+    let pixel_bytes = depth
+        .checked_mul(height)
+        .and_then(|pixels| pixels.checked_mul(width))
+        .and_then(|pixels| pixels.checked_mul(2))
+        .ok_or("mode-3 dimensions overflow")?;
+    let checksum_end = pos.checked_add(4).ok_or("mode-3 frame overflow")?;
+    let metadata_end = checksum_end
+        .checked_add(metadata_len)
+        .ok_or("mode-3 frame overflow")?;
+    let payload_end = metadata_end
+        .checked_add(payload_len)
+        .ok_or("mode-3 frame overflow")?;
+    if length != pixel_bytes
+        || offset.checked_add(length).is_none_or(|end| end > original)
+        || payload_end != cixv1.len()
+    {
+        return Err("invalid mode-3 frame bounds".into());
+    }
+    let checksum = &cixv1[pos..checksum_end];
+    let metadata = &cixv1[checksum_end..metadata_end];
+    let payload = &cixv1[metadata_end..payload_end];
+
+    let mut cixi2 = MULTISCALE_MAGIC.to_vec();
+    cixi2.extend([0, 0, 0]);
+    for value in [original, offset, depth, height, width, metadata_len] {
+        cixi2.extend(vencode(value as u64));
+    }
+    cixi2.extend_from_slice(checksum);
+    cixi2.extend_from_slice(metadata);
+    cixi2.extend(vencode(payload_len as u64));
+    cixi2.extend_from_slice(payload);
+
+    let cixv1_logical_bytes = cixv1.len();
+    let cixi2_logical_bytes = cixi2.len();
+    let payload_sha256: [u8; 32] = Sha256::digest(payload).into();
+    let selected_format = if cixi2.len() < cixv1.len() {
+        SharedIdentityFormat::CixI2
+    } else {
+        SharedIdentityFormat::CixV1
+    };
+    let archive = match selected_format {
+        SharedIdentityFormat::CixV1 => cixv1,
+        SharedIdentityFormat::CixI2 => cixi2,
+    };
+    Ok(SharedIdentityArchive {
+        archive,
+        report: SharedIdentityReport {
+            cixv1_logical_bytes,
+            cixi2_logical_bytes,
+            selected_format,
+            payload_sha256,
+            shared_current_encode: true,
+        },
+    })
+}
+
 pub fn decode_volume<B: ImageBackend>(
     frame: &[u8],
     maximum: usize,
@@ -520,6 +621,21 @@ pub fn encode_spatial<B: ImageBackend>(
     region: &DicomRegion,
     backend: &B,
 ) -> Result<Vec<u8>, String> {
+    encode_spatial_with_effort(data, region, 7, backend)
+}
+
+/// Encode the retained CIXI1 grayscale-JXL envelope at an explicitly selected
+/// frozen JPEG XL effort. The historical `encode_spatial` entry point remains
+/// the exact effort-7 form.
+pub fn encode_spatial_with_effort<B: ImageBackend>(
+    data: &[u8],
+    region: &DicomRegion,
+    effort: u8,
+    backend: &B,
+) -> Result<Vec<u8>, String> {
+    if !(1..=10).contains(&effort) {
+        return Err("spatial JPEG XL effort must be in 1..=10".into());
+    }
     let pixels = region
         .width
         .checked_mul(region.height)
@@ -541,7 +657,7 @@ pub fn encode_spatial<B: ImageBackend>(
         region.height,
         region.width,
         false,
-        7,
+        effort,
     )?;
     let metadata = backend.lzma_compress(
         &[
@@ -1076,6 +1192,7 @@ pub fn decode_multiscale<B: ImageBackend>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::cell::Cell;
 
     #[test]
     fn signed_wrap_matches_reference_and_all_volume_modes_restore() {
@@ -1197,6 +1314,89 @@ mod tests {
         }
     }
 
+    struct IdentityBackend {
+        encodes: Cell<usize>,
+        last_effort: Cell<u8>,
+    }
+
+    impl IdentityBackend {
+        fn new() -> Self {
+            Self {
+                encodes: Cell::new(0),
+                last_effort: Cell::new(0),
+            }
+        }
+    }
+
+    impl ImageBackend for IdentityBackend {
+        fn lzma_compress(&self, source: &[u8]) -> Result<Vec<u8>, String> {
+            Ok(source.to_vec())
+        }
+
+        fn lzma_decompress(
+            &self,
+            source: &[u8],
+            expected: usize,
+            _memory: usize,
+        ) -> Result<Vec<u8>, String> {
+            if source.len() != expected {
+                return Err("identity metadata length mismatch".into());
+            }
+            Ok(source.to_vec())
+        }
+
+        fn jpegxl_encode(
+            &self,
+            pixels: &[u8],
+            _depth: usize,
+            _height: usize,
+            _width: usize,
+            _planar: bool,
+            effort: u8,
+        ) -> Result<Vec<u8>, String> {
+            self.encodes.set(self.encodes.get() + 1);
+            self.last_effort.set(effort);
+            Ok(pixels.to_vec())
+        }
+
+        fn jpegxl_probe(
+            &self,
+            payload: &[u8],
+            expected_pixels: usize,
+            _memory: usize,
+        ) -> Result<JpegxlImageInfo, String> {
+            if payload.len() != expected_pixels.checked_mul(2).ok_or("overflow")? {
+                return Err("identity paid pixel mismatch".into());
+            }
+            Ok(JpegxlImageInfo {
+                depth: 1,
+                height: 1,
+                width: expected_pixels,
+            })
+        }
+
+        fn jpegxl_decode(
+            &self,
+            payload: &[u8],
+            expected: usize,
+            depth: usize,
+            height: usize,
+            width: usize,
+            _memory: usize,
+        ) -> Result<Vec<u8>, String> {
+            if depth
+                .checked_mul(height)
+                .and_then(|pixels| pixels.checked_mul(width))
+                .and_then(|pixels| pixels.checked_mul(2))
+                != Some(expected)
+                || payload.len() != expected
+            {
+                return Err("identity JPEG XL shape mismatch".into());
+            }
+            Ok(payload.to_vec())
+        }
+    }
+
     #[test]
     fn spatial_jxl_round_trip_probes_paid_pixels_before_decode() {
         let data = [9_u8, 8, 1, 0, 2, 0, 3, 0, 4, 0, 7, 6];
@@ -1215,6 +1415,63 @@ mod tests {
             decode_spatial(&frame, data.len(), 128 << 20, &backend).unwrap(),
             data
         );
+    }
+
+    #[test]
+    fn spatial_effort_wrapper_preserves_default_and_accepts_effort_ten() {
+        let data = [9_u8, 8, 1, 0, 2, 0, 3, 0, 4, 0, 7, 6];
+        let region = DicomRegion {
+            offset: 2,
+            length: 8,
+            width: 2,
+            height: 2,
+            slice_height: 2,
+        };
+        let backend = IdentityBackend::new();
+        encode_spatial(&data, &region, &backend).unwrap();
+        assert_eq!(backend.last_effort.get(), 7);
+        encode_spatial_with_effort(&data, &region, 10, &backend).unwrap();
+        assert_eq!(backend.last_effort.get(), 10);
+        assert!(encode_spatial_with_effort(&data, &region, 0, &backend).is_err());
+        assert_eq!(backend.encodes.get(), 2);
+    }
+
+    #[test]
+    fn shared_mode3_identity_encodes_once_and_restores_zero_lifting_cixi2() {
+        let region = DicomRegion {
+            offset: 3,
+            // A three-byte paid region length makes the zero-lifting CIXI2
+            // header strictly smaller than its CIXV1 mode-3 counterpart.
+            length: 32_768,
+            width: 128,
+            height: 128,
+            slice_height: 64,
+        };
+        let mut data = b"pre".to_vec();
+        for value in 0..(region.length / 2) {
+            data.extend_from_slice(&(value as u16).to_le_bytes());
+        }
+        data.extend_from_slice(b"post");
+        let backend = IdentityBackend::new();
+        let shared = encode_volume_shared_identity(&data, &region, &backend).unwrap();
+        assert_eq!(backend.encodes.get(), 1);
+        assert_eq!(backend.last_effort.get(), 10);
+        assert!(shared.report.shared_current_encode);
+        assert_eq!(
+            shared.report.payload_sha256,
+            <[u8; 32]>::from(Sha256::digest(&data[3..3 + region.length]))
+        );
+        assert!(shared.report.cixi2_logical_bytes < shared.report.cixv1_logical_bytes);
+        assert_eq!(shared.report.selected_format, SharedIdentityFormat::CixI2);
+        let restored = match shared.report.selected_format {
+            SharedIdentityFormat::CixV1 => {
+                decode_volume(&shared.archive, data.len(), 128 << 20, &backend).unwrap()
+            }
+            SharedIdentityFormat::CixI2 => {
+                decode_multiscale(&shared.archive, data.len(), 128 << 20, &backend).unwrap()
+            }
+        };
+        assert_eq!(restored, data);
     }
 
     #[test]

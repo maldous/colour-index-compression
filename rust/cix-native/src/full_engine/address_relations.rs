@@ -31,6 +31,10 @@ const SYMBOL_LOAD_TRAILER: &[u8; 5] = b"ECSL1";
 const PDATA_TRAILER: &[u8; 5] = b"ECPD1";
 const PDATA_SYMBOL_TRAILER: &[u8; 5] = b"ECPD2";
 const GOT_BLOCK: usize = 1024;
+// Address inverse chains retain the backend raw stream, then rebuild several
+// nested skeletons (pointer/GOT/fields/constraints).  Six declared-source
+// buffers cover those simultaneously owned vectors before any inverse starts.
+const ADDRESS_INVERSE_BUFFERS: usize = 6;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BackendVariant {
@@ -395,6 +399,15 @@ fn verify(data: Vec<u8>, size: usize, checksum: u32) -> Result<Vec<u8>, String> 
         return Err("executable source checksum mismatch".into());
     }
     Ok(data)
+}
+
+fn address_inverse_workspace(declared: usize, memory: usize) -> Result<usize, String> {
+    let reserve = declared
+        .checked_mul(ADDRESS_INVERSE_BUFFERS)
+        .ok_or("executable inverse workspace overflow")?;
+    memory
+        .checked_sub(reserve)
+        .ok_or_else(|| "executable inverse workspace exceeds memory limit".to_string())
 }
 
 fn backend_selector(variant: BackendVariant) -> Result<u8, String> {
@@ -1916,6 +1929,29 @@ fn pdata_symbols_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
     symbol_load_inverse(&output)
 }
 
+/// Content-only eligibility for the historical GOT route; no filename, hash,
+/// or external object identity participates in this decision.
+pub fn eligible_got(source: &[u8]) -> bool {
+    got_candidates(source, true).is_ok_and(|fields| !fields.is_empty())
+}
+
+/// Content-only eligibility for relocated-pointer delta candidates.
+pub fn eligible_pointer_deltas(source: &[u8]) -> bool {
+    relocated_pointer_candidates(source, true).is_ok_and(|fields| !fields.is_empty())
+}
+
+/// Content-only eligibility for the mode-4 section-pointer transform.
+pub fn eligible_section_pointers(source: &[u8]) -> bool {
+    section_pointer_candidates(source, 4).is_ok_and(|fields| !fields.is_empty())
+}
+
+/// Content-only eligibility for filtered pdata/symbol relations.  At least one
+/// physical pdata table is required; symbol-load membership is evaluated by
+/// the transform itself and can legitimately have zero hits.
+pub fn eligible_filtered_pdata(source: &[u8]) -> bool {
+    !pdata_tables(source).is_empty()
+}
+
 /// The immediate `ecoff_relocated_pointers` dependency.  Every alphabet is
 /// derived from symbols carried in these object bytes; `key` preserves the
 /// reference implementation's per-symbol predictor identity even where two
@@ -2189,6 +2225,15 @@ pub fn encode_checked_frame(
         }
         _ => {}
     }
+    let expected = match (frame, mode) {
+        (HistoricalFrame::JointDiscount, _) => Transform::SectionPointers { mode: 4 },
+        (HistoricalFrame::Filtered, 2) => Transform::Identity,
+        (HistoricalFrame::Filtered, _) => Transform::PdataSymbols { mode: 1 },
+        _ => unreachable!(),
+    };
+    if transform != expected {
+        return Err("checked executable transform does not match frame mode".into());
+    }
     let raw = transform_encode(transform, source)?;
     let mut output = Vec::new();
     output.extend_from_slice(magic);
@@ -2246,7 +2291,17 @@ pub fn decode_checked_frame(
         (HistoricalFrame::JointDiscount, _) => Transform::SectionPointers { mode: 4 },
         _ => unreachable!(),
     };
-    let raw = backend(&request, &bytes[checksum_end..], memory_limit)?;
+    // Keep the paid restored source live while the backend result is inverted:
+    // give the backend only the remaining workspace, then verify its callback
+    // contract before any transform allocates its own reconstruction state.
+    let backend_limit = address_inverse_workspace(declared, memory_limit)?;
+    let raw = backend(&request, &bytes[checksum_end..], backend_limit)?;
+    if raw.len() > backend_limit {
+        return Err("backend ignored executable workspace limit".into());
+    }
+    if transform == Transform::Identity && raw.len() != declared {
+        return Err("identity executable raw length differs from declaration".into());
+    }
     let restored = transform_decode(transform, &raw)?;
     if restored.len() > memory_limit {
         return Err("legacy output exceeds memory limit".into());
@@ -2338,6 +2393,7 @@ pub fn decode_transformed_frame(
             .map_err(|_| "invalid checksum")?,
     );
     let payload_start = checksum_end;
+    let backend_limit = address_inverse_workspace(declared, memory_limit)?;
     let raw = backend(
         &BackendRequest {
             variant,
@@ -2345,8 +2401,14 @@ pub fn decode_transformed_frame(
             stream: 0,
         },
         &bytes[payload_start..],
-        memory_limit,
+        backend_limit,
     )?;
+    if raw.len() > backend_limit {
+        return Err("backend ignored executable workspace limit".into());
+    }
+    if transform == Transform::Identity && raw.len() != declared {
+        return Err("identity executable raw length differs from declaration".into());
+    }
     let restored = transform_decode(transform, &raw)?;
     if restored.len() > memory_limit {
         return Err("legacy output exceeds memory limit".into());
@@ -2403,11 +2465,12 @@ pub fn admission(source: &[u8]) -> BTreeSet<String> {
 #[cfg(test)]
 mod tests {
     use super::{
-        crc32, decode_choices, decode_transformed_frame, encode_choices, fields_transform,
-        got_inverse, got_transform, pdata_inverse, pdata_symbols_inverse, pdata_symbols_transform,
-        pdata_transform, pointer_delta_inverse, pointer_delta_transform, section_pointer_inverse,
-        section_pointer_transform, symbol_load_inverse, symbol_load_transform, vencode,
-        HistoricalFrame, GOT_MAGIC,
+        crc32, decode_checked_frame, decode_choices, decode_transformed_frame, encode_choices,
+        fields_transform, got_inverse, got_transform, pdata_inverse, pdata_symbols_inverse,
+        pdata_symbols_transform, pdata_transform, pointer_delta_inverse, pointer_delta_transform,
+        section_pointer_inverse, section_pointer_transform, symbol_load_inverse,
+        symbol_load_transform, vencode, BackendRequest, BackendVariant, HistoricalFrame,
+        FILTER_MAGIC, GOT_MAGIC,
     };
 
     #[test]
@@ -2622,5 +2685,40 @@ mod tests {
             .unwrap(),
             SOURCE
         );
+    }
+
+    #[test]
+    fn address_inverse_workspace_rejects_paid_lengths_before_backend_allocation() {
+        assert!(super::address_inverse_workspace(1024, 6 * 1024).is_ok());
+        assert!(super::address_inverse_workspace(1025, 6 * 1024).is_err());
+        assert!(super::address_inverse_workspace(usize::MAX, usize::MAX).is_err());
+    }
+
+    #[test]
+    fn identity_checked_frame_rejects_mismatched_raw_before_clone() {
+        let source = b"x";
+        let mut frame = FILTER_MAGIC.to_vec();
+        frame.push(2);
+        frame.extend(vencode(1));
+        frame.extend(crc32(source).to_be_bytes());
+        frame.push(0);
+        let request = BackendRequest {
+            variant: BackendVariant::Brotli,
+            options: String::new(),
+            stream: 0,
+        };
+        let mut backend = |_request: &_, _payload: &[u8], limit: usize| {
+            assert_eq!(limit, 94);
+            Ok(vec![0; 2])
+        };
+        assert!(decode_checked_frame(
+            HistoricalFrame::Filtered,
+            &frame,
+            1,
+            100,
+            request,
+            &mut backend
+        )
+        .is_err());
     }
 }

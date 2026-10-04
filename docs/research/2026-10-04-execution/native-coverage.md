@@ -2,17 +2,18 @@
 
 **Status: source inventory refreshed 2026-10-05.** This is not a full-route
 qualification or portfolio receipt. It reads the current 41-module Python
-reference tree and current native tree, and records only the narrow
-`address_relations` foundation-v12/v13 test evidence cited below. It does not
-reopen a benchmark or claim a current portfolio result.
+reference tree and current native tree, and records only the bounded
+`catalogue-v4` library-test evidence cited below. It does not reopen a benchmark
+or claim a current portfolio result.
 
-The decisive observation is architectural: `rust/cix-native/src/full_engine`
-contains several real reversible implementations. `mixed.rs` and `regions.rs`
-now also provide a compiled CIXH1 carrier and input-derived region discovery.
-However, the inspected native selector, generic archive decoder, and portfolio
-code still do not call a full-engine specialist catalogue. A module can
-therefore be *library-only* without being an available CIX route. Every route
-below remains unqualified as an ordinary CLI route.
+The current native tree now has a compiled content-only catalogue, a
+`FullEngine` provider/frame dispatcher, a CIXH1 carrier, region discovery, and
+a C incremental-stream API. The recorded catalogue-v4 run exercised that
+library boundary. The ordinary CLI and generic portfolio selector still do not
+call the catalogue or `FullEngine`, and there is no automatic mixed-region
+encoder. A route can therefore be *library-tested but unwired* without being
+an available normal CIX command-line route.
+
 
 ## Wire boundary
 
@@ -27,8 +28,9 @@ inverse; it must never infer a family merely from a printable prefix.
 The complete machine-readable module and wire map is
 [native-coverage.json](native-coverage.json). Status words mean:
 
-- **library-only**: native reversible functions exist but no admitted top-level
-  selection or decode edge reaches them.
+- **library-only**: native reversible functions exist but no full route claim is made.
+- **library-tested-unwired**: a narrow provider/frame library path is tested,
+  but normal CLI selection and encoding do not reach it.
 - **partial-unwired**: source has part of the route, but lacks a required
   transform, provider stack, envelope, or dispatch edge.
 - **declared-but-unlinked**: native source explicitly rejects the transform.
@@ -36,68 +38,59 @@ The complete machine-readable module and wire map is
 
 ## Actual native coverage by reference module
 
-| Reference module(s) | Current native evidence | Status | Missing dispatch requirement |
+| Reference module(s) | Current native evidence | Status | Remaining gap |
 |---|---|---|---|
-| `backends.py` | `paq_bridge.rs`, `paq_supervisor.rs`; `CIXP\x01` ids 1 and 2 are represented by `full_engine/containers.rs` | partial-unwired | Catalog and decoder must bind v215/v216 workers; joint-discount and store-state remain distinct, non-`CIXP` variants. |
-| `engine.py`, `model.py`, `specialized.py` | No native `catalog` or selector module | absent | Input-derived candidate registry, selection, and frame dispatch. |
-| `heterogeneous.py` | `mixed.rs::encode_with/decode_with` implements the CIXH1 carrier | library-only | Catalog selection and top-level CIXH1 decode dispatch. |
-| `regions.py` | `regions.rs::structured_regions/regions/boundaries` implements bounded input-derived discovery | library-only | Catalog selection and carrier binding. |
-| `chemical_db.py`, `sdf_geometry.py`, `sdf_hydrogen.py` | `graph_residuals.rs`, `structured_frames.rs` implement transforms/envelope callbacks | library-only | Bind `CIXG\x01`/`CIXQ\x01` to PAQ and catalog/decode. |
-| `mysql_record_constraints.py`, `mysql_fixed_columns.py` | `record_ordering.rs` implements matching transforms and `CIXD\x01`/`CIXD\x02` frame functions | library-only | Bind backend, admission, and top-level decode. |
-| `mysql_remaining_counts.py` | Arithmetic helpers and record primitives only | partial-unwired | Exact remaining-count CIXD route and its backend/catalog/decode. |
-| `ordered_subset.py`, `multinomial.py`, `framing.py` | `arithmetic.rs` provides range/rank/checksum primitives | library-only | Consumer route must prove exact payload layout. |
-| `ecoff_constraints.py`, `ecoff_fields.py`, `ecoff_got.py`, `ecoff_pointer_deltas.py` | `address_relations.rs` implements reversible transforms and CIXB frame helpers | library-only | Backend callback binding plus native specialist dispatch. |
-| `ecoff_section_pointers.py`, `ecoff_pdata.py`, `ecoff_pdata_symbols.py`, `ecoff_symbol_loads.py` | `address_relations.rs` has active internal `ECSP1`, `ECPD1`, `ECPD2`, and `ECSL1` chains | library-only | Exact nested PAQ/Brotli/store-state backend stacks, public route binding, catalog, and top-level decode. |
-| `ecoff_call_entries.py` | No native equivalent found | absent | Transform, inverse, fixture and dispatch. |
-| `ecoff_relocated_pointers.py` | Candidate parsing exists privately in `address_relations.rs`; no public transform/frame route | partial-unwired | Exact transform/inverse and framing. |
-| `executable.py` | Frame constructors/parsers for `CIXB\x03`, `\x0b`, `\x0c`, `\x13`, `\x1d` | partial-unwired | Exact native backend stacks, catalogue/top-level dispatch, and still-unported call-entry/relocated-pointer route coverage; do not advertise frame recognition as decode support. |
-| `grid_backend.py`, `grid_conditional.py`, `grid_context.py`, `grid_feedback.py`, `grid_grouped.py`, `grid_interval.py`, `image_grid.py`, `record_float_grid.py` | `strided_values.rs` is a bounded WCS-grid route only | absent | Each exact reference transform/frame plus catalog and decoder. |
-| `multiscale_volume.py`, `spatial_image_codec.py`, `volume_image_codec.py` | `volume_lifting.rs` and `jxl_provider.rs` provide generic backend-injected frames | library-only | Pinned native JXL provider, route admission and archive dispatch. |
-| `cli.py`, `__init__.py`, `legacy/__init__.py` | Native CLI/generic decoder exists | partial-unwired | Route table must expose all completed specialist encoders/decoders under the ordinary executable. |
+| `backends.py` | `backend_provider.rs`, PAQ bridge/supervisor and `FullEngine` | library-tested-unwired | CLI/portfolio has no FullEngine call. |
+| `engine.py`, `specialized.py` | `catalogue.rs::catalog`, `dispatch.rs::FullEngine` | library-tested-unwired | Candidate evaluation, winner selection and CLI binding. |
+| `heterogeneous.py`, `regions.py` | `mixed.rs`, `regions.rs`, recursive CIXH1 library decode | library-tested-unwired | Automatic region-to-candidate encoding and CLI binding. |
+| `chemical_db.py`, `sdf_geometry.py`, `sdf_hydrogen.py` | Graph/structured frames through FullEngine | library-tested-unwired | Normal CLI selection. |
+| `mysql_record_constraints.py`, `mysql_fixed_columns.py`, `mysql_remaining_counts.py` | `record_ordering.rs`; mode-three remaining-count route is exact and dispatched | library-tested-unwired | Normal CLI selection. |
+| `ecoff_constraints.py`, `ecoff_fields.py`, `ecoff_got.py`, `ecoff_pointer_deltas.py`, `ecoff_section_pointers.py`, `ecoff_pdata.py`, `ecoff_pdata_symbols.py`, `ecoff_symbol_loads.py`, `executable.py` | `address_relations.rs` plus FullEngine, including `ECSP1`/`ECSL1`/`ECPD1`/`ECPD2` | library-tested-unwired | Normal CLI selection; call-entry and relocated-pointer routes remain unported. |
+| `ecoff_call_entries.py`, `ecoff_relocated_pointers.py` | No complete native route | absent / partial | Exact transform, inverse, frame binding and fixtures. |
+| `grid_backend.py` | `bounded_values.rs`; `CIXB\x1e` is dispatched | library-tested-unwired | Normal CLI selection. |
+| `grid_grouped.py` | `conditional_values.rs`; `CIXB\x21` is dispatched | library-tested-unwired | Normal CLI selection. |
+| `grid_feedback.py`, `grid_interval.py` | Raw parent work in `bounded_values.rs` | partial-unwired | Their historical `CIXY\x01` / `CIXZ\x01` outer-frame decoders are absent. |
+| `grid_context.py`, `grid_conditional.py`, `image_grid.py` | No matching native historical frame route | absent | `CIXB\x1f`, `CIXB\x20`, and image-grid transform/frame routes. |
+| `record_float_grid.py` | `strided_values.rs` handles `CIXS\x01`/`SAGR1`; FullEngine decodes it | library-tested-unwired | Catalogue recipe and normal CLI encode. |
+| `multiscale_volume.py`, `spatial_image_codec.py`, `volume_image_codec.py` | Volume/JXL frames via FullEngine | library-tested-unwired | Normal CLI selection; J2K/JLS modes remain unsupported. |
+| `ordered_subset.py`, `multinomial.py`, `framing.py` | `arithmetic.rs` primitives | library-only | Each consumer owns exact wire compatibility. |
+| `cli.py`, `__init__.py`, `legacy/__init__.py` | Generic CLI plus `c_stream_api.rs` | partial-unwired | Seven C stream contract tests passed; CLI has no specialist automatic route. |
 
-## Historical portfolio26: highest-priority missing paths
 
-The historical baseline is evidence only, but it establishes which paths must
-be accounted for before the native RC can represent the prior 12-member
-portfolio. It records five generic v216 members, plus these specialist
-families:
+## Remaining native frames and integrations before engine completion
 
-1. **PAQ v215/v216 bridge and supervised native dispatch.** Required by the
-   generic PAQ winners and by the chemical/database paths. The recorded
-   Dickens v215 `-9L` improvement also depends on it. `CIXP\x01` only assigns
-   v215 and v216; it must not be reused for joint-discount or store-state.
-2. **Executable joint-discount/filtered chain.** The historical Mozilla route
-   needs `CIXB\x1d`, the now-active section-pointer chain, its exact PAQ mode,
-   and a bounded native decoder. The `ECSL1`/`ECPD1`/`ECPD2` chain has narrow
-   foundation evidence, but no native catalogue or nested
-   PAQ/Brotli/store-state route stack has been wired, so frame helpers alone
-   cannot restore a finished archive.
-3. **Volume/JXL and multiscale.** Current volume code is backend-injected,
-   while no native catalogue opens the pinned provider or emits/recognizes the
-   route. The recorded multiscale comparison needs the envelope retained even
-   though it did not show a new payload gain.
-4. **Chemical and database.** The core transforms exist, but neither can be
-   selected or decoded from an ordinary native archive. The historical NCI and
-   OSDB routes depend on those missing edges.
-5. **Grouped-grid and LSTM/prediction.** No corresponding native
-   implementations were found. They are needed to account for the historical
-   SAO and Webster winners; the recorded `-12L` Webster comparison remains
-   resource-excluded under the stated 12 GB bound.
-6. **Heterogeneous carrier.** `mixed.rs` now provides a native CIXH1 carrier
-   and `regions.rs` provides discovery, but no catalogue/selector or top-level
-   decoder wires them into the ordinary CLI. This remains distinct from
-   whole-file portfolio selection.
+The library catalogue and dispatcher now cover focused PAQ/JXL frames, but the
+following items remain distinct from that progress:
+
+1. **Ordinary CLI integration.** Bind content-derived catalogue admission,
+   explicit candidate comparison, resource accounting, and `FullEngine` archive
+   dispatch into `cix`/`uncix`. Keep generic whole-file alternatives eligible.
+2. **Automatic mixed encoding.** CIXH1 decode/carrier and region discovery are
+   present, but no policy chooses per-region recipes or compares the complete
+   paid carrier with whole-file candidates.
+3. **Historical grid frame gaps.** `CIXB\x1e` bounded and `CIXB\x21` grouped
+   are present. `CIXB\x1f` context, `CIXB\x20` conditional, `CIXY\x01`
+   feedback, and `CIXZ\x01` interval remain separate unsupported historical
+   decoder identities.
+4. **Image provider gaps.** Current pinned JXL supports the mode-1 image paths.
+   `CIXI\x01` JPEG-2000 mode 2 and JPEG-LS mode 3 still require their own
+   pinned native providers and bounded dispatch; they must not be aliased to JXL.
+5. **Executable and prediction gaps.** Call-entry and relocated-pointer routes
+   lack complete native ports. No LSTM/prediction route was found. The latter’s
+   recorded `-12L` reference remains outside the stated 12 GB bound.
+
+
 
 ## Narrow tested-module evidence
 
-Foundation-v12 recorded the nontrivial active/ambiguous relation coverage;
-foundation-v13 records the corrected malformed-case pass, an offline check/build,
-and 11 passing `full_engine::address_relations` tests. That narrow scope includes frozen ECOFF
-relation vectors, active and ambiguous symbol-load cases, section-pointer and
-pdata-symbol reversibility, and malformed GOT/pointer metadata rejection. It
-does **not** test a provider-backed CIXB archive, catalog selection, mixed
-carrier routing, or ordinary CLI dispatch. The source remains the authority for
-the coverage table; the test receipt narrows confidence only for that module.
+The source-bound `catalogue-v4` receipt records offline check/build, 73 passing
+`full_engine` tests, and seven C-stream contract tests. Its installed-provider
+probe encoded and restored 12 PAQ-backed complete frames and two JXL frames.
+This supports the specific library paths tested under pinned test paths. It does
+not exercise the ordinary CLI’s automatic specialist selection, automatic CIXH1
+encoding, full JPEG-LS/JPEG-2000 support, or a portfolio/benchmark claim.
+
+
 
 ## Required dispatch shape
 

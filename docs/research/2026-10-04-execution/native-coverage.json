@@ -1,15 +1,16 @@
 {
   "schema": "cix.native-coverage.v1",
   "created": "2026-10-05",
-  "scope": "read-only source inventory refreshed 2026-10-05; source state plus the narrow recorded foundation-v12/v13 address-relations test scope. It is neither full-route qualification nor a portfolio result.",
+  "scope": "read-only source inventory refreshed 2026-10-05 after catalogue-v4. It records the bounded library test receipt for full_engine and C streaming, but neither an ordinary-CLI integration nor a portfolio/benchmark result.",
   "reference_root": "runtime/cix_runtime (41 Python modules)",
   "native_root": "rust/cix-native/src/full_engine plus paq bridge/supervisor and generic engine",
-  "observed_dispatch_fact": "Search of rust/cix-native/src finds full_engine referenced by lib.rs/module internals, but no current generic engine, portfolio selector, or top-level archive decode dispatch invokes a specialist full_engine route. The new mixed.rs and regions.rs are compiled library carrier/discovery components, not evidence of top-level specialist admission.",
+  "observed_dispatch_fact": "The current native tree has a compiled full_engine::catalogue and FullEngine archive dispatch/provider surface. catalogue-v4 tested that library surface. The ordinary CLI/generic portfolio selector still contains no call into full_engine catalogue/dispatch, so specialist routes remain unavailable to normal automatic CLI operation.",
   "status_meanings": {
     "library_only": "reversible native functions exist, but no current generic/full-engine selector or top-level archive dispatcher calls them",
     "partial_unwired": "some native code or a descriptor exists, but a required transform, backend stack, envelope, or dispatch edge is absent",
     "declared_but_unlinked": "the type/frame surface names the route but source explicitly returns an unlinked-transform error",
-    "absent": "no equivalent native implementation was found in the inspected source"
+    "absent": "no equivalent native implementation was found in the inspected source",
+    "library_tested_unwired": "compiled native library route with narrow recorded source-bound focused tests, but no ordinary CLI automatic selector/encoder integration; it is not a release qualification"
   },
   "wire_contract": {
     "binary_specialist_prefixes": {
@@ -39,53 +40,60 @@
       "ECSL1": "symbol-load transform payload",
       "ECPD1": "pdata transform payload",
       "ECPD2": "combined pdata-symbol transform payload"
+    },
+    "unsupported_historical_frames": {
+      "CIXB\\x1f": "grid_context reference decoder not found in FullEngine dispatch",
+      "CIXB\\x20": "grid_conditional reference decoder not found in FullEngine dispatch",
+      "CIXY\\x01": "grid_feedback outer frame not found in FullEngine dispatch",
+      "CIXZ\\x01": "grid_interval outer frame not found in FullEngine dispatch",
+      "CIXI\\x01 mode 2/3": "reference JPEG-2000/JPEG-LS providers are not linked; current JXL provider is mode 1 only"
     }
   },
   "modules": [
     {
       "runtime_module": "__init__.py",
       "family": "shared package surface",
-      "native_evidence": "none",
-      "historical_wire_or_raw_identity": "none",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "c_stream_api.rs has C incremental stream surface; generic CLI remains separate",
+      "historical_wire_or_raw_identity": "generic CIX stream ABI, not a specialist envelope",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "seven C stream contract tests passed; CLI does not expose FullEngine automatic selection",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "backends.py",
       "family": "PAQ/native backend adapter",
-      "native_evidence": "paq_bridge.rs; paq_supervisor.rs",
-      "historical_wire_or_raw_identity": "CIXP\\x01 ids 1=v215,2=v216",
-      "implementation_status": "partial_unwired",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "full_engine/backend_provider.rs + paq_bridge.rs/paq_supervisor.rs; FullEngine provider dispatch",
+      "historical_wire_or_raw_identity": "CIXP\\x01 ids 1=v215,2=v216; joint/store-state stay distinct specialist payloads",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed library decode/encode is tested; CLI/catalogue winner selection is unwired",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "cli.py",
       "family": "CLI adapter",
-      "native_evidence": "cli.rs",
-      "historical_wire_or_raw_identity": "generic archive magics only",
-      "implementation_status": "partial_unwired",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "c_stream_api.rs has C incremental stream surface; generic CLI remains separate",
+      "historical_wire_or_raw_identity": "generic CIX stream ABI, not a specialist envelope",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "seven C stream contract tests passed; CLI does not expose FullEngine automatic selection",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "engine.py",
       "family": "specialist catalogue / decode dispatch",
-      "native_evidence": "full_engine/{catalog,regions,mixed,scheduler}.rs (absent)",
-      "historical_wire_or_raw_identity": "all specialist frames",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "full_engine/catalogue.rs::catalog and dispatch.rs::FullEngine",
+      "historical_wire_or_raw_identity": "specialist frames listed by recipe",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "explicit recipe encode/decode exists; ordinary CLI does not call it",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "heterogeneous.py",
       "family": "mixed-region carrier",
-      "native_evidence": "full_engine/mixed.rs::encode_with/decode_with (CIXH1 carrier)",
+      "native_evidence": "full_engine/mixed.rs::encode_with/decode_with plus dispatch recursive CIXH1 decode",
       "historical_wire_or_raw_identity": "CIXH1",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: carrier exists but no catalog/selector/top-level decoder invokes it",
-      "qualification": "not qualified"
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "carrier decode is dispatched; automatic region-to-recipe mixed encoding is absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "image_grid.py",
@@ -99,20 +107,20 @@
     {
       "runtime_module": "legacy/__init__.py",
       "family": "legacy frame dispatch",
-      "native_evidence": "full_engine dispatch (absent)",
-      "historical_wire_or_raw_identity": "CIXB binary specialist prefixes",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "full_engine/dispatch.rs::FullEngine::decode",
+      "historical_wire_or_raw_identity": "CIXB binary prefixes plus specialist ASCII/binary envelopes",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "library decoder routes listed envelopes; CLI does not delegate to it",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/chemical_db.py",
       "family": "chemical and database candidate registry",
-      "native_evidence": "structured_frames.rs; graph_residuals.rs; record_ordering.rs",
-      "historical_wire_or_raw_identity": "CIXG\\x01,CIXQ\\x01,CIXD\\x01,CIXD\\x02",
-      "implementation_status": "partial_unwired",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "graph_residuals.rs, structured_frames.rs and dispatch.rs recipe bindings",
+      "historical_wire_or_raw_identity": "CIXG\\x01,CIXQ\\x01",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed library frames tested; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/ecoff_call_entries.py",
@@ -126,56 +134,56 @@
     {
       "runtime_module": "legacy/ecoff_constraints.py",
       "family": "ECOFF constraints transform",
-      "native_evidence": "address_relations.rs::constraints_transform/inverse",
-      "historical_wire_or_raw_identity": "ECFX1 raw trailer",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "address_relations.rs plus dispatch.rs address recipe binding",
+      "historical_wire_or_raw_identity": "CIXB\\x03,\\x0b,\\x0c,\\x13,\\x1d; raw trailers ECSP1,ECSL1,ECPD1,ECPD2",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed address frames tested in FullEngine; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/ecoff_fields.py",
       "family": "ECOFF fields transform",
-      "native_evidence": "address_relations.rs::fields_transform/inverse",
-      "historical_wire_or_raw_identity": "ECFC1 raw trailer",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "address_relations.rs plus dispatch.rs address recipe binding",
+      "historical_wire_or_raw_identity": "CIXB\\x03,\\x0b,\\x0c,\\x13,\\x1d; raw trailers ECSP1,ECSL1,ECPD1,ECPD2",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed address frames tested in FullEngine; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/ecoff_got.py",
       "family": "ECOFF GOT transform",
-      "native_evidence": "address_relations.rs::got_transform/inverse",
-      "historical_wire_or_raw_identity": "CIXB\\x03; ECGT1 raw trailer",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "address_relations.rs plus dispatch.rs address recipe binding",
+      "historical_wire_or_raw_identity": "CIXB\\x03,\\x0b,\\x0c,\\x13,\\x1d; raw trailers ECSP1,ECSL1,ECPD1,ECPD2",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed address frames tested in FullEngine; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/ecoff_pdata.py",
       "family": "ECOFF pdata transform",
-      "native_evidence": "full_engine/address_relations.rs::pdata_transform/inverse (internal active chain)",
-      "historical_wire_or_raw_identity": "ECPD1 raw trailer",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: transform chain lacks native backend/catalog/top-level archive dispatch",
-      "qualification": "not qualified"
+      "native_evidence": "address_relations.rs plus dispatch.rs address recipe binding",
+      "historical_wire_or_raw_identity": "CIXB\\x03,\\x0b,\\x0c,\\x13,\\x1d; raw trailers ECSP1,ECSL1,ECPD1,ECPD2",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed address frames tested in FullEngine; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/ecoff_pdata_symbols.py",
       "family": "ECOFF pdata-symbol transform",
-      "native_evidence": "full_engine/address_relations.rs::pdata_symbols_transform/inverse (internal active chain)",
-      "historical_wire_or_raw_identity": "ECPD2 raw trailer; CIXB\\x13 nested raw",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: transform chain lacks the nested Brotli/store-state backend stack, catalog, and top-level archive dispatch",
-      "qualification": "not qualified"
+      "native_evidence": "address_relations.rs plus dispatch.rs address recipe binding",
+      "historical_wire_or_raw_identity": "CIXB\\x03,\\x0b,\\x0c,\\x13,\\x1d; raw trailers ECSP1,ECSL1,ECPD1,ECPD2",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed address frames tested in FullEngine; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/ecoff_pointer_deltas.py",
       "family": "ECOFF pointer-delta transform",
-      "native_evidence": "address_relations.rs::pointer_delta_transform/inverse",
-      "historical_wire_or_raw_identity": "CIXB\\x0b; ECRD1 raw trailer",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "address_relations.rs plus dispatch.rs address recipe binding",
+      "historical_wire_or_raw_identity": "CIXB\\x03,\\x0b,\\x0c,\\x13,\\x1d; raw trailers ECSP1,ECSL1,ECPD1,ECPD2",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed address frames tested in FullEngine; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/ecoff_relocated_pointers.py",
@@ -189,29 +197,29 @@
     {
       "runtime_module": "legacy/ecoff_section_pointers.py",
       "family": "ECOFF section-pointer transform",
-      "native_evidence": "full_engine/address_relations.rs::section_pointer_transform/inverse (internal active chain)",
-      "historical_wire_or_raw_identity": "ECSP1 raw trailer; CIXB\\x0c,CIXB\\x1d nested raw",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: transform chain lacks joint-discount backend/catalog/top-level archive dispatch",
-      "qualification": "not qualified"
+      "native_evidence": "address_relations.rs plus dispatch.rs address recipe binding",
+      "historical_wire_or_raw_identity": "CIXB\\x03,\\x0b,\\x0c,\\x13,\\x1d; raw trailers ECSP1,ECSL1,ECPD1,ECPD2",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed address frames tested in FullEngine; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/ecoff_symbol_loads.py",
       "family": "ECOFF symbol-load transform",
-      "native_evidence": "full_engine/address_relations.rs::symbol_load_transform/inverse (internal active chain)",
-      "historical_wire_or_raw_identity": "ECSL1 raw trailer",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no public route frame/catalog/top-level archive dispatch",
-      "qualification": "not qualified"
+      "native_evidence": "address_relations.rs plus dispatch.rs address recipe binding",
+      "historical_wire_or_raw_identity": "CIXB\\x03,\\x0b,\\x0c,\\x13,\\x1d; raw trailers ECSP1,ECSL1,ECPD1,ECPD2",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed address frames tested in FullEngine; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/executable.py",
       "family": "historical executable frame dispatcher",
-      "native_evidence": "address_relations.rs frame helpers",
-      "historical_wire_or_raw_identity": "CIXB\\x03,\\x0b,\\x0c,\\x13,\\x1d",
-      "implementation_status": "partial_unwired",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "address_relations.rs plus dispatch.rs address recipe binding",
+      "historical_wire_or_raw_identity": "CIXB\\x03,\\x0b,\\x0c,\\x13,\\x1d; raw trailers ECSP1,ECSL1,ECPD1,ECPD2",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed address frames tested in FullEngine; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/framing.py",
@@ -225,11 +233,11 @@
     {
       "runtime_module": "legacy/grid_backend.py",
       "family": "grid transform plus Brotli/PAQ backend",
-      "native_evidence": "none; strided_values is WCS-specific only",
-      "historical_wire_or_raw_identity": "CIXB\\x1e",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "bounded_values.rs::encode/decode_backend_frame and dispatch Recipe::BoundedGrid",
+      "historical_wire_or_raw_identity": "CIXB\\x1e; SGBI1/SGFB1 raw parents",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "bounded grid provider-backed frames tested; CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/grid_conditional.py",
@@ -252,29 +260,29 @@
     {
       "runtime_module": "legacy/grid_feedback.py",
       "family": "grid feedback transform",
-      "native_evidence": "none",
-      "historical_wire_or_raw_identity": "reference-specific",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "bounded_values.rs supplies retained raw parents and CIXB\\x1e backend envelope only",
+      "historical_wire_or_raw_identity": "reference CIXY\\x01 / CIXZ\\x01 are not dispatched as such",
+      "implementation_status": "partial_unwired",
+      "dispatch_status": "raw-parent evidence exists; exact historical outer frame IDs remain unsupported",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/grid_grouped.py",
       "family": "grid grouped transform",
-      "native_evidence": "none",
-      "historical_wire_or_raw_identity": "reference-specific",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "conditional_values.rs::encode/decode_grouped_frame and dispatch Recipe::GroupedGrid",
+      "historical_wire_or_raw_identity": "CIXB\\x21; SGCC2 raw",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "grouped-grid provider-backed frame tested; CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/grid_interval.py",
       "family": "grid interval transform",
-      "native_evidence": "none",
-      "historical_wire_or_raw_identity": "CIXZ\\x01 (binary, distinct from ASCII CIXZ1)",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "bounded_values.rs supplies retained raw parents and CIXB\\x1e backend envelope only",
+      "historical_wire_or_raw_identity": "reference CIXY\\x01 / CIXZ\\x01 are not dispatched as such",
+      "implementation_status": "partial_unwired",
+      "dispatch_status": "raw-parent evidence exists; exact historical outer frame IDs remain unsupported",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/image_grid.py",
@@ -297,38 +305,38 @@
     {
       "runtime_module": "legacy/multiscale_volume.py",
       "family": "multiscale image transform",
-      "native_evidence": "volume_lifting.rs::encode/decode_multiscale",
-      "historical_wire_or_raw_identity": "CIXI\\x02",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "volume_lifting.rs, jxl_provider.rs and dispatch Recipe bindings",
+      "historical_wire_or_raw_identity": "CIXI\\x01,CIXI\\x02,CIXV\\x01",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "JXL library frames tested narrowly; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/mysql_fixed_columns.py",
       "family": "fixed-column records",
-      "native_evidence": "record_ordering.rs::encode/decode_mysql_fixed_columns",
-      "historical_wire_or_raw_identity": "CIXD\\x02; MYCC1 raw",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "record_ordering.rs and dispatch.rs recipe bindings",
+      "historical_wire_or_raw_identity": "CIXD\\x01,CIXD\\x02",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "library encode/decode tested; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/mysql_record_constraints.py",
       "family": "record constraints",
-      "native_evidence": "record_ordering.rs::encode/decode_mysql_record_constraints",
-      "historical_wire_or_raw_identity": "CIXD\\x01; MYCS1 raw",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "record_ordering.rs and dispatch.rs recipe bindings",
+      "historical_wire_or_raw_identity": "CIXD\\x01,CIXD\\x02",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "library encode/decode tested; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/mysql_remaining_counts.py",
       "family": "remaining-count ordering",
-      "native_evidence": "record_ordering.rs has primitives but no matching outer route",
-      "historical_wire_or_raw_identity": "CIXD\\x01 mode/backend variant",
-      "implementation_status": "partial_unwired",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "record_ordering.rs exact MyCS mode-three route plus catalogue/dispatch Recipe::RecordConstraints { mode: 3, paq: true }",
+      "historical_wire_or_raw_identity": "CIXD\\x01 mode 3",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "exact bounded inverse and provider-backed library route tested; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/ordered_subset.py",
@@ -342,47 +350,47 @@
     {
       "runtime_module": "legacy/record_float_grid.py",
       "family": "record float-grid transform",
-      "native_evidence": "none",
-      "historical_wire_or_raw_identity": "reference-specific",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "strided_values.rs CIXS frame encode/decode and raw SAGR transform",
+      "historical_wire_or_raw_identity": "CIXS\\x01; SAGR1",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "decoder is routed by FullEngine; no catalogue recipe/automatic CLI encode",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/sdf_geometry.py",
       "family": "SDF geometry transform",
-      "native_evidence": "graph_residuals.rs; structured_frames.rs envelope callback",
-      "historical_wire_or_raw_identity": "CIXG\\x01",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "graph_residuals.rs, structured_frames.rs and dispatch.rs recipe bindings",
+      "historical_wire_or_raw_identity": "CIXG\\x01,CIXQ\\x01",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed library frames tested; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/sdf_hydrogen.py",
       "family": "SDF hydrogen transform",
-      "native_evidence": "graph_residuals.rs; structured_frames.rs envelope callback",
-      "historical_wire_or_raw_identity": "CIXQ\\x01",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "graph_residuals.rs, structured_frames.rs and dispatch.rs recipe bindings",
+      "historical_wire_or_raw_identity": "CIXG\\x01,CIXQ\\x01",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "provider-backed library frames tested; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/spatial_image_codec.py",
       "family": "spatial image frame",
-      "native_evidence": "volume_lifting.rs::encode/decode_spatial; jxl_provider.rs",
-      "historical_wire_or_raw_identity": "CIXI\\x01",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "volume_lifting.rs, jxl_provider.rs and dispatch Recipe bindings",
+      "historical_wire_or_raw_identity": "CIXI\\x01,CIXI\\x02,CIXV\\x01",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "JXL library frames tested narrowly; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "legacy/volume_image_codec.py",
       "family": "volume image frame",
-      "native_evidence": "volume_lifting.rs::encode/decode_volume; jxl_provider.rs",
-      "historical_wire_or_raw_identity": "CIXV\\x01",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: no call from current native encode/decode or portfolio selection into full_engine",
-      "qualification": "not qualified"
+      "native_evidence": "volume_lifting.rs, jxl_provider.rs and dispatch Recipe bindings",
+      "historical_wire_or_raw_identity": "CIXI\\x01,CIXI\\x02,CIXV\\x01",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "JXL library frames tested narrowly; ordinary CLI selection absent",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "model.py",
@@ -396,20 +404,20 @@
     {
       "runtime_module": "regions.py",
       "family": "region discovery/application",
-      "native_evidence": "full_engine/regions.rs::structured_regions/regions/boundaries",
+      "native_evidence": "full_engine/regions.rs and catalogue.rs content-only admissions",
       "historical_wire_or_raw_identity": "CIXH1 region boundaries",
-      "implementation_status": "library_only",
-      "dispatch_status": "not_admitted: discovery exists but no catalog/selector invokes it",
-      "qualification": "not qualified"
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "discovery/catalogue is tested; no automatic mixed encoder is wired to CLI",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     },
     {
       "runtime_module": "specialized.py",
       "family": "candidate enumeration / selection",
-      "native_evidence": "full_engine catalogue (absent)",
-      "historical_wire_or_raw_identity": "all specialist frames",
-      "implementation_status": "absent",
-      "dispatch_status": "not_admitted",
-      "qualification": "not qualified"
+      "native_evidence": "full_engine/catalogue.rs fixed-order Recipe registry",
+      "historical_wire_or_raw_identity": "route-specific specialist frames",
+      "implementation_status": "library_tested_unwired",
+      "dispatch_status": "catalogue creates candidates but does not select a winner or feed CLI",
+      "qualification": "narrow library source-bound tests only; not ordinary CLI qualification"
     }
   ],
   "historical_portfolio26_dispatch": {
@@ -483,17 +491,17 @@
     }
   },
   "highest_priority_missing_edges": [
-    "A single native specialist catalog/selector and archive dispatcher: it must call only input-derived admission, include all paid metadata, and decode every selected frame without Python.",
-    "PAQ worker/supervisor integration for v215 and v216 with exact CIXP mapping, plus joint-discount and store-state variants for their distinct CIXB envelopes.",
-    "Executable CIXB backend and route completion: SectionPointers/PdataSymbols and their ECSL1/ECPD1/ECPD2 chain now compile as library transforms, but the joint-discount and filtered frames still need their exact native PAQ/Brotli/store-state stacks, candidate admission, and top-level decoder dispatch.",
-    "Native candidate/decoder bindings for already-library-only chemical, database, volume/JXL and multiscale routes.",
-    "Grouped-grid and LSTM/prediction routes, which have no identified native implementation and correspond to historical portfolio winners.",
-    "Mixed-region CIXH carrier and region selection, absent from native source; this is separate from whole-file specialist selection."
+    "Wire FullEngine catalogue admission, explicit candidate evaluation/tie policy, resource accounting and archive dispatch into the ordinary CLI/portfolio path; preserve generic whole-file alternatives and no silent fallback.",
+    "Implement automatic CIXH1 mixed encoding: regions and carrier exist, but no automatic region-to-candidate policy, paid comparison, or CLI surface selects it.",
+    "Port/register exact historical grid_context CIXB\\x1f and grid_conditional CIXB\\x20 frames. Retain CIXY\\x01 feedback and CIXZ\\x01 interval outer decoders separately from the new CIXB\\x1e bounded route.",
+    "Add native JPEG-LS and JPEG-2000 provider support only with pinned build/dispatch/limit contracts, so CIXI\\x01 modes 3 and 2 can decode; current JXL support covers mode 1 only.",
+    "Port call-entry and relocated-pointer executable routes if retained, with their exact frame identities, inverses, fixtures and catalogue entries.",
+    "Account for the historical LSTM/prediction route: no native implementation or frame decoder was found. Its recorded -12L comparison remains resource-excluded under the stated 12 GB bound."
   ],
   "acceptance_per_route": "For each retained route: source-to-archive parity fixture where applicable; fresh native encode; separate archive-only native decode; malformed/limit tests; resource accounting; no Python process or PATH lookup; and candidate/decoder registration evidence.",
   "tested_module_scope": {
-    "source_snapshot": "foundation-v13 check/build and focused address_relations suite recorded under docs/research/2026-10-04-execution/jobs/foundation-v13/",
-    "address_relations": "The narrow suite recorded 11 passing tests, including frozen ECOFF relation vectors, active and ambiguous symbol-load coverage, section-pointer and pdata-symbol empty-admission reversibility, and malformed GOT/pointer metadata rejection. This establishes only that module scope; it does not qualify a provider-backed CIXB archive, catalogue selection, or ordinary CLI dispatch.",
-    "mixed_and_regions": "Compiled source inventory only in this document; no focused receipt is asserted here."
+    "catalogue_v4": "docs/research/2026-10-04-execution/jobs/catalogue-v4/checks.json records offline check/build and 73 passing full_engine tests; the same source-bound run recorded seven C stream contract tests.",
+    "provider_frames": "catalogue-v4 installed-provider test encoded and decoded 12 PAQ-backed complete frames (chemical, database, grouped/bounded grids and address families) and two JXL complete frames. This is focused library evidence under pinned test paths, not normal CLI execution or broad route qualification.",
+    "ordinary_cli_gap": "No current cli.rs or generic portfolio selector call into full_engine::catalogue or FullEngine. Mixed automatic encoding remains absent."
   }
 }

@@ -568,7 +568,7 @@ impl TemporaryOutput {
 }
 
 #[cfg(unix)]
-fn validate_private_temporary_root(root: &Path) -> Result<(), PaqSupervisorError> {
+pub(crate) fn validate_private_temporary_root(root: &Path) -> Result<(), PaqSupervisorError> {
     use std::os::unix::fs::MetadataExt;
 
     let effective_uid = unsafe { libc::geteuid() };
@@ -608,14 +608,14 @@ fn validate_private_temporary_root(root: &Path) -> Result<(), PaqSupervisorError
 }
 
 #[cfg(not(unix))]
-fn validate_private_temporary_root(_: &Path) -> Result<(), PaqSupervisorError> {
+pub(crate) fn validate_private_temporary_root(_: &Path) -> Result<(), PaqSupervisorError> {
     Err(PaqSupervisorError::InvalidRequest(
         "PAQ supervisor temporary directories require a verified Unix private root",
     ))
 }
 
 #[cfg(unix)]
-fn create_private_directory(path: &Path) -> io::Result<()> {
+pub(crate) fn create_private_directory(path: &Path) -> io::Result<()> {
     use std::ffi::CString;
     use std::os::unix::ffi::OsStrExt;
 

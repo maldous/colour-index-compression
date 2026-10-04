@@ -9,7 +9,11 @@
       "uncix",
       "cixcat"
     ],
-    "include": "include/cix.h",
+    "include": [
+      "include/cix.h",
+      "include/cix_stream.h",
+      "include/cix.hpp"
+    ],
     "man": [
       "man/cix.1",
       "man/uncix.1",
@@ -37,7 +41,18 @@
       "tests/fixtures/record_stride/**",
       "examples/native_buffer.rs",
       "tests/fixtures/regions/**",
-      "tests/fixtures/address_relations/**"
+      "tests/fixtures/address_relations/**",
+      "tests/fixtures/conditional_values/README.md",
+      "tests/fixtures/conditional_values/manifest.json",
+      "tests/fixtures/conditional_values/input.bin",
+      "tests/fixtures/conditional_values/context3-coding0.raw",
+      "tests/fixtures/bounded_values/README.md",
+      "tests/fixtures/bounded_values/manifest.json",
+      "tests/fixtures/bounded_values/input.bin",
+      "tests/fixtures/bounded_values/mode1.raw",
+      "tests/fixtures/bounded_values/mode2.raw",
+      "tests/fixtures/bounded_values/mode3.raw",
+      "tests/fixtures/bounded_values/mode4.raw"
     ]
   },
   "required_exact_files": [
@@ -69,7 +84,12 @@
     "packaging/sdk/cix.pc.in",
     "packaging/sdk/README.md",
     "packaging/sdk/tests/CMakeLists.txt",
-    "packaging/sdk/tests/cpp_installed_consumer.cpp"
+    "packaging/sdk/tests/cpp_installed_consumer.cpp",
+    "include/cix_stream.h",
+    "tests/c_stream_contract.rs",
+    "tests/fixtures/conditional_values/manifest.json",
+    "tests/fixtures/bounded_values/manifest.json",
+    "packaging/sdk/tests/c_stream_installed_consumer.c"
   ],
   "allowed_globs": [
     "Cargo.toml",
@@ -95,7 +115,18 @@
     "tests/fixtures/record_stride/**",
     "examples/native_buffer.rs",
     "tests/fixtures/regions/**",
-    "tests/fixtures/address_relations/**"
+    "tests/fixtures/address_relations/**",
+    "tests/fixtures/conditional_values/README.md",
+    "tests/fixtures/conditional_values/manifest.json",
+    "tests/fixtures/conditional_values/input.bin",
+    "tests/fixtures/conditional_values/context3-coding0.raw",
+    "tests/fixtures/bounded_values/README.md",
+    "tests/fixtures/bounded_values/manifest.json",
+    "tests/fixtures/bounded_values/input.bin",
+    "tests/fixtures/bounded_values/mode1.raw",
+    "tests/fixtures/bounded_values/mode2.raw",
+    "tests/fixtures/bounded_values/mode3.raw",
+    "tests/fixtures/bounded_values/mode4.raw"
   ],
   "excluded_path_prefixes": [
     ".git",
@@ -107,7 +138,9 @@
     ".gitignore",
     "docs",
     "src/bin",
-    "tests/fixtures/regions/make_fixtures.py"
+    "tests/fixtures/regions/make_fixtures.py",
+    "tests/fixtures/conditional_values/make_fixtures.py",
+    "tests/fixtures/bounded_values/make_fixtures.py"
   ],
   "excluded_suffixes": [
     ".cix",

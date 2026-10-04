@@ -8,10 +8,34 @@ unsafe extern "C" {}
 #[link(name = "c++")]
 unsafe extern "C" {}
 
-use flate2::{bufread::GzDecoder, Compression, GzBuilder};
+use flate2::{
+    bufread::{GzDecoder, ZlibDecoder},
+    write::ZlibEncoder,
+    Compression, GzBuilder,
+};
 use sha2::{Digest, Sha256};
 use std::ffi::{c_char, c_int, c_uint, c_void, CStr};
 use std::io::{Cursor, Read, Write};
+
+struct CappedWriter {
+    bytes: Vec<u8>,
+    cap: usize,
+}
+impl Write for CappedWriter {
+    fn write(&mut self, input: &[u8]) -> std::io::Result<usize> {
+        if input.len() > self.cap.saturating_sub(self.bytes.len()) {
+            return Err(std::io::Error::other("output cap"));
+        }
+        self.bytes
+            .try_reserve_exact(input.len())
+            .map_err(std::io::Error::other)?;
+        self.bytes.extend_from_slice(input);
+        Ok(input.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
 
 // CIXB1 direct backends may call a native one-shot implementation.  The
 // shared flag is observed before and after those calls; one-shot libraries
@@ -88,6 +112,16 @@ struct BzStream {
 #[link(name = "lzma")]
 unsafe extern "C" {
     fn lzma_stream_buffer_bound(uncompressed_size: usize) -> usize;
+    fn lzma_easy_buffer_encode(
+        preset: u32,
+        check: u32,
+        allocator: *const c_void,
+        input: *const u8,
+        input_size: usize,
+        output: *mut u8,
+        output_pos: *mut usize,
+        output_size: usize,
+    ) -> c_int;
     fn lzma_easy_encoder_memusage(preset: u32) -> u64;
     fn lzma_raw_encoder_memusage(filters: *const LzmaFilter) -> u64;
     fn lzma_easy_encoder(stream: *mut LzmaStream, preset: u32, check: u32) -> c_int;
@@ -637,7 +671,7 @@ impl CandidateDescriptor {
     }
 }
 
-fn xz_easy_memory_usage(preset: u32) -> usize {
+pub fn xz_easy_memory_usage(preset: u32) -> usize {
     let reported = unsafe { lzma_easy_encoder_memusage(preset) };
     // LZMA_UINT64_MAX signals unsupported options.  The configured presets
     // are known legal; use a deliberately large fallback instead of admitting
@@ -1016,6 +1050,204 @@ fn encode_payload(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>,
         "bsc" => bsc_payload(input, crate::bsc_ffi::BscOptions::default()),
         _ => Err(format!("unsupported CIXB1 backend: {backend}")),
     }
+}
+
+/// Raw bounded payload adapters for the full-engine catalogue.  They do not
+/// add CIXB1 framing; callers must carry backend identity separately.
+pub fn raw_zlib_encode(input: &[u8], level: u32, output_limit: usize) -> Result<Vec<u8>, String> {
+    if input.len() > MAX_INPUT || !(0..=9).contains(&level) {
+        return Err("invalid raw zlib request".into());
+    }
+    check_cancel()?;
+    let mut encoder = ZlibEncoder::new(
+        CappedWriter {
+            bytes: Vec::new(),
+            cap: output_limit,
+        },
+        Compression::new(level),
+    );
+    encoder.write_all(input).map_err(|e| e.to_string())?;
+    let out = encoder.finish().map_err(|e| e.to_string())?.bytes;
+    check_cancel()?;
+    Ok(out)
+}
+
+pub fn raw_zlib_decode(
+    payload: &[u8],
+    expected: usize,
+    output_limit: usize,
+) -> Result<Vec<u8>, String> {
+    if expected > output_limit {
+        return Err("raw zlib output exceeds limit".into());
+    }
+    let output = raw_zlib_decode_bounded(payload, expected)?;
+    if output.len() != expected {
+        return Err("raw zlib decoded length mismatch".into());
+    }
+    Ok(output)
+}
+pub fn raw_zlib_decode_bounded(payload: &[u8], limit: usize) -> Result<Vec<u8>, String> {
+    check_cancel()?;
+    let cap = limit
+        .checked_add(1)
+        .filter(|n| *n <= isize::MAX as usize)
+        .ok_or("raw zlib allocation overflow")?;
+    let mut out = Vec::new();
+    out.try_reserve_exact(cap)
+        .map_err(|_| "raw zlib allocation failed")?;
+    out.resize(cap, 0);
+    let mut decoder = flate2::Decompress::new(true);
+    let status = decoder
+        .decompress(payload, &mut out, flate2::FlushDecompress::Finish)
+        .map_err(|e| e.to_string())?;
+    if status != flate2::Status::StreamEnd
+        || decoder.total_in() != payload.len() as u64
+        || decoder.total_out() > limit as u64
+    {
+        return Err("raw zlib truncated, trailing, or output exceeds limit".into());
+    }
+    out.truncate(decoder.total_out() as usize);
+    check_cancel()?;
+    Ok(out)
+}
+
+pub fn raw_xz_encode(input: &[u8], profile: &str, output_limit: usize) -> Result<Vec<u8>, String> {
+    let preset = match profile {
+        "fast" => 0,
+        "default" => 6,
+        "size" => 9,
+        _ => return Err("invalid raw XZ preset".into()),
+    };
+    let bound = unsafe { lzma_stream_buffer_bound(input.len()) };
+    let cap = bound.min(output_limit);
+    let mut out = Vec::new();
+    out.try_reserve_exact(cap)
+        .map_err(|_| "raw XZ allocation failed")?;
+    out.resize(cap, 0);
+    let mut used = 0;
+    let rc = unsafe {
+        lzma_easy_buffer_encode(
+            preset,
+            4,
+            std::ptr::null(),
+            input.as_ptr(),
+            input.len(),
+            out.as_mut_ptr(),
+            &mut used,
+            cap,
+        )
+    };
+    if rc != 0 {
+        return Err("raw XZ output exceeds limit or encoding failed".into());
+    };
+    out.truncate(used);
+    check_cancel()?;
+    Ok(out)
+}
+
+pub fn raw_brotli_encode(
+    input: &[u8],
+    quality: u32,
+    lgwin: u32,
+    output_limit: usize,
+) -> Result<Vec<u8>, String> {
+    let cap = unsafe { BrotliEncoderMaxCompressedSize(input.len()) }.min(output_limit);
+    let mut out = Vec::new();
+    out.try_reserve_exact(cap)
+        .map_err(|_| "raw Brotli allocation failed")?;
+    out.resize(cap, 0);
+    let mut used = cap;
+    let ok = unsafe {
+        BrotliEncoderCompress(
+            quality as c_int,
+            lgwin as c_int,
+            BrotliMode::Generic as c_int,
+            input.len(),
+            input.as_ptr(),
+            &mut used,
+            out.as_mut_ptr(),
+        )
+    };
+    if ok == 0 {
+        return Err("raw Brotli output exceeds limit or encoding failed".into());
+    };
+    out.truncate(used);
+    check_cancel()?;
+    Ok(out)
+}
+pub fn raw_xz_decode(
+    payload: &[u8],
+    expected: usize,
+    memory: usize,
+    output_limit: usize,
+) -> Result<Vec<u8>, String> {
+    if expected == usize::MAX || expected > output_limit || expected >= memory {
+        return Err("raw XZ resource limit".into());
+    }
+    let mut out = vec![0; expected + 1];
+    let native_memory = memory
+        .checked_sub(payload.len())
+        .and_then(|n| n.checked_sub(out.len()))
+        .ok_or("raw XZ live-buffer limit")?;
+    let written = decode_xz_payload(payload, &mut out, native_memory)?;
+    if written != expected {
+        return Err("raw XZ wrong length".into());
+    }
+    out.truncate(written);
+    Ok(out)
+}
+pub fn raw_brotli_decode(
+    payload: &[u8],
+    expected: usize,
+    output_limit: usize,
+) -> Result<Vec<u8>, String> {
+    if expected == usize::MAX || expected > output_limit {
+        return Err("raw Brotli output exceeds limit".into());
+    }
+    let mut out = vec![0; expected + 1];
+    let written = decode_brotli_payload(payload, &mut out)?;
+    if written != expected {
+        return Err("raw Brotli wrong length".into());
+    }
+    out.truncate(written);
+    Ok(out)
+}
+pub fn raw_xz_decode_bounded(
+    payload: &[u8],
+    limit: usize,
+    memory: usize,
+) -> Result<Vec<u8>, String> {
+    if limit >= memory {
+        return Err("raw XZ resource limit".into());
+    }
+    let mut out = Vec::new();
+    out.try_reserve_exact(limit.saturating_add(1))
+        .map_err(|_| "raw XZ allocation failed")?;
+    out.resize(limit.saturating_add(1), 0);
+    let native_memory = memory
+        .checked_sub(payload.len())
+        .and_then(|n| n.checked_sub(out.len()))
+        .ok_or("raw XZ live-buffer limit")?;
+    let written = decode_xz_payload(payload, &mut out, native_memory)?;
+    if written > limit {
+        return Err("raw XZ output exceeds limit".into());
+    }
+    out.truncate(written);
+    check_cancel()?;
+    Ok(out)
+}
+pub fn raw_brotli_decode_bounded(payload: &[u8], limit: usize) -> Result<Vec<u8>, String> {
+    let mut out = Vec::new();
+    out.try_reserve_exact(limit.saturating_add(1))
+        .map_err(|_| "raw Brotli allocation failed")?;
+    out.resize(limit.saturating_add(1), 0);
+    let written = decode_brotli_payload(payload, &mut out)?;
+    if written > limit {
+        return Err("raw Brotli output exceeds limit".into());
+    }
+    out.truncate(written);
+    check_cancel()?;
+    Ok(out)
 }
 
 fn encode_gzip_payload(profile: &str, input: &[u8]) -> Result<Vec<u8>, String> {
@@ -1516,7 +1748,10 @@ fn decode_bsc_payload(payload: &[u8], output: &mut [u8], expected: usize) -> Res
 
 #[cfg(test)]
 mod tests {
-    use super::{decode, encode_bsc, encode_xz_dictionary, encode_zpaq, HEADER};
+    use super::{
+        decode, encode_bsc, encode_xz_dictionary, encode_zpaq, raw_zlib_decode_bounded,
+        raw_zlib_encode, HEADER,
+    };
     use sha2::{Digest, Sha256};
 
     #[test]
@@ -1589,5 +1824,19 @@ mod tests {
         assert!(decode(&archive, 64 * 1024 * 1024)
             .unwrap_err()
             .contains("BSC backend does not encode empty"));
+    }
+
+    #[test]
+    fn raw_zlib_bounded_roundtrip_cap_and_trailing() {
+        let input = b"raw provider zlib fixture".repeat(64);
+        let payload = raw_zlib_encode(&input, 6, 1 << 20).unwrap();
+        assert_eq!(
+            raw_zlib_decode_bounded(&payload, input.len()).unwrap(),
+            input
+        );
+        assert!(raw_zlib_decode_bounded(&payload, input.len() - 1).is_err());
+        let mut trailing = payload;
+        trailing.push(0);
+        assert!(raw_zlib_decode_bounded(&trailing, input.len()).is_err());
     }
 }

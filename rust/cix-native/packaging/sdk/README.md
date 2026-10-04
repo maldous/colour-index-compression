@@ -1,8 +1,8 @@
 # CIX native SDK package skeleton
 
 This is a source-side installation helper for the current **native-buffer-v1**
-ABI. It installs `cix.h`, the C++17 RAII convenience header `cix.hpp`, one
-already-built `libcix_native` library, `find_package(CIX CONFIG)` metadata, and
+ABI. It installs `cix.h`, `cix_stream.h`, the C++17 RAII convenience header
+`cix.hpp`, one already-built `libcix_native` library, `find_package(CIX CONFIG)` metadata, and
 `pkg-config` metadata. It does not build Rust itself, create an SDK artifact, or
 qualify an installed consumer.
 
@@ -11,10 +11,17 @@ qualify an installed consumer.
 The installed `CIX::native` target exposes process-free, complete-buffer
 operations from `cix.h`: option defaults, opaque contexts, encode, decode and
 context diagnostics. Calls on a context are serialized; different contexts may
-be used concurrently. The ABI does not currently provide incremental
-process/flush/finish/reset calls, callbacks, hard process-RSS limits,
-cancellation-handle transfer, or full-engine/same-CIX worker selection. The
-package configuration identifies this as `native-buffer-v1`.
+be used concurrently. The complete-buffer ABI does not provide incremental process/flush/finish/reset
+calls, callbacks, hard process-RSS limits, cancellation-handle transfer, or
+full-engine/same-CIX worker selection. The package configuration identifies it
+as `native-buffer-v1`.
+
+`cix_stream.h` separately exposes the native independent-block `CIXG1` stream
+API: opaque encoder/decoder handles plus process, flush, finish and reset. It
+is not a full-engine route, retained-history decoder, specialist selector, or
+streaming archive adapter. The installed C stream consumer in
+`packaging/sdk/tests/c_stream_installed_consumer.c` exercises fragmented input
+and output using only public C headers.
 
 A library found through `CIX::native` is not proof that PAQ/JXL bridges,
 historical full-engine decoders, automatic specialist selection, platform

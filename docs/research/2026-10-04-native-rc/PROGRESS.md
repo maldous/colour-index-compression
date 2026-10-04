@@ -138,3 +138,5 @@ are not relabelled as successful jobs. The detailed scope and remaining gaps
 are explicit; neither all 55 release requirements nor final-source quality,
 platform qualification, catalogue/CLI integration or the final benchmark is
 accepted by this checkpoint.
+
+Native catalogue/streaming checkpoint: see ../2026-10-04-execution/CATALOGUE.md and source-bound catalogue-v4/v5 receipts. Library provider dispatch and relocated C stream consumers passed; ordinary CLI integration and final RC remain open.

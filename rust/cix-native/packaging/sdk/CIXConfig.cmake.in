@@ -27,8 +27,7 @@ if(NOT TARGET CIX::native)
     add_library(CIX::native UNKNOWN IMPORTED)
     set_target_properties(CIX::native PROPERTIES
         IMPORTED_LOCATION "${_cix_library}"
-        INTERFACE_INCLUDE_DIRECTORIES "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@"
-        INTERFACE_COMPILE_FEATURES cxx_std_17)
+        INTERFACE_INCLUDE_DIRECTORIES "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@")
 
     if(_cix_library MATCHES "\\.a$")
         # build.rs directly links these system codecs. Its libzpaq/libbsc C++

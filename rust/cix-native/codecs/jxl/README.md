@@ -29,6 +29,13 @@ mismatches before any output buffer is supplied. `cix_jxl_decode_planar` then
 installs one bounded buffer per plane. This permits retained CIXV1 mode 3 and
 CIXI2 planar bands without flattening or changing their shape.
 
+The native volume adapter retains the historical CIXI1 effort-7 entry point
+and also exposes an explicit effort selector for the frozen effort-10 route.
+Its shared mode-3 identity helper encodes each current input once at effort 10,
+then compares complete CIXV1 mode-3 and CIXI2 zero-lifting envelopes around the
+same metadata and payload. It selects CIXI2 only when its complete frame is
+strictly smaller and reports both logical frame sizes plus the payload SHA-256.
+
 Required qualification after provisioning:
 
 1. Compile against the frozen official v0.12.0 headers and shared libraries;

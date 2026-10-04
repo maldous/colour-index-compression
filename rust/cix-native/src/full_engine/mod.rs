@@ -5,7 +5,12 @@
 //! contracts and archive-only restoration have been qualified.
 pub mod address_relations;
 pub mod arithmetic;
+pub mod backend_provider;
+pub mod bounded_values;
+pub mod catalogue;
+pub mod conditional_values;
 pub mod containers;
+pub mod dispatch;
 pub mod graph_residuals;
 pub mod jxl_provider;
 pub mod mixed;

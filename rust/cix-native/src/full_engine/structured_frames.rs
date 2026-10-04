@@ -18,7 +18,7 @@ pub type DecodeBackend<'a> = dyn Fn(&[u8], usize) -> Result<Vec<u8>, String> + '
 /// A marker is only an inexpensive admission preflight.  The transform must
 /// still preserve malformed or unsupported records as literal records.
 pub fn admit_sdf_geometry(data: &[u8]) -> bool {
-    data.windows(4).any(|v| v == b"V2000") && data.windows(6).any(|v| v == b"M  END")
+    data.windows(5).any(|v| v == b"V2000") && data.windows(6).any(|v| v == b"M  END")
 }
 pub fn admit_sdf_hydrogen(data: &[u8]) -> bool {
     admit_sdf_geometry(data)

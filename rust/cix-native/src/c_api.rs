@@ -104,7 +104,7 @@ fn native_options(raw: &cix_options_v1) -> Result<NativeOptions, &'static str> {
     })
 }
 
-unsafe fn native_options_from_ptr(
+pub(crate) unsafe fn native_options_from_ptr(
     raw: *const cix_options_v1,
 ) -> Result<NativeOptions, &'static str> {
     if raw.is_null() {

@@ -607,6 +607,23 @@ pub fn inverse_mysql_record_constraints_with_limit(
     inverse_mysql_record_constraints_bounded(blob, max_output)
 }
 
+/// Exact remaining-count MyISAM route: the historical database candidate is
+/// the `MYCS1` transform with dynamic remaining-count ordering (mode 3), then
+/// the ordinary `CIXD\x01` backend envelope.  This named entry prevents a
+/// caller from silently substituting another record-constraint mode.
+pub fn transform_mysql_remaining_counts(data: &[u8]) -> Result<Vec<u8>, String> {
+    transform_mysql_record_constraints(data, 3)
+}
+
+/// Bounded inverse for the named remaining-count route.  The paid frame source
+/// length is supplied by the CIXD decoder and checked before row allocation.
+pub fn inverse_mysql_remaining_counts_with_limit(
+    blob: &[u8],
+    max_output: usize,
+) -> Result<Vec<u8>, String> {
+    inverse_mysql_record_constraints_bounded(blob, max_output)
+}
+
 fn pack_ids(ids: &[usize], width: usize) -> Result<Vec<u8>, String> {
     if width == 0 {
         if ids.iter().all(|value| *value == 0) {
@@ -1460,5 +1477,23 @@ mod tests {
             );
             assert_eq!(inverse_mysql_fixed_columns(expected).unwrap(), source);
         }
+    }
+
+    #[test]
+    fn remaining_count_route_is_exact_mycs_mode_three_with_bounded_inverse() {
+        let source = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/record_stride/record.input"
+        ));
+        let expected = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/record_stride/record-mycs-mode3.raw"
+        ));
+        assert_eq!(transform_mysql_remaining_counts(source).unwrap(), expected);
+        assert_eq!(
+            inverse_mysql_remaining_counts_with_limit(expected, source.len()).unwrap(),
+            source
+        );
+        assert!(inverse_mysql_remaining_counts_with_limit(expected, source.len() - 1).is_err());
     }
 }
