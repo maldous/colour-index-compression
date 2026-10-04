@@ -1,0 +1,16 @@
+{
+  "schema": "cix.automatic-specialised.corpus-independence-audit.v1",
+  "method": "read-only source inspection",
+  "runtime_rule": "All ordinary admission is derived from supplied bytes and disclosed resource policy; no corpus/path/name/hash/cache identity or benchmark-specific offset/length is reachable. Standard schema fields and input-size resource limits are allowed.",
+  "findings": [
+    {"family": "joint-discount", "status": "needs_strengthening", "anchor": "benchmarks/competitive_joint_discount_v26.py:56-79", "issue": "ELF signature is weaker than parser validation; cache branch has exact Mozilla hash and stored frame."},
+    {"family": "PAQ tiers", "status": "resource_policy", "anchors": ["competitive_small_paq.py:18-21", "competitive_medium_paq.py:14-17", "competitive_intermediate_paq.py:15-19", "competitive_large_paq.py:14-17"], "issue": "Size buckets are not corpus keys but are empirical portfolio thresholds."},
+    {"family": "LSTM", "status": "benchmark_shaped", "anchor": "benchmarks/competitive_prediction_v24.py:21-22", "issue": "24-48MiB and specialist exclusions are not model schema invariants."},
+    {"family": "fixed_star_grid", "status": "supported_external_subset_parser_hardening_required", "anchor": "benchmarks/competitive_codec.py:99-104", "provenance_checked": "2026-10-04", "primary_sources": ["https://raw.githubusercontent.com/olebole/wcstools/master/libwcs/wcscat.h#L68-L85", "https://raw.githubusercontent.com/olebole/wcstools/master/libwcs/binread.c#L985-L1050"], "issue": "WCSTools supports the seven-int, 28-byte stnum=0/motion subset; no magic/checksum at this entry point, so bounds/endian/full-inverse validation remain necessary."},
+    {"family": "database", "status": "unsafe_fallback", "anchor": "benchmarks/competitive_database_portfolio.py:11-14", "issue": "Uncaught parser failure can prevent generic fallback."},
+    {"family": "image_volume", "status": "mixed", "anchor": "benchmarks/spatial_image_codec.py:15-35", "issue": "DICOM scan is byte-derived; 240-byte raster layout is an unproven historical x-ray layout, but can remain a bounded paid reversible candidate while provenance/validation are strengthened."},
+    {"family": "executable_locators", "status": "parser_hardening_required", "anchors": ["benchmarks/ecoff_got.py:52-80", "benchmarks/ecoff_relocated_pointers.py:14-38", "benchmarks/ecoff_section_pointers.py:16-44"], "issue": "ABI parsers need total bounded validation and nonfatal decline."}
+  ],
+  "prohibited_runtime_inputs": ["cache", "qualify", "complete.json", "results/", "benchmark-work/", "known corpus hash", "known filename", "saved stream", "git historical-source check"],
+  "execution": "none"
+}

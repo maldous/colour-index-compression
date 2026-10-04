@@ -1,0 +1,85 @@
+{
+  "status": "prepared-not-executed",
+  "gate": "final-integrated-source-hygiene-before-silesia-36",
+  "scopes": {
+    "native_rust": {
+      "root": "/home/user/src/cix-0.1-distribution",
+      "include": [
+        "src/**/*.rs",
+        "tests/**/*.rs"
+      ],
+      "exclude": [
+        "vendor/**",
+        "target/**",
+        "packaging/**",
+        "docs/**"
+      ],
+      "required": [
+        "cargo fmt --check",
+        "fresh cargo clippy JSON -D warnings",
+        "Sonar Rust importer"
+      ]
+    },
+    "native_cpp_first_party": {
+      "root": "/home/user/src/cix-0.1-distribution",
+      "include": [
+        "src/zpaq_ffi.cpp"
+      ],
+      "exclude": [
+        "vendor/**",
+        "target/**",
+        "packaging/**",
+        "docs/**"
+      ],
+      "required": [
+        "fresh compilation database or Sonar build-wrapper",
+        "separate Sonar result"
+      ],
+      "vendor_zero_issue_claim": false
+    },
+    "python_runtime": {
+      "root": "runtime",
+      "include": [
+        "cix_runtime/**/*.py",
+        "tests/**/*.py",
+        "tools/stage_runtime.py"
+      ],
+      "required": [
+        "static quality receipt",
+        "frozen runtime test result"
+      ],
+      "sonar_status": "separate Sonar Python project required with pinned scanner/server image"
+    }
+  },
+  "known_tooling": {
+    "available": [
+      "cargo",
+      "sonar-scanner"
+    ],
+    "not_on_path": [
+      "ruff",
+      "black",
+      "flake8",
+      "pylint",
+      "pyright",
+      "clang-tidy",
+      "cppcheck"
+    ]
+  },
+  "existing_evidence_limit": {
+    "rust_sonar": "docs/research/2026-10-04-release-0.1/sonar-release/run-v2 applies only to its frozen prior native source tree",
+    "integrated_python_runtime": "not yet qualified"
+  },
+  "receipt_fields": [
+    "source_manifests",
+    "source_tree_sha256",
+    "commands",
+    "tool_versions",
+    "raw_reports",
+    "scope_exclusions",
+    "quality_gates",
+    "current_issue_counts",
+    "static_closure",
+    "test_result_hashes"
+  ]
+}

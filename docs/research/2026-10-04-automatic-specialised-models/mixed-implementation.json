@@ -1,0 +1,19 @@
+{
+  "format": "CIXH1",
+  "version": 1,
+  "candidate": "heterogeneous-cixh1-v1",
+  "boundaries": {
+    "source": "input bytes only",
+    "known_scanners": ["sdf-v2000", "wcstools-sao-28", "dicom-implicit-vr", "elf"],
+    "maximum_unknown_region_bytes": 65536,
+    "coverage": "contiguous exact byte coverage"
+  },
+  "paid_per_region": ["backend_id", "source_length", "payload_length", "parameters", "sha256"],
+  "backends": ["raw", "zlib-level-6", "lzma-preset-3", "up-to-eight-complete-specialists"],
+  "fallback": "raw",
+  "nested_policy": {"maximum_candidates": 8, "maximum_memory_bytes": 5368709120, "threads": 1, "selection": "family-round-robin"},
+  "candidate_declared_peak_memory_bytes": 5368709120,
+  "profiles": {"fast": "generic region backends", "default": "non-PAQ nested specialists", "best": "full stated nested policy"},
+  "nested_decode_limits": "exact region output cap and caller memory budget",
+  "claim_boundary": "candidate consideration and byte-exact decoding; no universal semantic detection or guaranteed specialist win"
+}

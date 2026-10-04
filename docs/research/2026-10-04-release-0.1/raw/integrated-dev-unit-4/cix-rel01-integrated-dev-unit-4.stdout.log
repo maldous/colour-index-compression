@@ -1,0 +1,32 @@
+
+==================================== ERRORS ====================================
+______________ ERROR collecting runtime/tests/test_image_grid.py _______________
+../../../../../.venv/lib/python3.12/site-packages/_pytest/python.py:508: in importtestmodule
+    mod = import_path(
+../../../../../.venv/lib/python3.12/site-packages/_pytest/pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+../../../../../.venv/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+../../../../../runtime/tests/test_image_grid.py:1: in <module>
+    from runtime.cix_runtime.legacy import image_grid
+../../../../../runtime/cix_runtime/legacy/image_grid.py:2: in <module>
+    from ..image_grid import catalog, DECODERS
+E     File "/home/user/src/colour-index-compression/runtime/cix_runtime/image_grid.py", line 65
+E       out.append(_candidate(f"volume-mode{mode}-effort9-{i}","volume",lambda d,r=r,mode=mode:volume.encode(d,r,mode,9),1536*MIB,{"region":r,"mode":mode,"effort":9,"backend":"jpegxl","format":"CIXV1"}))
+E       ^^^
+E   IndentationError: expected an indented block after 'for' statement on line 64
+=========================== short test summary info ============================
+ERROR ../../../../../runtime/tests/test_image_grid.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.12s

@@ -39,7 +39,7 @@ def run(spec):
     assert budget['max_temp_bytes'] <= 4_000_000_000
     # Linux memory.max rounds down to page size. Record the enforced value.
     budget['max_rss_bytes'] = budget['max_rss_bytes'] // 4096 * 4096
-    raw = AREA / 'raw' / name
+    raw = Path(spec.get('raw', AREA / 'raw' / name))
     raw.mkdir(parents=True, exist_ok=False)
     work = Path(spec['work'])
     work.mkdir(parents=True, exist_ok=True)

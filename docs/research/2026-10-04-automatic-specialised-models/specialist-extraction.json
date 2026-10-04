@@ -1,0 +1,39 @@
+{
+  "schema": "cix.specialist-extraction.v3",
+  "runtime_root": "runtime/cix_runtime",
+  "source_import_policy": "No benchmarks, results, benchmark-work, cache, qualification, git, corpus path, filename, or input hash imports.",
+  "coordinator": "specialized.catalog merges extracted specialised closures; generic PAQ and native candidates are owned by the runtime engine.",
+  "local_executable_closure": {
+    "modules": [
+      "multinomial",
+      "ordered_subset",
+      "ecoff_constraints",
+      "ecoff_fields",
+      "ecoff_got",
+      "ecoff_relocated_pointers",
+      "ecoff_pointer_deltas",
+      "ecoff_call_entries",
+      "ecoff_section_pointers",
+      "ecoff_symbol_loads",
+      "ecoff_pdata",
+      "ecoff_pdata_symbols",
+      "executable"
+    ],
+    "frames": [
+      "CIXB\\u0003 GOT (mode 3; PAQ/Brotli)",
+      "CIXB\\u000b pointer deltas (mode 5; PAQ/Brotli)",
+      "CIXB\\u000c section pointers (mode 4; PAQ/Brotli)",
+      "CIXB\\u0013 filtered/store-state (modes 0/1/2)",
+      "CIXB\\u001d joint-discount (mode 2)"
+    ],
+    "semantics": "Each frame contains the original transform, backend payload, original length, and CRC32. No original-byte backend placeholder is emitted.",
+    "resource_contract": "PAQ candidates declare 4.5 GB + 8 input bytes; filtered/Brotli candidates declare 1 GB + 8 input bytes. Decoder PAQ child output is file-size limited before completion.",
+    "admission": "GOT, pointer, section and filter candidates call their native object/locator/field predicates, which retain embedded-carrier opportunities; no outer ECOFF magic gate is used."
+  },
+  "delegated_closures": [
+    "legacy/chemical_db.py",
+    "legacy/image_grid.py"
+  ],
+  "recognition": "Byte-only full ELF table-extent and Alpha ECOFF section-extent validation. Raster240 and fixed-star recognition live in their delegated format closures.",
+  "execution": "none"
+}

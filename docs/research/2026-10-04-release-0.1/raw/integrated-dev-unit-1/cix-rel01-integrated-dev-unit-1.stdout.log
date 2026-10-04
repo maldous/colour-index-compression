@@ -1,0 +1,109 @@
+..FFF..FF.                                                               [100%]
+=================================== FAILURES ===================================
+_______ test_malformed_input_has_no_legacy_admission_or_decode_fallback ________
+
+    def test_malformed_input_has_no_legacy_admission_or_decode_fallback():
+        candidates, evidence = chemical_db.catalog(b"not an sdf or myisam record")
+        assert not candidates
+        assert not evidence
+>       assert not chemical_db.recognizes_frame(b"CIXG\x01\x80")
+E       AssertionError: assert not True
+E        +  where True = <function recognizes_frame at 0x74a4d1db6200>(b'CIXG\x01\x80')
+E        +    where <function recognizes_frame at 0x74a4d1db6200> = chemical_db.recognizes_frame
+
+../../../../../runtime/tests/test_chemical_db.py:52: AssertionError
+______________ test_catalog_uses_validated_dicom_not_path_or_name ______________
+
+    def test_catalog_uses_validated_dicom_not_path_or_name():
+>       candidates, diagnostics = image_grid.catalog(_dicom_volume())
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+../../../../../runtime/tests/test_image_grid.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+data = b'(\x00\x10\x00\x02\x00\x00\x00\x02\x00(\x00\x11\x00\x02\x00\x00\x00\x02\x00(\x00\x00\x01\x02\x00\x00\x00\x10\x00\xe0\x7f\x10\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+
+    def catalog(data:bytes)->tuple[list[Candidate],list[dict]]:
+     out=[];diag=[];rs=spatial.regions(data)
+>    if grid.recognizes(data):
+        ^^^^^^^^^^^^^^^
+E    AttributeError: module 'runtime.cix_runtime.legacy.record_float_grid' has no attribute 'recognizes'
+
+../../../../../runtime/cix_runtime/image_grid.py:41: AttributeError
+____ test_raster_header_is_not_an_automatic_route_without_paid_layout_proof ____
+
+    def test_raster_header_is_not_an_automatic_route_without_paid_layout_proof():
+        assert spatial.regions(bytes(240)) == []
+>       candidates, diagnostics = image_grid.catalog(bytes(240))
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+../../../../../runtime/tests/test_image_grid.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+data = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00...00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+
+    def catalog(data:bytes)->tuple[list[Candidate],list[dict]]:
+     out=[];diag=[];rs=spatial.regions(data)
+>    if grid.recognizes(data):
+        ^^^^^^^^^^^^^^^
+E    AttributeError: module 'runtime.cix_runtime.legacy.record_float_grid' has no attribute 'recognizes'
+
+../../../../../runtime/cix_runtime/image_grid.py:41: AttributeError
+___________________ test_catalog_is_total_on_arbitrary_bytes ___________________
+
+    def test_catalog_is_total_on_arbitrary_bytes():
+>       candidates, diagnostics = specialized.catalog(b"\x03\x00\x00bad")
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+../../../../../runtime/tests/test_specialized.py:5: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../../../runtime/cix_runtime/specialized.py:90: in catalog
+    extra, rows = _external_catalog(module_name, data)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../runtime/cix_runtime/specialized.py:73: in _external_catalog
+    return module.catalog(data)
+           ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+data = b'\x03\x00\x00bad'
+
+    def catalog(data:bytes)->tuple[list[Candidate],list[dict]]:
+     out=[];diag=[];rs=spatial.regions(data)
+>    if grid.recognizes(data):
+        ^^^^^^^^^^^^^^^
+E    AttributeError: module 'runtime.cix_runtime.legacy.record_float_grid' has no attribute 'recognizes'
+
+../../../../../runtime/cix_runtime/image_grid.py:41: AttributeError
+_______________ test_fixed_star_recognizer_requires_full_extent ________________
+
+    def test_fixed_star_recognizer_requires_full_extent():
+        data = (0).to_bytes(8, "little", signed=True) + (1).to_bytes(4, "little", signed=True) * 5
+>       _, diagnostics = specialized.catalog(data)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+../../../../../runtime/tests/test_specialized.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../../../runtime/cix_runtime/specialized.py:90: in catalog
+    extra, rows = _external_catalog(module_name, data)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../runtime/cix_runtime/specialized.py:73: in _external_catalog
+    return module.catalog(data)
+           ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+data = b'\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00'
+
+    def catalog(data:bytes)->tuple[list[Candidate],list[dict]]:
+     out=[];diag=[];rs=spatial.regions(data)
+>    if grid.recognizes(data):
+        ^^^^^^^^^^^^^^^
+E    AttributeError: module 'runtime.cix_runtime.legacy.record_float_grid' has no attribute 'recognizes'
+
+../../../../../runtime/cix_runtime/image_grid.py:41: AttributeError
+=========================== short test summary info ============================
+FAILED ../../../../../runtime/tests/test_chemical_db.py::test_malformed_input_has_no_legacy_admission_or_decode_fallback
+FAILED ../../../../../runtime/tests/test_image_grid.py::test_catalog_uses_validated_dicom_not_path_or_name
+FAILED ../../../../../runtime/tests/test_image_grid.py::test_raster_header_is_not_an_automatic_route_without_paid_layout_proof
+FAILED ../../../../../runtime/tests/test_specialized.py::test_catalog_is_total_on_arbitrary_bytes
+FAILED ../../../../../runtime/tests/test_specialized.py::test_fixed_star_recognizer_requires_full_extent
+5 failed, 5 passed in 0.13s

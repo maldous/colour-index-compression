@@ -1,3 +1,68 @@
+# Current release gate — FAST, DEFAULT and BEST confirmation
+
+The user now requires restoration/integration and justified performance work to finish, followed by applicable formatting, Clippy, fresh Sonar on the actual integrated source, proven dead-code removal, an optimized release-candidate build and focused optimized validation. Freeze actual source revision, dependencies/binaries, build flags, FAST/DEFAULT/BEST policies, worker strategy, resource/time budgets and harness after final edits.
+
+ONLY THEN run one fresh confirmation pass per mode on the existing canonical 12-member Silesia corpus: 36 planned encode cells. Every cell invokes the ordinary staged release-candidate CLI and has one separately timed fresh-process archive-only exact decode. No source changes between modes; no competing builds/scans/unrelated heavy jobs. Distinguish internal product parallelism from harness concurrency, and freeze the same shared four-physical-core / decimal 12 GB / decimal 4 GB / no-swap policy. Measure full selection CPU/wall, aggregate peak memory, complete bytes and encode/decode MiB/s. FAST/DEFAULT may make explicit effort tradeoffs; BEST must account for every restored feasible quality candidate. Single observations are not statistical speedup evidence. Only narrowly justified invalid/failed-cell retries.
+
+This SUPERSEDES previous BEST-only pass wording. Keep historical evidence, compatible decoders, optional supported routes and distinct useful candidates; losing or rare is not dead. Sonar vendor/language exclusions and suppressions must remain explicit. Report all modes per member and total against portfolio26, known-better references and scoped public records before other datasets. No acquisition, publication, other dataset, old automation or unrequested task creation. Inter-agent communication is explicitly authorized without another permission gate.
+
+---
+
+# Current approved integration and architecture clarification
+
+The coordinating preflight review is complete and its findings are reconciled in the current plan/checklist. The temporary hold is RELEASED for the user's already approved integration, focused correctness checks and one frozen Silesia-first pass. The user additionally authorizes direct send/receive with other agents without another permission gate. No other datasets, repeated tournaments, acquisition, publication or old automation resumption are authorized. Root schedules heavy work under the shared four-core / decimal 12 GB / decimal 4 GB / no-swap limits. Read the current `REVIEW-SUPPLEMENT.md` before integration.
+
+Generic means accepting arbitrary bytes without prior knowledge of the evaluation corpus. Format-aware models and mixed-content selection are explicitly required. No Silesia names, hashes, known contents, memorised bytes, benchmark offsets/lengths, saved archives, precomputed corpus structures or benchmark-specific eligibility thresholds may enter runtime selection. Audit inherited predicates rather than assuming that absence of filename lookup proves independence. Standard format/schema knowledge and input-derived parameters are permitted.
+
+Heterogeneous input support is required for arbitrary combinations of structured/unstructured, recognized/unrecognized and known/unknown data. Text–numeric–text is ONLY AN EXAMPLE, not a feature boundary, fixed sequence or closed set of supported types. Discover useful regions/structure from supplied bytes and consider applicable validated specialists or general-purpose models automatically; preserve unknown regions losslessly. A finite specialist registry is expected, not recognition of every unknown semantic type. Late/interleaved structure and arbitrary combinations must work through the same bounded mechanism, without fixed example patterns or Silesia boundaries. Compare the complete mixed representation with eligible whole-file/generic alternatives, charging every boundary, model ID, parameter, dictionary, reset and integrity field. Do not claim mixed-content coverage from a whole-file portfolio. Reuse existing mechanisms first; prior negative numeric/segmentation tests retain their specific scope and do not prohibit this required architecture. See the current directive, plan and `ACCEPTANCE.md` in `docs/research/2026-10-04-automatic-specialised-models/`.
+
+---
+
+# Approved scope: automatic specialised integration, Silesia first
+
+> We need to restore as much as we need to that delivers the maximum results. So I want you to validate against the current Celesian before proceeding with other data sets. We do not need multiple runs, but we do need to be assured that we are delivering the maximum optimization and performance benefits.
+
+The user has approved restoration/integration and one fresh Silesia validation pass. “Celesian” means the existing canonical Silesia corpus: 12 members, 211,938,580 bytes. This supersedes the earlier wait-for-approval gate only for this scope.
+
+Restore all retained specialised models/backends needed for strongest verified results alongside current generic candidates and qualified performance optimisations. Before the full pass, account for every portfolio26 selected route and current useful candidate, complete focused correctness checks, and freeze the integrated runtime. Then perform one fresh encode and independent archive-only decode per file for one maximum-compression configuration, instrumenting wall/CPU/peak memory in the same pass. Internal candidate trials are normal selection, not a repeated external tournament. Correct a genuinely failed/invalid run only with a justified narrow retry.
+
+Use the historical total 25,481,891 and all12 per-file certificates as regression baselines, never as fresh output. No corpus/filename/hash lookup or saved stream reuse in the production encoder. Explain and resolve former-winner coverage gaps or regressions before claiming a best-successor result. Report full physical costs, selected models/backends, exact restoration and explicit resource/dependency/time omissions. Maximum means best verified admitted result within disclosed bounds, not a global optimum.
+
+All heavy work shares four physical cores, decimal12GBRAM, decimal4GBtemporary and no swap through the existing WaveScheduler. Preserve all prior code/evidence. Other datasets (including enwik8/enwik9), corpus acquisition, publication and the old generic-only benchmark/heartbeat remain STOPPED. Report the Silesia results and remaining gaps before any other dataset work.
+
+---
+
+> **APPROVAL GATE — user instruction:** “Allow me to confirm the plan before you begin.” Read-only investigation and plan drafting are permitted. No implementation, integration, codec changes, experiments, benchmark jobs, publication or scheduled continuation may begin or resume before explicit user approval. Preserve the stopped state.
+
+# CIX — controlling user direction: automatic specialised models (2026-10-04)
+
+> Stop the current work underway communicate with the agent we require the specialized models to be selected automatically and will now accept format agnostic modeling giving it as a general purpose
+
+The generic-only release direction is STOPPED and superseded. General-purpose
+means accepting arbitrary bytes while automatically considering successful
+specialised/format-aware models alongside generic models, with arbitrary-byte
+fallback. Do not use the previous strict format-agnostic restriction to exclude
+chemical, database, scientific-image/grid or executable models. No corpus/path/
+filename/hash-specific runtime selection or saved benchmark stream lookup.
+
+Read `docs/research/2026-10-04-automatic-specialised-models/DIRECTIVE.md` and
+`PLAN.md` for the exact interpretation and integration sequence. Portfolio 26's
+25,481,891-byte complete, independently restored historical Silesia result is a
+regression baseline, not a current 0.1 result or public rank. Restore runtime
+capabilities with complete physical costs and archive-only exact restoration.
+
+The former release benchmark and hourly continuation are stopped; preserve their
+completed and partial evidence. Do not resume them or deploy the private Site.
+This handoff authorizes no new full-corpus run, publication or corpus acquisition.
+Keep repository private and Actions disabled. Root controls heavy scheduling and
+private checkpoints under the existing shared four-core / 12 GB / 4 GB / no-swap
+limits. Preserve closed numeric composition and predictive-mixer evidence.
+
+The historical instructions below remain as evidence and apply only where they
+do not conflict with this controlling direction.
+
+---
+
 # CIX research — controlling directive 2026-09-30
 
 ## Benchmark dashboard and settings extension — current user authorization
