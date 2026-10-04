@@ -2,7 +2,7 @@
   "schema": "cix.execution.v1",
   "approved": true,
   "baseline_commit": "0912dbd471b8630bacf0f78a0ea10a349e86d5f1",
-  "phase": "stream-hosts-and-window-jobs-qualification",
+  "phase": "filesystem-quality-distribution-qualification",
   "release_ready": false,
   "benchmark_status": "held-until-RC51",
   "publication_status": "held",
@@ -92,6 +92,116 @@
       "id": "windows-jobs-mixed-v5",
       "status": "passed",
       "scope": "all-target compile +45 focusednative/job/CLI/transportchecks includingv1compatibility andmixedparallelfallback"
+    },
+    {
+      "id": "squashfs-readers-v4-rdsquashfs",
+      "status": "passing scoped checks",
+      "scope": "Pinned libsquashfs/rdsquashfs restored 304 files and extended attributes. The later upstream Squashfuse demo failure on extended inodes remains preserved."
+    },
+    {
+      "id": "squashfs-readers-v5",
+      "status": "passed",
+      "scope": "Pinned Squashfuse public library read 304 files and one directory, verified two xattrs, and rejected unknown method and malformed profile. This job did not mount a filesystem."
+    },
+    {
+      "id": "kernel-module-v1",
+      "status": "passing scoped checks",
+      "scope": "The actual pinned Ubuntu reader plus CIX overlay built as an external module. First-party stack and prototype warnings were identified before VM qualification."
+    },
+    {
+      "id": "squashfs-readers-v7-build",
+      "status": "passing scoped checks",
+      "scope": "The FUSE3 reader built. Mounting was blocked by the runner privilege guard; the mount check moved to a disposable VM without relaxing that guard."
+    },
+    {
+      "id": "squashfs-profile-qual-v2",
+      "status": "passed",
+      "scope": "ASAN/UBSAN C contracts plus 1,545 native differential cases; both stack and workspace decoders restore exact bytes."
+    },
+    {
+      "id": "kernel-module-v3,kernel-module-v4",
+      "status": "passed",
+      "scope": "Pinned experimental module builds; v4 uses bundled public source manifest and verifies unchanged runtime source against VM-qualified v3."
+    },
+    {
+      "id": "kernel-vm-v2",
+      "status": "passed",
+      "scope": "Disposable VM: actual kernel and FUSE readers each restore 305 generated files and two xattrs; three malformed profile cases rejected."
+    },
+    {
+      "id": "large-window-contract-v1",
+      "status": "passed",
+      "scope": "Generated 128 MiB + 1 byte named-file, unknown stdin, and 33 job-window exact round trips; upfront cap rejection is not midstream cleanup evidence."
+    },
+    {
+      "id": "distribution-engineering-v4",
+      "status": "passed",
+      "scope": "Allowlisted offline release-lto build and staged 14 selected Linux providers; engineering layout evidence, not final release or functional provider qualification."
+    },
+    {
+      "id": "portable-loader-policy-v2",
+      "status": "passing scoped check",
+      "scope": "33 focused native/CLI/provider tests; before subsequent lint cleanup"
+    },
+    {
+      "id": "sdk-runtime-contract-v1",
+      "status": "passing scoped check",
+      "scope": "real Linux SDK/runtime install and synthetic Windows DLL/import-library layout; no native Windows qualification"
+    },
+    {
+      "id": "bridge-portability-v1/v2",
+      "status": "passing scoped check",
+      "scope": "six Linux codec bridges rebuilt; v1 spatial configure failure retained and corrected v2"
+    },
+    {
+      "id": "source-export-sanitization-v3",
+      "status": "passing scoped check",
+      "scope": "allowlisted export, PAQ source and provider notices staged; all private path checks passed, no new build"
+    },
+    {
+      "id": "sonar-tool-tests-v1",
+      "status": "passing scoped check",
+      "scope": "six analysis authorization/inventory guard tests passed"
+    },
+    {
+      "id": "sonar-probe-v9",
+      "status": "passing scoped check",
+      "scope": "CXX/Cppcheck intentional-null canary passed; explicitly not product scan"
+    },
+    {
+      "id": "native-quality-v10",
+      "status": "passed",
+      "scope": "frozen native source cargo fmt --check and all-target Clippy -D warnings; vendor C/C++ compiler diagnostics remain separate"
+    },
+    {
+      "id": "native-regression-v2/v3",
+      "status": "passing scoped continuation",
+      "scope": "v2 full library:286passed2failed; v3 fixes revalidated with8focusedlibrary+87integration passes and finalformat/Clippy; failures preserved, no claimofrerunningall288afterfixes"
+    },
+    {
+      "id": "source-export-sanitization-v4",
+      "status": "passed",
+      "scope": "current lean export + provider notices/source provenance passed all four private marker checks; no new binary build"
+    },
+    {
+      "id": "selection-override-contract-v1 + selection-override-clippy-v2",
+      "status": "scoped tests and unchanged-source Clippy retry passed",
+      "scope": "22 tests:8 full-engine selection,1 native backend compatibility,13 CLI/selector integration. Format passed. Initial Clippy failed GCC13 internal compiler segfault in unchanged libzpaq; one identical source/flags retry passed all-target -Dwarnings. Not a benchmark."
+    },
+    {
+      "id": "rocksdb-contract-ndebug-v1",
+      "status": "passed",
+      "scope": "All contract checks execute independently of assert; actual Release -O3 -DNDEBUG command validated, CIX SST writes/reads/raw fallback/identity/malformed/cap checks passed against retained pinned SDK."
+    },
+    {
+      "id": "spatial-stride-contract-v1",
+      "status": "passed",
+      "scope": "CIX CharLS 16bit uint32 stride overflow rejected before tiny-buffer access in encoder/decoder; exact2x2 8bit/16bit roundtrips, fresh bridge build. Not yet selected final distribution provider."
+    },
+    {
+      "id": "go-wrapper-budget-v1",
+      "status": "passed",
+      "scope": "Four Go binding tests including explicit per-allocation limit before1GiB streambuffer; source/retainedSDK hashes verified, confined transient caches measured and removed. Per-allocation budget is not aggregateRSS."
     }
   ],
   "active_work": [
@@ -151,6 +261,36 @@
     "kernel-source-v1 streamed SDK extraction failed before tar header; diagnostic retry pending",
     "windows-jobs-mixed-v3 helper admission assertion, v4 negative fixture ignored preceding progress; independent review caught v1 Capability/Result decode defect, fixed and45 focusedchecks passedv5"
   ],
-  "active_job": "squashfs-readers-v4",
-  "next_action": "Finish window-job/mixed scheduling validation; qualify remaining SquashFS readers/kernel; complete source/quality/platform/distribution closure before RC51."
+  "active_job": null,
+  "next_action": "Correct adapter analysis header visibility and temporary-evidence enforcement; qualify current Go wrapper and RocksDB contract fixes; continue final package/platform/language gates.",
+  "preserved_recent_failures": [
+    {
+      "id": "squashfs-readers-v6",
+      "reason": "ConfiguredexplicitFUSEdirsenterupstreamlegacyAPIdetection; v7usesprovidedFUSE3pkg-config API32."
+    },
+    {
+      "id": "sonar-probe-v1",
+      "reason": "64MiBserverdatatmpfsfilledduringbuiltinplugindeployment; noCXXqualificationclaim. Retainedrawlogs."
+    },
+    {
+      "id": "kernel-vm-v1",
+      "reason": "Private compressor ID was narrowed by the unchanged upstream signed-short interface; fixed in the CIX-owned dispatcher and qualified by VM v2."
+    },
+    {
+      "id": "sonar-probe-v5",
+      "reason": "Scanner auto-provisioned JRE exhausted its tmpfs; switched to the pinned image runtime."
+    },
+    {
+      "id": "sonar-probe-v6",
+      "reason": "Scanner log was in tmpfs after container exit and could not be recovered; bounded log persistence correction pending."
+    },
+    {
+      "id": "portable-loader-policy-v1",
+      "reason": "Portable Input wrapper had one remaining File-typed standard-stream helper; fixed before v2."
+    },
+    {
+      "id": "sonar-cxx-scan-v2",
+      "reason": "All7projects indexed, but2adapterCppcheck syntax errors remain. Evidence grew to60.97MB against32MiB reserve; simultaneous tmpfs peak unavailable, so budget qualification not claimed. Next evidence reservation96MiB plus enforced monitoring required."
+    }
+  ]
 }

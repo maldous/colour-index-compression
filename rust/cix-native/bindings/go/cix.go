@@ -54,13 +54,20 @@ func (e *Error) Error() string {
 var ErrClosed = errors.New("cix: handle is closed")
 var ErrCancelled = errors.New("cix: operation cancelled before native call")
 
+// DefaultWrapperAllocationLimit bounds one Go-owned output or diagnostic
+// buffer when Options.WrapperAllocationLimit is left at zero.
+const DefaultWrapperAllocationLimit uint64 = 64 << 20
+
 // Options are copied into each native context or stream at creation time.
-// OutputLimit and MemoryLimit must both be nonzero.
+// OutputLimit and MemoryLimit are passed to the native ABI and must both be
+// nonzero. WrapperAllocationLimit is a separate Go heap allocation budget;
+// zero selects DefaultWrapperAllocationLimit.
 type Options struct {
-	Profile     Profile
-	Workers     uint32
-	OutputLimit uint64
-	MemoryLimit uint64
+	Profile                Profile
+	Workers                uint32
+	OutputLimit            uint64
+	MemoryLimit            uint64
+	WrapperAllocationLimit uint64
 }
 
 func DefaultOptions() (Options, error) {
@@ -72,7 +79,18 @@ func DefaultOptions() (Options, error) {
 }
 
 func optionsFromNative(native C.cix_options_v1) Options {
-	return Options{Profile: Profile(native.profile), Workers: uint32(native.workers), OutputLimit: uint64(native.output_limit), MemoryLimit: uint64(native.memory_limit)}
+	return Options{Profile: Profile(native.profile), Workers: uint32(native.workers), OutputLimit: uint64(native.output_limit), MemoryLimit: uint64(native.memory_limit), WrapperAllocationLimit: DefaultWrapperAllocationLimit}
+}
+
+func (o Options) wrapperAllocationLimit() (uint64, error) {
+	limit := o.WrapperAllocationLimit
+	if limit == 0 {
+		limit = DefaultWrapperAllocationLimit
+	}
+	if limit > uint64(maxInt()) {
+		return 0, errors.New("cix: wrapper allocation limit exceeds Go addressable size")
+	}
+	return limit, nil
 }
 
 func (o Options) native() (C.cix_options_v1, error) {
@@ -84,6 +102,9 @@ func (o Options) native() (C.cix_options_v1, error) {
 	}
 	if o.OutputLimit > uint64(maxInt()) || o.MemoryLimit > uint64(maxInt()) {
 		return C.cix_options_v1{}, errors.New("cix: limit exceeds Go addressable size")
+	}
+	if _, err := o.wrapperAllocationLimit(); err != nil {
+		return C.cix_options_v1{}, err
 	}
 	return C.cix_options_v1{abi_version: C.CIX_ABI_VERSION_1, struct_size: C.uint32_t(C.sizeof_cix_options_v1), profile: C.uint32_t(o.Profile), workers: C.uint32_t(o.Workers), output_limit: C.uint64_t(o.OutputLimit), memory_limit: C.uint64_t(o.MemoryLimit)}, nil
 }
@@ -98,10 +119,11 @@ func bytesPtr(data []byte) *C.uint8_t {
 
 // Context owns one serialized complete-buffer native context. Do not copy it.
 type Context struct {
-	mu      sync.Mutex
-	native  *C.cix_context
-	options Options
-	closed  bool
+	mu              sync.Mutex
+	native          *C.cix_context
+	options         Options
+	allocationLimit uint64
+	closed          bool
 }
 
 func NewContext(options Options) (*Context, error) {
@@ -116,7 +138,8 @@ func NewContext(options Options) (*Context, error) {
 	if context == nil {
 		return nil, errors.New("cix: native create returned nil context")
 	}
-	return &Context{native: context, options: options}, nil
+	allocationLimit, _ := options.wrapperAllocationLimit()
+	return &Context{native: context, options: options, allocationLimit: allocationLimit}, nil
 }
 
 // Close destroys the native context after serializing with all calls on it.
@@ -160,6 +183,9 @@ func (c *Context) buffer(input []byte, encode bool) ([]byte, error) {
 	if uint64(needed) > c.options.OutputLimit || uint64(needed) > uint64(maxInt()) {
 		return nil, &Error{Status: StatusResourceLimit, Message: "required output exceeds configured Go output limit"}
 	}
+	if uint64(needed) > c.allocationLimit {
+		return nil, &Error{Status: StatusResourceLimit, Message: "required output exceeds configured Go wrapper allocation limit"}
+	}
 	output := make([]byte, int(needed))
 	var written C.size_t
 	if encode {
@@ -184,7 +210,7 @@ func statusError(status Status, operation string) error {
 }
 func (c *Context) lastErrorLocked() string {
 	var needed C.size_t
-	if C.cix_context_last_error(c.native, nil, 0, &needed) != C.CIX_STATUS_OUTPUT_TOO_SMALL || needed == 0 || uint64(needed) > uint64(maxInt()) {
+	if C.cix_context_last_error(c.native, nil, 0, &needed) != C.CIX_STATUS_OUTPUT_TOO_SMALL || needed == 0 || uint64(needed) > uint64(maxInt()) || uint64(needed) > c.allocationLimit {
 		return ""
 	}
 	buffer := make([]byte, int(needed))
@@ -219,19 +245,22 @@ func progress(result C.cix_stream_result_v1, input, capacity int) (Progress, err
 	}
 	return Progress{Consumed: int(result.consumed), Produced: int(result.produced), State: state}, nil
 }
-func outputBuffer(capacity int, remaining uint64) ([]byte, error) {
+func outputBuffer(capacity int, remaining, allocationLimit uint64) ([]byte, error) {
 	if capacity < 0 || uint64(capacity) > remaining {
 		return nil, &Error{Status: StatusResourceLimit, Message: "stream output capacity exceeds remaining output limit"}
+	}
+	if uint64(capacity) > allocationLimit {
+		return nil, &Error{Status: StatusResourceLimit, Message: "stream output capacity exceeds configured Go wrapper allocation limit"}
 	}
 	return make([]byte, capacity), nil
 }
 
 // Encoder owns one independent native CIXG1 encoder handle. Do not copy it.
 type Encoder struct {
-	mu                sync.Mutex
-	native            *C.cix_stream_encoder
-	limit, produced   uint64
-	closed, cancelled bool
+	mu                               sync.Mutex
+	native                           *C.cix_stream_encoder
+	limit, allocationLimit, produced uint64
+	closed, cancelled                bool
 }
 
 func NewEncoder(options Options) (*Encoder, error) {
@@ -246,7 +275,8 @@ func NewEncoder(options Options) (*Encoder, error) {
 	if stream == nil {
 		return nil, errors.New("cix: native create returned nil encoder")
 	}
-	return &Encoder{native: stream, limit: options.OutputLimit}, nil
+	allocationLimit, _ := options.wrapperAllocationLimit()
+	return &Encoder{native: stream, limit: options.OutputLimit, allocationLimit: allocationLimit}, nil
 }
 func (e *Encoder) Close() error {
 	if e == nil {
@@ -293,7 +323,7 @@ func (e *Encoder) Process(input []byte, outputCapacity int) ([]byte, Progress, e
 	if e.cancelled {
 		return nil, Progress{}, ErrCancelled
 	}
-	out, err := outputBuffer(outputCapacity, e.limit-e.produced)
+	out, err := outputBuffer(outputCapacity, e.limit-e.produced, e.allocationLimit)
 	if err != nil {
 		return nil, Progress{}, err
 	}
@@ -324,7 +354,7 @@ func (e *Encoder) finishLike(capacity int, finish bool) ([]byte, Progress, error
 	if e.cancelled {
 		return nil, Progress{}, ErrCancelled
 	}
-	out, err := outputBuffer(capacity, e.limit-e.produced)
+	out, err := outputBuffer(capacity, e.limit-e.produced, e.allocationLimit)
 	if err != nil {
 		return nil, Progress{}, err
 	}
@@ -348,10 +378,10 @@ func (e *Encoder) finishLike(capacity int, finish bool) ([]byte, Progress, error
 
 // Decoder owns one independent native CIXG1 decoder handle. Do not copy it.
 type Decoder struct {
-	mu                sync.Mutex
-	native            *C.cix_stream_decoder
-	limit, produced   uint64
-	closed, cancelled bool
+	mu                               sync.Mutex
+	native                           *C.cix_stream_decoder
+	limit, allocationLimit, produced uint64
+	closed, cancelled                bool
 }
 
 func NewDecoder(options Options) (*Decoder, error) {
@@ -366,7 +396,8 @@ func NewDecoder(options Options) (*Decoder, error) {
 	if stream == nil {
 		return nil, errors.New("cix: native create returned nil decoder")
 	}
-	return &Decoder{native: stream, limit: options.OutputLimit}, nil
+	allocationLimit, _ := options.wrapperAllocationLimit()
+	return &Decoder{native: stream, limit: options.OutputLimit, allocationLimit: allocationLimit}, nil
 }
 func (d *Decoder) Close() error {
 	if d == nil {
@@ -413,7 +444,7 @@ func (d *Decoder) Process(input []byte, outputCapacity int) ([]byte, Progress, e
 	if d.cancelled {
 		return nil, Progress{}, ErrCancelled
 	}
-	out, err := outputBuffer(outputCapacity, d.limit-d.produced)
+	out, err := outputBuffer(outputCapacity, d.limit-d.produced, d.allocationLimit)
 	if err != nil {
 		return nil, Progress{}, err
 	}
@@ -438,7 +469,7 @@ func (d *Decoder) Finish(outputCapacity int) ([]byte, Progress, error) {
 	if d.cancelled {
 		return nil, Progress{}, ErrCancelled
 	}
-	out, err := outputBuffer(outputCapacity, d.limit-d.produced)
+	out, err := outputBuffer(outputCapacity, d.limit-d.produced, d.allocationLimit)
 	if err != nil {
 		return nil, Progress{}, err
 	}

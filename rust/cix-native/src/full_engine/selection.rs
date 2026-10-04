@@ -225,7 +225,7 @@ fn plans(
     let temp = temporary(n, limits.output_bytes)?;
     let mut out = Vec::new();
     let mut next_priority = 0usize;
-    if !constraints.native.constrains_wire() {
+    if !constraints.native.forces_native_container() {
         let raw_memory = raw_plan_memory(n)?;
         out.push(Plan {
             id: "raw".into(),
@@ -265,7 +265,7 @@ fn plans(
     // A forced native container has one faithful whole-input producer: the
     // constrained native portfolio.  Raw CIXR1, CIXB1, PAQ, specialist and
     // mixed plans cannot satisfy this wire request.
-    if constraints.native.constrains_wire() {
+    if constraints.native.forces_native_container() {
         for id in [
             "raw",
             "paq-v216-8",
@@ -1069,6 +1069,112 @@ mod tests {
             .trials
             .iter()
             .any(|trial| trial.status == TrialStatus::ProfileOmitted));
+    }
+
+    #[test]
+    fn native_block_tuning_keeps_independent_automatic_plans() {
+        let mut discovery = Vec::new();
+        let mut trials = Vec::new();
+        let constraints = WholeConstraints {
+            native: native_portfolio::NativePortfolioConstraints {
+                blocks: Some(vec![16 * 1024]),
+                ..Default::default()
+            },
+        };
+        let plans = plans(
+            b"automatic candidates remain eligible",
+            SelectionProfile::Default,
+            &limits(),
+            &mut discovery,
+            &mut trials,
+            &constraints,
+        )
+        .unwrap();
+        assert!(plans.iter().any(|plan| plan.id == "raw"));
+        assert!(plans.iter().any(|plan| plan.id == "heterogeneous-cixh1-v1"));
+        assert!(!trials.iter().any(|trial| trial
+            .reason
+            .as_deref()
+            .is_some_and(|reason| reason.contains("native container constraint"))));
+        let native = plans.iter().find(|plan| plan.id == "native").unwrap();
+        let PlanKind::Native { constraints, .. } = &native.kind else {
+            panic!("native plan lost its tuning constraints")
+        };
+        assert_eq!(constraints.blocks, Some(vec![16 * 1024]));
+    }
+
+    fn valid_grid_fixture() -> Vec<u8> {
+        let mut grid = vec![0u8; 28 * 3];
+        grid[8..12].copy_from_slice(&2i32.to_le_bytes());
+        grid[12..16].copy_from_slice(&0i32.to_le_bytes());
+        grid[16..20].copy_from_slice(&1i32.to_le_bytes());
+        grid[20..24].copy_from_slice(&1i32.to_le_bytes());
+        grid[24..28].copy_from_slice(&28i32.to_le_bytes());
+        grid
+    }
+
+    #[test]
+    fn backend_tuning_keeps_catalogue_and_mixed_discovery_for_supported_and_unsupported_routes() {
+        for backend in ["deflate", "huffman"] {
+            let mut discovery = Vec::new();
+            let mut trials = Vec::new();
+            let constraints = WholeConstraints {
+                native: native_portfolio::NativePortfolioConstraints {
+                    backend: Some(backend.into()),
+                    ..Default::default()
+                },
+            };
+            let plans = plans(
+                &valid_grid_fixture(),
+                SelectionProfile::Default,
+                &limits(),
+                &mut discovery,
+                &mut trials,
+                &constraints,
+            )
+            .unwrap();
+            assert!(
+                trials.iter().any(|trial| {
+                    trial.status == TrialStatus::ProfileOmitted
+                        && trial.id.starts_with("bounded-grid-mode")
+                        && trial.reason.as_deref()
+                            == Some("DEFAULT omits PAQ-backed specialist trials")
+                }),
+                "{backend} must retain the catalogue-backed PAQ specialist outcome"
+            );
+            assert!(plans.iter().any(|plan| plan.id == "heterogeneous-cixh1-v1"));
+            let native = plans.iter().find(|plan| plan.id == "native").unwrap();
+            let PlanKind::Native { constraints, .. } = &native.kind else {
+                panic!("native plan missing")
+            };
+            assert_eq!(constraints.backend.as_deref(), Some(backend));
+            assert!(!trials.iter().any(|trial| trial.reason.as_deref()
+                == Some("explicit native container constraint excludes incompatible wire")));
+        }
+    }
+
+    #[test]
+    fn forced_native_format_excludes_independent_wires_with_reason() {
+        let mut discovery = Vec::new();
+        let mut trials = Vec::new();
+        let constraints = WholeConstraints {
+            native: native_portfolio::NativePortfolioConstraints {
+                formats: Some(vec!["cixg1".into()]),
+                ..Default::default()
+            },
+        };
+        let plans = plans(
+            b"forced native container",
+            SelectionProfile::Default,
+            &limits(),
+            &mut discovery,
+            &mut trials,
+            &constraints,
+        )
+        .unwrap();
+        assert!(plans.iter().all(|plan| plan.id == "native"));
+        assert!(trials.iter().all(|trial| trial.reason.as_deref()
+            == Some("explicit native container constraint excludes incompatible wire")));
     }
 }
 

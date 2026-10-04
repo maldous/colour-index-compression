@@ -84,7 +84,8 @@ Select or constrain the output container. The default,
 selects among eligible native containers. CIXM6 and CIXF1 are encoding-only
 formats and cannot be combined with route selection, external candidates, or
 portfolio selection. CIXF1 requires a named input so its basename can be
-stored.
+stored. An explicit non-auto format forces a compatible whole-container wire
+and excludes unrelated automatic carriers.
 .TP
 .BR \-\-route " " \fIauto\fR | \fIraw\fR | \fIruns\fR | \fIcomposition\fR | \fIlz\fR | \fIpredictor\fR | \fIbwt\fR | \fIstride\fR | \fIphrases\fR | \fIppm\fR | \fImixture\fR | \fIdeflate\fR
 Constrain the native route. Some routes need more memory: LZ and mixture need
@@ -107,12 +108,17 @@ Constrain the nested substream backend. Supported names are
 and
 .BR huffman .
 Some versioned substream coders require CIXG2 or automatic format selection.
+This is native-container tuning: without an explicit non-auto
+.BR --format ,
+independent automatic candidates remain eligible and do not claim to use the
+selected nested backend.
 .TP
 .BR \-\-block-size " " \fISIZE\fR
 Set the maximum uncompressed block size. CIXG1 frames are limited to 65536
 bytes; larger requests are reduced to that limit with a diagnostic. The legacy
 .B \-\-block
-form accepts a byte count.
+form accepts a byte count. This is native-container tuning; it restricts native
+block candidates without forcing the automatic search to one container wire.
 .TP
 .BR \-\-history " " \fISIZE\fR
 Request retained model history. The current native routes do not support a

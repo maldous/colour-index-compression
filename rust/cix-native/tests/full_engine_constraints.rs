@@ -49,17 +49,20 @@ fn forced_native_formats_and_block_remain_decodable() {
 }
 
 #[test]
-fn backend_block_and_strategy_constraints_remain_native_and_decodable() {
+fn native_tuning_constraints_and_explicit_format_remain_decodable() {
     let root = std::env::temp_dir().join(format!("cix-constraint-controls-{}", std::process::id()));
     let input = root.with_extension("input");
     let archive = root.with_extension("cix");
     let source = b"constraint controls\n".repeat(128);
     fs::write(&input, &source).unwrap();
-    for extra in [
-        vec!["--block-size", "16384"],
-        vec!["--backend", "hybrid"],
-        vec!["--parallelism", "candidates", "--format", "cixg2"],
-        vec!["--block-size", "128KiB"],
+    for (extra, forced_magic) in [
+        (vec!["--block-size", "16384"], None),
+        (vec!["--backend", "hybrid"], None),
+        (
+            vec!["--parallelism", "candidates", "--format", "cixg2"],
+            Some(b"CIXG2".as_slice()),
+        ),
+        (vec!["--block-size", "128KiB"], None),
     ] {
         let mut args = vec!["-6"];
         args.extend(extra);
@@ -73,7 +76,9 @@ fn backend_block_and_strategy_constraints_remain_native_and_decodable() {
             "{}",
             String::from_utf8_lossy(&output.stderr)
         );
-        assert!(fs::read(&archive).unwrap().starts_with(b"CIXG2"));
+        if let Some(magic) = forced_magic {
+            assert!(fs::read(&archive).unwrap().starts_with(magic));
+        }
         let decoded = Command::new(env!("CARGO_BIN_EXE_uncix"))
             .args(["-c", archive.to_str().unwrap()])
             .output()

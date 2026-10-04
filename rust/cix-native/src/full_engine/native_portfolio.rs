@@ -64,8 +64,11 @@ pub struct NativePortfolioConstraints {
 }
 
 impl NativePortfolioConstraints {
-    pub fn constrains_wire(&self) -> bool {
-        self.formats.is_some() || self.blocks.is_some() || self.backend.is_some()
+    /// Only an explicit container format excludes other whole-input wires.
+    /// Block and backend values tune native candidates without constraining
+    /// independent automatic candidates.
+    pub fn forces_native_container(&self) -> bool {
+        self.formats.is_some()
     }
     fn allows(&self, format: &str) -> bool {
         if self.backend.as_ref().is_some_and(|backend| {
@@ -1007,11 +1010,11 @@ pub fn select_constrained(
         }
     }
     for descriptor in external::best_candidates() {
-        if constraints.constrains_wire() {
+        if constraints.forces_native_container() {
             omission(
                 &mut diagnostics,
                 descriptor.id,
-                "explicit native wire constraint excludes CIXB1 candidate",
+                "explicit native container constraint excludes CIXB1 candidate",
             );
             continue;
         }
@@ -1371,6 +1374,25 @@ mod tests {
             .unwrap(),
             input
         );
+    }
+
+    #[test]
+    fn backend_constraint_reports_supported_and_unsupported_native_routes() {
+        let deflate = NativePortfolioConstraints {
+            backend: Some("deflate".into()),
+            ..NativePortfolioConstraints::default()
+        };
+        assert!(deflate.allows("cixg1"));
+        assert!(deflate.allows("cixg2"));
+        assert!(!deflate.allows("cixm6"));
+        let huffman = NativePortfolioConstraints {
+            backend: Some("huffman".into()),
+            ..NativePortfolioConstraints::default()
+        };
+        assert!(!huffman.allows("cixg1"));
+        assert!(huffman.allows("cixg2"));
+        assert!(!huffman.allows("cixm6"));
+        assert!(!huffman.forces_native_container());
     }
 
     #[test]

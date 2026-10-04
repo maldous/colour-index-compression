@@ -1,0 +1,41 @@
+{
+  "schema": "cix-focused-spatial-stride-contract-v1",
+  "status": "prepared_not_executed",
+  "scope": "Build the CIX-owned spatial bridge against the retained codec SDK and execute only its CharLS stride contract. This is not a full SDK, codec, or benchmark qualification.",
+  "lease": "CIX_RELEASE_LEASE=1 required",
+  "source": {
+    "bridge": "rust/cix-native/codecs/spatial/cix_spatial_bridge.cpp",
+    "test": "rust/cix-native/codecs/spatial/tests/spatial_stride_contract.cpp",
+    "cmake": "rust/cix-native/codecs/spatial/CMakeLists.txt"
+  },
+  "sdk_prefix": "benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix",
+  "work_root": "benchmark-work/native-rc-check-v1/spatial-stride-contract-v1",
+  "acceptance": [
+    "The 16-bit CharLS encode and decode calls reject width UINT32_MAX with a one-byte input/output pointer and a claimed size_t byte count before allocation or codec processing.",
+    "A 2x2 8-bit CharLS canonical-u16 round trip is exact.",
+    "A 2x2 16-bit CharLS canonical-u16 round trip is exact.",
+    "The receipt records source/test hashes, selected SDK library hashes, command return codes and the contract executable hash."
+  ],
+  "resources": {
+    "cpu_cores": 2,
+    "memory_bytes": 536870912,
+    "temporary_bytes": 268435456
+  },
+  "id": "execution-spatial-stride-contract-v1",
+  "cpus": [
+    8,
+    10
+  ],
+  "wall_seconds": 180,
+  "memory_bytes": 1000000000,
+  "temp_bytes": 4000000000,
+  "raw": "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/spatial-stride-contract-v1/raw",
+  "work": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1",
+  "env": [
+    "PATH=/usr/bin:/bin"
+  ],
+  "command": [
+    "python3",
+    "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/spatial-stride-contract-v1/run.py"
+  ]
+}

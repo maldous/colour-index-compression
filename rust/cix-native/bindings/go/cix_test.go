@@ -2,6 +2,7 @@ package cix
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 )
 
@@ -152,5 +153,17 @@ func TestCancelIsLocalAndResetClearsIt(t *testing.T) {
 	}
 	if err := encoder.Reset(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestWrapperAllocationLimitRejectsOversizedStreamBufferBeforeMake(t *testing.T) {
+	const requested = 1 << 30
+	_, err := outputBuffer(requested, requested, 64<<10)
+	if err == nil {
+		t.Fatal("oversized wrapper output buffer was accepted")
+	}
+	var native *Error
+	if !errors.As(err, &native) || native.Status != StatusResourceLimit {
+		t.Fatalf("allocation rejection = %v", err)
 	}
 }

@@ -16,6 +16,15 @@ bool bytes(uint32_t w, uint32_t h, size_t* out) {
   if (!w || !h || size_t(w) > std::numeric_limits<size_t>::max() / size_t(h)) return false;
   size_t n=size_t(w)*size_t(h); if(n>std::numeric_limits<size_t>::max()/2) return false; *out=n*2; return true;
 }
+bool charls_stride(uint32_t width, uint32_t bits, uint32_t* out) {
+  if (bits <= 8) {
+    *out = width;
+    return true;
+  }
+  if (width > std::numeric_limits<uint32_t>::max() / 2) return false;
+  *out = width * 2;
+  return true;
+}
 bool valid(uint32_t bits) { return bits>0 && bits<=16; }
 bool jls_valid(uint32_t bits) { return bits>=2 && bits<=16; }
 bool native_little_endian() { const uint16_t value=1; return *reinterpret_cast<const uint8_t*>(&value)==1; }
@@ -243,6 +252,8 @@ extern "C" int cix_spatial_encode_u16_gray(uint32_t codec,const uint8_t* pixels,
     if(codec==CIX_SPATIAL_JPEG2000) return j2k_encode(pixels,w,h,bits,max,out);
     if(codec!=CIX_SPATIAL_JPEGLS) return CIX_SPATIAL_UNSUPPORTED;
     if(!jls_valid(bits)) return CIX_SPATIAL_UNSUPPORTED;
+    uint32_t stride=0;
+    if(!charls_stride(w,bits,&stride)) return CIX_SPATIAL_INVALID_ARGUMENT;
     JlsEnc enc; if(!enc.p) return CIX_SPATIAL_ALLOCATION_FAILURE;
     // CharLS consumes canonical u16 LE pixels. Keep significant precision in
     // the frame so 8-bit samples retain their historical numeric values.
@@ -256,7 +267,6 @@ extern "C" int cix_spatial_encode_u16_gray(uint32_t codec,const uint8_t* pixels,
     std::vector<uint8_t> packed;
     const uint8_t* source=pixels;
     size_t source_size=size;
-    uint32_t stride=w*2;
     if(bits<=8) {
       packed.reserve(size/2);
       for(size_t at=0;at<size;at+=2) packed.push_back(pixels[at]);
@@ -296,7 +306,7 @@ extern "C" int cix_spatial_probe_any_gray(uint32_t codec,const uint8_t* input,si
 
 extern "C" int cix_spatial_decode_u16_gray(uint32_t codec,const uint8_t* input,size_t input_size,uint32_t w,uint32_t h,uint32_t bits,uint8_t* output,size_t output_size) {
   size_t required=0; if(!input||!input_size||!output||!valid(bits)||!bytes(w,h,&required)||output_size!=required) return CIX_SPATIAL_INVALID_ARGUMENT;
-  try { if(codec==CIX_SPATIAL_JPEG2000) return j2k_decode(input,input_size,w,h,bits,output,output_size,false,nullptr); if(codec!=CIX_SPATIAL_JPEGLS || !jls_valid(bits)) return CIX_SPATIAL_UNSUPPORTED; if(!jls_exact_end(input,input_size)) return CIX_SPATIAL_DECODE_FAILURE; JlsDec d; charls_frame_info frame{}; if(!d.p || charls_jpegls_decoder_set_source_buffer(d.p,input,input_size)!=charls::jpegls_errc::success || charls_jpegls_decoder_read_header(d.p)!=charls::jpegls_errc::success || charls_jpegls_decoder_get_frame_info(d.p,&frame)!=charls::jpegls_errc::success || frame.width!=w||frame.height!=h||frame.component_count!=1||frame.bits_per_sample!=int32_t(bits)) return CIX_SPATIAL_UNSUPPORTED; size_t destination=0; const size_t packed_size=bits<=8?required/2:required; const uint32_t stride=bits<=8?w:w*2; if(charls_jpegls_decoder_get_destination_size(d.p,stride,&destination)!=charls::jpegls_errc::success || destination!=packed_size) return CIX_SPATIAL_DECODE_FAILURE; if(bits<=8){std::vector<uint8_t> packed(packed_size);if(charls_jpegls_decoder_decode_to_buffer(d.p,packed.data(),packed.size(),stride)!=charls::jpegls_errc::success)return CIX_SPATIAL_DECODE_FAILURE;for(size_t at=0;at<packed.size();++at){output[at*2]=packed[at];output[at*2+1]=0;}} else if(native_little_endian()) { if(charls_jpegls_decoder_decode_to_buffer(d.p,output,output_size,stride)!=charls::jpegls_errc::success) return CIX_SPATIAL_DECODE_FAILURE; } else { std::vector<uint8_t> packed(required); if(charls_jpegls_decoder_decode_to_buffer(d.p,packed.data(),packed.size(),stride)!=charls::jpegls_errc::success) return CIX_SPATIAL_DECODE_FAILURE; for(size_t at=0;at<required;at+=2){uint16_t value=0;std::memcpy(&value,packed.data()+at,sizeof(value));output[at]=uint8_t(value);output[at+1]=uint8_t(value>>8);} } return CIX_SPATIAL_OK; }
+  try { if(codec==CIX_SPATIAL_JPEG2000) return j2k_decode(input,input_size,w,h,bits,output,output_size,false,nullptr); if(codec!=CIX_SPATIAL_JPEGLS || !jls_valid(bits)) return CIX_SPATIAL_UNSUPPORTED; uint32_t stride=0; if(!charls_stride(w,bits,&stride)) return CIX_SPATIAL_INVALID_ARGUMENT; if(!jls_exact_end(input,input_size)) return CIX_SPATIAL_DECODE_FAILURE; JlsDec d; charls_frame_info frame{}; if(!d.p || charls_jpegls_decoder_set_source_buffer(d.p,input,input_size)!=charls::jpegls_errc::success || charls_jpegls_decoder_read_header(d.p)!=charls::jpegls_errc::success || charls_jpegls_decoder_get_frame_info(d.p,&frame)!=charls::jpegls_errc::success || frame.width!=w||frame.height!=h||frame.component_count!=1||frame.bits_per_sample!=int32_t(bits)) return CIX_SPATIAL_UNSUPPORTED; size_t destination=0; const size_t packed_size=bits<=8?required/2:required; if(charls_jpegls_decoder_get_destination_size(d.p,stride,&destination)!=charls::jpegls_errc::success || destination!=packed_size) return CIX_SPATIAL_DECODE_FAILURE; if(bits<=8){std::vector<uint8_t> packed(packed_size);if(charls_jpegls_decoder_decode_to_buffer(d.p,packed.data(),packed.size(),stride)!=charls::jpegls_errc::success)return CIX_SPATIAL_DECODE_FAILURE;for(size_t at=0;at<packed.size();++at){output[at*2]=packed[at];output[at*2+1]=0;}} else if(native_little_endian()) { if(charls_jpegls_decoder_decode_to_buffer(d.p,output,output_size,stride)!=charls::jpegls_errc::success) return CIX_SPATIAL_DECODE_FAILURE; } else { std::vector<uint8_t> packed(required); if(charls_jpegls_decoder_decode_to_buffer(d.p,packed.data(),packed.size(),stride)!=charls::jpegls_errc::success) return CIX_SPATIAL_DECODE_FAILURE; for(size_t at=0;at<required;at+=2){uint16_t value=0;std::memcpy(&value,packed.data()+at,sizeof(value));output[at]=uint8_t(value);output[at+1]=uint8_t(value>>8);} } return CIX_SPATIAL_OK; }
   catch(const std::bad_alloc&) { return CIX_SPATIAL_ALLOCATION_FAILURE; } catch(...) { return CIX_SPATIAL_EXCEPTION; }
 }
 extern "C" void cix_spatial_free_buffer(cix_spatial_buffer* b){if(!b)return;delete[] b->data;b->data=nullptr;b->size=0;}

@@ -19,12 +19,15 @@ calls before entering C, but cannot interrupt a call already in the native
 ABI. `Reset` clears that local gate and resets the native stream.
 
 `Options.OutputLimit` and `Options.MemoryLimit` are passed to the C ABI.
-`OutputLimit` is also enforced before Go allocates buffer output and across a
-stream's produced bytes. Complete-buffer calls first make the ABI's required-
-size probe and then make the actual codec call, so they can double codec work;
-they are not a static upper-bound calculation. Go input/output slices and the
-wrapper's temporary output allocation add to native live memory. The ABI
-documents no process-RSS hard cap.
+`Options.WrapperAllocationLimit` separately caps each Go-owned output or
+diagnostic allocation before `make`; zero selects the documented
+`DefaultWrapperAllocationLimit` of 64 MiB. `OutputLimit` is enforced across a
+stream's produced bytes, while the wrapper allocation limit bounds one output
+buffer at a time. Complete-buffer calls first make the ABI's required-size
+probe and then make the actual codec call, so they can double codec work; they
+are not a static upper-bound calculation. Caller-owned input, caller-retained
+output, and Go/native runtime overhead are outside this wrapper-local budget.
+The ABI documents no process-RSS hard cap.
 
 Run the focused installed-SDK consumer test after installing the qualified
 library and its `cix-native.pc` metadata:
