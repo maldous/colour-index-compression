@@ -22,6 +22,24 @@ longer identical. Inspection found one changed Cargo metadata file,
 reclamation receipt remains evidence, and reclamation requires preserving the
 changed member before removing any duplicate data.
 
+`native-final-v3-cache-reclaim` subsequently preserved and verified that member,
+then reclaimed only the duplicate cache. `native-final-source-v3` reused the
+unchanged v2 source and passed all-target Clippy with Rust warnings denied,
+the optimized `release-lto` build of all three CLI binaries, and seven focused
+integration tests (one ZPAQ, two full-engine constraints, four CLI smoke tests).
+It completed in 104.68 seconds; this is a build/check duration, not compressor
+throughput. External compiler warnings remain recorded.
+
+The alias-test filter in v3 selected zero tests. The independent review marks
+that gap explicitly despite the producer's successful exit. The continuation
+`native-alias-filter-v1` ran the exact
+`cli::policy_tests::program_name_normalization_is_platform_specific` test
+against the same hash-bound test binary and verified that one test ran and
+passed. This checks platform-name logic on Linux, not Windows execution.
+The integration and unit tests used the default test profile; the CLI binary
+build used the optimized profile. Neither is a full regression rerun or final
+provider, package, platform or RC51 acceptance.
+
 Before these jobs, `preserve-debug-cache-v1` preserved the former shared debug
 cache in a verified archive before reclaiming it. The archive is 28,738,602
 bytes with SHA-256
