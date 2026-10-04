@@ -58,7 +58,7 @@ class RepairAcceptanceTests(unittest.TestCase):
                                           (repair.CPPHECK_PROJECTED_TU_BYTES, repair.CPPHECK_PROJECTED_TU_BYTES))
 
     def test_projected_command_replays_compile_operands_as_preprocess(self):
-        row = {"file": "/source/unit.cpp", "arguments": ["/usr/bin/c++", "-DVALUE=1", "-c",
+        row = {"directory": "/source", "file": "/source/unit.cpp", "arguments": ["/usr/bin/c++", "-DVALUE=1", "-c",
                "/source/unit.cpp", "-o", "/old/unit.o"]}
         argv = repair._projected_command(row, Path("/evidence/unit.cpp"))
         self.assertEqual(argv, ["/usr/bin/c++", "-DVALUE=1", "/source/unit.cpp", "-E", "-o", "/evidence/unit.cpp"])

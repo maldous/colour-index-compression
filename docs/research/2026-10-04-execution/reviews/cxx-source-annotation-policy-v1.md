@@ -1,6 +1,6 @@
 # C/C++ source annotation policy v1
 
-Date: 2026-10-05  
+Date: 2026-10-05
 Scope: recommendation from the repository licence metadata and recorded CXX
 findings, updated with the pinned plugin rule documentation and fresh
 first-party `scan-v3` results. This is not a licence decision, source change,
@@ -30,9 +30,17 @@ The original counts are from
 `docs/research/2026-10-04-execution/sonar-preparation/scan-v2/result.json`.
 Fresh first-party `scan-v3` results retain 21 core and 55 adapter `FileHeader`
 findings, 207 core and 55 adapter `UndocumentedApi` findings, and report 39
-core plus 26 adapter `cxx:ParsingErrorRecovery` issues. The per-slice files
-are recorded as `SCANNED`, while the aggregate v3 result is still `STARTED`.
-This is evidence for prioritization, not a clean-scan claim.
+core plus 26 adapter `cxx:ParsingErrorRecovery` issues. The producer status is
+`SCANNED_WITH_RECORDED_FINDINGS`; authoritative
+`scan-v3/qualification-review.json` reports
+`ANALYSIS_GAPS_REMAIN_NOT_CLEAN`. This is evidence for prioritization, not a
+clean-scan claim.
+
+The qualification review distinguishes six **raw Cppcheck configuration
+errors** in the first-party adapter slice (five `preprocessorErrorDirective`
+and one `unknownMacro`) from the three imported
+`cppcheck:preprocessorErrorDirective` rule issues. Those are not interchangeable
+counts, and neither is a source-clean result.
 
 ## Licence decision, factual source hygiene, and `FileHeader`
 

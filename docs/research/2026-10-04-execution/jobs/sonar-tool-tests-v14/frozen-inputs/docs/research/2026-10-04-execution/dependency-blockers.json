@@ -1,0 +1,1564 @@
+{
+  "schema": "cix.execution-dependency-blockers.v1",
+  "date": "2026-10-04",
+  "scope": "Read-only local dependency and execution-plan crosswalk. It does not accept any RC item, run a benchmark, or authorize implementation.",
+  "disposition_rule": "Each requirement has exactly one disposition enum. Construction edges order work; acceptance backedges name evidence that must converge before RC51. Neither edge class replaces acceptance evidence or waives a requirement.",
+  "edge_model": {
+    "construction_edges": "A finite implementation or evidence-preparation dependency. These edges form the execution DAG after coordinated construction cohorts are collapsed.",
+    "acceptance_backedges": "A final evidence relationship. It is not a start-order edge and must not be used to create a construction cycle.",
+    "coordinated_construction_cohort": "Members may prepare mutually informative implementation inputs together under one source freeze, but each remains independently open until its ledger acceptance evidence is reviewed.",
+    "terminal_rule": "RC51 retains every required source row and the three owned external obligations as terminal acceptance prerequisites."
+  },
+  "source_of_truth": [
+    "docs/research/2026-10-04-rc-reconciliation/requirements.json",
+    "docs/research/2026-10-04-rc-reconciliation/RESEARCH-CLOSURE.txt",
+    "docs/research/2026-10-04-native-rc/PROGRESS.md",
+    "docs/research/2026-10-04-global-methodology-review/candidates.json",
+    "docs/research/2026-10-04-last-chance-methodology-review/REPORT.txt",
+    "docs/research/2026-10-04-constraint-lifting-review/REPORT.txt"
+  ],
+  "benchmark_gate": {
+    "state": "HOLD",
+    "rule": "RC51 may review only after every listed pre-benchmark requirement and pre-benchmark external obligation has accepted current-RC evidence; RC52 is post-gate.",
+    "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/gate_rule"
+  },
+  "stages": [
+    {
+      "id": "S0-evidence-and-freeze",
+      "purpose": "canonical source map, research disposition and readiness evidence",
+      "members": [
+        "RC50",
+        "RC50-GPU",
+        "RC55",
+        "RC51"
+      ],
+      "entry_edges": [],
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/49"
+    },
+    {
+      "id": "S1-native-core",
+      "purpose": "coordinated construction cohort for one executable/library, automatic discovery, historical frames, paid representation and hidden-input closure",
+      "execution_mode": "coordinated_construction_cohort",
+      "members": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "entry_edges": [
+        "RC55"
+      ],
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/0"
+    },
+    {
+      "id": "S2-execution-control",
+      "purpose": "selection, streaming, CLI, scheduling, resource, performance and hardware contracts",
+      "members": [
+        "RC06",
+        "RC07",
+        "RC09",
+        "RC10",
+        "RC11",
+        "RC12",
+        "RC13",
+        "RC14",
+        "RC15",
+        "RC16",
+        "RC17",
+        "RC49"
+      ],
+      "entry_edges": [
+        "S1-native-core"
+      ],
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/5"
+    },
+    {
+      "id": "S3-sdk-and-formats",
+      "purpose": "library API, streaming API, full-engine protocol, packages, standard formats and dictionaries",
+      "members": [
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26"
+      ],
+      "entry_edges": [
+        "S1-native-core"
+      ],
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/19"
+    },
+    {
+      "id": "S4-external-adapters",
+      "purpose": "external-adapter construction, actual host/runner preparation and the three mandatory owned external-obligation nodes",
+      "execution_mode": "coordinated_construction_cohort",
+      "members": [
+        "RC27",
+        "RC28",
+        "RC29",
+        "RC30",
+        "RC31",
+        "RC32",
+        "RC33",
+        "RC34",
+        "RC35",
+        "RC36",
+        "RC37",
+        "RC38",
+        "RC39",
+        "RC40",
+        "RC41",
+        "RC42",
+        "RC43",
+        "RC54",
+        "RC42-owned",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "entry_edges": [
+        "S3-sdk-and-formats"
+      ],
+      "acceptance_backedges": ["RC43", "RC45"],
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/26"
+    },
+    {
+      "id": "S5-distribution-quality",
+      "purpose": "distribution, licensing, analyzers, robustness and reproducible optimized builds; final evidence converges through the RC24/RC43/RC45 acceptance cohort",
+      "execution_mode": "construction_then_coordinated_acceptance",
+      "coordinated_acceptance_cohort": [
+        "RC24",
+        "RC43",
+        "RC45"
+      ],
+      "members": [
+        "RC44",
+        "RC45",
+        "RC46",
+        "RC47",
+        "RC48"
+      ],
+      "entry_edges": [
+        "S1-native-core",
+        "S3-sdk-and-formats",
+        "S4-external-adapters"
+      ],
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/43"
+    },
+    {
+      "id": "S6-future-bounded-screen",
+      "purpose": "only after restored native engine: one predeclared, small, exact source-plus-fixture screen for candidates still marked eligible; no corpus campaign or broad tournament",
+      "members": [
+        "C01",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C10",
+        "C11",
+        "C12",
+        "C14",
+        "C16",
+        "C17",
+        "C19",
+        "C20",
+        "C22",
+        "C23",
+        "R27"
+      ],
+      "entry_edges": [
+        "RC01",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19",
+        "RC48"
+      ],
+      "source_path": "docs/research/2026-10-04-global-methodology-review/candidates.json; docs/research/2026-10-04-constraint-lifting-review/REPORT.txt"
+    },
+    {
+      "id": "S7-post-gate-confirmation",
+      "purpose": "only the later frozen single pass",
+      "members": [
+        "RC52"
+      ],
+      "entry_edges": [
+        "RC51"
+      ],
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/51"
+    },
+    {
+      "id": "S8-user-held-reporting",
+      "purpose": "reporting/publication backlog retained under explicit user hold",
+      "members": [
+        "RC53"
+      ],
+      "entry_edges": [
+        "RC52",
+        "separate_user_resume"
+      ],
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/52"
+    }
+  ],
+  "owned_external_obligation_nodes": [
+    {
+      "id": "RC42-owned",
+      "parent": "RC42",
+      "owner": "root supplies implementation/evidence; coordinator accepts against the authoritative ledger",
+      "dependent_ids": ["RC42"],
+      "promise": "Owned per-format proposals, feasible prototypes, source/compatibility evidence and explicit infeasibility evidence where applicable. A pending upstream decision does not excuse missing owned work.",
+      "evidence_target": "Current-RC proposal/prototype, source and compatibility disposition for each promised format; no stock-format claim without the separate RC42-upstream condition.",
+      "construction_prerequisite_edges": ["S3-sdk-and-formats"],
+      "acceptance_backedges": ["RC42", "RC54-identities"],
+      "status": "open",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/external_obligations/0"
+    },
+    {
+      "id": "RC54-sdk-runners",
+      "parent": "RC54",
+      "owner": "root supplies implementation/evidence; coordinator accepts against the authoritative ledger",
+      "dependent_ids": ["RC24", "RC28", "RC29", "RC30", "RC31", "RC32", "RC33", "RC34", "RC35", "RC36", "RC37", "RC38", "RC39", "RC40", "RC41", "RC43"],
+      "promise": "Real pinned host SDK/runtime/toolchain/runner evidence needed by actual promised consumer/platform qualification. Unavailable dependencies keep corresponding required IDs open.",
+      "evidence_target": "Pinned SDK/runtime/toolchain and actual runner receipts for each promised consumer or platform; cross-compilation and staging layouts are not runner evidence.",
+      "construction_prerequisite_edges": ["S3-sdk-and-formats"],
+      "acceptance_backedges": ["RC24", "RC43"],
+      "status": "open",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/external_obligations/1"
+    },
+    {
+      "id": "RC54-identities",
+      "parent": "RC54",
+      "owner": "root supplies implementation/evidence; coordinator accepts against the authoritative ledger",
+      "dependent_ids": ["RC26", "RC28", "RC29", "RC30", "RC32", "RC33", "RC34", "RC38", "RC40", "RC41", "RC42"],
+      "promise": "Each adapter/format has collision-free documented development identity and explicit experimental-versus-stock compatibility profile. No invented registration or existing codec-ID reuse.",
+      "evidence_target": "Per-adapter/format development identity and compatibility declaration, with stock/registered claims held for the separate RC54-registry-stock condition.",
+      "construction_prerequisite_edges": ["S3-sdk-and-formats"],
+      "acceptance_backedges": ["RC26", "RC42", "RC45"],
+      "status": "open",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/external_obligations/2"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "RC01",
+      "title": "Native executable and full-engine parity",
+      "area": "architecture",
+      "gate_phase": "pre_benchmark",
+      "stage": "S1-native-core",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC55"
+      ],
+      "acceptance_summary": "Execution/load trace, dependency inventory, native ports of every retained successful route, clean install without Python.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/0"
+    },
+    {
+      "id": "RC02",
+      "title": "Reusable library-first core",
+      "area": "sdk",
+      "gate_phase": "pre_benchmark",
+      "stage": "S3-sdk-and-formats",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01"
+      ],
+      "acceptance_backedges": ["RC19"],
+      "acceptance_summary": "Rust API plus C ABI consumer tests; no process exits, signals, unsolicited output, global resource-limit changes or implicit child processes in native embedding.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/1"
+    },
+    {
+      "id": "RC03",
+      "title": "Generic automatic specialist selection",
+      "area": "models",
+      "gate_phase": "pre_benchmark",
+      "stage": "S1-native-core",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC55"
+      ],
+      "acceptance_summary": "Rename/misleading-extension equivalence, fresh runtime dependency audit, malformed recognizers fall back safely, whole generic alternatives remain eligible. Mathematical/process-based source naming does not prove corpus independence: separately inspect recognizer/admission predicates, offsets, hashes, saved-state inputs and renamed/misleading-extension fixtures. Validated standard-format recognition remains required; renaming must not remove specialist behavior.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/2"
+    },
+    {
+      "id": "RC04",
+      "title": "Arbitrary heterogeneous input",
+      "area": "models",
+      "gate_phase": "pre_benchmark",
+      "stage": "S1-native-core",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC55"
+      ],
+      "acceptance_summary": "Deterministic mixed fixtures, arbitrary order and unknown prefix/middle/suffix, no hardcoded sequences, exact coverage, complete mixed versus unsplit competition.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/3"
+    },
+    {
+      "id": "RC05",
+      "title": "Historical model and decoder coverage",
+      "area": "models",
+      "gate_phase": "pre_benchmark",
+      "stage": "S1-native-core",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC55"
+      ],
+      "acceptance_summary": "Per-route source/encoder/decoder/dependency/fixture manifest; all exclusions explicit and justified; no losing/rare route called dead code.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/4"
+    },
+    {
+      "id": "RC06",
+      "title": "FAST / DEFAULT / BEST semantics",
+      "area": "selection",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "Mode/candidate coverage matrix; considered/declined/budget-omitted/failed/completed/selected reasons; every feasible retained quality candidate accounted for.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/5"
+    },
+    {
+      "id": "RC07",
+      "title": "Selection dimensions and overrides",
+      "area": "selection",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "CLI option matrix and targeted combination tests, deterministic priority/ties, exact complete-output selection where feasible; explain finite bounds honestly.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/6"
+    },
+    {
+      "id": "RC08",
+      "title": "Paid representation and index packing",
+      "area": "models",
+      "gate_phase": "pre_benchmark",
+      "stage": "S1-native-core",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC55"
+      ],
+      "acceptance_summary": "Canonical/large-rank and full-frame equivalence; cost decomposition; no fixed-width rank truncation, hidden side information or payload-only winner claim.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/7"
+    },
+    {
+      "id": "RC09",
+      "title": "Genuine bounded streaming",
+      "area": "streaming",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "Actual idle producer pipe, partial input/output, slow consumer and stream larger than memory; first output/idle flush proof; footer/truncation checks.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/8"
+    },
+    {
+      "id": "RC10",
+      "title": "Streaming and full-engine coverage contracts",
+      "area": "streaming",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "Coverage report for file/pipe/large input; memory proof for CIXH/legacy output; explicit independent-block/reset semantics and coherent option errors.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/9"
+    },
+    {
+      "id": "RC11",
+      "title": "Complete conventional CLI",
+      "area": "cli",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "Behavior matrix including currently missing integrated-parser controls, clean binary stdout/stderr diagnostics, exit codes, help/man parity. Explicitly map -t/-l, --format, --route, --backend, --block-size, --history, --independent-blocks, --stream, --flush-interval, --parallelism, --profile, --portfolio, --external and thread-range behavior.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/10"
+    },
+    {
+      "id": "RC12",
+      "title": "Safe file and interruption semantics",
+      "area": "cli",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "Existing-file/overwrite, failure/cancel/partial output tests; no archive or input lost; cleanup scoped to owned temporary files.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/11"
+    },
+    {
+      "id": "RC13",
+      "title": "Maximum useful internal parallelism",
+      "area": "scheduling",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "Trace ready/running/waiting jobs, actual worker use and idle reasons; no nested oversubscription or silent context splitting; parallel determinism/cancellation checks.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/12"
+    },
+    {
+      "id": "RC14",
+      "title": "Concurrent benchmark scheduling design",
+      "area": "scheduling",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "Before future benchmark, prove scheduler fairness, no avoidable head-of-line blocking, per-cell/full-wave measurement attribution and consistent contention policy. No benchmark now.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/13"
+    },
+    {
+      "id": "RC15",
+      "title": "Portable product resource controls",
+      "area": "resources",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "Allocation/output bombs, timeout, child failure/descendant cleanup, cancellation isolation, temp exhaustion and environment tests; platform-specific guarantees documented. Document per-profile enforcement: allocations versus RSS, cancellation observation points, and hard termination only for explicitly isolated workers.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/14"
+    },
+    {
+      "id": "RC16",
+      "title": "Performance carry-forward",
+      "area": "performance",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "Map each retained optimization to new source and exactness fixture; no additive/unmeasured speed claim; profile new bottlenecks without reopening closed experiments.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/15"
+    },
+    {
+      "id": "RC17",
+      "title": "Hardware execution policy",
+      "area": "performance",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "Recorded busy MHz, watts, temperatures, throttle deltas, topology and interference policy; unresolved physical/maintenance dependencies explicit, not claimed fixed.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/16"
+    },
+    {
+      "id": "RC18",
+      "title": "Historical wire compatibility",
+      "area": "compatibility",
+      "gate_phase": "pre_benchmark",
+      "stage": "S1-native-core",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC55"
+      ],
+      "acceptance_summary": "Old/new cross-decode and canonical archive equality where defined; version every intentional format change; never relabel old artifacts as new RC results.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/17"
+    },
+    {
+      "id": "RC19",
+      "title": "No hidden runtime inputs",
+      "area": "resources",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18"
+      ],
+      "acceptance_backedges": ["RC02"],
+      "acceptance_summary": "Fresh-process offline/archive-only restore and clean dependency closure; dictionary identity/distribution explicit where deliberately used.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/18"
+    },
+    {
+      "id": "RC20",
+      "title": "Stable SDK buffer/context ABI",
+      "area": "sdk",
+      "gate_phase": "pre_benchmark",
+      "stage": "S3-sdk-and-formats",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC19"
+      ],
+      "acceptance_summary": "Independent C/Rust consumer builds, bounds/invalid option/allocation tests, ABI/version behavior; concurrent distinct contexts with isolated state.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/19"
+    },
+    {
+      "id": "RC21",
+      "title": "SDK incremental I/O and chunks",
+      "area": "sdk",
+      "gate_phase": "pre_benchmark",
+      "stage": "S3-sdk-and-formats",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC19"
+      ],
+      "acceptance_summary": "One-byte/irregular I/O, backpressure, reset, flush/footer, no-compression and independent chunk tests; cix_squash_splice remains compatible wrapper.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/20"
+    },
+    {
+      "id": "RC22",
+      "title": "Native versus full-engine interfaces",
+      "area": "sdk",
+      "gate_phase": "pre_benchmark",
+      "stage": "S3-sdk-and-formats",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC19"
+      ],
+      "acceptance_summary": "No implicit promotion to subprocess mode; target-decoder capability admission, operation budgets, deterministic-mode contract and separate API/wire/dependency compatibility. Native embedding cannot enforce process RSS by changing caller-wide limits; advertise cooperative versus hard deadlines accurately and test each promised contract.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/21"
+    },
+    {
+      "id": "RC23",
+      "title": "Full-engine job protocol",
+      "area": "sdk",
+      "gate_phase": "pre_benchmark",
+      "stage": "S3-sdk-and-formats",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC19"
+      ],
+      "acceptance_summary": "Protocol/version negotiation, malformed request, cancellation, concurrency and binary framing tests; no separate cix-engine executable dependency.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/22"
+    },
+    {
+      "id": "RC24",
+      "title": "SDK development artifacts",
+      "area": "packaging",
+      "gate_phase": "pre_benchmark",
+      "stage": "S5-distribution-quality",
+      "construction_stage": "S3-sdk-and-formats",
+      "acceptance_stage": "S5-distribution-quality",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_backedges": ["RC43", "RC45", "RC54-sdk-runners"],
+      "acceptance_summary": "Build independent consumers from a clean install; link/load and uninstall checks; document supported capability and resource contracts.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/23"
+    },
+    {
+      "id": "RC25",
+      "title": "Genuine standard compression formats",
+      "area": "formats",
+      "gate_phase": "pre_benchmark",
+      "stage": "S3-sdk-and-formats",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC19"
+      ],
+      "acceptance_summary": "Independent tool interoperability; explicit selection for ambiguous raw formats; malformed/streaming tests and exact byte restoration.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/24"
+    },
+    {
+      "id": "RC26",
+      "title": "Dictionary APIs",
+      "area": "formats",
+      "gate_phase": "pre_benchmark",
+      "stage": "S3-sdk-and-formats",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC19"
+      ],
+      "acceptance_summary": "Correct/missing/wrong dictionary, reset, immutable sharing and installed consumer tests; charge/disclose decoder-required dictionary assets.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/25"
+    },
+    {
+      "id": "RC27",
+      "title": "Tar and libarchive integration",
+      "area": "adapters",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Real create/extract, binary pipe/error behavior, installed examples and explicit plugin/library dependency. Optional native route cannot masquerade as stock support.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/26"
+    },
+    {
+      "id": "RC28",
+      "title": "QuixDB Squash plugin",
+      "area": "adapters",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Actual pinned SDK/runtime plugin discovery, loading, encoding and decoding; missing Squash 0.8 remains an explicit dependency, not a passed callback-only substitute.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/27"
+    },
+    {
+      "id": "RC29",
+      "title": "7-Zip adapter",
+      "area": "adapters",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Actual host load/create/extract and missing decoder/version failures; external identifier requirements recorded.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/28"
+    },
+    {
+      "id": "RC30",
+      "title": "HDF5 / h5py / netCDF",
+      "area": "adapters",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Actual HDF5 and netCDF/h5py consumer reopen/read, independent chunks, incompressible fallback, corrupted metadata and plugin absence checks.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/29"
+    },
+    {
+      "id": "RC31",
+      "title": "Numcodecs / Zarr",
+      "area": "adapters",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Installed v2/v3 consumer write/reopen/random chunk read, serialized config, missing codec and corruption tests.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/30"
+    },
+    {
+      "id": "RC32",
+      "title": "Blosc2",
+      "area": "adapters",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Actual plugin registration, buffer/chunk roundtrip, bounds and no-compression outcome tests.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/31"
+    },
+    {
+      "id": "RC33",
+      "title": "RocksDB / WiredTiger",
+      "area": "adapters",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Real database/SST write/reopen/upgrade checks, compression-declined behavior, concurrency and dependency-version matrix.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/32"
+    },
+    {
+      "id": "RC34",
+      "title": "Hadoop and seekable chunks",
+      "area": "adapters",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Real JVM consumer, partial/seek reads and index identity validation; no hidden cross-chunk state or claim that random read verifies whole archive.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/33"
+    },
+    {
+      "id": "RC35",
+      "title": "Primary language bindings",
+      "area": "bindings",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Installed consumer buffer/file-like/stream tests, ownership/lifetime/error/cancel behavior and cross-language decode.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/34"
+    },
+    {
+      "id": "RC36",
+      "title": "Additional language bindings",
+      "area": "bindings",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Actual independent consumer build/use, cross-interface decode, repeated calls and resource/lifetime checks on stated hosts.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/35"
+    },
+    {
+      "id": "RC37",
+      "title": "Portable WASM subset",
+      "area": "bindings",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Browser/WASM build and execute, bounds/stream/cancel tests, exact supported-format compatibility.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/36"
+    },
+    {
+      "id": "RC38",
+      "title": "gRPC and HTTP",
+      "area": "adapters",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Real endpoints, negotiation, missing decoder, oversized message and streaming/error tests; no unregistered stock-browser CIX claim.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/37"
+    },
+    {
+      "id": "RC39",
+      "title": "GIO / GStreamer and storage examples",
+      "area": "adapters",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Actual pipeline/plugin load tests, partial I/O and restore examples; no transparent server-side decompression claim.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/38"
+    },
+    {
+      "id": "RC40",
+      "title": "Native SquashFS userspace",
+      "area": "filesystem",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Actual create/extract/userspace read/random block checks; raw fallback; profile and custom identity explicit; no reuse of another codec ID.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/39"
+    },
+    {
+      "id": "RC41",
+      "title": "Native SquashFS restricted decoder and VM",
+      "area": "filesystem",
+      "gate_phase": "pre_benchmark",
+      "stage": "S4-external-adapters",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC02",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Actual mount/read/corruption/resource/metadata/fragment tests in disposable VM, matching tools/kernel, no host kernel modification or stock-support claim.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/40"
+    },
+    {
+      "id": "RC42",
+      "title": "Additional platform format proposals",
+      "area": "filesystem",
+      "gate_phase": "external_dependency_resolution",
+      "stage": "S4-external-adapters",
+      "disposition": "external_dependency_open",
+      "ledger_status": "external_dependency_open",
+      "existing_evidence": [],
+      "missing_or_blocker": "Source/proposal obligations retained; stock/upstream acceptance depends on external parties and is not promised.",
+      "planning_prerequisite_edges": [
+        "RC42-owned",
+        "RC54-identities"
+      ],
+      "conditional_external_claim_gate": "RC42-upstream applies only to a stock-format-extension claim; it is not a substitute for RC42-owned and is not a current construction edge.",
+      "acceptance_summary": "Each target has design/prototype status, identity/licensing/upstream dependency and owner. Concrete promised proposal/prototype work remains required; upstream acceptance cannot be fabricated.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/41"
+    },
+    {
+      "id": "RC43",
+      "title": "Platform qualification",
+      "area": "packaging",
+      "gate_phase": "pre_benchmark",
+      "stage": "S5-distribution-quality",
+      "construction_stage": "S4-external-adapters",
+      "acceptance_stage": "S5-distribution-quality",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC18",
+        "RC19",
+        "RC24",
+        "RC54-sdk-runners"
+      ],
+      "acceptance_backedges": ["RC45"],
+      "acceptance_summary": "Clean install and independent consumers per supported target; absent runners/dependencies listed as external blockers; no silent exclusion or false platform claim.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/42"
+    },
+    {
+      "id": "RC44",
+      "title": "Lean professional distribution",
+      "area": "packaging",
+      "gate_phase": "pre_benchmark",
+      "stage": "S5-distribution-quality",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC18",
+        "RC19",
+        "RC24",
+        "RC43",
+        "RC45"
+      ],
+      "acceptance_summary": "Clean third-party source build, package install/uninstall/use, offline/runtime closure and artifact identity; host-pinned staging is not a release installer. Check shipping source/install manifest and rename references against the naming rule, without altering frozen historical evidence or third-party codec provenance/names. Preserve semantics, registry coverage and compatibility through CIX-owned renames.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/43"
+    },
+    {
+      "id": "RC45",
+      "title": "Licenses and provenance",
+      "area": "packaging",
+      "gate_phase": "pre_benchmark",
+      "stage": "S5-distribution-quality",
+      "construction_stage": "S5-distribution-quality",
+      "acceptance_stage": "S5-distribution-quality",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_backedges": ["RC24", "RC43", "RC54-identities"],
+      "acceptance_summary": "Source hashes, dependency manifest, install-size accounting and compatible package scopes; keep repository private and Actions disabled.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/44"
+    },
+    {
+      "id": "RC46",
+      "title": "Sonar C/C++ actually works",
+      "area": "quality",
+      "gate_phase": "pre_benchmark",
+      "stage": "S5-distribution-quality",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC18",
+        "RC19",
+        "RC24",
+        "RC43",
+        "RC45"
+      ],
+      "acceptance_summary": "Actual rule/probe issue detection, compiler metadata, indexed-file/language coverage, compute-engine completion and issue readback; final scan bound to final RC source.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/45"
+    },
+    {
+      "id": "RC47",
+      "title": "Quality and dead-code closure",
+      "area": "quality",
+      "gate_phase": "pre_benchmark",
+      "stage": "S5-distribution-quality",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC18",
+        "RC19",
+        "RC24",
+        "RC43",
+        "RC45"
+      ],
+      "acceptance_summary": "Fresh final-source checks; separate unresolved vendor findings; no vendor edits/suppression to fake clean, no supported decoder or rare specialist removed as dead code.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/46"
+    },
+    {
+      "id": "RC48",
+      "title": "Focused correctness and robustness",
+      "area": "quality",
+      "gate_phase": "pre_benchmark",
+      "stage": "S5-distribution-quality",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC18",
+        "RC19",
+        "RC24",
+        "RC43",
+        "RC45"
+      ],
+      "acceptance_summary": "Current-source receipts, failures resolved, independent archive-only decode and clean-installed consumer checks. Reuse fixtures; no long corpus benchmark while gate open.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/47"
+    },
+    {
+      "id": "RC49",
+      "title": "Optimized build and reproducibility",
+      "area": "performance",
+      "gate_phase": "pre_benchmark",
+      "stage": "S2-execution-control",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC08",
+        "RC18",
+        "RC19"
+      ],
+      "acceptance_summary": "Final optimized build passes checks; compiler/linker/dependency/flags/CPU support identities frozen; no unsafe fast-math change to codec semantics.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/48"
+    },
+    {
+      "id": "RC50",
+      "title": "Complete opportunity/backlog disposition",
+      "area": "coordination",
+      "gate_phase": "pre_benchmark",
+      "stage": "S0-evidence-and-freeze",
+      "disposition": "evidence_mapped_acceptance_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [
+        {
+          "kind": "finite_research_disposition_not_product_acceptance",
+          "report": "docs/research/2026-10-04-rc-reconciliation/RESEARCH-CLOSURE.txt",
+          "machine_register": "docs/research/2026-10-04-rc-reconciliation/RESEARCH-CLOSURE.json",
+          "theory": "docs/research/2026-10-04-rc-reconciliation/final-theory-screen/REPORT.txt",
+          "codec_validation": "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/REPORT.txt",
+          "status": "experiments_complete; bounded_read_only_review_complete; RC50_acceptance_open",
+          "review": "docs/research/2026-10-04-rc-reconciliation/RESEARCH-CLOSURE-REVIEW.txt"
+        }
+      ],
+      "missing_or_blocker": "Finite research closure maps38 historical cells and11 current groups, with final count/seeded-space and codec validations. No new experimental routes promoted. Keep all required useful-specialist/native/SDK/hygiene capabilities. New-source mapping and final acceptance remain open; this is not a universal opportunity-exhaustion claim.",
+      "planning_prerequisite_edges": [
+        "RC55"
+      ],
+      "acceptance_summary": "No unexplained pending code item; implemented/partial/backend-only/closed-negative/unproven/external statuses with owner/evidence. Later generic-format clarification supersedes old format bans. Link the bounded GPU/CUDA findings and disposition (justified opportunity, no demonstrated benefit, or explicit blocker); do not claim an unmeasured speedup or launch a GPU benchmark while HOLD remains. Candidate matrix must distinguish already-supported, source-integration opportunity, externally constrained and rejected/unproven methods; record hardware/API/licensing/format/portability/resource/CPU-fallback implications and conditional source requirements without making every researched method mandatory.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/49"
+    },
+    {
+      "id": "RC51",
+      "title": "Release and benchmark gate",
+      "area": "coordination",
+      "gate_phase": "readiness_review",
+      "stage": "S0-evidence-and-freeze",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required before next RC benchmark; earlier implementation/test evidence must be mapped to new source.",
+      "planning_prerequisite_edges": [
+        "RC01",
+        "RC02",
+        "RC03",
+        "RC04",
+        "RC05",
+        "RC06",
+        "RC07",
+        "RC08",
+        "RC09",
+        "RC10",
+        "RC11",
+        "RC12",
+        "RC13",
+        "RC14",
+        "RC15",
+        "RC16",
+        "RC17",
+        "RC18",
+        "RC19",
+        "RC20",
+        "RC21",
+        "RC22",
+        "RC23",
+        "RC24",
+        "RC25",
+        "RC26",
+        "RC27",
+        "RC28",
+        "RC29",
+        "RC30",
+        "RC31",
+        "RC32",
+        "RC33",
+        "RC34",
+        "RC35",
+        "RC36",
+        "RC37",
+        "RC38",
+        "RC39",
+        "RC40",
+        "RC41",
+        "RC43",
+        "RC44",
+        "RC45",
+        "RC46",
+        "RC47",
+        "RC48",
+        "RC49",
+        "RC50",
+        "RC55",
+        "RC42-owned",
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "acceptance_summary": "Machine-readable readiness receipt plus independent acceptance review. Missing external dependency is a blocker, not an automatic waiver; no hidden or newly invented deferral.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/50"
+    },
+    {
+      "id": "RC52",
+      "title": "Later single-pass confirmation",
+      "area": "qualification",
+      "gate_phase": "post_gate_confirmation",
+      "stage": "S7-post-gate-confirmation",
+      "disposition": "post_gate_required",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required subsequent confirmation; only frozen plan and scheduler readiness precede RC51. Its benchmark results are post-gate evidence.",
+      "planning_prerequisite_edges": [
+        "RC51"
+      ],
+      "acceptance_summary": "Complete bytes and full search/decode CPU/wall/MiB/s/aggregate peaks, coverage/omissions, historical per-member/total comparison and scoped public records. No current benchmark launch.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/51"
+    },
+    {
+      "id": "RC53",
+      "title": "Later reporting and publication",
+      "area": "reporting",
+      "gate_phase": "separate_user_hold",
+      "stage": "S8-user-held-reporting",
+      "disposition": "paused_by_user",
+      "ledger_status": "paused_by_user",
+      "existing_evidence": [],
+      "missing_or_blocker": "Later user direction explicitly pauses execution; retain deliverable backlog.",
+      "planning_prerequisite_edges": [
+        "RC52",
+        "separate_user_resume"
+      ],
+      "acceptance_summary": "Keep backlog and existing site evidence; only verified appropriately scoped results; no new publication/site deployment/data campaign from this reconciliation.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/52"
+    },
+    {
+      "id": "RC54",
+      "title": "External registries and host acceptance",
+      "area": "adapters",
+      "gate_phase": "external_dependency_resolution",
+      "stage": "S4-external-adapters",
+      "disposition": "external_dependency_open",
+      "ledger_status": "external_dependency_open",
+      "existing_evidence": [],
+      "missing_or_blocker": "Source/proposal obligations retained; stock/upstream acceptance depends on external parties and is not promised.",
+      "planning_prerequisite_edges": [
+        "RC54-sdk-runners",
+        "RC54-identities"
+      ],
+      "conditional_external_claim_gate": "RC54-registry-stock applies only to a registered/stock-interoperability claim; it does not replace the three owned external obligations.",
+      "acceptance_summary": "Explicit dependency owner and evidence, no invented registered ID or SDK qualification. Keep promised source deliverables open until accepted or user changes scope.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/53"
+    },
+    {
+      "id": "RC55",
+      "title": "Canonical source baseline and port map",
+      "area": "coordination",
+      "gate_phase": "pre_benchmark",
+      "stage": "S0-evidence-and-freeze",
+      "disposition": "required_open",
+      "ledger_status": "open_for_new_rc",
+      "existing_evidence": [],
+      "missing_or_blocker": "Required source identity correction before implementation; bounded comparison does not imply every vendor/doc/test file matches.",
+      "planning_prerequisite_edges": [],
+      "acceptance_summary": "Source manifest and explicit diff resolution: 40 checked native export/snapshot inputs match; 13 shared development files differ, cli.rs is absent there and four research files are extra. Map all 41 production reference modules to native ownership/encoder/decoder/parity proof before declaring coverage complete.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/54"
+    }
+  ],
+  "additional_investigations": [
+    {
+      "id": "RC50-GPU",
+      "parent_requirement": "RC50",
+      "stage": "S0-evidence-and-freeze",
+      "disposition": "audit_complete_optional_provider_unqualified",
+      "ledger_status": "audit_complete_optional_provider_unqualified",
+      "missing_or_blocker": "No workload, measured GPU performance, or provider qualification exists; conditional source, SDK, format, resource, interoperability, licensing and distribution obligations remain.",
+      "planning_prerequisite_edges": [
+        "RC50",
+        "RC17",
+        "RC43",
+        "RC45",
+        "RC49"
+      ],
+      "source_paths": [
+        "docs/research/2026-10-04-gpu-cuda/OPPORTUNITIES.md",
+        "docs/research/2026-10-04-gpu-cuda/PROBE-SPEC.md",
+        "docs/research/2026-10-04-gpu-cuda/source-requirements.json",
+        "docs/research/2026-10-04-rc-reconciliation/RESEARCH-CLOSURE.txt",
+        "docs/research/2026-10-04-rc-reconciliation/RESEARCH-CLOSURE.json"
+      ]
+    }
+  ],
+  "observed_dependencies": [
+    {
+      "component": "Linux x86-64 host",
+      "observed_state": "present_unqualified",
+      "detail": "Ubuntu 24.04.4 LTS, Linux x86-64 host observed. This is not RC43 clean-install or consumer qualification.",
+      "source_path": "local command receipt: uname -a; /etc/os-release (2026-10-04)"
+    },
+    {
+      "component": "Rust toolchain",
+      "observed_state": "present_unqualified",
+      "detail": "cargo 1.98.1 and rustc 1.98.1 were found; build/reproducibility acceptance is still RC49.",
+      "source_path": "local command receipt: /snap/bin/cargo --version; /snap/bin/rustc --version (2026-10-04)"
+    },
+    {
+      "component": "C/C++ toolchain",
+      "observed_state": "present_unqualified",
+      "detail": "CMake 3.28.3, Clang 18.1.3 and GCC 13.3.0 were found. No toolchain result is a release qualification.",
+      "source_path": "local command receipt: cmake/clang/gcc --version (2026-10-04)"
+    },
+    {
+      "component": "CUDA host and compiler",
+      "observed_state": "present_unqualified",
+      "detail": "The local CUDA toolkit is separately evidenced by /usr/local/cuda/bin/nvcc reporting release 12.1 and /usr/local/cuda/version.json. nvidia-smi reports a GTX 1650 (4096 MiB) and driver 580.173.02; its displayed \u201cCUDA Version: 13.0\u201d is driver API compatibility, not toolkit proof. No CIX GPU workload, speed result, provider qualification, or portability claim follows.",
+      "source_path": "local command receipt: /usr/local/cuda/bin/nvcc --version; /usr/local/cuda/version.json; nvidia-smi (2026-10-04)"
+    },
+    {
+      "component": "libzstd and Brotli",
+      "observed_state": "partially_present_unqualified",
+      "detail": "libzstd 1.5.5 and Brotli pkg-config entries were found. The current native code directly binds ZSTD_compress; interoperability and output-format acceptance remain RC25.",
+      "source_path": "local command receipt: pkg-config --modversion libzstd; pkg-config --list-all; rust/cix-native/src/external.rs:180-200,1109-1112"
+    },
+    {
+      "component": "libjxl 0.12",
+      "observed_state": "missing",
+      "detail": "No checked standard include/library location or pkg-config entry was observed. The bridge deliberately requires an explicitly provisioned prefix, so the bridge source is not an installed SDK qualification.",
+      "source_path": "local command receipt: /usr/include/jxl, /usr/local/include/jxl, standard libjxl paths, pkg-config list (2026-10-04); rust/cix-native/codecs/jxl/CMakeLists.txt:4-18,43-44"
+    },
+    {
+      "component": "PAQ source roots",
+      "observed_state": "reference_present_shipping_dependency_unresolved",
+      "detail": "The local v216 research reference includes DmcModel.cpp, but native PAQ bridge CMake files require a packaged CIX_PAQ_SOURCE_ROOT. The observed reference is not evidence of a shipped closure.",
+      "source_path": "benchmark-work/references/paq8px-v216/paq8px-216/src/model/DmcModel.cpp; rust/cix-native/codecs/paq/v216/CMakeLists.txt:6-8,16-43"
+    },
+    {
+      "component": "Squash 0.8 SDK",
+      "observed_state": "missing_or_unqualified",
+      "detail": "The requirement ledger records unavailable Squash 0.8 SDK as a current backlog item; local callback/source artifacts do not meet RC28 host discovery/loading acceptance.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/REQUIREMENTS.md:59; docs/research/2026-10-04-rc-reconciliation/REQUIREMENTS.md:148; docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/27"
+    },
+    {
+      "component": "macOS ARM64/x86-64 and Windows x64 runners",
+      "observed_state": "missing",
+      "detail": "No local runner evidence was inspected or found. RC43 requires actual execution; cross compilation alone does not qualify a platform.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/42"
+    },
+    {
+      "component": "host registries/upstream acceptance",
+      "observed_state": "external_dependency_open",
+      "detail": "Registered identifiers, upstream acceptance and pinned host SDKs must be real; no local source inventory can fabricate them.",
+      "source_path": "docs/research/2026-10-04-rc-reconciliation/requirements.json#/requirements/53"
+    }
+  ]
+}

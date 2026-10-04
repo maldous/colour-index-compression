@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-05",
+  "scope": "read-only retained-work cache budget inventory",
+  "temporary_limit_bytes": 4000000000,
+  "retained_work_bytes": 3335245824,
+  "headroom_before_bytes": 664754176,
+  "requested_new_build_headroom_bytes": 734003200,
+  "shortfall_before_bytes": 69249024,
+  "recommended_prune": {
+    "path": "benchmark-work/native-rc-check-v1/target/debug",
+    "allocated_bytes": 125628416,
+    "kind": "shared Cargo debug build cache and reproducible executables",
+    "post_prune_retained_bytes": 3209617408,
+    "post_prune_headroom_bytes": 790382592,
+    "post_prune_headroom_mib": 753.767578125,
+    "selection_reason": "smallest observed cache directory that exceeds the 69249024-byte shortfall without selecting any source, provider, archive, receipt, installed prefix, staged distribution, or release-LTO output",
+    "hardlink_assessment": "observed multi-link files beneath this path are Cargo's paired build-script names within target/debug; no external hardlink target was observed in the retained-work hardlink inventory",
+    "must_record_before_delete": [
+      "a deterministic manifest of every selected regular file: relative path, allocated blocks, logical size, sha256, device/inode, and link count",
+      "the target/debug directory allocated-byte total and filesystem block size",
+      "the pre-prune aggregate retained-work size and the selected-path size",
+      "an assertion that every selected path remains below exactly target/debug and that no selected inode has a link outside that subtree",
+      "the cache-prune job command, scheduler receipt, exit status, and post-prune aggregate size"
+    ],
+    "must_refuse": [
+      "any active scheduler lease, build process, or current final-build output rooted in target/debug",
+      "a missing or changed selected file between manifest capture and deletion",
+      "a selected inode with an external hardlink",
+      "a measured post-prune headroom below 734003200 bytes"
+    ]
+  },
+  "retained_not_selected": [
+    {
+      "path": "benchmark-work/native-rc-check-v1/distribution-engineering-v4/target",
+      "allocated_bytes": 103653376,
+      "reason": "optimized release-LTO tree; libcix_native.a is hardlinked to the installed stage and SDK prefix, and other release artifacts are cited by completed receipts"
+    },
+    {
+      "path": "benchmark-work/native-rc-check-v1/distribution-engineering-v4/stage",
+      "allocated_bytes": 60387328,
+      "reason": "installed distribution evidence and hardlink endpoint"
+    },
+    {
+      "path": "benchmark-work/native-rc-check-v1/distribution-engineering-v4/source-output",
+      "allocated_bytes": 24113152,
+      "reason": "source export evidence"
+    },
+    {
+      "path": "benchmark-work/native-rc-check-v1/go-mod-cache",
+      "allocated_bytes": 249720832,
+      "reason": "dependency cache; retaining avoids an unplanned dependency reacquisition"
+    },
+    {
+      "path": "benchmark-work/native-rc-check-v1/preserved-sdk-artifacts-v1",
+      "allocated_bytes": 252469248,
+      "reason": "preserved completed SDK artifacts"
+    },
+    {
+      "path": "benchmark-work/native-rc-check-v1/preserved-consumer-artifacts-v1",
+      "allocated_bytes": 200220672,
+      "reason": "preserved completed consumer artifacts"
+    },
+    {
+      "path": "benchmark-work/native-rc-check-v1/preserved-sdk-artifacts-v2",
+      "allocated_bytes": 186773504,
+      "reason": "preserved completed SDK artifacts"
+    },
+    {
+      "path": "benchmark-work/native-rc-check-v1/preserved-consumer-artifacts-v2",
+      "allocated_bytes": 102940672,
+      "reason": "preserved completed consumer artifacts"
+    },
+    {
+      "path": "benchmark-work/native-rc-check-v1/python-host-sdk-v1",
+      "allocated_bytes": 115970048,
+      "reason": "installed host provider"
+    },
+    {
+      "path": "benchmark-work/native-rc-check-v1/codec-host-archives-v1",
+      "allocated_bytes": 14106624,
+      "reason": "pinned source archives"
+    }
+  ],
+  "disposition": "proposal only; no deletion or mutation was performed"
+}

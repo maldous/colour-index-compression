@@ -1,0 +1,29 @@
+{
+  "id": "execution-zpaq-watchdog-v2",
+  "cpus": [
+    8,
+    10,
+    12,
+    14
+  ],
+  "wall_seconds": 180,
+  "memory_bytes": 2000000000,
+  "temp_bytes": 4000000000,
+  "aggregate_policy": "Existing scheduler monitors all retained shared work plus this job against decimal 4GB; no per-job extra budget.",
+  "work": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1",
+  "raw": "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/zpaq-watchdog-v2/raw",
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/zpaq-watchdog-v2/run.py"
+  ],
+  "required_observations": [
+    "the exact wrapper contract admits one million instructions, remains exhausted on repeated charges, resets on output progress, and polls cancellation at the documented cadence",
+    "the owned wrapper round-trips a bounded payload and rejects an appended trailing byte",
+    "the frozen owned source hashes match before copy, copied inputs, and current sources after execution"
+  ],
+  "non_claims": [
+    "this is not a benchmark or a general libzpaq qualification",
+    "a separately compiled pre-patch wrapper is expected to fail the repeated-exhaustion assertion; that negative control is not a passing baseline"
+  ],
+  "retry_reason": "v1 owned test compile rejected unchanged libzpaq header unused-parameter under -Werror; v2 marks that external header search as system, retains owned -Werror and vendor source unchanged. No runtime test had run in v1."
+}

@@ -9,19 +9,27 @@ CLI result is a release or benchmark claim.
 Native BEST portfolio parity is restored at the library selection boundary.
 `FullEngine` dispatch contains CIXY feedback, CIXZ interval, CIXB\x1f SGCC1
 count, CIXB\x20 SGCC2 conditional, and CIXI\x01 JPEG-2000/JPEG-LS spatial
-paths. The ordinary CLI now calls automatic full-engine selection for a narrow,
-explicitly bounded input class: an unconstrained named regular file of at most
-128 MiB, with the selected memory/output reservations available. It writes the
-selected complete archive and ordinary CLI decode dispatches its full archive.
+paths.
 
-That is **scoped CLI reachability**, not a blanket per-family CLI qualification.
-The whole-engine path declines stdin, stream/flush, history/reset,
-independent-block, explicit format/route/backend/block/external/portfolio
-controls, non-regular files, oversized files, and insufficient budget. Those
-uses retain their existing bounded streaming or legacy paths. Explicit
-whole-engine dimensions, stdin and large-stream specialist admission remain
-open. Individual retained modules below therefore keep their library-focused
-status unless their own ordinary CLI contract has been qualified.
+The ordinary CLI has two distinct automatic paths. It first uses whole-input
+selection for an admitted regular named input no larger than 128 MiB, producing
+one selected complete archive. If that path is unavailable, eligible stdin,
+non-regular, and larger input use bounded independent CIXW1 windows. CIXW1
+selects locally within each record; it has no cross-window history, recognition
+or regions spanning a boundary, CIXH1/external payload spanning a boundary, or
+whole-archive competition.
+
+`large-window-contract-v1/receipt.json` records exact restoration of a
+134,217,729-byte named input and unknown-length stdin through the ordinary CLI,
+a worker round trip with 33 independent 4 MiB CIXW1 windows, and a cap-failure
+negative. This is bounded transport evidence, not proof that a particular
+specialist wins, or that every family/provider/profile is CLI-qualified.
+
+Stream/flush, nonzero history, independent-block reset, explicit route,
+external/portfolio controls, and formats that cannot be embedded in CIXW1
+retain their existing paths. `--block-size` and `--backend` tune native
+dimensions and do not by themselves suppress independent automatic discovery;
+an explicit format forces compatible container choices.
 
 ## Wire boundary
 
@@ -31,16 +39,17 @@ historical specialist prefixes `CIXB\x03`, `CIXB\x0b`, `CIXB\x0c`,
 Generic `CIXG1`, `CIXG2`, `CIXM5`, `CIXM6`, and `CIXZ1` are likewise separate
 from `CIXG\x01`, `CIXD\x01`, and other specialist envelopes. There is no
 `CIXF1` wire magic: the compatibility option maps to the M6 format and its M6
-footer. Dispatch uses exact bytes; it must never infer a family from a printable
-prefix.
+footer. Dispatch uses exact bytes; it must never infer a family from a
+printable prefix.
 
 The complete 41-module and wire map is
 [native-coverage.json](native-coverage.json). Status terms mean:
 
 - **library-only**: reversible native functions exist without a route claim.
 - **library-tested-unwired**: bounded source-bound tests cover the library
-  route. A retained candidate can be considered by scoped automatic CLI
-  selection where admitted, but it has no per-family ordinary CLI qualification.
+  route. A retained candidate can be considered by whole-input selection or a
+  locally eligible CIXW1 window, but it has no per-family ordinary CLI
+  qualification.
 - **partial-unwired**: source has part of a route but lacks an edge.
 - **internal dependency / inactive history**: a helper sits inside a retained
   route or is not reachable from a supported production wire.
@@ -50,11 +59,12 @@ The complete 41-module and wire map is
 
 | Reference family | Native evidence | Status | Boundary still open |
 |---|---|---|---|
-| Native BEST portfolio | Library selection, with scoped ordinary CLI automatic admission for eligible whole inputs | scoped CLI reachable | Per-profile/per-candidate CLI qualification and broader resource qualification. |
-| FullEngine retained families | Catalogue, providers, transforms, exact frame dispatcher, and selected complete archive output through eligible CLI inputs | scoped CLI reachable | Per-family paid selection and ordinary CLI qualification. |
+| Native BEST portfolio | Library selection, bounded whole-input admission, and local eligible CIXW1 selection | scoped CLI reachable | Per-profile/per-candidate CLI qualification and broader resource qualification. |
+| FullEngine retained families | Catalogue, providers, transforms, exact frame dispatcher, complete archive output, and bounded CIXW1 local selection | scoped CLI reachable | Per-family paid selection and ordinary CLI qualification. |
 | Grid feedback / interval | SGFB1/CIXY\x01 and SGBI1/CIXZ\x01 transforms and dispatch | library-tested; scoped candidate admission only | Normal per-family CLI selection/qualification. |
 | Count / conditional grids | SGCC1/CIXB\x1f and SGCC2/CIXB\x20 transforms and dispatch | library-tested; scoped candidate admission only | Normal per-family CLI selection/qualification. |
 | Spatial JPEG-LS / JPEG-2000 | Provider bridge, CIXI1 representation-2/3 framing, dispatch and appended catalogue alternatives | library-tested; scoped candidate admission only | Per-family CLI and broader release/provider qualification. |
+| PAQ v215 -9L/LSTM | Same PAQ v215 CIXP chain with `level=9`, `lstm=true`, `lstm_layers=1` | source reachable | A focused current -9L fixture if historical equivalence is required; no separate LSTM transform/decoder is missing. |
 | Dictionary C API | Retained-capacity/lifecycle contract plus relocated shared/static consumers | focused-tested SDK surface | ABI/provider loading and platform qualification. |
 | Explicit standard streams | Nine one-shot formats via generic CLI and C format API | focused-tested explicit operation | Not an automatic portfolio/full-engine route. |
 
@@ -64,14 +74,14 @@ only to inactive SectionPointers mode 6.
 
 ## Scoped evidence
 
-Source reachability is bounded in
-[`cli_full_engine.rs`](../../../rust/cix-native/src/cli_full_engine.rs):
-`whole_encode_ineligibility` rejects the controls listed above;
-`whole_input_ineligibility` requires a regular input file no larger than 128
-MiB and enough baseline memory; `encode_whole` runs selection and writes its
-complete chosen archive. Its decode path treats a recognized full frame as a
-full-frame buffered decode. This source observation says nothing about every
-candidate being selected for every input.
+The two CLI branches are in
+[`cli_full_engine.rs`](../../../rust/cix-native/src/cli_full_engine.rs).
+`encode_whole` admits the bounded regular-file path. `encode_windows` admits
+the CIXW1 path when its controls permit it and gives each window a separate
+bounded selection. Its summary explicitly reports no cross-window history or
+whole-archive comparison. The CLI tries whole input first, then windows, then
+the legacy encoder. This source observation and the large-window receipt say
+nothing about every candidate being selected for every input.
 
 The older `cli-bindings-v2` through `cli-bindings-v6` runs ended nonzero and
 remain negative or incomplete evidence. `cli-bindings-v8` completed with exit
@@ -116,18 +126,19 @@ not imply standard-format streaming or automatic portfolio admission.
 
 1. Qualify each retained family that is expected to win or decode through the
    ordinary CLI automatic path, including paid exact framing, malformed/limit
-   cases and candidate-admission diagnostics. Do not infer this from the scoped
-   selector or smoke evidence.
-2. Extend or explicitly decline whole-engine specialist admission for stdin,
-   inputs larger than 128 MiB, and explicit dimensions/controls. The present
-   bounded streaming and legacy paths are not evidence of full-engine coverage.
+   cases and candidate-admission diagnostics. Do not infer this from selector,
+   window, or smoke evidence.
+2. Qualify CIXW1’s stated ordinary CLI boundaries for controls, independent
+   records, malformed/limit behavior, and local candidate admission. It is not
+   whole-input specialist competition or per-family CLI coverage.
 3. Qualify installed ABI/provider loading and platforms beyond the completed
    filesystem-discovery receipt.
 4. Complete release adapters, packages, cross-platform/SquashFS, quality and
    final release checks before making a public claim.
-5. Account for the historical LSTM/prediction route: no native implementation
-   or frame decoder was found, and the recorded `-12L` path remains outside the
-   stated 12 GiB bound.
+5. If historical equivalence needs it, qualify PAQ v215 -9L with LSTM enabled
+   against a current fixture. This uses the same PAQ worker/CIXP chain; no
+   standalone LSTM/prediction transform or decoder is missing. The recorded
+   -12L path remains outside the stated 12 GiB bound.
 
 A completed route still requires named admission, paid exact framing, bounded
 native inverse, checksum/original-byte verification, malformed/limit cases,

@@ -1,0 +1,411 @@
+{
+  "schema": "cix-cxx-firstparty-rule-disposition-v1",
+  "date": "2026-10-05",
+  "source": {
+    "scan": "docs/research/2026-10-04-execution/sonar-preparation/scan-v3",
+    "files": [
+      "docs/research/2026-10-04-execution/sonar-preparation/scan-v3/cix-native-core/issues.json",
+      "docs/research/2026-10-04-execution/sonar-preparation/scan-v3/cix-native-adapters/issues.json"
+    ],
+    "aggregate_status": "producer SCANNED_WITH_RECORDED_FINDINGS; authoritative qualification review ANALYSIS_GAPS_REMAIN_NOT_CLEAN",
+    "qualification_review": "docs/research/2026-10-04-execution/sonar-preparation/scan-v3/qualification-review.json",
+    "raw_cppcheck_configuration_errors": {
+      "scope": "cix-native-adapters",
+      "total": 6,
+      "preprocessorErrorDirective": 5,
+      "unknownMacro": 1,
+      "note": "Raw Cppcheck configuration errors; distinct from imported Sonar rule issues."
+    },
+    "imported_preprocessor_rule_issues": {
+      "rule": "cppcheck:preprocessorErrorDirective",
+      "total": 3,
+      "scope": "cix-native-adapters",
+      "note": "Imported rule issues; do not merge with raw Cppcheck configuration-error count."
+    }
+  },
+  "scope_totals": {
+    "cix-native-core": 612,
+    "cix-native-adapters": 766
+  },
+  "total_issues": 1378,
+  "rules": [
+    {
+      "rule": "cppcheck:constParameterCallback",
+      "total": 6,
+      "scopes": {
+        "cix-native-core": 1,
+        "cix-native-adapters": 5
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cppcheck:constParameterPointer",
+      "total": 6,
+      "scopes": {
+        "cix-native-core": 2,
+        "cix-native-adapters": 4
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cppcheck:constStatement",
+      "total": 1,
+      "scopes": {
+        "cix-native-adapters": 1
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cppcheck:constVariableReference",
+      "total": 8,
+      "scopes": {
+        "cix-native-core": 4,
+        "cix-native-adapters": 4
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cppcheck:duplicateExpression",
+      "total": 1,
+      "scopes": {
+        "cix-native-adapters": 1
+      },
+      "category": "correctness review required"
+    },
+    {
+      "rule": "cppcheck:knownConditionTrueFalse",
+      "total": 7,
+      "scopes": {
+        "cix-native-adapters": 7
+      },
+      "category": "correctness review required"
+    },
+    {
+      "rule": "cppcheck:missingInclude",
+      "total": 1,
+      "scopes": {
+        "cix-native-core": 1
+      },
+      "category": "analyzer-configuration or parser-dependent"
+    },
+    {
+      "rule": "cppcheck:missingIncludeSystem",
+      "total": 193,
+      "scopes": {
+        "cix-native-core": 72,
+        "cix-native-adapters": 121
+      },
+      "category": "analyzer-configuration or parser-dependent"
+    },
+    {
+      "rule": "cppcheck:preprocessorErrorDirective",
+      "total": 3,
+      "scopes": {
+        "cix-native-adapters": 3
+      },
+      "category": "analyzer-configuration or parser-dependent"
+    },
+    {
+      "rule": "cppcheck:redundantAssignment",
+      "total": 1,
+      "scopes": {
+        "cix-native-core": 1
+      },
+      "category": "correctness review required"
+    },
+    {
+      "rule": "cppcheck:redundantPointerOp",
+      "total": 1,
+      "scopes": {
+        "cix-native-adapters": 1
+      },
+      "category": "correctness review required"
+    },
+    {
+      "rule": "cppcheck:shadowFunction",
+      "total": 3,
+      "scopes": {
+        "cix-native-adapters": 3
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cppcheck:shadowVariable",
+      "total": 3,
+      "scopes": {
+        "cix-native-adapters": 3
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cppcheck:shiftTooManyBits",
+      "total": 1,
+      "scopes": {
+        "cix-native-adapters": 1
+      },
+      "category": "correctness review required"
+    },
+    {
+      "rule": "cppcheck:toomanyconfigs",
+      "total": 2,
+      "scopes": {
+        "cix-native-adapters": 2
+      },
+      "category": "analyzer-configuration or parser-dependent"
+    },
+    {
+      "rule": "cppcheck:uninitvar",
+      "total": 1,
+      "scopes": {
+        "cix-native-adapters": 1
+      },
+      "category": "correctness review required"
+    },
+    {
+      "rule": "cppcheck:unknown",
+      "total": 3,
+      "scopes": {
+        "cix-native-core": 1,
+        "cix-native-adapters": 2
+      },
+      "category": "analyzer-configuration or parser-dependent"
+    },
+    {
+      "rule": "cppcheck:unusedStructMember",
+      "total": 1,
+      "scopes": {
+        "cix-native-adapters": 1
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cppcheck:useStlAlgorithm",
+      "total": 6,
+      "scopes": {
+        "cix-native-core": 4,
+        "cix-native-adapters": 2
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cppcheck:varFuncNullUB",
+      "total": 10,
+      "scopes": {
+        "cix-native-adapters": 10
+      },
+      "category": "correctness review required"
+    },
+    {
+      "rule": "cppcheck:variableScope",
+      "total": 2,
+      "scopes": {
+        "cix-native-adapters": 2
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cxx:ClassName",
+      "total": 31,
+      "scopes": {
+        "cix-native-core": 12,
+        "cix-native-adapters": 19
+      },
+      "category": "public API / ABI compatibility constrained"
+    },
+    {
+      "rule": "cxx:FileComplexity",
+      "total": 2,
+      "scopes": {
+        "cix-native-core": 2
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cxx:FileHeader",
+      "total": 76,
+      "scopes": {
+        "cix-native-core": 21,
+        "cix-native-adapters": 55
+      },
+      "category": "licence-policy unresolved"
+    },
+    {
+      "rule": "cxx:FileName",
+      "total": 4,
+      "scopes": {
+        "cix-native-core": 1,
+        "cix-native-adapters": 3
+      },
+      "category": "public API / ABI compatibility constrained"
+    },
+    {
+      "rule": "cxx:FunctionCognitiveComplexity",
+      "total": 41,
+      "scopes": {
+        "cix-native-core": 12,
+        "cix-native-adapters": 29
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cxx:FunctionComplexity",
+      "total": 74,
+      "scopes": {
+        "cix-native-core": 24,
+        "cix-native-adapters": 50
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cxx:FunctionName",
+      "total": 50,
+      "scopes": {
+        "cix-native-core": 4,
+        "cix-native-adapters": 46
+      },
+      "category": "public API / ABI compatibility constrained"
+    },
+    {
+      "rule": "cxx:MethodName",
+      "total": 30,
+      "scopes": {
+        "cix-native-core": 23,
+        "cix-native-adapters": 7
+      },
+      "category": "public API / ABI compatibility constrained"
+    },
+    {
+      "rule": "cxx:ParsingErrorRecovery",
+      "total": 65,
+      "scopes": {
+        "cix-native-core": 39,
+        "cix-native-adapters": 26
+      },
+      "category": "analyzer-configuration or parser-dependent"
+    },
+    {
+      "rule": "cxx:TabCharacter",
+      "total": 3,
+      "scopes": {
+        "cix-native-adapters": 3
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cxx:TooLongLine",
+      "total": 41,
+      "scopes": {
+        "cix-native-core": 24,
+        "cix-native-adapters": 17
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cxx:TooManyParameters",
+      "total": 16,
+      "scopes": {
+        "cix-native-core": 12,
+        "cix-native-adapters": 4
+      },
+      "category": "public API / ABI compatibility constrained"
+    },
+    {
+      "rule": "cxx:TooManyStatementsPerLine",
+      "total": 423,
+      "scopes": {
+        "cix-native-core": 145,
+        "cix-native-adapters": 278
+      },
+      "category": "maintenance; component-owned review"
+    },
+    {
+      "rule": "cxx:UndocumentedApi",
+      "total": 262,
+      "scopes": {
+        "cix-native-core": 207,
+        "cix-native-adapters": 55
+      },
+      "category": "public API / ABI compatibility constrained"
+    }
+  ],
+  "low_risk_useful_work": [
+    {
+      "id": "squash-contract-stream-write",
+      "path": "rust/cix-native/packaging/squash/contract.c",
+      "lines": [
+        168,
+        173
+      ],
+      "finding": [
+        "cppcheck:uninitvar at line 171"
+      ],
+      "proposal": "Before memcpy, prove *used <= capacity; when size is nonzero require data != NULL; copy only when size is nonzero. This preserves the callback result and makes the test harness reject invalid callback output instead of relying on zero-length memcpy pointer behaviour.",
+      "qualification": "Run the existing Squash contract target after review; do not change host variadic-call conventions in the same patch."
+    },
+    {
+      "id": "api-docs-cix-owned-headers",
+      "paths": [
+        "rust/cix-native/include/cix.h",
+        "rust/cix-native/include/cix_stream.h",
+        "rust/cix-native/include/cix_dictionary.h",
+        "rust/cix-native/include/cix_formats.h",
+        "rust/cix-native/include/cix.hpp",
+        "rust/cix-native/codecs/jxl/cix_jxl_bridge.h",
+        "rust/cix-native/codecs/spatial/cix_spatial_bridge.h"
+      ],
+      "finding": [
+        "cxx:UndocumentedApi (core 207)"
+      ],
+      "proposal": "Add Doxygen /** */ or ///< comments to existing exported declarations describing existing units, ownership, status and bounds; no signatures, numeric values, ABI versions or layouts change.",
+      "qualification": "Use installed C/C++ consumer and bridge contract checks. This is source documentation, not a FileHeader remediation."
+    },
+    {
+      "id": "adapter-api-docs-cix-owned-headers",
+      "paths": [
+        "rust/cix-native/adapters/blosc2/include/cix_blosc2_adapter.h",
+        "rust/cix-native/adapters/gio/cix-gconverter.h",
+        "rust/cix-native/adapters/rocksdb/cix_compression_manager.h",
+        "rust/cix-native/adapters/sevenzip/cix_7zip_coder.h",
+        "rust/cix-native/adapters/squashfs/profile/include/cix_squashfs_profile.h",
+        "rust/cix-native/adapters/squashfs/userspace/include/cix_sqfs_userspace.h"
+      ],
+      "finding": [
+        "cxx:UndocumentedApi (adapters 55)"
+      ],
+      "proposal": "Document only genuine CIX/host integration surfaces with Doxygen comments and preserve host macro and ABI conventions.",
+      "qualification": "Run each affected host contract; do not document kernel compatibility shims or host-generated macro declarations merely to reduce count."
+    }
+  ],
+  "invalid_or_context_dependent_applicability": [
+    {
+      "finding": "cppcheck:shiftTooManyBits, squashfs profile get_varint line 307",
+      "rationale": "The uint32_t loop admits shifts 0, 7, 14, 21 and 28 only; the fifth-byte payload guard rejects values above 15 and a continuation then increments to 35 and exits. The reported 34-bit path is infeasible. Keep the bounded guard; do not alter wire parsing to satisfy the diagnostic."
+    },
+    {
+      "finding": "cppcheck:redundantAssignment, spatial JP2 walker line 170",
+      "rationale": "The cursor advance is consumed by the next loop iteration when it forms start and is part of exact box traversal. Do not delete it without malformed-JP2 contract coverage."
+    },
+    {
+      "finding": "GObject macro findings in gio/cix-gconverter.{c,h} and gio/contract.c",
+      "rationale": "duplicateExpression, redundantPointerOp, shadow/const and known-condition findings arise in G_DEFINE_TYPE/G_DECLARE_FINAL_TYPE or g_assert macro expansion. They are not direct source corrections; scan with GObject macro context and retain host idioms."
+    },
+    {
+      "finding": "cppcheck:knownConditionTrueFalse in Node receiver helper",
+      "rationale": "The comma expression deliberately reports a N-API error then returns false; refactor only if a Node owner can preserve the exact N-API error path."
+    },
+    {
+      "finding": "cppcheck:unusedStructMember in profile contract",
+      "rationale": "The union aligned member is an alignment/storage fixture; removing it would change what the contract exercises."
+    },
+    {
+      "finding": "cppcheck:varFuncNullUB in packaging/squash/contract.c",
+      "rationale": "Pinned Squash 0.8 headers declare the invoked variadic APIs with HEDLEY_SENTINEL(0): codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-codec.h:145-167, squash-stream.h:84-88, and squash-splice.h:56-64. The contract now passes (void *) 0 at each sentinel position. This is a precise C variadic pointer sentinel; no mass NULL replacement is proposed."
+    }
+  ],
+  "boundaries": {
+    "file_header": "FileHeader is licence-policy work: scan-v3 supplies no configured legal headerFormat, so its findings do not prove missing purpose comments and cannot be closed by an empty line or weakened regex.",
+    "public_abi": "Names, layouts, visibility, calling conventions, enum values, wire fields, allocation/ownership, and host registration remain unchanged. API docs must describe existing contracts only.",
+    "analyzer": "ParsingErrorRecovery, missing include, macro, and configuration diagnostics require captured host include roots/macros/compile commands before they drive source edits.",
+    "third_party": "Vendor and benchmark PAQ reference trees are excluded from implementation work; no suppressions are proposed."
+  }
+}

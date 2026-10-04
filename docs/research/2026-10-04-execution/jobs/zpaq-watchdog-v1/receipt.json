@@ -1,0 +1,63 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/c++",
+        "-std=c++17",
+        "-O3",
+        "-DNOJIT",
+        "-Dunix",
+        "-fno-strict-aliasing",
+        "-I",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1/source/vendor/libzpaq715",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1/source/vendor/libzpaq715/libzpaq.cpp",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1/libzpaq.o"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1",
+      "label": "compile-pinned-vendor",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "",
+      "work_bytes_after": 670542
+    },
+    {
+      "argv": [
+        "/usr/bin/c++",
+        "-std=c++17",
+        "-O3",
+        "-DNOJIT",
+        "-Dunix",
+        "-fno-strict-aliasing",
+        "-DNDEBUG",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1/source/vendor/libzpaq715",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1/baseline/tests/native/zpaq_watchdog_contract.cpp",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1/libzpaq.o",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1/baseline_contract"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1",
+      "label": "compile-baseline-control",
+      "returncode": 1,
+      "stderr": "In file included from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1/baseline/tests/native/../../src/zpaq_ffi.cpp:5,\n                 from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1/baseline/tests/native/zpaq_watchdog_contract.cpp:9:\n/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1/source/vendor/libzpaq715/libzpaq.h: In constructor \u2018libzpaq::Encoder::Encoder(libzpaq::ZPAQL&, int)\u2019:\n/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v1/source/vendor/libzpaq715/libzpaq.h:1275:25: error: unused parameter \u2018size\u2019 [-Werror=unused-parameter]\n 1275 |   Encoder(ZPAQL& z, int size=0):\n      |                     ~~~~^~~~~~\ncc1plus: all warnings being treated as errors\n",
+      "stdout": "",
+      "work_bytes_after": 684184
+    }
+  ],
+  "error": "compile-baseline-control failed",
+  "owned_source_sha256": {
+    "src/zpaq_ffi.cpp": "b5c55b56381d4e7f52289e12ff4145d6b80085cc204e2347256bc088a84a48e4",
+    "tests/native/zpaq_watchdog_contract.cpp": "6eb48faea86f6f87f02e21da83f02df0e7f69506f6d86c9cd47810b9cf3c0d05"
+  },
+  "schema": "cix-zpaq-watchdog-v1",
+  "status": "fail",
+  "vendor_sha256": {
+    "vendor/libzpaq715/libzpaq.cpp": "11e1025a290c420359def7485422dfa4296045c7cf55f809e1e034cc0855d381",
+    "vendor/libzpaq715/libzpaq.h": "08bd9ce17ce018468e35721e2c6a8bd13c0c5e397ce4e9c90c52aec389662f79"
+  }
+}

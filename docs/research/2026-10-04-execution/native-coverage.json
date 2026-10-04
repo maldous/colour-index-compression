@@ -1,17 +1,17 @@
 {
   "schema": "cix.native-coverage.v1",
   "created": "2026-10-05",
-  "scope": "source and bounded-checkpoint inventory refreshed 2026-10-05. It preserves failed/interrupted job scopes, records only passing scoped evidence, and does not claim release, adapter, benchmark, or universal per-family CLI qualification. Ordinary CLI automatic full-engine selection is source-reachable only for eligible unconstrained regular named inputs no larger than 128 MiB with adequate reservations.",
+  "scope": "source and bounded-checkpoint inventory refreshed 2026-10-05. It preserves failed/interrupted job scopes, records only passing scoped evidence, and does not claim release, adapter, benchmark, or universal per-family CLI qualification. Ordinary CLI has separate whole-input and independent-window admission paths; their distinct boundaries are recorded below.",
   "reference_root": "runtime/cix_runtime (41 Python modules)",
   "native_root": "rust/cix-native/src/full_engine plus paq bridge/supervisor and generic engine",
-  "observed_dispatch_fact": "FullEngine dispatch contains CIXY feedback, CIXZ interval, CIXB\\x1f SGCC1 count, CIXB\\x20 SGCC2 conditional and historical CIXI\\x01 JPEG-2000/JPEG-LS spatial frames. Native BEST portfolio parity is a library selection surface. The ordinary CLI now invokes automatic full-engine selection for an unconstrained regular named input at most 128 MiB when its baseline/output reservations fit, writes the chosen complete archive, and decodes recognized full archives. Explicit controls, stdin, non-regular or large inputs, and insufficient budgets retain other paths; per-family CLI qualification and release/adapters remain open.",
+  "observed_dispatch_fact": "FullEngine dispatch contains CIXY feedback, CIXZ interval, CIXB\\x1f SGCC1 count, CIXB\\x20 SGCC2 conditional and historical CIXI\\x01 JPEG-2000/JPEG-LS spatial frames. Native BEST portfolio parity is a library selection surface. The ordinary CLI first attempts bounded whole-input selection for a regular named input at most 128 MiB, then uses CIXW1 independent windows for eligible stdin, non-regular, or larger input. Both paths write decodable archives; the window path resets per window and lacks cross-window history/whole-archive competition. Stream/flush/history/reset and explicit route/external/portfolio controls retain other paths; explicit format can constrain the container. Per-family CLI qualification and release/adapters remain open.",
   "status_meanings": {
     "library_only": "reversible native functions exist, but no current generic/full-engine selector or top-level archive dispatcher calls them",
     "partial_unwired": "some native code or a descriptor exists, but a required transform, backend stack, envelope, or dispatch edge is absent",
     "declared_but_unlinked": "the type/frame surface names the route but source explicitly returns an unlinked-transform error",
     "absent": "no equivalent native implementation was found in the inspected source",
     "library_tested_unwired": "compiled native library route with narrow recorded source-bound focused tests. A retained candidate may be considered by scoped automatic CLI selection when it is admitted, but it has no per-family ordinary CLI qualification and is not release qualified",
-    "cli_scoped_reachable": "ordinary CLI source integration reaches automatic full-engine selection only for an unconstrained named regular file at most 128 MiB with adequate memory/output reservations. It proves neither candidate selection for every input nor per-family ordinary CLI qualification"
+    "cli_scoped_reachable": "ordinary CLI source integration has two bounded automatic paths: whole-input automatic selection for a regular named input of at most 128 MiB with admitted reservations; otherwise bounded CIXW1 independent-window selection for stdin, non-regular, or larger input when its controls and local admission permit. CIXW1 windows reset independently and provide neither cross-window history nor whole-archive competition. This proves neither candidate selection for every input nor per-family ordinary CLI qualification"
   },
   "wire_contract": {
     "binary_specialist_prefixes": {
@@ -57,8 +57,8 @@
       "native_evidence": "generic CLI plus c_stream_api.rs and c_format_api.rs; standard_formats.rs is registered",
       "historical_wire_or_raw_identity": "generic CIX stream ABI, not a specialist envelope",
       "implementation_status": "cli_scoped_reachable",
-      "dispatch_status": "focused C stream/C format, dictionary, explicit nine-format CLI contracts passed; ordinary CLI reaches automatic FullEngine selection only in the bounded whole-input scope; no per-family CLI qualification",
-      "qualification": "scoped automatic whole-input CLI reachability only for an unconstrained named regular input <=128 MiB with adequate reservations; not per-family CLI or release qualification"
+      "dispatch_status": "focused C stream/C format, dictionary, explicit nine-format CLI contracts passed; ordinary CLI has bounded whole-input and eligible CIXW1 independent-window admission; no per-family CLI qualification",
+      "qualification": "scoped ordinary CLI reachability: whole-input selection for an admitted regular named input <=128 MiB, or eligible CIXW1 independent-window selection for stdin/non-regular/larger input; neither is per-family CLI or release qualification"
     },
     {
       "runtime_module": "backends.py",
@@ -75,8 +75,8 @@
       "native_evidence": "generic CLI plus c_stream_api.rs and c_format_api.rs; standard_formats.rs is registered",
       "historical_wire_or_raw_identity": "generic CIX stream ABI, not a specialist envelope",
       "implementation_status": "cli_scoped_reachable",
-      "dispatch_status": "focused C stream/C format, dictionary, explicit nine-format CLI contracts passed; ordinary CLI reaches automatic FullEngine selection only in the bounded whole-input scope; no per-family CLI qualification",
-      "qualification": "scoped automatic whole-input CLI reachability only for an unconstrained named regular input <=128 MiB with adequate reservations; not per-family CLI or release qualification"
+      "dispatch_status": "focused C stream/C format, dictionary, explicit nine-format CLI contracts passed; ordinary CLI has bounded whole-input and eligible CIXW1 independent-window admission; no per-family CLI qualification",
+      "qualification": "scoped ordinary CLI reachability: whole-input selection for an admitted regular named input <=128 MiB, or eligible CIXW1 independent-window selection for stdin/non-regular/larger input; neither is per-family CLI or release qualification"
     },
     {
       "runtime_module": "engine.py",
@@ -84,8 +84,8 @@
       "native_evidence": "full_engine catalogue/dispatch/selection with restored native BEST library portfolio parity",
       "historical_wire_or_raw_identity": "specialist frames listed by recipe",
       "implementation_status": "cli_scoped_reachable",
-      "dispatch_status": "scoped library candidate and dispatch paths pass; ordinary CLI reaches automatic full-engine selection only in the bounded whole-input scope; no per-family CLI qualification",
-      "qualification": "scoped automatic whole-input CLI reachability only for an unconstrained named regular input <=128 MiB with adequate reservations; not per-family CLI or release qualification"
+      "dispatch_status": "scoped library candidate and dispatch paths pass; ordinary CLI has bounded whole-input and eligible independent CIXW1-window admission; no per-family CLI qualification",
+      "qualification": "scoped ordinary CLI reachability: whole-input selection for an admitted regular named input <=128 MiB, or eligible CIXW1 independent-window selection for stdin/non-regular/larger input; neither is per-family CLI or release qualification"
     },
     {
       "runtime_module": "heterogeneous.py",
@@ -93,8 +93,8 @@
       "native_evidence": "full_engine/mixed.rs::encode_with/decode_with plus dispatch recursive CIXH1 decode",
       "historical_wire_or_raw_identity": "CIXH1",
       "implementation_status": "cli_scoped_reachable",
-      "dispatch_status": "carrier decode is dispatched; bounded automatic mixed selection is reachable only through eligible whole-input CLI admission; no per-recipe CLI qualification",
-      "qualification": "scoped automatic whole-input CLI reachability only for an unconstrained named regular input <=128 MiB with adequate reservations; not per-family CLI or release qualification"
+      "dispatch_status": "carrier decode is dispatched; bounded automatic mixed selection is reachable through whole-input admission and can be locally considered in eligible independent CIXW1 windows; no per-recipe CLI qualification",
+      "qualification": "scoped ordinary CLI reachability: whole-input selection for an admitted regular named input <=128 MiB, or eligible CIXW1 independent-window selection for stdin/non-regular/larger input; neither is per-family CLI or release qualification"
     },
     {
       "runtime_module": "image_grid.py",
@@ -111,8 +111,8 @@
       "native_evidence": "full_engine/dispatch.rs::FullEngine::decode",
       "historical_wire_or_raw_identity": "CIXB binary prefixes plus specialist ASCII/binary envelopes",
       "implementation_status": "cli_scoped_reachable",
-      "dispatch_status": "library decoder routes listed envelopes; ordinary CLI delegates to automatic full-engine selection only in the bounded whole-input scope; no per-family CLI qualification",
-      "qualification": "scoped automatic whole-input CLI reachability only for an unconstrained named regular input <=128 MiB with adequate reservations; not per-family CLI or release qualification"
+      "dispatch_status": "library decoder routes listed envelopes; ordinary CLI decodes recognized archives and has bounded whole-input plus eligible independent CIXW1-window encode admission; no per-family CLI qualification",
+      "qualification": "scoped ordinary CLI reachability: whole-input selection for an admitted regular named input <=128 MiB, or eligible CIXW1 independent-window selection for stdin/non-regular/larger input; neither is per-family CLI or release qualification"
     },
     {
       "runtime_module": "legacy/chemical_db.py",
@@ -408,8 +408,8 @@
       "native_evidence": "full_engine/regions.rs and catalogue.rs content-only admissions",
       "historical_wire_or_raw_identity": "CIXH1 region boundaries",
       "implementation_status": "cli_scoped_reachable",
-      "dispatch_status": "discovery/catalogue is tested; bounded automatic mixed selection is reachable only through eligible whole-input CLI admission; no per-recipe CLI qualification",
-      "qualification": "scoped automatic whole-input CLI reachability only for an unconstrained named regular input <=128 MiB with adequate reservations; not per-family CLI or release qualification"
+      "dispatch_status": "discovery/catalogue is tested; bounded automatic mixed selection is reachable through whole-input admission and can be locally considered in eligible independent CIXW1 windows; no per-recipe CLI qualification",
+      "qualification": "scoped ordinary CLI reachability: whole-input selection for an admitted regular named input <=128 MiB, or eligible CIXW1 independent-window selection for stdin/non-regular/larger input; neither is per-family CLI or release qualification"
     },
     {
       "runtime_module": "specialized.py",
@@ -417,8 +417,8 @@
       "native_evidence": "full_engine catalogue/dispatch/selection with restored native BEST library portfolio parity",
       "historical_wire_or_raw_identity": "route-specific specialist frames",
       "implementation_status": "cli_scoped_reachable",
-      "dispatch_status": "scoped library candidate and dispatch paths pass; ordinary CLI reaches automatic full-engine selection only in the bounded whole-input scope; no per-family CLI qualification",
-      "qualification": "scoped automatic whole-input CLI reachability only for an unconstrained named regular input <=128 MiB with adequate reservations; not per-family CLI or release qualification"
+      "dispatch_status": "scoped library candidate and dispatch paths pass; ordinary CLI has bounded whole-input and eligible independent CIXW1-window admission; no per-family CLI qualification",
+      "qualification": "scoped ordinary CLI reachability: whole-input selection for an admitted regular named input <=128 MiB, or eligible CIXW1 independent-window selection for stdin/non-regular/larger input; neither is per-family CLI or release qualification"
     }
   ],
   "historical_portfolio26_dispatch": {
@@ -481,8 +481,8 @@
         "members": [
           "webster"
         ],
-        "route": "lstm-prediction-paq-v215-9L",
-        "required_native_edges": "LSTM/prediction transform + v215 -9L backend + resource admission + archive decode"
+        "route": "paq-v215-9L (LSTM enabled)",
+        "required_native_edges": "same PAQ v215 CIXP framing + backend request {level 9, lstm=true, lstm_layers 1} + worker/resource admission + archive decode; no separate LSTM/prediction transform or decoder"
       }
     ],
     "known_better_or_relevant": {
@@ -493,34 +493,34 @@
   },
   "highest_priority_missing_edges": [
     "Qualify each retained family expected to be selected or decoded through the scoped ordinary CLI automatic path, including paid exact framing, malformed/limit behavior and candidate-admission diagnostics; scoped integration is not a per-family pass.",
-    "Extend or explicitly decline full-engine specialist admission for stdin, large inputs and explicit dimensions/controls; the existing streaming and legacy paths are not full-engine coverage.",
+    "Qualify the actual CIXW1 ordinary CLI path for its stated stdin/non-regular/larger-input controls, independent-window boundaries, malformed/limit behavior and candidate-admission diagnostics; it is not whole-input specialist competition or per-family CLI coverage.",
     "Complete final installed-path ABI/provider loading and platform qualification; installed-discovery-v1 proves discovery only.",
     "Complete release adapters, packages, cross-platform and SquashFS qualification; no broad benchmark or public-release claim follows from these scoped receipts.",
-    "Account for the historical LSTM/prediction route: no native implementation or frame decoder was found; recorded -12L remains resource-excluded under the stated 12 GB bound."
+    "Qualify the historical PAQ v215 -9L/LSTM-enabled route with a focused current fixture if historical equivalence is required. Source reaches it through the same PAQ worker/CIXP chain; no standalone LSTM transform or decoder is missing. Keep -12L separately resource-excluded under the stated 12 GiB bound."
   ],
   "acceptance_per_route": "For each retained route: source-to-archive parity fixture where applicable; fresh native encode; separate archive-only native decode; malformed/limit tests; resource accounting; no Python process or PATH lookup; and candidate/decoder registration evidence.",
   "tested_module_scope": {
     "catalogue_v4": "docs/research/2026-10-04-execution/jobs/catalogue-v4/checks.json records offline check/build and 73 passing full_engine tests; the same source-bound run recorded seven C stream contract tests.",
     "provider_frames": "catalogue-v4 installed-provider test encoded and decoded 12 PAQ-backed complete frames (chemical, database, grouped/bounded grids and address families) and two JXL complete frames. This is focused library evidence under pinned test paths, not normal CLI execution or broad route qualification.",
-    "ordinary_cli_gap": "The ordinary CLI now calls automatic full-engine selection for eligible unconstrained named regular inputs <=128 MiB with adequate reservations, and writes the selected complete archive. It excludes stdin, streaming/flush/history/reset/independent controls, explicit format/route/backend/block/external/portfolio controls, non-regular/large inputs and insufficient budgets. This is scoped integration, not normal CLI qualification for every candidate or recipe.",
+    "ordinary_cli_gap": "The ordinary CLI first attempts bounded whole-input selection for admitted regular named inputs <=128 MiB; eligible stdin, non-regular and larger input instead use independent CIXW1 local selection. `large-window-contract-v1/receipt.json` records 128 MiB plus one exact restoration for an ordinary named input and unknown-length stdin, plus a worker CIXW1 operation with 33 independent 4 MiB windows and a cap-failure negative. CIXW1 has no cross-window history, region recognition spanning a boundary, CIXH1/external payload spanning a boundary, or whole-archive competition. Stream/flush/history/reset and explicit route/external/portfolio controls still retain the legacy path; explicit format constrains the carrier. This is scoped ordinary CLI evidence, not per-family qualification.",
     "address_helper_audit": "docs/research/2026-10-05-native-rc/address-helper-audit.md and the pointer-delta v5 fixture establish ECRD1 mode-5 raw parity for the supported CIXB\\x0b path. ECRP1 and ECBR2 are retained inactive helper history, not separate production frame gaps.",
     "interfaces_v7": "jobs/interfaces-v7/source.json binds the frozen source; all-target build and 29 focused tests passed: selection 5, mixed selection 4, spatial provider 3, grid context 2, backend provider 3, address 1, and C/dictionary/standard-format contracts 11. The later SDK stage was interrupted at the temporary-space cap and is not credited.",
     "interfaces_v8": "jobs/interfaces-v8 reran SDK-only checks against the same source/binary prerequisites: shared and static installation/relocation plus C buffer, C stream, C standard-gzip and C++ installed consumers passed. This is SDK interface evidence, not a whole release or ordinary CLI qualification.",
     "grid_feedback": "jobs/grid-feedback-fixture-v1/outputs.json binds all six SGFB1 raw feedback mode/model fixtures and CIXY envelope identity to the Python reference. FullEngine dispatch now contains CIXY; no per-family ordinary CLI qualification follows from the fixture.",
     "spatial_provider": "interfaces-v6 source identity is retained by v7; focused v7 tests cover the packaged CharLS/OpenJPEG bridge and 14 generated roundtrips. Historical CIXI representation-2/3 frames now have scoped frozen-region cross-decoding/dispatch evidence, but not broader per-family CLI or release qualification.",
-    "native_best_portfolio": "root checkpoint 4dcdf533 records native BEST library portfolio completion. Current ordinary CLI source reaches it only through bounded eligible whole-input admission; this does not establish candidate-by-candidate CLI or release parity.",
+    "native_best_portfolio": "root checkpoint 4dcdf533 records native BEST library portfolio completion. Current ordinary CLI source reaches whole-input selection under its regular-file admission and local selection inside eligible CIXW1 windows; this does not establish candidate-by-candidate CLI or release parity.",
     "dictionary_grid_v3": "dictionary-grid-v3 passed after the helper zero-rank correction and fixture-bound repair: grid_counts has SGCC1 five-mode and SGCC2 twelve-context/coding raw parity; 17 Brotli-backed archive dispatch cases pass; C dictionary retained-capacity/lifecycle contracts and shared/static installed dictionary consumers pass.",
     "spatial_counts_v1": "spatial-counts-v1 installed C/C++/stream/formats SDK work passed, but grid and encode checks failed in that job. Its successful SDK substeps are recorded only at that scope; it is not a whole-job pass.",
     "spatial_counts_v2": "spatial-counts-v2 passed scoped spatial_provider (3), spatial_frames (5), frozen Python JLS/JP2/raw-J2K cross-decode, historical spatial dispatch and both native candidates after the JP2 seek fix. The job still has its recorded grid failure; do not treat it as a complete checkpoint.",
     "installed_path_hold": "installed-discovery-v1 passed all-target check plus four focused full_engine::installed tests: exact missing/present records for six names, explicit multiarch directory, invalid paths, and no temporary-root creation. This is filesystem-discovery evidence only; ABI/provider loading and platform qualification remain open."
   },
   "new_registered_source_surfaces": {
-    "full_engine/selection.rs": "registered and covered by focused tests; native BEST library portfolio parity is restored and ordinary CLI now reaches automatic selection only for eligible bounded whole inputs.",
+    "full_engine/selection.rs": "registered and covered by focused tests; native BEST library portfolio parity is restored. Ordinary CLI can use bounded whole-input selection or eligible independent CIXW1 local selection; no per-family CLI qualification follows.",
     "standard_formats.rs": "registered native one-shot streams; explicit CLI --output-format/--input-format has focused contracts for gzip, zlib, raw deflate, bzip2, XZ, Zstd, Brotli, LZ4 frame and Snappy framed. They are not automatic portfolio candidates.",
     "dictionaries.rs": "registered owned Zstd dictionary handles; two focused dictionary contracts and SDK C-format consumer evidence exist, not distribution/CLI route qualification.",
     "full_engine/spatial_provider.rs": "registered CharLS/OpenJPEG package bridge; focused v7 provider tests and 14 generated roundtrips passed. Historical CIXI representation-2/3 frame dispatch/cross-decoding has separate scoped evidence; broader ordinary CLI/release qualification remains pending.",
     "full_engine/grid_context.rs": "registered SGFB1/CIXY feedback implementation; all six raw reference identities and envelope identity passed focused tests, and FullEngine CIXY dispatch is present. Per-family ordinary CLI qualification remains pending.",
-    "full_engine/mixed_selection.rs": "registered and covered by focused tests; bounded automatic mixed selection is considered only through eligible whole-input CLI admission. No per-recipe CLI qualification or general automatic mixed-encode claim.",
+    "full_engine/mixed_selection.rs": "registered and covered by focused tests; bounded automatic mixed selection is considered by whole-input selection and may be locally considered inside eligible independent CIXW1 windows. No per-recipe CLI qualification or cross-window mixed-encode claim.",
     "full_engine/grid_counts.rs": "CIXB\\x1f SGCC1 and CIXB\\x20 SGCC2 routes are registered and scoped-fixture/dispatch tested; candidates may be considered by scoped automatic CLI selection, but normal per-family CLI qualification remains pending.",
     "full_engine/interval_context.rs": "CIXZ\\x01 route is registered and scoped dispatch-tested; candidates may be considered by scoped automatic CLI selection, but normal per-family CLI qualification remains pending.",
     "full_engine/spatial_frames.rs": "historical CIXI\\x01 representation-2/3 framing is registered and scoped frozen-region cross-decoding/dispatch tested; candidates may be considered by scoped automatic CLI selection, but normal per-family CLI qualification remains pending.",
@@ -546,31 +546,43 @@
       "automatic_portfolio_selection": false
     },
     "full_engine_automatic_cli": {
-      "status": "scoped source reachable",
-      "eligible_input": "unconstrained named regular file <=128 MiB with adequate baseline/output reservations",
-      "non_claim": "not a per-family CLI or release qualification; stdin, large inputs and explicit controls remain outside this path"
+      "status": "scoped source and bounded execution evidence",
+      "whole_input": "regular named input <=128 MiB with baseline/output reservations admitted; selected complete archive",
+      "independent_windows": "eligible stdin, non-regular or larger input uses bounded CIXW1 windows; large-window-contract-v1 records named and stdin 128 MiB-plus-one restoration plus a 33-window worker round trip",
+      "window_non_claim": "windows reset independently: no cross-window history, cross-window region recognition/CIXH1-or-external payload, or whole-archive comparison",
+      "non_claim": "not a per-family CLI, provider, platform, or release qualification"
     },
     "source_manifest": "interfaces-v7/source.json binds the frozen source snapshot; the interface evidence is bounded and is not a release qualification.",
     "dictionary_grid_v3": "passed bounded grid/dictionary/SDK consumer checks; includes SGCC1 5, SGCC2 12 and 17 Brotli archive dispatch cases.",
     "spatial_counts_v1": "overall failed due grid/encode checks; record only its passing installed C/C++/stream/formats SDK substeps.",
     "spatial_counts_v2": "overall contains a grid failure; record only passing spatial provider/frame/cross-decode/dispatch substeps.",
     "installed_runtime": "installed-discovery-v1 passed focused filesystem discovery only (six-name presence/absence, explicit multiarch, invalid paths, no temporary-root creation); it does not qualify ABI, provider loading, or platforms.",
-    "native_best_library_portfolio": "complete at root checkpoint 4dcdf533; current ordinary CLI source reaches automatic selection only through the bounded eligible whole-input path."
+    "native_best_library_portfolio": "complete at root checkpoint 4dcdf533; ordinary CLI has bounded whole-input admission and can apply local selection inside eligible CIXW1 windows, neither of which establishes candidate-by-candidate CLI or release parity."
   },
   "cli_scope": {
     "source_file": "rust/cix-native/src/cli_full_engine.rs",
-    "eligible_input": "unconstrained named regular file of at most 128 MiB with baseline and output reservations admitted",
-    "writes": "selected complete archive; recognized full archives use ordinary full-frame decode dispatch",
-    "excluded_dimensions": [
-      "stdin",
-      "stream or flush controls",
-      "history/reset or independent-block controls",
-      "explicit format/route/backend/block/external/portfolio controls",
-      "non-regular inputs",
-      "inputs over 128 MiB",
-      "insufficient memory/output reservations"
+    "whole_input": {
+      "eligible_input": "regular named input of at most 128 MiB with baseline and output reservations admitted",
+      "writes": "selected complete archive; recognized full archives use ordinary full-frame decode dispatch",
+      "controls": "block/backend tune native dimensions; explicit format constrains compatible containers; route/external/portfolio remain ineligible"
+    },
+    "independent_windows": {
+      "eligible_input": "stdin, non-regular, or larger input when window controls and local admission permit",
+      "carrier": "CIXW1 with bounded local selection and independently reset records",
+      "verified_scope": "jobs/large-window-contract-v1/receipt.json: 134217729-byte named and unknown-length stdin ordinary CLI restoration, plus 33 independent 4 MiB worker windows and a cap-failure negative",
+      "omissions": "no cross-window history, recognition/regions, CIXH1 or external CIXB1 payload spanning a boundary, or whole-archive comparison"
+    },
+    "legacy_path_controls": [
+      "--stream",
+      "--flush-interval",
+      "nonzero --history",
+      "--independent-blocks",
+      "explicit non-auto route",
+      "--external",
+      "--portfolio",
+      "container formats not embeddable in CIXW1"
     ],
-    "evidence_boundary": "integration reachability only; it does not qualify every retained module, candidate, provider, profile, platform, or release behavior"
+    "evidence_boundary": "source reachability plus the named large-window receipt only; it does not qualify every retained module, candidate, provider, profile, platform, or release behavior"
   },
   "cli_binding_evidence": {
     "negative_or_incomplete_runs": [

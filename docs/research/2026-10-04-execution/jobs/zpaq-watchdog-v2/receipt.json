@@ -1,0 +1,117 @@
+{
+  "baseline_control": {
+    "revision": "8da9d5596578a39eff9b8a0a950d1cad89593367",
+    "status": "expected exhaustion assertion failed",
+    "wrapper_sha256": "8e332ec878b4221f4300c2a6bb11fa92f09143bcf8e73d335f4cb2c6b71d01f7"
+  },
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/c++",
+        "-std=c++17",
+        "-O3",
+        "-DNOJIT",
+        "-Dunix",
+        "-fno-strict-aliasing",
+        "-I",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/source/vendor/libzpaq715",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/source/vendor/libzpaq715/libzpaq.cpp",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/libzpaq.o"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2",
+      "label": "compile-pinned-vendor",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "",
+      "work_bytes_after": 670542
+    },
+    {
+      "argv": [
+        "/usr/bin/c++",
+        "-std=c++17",
+        "-O3",
+        "-DNOJIT",
+        "-Dunix",
+        "-fno-strict-aliasing",
+        "-DNDEBUG",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-isystem",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/source/vendor/libzpaq715",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/baseline/tests/native/zpaq_watchdog_contract.cpp",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/libzpaq.o",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/baseline_contract"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2",
+      "label": "compile-baseline-control",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "",
+      "work_bytes_after": 960640
+    },
+    {
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/baseline_contract"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2",
+      "label": "expected-baseline-exhaustion-failure",
+      "returncode": 1,
+      "stderr": "exhausted watchdog wrapped\n",
+      "stdout": "",
+      "work_bytes_after": 960640
+    },
+    {
+      "argv": [
+        "/usr/bin/c++",
+        "-std=c++17",
+        "-O3",
+        "-DNOJIT",
+        "-Dunix",
+        "-fno-strict-aliasing",
+        "-DNDEBUG",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-isystem",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/source/vendor/libzpaq715",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/source/tests/native/zpaq_watchdog_contract.cpp",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/libzpaq.o",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/zpaq_watchdog_contract"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2",
+      "label": "compile-owned-contract",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "",
+      "work_bytes_after": 1237096
+    },
+    {
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2/zpaq_watchdog_contract"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/zpaq-watchdog-v2",
+      "label": "execute-contract",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "",
+      "work_bytes_after": 1237096
+    }
+  ],
+  "executable_sha256": "3da36b5d8d35ad5665ce4cf32295e967a4b1f457e64acdae619ad99c46c37fe5",
+  "owned_source_sha256": {
+    "src/zpaq_ffi.cpp": "b5c55b56381d4e7f52289e12ff4145d6b80085cc204e2347256bc088a84a48e4",
+    "tests/native/zpaq_watchdog_contract.cpp": "6eb48faea86f6f87f02e21da83f02df0e7f69506f6d86c9cd47810b9cf3c0d05"
+  },
+  "schema": "cix-zpaq-watchdog-v2",
+  "source_unchanged": true,
+  "status": "pass",
+  "vendor_sha256": {
+    "vendor/libzpaq715/libzpaq.cpp": "11e1025a290c420359def7485422dfa4296045c7cf55f809e1e034cc0855d381",
+    "vendor/libzpaq715/libzpaq.h": "08bd9ce17ce018468e35721e2c6a8bd13c0c5e397ce4e9c90c52aec389662f79"
+  }
+}

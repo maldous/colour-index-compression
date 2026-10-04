@@ -41,7 +41,8 @@ extern "C" bool cix_zpaq715_cancelled() {
 // produce reconstructed data. Resetting the watchdog from SliceWriter stops a
 // malformed program from looping forever before the next output byte.
 bool cix_zpaq715_charge_instruction() {
-  if (g_instruction_budget-- == 0) return false;
+  if (g_instruction_budget == 0) return false;
+  --g_instruction_budget;
   // Crossing into Rust on every interpreted instruction would dominate level
   // 5. Poll at most once per 4096 instructions; the local budget remains
   // checked every instruction, retaining a hard stop for a jump loop.

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Pinned CXX/Cppcheck analysis of the current CIX native source, after confirmation.
+"""Pinned CXX/Cppcheck analysis of the current CIX native source.
 
-prepare is read-only with respect to product sources. run requires all 36
-confirmation cells VERIFIED and the existing exclusive WaveScheduler lease.
+prepare is read-only with respect to product sources. run requires the
+authenticated benchmark stop/idle state and an exclusive WaveScheduler lease.
 This is SonarOpenCommunity CXX, not SonarSource's licensed CFamily analyzer.
 """
 from __future__ import annotations
@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import ast
 import collections
+import dataclasses
 import fcntl
 import hashlib
 import importlib.util
@@ -520,50 +521,21 @@ def server_start_contract(entrypoint: tuple[str, ...] | list[str] = SERVER_ENTRY
     return mounts, ["-c", wrapper, "cix-sonar-server", *entrypoint], receipt
 
 
+def rebase_include_commands(commands: list, source: Path) -> tuple[list, list[tuple[Path, str]], list[dict]]:
+    """Map only recorded include operands, retaining their resolution evidence."""
+    context = load_module("cix_include_context", Path(__file__).with_name("include_context.py"))
+    return context.rebase_include_context(commands, source)
+
+
 def external_include_mounts(commands: list, source: Path) -> list[Path]:
-    """Return only existing absolute include roots retained in actual argv."""
-    roots = set()
-    for row in commands:
-        directory = Path(row.get("directory", ""))
-        if directory.is_absolute() and directory.is_dir() and not directory.is_relative_to(source):
-            roots.add(directory.resolve())
-        arguments = row["arguments"]
-        for index, argument in enumerate(arguments):
-            value = None
-            if argument in ("-I", "-isystem", "-iquote") and index + 1 < len(arguments):
-                value = arguments[index + 1]
-            elif argument.startswith(("-I/", "-isystem/", "-iquote/")):
-                value = argument[argument.find("/"):]
-            if value and value.startswith("/"):
-                path = Path(value).resolve()
-                if not path.is_relative_to(source) and path.is_dir():
-                    roots.add(path)
-    return sorted(roots)
+    """Return the canonical roots explicitly named by the recorded commands."""
+    _, mounts, _ = rebase_include_commands(commands, source)
+    return [root for root, _ in mounts]
 
 
 def containerize_commands(commands: list, source: Path) -> tuple[list, list[tuple[Path, str]]]:
-    roots = external_include_mounts(commands, source)
-    mounts = [(root, f"/cix-external/{index}") for index, root in enumerate(roots)]
-    longest_first = sorted(mounts, key=lambda item: len(str(item[0])), reverse=True)
-
-    def path_value(value: str) -> str:
-        if value == str(source) or value.startswith(str(source) + "/"):
-            return "/usr/src" + value[len(str(source)):]
-        if value.startswith("/"):
-            canonical = str(Path(value).resolve())
-            for host, container in longest_first:
-                if canonical == str(host) or canonical.startswith(str(host) + "/"):
-                    return container + canonical[len(str(host)):]
-        return value
-
-    def argument(value: str) -> str:
-        for flag in ("-isystem", "-iquote", "-idirafter", "-include", "-imacros", "-I", "--sysroot="):
-            if value.startswith(flag) and value[len(flag):].startswith("/"):
-                return flag + path_value(value[len(flag):])
-        return path_value(value)
-
-    return ([{"file": path_value(row["file"]), "directory": path_value(row["directory"]),
-              "arguments": [argument(value) for value in row["arguments"]]} for row in commands], mounts)
+    mapped, mounts, _ = rebase_include_commands(commands, source)
+    return mapped, mounts
 
 
 def prepare_cxx_only_extensions(raw: Path, server_image: str, budget: EvidenceBudget | None = None) -> Path:
@@ -1262,21 +1234,12 @@ def _projected_command(row: dict, destination: Path) -> list[str]:
     """Replay one recorded compiler command as a bounded preprocess-only action."""
     arguments = list(row["arguments"])
     source = row["file"]
-    if arguments.count(source) != 1 or "-c" not in arguments:
+    source_operands = [value for value in arguments[1:] if not value.startswith("-")
+                       and (Path(row["directory"]) / value).resolve() == Path(source).resolve()]
+    if len(source_operands) != 1 or arguments.count("-c") != 1:
         raise RuntimeError("compiler receipt lacks one explicit source and -c operand: " + source)
-    projected, skip_next = [], False
-    for argument in arguments:
-        if skip_next:
-            skip_next = False
-            continue
-        if argument == "-c":
-            continue
-        if argument == "-o":
-            skip_next = True
-            continue
-        projected.append(argument)
-    projected.extend(["-E", "-o", str(destination)])
-    return projected
+    context = load_module("cix_projection_command", Path(__file__).with_name("translation_context.py"))
+    return list(context.preprocess_command(row, destination).argv)
 
 
 def _projected_file_limit() -> None:
@@ -1350,15 +1313,38 @@ def _normalise_preprocessor_projection(body: bytes) -> tuple[bytes, int, int]:
 
 def project_cppcheck_translation_units(source: Path, selected: list[dict], out: Path,
                                       budget: EvidenceBudget) -> tuple[list[dict], list[dict]]:
-    """Use actual compiler preprocessing only for the five Cppcheck-incompatible TUs."""
+    """Project the reviewed compiler-incompatible TUs with recorded build options."""
+    context = load_module("cix_projection_context", Path(__file__).with_name("translation_context.py"))
+    eligible = CPPHECK_PROJECTED_RELATIVES | set(context.PROJECTABLE_RELATIVES)
     candidates = [row for row in selected
-                  if Path(row["file"]).resolve().relative_to(source).as_posix() in CPPHECK_PROJECTED_RELATIVES]
+                  if Path(row["file"]).resolve().relative_to(source).as_posix() in eligible]
     if not candidates:
         return selected, []
     projected_root = out / "cppcheck-projected"
     budget.mkdir(projected_root)
     projected_rows, receipts = [], []
     for index, row in enumerate(candidates):
+        relative = Path(row["file"]).resolve().relative_to(source).as_posix()
+        bound_inputs, context_evidence = {}, None
+        if relative in context.PROJECTABLE_RELATIVES:
+            recorded = context.load_recorded_inputs(source, row)
+            bound_inputs = dict(recorded.qualified_inputs)
+            context_evidence = dataclasses.asdict(recorded)
+            if recorded.gaps:
+                if relative != "rust/cix-native/adapters/squashfs/kernel/cix_profile_portable.c":
+                    raise RuntimeError("recorded projection input gap: " + repr(recorded.gaps))
+                # The old kernel build did not bind these individual headers.
+                # Freeze their current identities for this NEW analysis action;
+                # never describe them as evidence of the historical build.
+                operands = context._forced_includes(row["arguments"])
+                operands += context._macro_values(row["arguments"], "CIX_PORTABLE_PROFILE_SOURCE")
+                bound_inputs = {str((Path(row["directory"]) / value).resolve()):
+                                digest((Path(row["directory"]) / value).resolve()) for value in operands}
+                context_evidence = {"kind": "NEW_ANALYSIS_INPUT_FREEZE_NOT_HISTORICAL_BUILD_PROOF",
+                                    "historical_gaps": list(recorded.gaps), "sha256": bound_inputs,
+                                    "recorded_compiler": row}
+                save(out / "kernel-analysis-inputs.json", context_evidence, budget)
+            context.validate_translation_context(row, source, bound_inputs)
         reservation = f"cppcheck-projected-{index}"
         suffix = Path(row["file"]).suffix
         destination = projected_root / f"{index}{suffix}"
@@ -1368,7 +1354,10 @@ def project_cppcheck_translation_units(source: Path, selected: list[dict], out: 
         budget.reserve(reservation, CPPHECK_PROJECTED_TU_BYTES)
         try:
             argv = _projected_command(row, destination)
-            process = subprocess.Popen(argv, cwd=row["directory"], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            removed_outputs = context.preprocess_command(row, destination).removed_dependency_outputs
+            sandbox_argv = ["bwrap", "--die-with-parent", "--unshare-net", "--ro-bind", "/", "/",
+                            "--bind", str(projected_root), str(projected_root), "--", *argv]
+            process = subprocess.Popen(sandbox_argv, cwd=row["directory"], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                        start_new_session=True, preexec_fn=_projected_file_limit)
             stdout, stderr = collect_bounded_pipes(process, budget, timeout=60, maximum=FAILURE_LOG_BYTES)
             if process.returncode:
@@ -1377,15 +1366,22 @@ def project_cppcheck_translation_units(source: Path, selected: list[dict], out: 
                 raise RuntimeError("compiler preprocessing unexpectedly wrote stdout for " + row["file"])
             if not destination.is_file() or destination.stat().st_size > CPPHECK_PROJECTED_TU_BYTES:
                 raise EvidenceLimitError("preprocessed translation unit exceeded its declared bound")
+            if any(digest(Path(name)) != expected for name, expected in bound_inputs.items()):
+                raise RuntimeError("projection input changed during compiler preprocessing")
             original = destination.read_bytes()
             normalised, pragmas, extensions = _normalise_preprocessor_projection(original)
             budget.commit_external(reservation, destination, CPPHECK_PROJECTED_TU_BYTES)
             budget.write_bytes(destination, normalised)
             mapped = {**row, "file": str(destination),
-                      "arguments": [str(destination) if value == row["file"] else value for value in row["arguments"]]}
+                      "arguments": [str(destination) if not value.startswith("-") and
+                                    (Path(row["directory"]) / value).resolve() == Path(row["file"]).resolve()
+                                    else value for value in row["arguments"]
+                                    if value not in removed_outputs]}
             projected_rows.append(mapped)
             receipts.append({"source": row["file"], "source_sha256": digest(Path(row["file"])),
                              "compiler_argv": argv, "directory": row["directory"], "projected": str(destination),
+                             "sandbox_argv": sandbox_argv, "input_context": context_evidence,
+                             "removed_dependency_outputs": list(removed_outputs),
                              "gcc_preprocessed_sha256": hashlib.sha256(original).hexdigest(),
                              "projected_sha256": digest(destination), "bytes": destination.stat().st_size,
                              "line_markers": "GNU markers normalised to standard #line",
@@ -1665,7 +1661,8 @@ def scan(h, base: str, password: str, token: str, envfile: Path, parent: str,
     budget.mkdir(out)
     key = "cix-cxx-" + name
     cppcheck(source, files, out, commands, budget)
-    mapped, external_mounts = containerize_commands(commands, source)
+    mapped, external_mounts, include_evidence = rebase_include_commands(commands, source)
+    save(out / "include-operand-mappings.json", include_evidence, budget)
     save(out / "compile_commands.json", mapped, budget)
     budget.write_text(out / "properties", "\n".join([
         f"sonar.projectKey={key}", "sonar.sources=" + ",".join(files), "sonar.sourceEncoding=UTF-8",
@@ -1743,7 +1740,9 @@ def execute(prepared: Path, out: Path, source: Path, parent: str) -> None:
     raw = out / "raw"; budget.mkdir(raw)
     save(raw / "scanner-writable-contract.json", scanner_writable_contract(), budget)
     save(raw / "tool-identities.json", {str(p): digest(p) for p in (
-        Path(__file__), HYGIENE / "run_scan.py", HYGIENE / "schedule_scan.py",
+        Path(__file__), Path(__file__).with_name("include_context.py"),
+        Path(__file__).with_name("translation_context.py"),
+        HYGIENE / "run_scan.py", HYGIENE / "schedule_scan.py",
         bubblewrap, runtime / "manifest.json", runtime / "usr/bin/cppcheck",
         TOOLS / "cppcheck/usr/lib/x86_64-linux-gnu/libtinyxml2.so.10.0.0")}, budget)
     for kind, image in (("server", h.SERVER_IMAGE), ("scanner", h.SCANNER_IMAGE)):

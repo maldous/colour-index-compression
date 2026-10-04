@@ -1,0 +1,12 @@
+Diff in /home/user/src/colour-index-compression/rust/cix-native/src/cli.rs:147:
+ fn normalized_program_name(basename: &str, windows: bool) -> String {
+     if windows {
+         let lowercase = basename.to_ascii_lowercase();
+-        lowercase.strip_suffix(".exe").unwrap_or(&lowercase).to_owned()
++        lowercase
++            .strip_suffix(".exe")
++            .unwrap_or(&lowercase)
++            .to_owned()
+     } else {
+         basename.to_owned()
+     }
