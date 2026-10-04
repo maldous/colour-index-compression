@@ -11,36 +11,67 @@ use std::{
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
+#[path = "adaptive.rs"]
 pub mod adaptive;
+#[path = "bitplane.rs"]
 mod bitplane;
+#[path = "bounded_reader.rs"]
 mod bounded_reader;
+#[path = "bsc_ffi.rs"]
 pub mod bsc_ffi;
+#[path = "bwt_legacy.rs"]
 mod bwt_legacy;
+#[path = "chain.rs"]
 mod chain;
+#[path = "combinatorics.rs"]
 pub mod combinatorics;
+#[path = "expertmix.rs"]
 mod expertmix;
+#[path = "external.rs"]
 pub mod external;
+#[path = "fast_lz.rs"]
 mod fast_lz;
+#[path = "fixedmix.rs"]
 pub mod fixedmix;
+#[path = "gstream.rs"]
 mod gstream;
+#[path = "histogram.rs"]
 mod histogram;
+#[path = "huffman.rs"]
 pub mod huffman;
+#[path = "legacy_lz.rs"]
 pub mod legacy_lz;
+#[path = "limits.rs"]
 pub mod limits;
+#[path = "numeric.rs"]
 mod numeric;
+#[path = "parallel.rs"]
 pub mod parallel;
+#[path = "portfolio_auto.rs"]
 mod portfolio_auto;
+#[path = "ppm.rs"]
 pub mod ppm;
+#[path = "rank.rs"]
 pub mod rank;
+#[path = "record_periodic.rs"]
 mod record_periodic;
+#[path = "resources.rs"]
 pub mod resources;
+#[path = "selection.rs"]
 mod selection;
+#[path = "sparse_runs.rs"]
 mod sparse_runs;
+#[path = "stateful.rs"]
 mod stateful;
+#[path = "stdout_writer.rs"]
 pub mod stdout_writer;
+#[path = "streaming_backend.rs"]
 mod streaming_backend;
+#[path = "transform.rs"]
 mod transform;
+#[path = "wavelet.rs"]
 mod wavelet;
+#[path = "zpaq_context.rs"]
 pub mod zpaq_context;
 
 const MAGIC: &[u8; 5] = b"CIXG1";
@@ -49,9 +80,9 @@ const HEADER: usize = 13;
 const END: u8 = 255;
 const MAX_BLOCK: u32 = 65536;
 const EXPERT_CONTEXT_MEMORY_ESTIMATE: usize = 8192;
-use crate::limits::INTERRUPTED;
+use crate::core::codec::limits::INTERRUPTED;
 fn check_interrupted() -> Result<(), String> {
-    crate::limits::check()
+    crate::core::codec::limits::check()
 }
 fn read_poll<R: Read>(
     src: &mut R,
@@ -74,7 +105,7 @@ fn read_once<R: Read>(src: &mut R, buffer: &mut [u8]) -> Result<Option<usize>, S
     match src.read(buffer) {
         Ok(read) => Ok(Some(read)),
         Err(error) if error.kind() == io::ErrorKind::Interrupted => Ok(None),
-        Err(_error) if INTERRUPTED.load(Ordering::Relaxed) => Err("interrupted".into()),
+        Err(_error) if limits::cli_interrupted() => Err("interrupted".into()),
         Err(error) => Err(ioerr(error)),
     }
 }
@@ -87,7 +118,7 @@ fn input_ready(fd: i32, timeout: Option<Duration>) -> Result<bool, String> {
     let slice = Duration::from_millis(250);
     let wait = timeout.map(|value| value.min(slice)).unwrap_or(slice);
     wait_input(fd, wait).map_err(|error| {
-        if INTERRUPTED.load(Ordering::Relaxed) {
+        if limits::cli_interrupted() {
             "interrupted".into()
         } else {
             ioerr(error)
@@ -443,7 +474,7 @@ fn wait_input(fd: std::os::fd::RawFd, timeout: std::time::Duration) -> io::Resul
             return Ok(ready != 0);
         }
         let error = io::Error::last_os_error();
-        if INTERRUPTED.load(Ordering::Relaxed) {
+        if limits::cli_interrupted() {
             return Err(io::Error::new(io::ErrorKind::Interrupted, "interrupted"));
         }
         if error.kind() != io::ErrorKind::Interrupted {
@@ -776,16 +807,28 @@ fn predictor_residual(data: &[u8], inverse: bool) -> Vec<u8> {
 }
 
 fn predictor_context(past: &[u8], index: usize) -> usize {
-    if index >= 2 { past[index - 2] as usize * 256 + past[index - 1] as usize } else { 0 }
+    if index >= 2 {
+        past[index - 2] as usize * 256 + past[index - 1] as usize
+    } else {
+        0
+    }
 }
 
 fn predictor_predictions(
-    past: &[u8], index: usize, context: usize, values: &[u8], valid: &[bool],
+    past: &[u8],
+    index: usize,
+    context: usize,
+    values: &[u8],
+    valid: &[bool],
 ) -> [u8; 3] {
     [
         if index > 0 { past[index - 1] } else { 0 },
         if index >= 4 { past[index - 4] } else { 0 },
-        if index >= 2 && valid[context] { values[context] } else { 0 },
+        if index >= 2 && valid[context] {
+            values[context]
+        } else {
+            0
+        },
     ]
 }
 
@@ -800,8 +843,13 @@ fn predictor_winner(scores: &[u32; 3]) -> usize {
 }
 
 fn predictor_update(
-    values: &mut [u8], valid: &mut [bool], scores: &mut [u32; 3], predictions: &[u8; 3],
-    context: usize, index: usize, actual: u8,
+    values: &mut [u8],
+    valid: &mut [bool],
+    scores: &mut [u32; 3],
+    predictions: &[u8; 3],
+    context: usize,
+    index: usize,
+    actual: u8,
 ) {
     for score_index in 0..scores.len() {
         scores[score_index] += u32::from(predictions[score_index] == actual);
@@ -1363,7 +1411,7 @@ fn evaluate_cixg_candidate(
     };
     let started = Instant::now();
     let effective_trial_budget = context.policy.limits.trial_budget.min(remaining_search);
-    let deadline_guard = crate::limits::DeadlineGuard::new(effective_trial_budget);
+    let deadline_guard = crate::core::codec::limits::DeadlineGuard::new(effective_trial_budget);
     let result = encode_route(
         route,
         context.data,
@@ -1397,7 +1445,7 @@ fn budget_acquire_for_candidate(
     context
         .budget
         .acquire(needed, context.policy.limits.search_deadline, || {
-            crate::limits::check().is_err() || shared.failed.load(Ordering::Relaxed)
+            crate::core::codec::limits::check().is_err() || shared.failed.load(Ordering::Relaxed)
         })
         .map_err(|error| match error {
             resources::MemoryError::DeadlineExceeded => None,
@@ -1434,7 +1482,7 @@ fn record_candidate_result(
         .search_deadline
         .is_some_and(|deadline| Instant::now() >= deadline);
     match result {
-        Err(error) if error == crate::limits::DEADLINE_ERROR => {
+        Err(error) if error == crate::core::codec::limits::DEADLINE_ERROR => {
             let reason = if exhausted_search {
                 "search-budget"
             } else {
@@ -1571,9 +1619,16 @@ fn consider_cixg_candidates_parallel(
     if workers == 1 {
         evaluate_cixg_candidate_worker(&context, &shared);
     } else {
+        let cancellation_context = limits::capture_context();
         thread::scope(|scope| {
+            let candidate_context = &context;
+            let candidate_shared = &shared;
             for _ in 0..workers {
-                scope.spawn(|| evaluate_cixg_candidate_worker(&context, &shared));
+                let worker_context = cancellation_context.clone();
+                scope.spawn(move || {
+                    let _scope = limits::install_context(&worker_context);
+                    evaluate_cixg_candidate_worker(candidate_context, candidate_shared)
+                });
             }
         });
     }
@@ -1613,7 +1668,17 @@ struct CixgFixedRouteRequest<'a> {
 }
 
 fn select_cixg_fixed_route(request: CixgFixedRouteRequest<'_>) -> Result<(u8, Vec<u8>), String> {
-    let CixgFixedRouteRequest { route, data, backend_override, format, effort_name, budget, workers, stats, explain } = request;
+    let CixgFixedRouteRequest {
+        route,
+        data,
+        backend_override,
+        format,
+        effort_name,
+        budget,
+        workers,
+        stats,
+        explain,
+    } = request;
     let search_started = Instant::now();
     let profile_started = Instant::now();
     let effort = selection::effort(effort_name).ok_or("invalid selector effort")?;
@@ -1705,7 +1770,16 @@ struct CixgAutoRequest<'a> {
 }
 
 fn select_cixg_auto(request: CixgAutoRequest<'_>) -> Result<(u8, Vec<u8>), String> {
-    let CixgAutoRequest { data, level, backend_override, format, budget, workers, stats, explain } = request;
+    let CixgAutoRequest {
+        data,
+        level,
+        backend_override,
+        format,
+        budget,
+        workers,
+        stats,
+        explain,
+    } = request;
     let effort_name = selector_effort_name(level);
     let effort = selection::effort(effort_name).ok_or("invalid selector effort")?;
     let search_started = Instant::now();
@@ -1825,7 +1899,10 @@ fn bwt_transform(data: &[u8]) -> Result<(usize, Vec<u8>), String> {
 }
 
 fn bwt_rank_pair(ranks: &[i64], index: usize, width: usize) -> (i64, i64) {
-    (ranks[index], ranks.get(index + width).copied().unwrap_or(-1))
+    (
+        ranks[index],
+        ranks.get(index + width).copied().unwrap_or(-1),
+    )
 }
 
 fn mtf_encode(data: &[u8]) -> Vec<u8> {
@@ -1972,7 +2049,9 @@ fn bwt_encode(data: &[u8], level: u8, backend: &str) -> Result<Vec<u8>, String> 
 }
 
 fn lz_insert(table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>, data: &[u8], pos: usize) {
-    let Some(key) = lz_key(data, pos) else { return; };
+    let Some(key) = lz_key(data, pos) else {
+        return;
+    };
     let candidates = table.entry(key).or_default();
     candidates.push(pos);
     if candidates.len() > 8 {
@@ -2011,13 +2090,25 @@ struct LzParts {
 fn lz_parse(data: &[u8]) -> Result<LzParts, String> {
     use std::collections::HashMap;
     let mut table: HashMap<[u8; 4], Vec<usize>> = HashMap::new();
-    let mut parts = LzParts { tags: Vec::new(), literals: Vec::new(), lengths: Vec::new(), distances: Vec::new() };
+    let mut parts = LzParts {
+        tags: Vec::new(),
+        literals: Vec::new(),
+        lengths: Vec::new(),
+        distances: Vec::new(),
+    };
     let mut position = 0usize;
     while position < data.len() {
         limits::check()?;
         let (best_length, best_distance) = lz_best_match(data, position, &table);
         if best_length >= 4 {
-            lz_emit_match(&mut parts, &mut table, data, position, best_length, best_distance);
+            lz_emit_match(
+                &mut parts,
+                &mut table,
+                data,
+                position,
+                best_length,
+                best_distance,
+            );
             position += best_length;
         } else {
             lz_emit_literal(&mut parts, &mut table, data, position);
@@ -2028,10 +2119,16 @@ fn lz_parse(data: &[u8]) -> Result<LzParts, String> {
 }
 
 fn lz_best_match(
-    data: &[u8], position: usize, table: &std::collections::HashMap<[u8; 4], Vec<usize>>,
+    data: &[u8],
+    position: usize,
+    table: &std::collections::HashMap<[u8; 4], Vec<usize>>,
 ) -> (usize, usize) {
-    let Some(key) = lz_key(data, position) else { return (0, 0); };
-    let Some(candidates) = table.get(&key) else { return (0, 0); };
+    let Some(key) = lz_key(data, position) else {
+        return (0, 0);
+    };
+    let Some(candidates) = table.get(&key) else {
+        return (0, 0);
+    };
     let limit = 65535.min(data.len() - position);
     let mut best = (i64::MIN, 0usize, 0usize);
     for &candidate in candidates.iter().rev().take(8) {
@@ -2041,7 +2138,11 @@ fn lz_best_match(
 }
 
 fn lz_consider_match(
-    data: &[u8], position: usize, candidate: usize, limit: usize, best: &mut (i64, usize, usize),
+    data: &[u8],
+    position: usize,
+    candidate: usize,
+    limit: usize,
+    best: &mut (i64, usize, usize),
 ) {
     let distance = position - candidate;
     if distance == 0 || distance > 65536 {
@@ -2064,8 +2165,12 @@ fn lz_consider_match(
 }
 
 fn lz_emit_match(
-    parts: &mut LzParts, table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>,
-    data: &[u8], position: usize, length: usize, distance: usize,
+    parts: &mut LzParts,
+    table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>,
+    data: &[u8],
+    position: usize,
+    length: usize,
+    distance: usize,
 ) {
     parts.tags.push(1);
     put_varint(length - 4, &mut parts.lengths);
@@ -2077,8 +2182,10 @@ fn lz_emit_match(
 }
 
 fn lz_emit_literal(
-    parts: &mut LzParts, table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>,
-    data: &[u8], position: usize,
+    parts: &mut LzParts,
+    table: &mut std::collections::HashMap<[u8; 4], Vec<usize>>,
+    data: &[u8],
+    position: usize,
 ) {
     parts.tags.push(0);
     parts.literals.push(data[position]);
@@ -2180,22 +2287,26 @@ fn automatic_workers(requested: usize, explicit: bool, block: u32, memory: usize
 }
 
 pub(crate) struct EncodeOptions<'a> {
-    block: u32,
-    level: u8,
-    forced: Option<&'a str>,
-    backend: &'a str,
-    backend_set: bool,
-    format: &'a str,
-    input_fd: i32,
-    flush_interval: Option<Duration>,
-    memory: usize,
-    workers: usize,
-    explain: bool,
-    verbose: bool,
-    strategy: &'a str,
+    pub(crate) block: u32,
+    pub(crate) level: u8,
+    pub(crate) forced: Option<&'a str>,
+    pub(crate) backend: &'a str,
+    pub(crate) backend_set: bool,
+    pub(crate) format: &'a str,
+    pub(crate) input_fd: i32,
+    pub(crate) flush_interval: Option<Duration>,
+    pub(crate) memory: usize,
+    pub(crate) workers: usize,
+    pub(crate) explain: bool,
+    pub(crate) verbose: bool,
+    pub(crate) strategy: &'a str,
 }
 
-fn encode<R: Read, W: Write>(src: R, dst: W, options: EncodeOptions<'_>) -> Result<(), String> {
+pub(crate) fn encode<R: Read, W: Write>(
+    src: R,
+    dst: W,
+    options: EncodeOptions<'_>,
+) -> Result<(), String> {
     encode_with_strategy(src, dst, options)
 }
 
@@ -2420,20 +2531,38 @@ fn write_candidate_frame<W: Write>(
     dst.flush().map_err(ioerr)
 }
 
-fn candidate_archive_magic(format: &str, level: u8, backend: &str, backend_set: bool) -> &'static [u8; 5] {
+fn candidate_archive_magic(
+    format: &str,
+    level: u8,
+    backend: &str,
+    backend_set: bool,
+) -> &'static [u8; 5] {
     if format == "cixg2"
         || format == "auto"
-            && (level >= 9 || backend_set && (backend.starts_with("context-range-") || backend == "huffman"))
-    { MAGIC_V2 } else { MAGIC }
+            && (level >= 9
+                || backend_set && (backend.starts_with("context-range-") || backend == "huffman"))
+    {
+        MAGIC_V2
+    } else {
+        MAGIC
+    }
 }
 
 fn report_candidate_selection(
-    stats: &AutoSelectionStats, level: u8, archive_magic: &[u8; 5], forced: Option<&str>, archive_bytes: u64,
+    stats: &AutoSelectionStats,
+    level: u8,
+    archive_magic: &[u8; 5],
+    forced: Option<&str>,
+    archive_bytes: u64,
 ) {
-    let route_bytes = stats.selected_source_bytes.iter().enumerate()
+    let route_bytes = stats
+        .selected_source_bytes
+        .iter()
+        .enumerate()
         .filter(|(_, bytes)| **bytes != 0)
         .map(|(route, bytes)| format!("{}:{bytes}", selection::ROUTES[route]))
-        .collect::<Vec<_>>().join(",");
+        .collect::<Vec<_>>()
+        .join(",");
     eprintln!(
         "cix: effort={} format={} route={} blocks={} candidates={} memory_skips={} budget_skips={} analyse_seconds={:.3} candidate_seconds={:.3} search_seconds={:.3} archive_bytes={} selected_source_bytes=[{}]",
         effort_display_name(level), std::str::from_utf8(archive_magic).unwrap_or("CIXG?"), forced.unwrap_or("auto"),
@@ -2456,7 +2585,17 @@ fn prepare_candidate_encoder<W: Write>(
     dst: &mut W,
     options: &EncodeOptions<'_>,
 ) -> Result<CandidateEncoderState, String> {
-    let EncodeOptions { block, level, forced, backend, backend_set, format, memory, workers, .. } = *options;
+    let EncodeOptions {
+        block,
+        level,
+        forced,
+        backend,
+        backend_set,
+        format,
+        memory,
+        workers,
+        ..
+    } = *options;
     if format == "cixg1"
         && backend_set
         && (backend.starts_with("context-range-") || backend == "huffman")
@@ -2523,7 +2662,8 @@ fn encode_candidates<R: Read, W: Write>(
         if symbol_counts.iter().sum::<u32>() != got as u32 {
             return Err("internal block symbol count mismatch".into());
         }
-        state.total_bytes = state.total_bytes
+        state.total_bytes = state
+            .total_bytes
             .checked_add(got as u64)
             .ok_or("input length overflow")?;
         let data = &state.buf[..got];
@@ -2544,7 +2684,10 @@ fn encode_candidates<R: Read, W: Write>(
             },
         )?;
         for explanation in state.selection_stats.explanations.drain(..) {
-            eprintln!("cix: region={} {}", state.selection_stats.blocks, explanation);
+            eprintln!(
+                "cix: region={} {}",
+                state.selection_stats.blocks, explanation
+            );
         }
         write_candidate_frame(
             &mut dst,
@@ -2562,11 +2705,20 @@ fn encode_candidates<R: Read, W: Write>(
     }
     let h: [u8; 32] = state.whole.finalize().into();
     put_frame(&mut dst, END, 0, 0, &h).map_err(ioerr)?;
-    state.archive_bytes = state.archive_bytes
+    state.archive_bytes = state
+        .archive_bytes
         .checked_add(41)
         .ok_or("archive length overflow")?;
     dst.flush().map_err(ioerr)?;
-    if verbose || explain { report_candidate_selection(&state.selection_stats, level, state.archive_magic, forced, state.archive_bytes); }
+    if verbose || explain {
+        report_candidate_selection(
+            &state.selection_stats,
+            level,
+            state.archive_magic,
+            forced,
+            state.archive_bytes,
+        );
+    }
     Ok(())
 }
 
@@ -2603,7 +2755,11 @@ struct M6Selection {
 impl M6Selection {
     fn raw(data: &[u8]) -> Self {
         let payload = data.to_vec();
-        Self { mode: 0, size: m6_frame_size(data.len(), payload.len()), payload }
+        Self {
+            mode: 0,
+            size: m6_frame_size(data.len(), payload.len()),
+            payload,
+        }
     }
 
     fn consider(&mut self, mode: u8, payload: Vec<u8>, source_len: usize) {
@@ -2633,15 +2789,29 @@ fn m6_memory_plan(block_len: usize, memory: usize) -> Result<(usize, usize, bool
     if fixed > memory {
         return Err("CIXM6 history, source and candidate buffers exceed --memory".into());
     }
-    let reference = memory.saturating_div(8).min(16 * 1024 * 1024).min(memory.saturating_sub(fixed));
+    let reference = memory
+        .saturating_div(8)
+        .min(16 * 1024 * 1024)
+        .min(memory.saturating_sub(fixed));
     let persistent = stateful::RETAINED_MEMORY_BOUND.saturating_add(stateful::WORKING_MEMORY_BOUND);
-    Ok((fixed, reference, fixed.saturating_add(reference).saturating_add(persistent) <= memory))
+    Ok((
+        fixed,
+        reference,
+        fixed.saturating_add(reference).saturating_add(persistent) <= memory,
+    ))
 }
 
 fn m6_try_recent_reference(
-    selected: &mut M6Selection, recent: &std::collections::VecDeque<Vec<u8>>, data: &[u8],
+    selected: &mut M6Selection,
+    recent: &std::collections::VecDeque<Vec<u8>>,
+    data: &[u8],
 ) {
-    if let Some((distance, _)) = recent.iter().rev().enumerate().find(|(_, prior)| prior.as_slice() == data) {
+    if let Some((distance, _)) = recent
+        .iter()
+        .rev()
+        .enumerate()
+        .find(|(_, prior)| prior.as_slice() == data)
+    {
         let mut payload = Vec::new();
         put_varint(distance + 1, &mut payload);
         selected.consider(9, payload, data.len());
@@ -2649,9 +2819,13 @@ fn m6_try_recent_reference(
 }
 
 fn m6_try_sparse_candidates(selected: &mut M6Selection, data: &[u8]) -> Result<(), String> {
-    if data.len() < 2 { return Ok(()); }
+    if data.len() < 2 {
+        return Ok(());
+    }
     let mut counts = [0usize; 256];
-    for &byte in data { counts[byte as usize] += 1; }
+    for &byte in data {
+        counts[byte as usize] += 1;
+    }
     if counts.iter().copied().max().unwrap_or(0).saturating_mul(4) >= data.len() {
         selected.consider(11, sparse_runs::encode_sparse(data)?, data.len());
     }
@@ -2663,17 +2837,41 @@ fn m6_try_sparse_candidates(selected: &mut M6Selection, data: &[u8]) -> Result<(
 }
 
 fn m6_try_legacy_candidates(
-    selected: &mut M6Selection, data: &[u8], prefix: &[u8], effort: u8, available: usize,
+    selected: &mut M6Selection,
+    data: &[u8],
+    prefix: &[u8],
+    effort: u8,
+    available: usize,
     budget_skips: &mut std::collections::BTreeSet<u8>,
 ) -> Result<(), String> {
     if data.len() >= 16 && effort >= 2 {
-        if available >= data.len().saturating_mul(64) { selected.consider(3, legacy_lz::encode(data, prefix, effort)?.payload, data.len()); } else { budget_skips.insert(3); }
+        if available >= data.len().saturating_mul(64) {
+            selected.consider(
+                3,
+                legacy_lz::encode(data, prefix, effort)?.payload,
+                data.len(),
+            );
+        } else {
+            budget_skips.insert(3);
+        }
     }
     if data.len() >= 32 && effort >= 4 {
-        if available >= data.len().saturating_mul(128) { selected.consider(4, bwt_legacy::encode(data)?.0, data.len()); } else { budget_skips.insert(4); }
+        if available >= data.len().saturating_mul(128) {
+            selected.consider(4, bwt_legacy::encode(data)?.0, data.len());
+        } else {
+            budget_skips.insert(4);
+        }
     }
     if data.len() >= 4 && effort >= 2 {
-        if available >= data.len().saturating_mul(64) { selected.consider(5, transform::encode(data, usize::from(effort.min(10)))?.0, data.len()); } else { budget_skips.insert(5); }
+        if available >= data.len().saturating_mul(64) {
+            selected.consider(
+                5,
+                transform::encode(data, usize::from(effort.min(10)))?.0,
+                data.len(),
+            );
+        } else {
+            budget_skips.insert(5);
+        }
     }
     Ok(())
 }
@@ -2690,11 +2888,24 @@ fn m6_try_context_candidates(ctx: &mut M6TrialContext<'_>) -> Result<Option<Vec<
         budget_skips.insert(1);
         None
     };
-    let context_models = [(1usize, 6usize), (1, 8), (2, 8), (2, 10), (3, 10), (4, 10), (4, 12), (6, 12)];
+    let context_models = [
+        (1usize, 6usize),
+        (1, 8),
+        (2, 8),
+        (2, 10),
+        (3, 10),
+        (4, 10),
+        (4, 12),
+        (6, 12),
+    ];
     let context_beam = usize::from(effort.min(4));
     if available >= data.len().saturating_mul(32) {
         for &(order, bucket_bits) in context_models.iter().take(context_beam) {
-            selected.consider(2, rank::encode_context_type_classes(data, order, bucket_bits, prefix)?, data.len());
+            selected.consider(
+                2,
+                rank::encode_context_type_classes(data, order, bucket_bits, prefix)?,
+                data.len(),
+            );
         }
     } else if context_beam > 0 {
         budget_skips.insert(2);
@@ -2709,11 +2920,29 @@ fn m6_try_adaptive_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(), String
     if data.len() >= 2 {
         selected.consider(18, wavelet::encode(data), data.len());
         if available >= data.len().saturating_mul(32) {
-            let adaptive_models = [(0usize, 8usize), (1, 6), (1, 8), (2, 8), (2, 10), (3, 10), (4, 10), (4, 12), (6, 12)];
+            let adaptive_models = [
+                (0usize, 8usize),
+                (1, 6),
+                (1, 8),
+                (2, 8),
+                (2, 10),
+                (3, 10),
+                (4, 10),
+                (4, 12),
+                (6, 12),
+            ];
             for &(order, bucket_bits) in adaptive_models.iter().take(usize::from(effort)) {
-                match adaptive::encode_general(data, order, bucket_bits, prefix, (available / 4096).max(1)) {
+                match adaptive::encode_general(
+                    data,
+                    order,
+                    bucket_bits,
+                    prefix,
+                    (available / 4096).max(1),
+                ) {
                     Ok(payload) => selected.consider(10, payload, data.len()),
-                    Err(error) if error.contains("memory budget") => { budget_skips.insert(10); }
+                    Err(error) if error.contains("memory budget") => {
+                        budget_skips.insert(10);
+                    }
                     Err(error) => return Err(error),
                 }
             }
@@ -2728,30 +2957,56 @@ fn m6_try_chain_and_numeric_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(
     let (data, effort, available) = (ctx.data, ctx.effort, ctx.available);
     let selected = &mut *ctx.selected;
     let budget_skips = &mut *ctx.budget_skips;
-    if data.len() >= 2 { selected.consider(6, bitplane::encode(data), data.len()); }
+    if data.len() >= 2 {
+        selected.consider(6, bitplane::encode(data), data.len());
+    }
     if data.len() >= 32 && effort >= 8 {
         if available >= data.len().saturating_mul(128) {
-            let cache_allowance = available.saturating_sub(data.len().saturating_mul(128)).min(4 * 1024 * 1024);
-            let encoded = chain::encode_with_cache(data, chain::EncodeOptions { beam: usize::from(effort.min(9)), effort }, cache_allowance)?;
+            let cache_allowance = available
+                .saturating_sub(data.len().saturating_mul(128))
+                .min(4 * 1024 * 1024);
+            let encoded = chain::encode_with_cache(
+                data,
+                chain::EncodeOptions {
+                    beam: usize::from(effort.min(9)),
+                    effort,
+                },
+                cache_allowance,
+            )?;
             selected.consider(7, encoded.payload, data.len());
-        } else { budget_skips.insert(7); }
+        } else {
+            budget_skips.insert(7);
+        }
     }
     if data.len() >= 6 {
-        if available >= data.len().saturating_mul(128) { selected.consider(8, numeric::encode(data)?.payload, data.len()); } else { budget_skips.insert(8); }
+        if available >= data.len().saturating_mul(128) {
+            selected.consider(8, numeric::encode(data)?.payload, data.len());
+        } else {
+            budget_skips.insert(8);
+        }
     }
     Ok(())
 }
 
-fn m6_try_histogram_candidate(ctx: &mut M6TrialContext<'_>, multinomial: Option<&[u8]>) -> Result<(), String> {
+fn m6_try_histogram_candidate(
+    ctx: &mut M6TrialContext<'_>,
+    multinomial: Option<&[u8]>,
+) -> Result<(), String> {
     let (data, available) = (ctx.data, ctx.available);
     let selected = &mut *ctx.selected;
     let budget_skips = &mut *ctx.budget_skips;
     if data.len() >= 2 {
         if available >= data.len().saturating_mul(32) {
             if let Some(multinomial) = multinomial {
-                if let Some(payload) = histogram::type_class_candidate(data, multinomial)? { selected.consider(20, payload, data.len()); }
-            } else { budget_skips.insert(20); }
-        } else { budget_skips.insert(20); }
+                if let Some(payload) = histogram::type_class_candidate(data, multinomial)? {
+                    selected.consider(20, payload, data.len());
+                }
+            } else {
+                budget_skips.insert(20);
+            }
+        } else {
+            budget_skips.insert(20);
+        }
     }
     Ok(())
 }
@@ -2762,9 +3017,19 @@ fn m6_try_record_periodic_candidates(ctx: &mut M6TrialContext<'_>) -> Result<(),
     let budget_skips = &mut *ctx.budget_skips;
     if data.len() >= 256 && effort >= 4 {
         if available >= data.len().saturating_mul(128) {
-            selected.consider(14, record_periodic::encode_record(data, usize::from(effort.min(6)))?.0, data.len());
-            selected.consider(15, record_periodic::encode_periodic(data, usize::from(effort.min(8)))?.0, data.len());
-        } else { budget_skips.extend([14, 15]); }
+            selected.consider(
+                14,
+                record_periodic::encode_record(data, usize::from(effort.min(6)))?.0,
+                data.len(),
+            );
+            selected.consider(
+                15,
+                record_periodic::encode_periodic(data, usize::from(effort.min(8)))?.0,
+                data.len(),
+            );
+        } else {
+            budget_skips.extend([14, 15]);
+        }
     }
     Ok(())
 }
@@ -2774,11 +3039,25 @@ fn m6_try_ppm_candidate(ctx: &mut M6TrialContext<'_>) -> Result<(), String> {
     let selected = &mut *ctx.selected;
     let budget_skips = &mut *ctx.budget_skips;
     if data.len() >= 512 && effort >= 4 {
-        let trained = prefix.len().min(65536).min(4096usize.max(data.len().saturating_mul(2)));
+        let trained = prefix
+            .len()
+            .min(65536)
+            .min(4096usize.max(data.len().saturating_mul(2)));
         if available >= route_minimum_memory(8, data.len().saturating_add(trained)) {
-            let order = match effort { 0..=3 => 2, 4..=6 => 4, 7..=8 => 5, _ => 6 };
-            selected.consider(16, ppm::encode_best(data, order, prefix, None, None, None)?, data.len());
-        } else { budget_skips.insert(16); }
+            let order = match effort {
+                0..=3 => 2,
+                4..=6 => 4,
+                7..=8 => 5,
+                _ => 6,
+            };
+            selected.consider(
+                16,
+                ppm::encode_best(data, order, prefix, None, None, None)?,
+                data.len(),
+            );
+        } else {
+            budget_skips.insert(16);
+        }
     }
     Ok(())
 }
@@ -2792,22 +3071,36 @@ fn m6_try_expert_and_fixedmix_candidates(ctx: &mut M6TrialContext<'_>) -> Result
         if max_contexts > 0 {
             match expertmix::encode_bounded(data, &[0, 1, 2, 4], prefix, max_contexts) {
                 Ok(payload) => selected.consider(17, payload, data.len()),
-                Err(error) if error.contains("memory budget") => { budget_skips.insert(17); }
+                Err(error) if error.contains("memory budget") => {
+                    budget_skips.insert(17);
+                }
                 Err(error) => return Err(error),
             }
-        } else { budget_skips.insert(17); }
+        } else {
+            budget_skips.insert(17);
+        }
     }
     if data.len() >= 512 && data.len() <= 32768 && effort >= 7 {
-        let trained = prefix.len().min(65536).min(4096usize.max(data.len().saturating_mul(2)));
+        let trained = prefix
+            .len()
+            .min(65536)
+            .min(4096usize.max(data.len().saturating_mul(2)));
         if available >= route_minimum_memory(9, data.len().saturating_add(trained)) {
-            selected.consider(19, fixedmix::encode_with_history_eta(data, prefix, 6)?, data.len());
-        } else { budget_skips.insert(19); }
+            selected.consider(
+                19,
+                fixedmix::encode_with_history_eta(data, prefix, 6)?,
+                data.len(),
+            );
+        } else {
+            budget_skips.insert(19);
+        }
     }
     Ok(())
 }
 
 fn m6_try_persistent_candidate(
-    ctx: &mut M6TrialContext<'_>, states: &mut Option<stateful::PersistentAdaptiveStates>,
+    ctx: &mut M6TrialContext<'_>,
+    states: &mut Option<stateful::PersistentAdaptiveStates>,
 ) -> Result<(), String> {
     let (data, prefix) = (ctx.data, ctx.prefix);
     let selected = &mut *ctx.selected;
@@ -2816,11 +3109,17 @@ fn m6_try_persistent_candidate(
         let (_, payload) = states.encode_best(data, prefix, stateful::WORKING_MEMORY_BOUND)?;
         selected.consider(13, payload, data.len());
         states.observe(data, prefix)?;
-    } else { budget_skips.insert(13); }
+    } else {
+        budget_skips.insert(13);
+    }
     Ok(())
 }
 
-fn m6_write_selected_frame<W: Write>(dst: &mut W, selected: &M6Selection, source_len: usize) -> Result<(), String> {
+fn m6_write_selected_frame<W: Write>(
+    dst: &mut W,
+    selected: &M6Selection,
+    source_len: usize,
+) -> Result<(), String> {
     let mut frame = vec![selected.mode];
     put_varint(source_len, &mut frame);
     put_varint(selected.payload.len(), &mut frame);
@@ -2845,7 +3144,7 @@ fn finish_m6_encode<W: Write>(
     crc: crc32fast::Hasher,
     file_name: Option<&str>,
 ) -> Result<(), String> {
-    if !budget_skips.is_empty() {
+    if !budget_skips.is_empty() && !limits::is_library_scope() {
         let modes = budget_skips
             .iter()
             .map(u8::to_string)
@@ -2882,7 +3181,10 @@ fn encode_m6<R: Read, W: Write>(
         file_name,
         effort,
         memory,
-        M6ReadOptions { input_fd: -1, flush_interval: None },
+        M6ReadOptions {
+            input_fd: -1,
+            flush_interval: None,
+        },
     )
 }
 
@@ -2914,10 +3216,15 @@ impl<W: Write> M6BlockEncoder<'_, W> {
         const HISTORY_LIMIT: usize = 1 << 20;
         let prefix = self.history.as_slice();
         let mut selected = M6Selection::raw(data);
-        let available = self.memory
+        let available = self
+            .memory
             .saturating_sub(self.fixed_reserve)
             .saturating_sub(self.reference_budget)
-            .saturating_sub(if self.persistent_enabled { self.persistent_reserve } else { 0 });
+            .saturating_sub(if self.persistent_enabled {
+                self.persistent_reserve
+            } else {
+                0
+            });
         let mut trials = M6TrialContext {
             selected: &mut selected,
             data,
@@ -2930,7 +3237,14 @@ impl<W: Write> M6BlockEncoder<'_, W> {
         m6_try_adaptive_candidates(&mut trials)?;
         m6_try_sparse_candidates(trials.selected, data)?;
         m6_try_recent_reference(trials.selected, &self.recent, data);
-        m6_try_legacy_candidates(trials.selected, data, prefix, self.effort, available, trials.budget_skips)?;
+        m6_try_legacy_candidates(
+            trials.selected,
+            data,
+            prefix,
+            self.effort,
+            available,
+            trials.budget_skips,
+        )?;
         m6_try_chain_and_numeric_candidates(&mut trials)?;
         m6_try_histogram_candidate(&mut trials, multinomial.as_deref())?;
         m6_try_record_periodic_candidates(&mut trials)?;
@@ -2939,7 +3253,10 @@ impl<W: Write> M6BlockEncoder<'_, W> {
         m6_try_persistent_candidate(&mut trials, &mut self.persistent_states)?;
         m6_write_selected_frame(self.dst, &selected, data.len())?;
         self.crc.update(data);
-        self.whole = self.whole.checked_add(data.len()).ok_or("CIXM6 stream length overflow")?;
+        self.whole = self
+            .whole
+            .checked_add(data.len())
+            .ok_or("CIXM6 stream length overflow")?;
         append_bounded_history(&mut self.history, data, HISTORY_LIMIT);
         self.recent_bytes = self.recent_bytes.saturating_add(data.len());
         self.recent.push_back(data.to_vec());
@@ -2963,11 +3280,16 @@ fn encode_m6_timed<R: Read, W: Write>(
     memory: usize,
     read_options: M6ReadOptions,
 ) -> Result<(), String> {
-    let M6ReadOptions { input_fd, flush_interval } = read_options;
+    let M6ReadOptions {
+        input_fd,
+        flush_interval,
+    } = read_options;
     const HISTORY_LIMIT: usize = 1 << 20;
     let mut block = vec![0u8; block_size.min(MAX_BLOCK as usize).max(1)];
-    let (fixed_reserve, reference_budget, persistent_enabled) = m6_memory_plan(block.len(), memory)?;
-    let persistent_reserve = stateful::RETAINED_MEMORY_BOUND.saturating_add(stateful::WORKING_MEMORY_BOUND);
+    let (fixed_reserve, reference_budget, persistent_enabled) =
+        m6_memory_plan(block.len(), memory)?;
+    let persistent_reserve =
+        stateful::RETAINED_MEMORY_BOUND.saturating_add(stateful::WORKING_MEMORY_BOUND);
     dst.write_all(b"CIXM6").map_err(ioerr)?;
     let mut header = Vec::new();
     put_varint(HISTORY_LIMIT, &mut header);
@@ -3002,7 +3324,13 @@ fn encode_m6_timed<R: Read, W: Write>(
             break;
         }
     }
-    let M6BlockEncoder { dst, budget_skips, whole, crc, .. } = encoder;
+    let M6BlockEncoder {
+        dst,
+        budget_skips,
+        whole,
+        crc,
+        ..
+    } = encoder;
     finish_m6_encode(dst, &budget_skips, whole, crc, file_name)
 }
 
@@ -3174,7 +3502,9 @@ impl PortfolioWinner {
             &candidate,
             candidate.capacity(),
             context.data,
-            context.data_capacity.saturating_add(self.archive.capacity()),
+            context
+                .data_capacity
+                .saturating_add(self.archive.capacity()),
             context.memory,
             context.descriptor,
         )? {
@@ -3183,7 +3513,8 @@ impl PortfolioWinner {
                 self.name = name();
             }
             PortfolioVerification::MemoryOmission(reason) => {
-                self.omitted.push(format!("{} ({reason})", context.omitted_name));
+                self.omitted
+                    .push(format!("{} ({reason})", context.omitted_name));
             }
         }
         Ok(())
@@ -3228,13 +3559,17 @@ fn portfolio_search_external(
                 descriptor.id
             ));
         }
-        winner.consider(candidate, PortfolioCandidate {
-            data,
-            data_capacity: data.capacity(),
-            memory,
-            descriptor: Some(descriptor),
-            omitted_name: descriptor.id,
-        }, || descriptor.id.to_string())?;
+        winner.consider(
+            candidate,
+            PortfolioCandidate {
+                data,
+                data_capacity: data.capacity(),
+                memory,
+                descriptor: Some(descriptor),
+                omitted_name: descriptor.id,
+            },
+            || descriptor.id.to_string(),
+        )?;
     }
     Ok(())
 }
@@ -3255,18 +3590,23 @@ fn portfolio_search_native(
         winner.retained_bytes(data),
         route,
         timeout_seconds,
-    )? else {
+    )?
+    else {
         winner.omitted.push(name);
         return Ok(());
     };
     let omitted_name = name.clone();
-    winner.consider(candidate, PortfolioCandidate {
-        data,
-        data_capacity: data.capacity(),
-        memory,
-        descriptor: None,
-        omitted_name: &omitted_name,
-    }, || name)
+    winner.consider(
+        candidate,
+        PortfolioCandidate {
+            data,
+            data_capacity: data.capacity(),
+            memory,
+            descriptor: None,
+            omitted_name: &omitted_name,
+        },
+        || name,
+    )
 }
 
 fn portfolio_search_size_routes(
@@ -3389,7 +3729,9 @@ fn encode_portfolio<R: Read, W: Write>(
         .saturating_duration_since(Instant::now())
         .as_secs();
     if remaining == 0 {
-        winner.omitted.push("cix-adaptive:overall-budget".to_string());
+        winner
+            .omitted
+            .push("cix-adaptive:overall-budget".to_string());
     } else {
         portfolio_search_native(
             &data,
@@ -3723,8 +4065,12 @@ fn m6_decode_uints(blob: &[u8], count: usize, model_limit: usize) -> Result<Vec<
 
 fn m6_decode_varints(blob: &[u8], pos: &mut usize, count: usize) -> Result<Vec<usize>, String> {
     let mut out = Vec::with_capacity(count);
-    for _ in 0..count { out.push(unvar(blob, pos)?); }
-    if *pos != blob.len() { return Err("trailing CIXM6 varints".into()); }
+    for _ in 0..count {
+        out.push(unvar(blob, pos)?);
+    }
+    if *pos != blob.len() {
+        return Err("trailing CIXM6 varints".into());
+    }
     Ok(out)
 }
 
@@ -3738,7 +4084,9 @@ fn m6_decode_rice(blob: &[u8], pos: usize, count: usize) -> Result<Vec<usize>, S
     let mut out = Vec::with_capacity(count);
     for _ in 0..count {
         let mut q = 0usize;
-        while m6_read_bits(bits, &mut bp, 1)? != 0 { q = q.checked_add(1).ok_or("Rice quotient overflow")?; }
+        while m6_read_bits(bits, &mut bp, 1)? != 0 {
+            q = q.checked_add(1).ok_or("Rice quotient overflow")?;
+        }
         let low = m6_read_bits(bits, &mut bp, k)?;
         if q > usize::MAX >> k {
             return Err("Rice value overflow".into());
@@ -3848,12 +4196,18 @@ fn m6_decode_record(blob: &[u8], source_len: usize, model_limit: usize) -> Resul
     m6_reconstruct_record(lanes, width, source_len)
 }
 
-fn m6_reconstruct_record(lanes: Vec<Vec<u8>>, width: usize, source_len: usize) -> Result<Vec<u8>, String> {
+fn m6_reconstruct_record(
+    lanes: Vec<Vec<u8>>,
+    width: usize,
+    source_len: usize,
+) -> Result<Vec<u8>, String> {
     let mut cursors = vec![0usize; width];
     let mut out = vec![0u8; source_len];
     for (index, byte) in out.iter_mut().enumerate() {
         let lane = index % width;
-        *byte = *lanes[lane].get(cursors[lane]).ok_or("truncated CIXM6 record lane")?;
+        *byte = *lanes[lane]
+            .get(cursors[lane])
+            .ok_or("truncated CIXM6 record lane")?;
         cursors[lane] += 1;
     }
     Ok(out)
@@ -3943,7 +4297,8 @@ fn m6_validate_footer_tail(tail: &[u8]) -> Result<(), String> {
     if tail.len() < 9 || &tail[tail.len() - 5..] != b"CIXF1" {
         return Err("trailing bytes after CIXM6 stream".into());
     }
-    let name_len = u32::from_le_bytes(tail[tail.len() - 9..tail.len() - 5].try_into().unwrap()) as usize;
+    let name_len =
+        u32::from_le_bytes(tail[tail.len() - 9..tail.len() - 5].try_into().unwrap()) as usize;
     if name_len != tail.len() - 9 || std::str::from_utf8(&tail[..name_len]).is_err() {
         return Err("invalid CIXF1 filename footer".into());
     }
@@ -3951,15 +4306,28 @@ fn m6_validate_footer_tail(tail: &[u8]) -> Result<(), String> {
 }
 
 fn m6_model_budget(mode: u8, source_len: usize, history: &[u8], available: usize) -> usize {
-    let trained = source_len.saturating_add(history.len().min(65536).min(4096usize.max(source_len.saturating_mul(2))));
+    let trained = source_len.saturating_add(
+        history
+            .len()
+            .min(65536)
+            .min(4096usize.max(source_len.saturating_mul(2))),
+    );
     match mode {
-        10 => source_len.saturating_mul(64), 2 => source_len.saturating_mul(32),
-        6 => source_len.saturating_mul(8), 8 => source_len.saturating_mul(16),
+        10 => source_len.saturating_mul(64),
+        2 => source_len.saturating_mul(32),
+        6 => source_len.saturating_mul(8),
+        8 => source_len.saturating_mul(16),
         16 => route_minimum_memory(8, trained),
-        17 => source_len.saturating_mul(9).saturating_mul(EXPERT_CONTEXT_MEMORY_ESTIMATE).min(available),
-        7 | 3 | 4 => source_len.saturating_mul(128), 18 => source_len.saturating_mul(4),
-        19 => route_minimum_memory(9, trained), 5 => source_len.saturating_mul(64),
-        13 => stateful::WORKING_MEMORY_BOUND, _ => 0,
+        17 => source_len
+            .saturating_mul(9)
+            .saturating_mul(EXPERT_CONTEXT_MEMORY_ESTIMATE)
+            .min(available),
+        7 | 3 | 4 => source_len.saturating_mul(128),
+        18 => source_len.saturating_mul(4),
+        19 => route_minimum_memory(9, trained),
+        5 => source_len.saturating_mul(64),
+        13 => stateful::WORKING_MEMORY_BOUND,
+        _ => 0,
     }
 }
 
@@ -4123,8 +4491,16 @@ struct M6DecodeOptions {
     verify_only: bool,
 }
 
-fn decode_m6<R: Read, W: Write>(mut src: R, mut dst: W, options: M6DecodeOptions) -> Result<(), String> {
-    let M6DecodeOptions { fd, memory, verify_only } = options;
+fn decode_m6<R: Read, W: Write>(
+    mut src: R,
+    mut dst: W,
+    options: M6DecodeOptions,
+) -> Result<(), String> {
+    let M6DecodeOptions {
+        fd,
+        memory,
+        verify_only,
+    } = options;
     let history_limit = read_stream_varint(&mut src, fd)?;
     if history_limit == 0 || history_limit > 16 * 1024 * 1024 {
         return Err("invalid CIXM6 history window".into());
@@ -4145,7 +4521,11 @@ fn decode_m6<R: Read, W: Write>(mut src: R, mut dst: W, options: M6DecodeOptions
     if retained_decode_state > memory {
         return Err("CIXM6 history, references, and persistent models exceed --memory".into());
     }
-    let admission = M6DecodeAdmission { memory, history_limit, reference_budget };
+    let admission = M6DecodeAdmission {
+        memory,
+        history_limit,
+        reference_budget,
+    };
     loop {
         let mut mode = [0u8; 1];
         read_exact_poll(&mut src, &mut mode, fd)?;
@@ -4161,13 +4541,22 @@ fn decode_m6<R: Read, W: Write>(mut src: R, mut dst: W, options: M6DecodeOptions
         }
         let source_len = read_stream_varint(&mut src, fd)?;
         let payload_len = read_stream_varint(&mut src, fd)?;
-        let model_budget = m6_admit_decode_block(mode[0], source_len, payload_len, &history, admission)?;
+        let model_budget =
+            m6_admit_decode_block(mode[0], source_len, payload_len, &history, admission)?;
         let mut payload = vec![0u8; payload_len];
         read_exact_poll(&mut src, &mut payload, fd)?;
-        let block = decode_m6_block(mode[0], source_len, payload, M6DecodeContext {
-            history: &history, recent: &recent, memory, model_budget,
-            persistent_states: &mut persistent_states,
-        })?;
+        let block = decode_m6_block(
+            mode[0],
+            source_len,
+            payload,
+            M6DecodeContext {
+                history: &history,
+                recent: &recent,
+                memory,
+                model_budget,
+                persistent_states: &mut persistent_states,
+            },
+        )?;
         if block.len() != source_len {
             return Err("CIXM6 decoded block length mismatch".into());
         }
@@ -4190,13 +4579,18 @@ fn decode_m6<R: Read, W: Write>(mut src: R, mut dst: W, options: M6DecodeOptions
     Ok(())
 }
 
-struct CixgHeader { magic: [u8; 5], block: u32 }
+struct CixgHeader {
+    magic: [u8; 5],
+    block: u32,
+}
 
 fn read_cixg_header<R: Read>(src: &mut R, magic: [u8; 5], fd: i32) -> Result<CixgHeader, String> {
     let mut header = [0; HEADER];
     header[..5].copy_from_slice(&magic);
     read_exact_poll(src, &mut header[5..], fd)?;
-    if &header[..5] != MAGIC && &header[..5] != MAGIC_V2 { return Err("unsupported archive (expected CIXG1 or CIXG2)".into()); }
+    if &header[..5] != MAGIC && &header[..5] != MAGIC_V2 {
+        return Err("unsupported archive (expected CIXG1 or CIXG2)".into());
+    }
     let block = u32::from_le_bytes(header[5..9].try_into().unwrap());
     let history = u32::from_le_bytes(header[9..13].try_into().unwrap());
     if block == 0 || block > MAX_BLOCK || history != 0 && history != 65536 {
@@ -4205,16 +4599,59 @@ fn read_cixg_header<R: Read>(src: &mut R, magic: [u8; 5], fd: i32) -> Result<Cix
     Ok(CixgHeader { magic, block })
 }
 
-fn decode_cixb1<R: Read, W: Write>(mut src: R, mut dst: W, magic: [u8; 5], verify_only: bool, list: bool, fd: i32, memory: usize) -> Result<(), String> {
-    let mut fields = [0u8; 42]; read_exact_poll(&mut src, &mut fields, fd)?;
+fn decode_cixb1<R: Read, W: Write>(
+    mut src: R,
+    mut dst: W,
+    magic: [u8; 5],
+    verify_only: bool,
+    list: bool,
+    fd: i32,
+    memory: usize,
+) -> Result<(), String> {
+    let mut fields = [0u8; 42];
+    read_exact_poll(&mut src, &mut fields, fd)?;
     let payload_size = u32::from_le_bytes(fields[6..10].try_into().unwrap()) as usize;
     let expected = u32::from_le_bytes(fields[2..6].try_into().unwrap()) as usize;
-    if payload_size > external::MAX_PAYLOAD || expected > external::MAX_INPUT || 47usize.saturating_add(expected).saturating_add(payload_size) > memory { return Err("CIXB1 archive exceeds --memory or format limit".into()); }
-    let mut archive = Vec::with_capacity(47 + payload_size); archive.extend_from_slice(&magic); archive.extend_from_slice(&fields); archive.resize(47 + payload_size, 0); read_exact_poll(&mut src, &mut archive[47..], fd)?;
-    let data = external::decode(&archive, memory.checked_sub(archive.capacity()).ok_or("CIXB1 archive exceeds --memory or format limit")?)?;
-    loop { let mut extra = [0u8;1]; match read_poll(&mut src, &mut extra, fd, None)? { Some(0)=>break, Some(_)=>return Err("trailing bytes after CIXB1 archive".into()), None=>continue } }
-    if list { eprintln!("CIXB1 stream: backend={}, profile={}, decoded {} bytes", archive[5], archive[6], data.len()); }
-    if !verify_only { dst.write_all(&data).map_err(ioerr)?; dst.flush().map_err(ioerr)?; }
+    if payload_size > external::MAX_PAYLOAD
+        || expected > external::MAX_INPUT
+        || 47usize
+            .saturating_add(expected)
+            .saturating_add(payload_size)
+            > memory
+    {
+        return Err("CIXB1 archive exceeds --memory or format limit".into());
+    }
+    let mut archive = Vec::with_capacity(47 + payload_size);
+    archive.extend_from_slice(&magic);
+    archive.extend_from_slice(&fields);
+    archive.resize(47 + payload_size, 0);
+    read_exact_poll(&mut src, &mut archive[47..], fd)?;
+    let data = external::decode(
+        &archive,
+        memory
+            .checked_sub(archive.capacity())
+            .ok_or("CIXB1 archive exceeds --memory or format limit")?,
+    )?;
+    loop {
+        let mut extra = [0u8; 1];
+        match read_poll(&mut src, &mut extra, fd, None)? {
+            Some(0) => break,
+            Some(_) => return Err("trailing bytes after CIXB1 archive".into()),
+            None => continue,
+        }
+    }
+    if list {
+        eprintln!(
+            "CIXB1 stream: backend={}, profile={}, decoded {} bytes",
+            archive[5],
+            archive[6],
+            data.len()
+        );
+    }
+    if !verify_only {
+        dst.write_all(&data).map_err(ioerr)?;
+        dst.flush().map_err(ioerr)?;
+    }
     Ok(())
 }
 
@@ -4230,44 +4667,140 @@ struct CixgFinish<'a> {
     whole: &'a Sha256,
 }
 
-fn finish_cixg<R: Read, W: Write>(src: &mut R, dst: &mut W, finish: CixgFinish<'_>) -> Result<(), String> {
-    let CixgFinish { fd, verify_only, list, magic, total, n, s, sum, whole } = finish;
-    if n != 0 || s != 0 || sum != <[u8; 32]>::from(whole.clone().finalize()) { return Err("archive checksum/terminator mismatch".into()); }
-    loop { let mut extra=[0]; match read_poll(src,&mut extra,fd,None)? { Some(0)=>break, Some(_)=>return Err("trailing archive bytes".into()), None=>continue } }
-    if !verify_only { dst.flush().map_err(ioerr)?; }
-    if list { eprintln!("{} stream: {} decoded bytes", std::str::from_utf8(magic).unwrap_or("CIXG?"), total); }
+fn finish_cixg<R: Read, W: Write>(
+    src: &mut R,
+    dst: &mut W,
+    finish: CixgFinish<'_>,
+) -> Result<(), String> {
+    let CixgFinish {
+        fd,
+        verify_only,
+        list,
+        magic,
+        total,
+        n,
+        s,
+        sum,
+        whole,
+    } = finish;
+    if n != 0 || s != 0 || sum != <[u8; 32]>::from(whole.clone().finalize()) {
+        return Err("archive checksum/terminator mismatch".into());
+    }
+    loop {
+        let mut extra = [0];
+        match read_poll(src, &mut extra, fd, None)? {
+            Some(0) => break,
+            Some(_) => return Err("trailing archive bytes".into()),
+            None => continue,
+        }
+    }
+    if !verify_only {
+        dst.flush().map_err(ioerr)?;
+    }
+    if list {
+        eprintln!(
+            "{} stream: {} decoded bytes",
+            std::str::from_utf8(magic).unwrap_or("CIXG?"),
+            total
+        );
+    }
     Ok(())
 }
 
 fn read_cixg_frame<R: Read>(src: &mut R, fd: i32) -> Result<(u8, u32, u32, [u8; 32]), String> {
-    let mut route = [0; 1]; read_exact_poll(src, &mut route, fd)?;
-    let n = read_u32(src, fd)?; let s = read_u32(src, fd)?; let mut sum = [0; 32]; read_exact_poll(src, &mut sum, fd)?;
+    let mut route = [0; 1];
+    read_exact_poll(src, &mut route, fd)?;
+    let n = read_u32(src, fd)?;
+    let s = read_u32(src, fd)?;
+    let mut sum = [0; 32];
+    read_exact_poll(src, &mut sum, fd)?;
     Ok((route[0], n, s, sum))
 }
 
-fn read_cixg_payload<R: Read>(src: &mut R, fd: i32, block: u32, n: u32, s: u32, memory: usize) -> Result<Vec<u8>, String> {
-    if n == 0 || n > block || s as u64 > 8 * n as u64 + 4096 { return Err("invalid block descriptor".into()); }
-    let fixed = (n as usize).checked_add(s as usize).ok_or("CIXG frame buffer size overflow")?;
-    if fixed > memory { return Err(format!("CIXG frame needs {fixed} bytes for payload and output; raise --memory")); }
-    let mut payload = vec![0; s as usize]; read_exact_poll(src, &mut payload, fd)?; Ok(payload)
+fn read_cixg_payload<R: Read>(
+    src: &mut R,
+    fd: i32,
+    block: u32,
+    n: u32,
+    s: u32,
+    memory: usize,
+) -> Result<Vec<u8>, String> {
+    if n == 0 || n > block || s as u64 > 8 * n as u64 + 4096 {
+        return Err("invalid block descriptor".into());
+    }
+    let fixed = (n as usize)
+        .checked_add(s as usize)
+        .ok_or("CIXG frame buffer size overflow")?;
+    if fixed > memory {
+        return Err(format!(
+            "CIXG frame needs {fixed} bytes for payload and output; raise --memory"
+        ));
+    }
+    let mut payload = vec![0; s as usize];
+    read_exact_poll(src, &mut payload, fd)?;
+    Ok(payload)
 }
 
-fn decode_cixg_route(route: u8, payload: Vec<u8>, length: usize, extended: bool) -> Result<Vec<u8>, String> {
+fn decode_cixg_route(
+    route: u8,
+    payload: Vec<u8>,
+    length: usize,
+    extended: bool,
+) -> Result<Vec<u8>, String> {
     match route {
-        0 => { if payload.len() != length { return Err("raw size mismatch".into()); } Ok(payload) }
-        1 => unrle(&payload, length), 2 | 10 => stream_decode(&payload, length, extended),
+        0 => {
+            if payload.len() != length {
+                return Err("raw size mismatch".into());
+            }
+            Ok(payload)
+        }
+        1 => unrle(&payload, length),
+        2 | 10 => stream_decode(&payload, length, extended),
         3 => lz_decode(&payload, length, extended),
-        4 => Ok(predictor_residual(&stream_decode(&payload, length, extended)?, true)),
-        5 => { if payload.len() < 4 { return Err("truncated BWT primary index".into()); } let primary=u32::from_le_bytes(payload[..4].try_into().unwrap()) as usize; let parts=streams_decode(&payload[4..], length.saturating_mul(4), extended)?; bwt_inverse(primary,&unmtf_runs(&parts,length)?) }
-        6 => { if payload.is_empty() { return Err("truncated stride descriptor".into()); } let restored=invert_stride(&join_streams(&payload[1..],length,extended)?,payload[0])?; if restored.len()!=length { return Err("stride output size mismatch".into()); } Ok(restored) }
-        7 => phrase_decode(&payload,length,extended), 8 => ppm::decode(&payload,length), 9 => fixedmix::decode(&payload,length),
+        4 => Ok(predictor_residual(
+            &stream_decode(&payload, length, extended)?,
+            true,
+        )),
+        5 => {
+            if payload.len() < 4 {
+                return Err("truncated BWT primary index".into());
+            }
+            let primary = u32::from_le_bytes(payload[..4].try_into().unwrap()) as usize;
+            let parts = streams_decode(&payload[4..], length.saturating_mul(4), extended)?;
+            bwt_inverse(primary, &unmtf_runs(&parts, length)?)
+        }
+        6 => {
+            if payload.is_empty() {
+                return Err("truncated stride descriptor".into());
+            }
+            let restored =
+                invert_stride(&join_streams(&payload[1..], length, extended)?, payload[0])?;
+            if restored.len() != length {
+                return Err("stride output size mismatch".into());
+            }
+            Ok(restored)
+        }
+        7 => phrase_decode(&payload, length, extended),
+        8 => ppm::decode(&payload, length),
+        9 => fixedmix::decode(&payload, length),
         _ => Err(format!("unsupported CIXG1 route ID {route}")),
     }
 }
 
-fn check_cixg_live_memory(fixed: usize, route: usize, nested: usize, memory: usize, route_id: u8) -> Result<(), String> {
-    let total = fixed.checked_add(route).and_then(|bytes| bytes.checked_add(nested)).ok_or("CIXG decode memory estimate overflow")?;
-    if total > memory { return Err(format!("CIXG {} block needs about {total} bytes including frame buffers and model state; raise --memory", selection::ROUTES[route_id as usize])); }
+fn check_cixg_live_memory(
+    fixed: usize,
+    route: usize,
+    nested: usize,
+    memory: usize,
+    route_id: u8,
+) -> Result<(), String> {
+    let total = fixed
+        .checked_add(route)
+        .and_then(|bytes| bytes.checked_add(nested))
+        .ok_or("CIXG decode memory estimate overflow")?;
+    if total > memory {
+        return Err(format!("CIXG {} block needs about {total} bytes including frame buffers and model state; raise --memory", selection::ROUTES[route_id as usize]));
+    }
     Ok(())
 }
 
@@ -4474,7 +5007,7 @@ fn cixg_route_nested_scratch(
     })
 }
 
-fn decode<R: Read, W: Write>(
+pub(crate) fn decode<R: Read, W: Write>(
     mut src: R,
     mut dst: W,
     verify_only: bool,
@@ -4485,7 +5018,15 @@ fn decode<R: Read, W: Write>(
     let mut archive_magic = [0u8; 5];
     read_exact_poll(&mut src, &mut archive_magic, input_fd)?;
     if &archive_magic == b"CIXM6" || &archive_magic == b"CIXM5" {
-        return decode_m6(src, dst, M6DecodeOptions { fd: input_fd, memory, verify_only });
+        return decode_m6(
+            src,
+            dst,
+            M6DecodeOptions {
+                fd: input_fd,
+                memory,
+                verify_only,
+            },
+        );
     }
     if &archive_magic == b"CIXB1" {
         return decode_cixb1(src, dst, archive_magic, verify_only, list, input_fd, memory);
@@ -4501,17 +5042,21 @@ fn decode<R: Read, W: Write>(
     loop {
         let (route, n, s, sum) = read_cixg_frame(&mut src, input_fd)?;
         if route == END {
-            finish_cixg(&mut src, &mut dst, CixgFinish {
-                fd: input_fd,
-                verify_only,
-                list,
-                magic: &archive_magic,
-                total: total_bytes,
-                n,
-                s,
-                sum,
-                whole: &whole,
-            })?;
+            finish_cixg(
+                &mut src,
+                &mut dst,
+                CixgFinish {
+                    fd: input_fd,
+                    verify_only,
+                    list,
+                    magic: &archive_magic,
+                    total: total_bytes,
+                    n,
+                    s,
+                    sum,
+                    whole: &whole,
+                },
+            )?;
             return Ok(());
         }
         let b = read_cixg_payload(&mut src, input_fd, block, n, s, memory)?;
@@ -4527,8 +5072,15 @@ fn decode<R: Read, W: Write>(
         // single coder workspace; route scratch above separately covers the
         // retained decoded parts.
         let route_scratch = cixg_route_scratch(route, source_bytes, &b, allow_extended_coders)?;
-        let nested_coder_scratch = cixg_route_nested_scratch(route, &b, source_bytes, allow_extended_coders)?;
-        check_cixg_live_memory(fixed_frame_bytes, route_scratch, nested_coder_scratch, memory, route)?;
+        let nested_coder_scratch =
+            cixg_route_nested_scratch(route, &b, source_bytes, allow_extended_coders)?;
+        check_cixg_live_memory(
+            fixed_frame_bytes,
+            route_scratch,
+            nested_coder_scratch,
+            memory,
+            route,
+        )?;
         let data = decode_cixg_route(route, b, n as usize, allow_extended_coders)?;
         if <[u8; 32]>::from(Sha256::digest(&data)) != sum {
             return Err("block checksum mismatch".into());
@@ -4629,7 +5181,25 @@ pub unsafe extern "C" fn cix_squash_splice(
                 user,
             };
             match direction {
-                1 if (1..=9).contains(&level) => encode(src, dst, EncodeOptions { block: default_block(level as u8), level: level as u8, forced: None, backend: "hybrid", backend_set: false, format: "auto", input_fd: -1, flush_interval: None, memory: 512 * 1024 * 1024, workers: 1, explain: false, verbose: false, strategy: "blocks" }),
+                1 if (1..=9).contains(&level) => encode(
+                    src,
+                    dst,
+                    EncodeOptions {
+                        block: default_block(level as u8),
+                        level: level as u8,
+                        forced: None,
+                        backend: "hybrid",
+                        backend_set: false,
+                        format: "auto",
+                        input_fd: -1,
+                        flush_interval: None,
+                        memory: 512 * 1024 * 1024,
+                        workers: 1,
+                        explain: false,
+                        verbose: false,
+                        strategy: "blocks",
+                    },
+                ),
                 1 => Err("invalid Squash CIX compression level".into()),
                 2 => decode(src, dst, false, false, -1, 512 * 1024 * 1024),
                 _ => Err("invalid Squash stream direction".into()),
@@ -4787,7 +5357,15 @@ fn encode_automatic_persistent_stream<R: Read, W: Write>(
     dst: W,
     options: PersistentStreamOptions,
 ) -> Result<(), String> {
-    let PersistentStreamOptions { block, input_fd, flush_interval, memory, threads, explain, verbose } = options;
+    let PersistentStreamOptions {
+        block,
+        input_fd,
+        flush_interval,
+        memory,
+        threads,
+        explain,
+        verbose,
+    } = options;
     let (first, first_eof) =
         streaming_backend::read_probe(&mut src, block, input_fd, flush_interval)?;
     // An empty input has no region to probe.  Starting and finishing a fresh
@@ -4841,7 +5419,14 @@ fn encode_selected<R: Read, W: Write>(
     dst: W,
     selection: EncodeSelection<'_>,
 ) -> Result<(), String> {
-    let EncodeSelection { o, block, forced, input_fd, automatic_best, automatic_persistent_best } = selection;
+    let EncodeSelection {
+        o,
+        block,
+        forced,
+        input_fd,
+        automatic_best,
+        automatic_persistent_best,
+    } = selection;
     if automatic_best {
         return portfolio_auto::encode(o, dst);
     }
@@ -4854,7 +5439,10 @@ fn encode_selected<R: Read, W: Write>(
             name,
             o.level,
             o.memory,
-            M6ReadOptions { input_fd, flush_interval: o.flush_interval },
+            M6ReadOptions {
+                input_fd,
+                flush_interval: o.flush_interval,
+            },
         );
     }
     if let Some(profile) = o.portfolio.as_deref() {
@@ -4864,17 +5452,39 @@ fn encode_selected<R: Read, W: Write>(
         return encode_external(src, dst, backend, &o.profile, o.memory);
     }
     if automatic_persistent_best {
-        return encode_automatic_persistent_stream(src, dst, PersistentStreamOptions {
+        return encode_automatic_persistent_stream(
+            src,
+            dst,
+            PersistentStreamOptions {
+                block,
+                input_fd,
+                flush_interval: o.flush_interval,
+                memory: o.memory,
+                threads: o.threads,
+                explain: o.explain,
+                verbose: o.verbose,
+            },
+        );
+    }
+    encode_with_strategy(
+        src,
+        dst,
+        EncodeOptions {
             block,
+            level: o.level,
+            forced,
+            backend: &o.backend,
+            backend_set: o.backend_set,
+            format: &o.format,
             input_fd,
             flush_interval: o.flush_interval,
             memory: o.memory,
-            threads: o.threads,
+            workers: o.threads,
             explain: o.explain,
             verbose: o.verbose,
-        });
-    }
-    encode_with_strategy(src, dst, EncodeOptions { block, level: o.level, forced, backend: &o.backend, backend_set: o.backend_set, format: &o.format, input_fd, flush_interval: o.flush_interval, memory: o.memory, workers: o.threads, explain: o.explain, verbose: o.verbose, strategy: &o.parallelism })
+            strategy: &o.parallelism,
+        },
+    )
 }
 
 fn cixm6_file_name(o: &Opt) -> Result<Option<&str>, String> {
@@ -5220,14 +5830,18 @@ fn execute_to_stdout(
     if o.decode {
         decode(src, &mut lock, false, false, fd, o.memory)
     } else {
-        encode_selected(src, &mut lock, EncodeSelection {
-            o,
-            block,
-            forced,
-            input_fd: fd,
-            automatic_best,
-            automatic_persistent_best,
-        })
+        encode_selected(
+            src,
+            &mut lock,
+            EncodeSelection {
+                o,
+                block,
+                forced,
+                input_fd: fd,
+                automatic_best,
+                automatic_persistent_best,
+            },
+        )
     }
 }
 
@@ -5248,14 +5862,18 @@ fn execute_to_file(
         if o.decode {
             decode(src, dst, false, false, fd, o.memory)
         } else {
-            encode_selected(src, dst, EncodeSelection {
-                o,
-                block,
-                forced,
-                input_fd: fd,
-                automatic_best,
-                automatic_persistent_best,
-            })
+            encode_selected(
+                src,
+                dst,
+                EncodeSelection {
+                    o,
+                    block,
+                    forced,
+                    input_fd: fd,
+                    automatic_best,
+                    automatic_persistent_best,
+                },
+            )
         }
     })?;
     eprintln!("{out}");
@@ -5357,7 +5975,25 @@ mod cixg_huffman_tests {
     fn forced_route_raw_fallback_is_tagged_raw() {
         let input: Vec<u8> = (0u8..64).collect();
         let mut archive = Vec::new();
-        encode(Cursor::new(input.clone()), &mut archive, EncodeOptions { block: 1024, level: 9, forced: Some("runs"), backend: "hybrid", backend_set: false, format: "cixg1", input_fd: -1, flush_interval: None, memory: 128 * 1024 * 1024, workers: 1, explain: false, verbose: false, strategy: "blocks" })
+        encode(
+            Cursor::new(input.clone()),
+            &mut archive,
+            EncodeOptions {
+                block: 1024,
+                level: 9,
+                forced: Some("runs"),
+                backend: "hybrid",
+                backend_set: false,
+                format: "cixg1",
+                input_fd: -1,
+                flush_interval: None,
+                memory: 128 * 1024 * 1024,
+                workers: 1,
+                explain: false,
+                verbose: false,
+                strategy: "blocks",
+            },
+        )
         .unwrap();
         // Header is 13 bytes; the next byte is the actual block route ID.
         assert_eq!(
@@ -5380,11 +6016,47 @@ mod cixg_huffman_tests {
     #[test]
     fn cixg2_huffman_substream_round_trips_and_cixg1_rejects_it() {
         let input = vec![b'Q'; 4096];
-        assert!(encode(Cursor::new(input.clone()), Vec::new(), EncodeOptions { block: 8192, level: 9, forced: Some("composition"), backend: "huffman", backend_set: true, format: "cixg1", input_fd: -1, flush_interval: None, memory: 128 * 1024 * 1024, workers: 1, explain: false, verbose: false, strategy: "blocks" })
+        assert!(encode(
+            Cursor::new(input.clone()),
+            Vec::new(),
+            EncodeOptions {
+                block: 8192,
+                level: 9,
+                forced: Some("composition"),
+                backend: "huffman",
+                backend_set: true,
+                format: "cixg1",
+                input_fd: -1,
+                flush_interval: None,
+                memory: 128 * 1024 * 1024,
+                workers: 1,
+                explain: false,
+                verbose: false,
+                strategy: "blocks"
+            }
+        )
         .unwrap_err()
         .contains("requires --format cixg2"));
         let mut archive = Vec::new();
-        encode(Cursor::new(input.clone()), &mut archive, EncodeOptions { block: 8192, level: 9, forced: Some("composition"), backend: "huffman", backend_set: true, format: "cixg2", input_fd: -1, flush_interval: None, memory: 128 * 1024 * 1024, workers: 1, explain: false, verbose: false, strategy: "blocks" })
+        encode(
+            Cursor::new(input.clone()),
+            &mut archive,
+            EncodeOptions {
+                block: 8192,
+                level: 9,
+                forced: Some("composition"),
+                backend: "huffman",
+                backend_set: true,
+                format: "cixg2",
+                input_fd: -1,
+                flush_interval: None,
+                memory: 128 * 1024 * 1024,
+                workers: 1,
+                explain: false,
+                verbose: false,
+                strategy: "blocks",
+            },
+        )
         .unwrap();
         assert_eq!(&archive[..5], MAGIC_V2);
         // Header + CIXG frame + substream count, then its coder ID.
@@ -5475,7 +6147,8 @@ mod timed_block_tests {
     fn candidate_histogram_only_counts_the_filled_prefix() {
         let mut source = Cursor::new(vec![1, 1, 4]);
         let mut block = [255u8; 8];
-        let (got, eof, histogram) = fill_candidate_block(&mut source, &mut block, -1, None).unwrap();
+        let (got, eof, histogram) =
+            fill_candidate_block(&mut source, &mut block, -1, None).unwrap();
         assert_eq!((got, eof), (3, true));
         assert_eq!(histogram[1], 2);
         assert_eq!(histogram[4], 1);

@@ -1,0 +1,1 @@
+Follow-up to focused-v4: corrected two invalid test expectations (zero-bit arithmetic is legacy padding; mixed CR then empty LF header collapses into CRLF). Also added bounded PAQ error-buffer reading and exact Unix filename bytes, with focused tests. Running the full library suite covers the new library-wide bridge boundary. No corpus or GPU workload.

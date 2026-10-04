@@ -33,8 +33,15 @@ python3 tools/sonar-cxx/repair.py run --prepared docs/research/2026-10-04-sonar-
 ```
 
 Do not repeat `prepare` or `run` into an existing output directory. The current
-prepared-v1 already exists. Full execution is intentionally gated on all 36
-frozen Silesia cells being VERIFIED with the matching plan hash and identities.
+prepared-v1 already exists. Full execution normally requires all 36 frozen
+Silesia cells to be VERIFIED with the matching plan hash and identities. The
+only alternative is the user-authorized stop: the runner pins the exact plan
+hash, committed stop receipt and its hash, exactly five verified cells, one
+named interrupted encode cell, and thirty named unstarted cells. It rejects
+tampering, restart permission, unknown states, live confirmation
+processes/cgroups/units, or failure to obtain the exclusive scheduler lock and
+core leases before scanning. This hygiene-only exception never certifies the
+interrupted confirmation.
 It then obtains the existing exclusive WaveScheduler lock/core leases and uses
 a verified four-core, 5 GiB, no-swap systemd slice for server, scanner and
 Cppcheck. No frozen product source or binary is modified. Scan outputs are new

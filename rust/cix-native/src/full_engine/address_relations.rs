@@ -1,0 +1,1768 @@
+//! Native admission and historic framing for executable-specialist streams.
+//!
+//! This module deliberately separates three things which were coupled in the
+//! reference implementation: byte-layout discovery, reversible CIX-owned
+//! transforms, and the backend which compresses a transformed byte stream.
+//! The backend is supplied by the full engine.  A decoder therefore never
+//! consults Python, a program on `PATH`, a corpus name, or an external object
+//! file in order to restore an archive.
+
+use crate::full_engine::arithmetic::{vdecode, vencode, ArithmeticDecoder, ArithmeticEncoder};
+use crc32fast::Hasher;
+use num_bigint::BigUint;
+use num_traits::{One, Zero};
+use std::collections::{BTreeMap, BTreeSet};
+
+pub const JOINT_MAGIC: &[u8; 5] = b"CIXB\x1d";
+pub const FILTER_MAGIC: &[u8; 5] = b"CIXB\x13";
+pub const GOT_MAGIC: &[u8; 5] = b"CIXB\x03";
+pub const POINTER_MAGIC: &[u8; 5] = b"CIXB\x0b";
+pub const SECTION_MAGIC: &[u8; 5] = b"CIXB\x0c";
+
+const ECOFF_HEADER: usize = 104;
+const ECOFF_SECTION: usize = 64;
+const ECOFF_OPTIONAL_HEADER: u16 = 80;
+const CONSTRAINT_TRAILER: &[u8; 5] = b"ECFX1";
+const FIELDS_TRAILER: &[u8; 5] = b"ECFC1";
+const GOT_TRAILER: &[u8; 5] = b"ECGT1";
+const GOT_BLOCK: usize = 1024;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum BackendVariant {
+    PaqV215,
+    PaqV216,
+    PaqJointDiscount,
+    PaqStoreState,
+    Brotli,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BackendRequest {
+    pub variant: BackendVariant,
+    /// Native backend options are explicit archive policy, never environment.
+    pub options: String,
+    /// A frame can have several compressed streams.  The historic executable
+    /// frames currently use stream zero; retaining this field prevents a later
+    /// multistream format from being accidentally treated as a single stream.
+    pub stream: u32,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Transform {
+    Constraints { mode: u8 },
+    Fields { mode: u8 },
+    Got { mode: u8 },
+    PointerDeltas { mode: u8 },
+    SectionPointers { mode: u8 },
+    PdataSymbols { mode: u8 },
+    Identity,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum HistoricalFrame {
+    Got,
+    Pointer,
+    Section,
+    JointDiscount,
+    Filtered,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ObjectSpan {
+    pub offset: usize,
+    pub length: usize,
+    pub tar_member: bool,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ExecutableKind {
+    Elf,
+    Ecoff,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ExecutableRegion {
+    pub kind: ExecutableKind,
+    pub span: ObjectSpan,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Section {
+    pub name: Vec<u8>,
+    pub offset: usize,
+    pub size: usize,
+    pub virtual_address: u64,
+}
+
+#[derive(Clone, Debug)]
+pub struct EcoffObject {
+    pub span: ObjectSpan,
+    pub sections: BTreeMap<Vec<u8>, Section>,
+}
+
+/// Backend callbacks are intentionally narrow.  The engine owns concrete
+/// library integration and can refuse unavailable historic PAQ variants.
+pub type EncodeBackend<'a> = dyn FnMut(&BackendRequest, &[u8]) -> Result<Vec<u8>, String> + 'a;
+pub type DecodeBackend<'a> =
+    dyn FnMut(&BackendRequest, &[u8], usize) -> Result<Vec<u8>, String> + 'a;
+
+fn le_u16(data: &[u8], at: usize) -> Result<u16, String> {
+    let bytes = data
+        .get(at..at.checked_add(2).ok_or("offset overflow")?)
+        .ok_or("truncated ECOFF word")?;
+    Ok(u16::from_le_bytes([bytes[0], bytes[1]]))
+}
+
+fn le_u32(data: &[u8], at: usize) -> Result<u32, String> {
+    let bytes = data
+        .get(at..at.checked_add(4).ok_or("offset overflow")?)
+        .ok_or("truncated ECOFF word")?;
+    Ok(u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
+}
+
+fn le_u64(data: &[u8], at: usize) -> Result<u64, String> {
+    let bytes = data
+        .get(at..at.checked_add(8).ok_or("offset overflow")?)
+        .ok_or("truncated ECOFF word")?;
+    Ok(u64::from_le_bytes(
+        bytes.try_into().map_err(|_| "invalid ECOFF word")?,
+    ))
+}
+
+fn checked_end(start: usize, count: usize, limit: usize) -> Result<usize, String> {
+    let end = start.checked_add(count).ok_or("ECOFF range overflow")?;
+    if end > limit {
+        Err("ECOFF range outside input".into())
+    } else {
+        Ok(end)
+    }
+}
+
+fn trim_nul(bytes: &[u8]) -> Vec<u8> {
+    bytes
+        .iter()
+        .copied()
+        .take_while(|byte| *byte != 0)
+        .collect()
+}
+
+/// Parse only the verified Alpha ECOFF layout accepted by the reference port.
+/// Unknown executable bytes remain ordinary input and are never partially
+/// rewritten.
+pub fn parse_ecoff_object(bytes: &[u8], span: ObjectSpan) -> Result<EcoffObject, String> {
+    if bytes.len() < ECOFF_HEADER || bytes.get(0..2) != Some(&b"\x83\x01"[..]) {
+        return Err("not Alpha ECOFF".into());
+    }
+    let count = le_u16(bytes, 2)? as usize;
+    let optional = le_u16(bytes, 20)?;
+    let flags = le_u16(bytes, 22)?;
+    let table_end = checked_end(
+        ECOFF_HEADER,
+        count
+            .checked_mul(ECOFF_SECTION)
+            .ok_or("section count overflow")?,
+        bytes.len(),
+    )?;
+    if optional != ECOFF_OPTIONAL_HEADER
+        || !(1..=256).contains(&count)
+        || !matches!(flags, 0x2005 | 0x2007 | 0x3007)
+    {
+        return Err("unsupported ECOFF header".into());
+    }
+    let mut sections = BTreeMap::new();
+    let mut ranges = Vec::new();
+    for index in 0..count {
+        let start = ECOFF_HEADER + index * ECOFF_SECTION;
+        let name = trim_nul(
+            bytes
+                .get(start..start + 8)
+                .ok_or("truncated ECOFF section")?,
+        );
+        let virtual_address = le_u64(bytes, start + 16)?;
+        let size_u64 = le_u64(bytes, start + 24)?;
+        let offset_u64 = le_u64(bytes, start + 32)?;
+        let size = usize::try_from(size_u64).map_err(|_| "ECOFF section too large")?;
+        let offset = usize::try_from(offset_u64).map_err(|_| "ECOFF section offset too large")?;
+        if offset != 0 {
+            if offset < table_end {
+                return Err("ECOFF section overlaps header".into());
+            }
+            checked_end(offset, size, bytes.len())?;
+            if size != 0 {
+                ranges.push((offset, offset + size));
+            }
+        }
+        // ECOFF's zero file offset denotes an absent section.  It is not a
+        // usable mapping and duplicate absent names do not make the object
+        // ambiguous; this mirrors the legacy parser exactly.
+        if offset != 0
+            && sections
+                .insert(
+                    name.clone(),
+                    Section {
+                        name,
+                        offset,
+                        size,
+                        virtual_address,
+                    },
+                )
+                .is_some()
+        {
+            return Err("duplicate ECOFF section".into());
+        }
+    }
+    ranges.sort_unstable();
+    if ranges.windows(2).any(|pair| pair[0].1 > pair[1].0) {
+        return Err("overlapping ECOFF sections".into());
+    }
+    Ok(EcoffObject { span, sections })
+}
+
+fn tar_number(field: &[u8]) -> Option<usize> {
+    if field.first().copied()? & 0x80 != 0 {
+        return None;
+    }
+    let text = field
+        .iter()
+        .copied()
+        .take_while(|byte| *byte != 0 && *byte != b' ')
+        .collect::<Vec<_>>();
+    if text.is_empty() {
+        return Some(0);
+    }
+    std::str::from_utf8(&text)
+        .ok()
+        .and_then(|value| usize::from_str_radix(value.trim(), 8).ok())
+}
+
+/// Discover canonical standalone ECOFF or regular-file ECOFF members in a
+/// plain ustar-compatible TAR.  Nonzero member offsets are retained in spans.
+/// Malformed TAR is simply not an executable admission candidate.
+pub fn discover_ecoff_objects(data: &[u8]) -> Vec<EcoffObject> {
+    let standalone = ObjectSpan {
+        offset: 0,
+        length: data.len(),
+        tar_member: false,
+    };
+    if let Ok(object) = parse_ecoff_object(data, standalone) {
+        return vec![object];
+    }
+    let mut found = Vec::new();
+    let mut position = 0usize;
+    while position
+        .checked_add(512)
+        .is_some_and(|end| end <= data.len())
+    {
+        let header = &data[position..position + 512];
+        if header.iter().all(|byte| *byte == 0) {
+            break;
+        }
+        let Some(size) = tar_number(&header[124..136]) else {
+            break;
+        };
+        let kind = header[156];
+        let payload = position + 512;
+        let Some(end) = payload.checked_add(size) else {
+            break;
+        };
+        if end > data.len() {
+            break;
+        }
+        if kind == 0 || kind == b'0' {
+            let span = ObjectSpan {
+                offset: payload,
+                length: size,
+                tar_member: true,
+            };
+            if let Ok(object) = parse_ecoff_object(&data[payload..end], span) {
+                found.push(object);
+            }
+        }
+        let blocks = size.checked_add(511).map(|value| value / 512);
+        let Some(next) = blocks
+            .and_then(|value| value.checked_mul(512))
+            .and_then(|value| payload.checked_add(value))
+        else {
+            break;
+        };
+        position = next;
+    }
+    found
+}
+
+fn is_elf(data: &[u8]) -> bool {
+    if data.get(..4) != Some(&b"\x7fELF"[..]) || data.len() < 0x34 {
+        return false;
+    }
+    let class = data[4];
+    if !matches!(class, 1 | 2) || data[5] != 1 || data[6] != 1 {
+        return false;
+    }
+    let header_size_at = if class == 1 { 0x28 } else { 0x34 };
+    let header_size = match le_u16(data, header_size_at) {
+        Ok(value) => value as usize,
+        Err(_) => return false,
+    };
+    header_size >= (if class == 1 { 52 } else { 64 }) && header_size <= data.len()
+}
+
+/// Find plain ELF/ECOFF files and valid regular TAR members without assuming a
+/// filename or container offset.  ECOFF-specific transforms use
+/// [`discover_ecoff_objects`]; ELF remains eligible for its own native path.
+pub fn discover_executable_regions(data: &[u8]) -> Vec<ExecutableRegion> {
+    let whole = ObjectSpan {
+        offset: 0,
+        length: data.len(),
+        tar_member: false,
+    };
+    if let Ok(_) = parse_ecoff_object(data, whole.clone()) {
+        return vec![ExecutableRegion {
+            kind: ExecutableKind::Ecoff,
+            span: whole,
+        }];
+    }
+    if is_elf(data) {
+        return vec![ExecutableRegion {
+            kind: ExecutableKind::Elf,
+            span: whole,
+        }];
+    }
+    let mut output = Vec::new();
+    let mut position = 0usize;
+    while position
+        .checked_add(512)
+        .is_some_and(|end| end <= data.len())
+    {
+        let header = &data[position..position + 512];
+        if header.iter().all(|byte| *byte == 0) {
+            break;
+        }
+        let Some(size) = tar_number(&header[124..136]) else {
+            break;
+        };
+        let payload = position + 512;
+        let Some(end) = payload.checked_add(size) else {
+            break;
+        };
+        if end > data.len() {
+            break;
+        }
+        if header[156] == 0 || header[156] == b'0' {
+            let span = ObjectSpan {
+                offset: payload,
+                length: size,
+                tar_member: true,
+            };
+            let member = &data[payload..end];
+            if parse_ecoff_object(member, span.clone()).is_ok() {
+                output.push(ExecutableRegion {
+                    kind: ExecutableKind::Ecoff,
+                    span,
+                });
+            } else if is_elf(member) {
+                output.push(ExecutableRegion {
+                    kind: ExecutableKind::Elf,
+                    span,
+                });
+            }
+        }
+        let Some(next) = size
+            .checked_add(511)
+            .map(|value| value / 512)
+            .and_then(|blocks| blocks.checked_mul(512))
+            .and_then(|padding| payload.checked_add(padding))
+        else {
+            break;
+        };
+        position = next;
+    }
+    output
+}
+
+fn crc32(data: &[u8]) -> u32 {
+    let mut hasher = Hasher::new();
+    hasher.update(data);
+    hasher.finalize()
+}
+
+fn verify(data: Vec<u8>, size: usize, checksum: u32) -> Result<Vec<u8>, String> {
+    if data.len() != size || crc32(&data) != checksum {
+        return Err("executable source checksum mismatch".into());
+    }
+    Ok(data)
+}
+
+fn backend_selector(variant: BackendVariant) -> Result<u8, String> {
+    match variant {
+        BackendVariant::PaqV215 => Ok(1),
+        BackendVariant::Brotli => Ok(0),
+        _ => Err("frame has no historical selector for requested backend".into()),
+    }
+}
+
+fn selected_backend(selector: u8) -> Result<BackendVariant, String> {
+    match selector {
+        0 => Ok(BackendVariant::Brotli),
+        1 => Ok(BackendVariant::PaqV215),
+        _ => Err("invalid executable backend selector".into()),
+    }
+}
+
+/// CIX-owned constraints transform.  Only tables recomputed exactly from bytes
+/// in the object are zeroed, and each object/mask is paid in the trailer.
+pub fn constraints_transform(source: &[u8], mode: u8) -> Result<Vec<u8>, String> {
+    if mode > 3 {
+        return Err("invalid ECOFF constraint policy".into());
+    }
+    let objects = discover_ecoff_objects(source);
+    let mut out = source.to_vec();
+    let mut changes = Vec::new();
+    for object in objects {
+        let original = &source[object.span.offset..object.span.offset + object.span.length];
+        let predictions = predicted_constraints(original, &object.sections)?;
+        let mut mask = 0u8;
+        for (bit, at, expected) in predictions {
+            if mode & bit != 0 && original.get(at..at + expected.len()) == Some(expected.as_slice())
+            {
+                let destination = object.span.offset + at;
+                out[destination..destination + expected.len()].fill(0);
+                mask |= bit;
+            }
+        }
+        if mask != 0 {
+            changes.push((object.span.offset, object.span.length, mask));
+        }
+    }
+    let mut metadata = vencode(changes.len() as u64);
+    let mut previous_end = 0usize;
+    for (offset, length, mask) in changes {
+        if offset < previous_end {
+            return Err("non-monotonic ECOFF object spans".into());
+        }
+        metadata.extend_from_slice(&vencode((offset - previous_end) as u64));
+        metadata.extend_from_slice(&vencode(length as u64));
+        metadata.push(mask);
+        previous_end = offset
+            .checked_add(length)
+            .ok_or("constraint span overflow")?;
+    }
+    out.extend_from_slice(&metadata);
+    out.extend_from_slice(&(metadata.len() as u64).to_le_bytes());
+    out.extend_from_slice(CONSTRAINT_TRAILER);
+    Ok(out)
+}
+
+pub fn constraints_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
+    let (mut output, metadata) = split_trailer(raw, CONSTRAINT_TRAILER, 1)?;
+    let (count, mut position) = vdecode(metadata, 0)?;
+    if count > (output.len() / ECOFF_HEADER) as u64 {
+        return Err("excessive ECOFF object count".into());
+    }
+    let mut previous_end = 0usize;
+    for _ in 0..count {
+        let (delta, after_delta) = vdecode(metadata, position)?;
+        let (length, after_length) = vdecode(metadata, after_delta)?;
+        let offset = previous_end
+            .checked_add(usize::try_from(delta).map_err(|_| "constraint offset too large")?)
+            .ok_or("constraint offset overflow")?;
+        let length = usize::try_from(length).map_err(|_| "constraint length too large")?;
+        let mask = *metadata
+            .get(after_length)
+            .ok_or("missing ECOFF constraint mask")?;
+        position = after_length + 1;
+        if !matches!(mask, 1 | 2 | 3) || checked_end(offset, length, output.len()).is_err() {
+            return Err("invalid ECOFF constraint descriptor".into());
+        }
+        let local = output[offset..offset + length].to_vec();
+        let object = parse_ecoff_object(
+            &local,
+            ObjectSpan {
+                offset,
+                length,
+                tar_member: false,
+            },
+        )?;
+        let predictions = predicted_constraints(&local, &object.sections)?;
+        let mut seen = 0u8;
+        for (bit, at, expected) in predictions {
+            if mask & bit != 0 {
+                let target = checked_end(offset + at, expected.len(), output.len())?;
+                if output[offset + at..target].iter().any(|byte| *byte != 0) {
+                    return Err("derived ECOFF field is not zero".into());
+                }
+                output[offset + at..target].copy_from_slice(&expected);
+                seen |= bit;
+            }
+        }
+        if seen != mask {
+            return Err("ECOFF dependencies missing".into());
+        }
+        previous_end = offset + length;
+    }
+    if position != metadata.len() {
+        return Err("unused ECOFF constraint metadata".into());
+    }
+    Ok(output)
+}
+
+fn split_trailer<'a>(
+    raw: &'a [u8],
+    trailer: &[u8; 5],
+    minimum: usize,
+) -> Result<(Vec<u8>, &'a [u8]), String> {
+    if raw.len() < 13 + minimum || !raw.ends_with(trailer) {
+        return Err("invalid ECOFF transform trailer".into());
+    }
+    let metadata_length = u64::from_le_bytes(
+        raw[raw.len() - 13..raw.len() - 5]
+            .try_into()
+            .map_err(|_| "invalid trailer")?,
+    );
+    let metadata_length =
+        usize::try_from(metadata_length).map_err(|_| "ECOFF metadata too large")?;
+    let start = raw
+        .len()
+        .checked_sub(13 + metadata_length)
+        .ok_or("ECOFF metadata outside frame")?;
+    Ok((raw[..start].to_vec(), &raw[start..raw.len() - 13]))
+}
+
+fn predicted_constraints(
+    data: &[u8],
+    sections: &BTreeMap<Vec<u8>, Section>,
+) -> Result<Vec<(u8, usize, Vec<u8>)>, String> {
+    let (hash, dynsym, dynstr) = match (
+        sections.get(b".hash" as &[u8]),
+        sections.get(b".dynsym" as &[u8]),
+        sections.get(b".dynstr" as &[u8]),
+    ) {
+        (Some(hash), Some(dynsym), Some(dynstr)) => (hash, dynsym, dynstr),
+        _ => return Ok(Vec::new()),
+    };
+    if hash.size < 8 {
+        return Ok(Vec::new());
+    }
+    let buckets = le_u32(data, hash.offset)? as usize;
+    let count = le_u32(data, hash.offset + 4)? as usize;
+    if buckets == 0
+        || count == 0
+        || 8usize
+            .checked_add(
+                4usize
+                    .checked_mul(buckets.checked_add(count).ok_or("hash count overflow")?)
+                    .ok_or("hash size overflow")?,
+            )
+            .ok_or("hash size overflow")?
+            > hash.size
+        || count.checked_mul(24).ok_or("symbol count overflow")? > dynsym.size
+    {
+        return Ok(Vec::new());
+    }
+    let mut hashes = Vec::with_capacity(count);
+    for index in 0..count {
+        let name_offset = le_u32(data, dynsym.offset + index * 24)? as usize;
+        if name_offset >= dynstr.size {
+            return Ok(Vec::new());
+        }
+        let start = dynstr.offset + name_offset;
+        let end_limit = dynstr.offset + dynstr.size;
+        let Some(relative) = data[start..end_limit].iter().position(|byte| *byte == 0) else {
+            return Ok(Vec::new());
+        };
+        hashes.push(name_hash(&data[start..start + relative]));
+    }
+    let mut heads = vec![0u32; buckets];
+    let mut chains = vec![0u32; count];
+    for index in (1..count).rev() {
+        let bucket = hashes[index] as usize % buckets;
+        chains[index] = heads[bucket];
+        heads[bucket] = index as u32;
+    }
+    let mut table = Vec::with_capacity(4 * (buckets + count));
+    for value in heads.into_iter().chain(chains) {
+        table.extend_from_slice(&value.to_le_bytes());
+    }
+    let mut result = vec![(1, hash.offset + 8, table)];
+    if let (Some(msym), Some(rel)) = (
+        sections.get(b".msym" as &[u8]),
+        sections.get(b".rel.dyn" as &[u8]),
+    ) {
+        if msym.size >= count * 8 && rel.size % 16 == 0 {
+            let mut first = vec![0u32; count];
+            for index in 1..rel.size / 16 {
+                let info = le_u32(data, rel.offset + index * 16 + 8)?;
+                let symbol = (info >> 8) as usize;
+                if info != 0 && symbol < count && first[symbol] == 0 {
+                    first[symbol] = index as u32;
+                }
+            }
+            if first.iter().all(|value| *value < (1 << 24)) {
+                let mut table = Vec::with_capacity(count * 8);
+                for (hash, first) in hashes.into_iter().zip(first) {
+                    table.extend_from_slice(&hash.to_le_bytes());
+                    table.extend_from_slice(&(first << 8).to_le_bytes());
+                }
+                result.push((2, msym.offset, table));
+            }
+        }
+    }
+    Ok(result)
+}
+
+fn name_hash(name: &[u8]) -> u32 {
+    let mut value = 0u32;
+    for byte in name {
+        value = value.wrapping_shl(4).wrapping_add(*byte as u32);
+        let high = value & 0xf000_0000;
+        value ^= high >> 24;
+        value &= !high;
+    }
+    value
+}
+
+fn zigzag_delta(value: u64, previous: u64, bits: u32, inverse: bool) -> u64 {
+    let mask = if bits == 64 {
+        u64::MAX
+    } else {
+        (1u64 << bits) - 1
+    };
+    if inverse {
+        let signed = if value & 1 == 0 {
+            (value / 2) as i128
+        } else {
+            -((value / 2) as i128) - 1
+        };
+        ((previous as i128 + signed) as u64) & mask
+    } else {
+        let delta = value.wrapping_sub(previous) & mask;
+        let signed = if bits < 64 && delta & (1u64 << (bits - 1)) != 0 {
+            delta as i128 - (1i128 << bits)
+        } else if bits == 64 && delta & (1u64 << 63) != 0 {
+            delta as i128 - (1i128 << 64)
+        } else {
+            delta as i128
+        };
+        if signed >= 0 {
+            (signed as u64) << 1
+        } else {
+            ((-signed as u64) << 1) - 1
+        }
+    }
+}
+
+fn transpose(data: &mut [u8], width: usize, inverse: bool) -> Result<(), String> {
+    if width == 0 || data.len() % width != 0 {
+        return Err("partial ECOFF field matrix".into());
+    }
+    let rows = data.len() / width;
+    let original = data.to_vec();
+    if inverse {
+        for column in 0..width {
+            data[column..]
+                .iter_mut()
+                .step_by(width)
+                .zip(&original[column * rows..(column + 1) * rows])
+                .for_each(|(out, value)| *out = *value);
+        }
+    } else {
+        for column in 0..width {
+            for row in 0..rows {
+                data[column * rows + row] = original[row * width + column];
+            }
+        }
+    }
+    Ok(())
+}
+
+fn write_u32(data: &mut [u8], at: usize, value: u32) -> Result<(), String> {
+    let end = checked_end(at, 4, data.len())?;
+    data[at..end].copy_from_slice(&value.to_le_bytes());
+    Ok(())
+}
+
+fn write_u64(data: &mut [u8], at: usize, value: u64) -> Result<(), String> {
+    let end = checked_end(at, 8, data.len())?;
+    data[at..end].copy_from_slice(&value.to_le_bytes());
+    Ok(())
+}
+
+fn fields_for_object(
+    data: &mut [u8],
+    sections: &BTreeMap<Vec<u8>, Section>,
+    mode: u8,
+    inverse: bool,
+) -> Result<(), String> {
+    let (symbols, strings, hash) = match (
+        sections.get(b".dynsym" as &[u8]),
+        sections.get(b".dynstr" as &[u8]),
+        sections.get(b".hash" as &[u8]),
+    ) {
+        (Some(symbols), Some(strings), Some(hash)) => (symbols, strings, hash),
+        _ => return Err("missing ECOFF field dependencies".into()),
+    };
+    if hash.size < 8 {
+        return Err("short ECOFF hash header".into());
+    }
+    let count = le_u32(data, hash.offset + 4)? as usize;
+    if count == 0 || count.checked_mul(24).ok_or("symbol count overflow")? > symbols.size {
+        return Err("symbol count outside table".into());
+    }
+    let symbols_end = checked_end(symbols.offset, count * 24, data.len())?;
+    if inverse && mode >= 2 {
+        transpose(&mut data[symbols.offset..symbols_end], 24, true)?;
+    }
+    let mut previous_name_end = 0u64;
+    let mut values: BTreeMap<(u8, u16), u64> = BTreeMap::new();
+    for index in 0..count {
+        let row = symbols.offset + index * 24;
+        let encoded_name = le_u32(data, row)? as u64;
+        let padding = le_u32(data, row + 4)?;
+        let encoded_value = le_u64(data, row + 8)?;
+        let size = le_u32(data, row + 16)?;
+        let info = *data.get(row + 20).ok_or("truncated ECOFF symbol")?;
+        let other = *data.get(row + 21).ok_or("truncated ECOFF symbol")?;
+        let shndx = le_u16(data, row + 22)?;
+        let name = if inverse {
+            zigzag_delta(encoded_name, previous_name_end, 32, true)
+        } else {
+            encoded_name
+        };
+        let name = usize::try_from(name).map_err(|_| "symbol name offset too large")?;
+        if name >= strings.size {
+            return Err("symbol name outside strings".into());
+        }
+        let string_start = strings.offset + name;
+        let string_end = strings.offset + strings.size;
+        let Some(length) = data[string_start..string_end]
+            .iter()
+            .position(|byte| *byte == 0)
+        else {
+            return Err("unterminated symbol name".into());
+        };
+        let next_name_end = (name + length + 1) as u64;
+        let key = (info, shndx);
+        let old = *values.get(&key).unwrap_or(&0);
+        let value = if inverse && mode >= 2 {
+            zigzag_delta(encoded_value, old, 64, true)
+        } else {
+            encoded_value
+        };
+        let stored_name = if inverse {
+            name as u64
+        } else {
+            zigzag_delta(name as u64, previous_name_end, 32, false)
+        };
+        let stored_value = if inverse || mode < 2 {
+            value
+        } else {
+            zigzag_delta(value, old, 64, false)
+        };
+        write_u32(data, row, stored_name as u32)?;
+        write_u32(data, row + 4, padding)?;
+        write_u64(data, row + 8, stored_value)?;
+        write_u32(data, row + 16, size)?;
+        data[row + 20] = info;
+        data[row + 21] = other;
+        data[row + 22..row + 24].copy_from_slice(&shndx.to_le_bytes());
+        previous_name_end = next_name_end;
+        values.insert(key, value);
+    }
+    if !inverse && mode >= 2 {
+        transpose(&mut data[symbols.offset..symbols_end], 24, false)?;
+    }
+    if mode < 3 {
+        return Ok(());
+    }
+    let Some(relocations) = sections.get(b".rel.dyn" as &[u8]) else {
+        return Ok(());
+    };
+    let relocation_length = relocations.size / 16 * 16;
+    let relocation_end = checked_end(relocations.offset, relocation_length, data.len())?;
+    if inverse {
+        transpose(&mut data[relocations.offset..relocation_end], 16, true)?;
+    }
+    let mut previous_address = 0u64;
+    let mut symbols_by_kind: BTreeMap<u8, u64> = BTreeMap::new();
+    for position in (relocations.offset..relocation_end).step_by(16) {
+        let encoded_address = le_u64(data, position)?;
+        let info = le_u32(data, position + 8)?;
+        let reserved = le_u32(data, position + 12)?;
+        let kind = (info & 255) as u8;
+        let encoded_symbol = (info >> 8) as u64;
+        let old = *symbols_by_kind.get(&kind).unwrap_or(&0);
+        let address = if inverse {
+            zigzag_delta(encoded_address, previous_address, 64, true)
+        } else {
+            encoded_address
+        };
+        let symbol = if inverse {
+            zigzag_delta(encoded_symbol, old, 24, true)
+        } else {
+            encoded_symbol
+        };
+        write_u64(
+            data,
+            position,
+            if inverse {
+                address
+            } else {
+                zigzag_delta(address, previous_address, 64, false)
+            },
+        )?;
+        write_u32(
+            data,
+            position + 8,
+            (((if inverse {
+                symbol
+            } else {
+                zigzag_delta(symbol, old, 24, false)
+            }) as u32)
+                << 8)
+                | kind as u32,
+        )?;
+        write_u32(data, position + 12, reserved)?;
+        previous_address = address;
+        symbols_by_kind.insert(kind, symbol);
+    }
+    if !inverse {
+        transpose(&mut data[relocations.offset..relocation_end], 16, false)?;
+    }
+    Ok(())
+}
+
+pub fn fields_transform(source: &[u8], mode: u8) -> Result<Vec<u8>, String> {
+    if mode > 3 {
+        return Err("invalid ECOFF field mode".into());
+    }
+    let mut output = constraints_transform(source, 3)?;
+    let payload_length = output.len()
+        - 13
+        - usize::try_from(u64::from_le_bytes(
+            output[output.len() - 13..output.len() - 5]
+                .try_into()
+                .map_err(|_| "invalid constraints trailer")?,
+        ))
+        .map_err(|_| "constraints metadata too large")?;
+    let objects = discover_ecoff_objects(source);
+    let mut changes = Vec::new();
+    if mode != 0 {
+        for object in objects {
+            let end = object.span.offset + object.span.length;
+            if end > payload_length {
+                return Err("ECOFF object outside constraint payload".into());
+            }
+            let before = output[object.span.offset..end].to_vec();
+            if fields_for_object(
+                &mut output[object.span.offset..end],
+                &object.sections,
+                mode,
+                false,
+            )
+            .is_ok()
+            {
+                changes.push((object.span.offset, object.span.length));
+            } else {
+                output[object.span.offset..end].copy_from_slice(&before);
+            }
+        }
+    }
+    let mut metadata = vec![mode];
+    metadata.extend_from_slice(&vencode(changes.len() as u64));
+    let mut previous_end = 0usize;
+    for (offset, length) in changes {
+        metadata.extend_from_slice(&vencode((offset - previous_end) as u64));
+        metadata.extend_from_slice(&vencode(length as u64));
+        previous_end = offset + length;
+    }
+    output.extend_from_slice(&metadata);
+    output.extend_from_slice(&(metadata.len() as u64).to_le_bytes());
+    output.extend_from_slice(FIELDS_TRAILER);
+    Ok(output)
+}
+
+pub fn fields_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
+    let (mut output, metadata) = split_trailer(raw, FIELDS_TRAILER, 2)?;
+    let mode = metadata[0];
+    if mode > 3 {
+        return Err("invalid ECOFF field mode".into());
+    }
+    let (count, mut position) = vdecode(metadata, 1)?;
+    if (mode == 0 && count != 0) || count > (output.len() / ECOFF_HEADER) as u64 {
+        return Err("invalid ECOFF field count".into());
+    }
+    let mut previous_end = 0usize;
+    for _ in 0..count {
+        let (gap, after_gap) = vdecode(metadata, position)?;
+        let (length, after_length) = vdecode(metadata, after_gap)?;
+        position = after_length;
+        let offset = previous_end
+            .checked_add(usize::try_from(gap).map_err(|_| "field offset too large")?)
+            .ok_or("field offset overflow")?;
+        let length = usize::try_from(length).map_err(|_| "field length too large")?;
+        checked_end(offset, length, output.len())?;
+        let local = output[offset..offset + length].to_vec();
+        let object = parse_ecoff_object(
+            &local,
+            ObjectSpan {
+                offset,
+                length,
+                tar_member: false,
+            },
+        )?;
+        fields_for_object(
+            &mut output[offset..offset + length],
+            &object.sections,
+            mode,
+            true,
+        )?;
+        previous_end = offset + length;
+    }
+    if position != metadata.len() {
+        return Err("unused ECOFF field metadata".into());
+    }
+    constraints_inverse(&output)
+}
+
+#[derive(Clone, Debug)]
+struct GotField {
+    where_: usize,
+    options: Vec<u64>,
+    context: u8,
+}
+
+#[derive(Clone, Debug)]
+struct SymbolTable {
+    span: ObjectSpan,
+    sections: BTreeMap<Vec<u8>, Section>,
+    symbols: Vec<(Vec<u8>, u64)>,
+}
+
+fn object_symbols(source: &[u8], object: EcoffObject) -> Option<SymbolTable> {
+    let blob =
+        source.get(object.span.offset..object.span.offset.checked_add(object.span.length)?)?;
+    let symbols = object.sections.get(b".dynsym" as &[u8])?;
+    let strings = object.sections.get(b".dynstr" as &[u8])?;
+    let hash = object.sections.get(b".hash" as &[u8])?;
+    if hash.size < 8 {
+        return None;
+    }
+    let count = le_u32(blob, hash.offset + 4).ok()? as usize;
+    let symbol_bytes = count.checked_mul(24)?;
+    if symbol_bytes > symbols.size
+        || symbols.offset.checked_add(symbol_bytes)? > blob.len()
+        || strings.offset.checked_add(strings.size)? > blob.len()
+    {
+        return None;
+    }
+    // Grow only after every on-input table bound has been checked.  An
+    // untrusted count never requests a speculative giant allocation.
+    let mut table = Vec::new();
+    for index in 0..count {
+        let row = symbols.offset.checked_add(index.checked_mul(24)?)?;
+        let start = le_u32(blob, row).ok()? as usize;
+        if start >= strings.size {
+            return None;
+        }
+        let left = strings.offset.checked_add(start)?;
+        let right = strings.offset.checked_add(strings.size)?;
+        let name_len = blob.get(left..right)?.iter().position(|byte| *byte == 0)?;
+        table.push((
+            blob[left..left + name_len].to_vec(),
+            le_u64(blob, row + 8).ok()?,
+        ));
+    }
+    Some(SymbolTable {
+        span: object.span,
+        sections: object.sections,
+        symbols: table,
+    })
+}
+
+fn symbol_tables(source: &[u8]) -> Vec<SymbolTable> {
+    discover_ecoff_objects(source)
+        .into_iter()
+        .filter_map(|object| object_symbols(source, object))
+        .collect()
+}
+
+fn global_symbol_index(tables: &[SymbolTable]) -> BTreeMap<Vec<u8>, BTreeMap<u64, usize>> {
+    let mut index = BTreeMap::new();
+    for table in tables {
+        for (name, value) in &table.symbols {
+            if *value != 0 {
+                *index
+                    .entry(name.clone())
+                    .or_insert_with(BTreeMap::new)
+                    .entry(*value)
+                    .or_insert(0) += 1;
+            }
+        }
+    }
+    index
+}
+
+fn dynamic_tags(blob: &[u8], section: &Section) -> Result<BTreeMap<u32, Vec<u32>>, String> {
+    let mut tags = BTreeMap::new();
+    let end = checked_end(section.offset, section.size / 16 * 16, blob.len())?;
+    for position in (section.offset..end).step_by(16) {
+        let tag = le_u32(blob, position)?;
+        if tag == 0 {
+            break;
+        }
+        tags.entry(tag)
+            .or_insert_with(Vec::new)
+            .push(le_u64(blob, position + 8)? as u32);
+    }
+    Ok(tags)
+}
+
+fn tag_ranges(tags: &BTreeMap<u32, Vec<u32>>, symbol_count: usize) -> Option<(Vec<u32>, Vec<u32>)> {
+    let starts = tags.get(&0x7000_000a)?.clone();
+    let symbol_starts = tags.get(&0x7000_0013)?.clone();
+    if starts.is_empty()
+        || starts.len() != symbol_starts.len()
+        || tags.get(&0x7000_0011) != Some(&vec![symbol_count as u32])
+    {
+        return None;
+    }
+    if starts.windows(2).any(|pair| pair[0] >= pair[1])
+        || symbol_starts.windows(2).any(|pair| pair[0] >= pair[1])
+    {
+        return None;
+    }
+    Some((starts, symbol_starts))
+}
+
+fn got_candidates(source: &[u8], global_symbols: bool) -> Result<Vec<GotField>, String> {
+    let tables = symbol_tables(source);
+    let global = if global_symbols {
+        global_symbol_index(&tables)
+    } else {
+        BTreeMap::new()
+    };
+    let mut fields = Vec::new();
+    for table in tables {
+        let blob = &source[table.span.offset..table.span.offset + table.span.length];
+        let (Some(dynamic), Some(got)) = (
+            table.sections.get(b".dynamic" as &[u8]),
+            table.sections.get(b".got" as &[u8]),
+        ) else {
+            continue;
+        };
+        let Some((starts, symbol_starts)) =
+            tag_ranges(&dynamic_tags(blob, dynamic)?, table.symbols.len())
+        else {
+            continue;
+        };
+        let mut previous = None;
+        let mut local = Vec::new();
+        let mut valid = true;
+        for group in 0..starts.len() {
+            let begin = symbol_starts[group] as usize;
+            let end = if group + 1 == starts.len() {
+                table.symbols.len()
+            } else {
+                symbol_starts[group + 1] as usize
+            };
+            if begin > end || end > table.symbols.len() {
+                valid = false;
+                break;
+            }
+            for symbol_index in begin..end {
+                let got_index = starts[group]
+                    .checked_add((symbol_index - begin) as u32)
+                    .ok_or("GOT index overflow")? as usize;
+                if previous.is_some_and(|old| got_index <= old)
+                    || got_index
+                        .checked_mul(8)
+                        .and_then(|at| at.checked_add(8))
+                        .is_none_or(|end| end > got.size)
+                {
+                    valid = false;
+                    break;
+                }
+                previous = Some(got_index);
+                let (name, value) = &table.symbols[symbol_index];
+                let mut options = vec![*value];
+                if global_symbols {
+                    if let Some(values) = global.get(name) {
+                        let mut ranked = values
+                            .iter()
+                            .map(|(value, count)| (*value, *count))
+                            .collect::<Vec<_>>();
+                        ranked
+                            .sort_by(|left, right| right.1.cmp(&left.1).then(left.0.cmp(&right.0)));
+                        options.extend(
+                            ranked
+                                .into_iter()
+                                .map(|(candidate, _)| candidate)
+                                .filter(|candidate| *candidate != *value),
+                        );
+                    }
+                }
+                local.push(GotField {
+                    where_: table.span.offset + got.offset + got_index * 8,
+                    options,
+                    context: u8::from(*value == 0),
+                });
+            }
+            if !valid {
+                break;
+            }
+        }
+        if valid {
+            fields.extend(local);
+        }
+    }
+    fields.sort_by_key(|field| field.where_);
+    if fields.windows(2).any(|pair| {
+        pair[0]
+            .where_
+            .checked_add(8)
+            .is_none_or(|end| end > pair[1].where_)
+    }) {
+        return Err("overlapping GOT fields".into());
+    }
+    Ok(fields)
+}
+
+fn pack(blob: &[u8]) -> Vec<u8> {
+    let mut output = vencode(blob.len() as u64);
+    output.extend_from_slice(blob);
+    output
+}
+
+fn read_packed(blob: &[u8], position: usize) -> Result<(&[u8], usize), String> {
+    let (size, start) = vdecode(blob, position)?;
+    let size = usize::try_from(size).map_err(|_| "GOT substream too large")?;
+    let end = checked_end(start, size, blob.len()).map_err(|_| "truncated GOT substream")?;
+    Ok((&blob[start..end], end))
+}
+
+fn rank_byte_width(product: &BigUint) -> Result<usize, String> {
+    if product.is_zero() {
+        return Err("zero GOT rank product".into());
+    }
+    let maximum = product - BigUint::one();
+    let bits = usize::try_from(maximum.bits()).map_err(|_| "GOT rank width too large")?;
+    bits.checked_add(7)
+        .ok_or_else(|| "GOT rank width overflow".to_string())
+        .map(|width| width / 8)
+}
+
+fn encode_choices(
+    digits: &[usize],
+    alphabets: &[usize],
+    contexts: &[u8],
+    mode: u8,
+) -> Result<Vec<u8>, String> {
+    if digits.len() != alphabets.len() || digits.len() != contexts.len() || mode > 3 {
+        return Err("invalid GOT choice stream".into());
+    }
+    if digits
+        .iter()
+        .zip(alphabets)
+        .any(|(digit, alphabet)| *alphabet == 0 || *digit >= *alphabet)
+    {
+        return Err("GOT choice outside alphabet".into());
+    }
+    if mode == 0 {
+        return Ok(digits
+            .iter()
+            .flat_map(|digit| vencode(*digit as u64))
+            .collect());
+    }
+    if mode == 1 {
+        let mut out = Vec::new();
+        for start in (0..digits.len()).step_by(GOT_BLOCK) {
+            let end = (start + GOT_BLOCK).min(digits.len());
+            let mut rank = BigUint::zero();
+            let mut product = BigUint::one();
+            for index in start..end {
+                rank += BigUint::from(digits[index]) * &product;
+                product *= BigUint::from(alphabets[index]);
+            }
+            let width = rank_byte_width(&product)?;
+            let mut bytes = rank.to_bytes_le();
+            bytes.resize(width, 0);
+            out.extend_from_slice(&bytes);
+        }
+        return Ok(out);
+    }
+    let mut coder = ArithmeticEncoder::new();
+    let mut counts: BTreeMap<(usize, u8), Vec<u64>> = BTreeMap::new();
+    for index in 0..digits.len() {
+        let key = (alphabets[index], contexts[index]);
+        let model = counts
+            .entry(key)
+            .or_insert_with(|| vec![1; alphabets[index]]);
+        let low = model[..digits[index]].iter().sum::<u64>();
+        let total = model.iter().sum::<u64>();
+        coder.encode(low, low + model[digits[index]], total)?;
+        if mode == 3 {
+            model[digits[index]] = model[digits[index]]
+                .checked_add(1)
+                .ok_or("GOT count overflow")?;
+            if model.iter().sum::<u64>() > 4096 {
+                for count in model {
+                    *count = (*count + 1) / 2;
+                }
+            }
+        }
+    }
+    let (payload, bits) = coder.finish();
+    let mut out = vencode(bits as u64);
+    out.extend_from_slice(&payload);
+    Ok(out)
+}
+
+fn decode_choices(
+    payload: &[u8],
+    alphabets: &[usize],
+    contexts: &[u8],
+    mode: u8,
+) -> Result<Vec<usize>, String> {
+    if alphabets.len() != contexts.len()
+        || mode > 3
+        || alphabets.iter().any(|alphabet| *alphabet == 0)
+    {
+        return Err("invalid GOT choice stream".into());
+    }
+    if mode == 0 {
+        let mut output = Vec::with_capacity(alphabets.len());
+        let mut position = 0;
+        for alphabet in alphabets {
+            let (digit, next) = vdecode(payload, position)?;
+            let digit = usize::try_from(digit).map_err(|_| "GOT choice outside alphabet")?;
+            if digit >= *alphabet {
+                return Err("GOT choice outside alphabet".into());
+            }
+            output.push(digit);
+            position = next;
+        }
+        if position != payload.len() {
+            return Err("unused GOT choice bytes".into());
+        }
+        return Ok(output);
+    }
+    if mode == 1 {
+        let mut output = Vec::with_capacity(alphabets.len());
+        let mut position = 0;
+        for start in (0..alphabets.len()).step_by(GOT_BLOCK) {
+            let end = (start + GOT_BLOCK).min(alphabets.len());
+            let mut product = BigUint::one();
+            for alphabet in &alphabets[start..end] {
+                product *= BigUint::from(*alphabet);
+            }
+            let width = rank_byte_width(&product)?;
+            let next =
+                checked_end(position, width, payload.len()).map_err(|_| "truncated GOT rank")?;
+            let mut rank = BigUint::from_bytes_le(&payload[position..next]);
+            if rank >= product {
+                return Err("GOT rank outside state space".into());
+            }
+            for alphabet in &alphabets[start..end] {
+                let divisor = BigUint::from(*alphabet);
+                let digit = (&rank % &divisor)
+                    .to_u64_digits()
+                    .first()
+                    .copied()
+                    .unwrap_or(0) as usize;
+                output.push(digit);
+                rank /= divisor;
+            }
+            position = next;
+        }
+        if position != payload.len() {
+            return Err("unused GOT choice bytes".into());
+        }
+        return Ok(output);
+    }
+    let (bits, position) = vdecode(payload, 0)?;
+    let bits = usize::try_from(bits).map_err(|_| "GOT arithmetic length too large")?;
+    let byte_length = bits
+        .checked_add(7)
+        .ok_or("GOT arithmetic length overflow")?
+        / 8;
+    let expected = checked_end(position, byte_length, payload.len())?;
+    if expected != payload.len() {
+        return Err("invalid GOT arithmetic framing".into());
+    }
+    let mut decoder = ArithmeticDecoder::new(&payload[position..], bits)?;
+    let mut counts: BTreeMap<(usize, u8), Vec<u64>> = BTreeMap::new();
+    let mut output = Vec::with_capacity(alphabets.len());
+    for index in 0..alphabets.len() {
+        let model = counts
+            .entry((alphabets[index], contexts[index]))
+            .or_insert_with(|| vec![1; alphabets[index]]);
+        let total = model.iter().sum::<u64>();
+        let target = decoder.target(total)?;
+        let mut low = 0u64;
+        let mut selected = None;
+        for (digit, count) in model.iter().enumerate() {
+            if target < low + *count {
+                selected = Some((digit, low, *count));
+                break;
+            }
+            low += *count;
+        }
+        let (digit, low, width) = selected.ok_or("invalid GOT arithmetic symbol")?;
+        decoder.update(low, low + width, total)?;
+        output.push(digit);
+        if mode == 3 {
+            model[digit] = model[digit].checked_add(1).ok_or("GOT count overflow")?;
+            if model.iter().sum::<u64>() > 4096 {
+                for count in model {
+                    *count = (*count + 1) / 2;
+                }
+            }
+        }
+    }
+    Ok(output)
+}
+
+pub fn got_transform(source: &[u8], mode: u8, global_symbols: bool) -> Result<Vec<u8>, String> {
+    if mode > 3 {
+        return Err("invalid GOT representation".into());
+    }
+    let fields = got_candidates(source, global_symbols)?;
+    let mut output = source.to_vec();
+    let mut digits = Vec::with_capacity(fields.len());
+    let mut alphabets = Vec::with_capacity(fields.len());
+    let mut contexts = Vec::with_capacity(fields.len());
+    let mut escapes = Vec::new();
+    for field in &fields {
+        let value = le_u64(source, field.where_)?;
+        let digit = field
+            .options
+            .iter()
+            .position(|candidate| *candidate == value)
+            .unwrap_or(field.options.len());
+        if digit == field.options.len() {
+            escapes.extend_from_slice(&source[field.where_..field.where_ + 8]);
+        }
+        output[field.where_..field.where_ + 8].fill(0);
+        digits.push(digit);
+        alphabets.push(field.options.len() + 1);
+        contexts.push(field.context);
+    }
+    let choices = encode_choices(&digits, &alphabets, &contexts, mode)?;
+    let skeleton = fields_transform(&output, 1)?;
+    let mut metadata = vec![mode, u8::from(global_symbols)];
+    metadata.extend_from_slice(&pack(&choices));
+    metadata.extend_from_slice(&escapes);
+    let mut raw = skeleton;
+    raw.extend_from_slice(&metadata);
+    raw.extend_from_slice(&(metadata.len() as u64).to_le_bytes());
+    raw.extend_from_slice(GOT_TRAILER);
+    Ok(raw)
+}
+
+pub fn got_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
+    let (skeleton, metadata) = split_trailer(raw, GOT_TRAILER, 3)?;
+    let mode = metadata[0];
+    let global_symbols = metadata[1];
+    if mode > 3 || global_symbols > 1 {
+        return Err("invalid GOT representation".into());
+    }
+    let (choices, mut position) = read_packed(metadata, 2)?;
+    let data = fields_inverse(&skeleton)?;
+    let fields = got_candidates(&data, global_symbols != 0)?;
+    let alphabets = fields
+        .iter()
+        .map(|field| field.options.len() + 1)
+        .collect::<Vec<_>>();
+    let contexts = fields.iter().map(|field| field.context).collect::<Vec<_>>();
+    let digits = decode_choices(choices, &alphabets, &contexts, mode)?;
+    let mut output = data;
+    for (field, digit) in fields.iter().zip(digits) {
+        if output[field.where_..field.where_ + 8]
+            .iter()
+            .any(|byte| *byte != 0)
+        {
+            return Err("GOT skeleton field is not zero".into());
+        }
+        if digit == field.options.len() {
+            let end =
+                checked_end(position, 8, metadata.len()).map_err(|_| "truncated GOT exception")?;
+            output[field.where_..field.where_ + 8].copy_from_slice(&metadata[position..end]);
+            position = end;
+        } else {
+            write_u64(&mut output, field.where_, field.options[digit])?;
+        }
+    }
+    if position != metadata.len() {
+        return Err("unused GOT exceptions".into());
+    }
+    Ok(output)
+}
+
+fn transform_encode(transform: Transform, source: &[u8]) -> Result<Vec<u8>, String> {
+    match transform {
+        // The constraints stage is independently reversible and is the parent
+        // of fields/GOT/pointer/call/section/pdata transforms in the reference.
+        Transform::Constraints { mode } => constraints_transform(source, mode),
+        Transform::Identity => Ok(source.to_vec()),
+        Transform::Fields { mode } => fields_transform(source, mode),
+        Transform::Got { mode } => got_transform(source, mode, true),
+        Transform::PointerDeltas { .. }
+        | Transform::SectionPointers { .. }
+        | Transform::PdataSymbols { .. } => {
+            Err("requested native executable transform is not linked into this build".into())
+        }
+    }
+}
+
+fn transform_decode(transform: Transform, raw: &[u8]) -> Result<Vec<u8>, String> {
+    match transform {
+        Transform::Constraints { .. } => constraints_inverse(raw),
+        Transform::Identity => Ok(raw.to_vec()),
+        Transform::Fields { .. } => fields_inverse(raw),
+        Transform::Got { .. } => got_inverse(raw),
+        Transform::PointerDeltas { .. }
+        | Transform::SectionPointers { .. }
+        | Transform::PdataSymbols { .. } => {
+            Err("requested native executable inverse is not linked into this build".into())
+        }
+    }
+}
+
+/// Encode CIXB13 and CIXB1d frames.  The checked header always precedes the
+/// payload, including mode two's identity transform, so the source length and
+/// checksum remain paid and independently verifiable.
+pub fn encode_checked_frame(
+    frame: HistoricalFrame,
+    transform: Transform,
+    source: &[u8],
+    mode: u8,
+    request: BackendRequest,
+    backend: &mut EncodeBackend<'_>,
+) -> Result<Vec<u8>, String> {
+    let magic = match frame {
+        HistoricalFrame::JointDiscount if mode < 5 => JOINT_MAGIC,
+        HistoricalFrame::Filtered if mode < 3 => FILTER_MAGIC,
+        _ => return Err("invalid checked executable frame mode".into()),
+    };
+    match frame {
+        HistoricalFrame::JointDiscount
+            if !matches!(
+                request.variant,
+                BackendVariant::PaqJointDiscount | BackendVariant::PaqV215
+            ) =>
+        {
+            return Err("joint-discount frame requires its declared PAQ backend".into())
+        }
+        HistoricalFrame::Filtered
+            if !matches!(
+                request.variant,
+                BackendVariant::Brotli | BackendVariant::PaqV216 | BackendVariant::PaqStoreState
+            ) =>
+        {
+            return Err("filtered frame requires Brotli or its declared PAQ stage".into())
+        }
+        _ => {}
+    }
+    let raw = transform_encode(transform, source)?;
+    let mut output = Vec::new();
+    output.extend_from_slice(magic);
+    output.push(mode);
+    output.extend_from_slice(&vencode(source.len() as u64));
+    output.extend_from_slice(&crc32(source).to_be_bytes());
+    output.extend_from_slice(backend(&request, &raw)?.as_slice());
+    Ok(output)
+}
+
+/// Decode CIXB13/CIXB1d after the full engine has selected the concrete
+/// native backend stack from the frame family and mode.  This keeps nested
+/// PAQ/Brotli staging explicit rather than making the generic decoder guess.
+pub fn decode_checked_frame(
+    frame: HistoricalFrame,
+    bytes: &[u8],
+    max_output: usize,
+    memory_limit: usize,
+    request: BackendRequest,
+    backend: &mut DecodeBackend<'_>,
+) -> Result<Vec<u8>, String> {
+    if memory_limit == 0 {
+        return Err("invalid executable decode memory limit".into());
+    }
+    let (magic, allowed) = match frame {
+        HistoricalFrame::JointDiscount => (JOINT_MAGIC, 0..5),
+        HistoricalFrame::Filtered => (FILTER_MAGIC, 0..3),
+        _ => return Err("wrong checked executable frame family".into()),
+    };
+    if !bytes.starts_with(magic) {
+        return Err("invalid checked executable frame".into());
+    }
+    let mode = *bytes
+        .get(magic.len())
+        .ok_or("truncated checked executable mode")?;
+    if !allowed.contains(&mode) {
+        return Err("unsupported checked executable mode".into());
+    }
+    let (declared, position) = vdecode(bytes, magic.len() + 1)?;
+    let declared = usize::try_from(declared).map_err(|_| "executable output too large")?;
+    if declared > max_output {
+        return Err("executable output exceeds limit".into());
+    }
+    let checksum_end = position.checked_add(4).ok_or("checksum overflow")?;
+    let checksum = u32::from_be_bytes(
+        bytes
+            .get(position..checksum_end)
+            .ok_or("truncated executable checksum")?
+            .try_into()
+            .map_err(|_| "invalid checksum")?,
+    );
+    let transform = match (frame, mode) {
+        (HistoricalFrame::Filtered, 2) => Transform::Identity,
+        (HistoricalFrame::Filtered, _) => Transform::PdataSymbols { mode: 1 },
+        (HistoricalFrame::JointDiscount, _) => Transform::SectionPointers { mode: 4 },
+        _ => unreachable!(),
+    };
+    let raw = backend(&request, &bytes[checksum_end..], memory_limit)?;
+    let restored = transform_decode(transform, &raw)?;
+    if restored.len() > memory_limit {
+        return Err("legacy output exceeds memory limit".into());
+    }
+    verify(restored, declared, checksum)
+}
+
+/// Encode CIXB03, CIXB0b and CIXB0c.  The caller picks a real native backend;
+/// a mismatch is an error rather than a hidden route substitution.
+pub fn encode_transformed_frame(
+    frame: HistoricalFrame,
+    transform: Transform,
+    source: &[u8],
+    request: BackendRequest,
+    backend: &mut EncodeBackend<'_>,
+) -> Result<Vec<u8>, String> {
+    let (magic, mode_prefix) = match frame {
+        HistoricalFrame::Got => (
+            GOT_MAGIC,
+            Some(match transform {
+                Transform::Got { mode } => mode.checked_add(2).ok_or("GOT mode overflow")?,
+                _ => return Err("GOT frame requires GOT transform".into()),
+            }),
+        ),
+        HistoricalFrame::Pointer => (POINTER_MAGIC, None),
+        HistoricalFrame::Section => (SECTION_MAGIC, None),
+        _ => return Err("wrong executable frame family".into()),
+    };
+    let raw = transform_encode(transform, source)?;
+    let mut output = Vec::new();
+    output.extend_from_slice(magic);
+    if let Some(mode) = mode_prefix {
+        if mode > 6 {
+            return Err("invalid GOT frame mode".into());
+        }
+        output.push(mode);
+    }
+    output.push(backend_selector(request.variant)?);
+    output.extend_from_slice(&vencode(source.len() as u64));
+    output.extend_from_slice(&crc32(source).to_be_bytes());
+    output.extend_from_slice(backend(&request, &raw)?.as_slice());
+    Ok(output)
+}
+
+/// Decode historic transformed frames.  The supplied callback is given the
+/// declared output bound, and is responsible for bounded native decompression.
+pub fn decode_transformed_frame(
+    frame: HistoricalFrame,
+    bytes: &[u8],
+    max_output: usize,
+    memory_limit: usize,
+    backend: &mut DecodeBackend<'_>,
+) -> Result<Vec<u8>, String> {
+    if memory_limit == 0 {
+        return Err("invalid executable decode memory limit".into());
+    }
+    let (magic, transform, selector_position) = match frame {
+        HistoricalFrame::Got => {
+            if bytes.len() < 7 || !bytes.starts_with(GOT_MAGIC) || bytes[5] > 6 {
+                return Err("invalid CIXB03 GOT frame".into());
+            }
+            let mode = bytes[5];
+            let transform = match mode {
+                0 => Transform::Fields { mode: 0 },
+                1 => Transform::Identity,
+                value => Transform::Got { mode: value - 2 },
+            };
+            (GOT_MAGIC, transform, 6)
+        }
+        HistoricalFrame::Pointer => (POINTER_MAGIC, Transform::PointerDeltas { mode: 5 }, 5),
+        HistoricalFrame::Section => (SECTION_MAGIC, Transform::SectionPointers { mode: 4 }, 5),
+        _ => return Err("wrong executable frame family".into()),
+    };
+    if bytes.len() < selector_position + 1 || !bytes.starts_with(magic) {
+        return Err("invalid transformed executable frame".into());
+    }
+    let variant = selected_backend(bytes[selector_position])?;
+    let (declared, position) = vdecode(bytes, selector_position + 1)?;
+    let declared = usize::try_from(declared).map_err(|_| "executable output too large")?;
+    if declared > max_output {
+        return Err("executable output exceeds limit".into());
+    }
+    let checksum_end = position.checked_add(4).ok_or("checksum overflow")?;
+    let checksum = u32::from_be_bytes(
+        bytes
+            .get(position..checksum_end)
+            .ok_or("truncated executable checksum")?
+            .try_into()
+            .map_err(|_| "invalid checksum")?,
+    );
+    let payload_start = checksum_end;
+    let raw = backend(
+        &BackendRequest {
+            variant,
+            options: "-8".into(),
+            stream: 0,
+        },
+        &bytes[payload_start..],
+        memory_limit,
+    )?;
+    let restored = transform_decode(transform, &raw)?;
+    if restored.len() > memory_limit {
+        return Err("legacy output exceeds memory limit".into());
+    }
+    verify(restored, declared, checksum)
+}
+
+/// Recognize only complete binary historic prefixes.  ASCII CIXB1 is handled
+/// by the generic container decoder and must not be misclassified here.
+pub fn recognizes_magic(prefix: &[u8]) -> bool {
+    [
+        JOINT_MAGIC,
+        FILTER_MAGIC,
+        GOT_MAGIC,
+        POINTER_MAGIC,
+        SECTION_MAGIC,
+    ]
+    .iter()
+    .any(|magic| prefix.starts_with(*magic))
+}
+
+/// A small, deterministic admission report suitable for selector diagnostics.
+pub fn admission(source: &[u8]) -> BTreeSet<String> {
+    let objects = discover_ecoff_objects(source);
+    let executable_regions = discover_executable_regions(source);
+    let mut result = BTreeSet::new();
+    if !objects.is_empty() {
+        result.insert("ecoff-object".into());
+    }
+    if objects.iter().any(|object| object.span.tar_member) {
+        result.insert("tar-embedded-ecoff".into());
+    }
+    if objects
+        .iter()
+        .any(|object| object.sections.contains_key(b".dynsym" as &[u8]))
+    {
+        result.insert("ecoff-symbols".into());
+    }
+    if objects
+        .iter()
+        .any(|object| object.sections.contains_key(b".rel.dyn" as &[u8]))
+    {
+        result.insert("ecoff-relocations".into());
+    }
+    if executable_regions
+        .iter()
+        .any(|region| region.kind == ExecutableKind::Elf)
+    {
+        result.insert("elf-object".into());
+    }
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        crc32, decode_choices, decode_transformed_frame, encode_choices, fields_transform,
+        got_inverse, got_transform, vencode, HistoricalFrame, GOT_MAGIC,
+    };
+
+    #[test]
+    fn got_choice_encodings_round_trip_all_modes() {
+        let digits = [0, 2, 1, 0, 3];
+        let alphabets = [1, 3, 4, 2, 5];
+        let contexts = [0, 1, 0, 1, 0];
+        for mode in 0..4 {
+            let encoded = encode_choices(&digits, &alphabets, &contexts, mode).unwrap();
+            assert_eq!(
+                decode_choices(&encoded, &alphabets, &contexts, mode).unwrap(),
+                digits
+            );
+        }
+    }
+
+    #[test]
+    fn got_choices_match_frozen_reference_bytes() {
+        // Frozen reference ecoff_got.py golden vectors, including repeated
+        // context observations that distinguish static and adaptive arithmetic.
+        let digits = [0, 2, 1, 0, 3];
+        let expected: [&[u8]; 4] = [&[0, 2, 1, 0, 3], &[0x4d], &[8, 0xc7], &[8, 0xc7]];
+        for mode in 0..4 {
+            assert_eq!(
+                encode_choices(&digits, &[1, 3, 4, 2, 5], &[0, 1, 0, 1, 0], mode).unwrap(),
+                expected[mode as usize]
+            );
+        }
+        let digits = [0, 1, 1, 1, 2, 0, 2, 2, 2, 2, 1, 0];
+        let expected: [&[u8]; 4] = [
+            &[0, 1, 1, 1, 2, 0, 2, 2, 2, 2, 1, 0],
+            &[0x42, 0xcb, 1],
+            &[0x14, 0x2b, 0x8a, 0xb0],
+            &[0x17, 0x39, 0xda, 0x52],
+        ];
+        for mode in 0..4 {
+            assert_eq!(
+                encode_choices(&digits, &[3; 12], &[0; 12], mode).unwrap(),
+                expected[mode as usize]
+            );
+            assert_eq!(
+                decode_choices(expected[mode as usize], &[3; 12], &[0; 12], mode).unwrap(),
+                digits
+            );
+        }
+    }
+
+    #[test]
+    fn got_empty_admission_keeps_complete_paid_transform() {
+        let source = b"ordinary bytes without an ECOFF object";
+        for mode in 0..4 {
+            let transformed = got_transform(source, mode, true).unwrap();
+            assert_eq!(got_inverse(&transformed).unwrap(), source);
+        }
+    }
+
+    #[test]
+    fn got_wire_mode_zero_restores_the_fields_parent() {
+        let source = b"CIXB03 historical fields-parent fixture";
+        let payload = fields_transform(source, 1).unwrap();
+        let mut frame = GOT_MAGIC.to_vec();
+        frame.extend_from_slice(&[0, 0]);
+        frame.extend_from_slice(&vencode(source.len() as u64));
+        frame.extend_from_slice(&crc32(source).to_be_bytes());
+        frame.extend_from_slice(&payload);
+        let mut backend = |_request: &_, encoded: &[u8], _limit: usize| Ok(encoded.to_vec());
+        assert_eq!(
+            decode_transformed_frame(
+                HistoricalFrame::Got,
+                &frame,
+                source.len(),
+                4096,
+                &mut backend
+            )
+            .unwrap(),
+            source,
+        );
+    }
+
+    #[test]
+    fn malformed_got_choice_lengths_are_rejected() {
+        assert!(decode_choices(&[0x80], &[2], &[0], 0).is_err());
+        // One declared bit with no payload is truncated. A zero-bit arithmetic
+        // stream is accepted by the historical decoder's zero padding rule.
+        assert!(decode_choices(&[0x01], &[2], &[0], 2).is_err());
+        assert!(decode_choices(&vencode(u64::MAX), &[2], &[0], 2).is_err());
+    }
+}

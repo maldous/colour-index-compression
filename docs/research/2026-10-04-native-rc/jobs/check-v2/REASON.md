@@ -1,0 +1,1 @@
+The first attempt could not launch the snap-packaged Cargo within the constrained service. This attempt uses the previously qualified direct Rust toolchain and the identical immutable source snapshot. No source or benchmark retry.

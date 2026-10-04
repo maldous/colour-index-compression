@@ -1,0 +1,49 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/native-focused-v2/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/native-focused-v2/Cargo.toml', '--lib', 'full_engine::', '--', '--test-threads=4']
+
+running 11 tests
+test full_engine::arithmetic::tests::arithmetic_and_fenwick_reject_invalid_state ... ok
+test full_engine::arithmetic::tests::python_reference_varint_and_frame_vectors ... ok
+test full_engine::arithmetic::tests::ordered_subset_method_one_and_residual_vectors ... ok
+test full_engine::record_ordering::tests::each_order_code_restores_nontrivial_composition ... ok
+test full_engine::arithmetic::tests::exhaustive_small_combinatorics_and_compositions ... ok
+test full_engine::record_ordering::tests::permutation_crosses_rank_block_boundary ... ok
+test full_engine::strided_values::tests::recognizes_exact_wcs_extent ... ok
+test full_engine::strided_values::tests::signed_varint_mapping_round_trips ... ok
+test full_engine::volume_lifting::tests::dicom_recognizer_rejects_truncated_pixel_member ... ok
+test full_engine::volume_lifting::tests::multiscale_lifting_round_trips_every_axis ... ok
+test full_engine::volume_lifting::tests::signed_wrap_matches_reference_and_all_volume_modes_restore ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 117 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/native-focused-v2/Cargo.toml', '--test', 'native_context', '--test', 'parallel_pipeline', '--test', 'paq_bridge_contract', '--', '--test-threads=4']
+
+running 4 tests
+test nested_internal_token_cannot_mask_callers_cancellation ... ok
+test pipeline_propagates_the_callers_context_to_worker_polls ... ok
+test independent_calls_do_not_share_cancellation ... ok
+test buffer_api_preserves_bytes_and_enforces_output_limits ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 3 tests
+test all_retained_variants_have_distinct_worker_bridge_identities ... ok
+test requires_worker_memory_and_a_real_input_before_the_ffi_boundary ... ok
+test rejects_sdk_scope_before_any_codec_load ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test cancellation_drops_queued_jobs_and_joins_workers ... ok
+test capacity_one_keeps_a_completed_result_admitted_until_it_is_received ... ok
+test completed_reordered_results_still_consume_capacity ... ok
+test worker_failure_signals_a_running_sibling_through_the_shared_token ... ok
+test worker_error_and_panic_cancel_pending_work_without_deadlock ... ok
+test completes_in_input_order_even_when_workers_finish_out_of_order ... ok
+test timeout_does_not_require_a_reader_thread ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+CHECK ['/usr/bin/python3', '-m', 'unittest', 'discover', '-s', '/home/user/src/colour-index-compression/tools/sonar-cxx', '-p', 'test_*.py', '-v']

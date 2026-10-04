@@ -1,7 +1,4 @@
-#[path = "../src/parallel.rs"]
-mod parallel;
-
-use parallel::{OrderedPipeline, PipelineError, Poll, TrySubmitError};
+use cix_native::parallel::{OrderedPipeline, PipelineError, Poll, TrySubmitError};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;

@@ -15,10 +15,85 @@ pub static INTERRUPTED: AtomicBool = AtomicBool::new(false);
 pub const INTERRUPTED_ERROR: &str = "CIX interrupted";
 pub const CANCELLED_ERROR: &str = "CIX candidate cancelled";
 pub const DEADLINE_ERROR: &str = "CIX candidate deadline exceeded";
+pub fn is_library_scope() -> bool {
+    LIBRARY_DEPTH.with(|slot| slot.get() > 0)
+}
+pub fn cli_interrupted() -> bool {
+    !is_library_scope() && INTERRUPTED.load(Ordering::Relaxed)
+}
 
 thread_local! {
     static DEADLINE: Cell<Option<Instant>> = const { Cell::new(None) };
-    static CANCELLATION: RefCell<Option<Arc<AtomicBool>>> = const { RefCell::new(None) };
+    static CANCELLATION: RefCell<Vec<Arc<AtomicBool>>> = const { RefCell::new(Vec::new()) };
+    static LIBRARY_DEPTH: Cell<u32> = const { Cell::new(0) };
+}
+
+/// Capturable per-context state for worker-thread propagation.  CLI signal
+/// state is deliberately absent: library contexts never inherit it.
+#[derive(Clone)]
+pub struct Context {
+    cancellation: Vec<Arc<AtomicBool>>,
+    deadline: Option<Instant>,
+    library: bool,
+}
+pub fn capture_context() -> Context {
+    Context {
+        cancellation: CANCELLATION.with(|s| s.borrow().clone()),
+        deadline: DEADLINE.with(Cell::get),
+        library: is_library_scope(),
+    }
+}
+pub struct ContextGuard {
+    cancellation: Vec<Arc<AtomicBool>>,
+    deadline: Option<Instant>,
+    depth: u32,
+}
+pub fn install_context(context: &Context) -> ContextGuard {
+    let cancellation = CANCELLATION.with(|s| s.replace(context.cancellation.clone()));
+    let deadline = DEADLINE.with(|s| {
+        let old = s.get();
+        s.set(context.deadline);
+        old
+    });
+    let depth = LIBRARY_DEPTH.with(|s| {
+        let old = s.get();
+        if context.library {
+            s.set(old.saturating_add(1));
+        }
+        old
+    });
+    ContextGuard {
+        cancellation,
+        deadline,
+        depth,
+    }
+}
+impl Drop for ContextGuard {
+    fn drop(&mut self) {
+        CANCELLATION.with(|s| {
+            s.replace(std::mem::take(&mut self.cancellation));
+        });
+        DEADLINE.with(|s| s.set(self.deadline));
+        LIBRARY_DEPTH.with(|s| s.set(self.depth));
+    }
+}
+pub struct LibraryGuard {
+    previous: u32,
+}
+impl LibraryGuard {
+    pub fn new() -> Self {
+        let previous = LIBRARY_DEPTH.with(|s| {
+            let old = s.get();
+            s.set(old.saturating_add(1));
+            old
+        });
+        Self { previous }
+    }
+}
+impl Drop for LibraryGuard {
+    fn drop(&mut self) {
+        LIBRARY_DEPTH.with(|s| s.set(self.previous));
+    }
 }
 
 /// Installs a pipeline-local cancellation token for this thread.  A worker
@@ -29,12 +104,16 @@ pub struct CancellationGuard {
     // Keeps the installed token alive even if the caller drops its Arc while
     // the guarded operation is still running.
     _current: Arc<AtomicBool>,
-    previous: Option<Arc<AtomicBool>>,
+    previous: Vec<Arc<AtomicBool>>,
 }
 
 impl CancellationGuard {
     pub fn new(token: Arc<AtomicBool>) -> Self {
-        let previous = CANCELLATION.with(|slot| slot.replace(Some(token.clone())));
+        let previous = CANCELLATION.with(|slot| {
+            let old = slot.borrow().clone();
+            slot.borrow_mut().push(token.clone());
+            old
+        });
         Self {
             _current: token,
             previous,
@@ -45,7 +124,7 @@ impl CancellationGuard {
 impl Drop for CancellationGuard {
     fn drop(&mut self) {
         CANCELLATION.with(|slot| {
-            slot.replace(self.previous.take());
+            slot.replace(std::mem::take(&mut self.previous));
         });
     }
 }
@@ -87,13 +166,13 @@ impl Drop for DeadlineGuard {
 /// priority so Ctrl-C is never reported as an ordinary candidate timeout.
 #[inline]
 pub fn check() -> Result<(), String> {
-    if INTERRUPTED.load(Ordering::Relaxed) {
+    if cli_interrupted() {
         return Err(INTERRUPTED_ERROR.into());
     }
     let cancelled = CANCELLATION.with(|slot| {
         slot.borrow()
-            .as_ref()
-            .is_some_and(|token| token.load(Ordering::Relaxed))
+            .iter()
+            .any(|token| token.load(Ordering::Relaxed))
     });
     if cancelled {
         return Err(CANCELLED_ERROR.into());
@@ -103,5 +182,43 @@ pub fn check() -> Result<(), String> {
         Err(DEADLINE_ERROR.into())
     } else {
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn library_scope_nests_and_restores_without_global_mutation() {
+        assert!(check().is_ok());
+        {
+            let _one = LibraryGuard::new();
+            assert!(check().is_ok());
+            {
+                let _two = LibraryGuard::new();
+                assert!(check().is_ok());
+            }
+            assert!(check().is_ok());
+        }
+        assert!(check().is_ok());
+    }
+    #[test]
+    fn contexts_are_independent_and_nested_scope_restores() {
+        let cancelled = Arc::new(AtomicBool::new(true));
+        let context = Context {
+            cancellation: vec![cancelled],
+            deadline: None,
+            library: true,
+        };
+        assert!(check().is_ok());
+        {
+            let _one = install_context(&context);
+            assert!(check().is_err());
+            {
+                let _two = LibraryGuard::new();
+                assert!(check().is_err());
+            }
+        }
+        assert!(check().is_ok());
     }
 }

@@ -7,6 +7,7 @@
 //! out-of-order results are bounded.  This module deliberately has no nested
 //! worker pools; the supplied encoder runs once per worker job.
 
+use super::limits;
 use std::collections::{BTreeMap, VecDeque};
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -123,11 +124,16 @@ impl<T: Send + 'static, R: Send + 'static> OrderedPipeline<T, R> {
             cancellation,
         });
         let encode = Arc::new(encode);
+        let context = limits::capture_context();
         let mut handles = Vec::with_capacity(workers);
         for _ in 0..workers {
             let worker_shared = Arc::clone(&shared);
             let worker_encode = Arc::clone(&encode);
-            match thread::Builder::new().spawn(move || worker_loop(worker_shared, worker_encode)) {
+            let worker_context = context.clone();
+            match thread::Builder::new().spawn(move || {
+                let _scope = limits::install_context(&worker_context);
+                worker_loop(worker_shared, worker_encode)
+            }) {
                 Ok(handle) => handles.push(handle),
                 Err(_) => {
                     {

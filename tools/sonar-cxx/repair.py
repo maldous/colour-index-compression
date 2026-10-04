@@ -29,6 +29,15 @@ HYGIENE = ROOT / "docs/research/2026-10-04-automatic-specialised-models/hygiene"
 SOURCE = ROOT.parent / "cix-integrated-source-candidate"
 TOOLS = ROOT.parent / "cix-sonar-cxx-tools"
 SUMMARY = HYGIENE.parent / "qualification/silesia-confirmation-v1/summary.json"
+STOP = SUMMARY.parent / "stop-20261004-user/stop.json"
+STOP_COMMIT = "e9731f4bd"
+STOP_PLAN_SHA256 = "6181ed5066495a12bc6fa09a41f5b14cb2442b4aaae0b16e0ddf015356432eaa"
+STOP_SHA256 = "ed3c2aaf8ef104e2305c80defffcab8607c608525126b018ed9c85725feeed54"
+STOP_VERIFIED = {
+    "confirm-fast-dickens", "confirm-default-dickens", "confirm-best-dickens",
+    "confirm-fast-mozilla", "confirm-default-mozilla",
+}
+STOP_INTERRUPTED = "confirm-best-mozilla"
 SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx"}
 SCOPES = {
     "first-party": ["native/src", "native/packaging/squash"],
@@ -183,6 +192,68 @@ def require_confirmation(summary: Path) -> None:
         cell = expected[row["cell"]]
         if row["source"] != cell["source"] or row["profile"] != cell["profile"]:
             raise RuntimeError("confirmation identities differ from the frozen plan")
+
+
+def _committed_stop_bytes(stop: Path) -> bytes:
+    """Read the stop receipt from its pinned commit, never trusting a worktree copy."""
+    relative = stop.relative_to(ROOT).as_posix()
+    result = subprocess.run(["git", "show", f"{STOP_COMMIT}:{relative}"], cwd=ROOT,
+                            check=False, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    if result.returncode:
+        raise RuntimeError("pinned benchmark-stop receipt is absent from its authenticated checkpoint")
+    return result.stdout
+
+
+def require_stopped_confirmation(summary: Path, stop: Path = STOP, *,
+                                 committed_reader=_committed_stop_bytes, root: Path = ROOT) -> None:
+    """Authorize non-benchmark hygiene only for the exact user-stopped run.
+
+    This is deliberately narrower than accepting a status string: both the
+    receipt and its commit copy must hash-match, and every planned cell must be
+    classified exactly once as verified, interrupted, or unstarted.
+    """
+    plan_path = summary.with_name("plan.json")
+    if digest(plan_path) != STOP_PLAN_SHA256:
+        raise RuntimeError("stopped-run authorization has a different frozen plan")
+    if not stop.is_file() or digest(stop) != STOP_SHA256 or committed_reader(stop) != stop.read_bytes():
+        raise RuntimeError("stopped-run receipt is not the pinned committed receipt")
+    receipt, value, plan = json.loads(stop.read_text()), json.loads(summary.read_text()), json.loads(plan_path.read_text())
+    if receipt.get("status") != "STOPPED_BY_USER" or receipt.get("plan_sha256") != STOP_PLAN_SHA256:
+        raise RuntimeError("stopped-run receipt is not an authorized user stop")
+    if receipt.get("automatic_restart_allowed") is not False:
+        raise RuntimeError("stopped-run receipt permits restart")
+    expected = {row["id"] for row in plan.get("cells", [])}
+    verified = set(receipt.get("verified_cells", []))
+    interrupted = receipt.get("interrupted_cells", [])
+    unstarted = set(receipt.get("not_started_cells", []))
+    if (len(expected) != 36 or verified != STOP_VERIFIED or len(interrupted) != 1
+            or interrupted[0] != {"cell": STOP_INTERRUPTED, "phase": "encode", "status": "INTERRUPTED_UNQUALIFIED", "decode_started": False}
+            or len(unstarted) != 30 or expected != verified | {STOP_INTERRUPTED} | unstarted
+            or len(verified | {STOP_INTERRUPTED} | unstarted) != 36):
+        raise RuntimeError("stopped-run receipt has invalid cell classification")
+    rows = value.get("rows", [])
+    if (value.get("plan_sha256") != STOP_PLAN_SHA256 or value.get("stop_receipt") != str(stop.relative_to(root))
+            or {row.get("cell") for row in rows} != verified or any(row.get("status") != "VERIFIED" for row in rows)):
+        raise RuntimeError("summary does not match the pinned stopped-run receipt")
+
+
+def assert_benchmark_idle(*, runner=subprocess.run, cgroup_root: Path = Path("/sys/fs/cgroup")) -> None:
+    """Fail closed if the stopped confirmation could have resumed on this host."""
+    listing = runner(["ps", "-eo", "pid=,args="], check=True, text=True,
+                             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout
+    markers = (str(SUMMARY.parent), "finish-frozen-cix-silesia-confirmation",
+               "complete-cix-0-1-release-qualification")
+    if any(marker in line for line in listing.splitlines() for marker in markers):
+        raise RuntimeError("a stopped benchmark process is active")
+    for unit in ("finish-frozen-cix-silesia-confirmation.service", "complete-cix-0-1-release-qualification.service"):
+        state = runner(["systemctl", "show", unit, "--property=ActiveState", "--value"],
+                               check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL).stdout.strip()
+        if state != "inactive":
+            raise RuntimeError("a stopped benchmark unit is active or unknown")
+    if cgroup_root.exists():
+        matches = list(cgroup_root.rglob("*silesia-confirmation*"))
+        if any(path.is_dir() and any(path.iterdir()) for path in matches):
+            raise RuntimeError("a stopped benchmark cgroup is active or unknown")
 
 
 def validate_indexed(files: list[str], components: list[dict], log: str) -> set[str]:
@@ -359,7 +430,10 @@ def execute(prepared: Path, out: Path, source: Path, parent: str) -> None:
 
 
 def run(prepared: Path, out: Path) -> None:
-    require_confirmation(SUMMARY)
+    try:
+        require_confirmation(SUMMARY)
+    except RuntimeError:
+        require_stopped_confirmation(SUMMARY)
     if out.exists():
         raise RuntimeError("refusing to overwrite a scan attempt; use a new output directory")
     s = load_module("cix_sonar_scheduler", HYGIENE / "schedule_scan.py")
@@ -370,6 +444,7 @@ def run(prepared: Path, out: Path) -> None:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         leases = scheduler._lease_cores([{"physical_core": [s._core(cpu) for cpu in s.CPUS]}])
         try:
+            assert_benchmark_idle()
             s._make_slice(parent, anchor)
             receipt = s._slice_receipt(parent); s._verify_slice(receipt)
             # Put this process (including Cppcheck) in the same aggregate slice.
@@ -405,7 +480,10 @@ def main() -> None:
         parent = "cix-cxx-hygiene.slice"
         if parent not in Path('/proc/self/cgroup').read_text():
             raise RuntimeError("worker is outside the reserved aggregate slice")
-        require_confirmation(SUMMARY)
+        try:
+            require_confirmation(SUMMARY)
+        except RuntimeError:
+            require_stopped_confirmation(SUMMARY)
         plan = json.loads((args.prepared / "plan.json").read_text())
         execute(args.prepared.resolve(), args.out.resolve(), Path(plan["source"]), parent)
 
