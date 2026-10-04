@@ -1,0 +1,191 @@
+Seed, substring offset and structured residual: further investigation
+2026-10-04
+
+Finding
+
+The refined proposal is a valid representation: regenerate a dictionary from
+a seed, select a substring by its offset, and recover the target using a coded
+residual or reversible transformation. Some individual inputs can become smaller,
+including when the residual changes exactly half the bits. The previous emphasis
+on the number of differing bits was insufficient to characterize that possibility.
+Broadly related mechanisms have published descriptions. No useful CIX improvement
+or novel general compression principle has been established by this review.
+
+The work comprises primary-document review, independent mathematical review and
+one exhaustive 12-bit counting demonstration. It does not read a real corpus,
+change production CIX, reopen closed numeric/mixer branches or resume benchmarks.
+
+Representation and complete accounting
+
+Let Y = G(seed)[offset:offset+n] and residual = X XOR Y. Reconstruction is exact
+by the same XOR. Other transforms are admissible only if the decoder can invert
+them from the transmitted data and the shared specification.
+
+The quantity to minimize is:
+  encoded seed + encoded offset + encoded length + transform/model description
+  + encoded residual + framing/termination/alignment/checksum costs.
+
+Seed, offset and residual can be coded jointly; independently fixed-width fields
+are not a mathematical requirement. If a seed is fixed in the format it need not
+be repeated. If offsets are predictable across blocks their conditional codes can
+be smaller. Search effort is a computation cost, not mandatory transmitted data.
+Only information actually needed for reconstruction must be sent. These savings
+must be demonstrated, rather than assumed or counted twice.
+
+The correct residual objective is compressed description length, not Hamming
+distance. A balanced alternating mask has half its bits set yet is simple. More
+general periodic, run-based, repeated or generated residuals could also be simple.
+These are useful search targets even when few or no bits agree literally.
+
+Exact substring matching
+
+For a uniform n-bit target independent of a fixed generated dictionary containing
+M candidate windows, at most M distinct targets match exactly. The match probability
+is at most M / 2^n. Overlapping windows and duplicate values cannot improve this
+count. A random sequence usually needs search on the scale of 2^n positions to
+find an n-bit exact target; this is a scale estimate, not an exact waiting-time
+formula for every overlapping pattern.
+
+For example, a typical exact match to an arbitrary 1 KiB (8192-bit) target needs
+an offset on the scale of 2^8192, whose ordinary binary address needs about 8192
+bits, before extra fields. Splitting the candidate choice into a seed and a
+smaller offset does not automatically reduce their combined information.
+
+A finite-state PRNG is periodic and need not contain every possible substring.
+Treating its stream as infinite is not a guarantee of an eventual match. A specially
+constructed universal dictionary can contain every n-bit target, but still needs at
+least 2^n distinct candidate positions; ordinary fixed-length addressing costs n bits.
+
+An enormous offset can itself have a short program or formula. This is a valid
+exception to charging every offset its literal bit length, provided that the
+decoder can evaluate the specified generator there within accepted resources.
+There are still only as many short offset descriptions as short codes: a b-bit
+descriptor exposes at most 2^b candidates for a fixed generator and length.
+The instruction 'find the first occurrence of the target' does not work at the
+decoder unless the target or an adequate identification procedure is available.
+
+Approximate substring matching
+
+Let V(n,r) = sum_{j=0..r} choose(n,j). Each selected window can cover at most
+V(n,r) targets within r bit flips. A dictionary that covers all n-bit targets
+therefore requires M * V(n,r) >= 2^n. For a fixed residual family including all
+such masks, ideal index accounting gives log2(M) + log2(V(n,r)) >= n. This is a
+necessary counting bound, not a claim that a practical covering construction
+attains equality. Headers, rounding and search inefficiency can add costs.
+
+The exact 1024-bit calculations in results.json include:
+  At most 102 flips: log2 residual-family size = 474.563507 bits;
+  log2 candidate count necessary to cover all targets >= 549.436493 bits.
+  Their ideal sum is 1024 bits before overhead.
+
+Structured residuals generalize this argument. If each candidate has at most L
+allowed residual descriptions, M candidates can describe at most M*L targets.
+Neither sparsity nor independent errors is assumed. For variable-length codes,
+the analogous prefix/uniquely-decodable code bound applies to the total code.
+
+For a deterministic selected candidate C=f(X), a reversible residual transform
+satisfies H(R|C)=H(X|C), and H(C)+H(R|C)=H(X). This is a statement about optimal
+source-average coding, not a denial of improvements over a particular practical
+compressor. Independent randomization may increase the representation entropy.
+
+Prior descriptions and boundaries
+
+1. US6674908B1, published 2004-01-06, Method of compression of binary data with a
+   random number generator. The document describes generating a dictionary with
+   an RNG, transmitting indexes and numerical correction distances, retaining
+   seed/parameters, and regenerating the dictionary during decoding. Its samples
+   and adaptive numerical distributions are not identical to an arbitrary bit
+   substring search, but the generated-dictionary/index/correction principle is
+   close prior description.
+   https://patents.google.com/patent/US6674908B1/en
+
+2. US10938409B1, issued 2021-03-02, Compression using entropy reduction based on
+   pseudo random numbers. The patent text describes XORing a mapped pseudorandom
+   stream with input and recompressing, explicitly including already-compressed
+   input; reconstruction uses the seed and mapping. This establishes an earlier
+   proposal related to the random-mask/recompression part, not independent
+   validation of its claimed performance. The inspected text is reproduced at:
+   https://patents.justia.com/patent/10938409
+
+3. Nicole Tietz-Sokolskaya's original pi-compression implementation searches
+   generated digits and represents input by offset/length pairs. It illustrates
+   the generated-reference substring mechanism and reports expansion for its
+   examples. It is not a PRNG-residual implementation, nor an optimized bound on
+   all such designs. Pi containing every finite string is not proven.
+   https://ntietz.com/blog/why-we-cant-compress-messages-with-pi/
+
+4. Related established theory includes random codebooks, covering/source coding,
+   rate-distortion and lossless residual refinement. For a fair binary source and
+   Hamming distortion D, the asymptotic approximation rate is 1-h2(D); restoring
+   arbitrary errors losslessly carries the corresponding remaining information.
+   The derivation above gives a finite counting version without assuming random
+   candidate independence. Primary sources for the theoretical connection:
+   Shannon (1959), Coding Theorems for a Discrete Source With a Fidelity Criterion:
+   https://gwern.net/doc/cs/algorithm/information/1959-shannon.pdf
+   Merhav (2022 preprint), A Universal Random Coding Ensemble for Sample-wise
+   Lossy Compression, studies a source-informed random codebook distribution:
+   https://arxiv.org/abs/2212.12208
+   Neither paper establishes a general lossless win from uniform random masks.
+
+These are mechanism comparisons, not a legal novelty/patentability opinion or
+an exhaustive patent search. Patent performance assertions were not adopted as
+established results. No patent status or freedom-to-operate determination is made.
+
+Finite demonstration
+
+The plan was saved before execution. A shared fixed SHA-256 construction generates
+four bitstreams, with 16 allowed substring offsets per stream. Four residual masks
+are admitted: all-zero, all-one, alternating 01 and alternating 10. A generated
+representation uses one tag bit, two seed bits, four offset bits and two residual
+mask bits, totaling nine. A fallback uses one raw tag and the original 12 bits.
+Every one of the 4096 possible 12-bit targets was considered, not a selected sample.
+
+  252 targets: 9 encoded bits each (25% below 12 raw bits).
+  3844 targets: 13 encoded bits each.
+  Uniform average: 12.75390625 encoded bits, 6.282552% above 12 raw bits.
+  All 4096 decoded exactly from their codewords.
+  126 of the chosen generated codes use a residual with 6 of 12 bits set.
+  Chosen codewords are distinct and prefix-free; Kraft sum is 1969/2048.
+
+Restricting the source to the 252 generated targets yields nine bits per target.
+That is a deliberately constructed positive control and validates the user's
+possibility claim. The whole-universe result shows why selecting only favorable
+cases would misrepresent the generic benefit. A different coding scheme could
+improve this toy's overhead; these figures are not an optimality proof.
+For example, a shared dictionary with those 252 outputs can use an eight-bit rank.
+The generator compactly specifies a dictionary; this demonstration does not prove
+an advantage over dictionary coding. An independent read-only review confirmed
+the code accounting, prefix property and these interpretation limits.
+
+The format fixes the target length and generator and omits byte alignment and
+archive framing. These are bit-code lengths, not physical CIX archive sizes.
+No comparison with a strongest conventional compressor is claimed; in particular,
+the displayed 12-bit witness is itself simple under other models. A residual with
+half its bits set does not by itself establish that the target defeats those models.
+The positive control only demonstrates exact shorter representations are possible.
+
+Runtime evidence: 0.03 s wall, 0.02 s user CPU, 17,920 KiB peak resident memory,
+one CPU, no swaps, exit 0. These are execution receipts, not throughput measurements.
+The script and plan hashes are stored in results.json; resources.txt preserves the
+execution receipt. No heavy benchmark or shared-scheduler resource window was used.
+
+CIX interpretation and one next action
+
+The research target should be whether a bounded generated dictionary exposes
+short, reproducible residual descriptions often enough to beat complete current
+archives at useful computational cost. A useful source relationship need not be
+known in advance: a bounded search can discover one or a lucky individual match.
+Neither random appearance nor an oracle-selected residual establishes prevalence.
+
+The most plausible benefit is a particular structured residual family, shared
+generator state, predictably related offsets or efficient source-matched generator.
+A cryptographic stream used solely to enumerate unrelated candidate strings has
+no generic expected-size advantage. GPU search can alter computation time, not
+the selection/correction information bound. This review does not prove any real
+CIX archive incompressible or the compression programme exhausted.
+
+Exactly one next action: when the existing RC benchmark gate permits a real-data
+screen, evaluate one frozen, bounded seed/offset/structured-residual search against
+unchanged archives and a matched direct-residual model, charging every field and
+search cost, with independent exact decoding and independent-noise controls.
+Do not promote a production route from this mathematical demonstration.
