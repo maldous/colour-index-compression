@@ -222,6 +222,10 @@ FAILURE_RECEIPT_RESERVE_BYTES = 256 * 1024
 FAILURE_LOG_BYTES = 64 * 1024
 TERMINAL_RECEIPT_RESERVE_BYTES = 64 * 1024
 CPPHECK_PROJECTED_TU_BYTES = 2 * 1024**2
+CPPHECK_KERNEL_PROJECTED_TU_BYTES = 8 * 1024**2
+# The decompressor exceeded the default cap in adapter-context-probe-v3.
+# Give it and the companion Kbuild registration unit a bounded larger check;
+# every other projection remains at 2 MiB.
 CPPHECK_PROJECTED_RELATIVES = frozenset({
     "rust/cix-native/adapters/gio/cix-gconverter.c",
     "rust/cix-native/adapters/gio/contract.c",
@@ -1243,7 +1247,7 @@ def collect_bounded_pipes(process: subprocess.Popen, budget: EvidenceBudget,
     return bytes(streams[stdout_stream]), bytes(streams[stderr_stream])
 
 
-def _projected_command(row: dict, destination: Path) -> list[str]:
+def _projected_command(row: dict, destination: Path, extra_arguments: tuple[str, ...] = ()) -> list[str]:
     """Replay one recorded compiler command as a bounded preprocess-only action."""
     arguments = list(row["arguments"])
     source = row["file"]
@@ -1252,77 +1256,150 @@ def _projected_command(row: dict, destination: Path) -> list[str]:
     if len(source_operands) != 1 or arguments.count("-c") != 1:
         raise RuntimeError("compiler receipt lacks one explicit source and -c operand: " + source)
     context = load_module("cix_projection_command", Path(__file__).with_name("translation_context.py"))
-    return list(context.preprocess_command(row, destination).argv)
+    argv = list(context.preprocess_command(row, destination).argv)
+    return [argv[0], *extra_arguments, *argv[1:]]
 
 
-def _projected_file_limit() -> None:
-    resource.setrlimit(resource.RLIMIT_FSIZE, (CPPHECK_PROJECTED_TU_BYTES, CPPHECK_PROJECTED_TU_BYTES))
+def _kernel_stage_quote_arguments(relative: str, stage: Path) -> tuple[str, ...]:
+    """Restore only the build-stage quoted-include directory required by decompressor."""
+    if relative == "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_decompressor.c":
+        return ("-iquote", str(stage))
+    return ()
 
 
-def _normalise_preprocessor_projection(body: bytes) -> tuple[bytes, int, int]:
-    """Retain source positions while removing only GCC diagnostic annotations."""
+def _kernel_stage_analysis_inputs(source: Path, relative: str) -> tuple[dict[str, str], dict]:
+    """Bind current stage headers for new analysis; never present them as build proof."""
+    stage = source / "benchmark-work/native-rc-check-v1/kernel-module-v4/stage"
+    job = source / "docs/research/2026-10-04-execution/jobs/kernel-module-v4"
+    receipt_path, inputs_path = job / "receipt.json", job / "input-hashes.json"
+    receipt, inputs = json.loads(receipt_path.read_text()), json.loads(inputs_path.read_text())
+    if receipt.get("prepare_returncode") != 0 or receipt.get("build_returncode") != 0 or Path(receipt.get("stage", "")).resolve() != stage.resolve():
+        raise RuntimeError("kernel stage lacks its successful retained build receipt")
+    manifest_path = Path(receipt.get("source_manifest", ""))
+    if not manifest_path.is_file() or digest(manifest_path) != receipt.get("source_manifest_sha256"):
+        raise RuntimeError("kernel stage source manifest differs from its build receipt")
+    manifest = json.loads(manifest_path.read_text()).get("files")
+    if not isinstance(manifest, dict):
+        raise RuntimeError("kernel stage manifest has no file identities")
+    current_source = source / relative
+    expected_source = inputs.get(relative)
+    if not isinstance(expected_source, str) or digest(current_source) != expected_source:
+        raise RuntimeError("current kernel CIX source differs from the retained stage build input")
+    selected = [stage / "include" / name for name in ("cix_squashfs_kernel.h", "cix_squashfs_prefix.h", "cix_squashfs_register.h")]
+    selected += [stage / "profile/include/cix_squashfs_profile.h", stage / "profile/src/cix_squashfs_profile.c"]
+    if relative.endswith("cix_squashfs_decompressor.c"):
+        selected += sorted((stage / "upstream").glob("*.h"))
+    bound: dict[str, str] = {}
+    for path in selected:
+        if not path.is_file():
+            raise RuntimeError("required retained kernel stage input is absent: " + str(path))
+        resolved = path.resolve()
+        upstream_key = "fs/squashfs/" + path.name
+        expected = manifest.get(upstream_key) if path.parent.name == "upstream" else None
+        if expected is None:
+            # Stage copies are CIX-owned inputs and must equal the recorded source bytes.
+            candidates = [name for name in inputs if name.endswith("/" + path.name)]
+            if len(candidates) != 1 or digest(path) != inputs[candidates[0]]:
+                raise RuntimeError("stage-local input lacks a matching retained CIX source identity: " + str(path))
+        elif digest(resolved) != expected:
+            raise RuntimeError("stage upstream header differs from its retained manifest: " + str(path))
+        bound[str(path)] = digest(path)
+    return bound, {"kind": "NEW_ANALYSIS_INPUT_FREEZE_NOT_HISTORICAL_BUILD_PROOF", "stage": str(stage),
+                   "build_receipt_sha256": digest(receipt_path), "source_manifest_sha256": digest(manifest_path),
+                   "current_cix_source_sha256": expected_source, "local_header_sha256": bound,
+                   "quoted_include_arguments": list(_kernel_stage_quote_arguments(relative, stage))}
+
+
+def _projection_size_limit(relative: str) -> int:
+    """Return the reviewed cap for one projected translation unit."""
+    if relative in CPPHECK_PROBE_V2_CONFIRMED_RELATIVES - {
+            "rust/cix-native/adapters/blosc2/tests/blosc2_cix_contract.c"}:
+        return CPPHECK_KERNEL_PROJECTED_TU_BYTES
+    return CPPHECK_PROJECTED_TU_BYTES
+
+
+def _projected_file_limit(limit: int = CPPHECK_PROJECTED_TU_BYTES) -> None:
+    resource.setrlimit(resource.RLIMIT_FSIZE, (limit, limit))
+
+
+def _normalise_preprocessor_projection(body: bytes, *, kernel_gnu_typeof: bool = False) -> tuple[bytes, int, int, int]:
+    """Preserve lexical content while normalising only known compiler-output syntax."""
     text = body.decode("utf-8")
-    extensions = 0
-    pragmas = 0
-    output, outside, index = [], [], 0
+    extensions = pragmas = typeofs = 0
+    output: list[str] = []
+    outside: list[str] = []
+
+    def normalise_fragment(fragment: str) -> str:
+        nonlocal extensions, pragmas, typeofs
+        rendered: list[str] = []
+        for line in fragment.splitlines(keepends=True):
+            # Directives retain their complete lexical spelling: quoted operands
+            # (including a filename containing `typeof`) are never token-rewritten.
+            if line.lstrip().startswith("#"):
+                line = re.sub(r'^# (\d+) ("[^"\n]*")[^\n]*$', r'#line \1 \2', line)
+                line, omitted = re.subn(r"^#pragma GCC diagnostic[^\n]*", "", line)
+                pragmas += omitted
+                rendered.append(line)
+                continue
+            def remove_extension(match: re.Match) -> str:
+                return " " * len(match.group())
+            line, count = re.subn(r"(?<![A-Za-z0-9_])__extension__(?![A-Za-z0-9_])", remove_extension, line)
+            extensions += count
+            if kernel_gnu_typeof:
+                line, count = re.subn(r"(?<![A-Za-z0-9_])typeof(?![A-Za-z0-9_])", "__typeof__", line)
+                typeofs += count
+            rendered.append(line)
+        return "".join(rendered)
 
     def flush_outside() -> None:
-        nonlocal extensions, pragmas
-        if not outside:
-            return
-        fragment = "".join(outside)
-        outside.clear()
-        fragment = re.sub(r'^# (\d+) ("[^"\n]*")[^\n]*$', r'#line \1 \2', fragment, flags=re.M)
-        fragment, omitted = re.subn(r"^#pragma GCC diagnostic[^\n]*$", "", fragment, flags=re.M)
-        pragmas += omitted
+        if outside:
+            output.append(normalise_fragment("".join(outside)))
+            outside.clear()
 
-        def replace(match: re.Match) -> str:
-            nonlocal extensions
-            extensions += 1
-            return " " * len(match.group())
-
-        output.append(re.sub(r"(?<![A-Za-z0-9_])__extension__(?![A-Za-z0-9_])", replace, fragment))
-
+    index = 0
     while index < len(text):
+        # Raw literals must precede ordinary quote handling.
         if text.startswith('R"', index):
             delimiter_end = text.find("(", index + 2, index + 19)
             if delimiter_end != -1:
                 delimiter = text[index + 2:delimiter_end]
-                terminator = ")" + delimiter + '"'
-                end = text.find(terminator, delimiter_end + 1)
+                end = text.find(")" + delimiter + '"', delimiter_end + 1)
                 if end != -1:
-                    end += len(terminator)
-                    flush_outside()
-                    output.append(text[index:end])
-                    index = end
-                    continue
+                    end += len(delimiter) + 2
+                    flush_outside(); output.append(text[index:end]); index = end; continue
+        # Comments are opaque: directives and token rewrites cannot cross them.
+        if text.startswith("//", index):
+            end = text.find("\n", index)
+            # A backslash-newline continues a line comment; retain every continued
+            # line as opaque lexical content.
+            while end != -1:
+                # Translation phase 2 splices the last backslash even when
+                # another backslash precedes it; this is not string escaping.
+                if end == index or text[end - 1] != "\\":
+                    break
+                end = text.find("\n", end + 1)
+            end = len(text) if end == -1 else end
+            flush_outside(); output.append(text[index:end]); index = end; continue
+        if text.startswith("/*", index):
+            end = text.find("*/", index + 2)
+            end = len(text) if end == -1 else end + 2
+            flush_outside(); output.append(text[index:end]); index = end; continue
         if text[index] in "\"'":
             quote, end = text[index], index + 1
             while end < len(text):
-                if text[end] == "\\":
-                    end += 2
-                elif text[end] == quote:
-                    end += 1
-                    break
-                else:
-                    end += 1
-            # A preprocessor directive is a whole logical line. Keep quoted
-            # directive operands with the outside fragment so #line and GCC
-            # diagnostic matching sees the complete directive.
+                if text[end] == "\\": end += 2
+                elif text[end] == quote: end += 1; break
+                else: end += 1
+            # Keep directive strings with the directive, so #line conversion is whole-line.
             current_line = "".join(outside).rsplit("\n", 1)[-1]
             if current_line.lstrip().startswith("#"):
                 outside.append(text[index:end])
-                index = end
-                continue
-            flush_outside()
-            output.append(text[index:end])
-            index = end
-            continue
-        outside.append(text[index])
-        index += 1
+            else:
+                flush_outside(); output.append(text[index:end])
+            index = end; continue
+        outside.append(text[index]); index += 1
     flush_outside()
-    return "".join(output).encode(), pragmas, extensions
-
+    return "".join(output).encode(), pragmas, extensions, typeofs
 
 def project_cppcheck_translation_units(source: Path, selected: list[dict], out: Path,
                                       budget: EvidenceBudget) -> tuple[list[dict], list[dict]]:
@@ -1377,32 +1454,40 @@ def project_cppcheck_translation_units(source: Path, selected: list[dict], out: 
                 "sha256": bound_inputs,
                 "recorded_compiler": row,
             }
+        stage_arguments = ()
+        if relative in CPPHECK_NEW_ANALYSIS_KERNEL_RELATIVES:
+            stage_inputs, stage_evidence = _kernel_stage_analysis_inputs(source, relative)
+            bound_inputs.update(stage_inputs)
+            context_evidence = {**(context_evidence or {}), "stage_context": stage_evidence}
+            stage_arguments = _kernel_stage_quote_arguments(relative, source / "benchmark-work/native-rc-check-v1/kernel-module-v4/stage")
+        projection_limit = _projection_size_limit(relative)
         reservation = f"cppcheck-projected-{index}"
         suffix = Path(row["file"]).suffix
         destination = projected_root / f"{index}{suffix}"
         # The compiler creates this file externally.  Admit its directory entry
         # before launch, then reserve the bounded payload it may replace it with.
         budget.write_bytes(destination, b"")
-        budget.reserve(reservation, CPPHECK_PROJECTED_TU_BYTES)
+        budget.reserve(reservation, projection_limit)
         try:
-            argv = _projected_command(row, destination)
+            argv = _projected_command(row, destination, stage_arguments)
             removed_outputs = context.preprocess_command(row, destination).removed_dependency_outputs
             sandbox_argv = ["bwrap", "--die-with-parent", "--unshare-net", "--ro-bind", "/", "/",
                             "--bind", str(projected_root), str(projected_root), "--", *argv]
             process = subprocess.Popen(sandbox_argv, cwd=row["directory"], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                       start_new_session=True, preexec_fn=_projected_file_limit)
+                                       start_new_session=True, preexec_fn=lambda: _projected_file_limit(projection_limit))
             stdout, stderr = collect_bounded_pipes(process, budget, timeout=60, maximum=FAILURE_LOG_BYTES)
             if process.returncode:
                 raise RuntimeError("compiler preprocessing failed for " + row["file"] + ": " + stderr.decode(errors="replace"))
             if stdout:
                 raise RuntimeError("compiler preprocessing unexpectedly wrote stdout for " + row["file"])
-            if not destination.is_file() or destination.stat().st_size > CPPHECK_PROJECTED_TU_BYTES:
+            if not destination.is_file() or destination.stat().st_size > projection_limit:
                 raise EvidenceLimitError("preprocessed translation unit exceeded its declared bound")
             if any(digest(Path(name)) != expected for name, expected in bound_inputs.items()):
                 raise RuntimeError("projection input changed during compiler preprocessing")
             original = destination.read_bytes()
-            normalised, pragmas, extensions = _normalise_preprocessor_projection(original)
-            budget.commit_external(reservation, destination, CPPHECK_PROJECTED_TU_BYTES)
+            normalised, pragmas, extensions, typeofs = _normalise_preprocessor_projection(
+                original, kernel_gnu_typeof=relative == "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_decompressor.c")
+            budget.commit_external(reservation, destination, projection_limit)
             budget.write_bytes(destination, normalised)
             mapped = {**row, "file": str(destination),
                       "arguments": [str(destination) if not value.startswith("-") and
@@ -1416,9 +1501,11 @@ def project_cppcheck_translation_units(source: Path, selected: list[dict], out: 
                              "removed_dependency_outputs": list(removed_outputs),
                              "gcc_preprocessed_sha256": hashlib.sha256(original).hexdigest(),
                              "projected_sha256": digest(destination), "bytes": destination.stat().st_size,
+                             "size_limit_bytes": projection_limit,
                              "line_markers": "GNU markers normalised to standard #line",
                              "gcc_diagnostic_pragmas_omitted": pragmas,
-                             "gcc_extension_markers_omitted": extensions})
+                             "gcc_extension_markers_omitted": extensions,
+                             "gnu_typeof_spellings_normalised": typeofs})
         finally:
             budget.release(reservation)
     return _replace_projected_rows(selected, projected_rows, receipts), receipts

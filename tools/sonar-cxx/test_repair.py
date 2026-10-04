@@ -51,17 +51,36 @@ class RepairAcceptanceTests(unittest.TestCase):
             self.assertIsNotNone(process.returncode)
             self.assertNotEqual(process.returncode, 0)
 
-    def test_projection_preexec_applies_the_file_limit(self):
+    def test_projection_preexec_applies_the_selected_file_limit(self):
         with patch.object(repair.resource, "setrlimit") as setrlimit:
-            repair._projected_file_limit()
+            repair._projected_file_limit(repair.CPPHECK_KERNEL_PROJECTED_TU_BYTES)
         setrlimit.assert_called_once_with(repair.resource.RLIMIT_FSIZE,
-                                          (repair.CPPHECK_PROJECTED_TU_BYTES, repair.CPPHECK_PROJECTED_TU_BYTES))
+                                          (repair.CPPHECK_KERNEL_PROJECTED_TU_BYTES, repair.CPPHECK_KERNEL_PROJECTED_TU_BYTES))
+
+    def test_projection_size_allowance_is_only_the_two_new_kernel_tus(self):
+        larger = {
+            "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_decompressor.c",
+            "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_fs_register.c",
+        }
+        self.assertEqual({path for path in repair.CPPHECK_PROBE_V2_CONFIRMED_RELATIVES
+                          if repair._projection_size_limit(path) == repair.CPPHECK_KERNEL_PROJECTED_TU_BYTES}, larger)
+        self.assertEqual(repair._projection_size_limit(
+            "rust/cix-native/adapters/blosc2/tests/blosc2_cix_contract.c"), repair.CPPHECK_PROJECTED_TU_BYTES)
+
+    def test_kernel_stage_quote_is_only_for_the_recorded_decompressor(self):
+        stage = Path("/retained/kernel-stage")
+        self.assertEqual(repair._kernel_stage_quote_arguments(
+            "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_decompressor.c", stage), ("-iquote", str(stage)))
+        self.assertEqual(repair._kernel_stage_quote_arguments(
+            "rust/cix-native/adapters/squashfs/kernel/cix_squashfs_fs_register.c", stage), ())
 
     def test_projected_command_replays_compile_operands_as_preprocess(self):
         row = {"directory": "/source", "file": "/source/unit.cpp", "arguments": ["/usr/bin/c++", "-DVALUE=1", "-c",
                "/source/unit.cpp", "-o", "/old/unit.o"]}
         argv = repair._projected_command(row, Path("/evidence/unit.cpp"))
         self.assertEqual(argv, ["/usr/bin/c++", "-DVALUE=1", "/source/unit.cpp", "-E", "-o", "/evidence/unit.cpp"])
+        quoted = repair._projected_command(row, Path("/evidence/unit.cpp"), ("-iquote", "/retained/stage"))
+        self.assertEqual(quoted[:3], ["/usr/bin/c++", "-iquote", "/retained/stage"])
 
     def test_context_probe_projection_selection_is_exactly_the_three_confirmed_raw_tus(self):
         self.assertEqual(repair.CPPHECK_PROBE_V2_CONFIRMED_RELATIVES, frozenset({
@@ -93,11 +112,33 @@ class RepairAcceptanceTests(unittest.TestCase):
             'const char* quoted = "__extension__";\nconst char* raw = R"tag(__extension__\n# 77 "literal.cpp"\n#pragma GCC diagnostic ignored)tag";\n'
             '__extension__ int value;\n'
         ).encode()
-        projected, pragmas, extensions = repair._normalise_preprocessor_projection(source)
+        projected, pragmas, extensions, typeofs = repair._normalise_preprocessor_projection(source)
         self.assertIn(b'#line 12 "fixture.cpp"', projected)
         self.assertIn(b'"__extension__"', projected)
         self.assertIn(b'R"tag(__extension__\n# 77 "literal.cpp"\n#pragma GCC diagnostic ignored)tag"', projected)
-        self.assertEqual((pragmas, extensions), (1, 1))
+        self.assertEqual((pragmas, extensions, typeofs), (1, 1, 0))
+
+    def test_kernel_typeof_normalisation_changes_only_code_tokens(self):
+        source = b'typeof(value) x; typeof_name y; const char *s = "typeof(y)"; /* typeof(z) */ R"tag(typeof(raw))tag"\n#define TYPE typeof("typeof-directive")\n// typeof(comment) \\\n typeof(continued-comment)\n'
+        projected, _, _, count = repair._normalise_preprocessor_projection(source, kernel_gnu_typeof=True)
+        self.assertEqual(count, 1)
+        self.assertIn(b'__typeof__(value)', projected)
+        self.assertIn(b'typeof_name', projected)
+        self.assertIn(b'"typeof(y)"', projected)
+        self.assertIn(b'/* typeof(z) */', projected)
+        self.assertIn(b'R"tag(typeof(raw))tag"', projected)
+        self.assertIn(b'#define TYPE typeof("typeof-directive")', projected)
+        self.assertIn(b'// typeof(comment) \\\n typeof(continued-comment)', projected)
+        default, _, _, default_count = repair._normalise_preprocessor_projection(source)
+        self.assertEqual(default_count, 0)
+        self.assertIn(b'typeof(value)', default)
+
+    def test_typeof_normalisation_preserves_even_backslash_comment_splice(self):
+        source = b'// comment ' + bytes([92, 92, 10]) + b'typeof(still_comment)\ntypeof(value) x;\n'
+        projected, _, _, count = repair._normalise_preprocessor_projection(source, kernel_gnu_typeof=True)
+        self.assertEqual(count, 1)
+        self.assertIn(b'typeof(still_comment)', projected)
+        self.assertIn(b'__typeof__(value)', projected)
 
     def test_terminal_result_is_compacted_to_the_reserved_receipt_size(self):
         with tempfile.TemporaryDirectory() as folder:

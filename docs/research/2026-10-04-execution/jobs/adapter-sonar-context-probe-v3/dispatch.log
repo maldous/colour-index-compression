@@ -1,0 +1,37 @@
+Running as unit: cix-cxx-hygiene-anchor.service; invocation ID: 2447872203a6440a9a834b4b91d067ce
+Running as unit: cix-cxx-adapter-context-probe-v3.service; invocation ID: 47f0a66457f54bcbae9de2dbacd5f1b3
+3449918d77de89da81e7750f26dd085b5a31634a05bec9ab5bfae50a882b2773
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/adapter-sonar-context-probe-v3/run.py", line 288, in <module>
+    if __name__ == "__main__": main()
+                               ^^^^^^
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/adapter-sonar-context-probe-v3/run.py", line 249, in main
+    execute(out, "cix-cxx-hygiene.slice")
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/adapter-sonar-context-probe-v3/run.py", line 216, in execute
+    results["probe"] = repair.scan(h, base, password, token, envfile, parent,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/colour-index-compression/tools/sonar-cxx/repair.py", line 1695, in scan
+    cppcheck(source, files, out, commands, budget)
+  File "/home/user/src/colour-index-compression/tools/sonar-cxx/repair.py", line 1473, in cppcheck
+    selected, projections = project_cppcheck_translation_units(source, selected, out, budget)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/colour-index-compression/tools/sonar-cxx/repair.py", line 1396, in project_cppcheck_translation_units
+    raise RuntimeError("compiler preprocessing failed for " + row["file"] + ": " + stderr.decode(errors="replace"))
+RuntimeError: compiler preprocessing failed for /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/kernel/cix_squashfs_decompressor.c: gcc-13: internal compiler error: File size limit exceeded signal terminated program cc1
+Please submit a full bug report, with preprocessed source (by using -freport-bug).
+See <file:///usr/share/doc/gcc-13/README.Bugs> for instructions.
+
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 19.918s
+CPU time consumed: 2.750s
+Memory peak: 356.0K
+Memory swap peak: 0B
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/adapter-sonar-context-probe-v3/run.py", line 288, in <module>
+    if __name__ == "__main__": main()
+                               ^^^^^^
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/adapter-sonar-context-probe-v3/run.py", line 277, in main
+    if result.returncode: raise RuntimeError("adapter context probe failed; retained evidence explains the result")
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: adapter context probe failed; retained evidence explains the result
