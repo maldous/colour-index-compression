@@ -1,0 +1,106 @@
+{
+  "components": {
+    "sevenzip": {
+      "status": "fail",
+      "commands": [
+        {
+          "argv": [
+            "cmake",
+            "-S",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-source-v1/adapters/sevenzip",
+            "-B",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-v1/sevenzip-adapter",
+            "-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+            "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+            "-DCIX_7ZIP_SDK_ROOT=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1",
+            "-DCIX_7ZIP_SDK_ARCHIVE_SHA256=9cbde5099c6deb73691b0579063da5827522ccbbcba3f0020fd04e8c8c16c0d4",
+            "-DCIX_7ZIP_BUILD_CONTRACT=ON",
+            "-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-v1/sevenzip-prefix"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-v1",
+          "returncode": 0,
+          "stdout": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-v1/sevenzip-adapter\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "cmake",
+            "--build",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-v1/sevenzip-adapter",
+            "-j4"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-v1",
+          "returncode": 2,
+          "stdout": "[ 33%] Building CXX object CMakeFiles/cix_7zip_experimental_module.dir/cix_7zip_coder.cpp.o\n[ 33%] Building CXX object CMakeFiles/cix_7zip_experimental_coder.dir/cix_7zip_coder.cpp.o\n[ 33%] Building CXX object CMakeFiles/cix_7zip_experimental_module.dir/cix_7zip_module.cpp.o\n[ 44%] Building CXX object CMakeFiles/cix_7zip_experimental_module.dir/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/Compress/CodecExports.cpp.o\n[ 55%] Building CXX object CMakeFiles/cix_7zip_experimental_module.dir/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Common/MyWindows.cpp.o\n[ 66%] Linking CXX shared library libcix_7zip_experimental_module.so\n[ 77%] Linking CXX static library libcix_7zip_experimental_coder.a\n[ 77%] Built target cix_7zip_experimental_module\n[ 77%] Built target cix_7zip_experimental_coder\n[ 88%] Building CXX object CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o\n[100%] Linking CXX executable cix_7zip_contract\n",
+          "stderr": "/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: warning: relocation against `IID_IUnknown' in read-only section `.text'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `(anonymous namespace)::CMemoryIn::QueryInterface(GUID const&, void**)':\ncix_7zip_contract.cpp:(.text+0x2a): undefined reference to `IID_IUnknown'\n/usr/bin/ld: cix_7zip_contract.cpp:(.text+0x66): undefined reference to `IID_ISequentialInStream'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `(anonymous namespace)::CMemoryOut::QueryInterface(GUID const&, void**)':\ncix_7zip_contract.cpp:(.text+0x2d0): undefined reference to `IID_IUnknown'\n/usr/bin/ld: cix_7zip_contract.cpp:(.text+0x30c): undefined reference to `IID_ISequentialOutStream'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `(anonymous namespace)::CProgress::QueryInterface(GUID const&, void**)':\ncix_7zip_contract.cpp:(.text+0x5f2): undefined reference to `IID_IUnknown'\n/usr/bin/ld: cix_7zip_contract.cpp:(.text+0x62e): undefined reference to `IID_ICompressProgressInfo'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `(anonymous namespace)::ReadProperties(ICompressCoder*, std::vector<unsigned char, std::allocator<unsigned char> >*)':\ncix_7zip_contract.cpp:(.text+0x79a): undefined reference to `IID_ICompressWriteCoderProperties'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `(anonymous namespace)::SetDecoderProperties(ICompressCoder*, std::vector<unsigned char, std::allocator<unsigned char> > const&)':\ncix_7zip_contract.cpp:(.text+0x8ff): undefined reference to `IID_ICompressSetDecoderProperties2'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `main':\ncix_7zip_contract.cpp:(.text+0xd5e): undefined reference to `IID_ICompressCoder'\n/usr/bin/ld: cix_7zip_contract.cpp:(.text+0xd80): undefined reference to `IID_ICompressCoder'\n/usr/bin/ld: libcix_7zip_experimental_module.so: undefined reference to `IID_IHashers'\n/usr/bin/ld: libcix_7zip_experimental_module.so: undefined reference to `IID_ICompressCoder2'\n/usr/bin/ld: libcix_7zip_experimental_module.so: undefined reference to `IID_ICompressSetCoderProperties'\n/usr/bin/ld: libcix_7zip_experimental_module.so: undefined reference to `IID_ICompressFilter'\n/usr/bin/ld: warning: creating DT_TEXTREL in a PIE\ncollect2: error: ld returned 1 exit status\ngmake[2]: *** [CMakeFiles/cix_7zip_contract.dir/build.make:98: cix_7zip_contract] Error 1\ngmake[1]: *** [CMakeFiles/Makefile2:139: CMakeFiles/cix_7zip_contract.dir/all] Error 2\ngmake: *** [Makefile:136: all] Error 2\n"
+        }
+      ],
+      "error": "/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: warning: relocation against `IID_IUnknown' in read-only section `.text'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `(anonymous namespace)::CMemoryIn::QueryInterface(GUID const&, void**)':\ncix_7zip_contract.cpp:(.text+0x2a): undefined reference to `IID_IUnknown'\n/usr/bin/ld: cix_7zip_contract.cpp:(.text+0x66): undefined reference to `IID_ISequentialInStream'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `(anonymous namespace)::CMemoryOut::QueryInterface(GUID const&, void**)':\ncix_7zip_contract.cpp:(.text+0x2d0): undefined reference to `IID_IUnknown'\n/usr/bin/ld: cix_7zip_contract.cpp:(.text+0x30c): undefined reference to `IID_ISequentialOutStream'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `(anonymous namespace)::CProgress::QueryInterface(GUID const&, void**)':\ncix_7zip_contract.cpp:(.text+0x5f2): undefined reference to `IID_IUnknown'\n/usr/bin/ld: cix_7zip_contract.cpp:(.text+0x62e): undefined reference to `IID_ICompressProgressInfo'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `(anonymous namespace)::ReadProperties(ICompressCoder*, std::vector<unsigned char, std::allocator<unsigned char> >*)':\ncix_7zip_contract.cpp:(.text+0x79a): undefined reference to `IID_ICompressWriteCoderProperties'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `(anonymous namespace)::SetDecoderProperties(ICompressCoder*, std::vector<unsigned char, std::allocator<unsigned char> > const&)':\ncix_7zip_contract.cpp:(.text+0x8ff): undefined reference to `IID_ICompressSetDecoderProperties2'\n/usr/bin/ld: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o: in function `main':\ncix_7zip_contract.cpp:(.text+0xd5e): undefined reference to `IID_ICompressCoder'\n/usr/bin/ld: cix_7zip_contract.cpp:(.text+0xd80): undefined reference to `IID_ICompressCoder'\n/usr/bin/ld: libcix_7zip_experimental_module.so: undefined reference to `IID_IHashers'\n/usr/bin/ld: libcix_7zip_experimental_module.so: undefined reference to `IID_ICompressCoder2'\n/usr/bin/ld: libcix_7zip_experimental_module.so: undefined reference to `IID_ICompressSetCoderProperties'\n/usr/bin/ld: libcix_7zip_experimental_module.so: undefined reference to `IID_ICompressFilter'\n/usr/bin/ld: warning: creating DT_TEXTREL in a PIE\ncollect2: error: ld returned 1 exit status\ngmake[2]: *** [CMakeFiles/cix_7zip_contract.dir/build.make:98: cix_7zip_contract] Error 1\ngmake[1]: *** [CMakeFiles/Makefile2:139: CMakeFiles/cix_7zip_contract.dir/all] Error 2\ngmake: *** [Makefile:136: all] Error 2\n"
+    },
+    "http": {
+      "status": "fail",
+      "commands": [
+        {
+          "argv": [
+            "/usr/bin/go",
+            "-C",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-source-v1/adapters/network",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "env_extra": {
+            "PKG_CONFIG_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/pkgconfig",
+            "LD_LIBRARY_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib",
+            "GOCACHE": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/go-binding-cache",
+            "GOPROXY": "off",
+            "CIX_NETWORK_HOST": "1"
+          },
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-v1",
+          "returncode": 1,
+          "stdout": "?   \texample.invalid/cix/network\t[no test files]\n--- FAIL: TestHTTPStandardCodingMatrixAndRejections (0.02s)\n    --- FAIL: TestHTTPStandardCodingMatrixAndRejections/br (0.00s)\n        http_contract_test.go:94: CIX standard-format sizing failed: status 2\n    --- FAIL: TestHTTPStandardCodingMatrixAndRejections/zstd (0.00s)\n        http_contract_test.go:94: CIX standard-format sizing failed: status 6\nFAIL\nFAIL\texample.invalid/cix/network/contracts\t0.026s\nok  \texample.invalid/cix/network/httpapi\t0.002s\nFAIL\n",
+          "stderr": ""
+        }
+      ],
+      "error": "?   \texample.invalid/cix/network\t[no test files]\n--- FAIL: TestHTTPStandardCodingMatrixAndRejections (0.02s)\n    --- FAIL: TestHTTPStandardCodingMatrixAndRejections/br (0.00s)\n        http_contract_test.go:94: CIX standard-format sizing failed: status 2\n    --- FAIL: TestHTTPStandardCodingMatrixAndRejections/zstd (0.00s)\n        http_contract_test.go:94: CIX standard-format sizing failed: status 6\nFAIL\nFAIL\texample.invalid/cix/network/contracts\t0.026s\nok  \texample.invalid/cix/network/httpapi\t0.002s\nFAIL\n"
+    },
+    "wasm": {
+      "status": "fail",
+      "commands": [
+        {
+          "argv": [
+            "/usr/bin/node",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-source-v1/adapters/wasm/portable_streaming.mjs",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/wasm32-unknown-unknown/release/cix_portable.wasm"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-v1",
+          "returncode": 0,
+          "stdout": "{\"input\":66449,\"archive\":45870,\"exact\":true,\"streaming\":true}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "python3",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-source-v1/adapters/wasm/run_browser_streaming.py",
+            "--wasm",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/wasm32-unknown-unknown/release/cix_portable.wasm",
+            "--chromium",
+            "/snap/bin/chromium"
+          ],
+          "env_extra": {
+            "TMPDIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-v1"
+          },
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/consumer-hosts-v1",
+          "returncode": 1,
+          "stdout": "{\"status\": \"FAIL\", \"reason\": \"chromium invocation or result marker failed\", \"returncode\": 1, \"stderr\": \"snap-confine is packaged without necessary permissions and cannot continue\\nrequired permitted capability cap_dac_override not found in current capabilities:\\n  =\\n\"}\n",
+          "stderr": ""
+        }
+      ],
+      "error": "{\"status\": \"FAIL\", \"reason\": \"chromium invocation or result marker failed\", \"returncode\": 1, \"stderr\": \"snap-confine is packaged without necessary permissions and cannot continue\\nrequired permitted capability cap_dac_override not found in current capabilities:\\n  =\\n\"}\n"
+    }
+  },
+  "native_sha256": "8cfb14fe08a81105eaf6135b4eada992dae6d6c91e9ca17367fd578dec7205d1"
+}

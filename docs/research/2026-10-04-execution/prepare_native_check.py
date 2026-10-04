@@ -16,11 +16,11 @@ WORK = ROOT / "benchmark-work/native-rc-check-v1"
 CARGO = "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo"
 
 
-def inventory(path):
+def inventory(path, excluded=()):
     return {
         str(p.relative_to(path)): hashlib.sha256(p.read_bytes()).hexdigest()
         for p in sorted(path.rglob("*"))
-        if p.is_file() and not any(x in {"target", ".git"} for x in p.relative_to(path).parts)
+        if p.is_file() and not any(x in {"target", ".git", *excluded} for x in p.relative_to(path).parts)
     }
 
 
@@ -29,6 +29,8 @@ def main():
     parser.add_argument("name")
     parser.add_argument("--test", action="append", default=[])
     parser.add_argument("--lib-filter", action="append", default=[])
+    parser.add_argument("--rust-inputs-only", action="store_true",
+                        help="Exclude separately qualified adapters/bindings/packaging from the Rust snapshot")
     args = parser.parse_args()
     if not args.name.replace("-", "").isalnum():
         parser.error("name must contain letters, digits and hyphens")
@@ -37,13 +39,15 @@ def main():
     snapshot = WORK / ("execution-" + args.name)
     if job.exists() or snapshot.exists():
         parser.error("immutable job identity already exists")
-    before = inventory(source)
-    shutil.copytree(source, snapshot, ignore=shutil.ignore_patterns("target", ".git"))
-    actual = inventory(snapshot)
-    after = inventory(source)
+    excluded = ("adapters", "bindings", "packaging") if args.rust_inputs_only else ()
+    before = inventory(source, excluded)
+    shutil.copytree(source, snapshot, ignore=shutil.ignore_patterns("target", ".git", *excluded))
+    actual = inventory(snapshot, excluded)
+    after = inventory(source, excluded)
     job.mkdir(parents=True)
     (job / "source.json").write_text(json.dumps({
         "source": str(source), "snapshot": str(snapshot), "sha256": actual,
+        "excluded_directories": list(excluded),
         "head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         "stable_copy": before == actual == after,
     }, indent=2) + "\n")

@@ -12,6 +12,7 @@ use super::{
     selection::{
         self, CandidateExecutor, SelectionLimits, SelectionProfile, TrialDetails, TrialStatus,
     },
+    window_stream::{self, EncodeLimits, StreamSummary},
 };
 use std::{
     io::{self as stdio, Read, Write},
@@ -22,7 +23,11 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub const JOB_PROTOCOL_VERSION: u16 = 1;
+/// Version two adds the independent CIXW1 window-selection operation. Readers
+/// retain v1 request decoding so an existing whole-input client remains a
+/// valid one-shot client.
+pub const JOB_PROTOCOL_VERSION: u16 = 2;
+const JOB_PROTOCOL_V1: u16 = 1;
 pub const MAX_CONTROL_RECORD_BYTES: usize = 8 << 20;
 pub const MAX_CONTROL_TEXT_BYTES: usize = 16 << 10;
 pub const MAX_PROGRESS_STAGES: usize = 16;
@@ -32,6 +37,9 @@ const HEADER: usize = 4 + 2 + 1 + 4;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum JobOperation {
     SelectWholeInput,
+    /// Read bounded independent windows and publish one CIXW1 archive.
+    /// Every window starts a fresh selector and codec context.
+    SelectIndependentWindows,
     DecodeArchive,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -62,11 +70,24 @@ pub struct JobLimits {
     pub deadline_millis: Option<u64>,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct JobWindowReport {
+    pub window_bytes: usize,
+    pub windows: u64,
+    pub input_bytes: u64,
+    pub archive_bytes: u64,
+    pub independent_windows: u64,
+    /// These full-file capabilities deliberately do not cross a CIXW1 reset.
+    pub whole_only_omissions: Vec<String>,
+}
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct JobRequest {
     pub request_id: u64,
     pub operation: JobOperation,
     pub profile: JobProfile,
     pub limits: JobLimits,
+    /// Required only for `SelectIndependentWindows`; it is the maximum source
+    /// bytes retained for one independently selected CIXW1 record.
+    pub window_bytes: Option<usize>,
     pub diagnostics: bool,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -74,6 +95,7 @@ pub struct JobCapability {
     pub protocol_version: u16,
     pub select_whole_input: bool,
     pub decode_archive: bool,
+    pub select_independent_windows: bool,
     pub data_transport: String,
     pub cancellation: String,
 }
@@ -145,6 +167,7 @@ pub struct JobResult {
     pub operation: JobOperation,
     pub output_bytes: usize,
     pub selection: Option<JobSelectionReport>,
+    pub windows: Option<JobWindowReport>,
     pub decode_path: Option<String>,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -179,7 +202,10 @@ pub fn capabilities() -> JobCapability {
         protocol_version: JOB_PROTOCOL_VERSION,
         select_whole_input: true,
         decode_archive: true,
-        data_transport: "caller-provided Read/Write; no paths".into(),
+        select_independent_windows: true,
+        data_transport:
+            "caller-provided Read/Write; no paths; whole-input selection up to 128 MiB; bounded independent CIXW1 window selection and incremental CIXW1 archive decode"
+                .into(),
         cancellation: "cooperative stage-boundary cancellation; no in-process force-preemption"
             .into(),
     }
@@ -304,13 +330,15 @@ impl<'a> Take<'a> {
 fn op_tag(v: JobOperation) -> u8 {
     match v {
         JobOperation::SelectWholeInput => 1,
-        JobOperation::DecodeArchive => 2,
+        JobOperation::SelectIndependentWindows => 2,
+        JobOperation::DecodeArchive => 3,
     }
 }
 fn op(v: u8) -> Result<JobOperation, String> {
     match v {
         1 => Ok(JobOperation::SelectWholeInput),
-        2 => Ok(JobOperation::DecodeArchive),
+        2 => Ok(JobOperation::SelectIndependentWindows),
+        3 => Ok(JobOperation::DecodeArchive),
         _ => Err("unknown job operation".into()),
     }
 }
@@ -378,26 +406,27 @@ fn get_limits(t: &mut Take<'_>) -> Result<JobLimits, String> {
 /// Write one bounded control record. The data transport is intentionally not
 /// touched by this function.
 pub fn write_control<W: Write>(out: &mut W, record: &ControlRecord) -> Result<(), String> {
-    let (mut kind, mut p) = (0u8, Buf::default());
-    match record {
+    let mut p = Buf::default();
+    let kind = match record {
         ControlRecord::Request(r) => {
-            kind = 1;
             p.u64(r.request_id);
             p.u8(op_tag(r.operation));
             p.u8(profile_tag(r.profile));
             put_limits(&mut p, &r.limits)?;
+            p.opt_usize(r.window_bytes)?;
             p.u8(u8::from(r.diagnostics));
+            1
         }
         ControlRecord::Capability(c) => {
-            kind = 2;
             p.u16(c.protocol_version);
             p.u8(u8::from(c.select_whole_input));
             p.u8(u8::from(c.decode_archive));
+            p.u8(u8::from(c.select_independent_windows));
             p.text(&c.data_transport)?;
             p.text(&c.cancellation)?;
+            2
         }
         ControlRecord::Progress(x) => {
-            kind = 3;
             p.u64(x.request_id);
             p.u8(match x.stage {
                 JobStage::Accepted => 1,
@@ -408,9 +437,9 @@ pub fn write_control<W: Write>(out: &mut W, record: &ControlRecord) -> Result<()
                 JobStage::DecodeFinished => 6,
                 JobStage::OutputWritten => 7,
             });
+            3
         }
         ControlRecord::Result(r) => {
-            kind = 4;
             p.u64(r.request_id);
             p.u8(op_tag(r.operation));
             p.usize(r.output_bytes)?;
@@ -419,18 +448,20 @@ pub fn write_control<W: Write>(out: &mut W, record: &ControlRecord) -> Result<()
                 put_report(&mut p, s)?
             }
             p.opt_text(&r.decode_path)?;
+            put_window_report(&mut p, &r.windows)?;
+            4
         }
         ControlRecord::Error(e) => {
-            kind = 5;
             p.u64(e.request_id);
             p.u8(e.code as u8);
             p.text(&e.message)?;
+            5
         }
         ControlRecord::Cancel { request_id } => {
-            kind = 6;
             p.u64(*request_id);
+            6
         }
-    }
+    };
     if p.failed || p.bytes.len() > MAX_CONTROL_RECORD_BYTES {
         return Err("control record exceeds limit".into());
     }
@@ -456,7 +487,8 @@ pub fn read_control<R: Read>(input: &mut R) -> Result<ControlRecord, String> {
     if h[..4] != MAGIC {
         return Err("invalid control magic".into());
     }
-    if u16::from_be_bytes([h[4], h[5]]) != JOB_PROTOCOL_VERSION {
+    let version = u16::from_be_bytes([h[4], h[5]]);
+    if version != JOB_PROTOCOL_V1 && version != JOB_PROTOCOL_VERSION {
         return Err("unsupported control version".into());
     }
     let n = usize::try_from(u32::from_be_bytes(h[7..11].try_into().unwrap()))
@@ -471,21 +503,42 @@ pub fn read_control<R: Read>(input: &mut R) -> Result<ControlRecord, String> {
     input.read_exact(&mut b).map_err(|e| e.to_string())?;
     let mut t = Take { b: &b, p: 0 };
     let record = match h[6] {
-        1 => ControlRecord::Request(JobRequest {
-            request_id: t.u64()?,
-            operation: op(t.u8()?)?,
-            profile: profile(t.u8()?)?,
-            limits: get_limits(&mut t)?,
-            diagnostics: match t.u8()? {
+        1 => {
+            let request_id = t.u64()?;
+            let operation = if version == JOB_PROTOCOL_V1 {
+                match t.u8()? {
+                    1 => JobOperation::SelectWholeInput,
+                    2 => JobOperation::DecodeArchive,
+                    _ => return Err("unknown v1 job operation".into()),
+                }
+            } else {
+                op(t.u8()?)?
+            };
+            let profile = profile(t.u8()?)?;
+            let limits = get_limits(&mut t)?;
+            let window_bytes = if version == JOB_PROTOCOL_V1 {
+                None
+            } else {
+                t.opt_usize()?
+            };
+            let diagnostics = match t.u8()? {
                 0 => false,
                 1 => true,
                 _ => return Err("invalid diagnostic flag".into()),
-            },
-        }),
+            };
+            ControlRecord::Request(JobRequest {
+                request_id,
+                operation,
+                profile,
+                limits,
+                window_bytes,
+                diagnostics,
+            })
+        }
         2 => {
-            let version = t.u16()?;
-            if version != JOB_PROTOCOL_VERSION {
-                return Err("unsupported capability version".into());
+            let capability_version = t.u16()?;
+            if capability_version != version {
+                return Err("capability version does not match control header".into());
             }
             let a = match t.u8()? {
                 0 => false,
@@ -497,10 +550,20 @@ pub fn read_control<R: Read>(input: &mut R) -> Result<ControlRecord, String> {
                 1 => true,
                 _ => return Err("invalid capability flag".into()),
             };
+            let select_independent_windows = if version == JOB_PROTOCOL_V1 {
+                false
+            } else {
+                match t.u8()? {
+                    0 => false,
+                    1 => true,
+                    _ => return Err("invalid capability flag".into()),
+                }
+            };
             ControlRecord::Capability(JobCapability {
-                protocol_version: version,
+                protocol_version: capability_version,
                 select_whole_input: a,
                 decode_archive: d,
+                select_independent_windows,
                 data_transport: t.text()?,
                 cancellation: t.text()?,
             })
@@ -518,7 +581,7 @@ pub fn read_control<R: Read>(input: &mut R) -> Result<ControlRecord, String> {
                 _ => return Err("unknown progress stage".into()),
             },
         }),
-        4 => get_result(&mut t)?,
+        4 => get_result(&mut t, version)?,
         5 => ControlRecord::Error(JobError {
             request_id: t.u64()?,
             code: match t.u8()? {
@@ -687,9 +750,17 @@ fn get_report(t: &mut Take<'_>) -> Result<JobSelectionReport, String> {
         selected,
     })
 }
-fn get_result(t: &mut Take<'_>) -> Result<ControlRecord, String> {
+fn get_result(t: &mut Take<'_>, version: u16) -> Result<ControlRecord, String> {
     let request_id = t.u64()?;
-    let operation = op(t.u8()?)?;
+    let operation = if version == JOB_PROTOCOL_V1 {
+        match t.u8()? {
+            1 => JobOperation::SelectWholeInput,
+            2 => JobOperation::DecodeArchive,
+            _ => return Err("unknown v1 job operation".into()),
+        }
+    } else {
+        op(t.u8()?)?
+    };
     let output_bytes = t.usize()?;
     let selection = match t.u8()? {
         0 => None,
@@ -697,12 +768,66 @@ fn get_result(t: &mut Take<'_>) -> Result<ControlRecord, String> {
         _ => return Err("invalid selection report option".into()),
     };
     let decode_path = t.opt_text()?;
+    let windows = if version == JOB_PROTOCOL_V1 {
+        None
+    } else {
+        get_window_report(t)?
+    };
     Ok(ControlRecord::Result(JobResult {
         request_id,
         operation,
         output_bytes,
         selection,
         decode_path,
+        windows,
+    }))
+}
+fn put_window_report(b: &mut Buf, report: &Option<JobWindowReport>) -> Result<(), String> {
+    b.u8(u8::from(report.is_some()));
+    let Some(report) = report else { return Ok(()) };
+    b.usize(report.window_bytes)?;
+    b.u64(report.windows);
+    b.u64(report.input_bytes);
+    b.u64(report.archive_bytes);
+    b.u64(report.independent_windows);
+    b.u32(
+        u32::try_from(report.whole_only_omissions.len())
+            .map_err(|_| "too many window omissions")?,
+    );
+    for omission in &report.whole_only_omissions {
+        b.text(omission)?;
+    }
+    Ok(())
+}
+fn get_window_report(t: &mut Take<'_>) -> Result<Option<JobWindowReport>, String> {
+    match t.u8()? {
+        0 => return Ok(None),
+        1 => {}
+        _ => return Err("invalid window report option".into()),
+    }
+    let window_bytes = t.usize()?;
+    let windows = t.u64()?;
+    let input_bytes = t.u64()?;
+    let archive_bytes = t.u64()?;
+    let independent_windows = t.u64()?;
+    let count = usize::try_from(t.u32()?).map_err(|_| "window omission count overflow")?;
+    if count > t.b.len().saturating_sub(t.p) / 4 {
+        return Err("too many window omissions".into());
+    }
+    let mut whole_only_omissions = Vec::new();
+    whole_only_omissions
+        .try_reserve_exact(count)
+        .map_err(|_| "diagnostic allocation failed")?;
+    for _ in 0..count {
+        whole_only_omissions.push(t.text()?);
+    }
+    Ok(Some(JobWindowReport {
+        window_bytes,
+        windows,
+        input_bytes,
+        archive_bytes,
+        independent_windows,
+        whole_only_omissions,
     }))
 }
 fn simple_status(v: TrialStatus) -> String {
@@ -827,6 +952,20 @@ fn validate_limits(request: &JobRequest) -> Result<Option<Instant>, String> {
     {
         return Err("whole-input job exceeds maximum input".into());
     }
+    match request.operation {
+        JobOperation::SelectIndependentWindows => {
+            let window = request
+                .window_bytes
+                .ok_or("windowed job requires window_bytes")?;
+            if window == 0 || window > selection::MAX_WHOLE_INPUT || window > l.memory_bytes {
+                return Err("invalid independent window size".into());
+            }
+        }
+        _ if request.window_bytes.is_some() => {
+            return Err("window_bytes is only valid for windowed jobs".into())
+        }
+        _ => {}
+    }
     l.deadline_millis
         .map(|m| {
             Instant::now()
@@ -878,6 +1017,156 @@ struct CountingWriter<W> {
     inner: W,
     count: usize,
     cap: usize,
+}
+
+struct CappedReader<R> {
+    inner: R,
+    count: usize,
+    cap: usize,
+}
+impl<R: Read> Read for CappedReader<R> {
+    fn read(&mut self, buffer: &mut [u8]) -> stdio::Result<usize> {
+        if buffer.is_empty() {
+            return Ok(0);
+        }
+        if self.count == self.cap {
+            let mut probe = [0u8; 1];
+            return match self.inner.read(&mut probe)? {
+                0 => Ok(0),
+                _ => Err(stdio::Error::other("job input exceeds declared cap")),
+            };
+        }
+        let limit = (self.cap - self.count).min(buffer.len());
+        let read = self.inner.read(&mut buffer[..limit])?;
+        self.count = self
+            .count
+            .checked_add(read)
+            .ok_or_else(|| stdio::Error::other("job input overflow"))?;
+        Ok(read)
+    }
+}
+
+fn window_omissions() -> Vec<String> {
+    vec![
+        "whole-file competition across windows and CIXM6 context retained across windows".into(),
+        "PAQ and other codec history crossing a window boundary".into(),
+        "CIXH1 regions or external CIXB1 payloads spanning multiple windows".into(),
+        "recognition or region selection requiring cross-window bytes".into(),
+        "whole-archive comparison; each CIXW1 record resets independently".into(),
+    ]
+}
+
+/// Run bounded, independent full-engine selections and emit one CIXW1 carrier.
+/// Its result intentionally reports the reset cost instead of claiming parity
+/// with a whole-input selection.
+pub fn execute_select_independent_windows<
+    E: CandidateExecutor + Clone,
+    R: Read,
+    W: Write,
+    F: FnMut(JobProgress),
+>(
+    request: &JobRequest,
+    source: R,
+    destination: W,
+    executor: E,
+    cancel: CancelToken,
+    mut emit: F,
+) -> Result<JobResult, String> {
+    if request.operation != JobOperation::SelectIndependentWindows {
+        return Err("wrong job operation".into());
+    }
+    let deadline = validate_limits(request)?;
+    let window_bytes = request.window_bytes.expect("validated window size");
+    stage(request.request_id, JobStage::Accepted, &mut emit, &cancel)?;
+    stage(
+        request.request_id,
+        JobStage::SelectionStarted,
+        &mut emit,
+        &cancel,
+    )?;
+    let archive_cap = request
+        .limits
+        .archive_bytes
+        .min(request.limits.output_bytes);
+    let mut output = CountingWriter {
+        inner: destination,
+        count: 0,
+        cap: archive_cap,
+    };
+    let mut input = CappedReader {
+        inner: source,
+        count: 0,
+        cap: request.limits.input_bytes,
+    };
+    let summary: StreamSummary = window_stream::encode(
+        &mut input,
+        &mut output,
+        &EncodeLimits {
+            window_bytes,
+            memory_bytes: request.limits.memory_bytes,
+            output_bytes: archive_cap,
+            deadline,
+            cancellation: Some(cancel.as_arc()),
+        },
+        |window, selection_memory| {
+            let per_window_output = window
+                .len()
+                .checked_add(2 << 20)
+                .ok_or("window selection output bound overflow")?
+                .min(archive_cap);
+            let required = selection::minimum_whole_input_memory(window.len(), per_window_output)?;
+            if selection_memory < required {
+                return Err("window cannot admit bounded local selection".into());
+            }
+            let selected = selection::select_whole_input(
+                window,
+                match request.profile {
+                    JobProfile::Fast => SelectionProfile::Fast,
+                    JobProfile::Default => SelectionProfile::Default,
+                    JobProfile::Best => SelectionProfile::Best,
+                },
+                SelectionLimits {
+                    memory_bytes: selection_memory,
+                    workers: request.limits.workers,
+                    temporary_bytes: request.limits.temporary_bytes,
+                    output_bytes: per_window_output,
+                    intermediate_bytes: request.limits.intermediate_bytes,
+                    deadline,
+                    cancellation: Some(cancel.as_arc()),
+                },
+                executor.clone(),
+            )?;
+            Ok(selected.archive)
+        },
+    )?;
+    stage(request.request_id, JobStage::InputRead, &mut emit, &cancel)?;
+    stage(
+        request.request_id,
+        JobStage::SelectionFinished,
+        &mut emit,
+        &cancel,
+    )?;
+    stage(
+        request.request_id,
+        JobStage::OutputWritten,
+        &mut emit,
+        &cancel,
+    )?;
+    Ok(JobResult {
+        request_id: request.request_id,
+        operation: request.operation,
+        output_bytes: output.count,
+        selection: None,
+        decode_path: None,
+        windows: Some(JobWindowReport {
+            window_bytes,
+            windows: summary.windows,
+            input_bytes: summary.input_bytes,
+            archive_bytes: summary.archive_bytes,
+            independent_windows: summary.independent_windows,
+            whole_only_omissions: window_omissions(),
+        }),
+    })
 }
 impl<W: Write> Write for CountingWriter<W> {
     fn write(&mut self, data: &[u8]) -> stdio::Result<usize> {
@@ -981,6 +1270,7 @@ pub fn execute_select_whole_input<
         output_bytes: r.archive.len(),
         selection: request.diagnostics.then(|| report_of(r.report)),
         decode_path: None,
+        windows: None,
     })
 }
 
@@ -1045,9 +1335,11 @@ pub fn execute_decode<R: Read, W: Write, F: FnMut(JobProgress)>(
                 DecodePath::NativeIncremental => "native-incremental",
                 DecodePath::NativeCoreBuffered => "native-core-buffered",
                 DecodePath::FullFrameBuffered => "full-frame-buffered",
+                DecodePath::WindowIncremental => "window-incremental",
             }
             .into(),
         ),
+        windows: None,
     })
 }
 
@@ -1086,6 +1378,7 @@ mod tests {
                 workers: 1,
                 deadline_millis: None,
             },
+            window_bytes: None,
             diagnostics: true,
         }
     }
@@ -1097,11 +1390,19 @@ mod tests {
         assert_eq!(read_control(&mut Cursor::new(b)).unwrap(), r)
     }
     #[test]
+    fn capabilities_describe_bounded_whole_selection_and_cixw1_decode() {
+        let capability = capabilities();
+        assert!(capability.select_whole_input && capability.decode_archive);
+        assert!(capability.select_independent_windows);
+        assert!(capability.data_transport.contains("128 MiB"));
+        assert!(capability.data_transport.contains("CIXW1"));
+    }
+    #[test]
     fn rejects_unknown_version_oversize_truncated_and_utf8() {
         let mut b = Vec::new();
         write_control(&mut b, &ControlRecord::Request(request())).unwrap();
         b[4] = 0;
-        b[5] = 2;
+        b[5] = 3;
         assert!(read_control(&mut Cursor::new(b)).is_err());
         let mut h = Vec::from(MAGIC);
         h.extend_from_slice(&JOB_PROTOCOL_VERSION.to_be_bytes());
@@ -1154,6 +1455,249 @@ mod tests {
         )
         .is_err());
     }
+    fn window_request(input_cap: usize) -> JobRequest {
+        JobRequest {
+            request_id: 8,
+            operation: JobOperation::SelectIndependentWindows,
+            profile: JobProfile::Fast,
+            limits: JobLimits {
+                input_bytes: input_cap,
+                archive_bytes: 4096,
+                output_bytes: 4096,
+                memory_bytes: 64 << 20,
+                intermediate_bytes: 1 << 20,
+                temporary_bytes: 1 << 20,
+                workers: 1,
+                deadline_millis: None,
+            },
+            window_bytes: Some(3),
+            diagnostics: true,
+        }
+    }
+    #[test]
+    fn window_selection_handles_empty_and_multiple_independent_records() {
+        let mut archive = Vec::new();
+        let empty = execute_select_independent_windows(
+            &window_request(1),
+            Cursor::new(Vec::new()),
+            &mut archive,
+            Fake,
+            CancelToken::new(),
+            |_| {},
+        )
+        .unwrap();
+        assert!(archive.starts_with(window_stream::MAGIC));
+        let report = empty.windows.expect("window report");
+        assert_eq!(report.windows, 0);
+        assert_eq!(report.input_bytes, 0);
+        assert_eq!(report.independent_windows, 0);
+        assert!(report
+            .whole_only_omissions
+            .iter()
+            .any(|x| x.contains("resets")));
+
+        let mut archive = Vec::new();
+        let result = execute_select_independent_windows(
+            &window_request(7),
+            Cursor::new(b"abcdefg".to_vec()),
+            &mut archive,
+            Fake,
+            CancelToken::new(),
+            |_| {},
+        )
+        .unwrap();
+        let report = result.windows.expect("window report");
+        assert_eq!(
+            (
+                report.windows,
+                report.input_bytes,
+                report.independent_windows
+            ),
+            (3, 7, 3)
+        );
+        assert_eq!(result.output_bytes, archive.len());
+    }
+    #[test]
+    fn window_selection_enforces_cumulative_cap_and_cancel_before_writing() {
+        let mut archive = Vec::new();
+        let error = execute_select_independent_windows(
+            &window_request(2),
+            Cursor::new(b"abc".to_vec()),
+            &mut archive,
+            Fake,
+            CancelToken::new(),
+            |_| {},
+        )
+        .unwrap_err();
+        assert!(error.contains("declared cap"));
+        let cancelled = CancelToken::new();
+        cancelled.cancel();
+        let mut archive = Vec::new();
+        assert!(execute_select_independent_windows(
+            &window_request(3),
+            Cursor::new(b"abc".to_vec()),
+            &mut archive,
+            Fake,
+            cancelled,
+            |_| {},
+        )
+        .is_err());
+        assert!(archive.is_empty());
+
+        let mut expired = window_request(3);
+        expired.limits.deadline_millis = Some(0);
+        let mut archive = Vec::new();
+        assert!(execute_select_independent_windows(
+            &expired,
+            Cursor::new(b"abc".to_vec()),
+            &mut archive,
+            Fake,
+            CancelToken::new(),
+            |_| {},
+        )
+        .is_err());
+        assert!(archive.is_empty());
+    }
+    #[test]
+    fn v1_whole_request_remains_a_valid_one_shot_request() {
+        let r = request();
+        let mut payload = Buf::default();
+        payload.u64(r.request_id);
+        payload.u8(1); // v1 whole-input operation
+        payload.u8(profile_tag(r.profile));
+        put_limits(&mut payload, &r.limits).unwrap();
+        payload.u8(u8::from(r.diagnostics));
+        let mut wire = Vec::from(MAGIC);
+        wire.extend_from_slice(&JOB_PROTOCOL_V1.to_be_bytes());
+        wire.push(1);
+        wire.extend_from_slice(&(payload.bytes.len() as u32).to_be_bytes());
+        wire.extend_from_slice(&payload.bytes);
+        let ControlRecord::Request(decoded) = read_control(&mut Cursor::new(wire)).unwrap() else {
+            panic!("expected request")
+        };
+        assert_eq!(decoded.operation, JobOperation::SelectWholeInput);
+        assert_eq!(decoded.window_bytes, None);
+        assert_eq!(decoded.request_id, r.request_id);
+
+        let mut decode_payload = Buf::default();
+        decode_payload.u64(r.request_id);
+        decode_payload.u8(2); // v1 decode operation
+        decode_payload.u8(profile_tag(r.profile));
+        put_limits(&mut decode_payload, &r.limits).unwrap();
+        decode_payload.u8(u8::from(r.diagnostics));
+        let ControlRecord::Request(decoded) =
+            read_control(&mut Cursor::new(v1_wire(1, decode_payload))).unwrap()
+        else {
+            panic!("expected request")
+        };
+        assert_eq!(decoded.operation, JobOperation::DecodeArchive);
+        assert_eq!(decoded.window_bytes, None);
+    }
+    fn v1_wire(kind: u8, payload: Buf) -> Vec<u8> {
+        let mut wire = Vec::from(MAGIC);
+        wire.extend_from_slice(&JOB_PROTOCOL_V1.to_be_bytes());
+        wire.push(kind);
+        wire.extend_from_slice(&(payload.bytes.len() as u32).to_be_bytes());
+        wire.extend_from_slice(&payload.bytes);
+        wire
+    }
+    #[test]
+    fn v1_capability_and_result_records_keep_their_original_layout() {
+        let mut capability = Buf::default();
+        capability.u16(JOB_PROTOCOL_V1);
+        capability.u8(1);
+        capability.u8(1);
+        capability.text("files").unwrap();
+        capability.text("cooperative").unwrap();
+        let ControlRecord::Capability(capability) =
+            read_control(&mut Cursor::new(v1_wire(2, capability))).unwrap()
+        else {
+            panic!("expected capability")
+        };
+        assert_eq!(capability.protocol_version, JOB_PROTOCOL_V1);
+        assert!(!capability.select_independent_windows);
+
+        for (tag, expected) in [
+            (1, JobOperation::SelectWholeInput),
+            (2, JobOperation::DecodeArchive),
+        ] {
+            let mut result = Buf::default();
+            result.u64(19);
+            result.u8(tag);
+            result.usize(23).unwrap();
+            result.u8(0);
+            result.opt_text(&None).unwrap();
+            let ControlRecord::Result(result) =
+                read_control(&mut Cursor::new(v1_wire(4, result))).unwrap()
+            else {
+                panic!("expected result")
+            };
+            assert_eq!(result.operation, expected);
+            assert_eq!(result.windows, None);
+            assert_eq!(result.output_bytes, 23);
+        }
+    }
+    #[test]
+    fn v1_progress_error_and_cancel_records_remain_accepted() {
+        let mut progress = Buf::default();
+        progress.u64(31);
+        progress.u8(4);
+        assert_eq!(
+            read_control(&mut Cursor::new(v1_wire(3, progress))).unwrap(),
+            ControlRecord::Progress(JobProgress {
+                request_id: 31,
+                stage: JobStage::SelectionFinished
+            })
+        );
+        let mut error = Buf::default();
+        error.u64(32);
+        error.u8(JobErrorCode::Execution as u8);
+        error.text("legacy error").unwrap();
+        assert_eq!(
+            read_control(&mut Cursor::new(v1_wire(5, error))).unwrap(),
+            ControlRecord::Error(JobError {
+                request_id: 32,
+                code: JobErrorCode::Execution,
+                message: "legacy error".into()
+            })
+        );
+        let mut cancel = Buf::default();
+        cancel.u64(33);
+        assert_eq!(
+            read_control(&mut Cursor::new(v1_wire(6, cancel))).unwrap(),
+            ControlRecord::Cancel { request_id: 33 }
+        );
+    }
+    #[test]
+    fn rejects_mismatched_capability_version_and_invalid_v2_window_flag() {
+        let mut capability = Buf::default();
+        capability.u16(JOB_PROTOCOL_V1);
+        capability.u8(1);
+        capability.u8(1);
+        capability.u8(0);
+        capability.text("files").unwrap();
+        capability.text("cooperative").unwrap();
+        let mut mismatch = Vec::from(MAGIC);
+        mismatch.extend_from_slice(&JOB_PROTOCOL_VERSION.to_be_bytes());
+        mismatch.push(2);
+        mismatch.extend_from_slice(&(capability.bytes.len() as u32).to_be_bytes());
+        mismatch.extend_from_slice(&capability.bytes);
+        assert!(read_control(&mut Cursor::new(mismatch)).is_err());
+
+        let mut result = Buf::default();
+        result.u64(41);
+        result.u8(2);
+        result.usize(0).unwrap();
+        result.u8(0);
+        result.opt_text(&None).unwrap();
+        result.u8(2);
+        let mut malformed = Vec::from(MAGIC);
+        malformed.extend_from_slice(&JOB_PROTOCOL_VERSION.to_be_bytes());
+        malformed.push(4);
+        malformed.extend_from_slice(&(result.bytes.len() as u32).to_be_bytes());
+        malformed.extend_from_slice(&result.bytes);
+        assert!(read_control(&mut Cursor::new(malformed)).is_err());
+    }
     #[test]
     fn decode_entry_counts_actual_native_output_and_finishes_stage() {
         let mut archive = Vec::new();
@@ -1198,5 +1742,64 @@ mod tests {
         assert_eq!(result.output_bytes, out.len());
         assert_eq!(out, b"job");
         assert_eq!(stages.last(), Some(&JobStage::OutputWritten));
+    }
+    #[test]
+    fn decode_entry_reports_incremental_window_path() {
+        use crate::full_engine::window_stream::{self, EncodeLimits};
+
+        let source = b"windowed job".to_vec();
+        let mut archive = Vec::new();
+        window_stream::encode(
+            Cursor::new(source.clone()),
+            &mut archive,
+            &EncodeLimits {
+                window_bytes: 64,
+                memory_bytes: 8 << 20,
+                output_bytes: 1024,
+                deadline: None,
+                cancellation: None,
+            },
+            |window, memory| {
+                core::encode_buffer(
+                    window,
+                    &NativeOptions {
+                        output_limit: 512,
+                        memory_limit: memory,
+                        ..NativeOptions::default()
+                    },
+                )
+                .map_err(|error| error.to_string())
+            },
+        )
+        .unwrap();
+        let engine = FullEngine {
+            backends: BackendProvider {
+                paths: TrustedBackendPaths {
+                    cix: "/not-used/cix".into(),
+                    paq_libraries: "/not-used/lib".into(),
+                    temporary_root: "/not-used/tmp".into(),
+                },
+            },
+            images: None,
+            spatial: None,
+        };
+        let mut request = request();
+        request.operation = JobOperation::DecodeArchive;
+        request.limits.archive_bytes = 1024;
+        request.limits.output_bytes = source.len();
+        request.limits.memory_bytes = 64 << 20;
+        request.limits.intermediate_bytes = 1 << 20;
+        let mut output = Vec::new();
+        let result = execute_decode(
+            &request,
+            &engine,
+            Cursor::new(archive),
+            &mut output,
+            CancelToken::new(),
+            |_| {},
+        )
+        .unwrap();
+        assert_eq!(output, source);
+        assert_eq!(result.decode_path.as_deref(), Some("window-incremental"));
     }
 }

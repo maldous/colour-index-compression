@@ -24,6 +24,10 @@ const OUTPUT_SLACK: usize = 2 * MIB;
 const MIN_REMAINDER: usize = 16 * MIB;
 const MAX_INPUT: usize = external::MAX_INPUT;
 const MAX_DIAGNOSTICS: usize = 64;
+// A BEST result retains its baseline plus fourteen CIXB1 diagnostics.  Keep
+// explicit block constraints bounded so the native family records remain
+// complete rather than silently falling off the diagnostics cap.
+const MAX_EXPLICIT_BLOCKS: usize = 16;
 const PREFIX_PRUNED: &str = "whole-archive candidate prefix cannot improve the incumbent";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -182,6 +186,169 @@ fn remaining(
         .checked_div(slots as u32)
         .filter(|v| !v.is_zero())
 }
+
+#[derive(Clone, Debug)]
+enum NativeTrialKind {
+    Cixg {
+        format: &'static str,
+        block: u32,
+        backend: String,
+        backend_set: bool,
+        effort: u8,
+        strategy: String,
+    },
+    M6 {
+        block: usize,
+        effort: u8,
+    },
+}
+
+#[derive(Clone, Debug)]
+struct NativeTrialSpec {
+    order: usize,
+    id: String,
+    budget: Duration,
+    kind: NativeTrialKind,
+}
+
+/// Return a fixed per-wave budget.  Unlike completion-driven allocations,
+/// this is independent of which worker returns first.  A family can consume
+/// at most its historical half-budget when every wave reaches its deadline.
+fn family_trial_budget(
+    options: &NativePortfolioOptions,
+    family: Duration,
+    started: Instant,
+    trial_count: usize,
+    workers: usize,
+) -> Option<Duration> {
+    if trial_count == 0 {
+        return None;
+    }
+    let waves = trial_count.checked_add(workers.checked_sub(1)?)? / workers;
+    remaining(options, family, started, waves)
+}
+
+/// The outer selector already reserves `options.workers` for its single
+/// native plan.  This local admission divides that reservation among native
+/// trials: source and incumbent are retained once; every concurrent trial
+/// reserves its full writer cap and a disjoint codec workspace.
+fn family_admission(
+    options: &NativePortfolioOptions,
+    source: usize,
+    winner: usize,
+    trial_count: usize,
+) -> Option<(usize, usize)> {
+    let maximum = options.workers.min(trial_count);
+    for slots in (1..=maximum).rev() {
+        let Some(outputs) = options.output_bytes.checked_mul(slots) else {
+            continue;
+        };
+        let Some(remaining) = options
+            .memory_bytes
+            .checked_sub(source)
+            .and_then(|value| value.checked_sub(winner))
+            .and_then(|value| value.checked_sub(outputs))
+        else {
+            continue;
+        };
+        let memory = remaining / slots;
+        if memory >= MIN_REMAINDER {
+            return Some((slots, memory));
+        }
+    }
+    None
+}
+
+/// Run fixed native trial specifications in bounded waves.  Results are
+/// returned in canonical specification order, not worker completion order.
+/// The closure receives a disjoint per-trial codec budget and must not start
+/// further worker pools.
+fn schedule_native_family<T, F, A>(
+    specs: Vec<NativeTrialSpec>,
+    options: &NativePortfolioOptions,
+    source: usize,
+    winner: usize,
+    run: F,
+    mut accept: A,
+) -> Result<(), String>
+where
+    T: Send,
+    F: Fn(&NativeTrialSpec, usize) -> Result<T, String> + Sync,
+    A: FnMut(Vec<(NativeTrialSpec, Result<T, String>)>) -> Result<(), String>,
+{
+    if specs.is_empty() {
+        return Ok(());
+    }
+    let Some((slots, memory)) = family_admission(options, source, winner, specs.len()) else {
+        return accept(
+            specs
+                .into_iter()
+                .map(|spec| {
+                    (
+                        spec,
+                        Err(
+                            "source, retained output and trial output exceed memory admission"
+                                .into(),
+                        ),
+                    )
+                })
+                .collect(),
+        );
+    };
+    let context = crate::limits::capture_context();
+    std::thread::scope(|scope| -> Result<(), String> {
+        use std::sync::mpsc;
+
+        let (sender, receiver) = mpsc::channel();
+        let mut pending = specs.into_iter();
+        loop {
+            if stopped(options) {
+                return Err("native portfolio cancelled or deadline exceeded".into());
+            }
+            let mut handles = Vec::new();
+            for _ in 0..slots {
+                let Some(spec) = pending.next() else {
+                    break;
+                };
+                let tx = sender.clone();
+                let child_context = context.clone();
+                let task = &run;
+                handles.push(scope.spawn(move || {
+                    let _context = crate::limits::install_context(&child_context);
+                    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        task(&spec, memory)
+                    }))
+                    .unwrap_or_else(|_| Err("native trial worker panicked".into()));
+                    let _ = tx.send((spec, result));
+                }));
+            }
+            if handles.is_empty() {
+                break;
+            }
+            let mut outcomes = Vec::with_capacity(handles.len());
+            for _ in 0..handles.len() {
+                outcomes.push(
+                    receiver
+                        .recv()
+                        .map_err(|_| "native trial scheduler channel closed")?,
+                );
+            }
+            for handle in handles {
+                handle.join().map_err(|_| "native trial worker panicked")?;
+            }
+            outcomes.sort_by_key(|(spec, _)| spec.order);
+            // `accept` consumes this wave before another one launches, so
+            // successful Vec results cannot remain retained across waves.
+            accept(outcomes)?;
+            // Do not launch another wave after an already-running trial has
+            // observed caller cancellation or the absolute deadline.
+            if stopped(options) {
+                return Err("native portfolio cancelled or deadline exceeded".into());
+            }
+        }
+        Ok(())
+    })
+}
 fn omission(
     out: &mut Vec<NativePortfolioCandidate>,
     id: impl Into<String>,
@@ -290,6 +457,10 @@ fn validate(
 ) -> Result<(), String> {
     let memory = available(o, input.len(), retained, archive_capacity)
         .ok_or("validation memory admission")?;
+    validate_with_memory(archive, input, memory)
+}
+
+fn validate_with_memory(archive: &[u8], input: &[u8], memory: usize) -> Result<(), String> {
     let mut restored = CompareWriter {
         expected: input,
         offset: 0,
@@ -337,142 +508,169 @@ fn consider(
     }
     Ok(())
 }
-fn native_trial(
+struct NativeTrialOutput {
+    candidate: Vec<u8>,
+}
+
+fn run_native_trial(
     input: &[u8],
     o: &NativePortfolioOptions,
-    winner: &mut Vec<u8>,
-    selected: &mut String,
-    diagnostics: &mut Vec<NativePortfolioCandidate>,
-    id: String,
-    budget: Duration,
-    format: &str,
-    block: u32,
-    backend: &str,
-    backend_set: bool,
-    constraints: &NativePortfolioConstraints,
-) -> Result<(), String> {
+    winner_len: usize,
+    memory: usize,
+    spec: &NativeTrialSpec,
+) -> Result<NativeTrialOutput, String> {
     check_interrupted()?;
-    let Some(memory) = available(o, input.len(), winner.capacity(), o.output_bytes) else {
-        omission(
-            diagnostics,
-            id,
-            "source, retained output and trial output exceed memory admission",
-        );
-        return Ok(());
-    };
-    let mut writer = match CappedWriter::new(o.output_bytes, Some(winner.len())) {
-        Ok(writer) => writer,
-        Err(error) => {
-            omission(diagnostics, id, error);
-            return Ok(());
-        }
-    };
-    let guard = crate::limits::DeadlineGuard::new(budget);
-    let result = encode_with_strategy(
-        io::Cursor::new(input),
-        &mut writer,
-        EncodeOptions {
+    let mut writer = CappedWriter::new(o.output_bytes, Some(winner_len))?;
+    let guard = crate::limits::DeadlineGuard::new(spec.budget);
+    let result = match &spec.kind {
+        NativeTrialKind::Cixg {
+            format,
             block,
-            level: constraints.effort(match o.profile {
-                NativePortfolioProfile::Fast => 1,
-                NativePortfolioProfile::Default => 6,
-                NativePortfolioProfile::Best => 9,
-            })?,
-            forced: None,
             backend,
             backend_set,
-            format,
-            input_fd: -1,
-            flush_interval: None,
+            effort,
+            strategy,
+        } => encode_with_strategy(
+            io::Cursor::new(input),
+            &mut writer,
+            EncodeOptions {
+                block: *block,
+                level: *effort,
+                forced: None,
+                backend,
+                backend_set: *backend_set,
+                format,
+                input_fd: -1,
+                flush_interval: None,
+                memory,
+                // The family scheduler owns parallelism.  Starting a block
+                // worker pool here would exceed its aggregate reservation.
+                workers: 1,
+                explain: false,
+                verbose: false,
+                strategy,
+            },
+        ),
+        NativeTrialKind::M6 { block, effort } => encode_m6(
+            io::Cursor::new(input),
+            &mut writer,
+            *block,
+            None,
+            *effort,
             memory,
-            workers: o.workers,
-            explain: false,
-            verbose: false,
-            strategy: constraints.strategy()?,
-        },
-    );
+        ),
+    };
     let terminal = check_interrupted();
     drop(guard);
     if let Err(error) = terminal {
         if stopped(o) {
             return Err("native portfolio cancelled or deadline exceeded".into());
         }
-        if error == crate::limits::DEADLINE_ERROR {
-            omission(diagnostics, id, error);
-            return Ok(());
-        }
         return Err(error);
     }
     match result {
-        Ok(()) => consider(id, writer.bytes, input, o, winner, selected, diagnostics),
-        Err(e) if resource_error(&e) => {
-            omission(diagnostics, id, e);
-            Ok(())
-        }
-        Err(e) => Err(e),
-    }
-}
-fn m6_trial(
-    input: &[u8],
-    o: &NativePortfolioOptions,
-    winner: &mut Vec<u8>,
-    selected: &mut String,
-    diagnostics: &mut Vec<NativePortfolioCandidate>,
-    id: String,
-    budget: Duration,
-    block: usize,
-    effort: u8,
-) -> Result<(), String> {
-    check_interrupted()?;
-    let Some(memory) = available(o, input.len(), winner.capacity(), o.output_bytes) else {
-        omission(
-            diagnostics,
-            id,
-            "source, retained output and trial output exceed memory admission",
-        );
-        return Ok(());
-    };
-    let mut writer = match CappedWriter::new(o.output_bytes, Some(winner.len())) {
-        Ok(writer) => writer,
-        Err(error) => {
-            omission(diagnostics, id, error);
-            return Ok(());
-        }
-    };
-    let guard = crate::limits::DeadlineGuard::new(budget);
-    let result = encode_m6(
-        io::Cursor::new(input),
-        &mut writer,
-        block,
-        None,
-        effort,
-        memory,
-    );
-    let terminal = check_interrupted();
-    drop(guard);
-    if let Err(error) = terminal {
-        if stopped(o) {
-            return Err("native portfolio cancelled or deadline exceeded".into());
-        }
-        if error == crate::limits::DEADLINE_ERROR {
-            omission(diagnostics, id, error);
-            return Ok(());
-        }
-        return Err(error);
-    }
-    match result {
-        Ok(()) => consider(id, writer.bytes, input, o, winner, selected, diagnostics),
-        Err(e) if resource_error(&e) => {
-            omission(diagnostics, id, e);
-            Ok(())
+        Ok(()) => {
+            // Validation reuses this worker's disjoint codec workspace while
+            // other running trials retain their own reservations.  That lets
+            // the scheduler drop a fully checked result before the next wave.
+            validate_with_memory(&writer.bytes, input, memory)?;
+            Ok(NativeTrialOutput {
+                candidate: writer.bytes,
+            })
         }
         Err(e) => Err(e),
     }
 }
 
+fn run_native_family(
+    input: &[u8],
+    o: &NativePortfolioOptions,
+    winner: &mut Vec<u8>,
+    selected: &mut String,
+    diagnostics: &mut Vec<NativePortfolioCandidate>,
+    specs: Vec<NativeTrialSpec>,
+) -> Result<(), String> {
+    // Preserve serial incumbent eligibility when the caller has one worker:
+    // later encodes see an earlier improved winner and may be prefix-pruned.
+    if o.workers == 1 {
+        for spec in specs {
+            let winner_len = winner.len();
+            let winner_capacity = winner.capacity();
+            schedule_native_family(
+                vec![spec],
+                o,
+                input.len(),
+                winner_capacity,
+                |spec, memory| run_native_trial(input, o, winner_len, memory, spec),
+                |outcomes| {
+                    accept_native_outcomes(outcomes, input, o, winner, selected, diagnostics)
+                },
+            )?;
+        }
+        return Ok(());
+    }
+    let winner_len = winner.len();
+    // A completed CappedWriter may become the winner with capacity equal to
+    // the full declared output cap. Reserve that worst case for every wave;
+    // otherwise a result accepted after wave one could enlarge the retained
+    // winner beyond the admission calculated for wave two.
+    let winner_capacity = o.output_bytes;
+    schedule_native_family(
+        specs,
+        o,
+        input.len(),
+        winner_capacity,
+        |spec, memory| run_native_trial(input, o, winner_len, memory, spec),
+        |outcomes| accept_native_outcomes(outcomes, input, o, winner, selected, diagnostics),
+    )
+}
+
+fn accept_native_outcomes(
+    outcomes: Vec<(NativeTrialSpec, Result<NativeTrialOutput, String>)>,
+    input: &[u8],
+    o: &NativePortfolioOptions,
+    winner: &mut Vec<u8>,
+    selected: &mut String,
+    diagnostics: &mut Vec<NativePortfolioCandidate>,
+) -> Result<(), String> {
+    if stopped(o) {
+        return Err("native portfolio cancelled or deadline exceeded".into());
+    }
+    for (spec, result) in outcomes {
+        match result {
+            Ok(output) => {
+                consider_validated(spec.id, output.candidate, o, winner, selected, diagnostics)
+            }
+            Err(e) if resource_error(&e) => omission(diagnostics, spec.id, e),
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(())
+}
+
+fn consider_validated(
+    id: String,
+    candidate: Vec<u8>,
+    o: &NativePortfolioOptions,
+    winner: &mut Vec<u8>,
+    name: &mut String,
+    diagnostics: &mut Vec<NativePortfolioCandidate>,
+) {
+    if candidate.len() > o.output_bytes || candidate.capacity() > o.output_bytes {
+        omission(diagnostics, id, "candidate exceeded output reservation");
+        return;
+    }
+    completed(diagnostics, id.clone(), candidate.len());
+    if candidate.len() < winner.len() {
+        *winner = candidate;
+        *name = id;
+    }
+}
+
 /// Encode one buffer. FAST and DEFAULT deliberately retain the existing
 /// direct core path. BEST additionally evaluates CIXG1/CIXG2, CIXM6 and all
-/// registered complete CIXB1 descriptors, serially and deterministically.
+/// registered complete CIXB1 descriptors. Native families use bounded parallel
+/// trials with canonical acceptance; external descriptors remain serial.
 pub fn select(
     input: &[u8],
     options: &NativePortfolioOptions,
@@ -492,7 +690,9 @@ pub fn select_constrained(
                 .iter()
                 .any(|format| !matches!(format.as_str(), "cixg1" | "cixg2" | "cixm6"))
     }) || constraints.blocks.as_ref().is_some_and(|blocks| {
-        blocks.is_empty() || blocks.iter().any(|block| *block == 0 || *block > MAX_BLOCK)
+        blocks.is_empty()
+            || blocks.len() > MAX_EXPLICIT_BLOCKS
+            || blocks.iter().any(|block| *block == 0 || *block > MAX_BLOCK)
     }) {
         return Err("invalid native whole-container constraint".into());
     }
@@ -694,69 +894,120 @@ pub fn select_constrained(
     let m6_budget = budget.saturating_sub(cixg_budget);
     let blocks = constraints.block_list(input.len());
     let cixg_started = Instant::now();
-    for (i, (format, block)) in ["cixg1", "cixg2"]
+    let cixg_pairs: Vec<(&'static str, u32)> = ["cixg1", "cixg2"]
         .into_iter()
         .filter(|format| constraints.allows(format))
         .flat_map(|f| blocks.iter().copied().map(move |b| (f, b)))
-        .enumerate()
-    {
-        let id = format!("{format}:native-auto:block={block}");
-        let Some(slice) = remaining(options, cixg_budget, cixg_started, blocks.len() * 2 - i)
-        else {
-            omission(
-                &mut diagnostics,
-                id,
-                "CIXG family deadline allocation exhausted",
-            );
-            continue;
-        };
-        native_trial(
+        .collect();
+    let cixg_winner_reservation = if options.workers == 1 {
+        winner.capacity()
+    } else {
+        options.output_bytes
+    };
+    let cixg_workers = family_admission(
+        options,
+        input.len(),
+        cixg_winner_reservation,
+        cixg_pairs.len(),
+    )
+    .map(|(workers, _)| workers)
+    .unwrap_or(1);
+    if let Some(slice) = family_trial_budget(
+        options,
+        cixg_budget,
+        cixg_started,
+        cixg_pairs.len(),
+        cixg_workers,
+    ) {
+        let effort = constraints.effort(9)?;
+        let strategy = constraints.strategy()?.to_owned();
+        let backend = constraints.backend().to_owned();
+        run_native_family(
             input,
             options,
             &mut winner,
             &mut selected,
             &mut diagnostics,
-            id,
-            slice,
-            format,
-            block,
-            constraints.backend(),
-            constraints.backend.is_some(),
-            constraints,
+            cixg_pairs
+                .into_iter()
+                .enumerate()
+                .map(|(order, (format, block))| NativeTrialSpec {
+                    order,
+                    id: format!("{format}:native-auto:block={block}"),
+                    budget: slice,
+                    kind: NativeTrialKind::Cixg {
+                        format,
+                        block,
+                        backend: backend.clone(),
+                        backend_set: constraints.backend.is_some(),
+                        effort,
+                        strategy: strategy.clone(),
+                    },
+                })
+                .collect(),
         )?;
+    } else if !cixg_pairs.is_empty() {
+        for (format, block) in cixg_pairs {
+            omission(
+                &mut diagnostics,
+                format!("{format}:native-auto:block={block}"),
+                "CIXG family deadline allocation exhausted",
+            );
+        }
     }
     let m6_started = Instant::now();
-    for (i, block) in blocks.iter().copied().enumerate() {
-        if !constraints.allows("cixm6") || constraints.backend.is_some() {
-            if constraints.backend.is_some() {
+    if constraints.allows("cixm6") && constraints.backend.is_none() {
+        let m6_winner_reservation = if options.workers == 1 {
+            winner.capacity()
+        } else {
+            options.output_bytes
+        };
+        let m6_workers =
+            family_admission(options, input.len(), m6_winner_reservation, blocks.len())
+                .map(|(workers, _)| workers)
+                .unwrap_or(1);
+        if let Some(slice) =
+            family_trial_budget(options, m6_budget, m6_started, blocks.len(), m6_workers)
+        {
+            let effort = constraints.effort(9)?;
+            run_native_family(
+                input,
+                options,
+                &mut winner,
+                &mut selected,
+                &mut diagnostics,
+                blocks
+                    .iter()
+                    .copied()
+                    .enumerate()
+                    .map(|(order, block)| NativeTrialSpec {
+                        order,
+                        id: format!("cixm6:native-auto:block={block}"),
+                        budget: slice,
+                        kind: NativeTrialKind::M6 {
+                            block: block as usize,
+                            effort,
+                        },
+                    })
+                    .collect(),
+            )?;
+        } else {
+            for block in &blocks {
                 omission(
                     &mut diagnostics,
                     format!("cixm6:native-auto:block={block}"),
-                    "explicit backend does not apply to CIXM6",
+                    "CIXM6 family deadline allocation exhausted",
                 );
             }
-            continue;
         }
-        let id = format!("cixm6:native-auto:block={block}");
-        let Some(slice) = remaining(options, m6_budget, m6_started, blocks.len() - i) else {
+    } else if constraints.backend.is_some() {
+        for block in &blocks {
             omission(
                 &mut diagnostics,
-                id,
-                "CIXM6 family deadline allocation exhausted",
+                format!("cixm6:native-auto:block={block}"),
+                "explicit backend does not apply to CIXM6",
             );
-            continue;
-        };
-        m6_trial(
-            input,
-            options,
-            &mut winner,
-            &mut selected,
-            &mut diagnostics,
-            id,
-            slice,
-            block as usize,
-            constraints.effort(9)?,
-        )?;
+        }
     }
     for descriptor in external::best_candidates() {
         if constraints.constrains_wire() {
@@ -838,6 +1089,38 @@ pub fn select_constrained(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{
+        atomic::{AtomicBool, AtomicUsize, Ordering},
+        mpsc, Arc, Mutex,
+    };
+
+    fn scheduler_options(
+        workers: usize,
+        cancellation: Option<Arc<AtomicBool>>,
+    ) -> NativePortfolioOptions {
+        NativePortfolioOptions {
+            profile: NativePortfolioProfile::Best,
+            memory_bytes: 64 * MIB,
+            output_bytes: 1024,
+            workers,
+            deadline: None,
+            cancellation,
+        }
+    }
+
+    fn scheduler_specs(count: usize) -> Vec<NativeTrialSpec> {
+        (0..count)
+            .map(|order| NativeTrialSpec {
+                order,
+                id: format!("trial-{order}"),
+                budget: Duration::from_secs(1),
+                kind: NativeTrialKind::M6 {
+                    block: 1024,
+                    effort: 1,
+                },
+            })
+            .collect()
+    }
 
     #[test]
     fn best_admission_includes_a_raw_fallback() {
@@ -887,6 +1170,181 @@ mod tests {
         assert_eq!(
             writer.write_all(b"d").unwrap_err().to_string(),
             PREFIX_PRUNED
+        );
+    }
+
+    #[test]
+    fn family_scheduler_bounds_overlap_memory_and_orders_completion() {
+        let active = Arc::new(AtomicUsize::new(0));
+        let peak = Arc::new(AtomicUsize::new(0));
+        let budgets = Arc::new(Mutex::new(Vec::new()));
+        let completed = Arc::new(Mutex::new(Vec::new()));
+        let accepted = Arc::new(Mutex::new(Vec::new()));
+        let (second_done, first_release) = mpsc::channel();
+        let first_release = Arc::new(Mutex::new(first_release));
+        let options = scheduler_options(2, None);
+        schedule_native_family(
+            scheduler_specs(4),
+            &options,
+            4096,
+            2048,
+            {
+                let active = active.clone();
+                let peak = peak.clone();
+                let budgets = budgets.clone();
+                let completed = completed.clone();
+                let first_release = first_release.clone();
+                move |spec, memory| {
+                    budgets.lock().unwrap().push(memory);
+                    let live = active.fetch_add(1, Ordering::SeqCst) + 1;
+                    peak.fetch_max(live, Ordering::SeqCst);
+                    if spec.order == 0 {
+                        first_release.lock().unwrap().recv().unwrap();
+                    } else if spec.order == 1 {
+                        second_done.send(()).unwrap();
+                    }
+                    completed.lock().unwrap().push(spec.order);
+                    active.fetch_sub(1, Ordering::SeqCst);
+                    Ok(3usize.saturating_sub(spec.order))
+                }
+            },
+            {
+                let accepted = accepted.clone();
+                move |wave| {
+                    accepted.lock().unwrap().extend(
+                        wave.iter()
+                            .map(|(spec, value)| (spec.order, *value.as_ref().unwrap())),
+                    );
+                    Ok(())
+                }
+            },
+        )
+        .unwrap();
+        let (slots, per_trial) = family_admission(&options, 4096, 2048, 4).unwrap();
+        assert_eq!(slots, 2);
+        assert!(peak.load(Ordering::SeqCst) >= 2);
+        assert!(peak.load(Ordering::SeqCst) <= options.workers);
+        assert!(4096 + 2048 + slots * (options.output_bytes + per_trial) <= options.memory_bytes);
+        assert!(budgets
+            .lock()
+            .unwrap()
+            .iter()
+            .all(|value| *value == per_trial));
+        assert_eq!(&completed.lock().unwrap()[..2], &[1, 0]);
+        assert_eq!(
+            &*accepted.lock().unwrap(),
+            &[(0, 3), (1, 2), (2, 1), (3, 0)]
+        );
+    }
+
+    #[test]
+    fn family_scheduler_stops_before_a_later_cancelled_wave() {
+        let cancellation = Arc::new(AtomicBool::new(false));
+        let started = Arc::new(AtomicUsize::new(0));
+        let options = scheduler_options(2, Some(cancellation.clone()));
+        let result = schedule_native_family(
+            scheduler_specs(4),
+            &options,
+            4096,
+            2048,
+            {
+                let cancellation = cancellation.clone();
+                let started = started.clone();
+                move |spec, _| {
+                    started.fetch_add(1, Ordering::SeqCst);
+                    if spec.order == 0 {
+                        cancellation.store(true, Ordering::Release);
+                    }
+                    Ok(())
+                }
+            },
+            |_| Ok(()),
+        );
+        assert!(result.unwrap_err().contains("cancelled"));
+        assert!(started.load(Ordering::SeqCst) <= 2);
+    }
+
+    #[test]
+    fn family_admission_retries_smaller_parallelism() {
+        let mut options = scheduler_options(4, None);
+        options.memory_bytes = 2 * (options.output_bytes + MIN_REMAINDER);
+        assert_eq!(
+            family_admission(&options, 0, 0, 4).map(|value| value.0),
+            Some(2)
+        );
+    }
+
+    #[test]
+    fn family_scheduler_drops_successful_results_between_waves() {
+        struct Held(Arc<AtomicUsize>);
+        impl Drop for Held {
+            fn drop(&mut self) {
+                self.0.fetch_sub(1, Ordering::SeqCst);
+            }
+        }
+        let active = Arc::new(AtomicUsize::new(0));
+        let peak = Arc::new(AtomicUsize::new(0));
+        let options = scheduler_options(2, None);
+        schedule_native_family(
+            scheduler_specs(4),
+            &options,
+            4096,
+            2048,
+            {
+                let active = active.clone();
+                let peak = peak.clone();
+                move |_, _| {
+                    let live = active.fetch_add(1, Ordering::SeqCst) + 1;
+                    peak.fetch_max(live, Ordering::SeqCst);
+                    Ok(Held(active.clone()))
+                }
+            },
+            |wave| {
+                assert!(wave.len() <= 2);
+                assert!(active.load(Ordering::SeqCst) <= 2);
+                Ok(())
+            },
+        )
+        .unwrap();
+        assert_eq!(active.load(Ordering::SeqCst), 0);
+        assert_eq!(peak.load(Ordering::SeqCst), 2);
+    }
+
+    #[test]
+    fn constrained_m6_best_is_equivalent_with_one_or_two_family_workers() {
+        let input: Vec<u8> = (0..4096)
+            .map(|index| ((index * 17 + index / 11) & 0xff) as u8)
+            .collect();
+        let constraints = NativePortfolioConstraints {
+            formats: Some(vec!["cixm6".into()]),
+            ..NativePortfolioConstraints::default()
+        };
+        let make_options = |workers| NativePortfolioOptions {
+            profile: NativePortfolioProfile::Best,
+            memory_bytes: 2usize << 30,
+            output_bytes: archive_cap(input.len()),
+            workers,
+            deadline: None,
+            cancellation: None,
+        };
+        let serial = select_constrained(&input, &make_options(1), &constraints).unwrap();
+        let parallel = select_constrained(&input, &make_options(2), &constraints).unwrap();
+        assert_eq!(serial.selected, parallel.selected);
+        assert_eq!(serial.archive, parallel.archive);
+        assert_eq!(
+            core::decode_buffer(
+                &parallel.archive,
+                &core::NativeOptions {
+                    profile: core::NativeProfile::Best,
+                    output_limit: input.len(),
+                    memory_limit: 2usize << 30,
+                    workers: 1,
+                    deadline: None,
+                    cancellation: None,
+                },
+            )
+            .unwrap(),
+            input
         );
     }
 

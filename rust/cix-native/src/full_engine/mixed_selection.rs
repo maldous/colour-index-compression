@@ -14,7 +14,10 @@ use super::{
     regions::{self, Region, RegionKind},
     selection::SelectionProfile,
 };
-use std::{sync::atomic::Ordering, time::Instant};
+use std::{
+    sync::{atomic::Ordering, mpsc},
+    time::Instant,
+};
 
 pub const MAX_NESTED_SPECIALISTS: usize = 8;
 pub const MAX_NESTED_MEMORY: usize = 5 << 30;
@@ -311,6 +314,271 @@ fn generic_choice(
     Ok(best)
 }
 
+/// Zlib and XZ both compare against the stored incumbent.  Their initial
+/// encodes can therefore run together when the caller reserved two workers
+/// and two complete candidate buffers.  If that conservative admission is
+/// unavailable, callers retain the historical serial path.
+fn run_parallel_generic_trials<T, F>(run: F) -> Result<Vec<Result<T, String>>, String>
+where
+    T: Send,
+    F: Fn(usize) -> Result<T, String> + Sync,
+{
+    let context = crate::limits::capture_context();
+    std::thread::scope(|scope| {
+        let (sender, receiver) = mpsc::channel();
+        let mut handles = Vec::new();
+        for index in 0..2 {
+            let tx = sender.clone();
+            let context = context.clone();
+            let task = &run;
+            handles.push(scope.spawn(move || {
+                let _context = crate::limits::install_context(&context);
+                let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| task(index)))
+                    .unwrap_or_else(|_| Err("CIXH1 generic trial worker panicked".into()));
+                let _ = tx.send((index, result));
+            }));
+        }
+        drop(sender);
+        let mut results = vec![None, None];
+        for _ in 0..2 {
+            let (index, result) = receiver
+                .recv()
+                .map_err(|_| "CIXH1 generic scheduler channel closed")?;
+            results[index] = Some(result);
+        }
+        for handle in handles {
+            handle
+                .join()
+                .map_err(|_| "CIXH1 generic trial worker panicked")?;
+        }
+        results
+            .into_iter()
+            .map(|result| result.ok_or_else(|| "CIXH1 generic result missing".into()))
+            .collect()
+    })
+}
+
+fn speculative_failure_requires_serial_retry<T>(results: &[Result<T, String>]) -> bool {
+    results.iter().any(Result::is_err)
+}
+
+fn parallel_generic_choice(
+    engine: &FullEngine,
+    source: &[u8],
+    workspace: usize,
+    output_limit: usize,
+    region: usize,
+    kind: RegionKind,
+    diagnostics: &mut MixedDiagnostics,
+    limits: &OperationLimits,
+    workers: usize,
+) -> Option<Result<RegionChoice, String>> {
+    if workers < 2 || source.len() > workspace || source.len() > output_limit {
+        return None;
+    }
+    if let Err(error) = check_limits(limits) {
+        return Some(Err(error));
+    }
+    let stored = RegionChoice {
+        backend: RegionBackend::Stored,
+        parameters: Vec::new(),
+        payload: match owned_bytes(source) {
+            Ok(payload) => payload,
+            Err(error) => return Some(Err(error)),
+        },
+    };
+    let attempts = [
+        (
+            RegionBackend::Zlib,
+            b"level=6".as_slice(),
+            BackendVariant::Zlib { level: 6 },
+            "zlib-6",
+        ),
+        (
+            RegionBackend::Xz,
+            b"preset=3".as_slice(),
+            BackendVariant::Xz { preset: 3 },
+            "xz-preset-3",
+        ),
+    ];
+    let mut parameters: Vec<Vec<u8>> = match attempts
+        .iter()
+        .map(|(_, parameters, _, _)| owned_bytes(parameters))
+        .collect()
+    {
+        Ok(parameters) => parameters,
+        Err(error) => return Some(Err(error)),
+    };
+    let mut caps = Vec::with_capacity(attempts.len());
+    for parameters in &parameters {
+        match improving_payload_cap(&stored, parameters.len(), output_limit) {
+            Ok(cap) => caps.push(cap),
+            Err(_) => return None,
+        }
+    }
+    let retained = match checked_add(
+        retained_choice_bytes(&stored).ok()?,
+        parameters
+            .iter()
+            .try_fold(0usize, |total, value| {
+                total
+                    .checked_add(value.capacity())
+                    .ok_or("CIXH1 generic parameter reservation")
+            })
+            .ok()?,
+    ) {
+        Ok(value) => value,
+        Err(error) => return Some(Err(error)),
+    };
+    let payload_reservation = match caps.iter().try_fold(0usize, |total, cap| {
+        total
+            .checked_add(*cap)
+            .ok_or("CIXH1 generic payload reservation")
+    }) {
+        Ok(value) => value,
+        Err(error) => return Some(Err(error.into())),
+    };
+    let Some(available) = workspace
+        .checked_sub(retained)
+        .and_then(|value| value.checked_sub(payload_reservation))
+    else {
+        return None;
+    };
+    let per_trial_memory = available / attempts.len();
+    if per_trial_memory == 0 {
+        return None;
+    }
+    let backends = &engine.backends;
+    let mut results = match run_parallel_generic_trials(|index| {
+        let (_, _, variant, _) = attempts[index];
+        let request = BackendRequest {
+            variant,
+            output_limit: caps[index],
+            memory_limit: per_trial_memory,
+            deadline: limits.deadline,
+            cancellation: limits.cancellation.clone(),
+        };
+        backends.encode(source, &request)
+    }) {
+        Ok(results) => results,
+        Err(error) => return Some(Err(error)),
+    };
+    if let Err(error) = check_limits(limits) {
+        return Some(Err(error));
+    }
+    // Any speculative provider failure may be a consequence of the
+    // split reservation. Retry serially rather than dropping a candidate
+    // that the historical one-at-a-time path could admit.
+    if speculative_failure_requires_serial_retry(&results) {
+        return None;
+    }
+    // A successful Vec can have spare capacity beyond the canonical cap.
+    // Keeping it would reject bytes that a serial, smaller allocation can
+    // retain, so fall back before producing diagnostics.
+    let stored_cost = frame_cost(&stored).ok()?;
+    let zlib = results[0].as_ref().ok()?;
+    let zlib_cap = improving_payload_cap(&stored, parameters[0].len(), output_limit).ok()?;
+    if zlib.len() <= zlib_cap && zlib.capacity() > zlib_cap {
+        return None;
+    }
+    let zlib_cost = checked_add(
+        REGION_HEADER_BYTES,
+        checked_add(parameters[0].len(), zlib.len()).ok()?,
+    )
+    .ok()?;
+    let xz_incumbent_cost = if zlib.len() <= zlib_cap && zlib_cost < stored_cost {
+        zlib_cost
+    } else {
+        stored_cost
+    };
+    let xz_paid = checked_add(REGION_HEADER_BYTES, parameters[1].len()).ok()?;
+    let xz_cap = xz_incumbent_cost
+        .checked_sub(xz_paid)
+        .and_then(|value| value.checked_sub(1))?
+        .min(output_limit.checked_sub(xz_paid)?);
+    let xz = results[1].as_ref().ok()?;
+    if xz.len() <= xz_cap && xz.capacity() > xz_cap {
+        return None;
+    }
+    let mut best = stored;
+    for (index, (backend, _, _, name)) in attempts.iter().enumerate() {
+        let parameters = std::mem::take(&mut parameters[index]);
+        let canonical_cap = match improving_payload_cap(&best, parameters.len(), output_limit) {
+            Ok(cap) => cap,
+            Err(error) => {
+                push_diagnostic(
+                    diagnostics,
+                    MixedDiagnostic {
+                        region,
+                        region_kind: kind,
+                        candidate: (*name).into(),
+                        status: DiagnosticStatus::Omitted,
+                        backend: Some(*backend),
+                        payload_bytes: None,
+                        detail: Some(truncate_detail(error)),
+                    },
+                );
+                continue;
+            }
+        };
+        match std::mem::replace(
+            &mut results[index],
+            Err("CIXH1 generic result already consumed".into()),
+        ) {
+            Ok(payload)
+                if payload.len() <= canonical_cap && payload.capacity() <= canonical_cap =>
+            {
+                let bytes = payload.len();
+                let choice = RegionChoice {
+                    backend: *backend,
+                    parameters,
+                    payload,
+                };
+                if frame_cost(&choice).ok()? < frame_cost(&best).ok()? {
+                    best = choice;
+                }
+                push_diagnostic(
+                    diagnostics,
+                    MixedDiagnostic {
+                        region,
+                        region_kind: kind,
+                        candidate: (*name).into(),
+                        status: DiagnosticStatus::Considered,
+                        backend: Some(*backend),
+                        payload_bytes: Some(bytes),
+                        detail: None,
+                    },
+                );
+            }
+            Ok(_) => push_diagnostic(
+                diagnostics,
+                MixedDiagnostic {
+                    region,
+                    region_kind: kind,
+                    candidate: (*name).into(),
+                    status: DiagnosticStatus::Failed,
+                    backend: Some(*backend),
+                    payload_bytes: None,
+                    detail: Some("provider exceeded canonical output cap".into()),
+                },
+            ),
+            Err(error) => push_diagnostic(
+                diagnostics,
+                MixedDiagnostic {
+                    region,
+                    region_kind: kind,
+                    candidate: (*name).into(),
+                    status: DiagnosticStatus::Failed,
+                    backend: Some(*backend),
+                    payload_bytes: None,
+                    detail: Some(truncate_detail(error)),
+                },
+            ),
+        }
+    }
+    Some(Ok(best))
+}
+
 fn omission(
     candidate: &Candidate,
     profile: SelectionProfile,
@@ -380,6 +648,19 @@ pub fn encode_with_provider_omissions(
     limits: &OperationLimits,
     provider_omissions: &[String],
 ) -> Result<MixedSelectionResult, String> {
+    encode_with_provider_omissions_workers(engine, source, profile, limits, provider_omissions, 1)
+}
+
+/// As [`encode_with_provider_omissions`], with a worker reservation supplied
+/// by the outer whole-input scheduler.
+pub(crate) fn encode_with_provider_omissions_workers(
+    engine: &FullEngine,
+    source: &[u8],
+    profile: SelectionProfile,
+    limits: &OperationLimits,
+    provider_omissions: &[String],
+    workers: usize,
+) -> Result<MixedSelectionResult, String> {
     check_limits(limits)?;
     if limits.output_bytes == 0 {
         return Err("invalid CIXH1 selection limits".into());
@@ -440,26 +721,39 @@ pub fn encode_with_provider_omissions(
                 .checked_add(1)
                 .ok_or("CIXH1 region count overflow")?;
             let generic_limit = limits.output_bytes.saturating_sub(parent_bytes);
-            let mut best = generic_choice(
+            let mut best = match parallel_generic_choice(
+                engine,
                 region,
                 workspace,
                 generic_limit,
-                |variant, output_limit, memory_limit| {
-                    engine.backends.encode(
-                        region,
-                        &BackendRequest {
-                            variant,
-                            output_limit,
-                            memory_limit,
-                            deadline: limits.deadline,
-                            cancellation: limits.cancellation.clone(),
-                        },
-                    )
-                },
                 number,
                 descriptor.kind,
                 &mut diagnostics,
-            )?;
+                limits,
+                workers,
+            ) {
+                Some(result) => result?,
+                None => generic_choice(
+                    region,
+                    workspace,
+                    generic_limit,
+                    |variant, output_limit, memory_limit| {
+                        engine.backends.encode(
+                            region,
+                            &BackendRequest {
+                                variant,
+                                output_limit,
+                                memory_limit,
+                                deadline: limits.deadline,
+                                cancellation: limits.cancellation.clone(),
+                            },
+                        )
+                    },
+                    number,
+                    descriptor.kind,
+                    &mut diagnostics,
+                )?,
+            };
             if descriptor.kind != RegionKind::Generic {
                 // Catalogue failure is an observable specialist omission, not
                 // permission to discard the already-valid generic incumbent.
@@ -647,6 +941,7 @@ pub fn encode_with_provider_omissions(
 mod tests {
     use super::*;
     use crate::full_engine::backend_provider::{BackendProvider, TrustedBackendPaths};
+    use std::sync::{atomic::AtomicUsize, atomic::Ordering, Arc, Barrier};
 
     #[test]
     fn generic_competition_preserves_stored_bytes_when_backends_fail() {
@@ -685,6 +980,112 @@ mod tests {
             .map(|candidate| candidate.id)
             .collect::<Vec<_>>();
         assert_eq!(ids, ["b0", "a0", "b1"]);
+    }
+
+    #[test]
+    fn generic_parallel_runner_overlaps_two_trials_and_returns_index_order() {
+        let live = Arc::new(AtomicUsize::new(0));
+        let peak = Arc::new(AtomicUsize::new(0));
+        let barrier = Arc::new(Barrier::new(2));
+        let results = run_parallel_generic_trials({
+            let live = live.clone();
+            let peak = peak.clone();
+            let barrier = barrier.clone();
+            move |index| {
+                let current = live.fetch_add(1, Ordering::SeqCst) + 1;
+                peak.fetch_max(current, Ordering::SeqCst);
+                barrier.wait();
+                live.fetch_sub(1, Ordering::SeqCst);
+                Ok(index)
+            }
+        })
+        .unwrap();
+        assert_eq!(peak.load(Ordering::SeqCst), 2);
+        assert_eq!(results, vec![Ok(0), Ok(1)]);
+    }
+
+    #[test]
+    fn generic_parallel_backend_failure_requires_serial_retry() {
+        let results = vec![Ok::<_, String>(vec![1]), Err("provider failed".into())];
+        assert!(speculative_failure_requires_serial_retry(&results));
+    }
+
+    #[test]
+    fn worker_reserved_generic_selection_matches_serial_archive_and_decode() {
+        let engine = FullEngine {
+            backends: BackendProvider {
+                paths: TrustedBackendPaths {
+                    cix: "/not-used/cix".into(),
+                    paq_libraries: "/not-used/lib".into(),
+                    temporary_root: "/not-used/tmp".into(),
+                },
+            },
+            images: None,
+            spatial: None,
+        };
+        let source = b"parallel generic region ".repeat(4096);
+        let limits = OperationLimits {
+            memory_bytes: 1 << 30,
+            output_bytes: 1 << 20,
+            intermediate_bytes: 1 << 20,
+            deadline: None,
+            cancellation: None,
+        };
+        let serial = encode_with_provider_omissions_workers(
+            &engine,
+            &source,
+            SelectionProfile::Default,
+            &limits,
+            &[],
+            1,
+        )
+        .unwrap();
+        let parallel = encode_with_provider_omissions_workers(
+            &engine,
+            &source,
+            SelectionProfile::Default,
+            &limits,
+            &[],
+            2,
+        )
+        .unwrap();
+        assert_eq!(parallel.archive, serial.archive);
+        assert_eq!(engine.decode(&parallel.archive, &limits).unwrap(), source);
+    }
+
+    #[test]
+    fn parallel_generic_trials_fall_back_when_two_full_candidates_do_not_fit() {
+        let engine = FullEngine {
+            backends: BackendProvider {
+                paths: TrustedBackendPaths {
+                    cix: "/not-used/cix".into(),
+                    paq_libraries: "/not-used/lib".into(),
+                    temporary_root: "/not-used/tmp".into(),
+                },
+            },
+            images: None,
+            spatial: None,
+        };
+        let limits = OperationLimits {
+            memory_bytes: 1 << 20,
+            output_bytes: 1 << 20,
+            intermediate_bytes: 1 << 20,
+            deadline: None,
+            cancellation: None,
+        };
+        let mut diagnostics = MixedDiagnostics::default();
+        assert!(parallel_generic_choice(
+            &engine,
+            b"short region",
+            16,
+            16,
+            0,
+            RegionKind::Generic,
+            &mut diagnostics,
+            &limits,
+            2,
+        )
+        .is_none());
     }
 
     #[test]

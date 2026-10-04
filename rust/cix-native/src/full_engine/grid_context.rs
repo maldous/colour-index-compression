@@ -239,11 +239,7 @@ pub fn transform_raw(source: &[u8], mode: u8, model: u8) -> Result<Vec<u8>, Stri
         } else {
             values
         };
-        out.extend(write_field(
-            &field_values,
-            width,
-            mode,
-        )?);
+        out.extend(write_field(&field_values, width, mode)?);
     }
     if at != base.len() {
         return Err("trailing base grid stream".into());

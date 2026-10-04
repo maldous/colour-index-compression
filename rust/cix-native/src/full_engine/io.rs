@@ -10,22 +10,26 @@ pub enum DecodePath {
     NativeIncremental,
     NativeCoreBuffered,
     FullFrameBuffered,
+    /// CIXW1 restores independent embedded archives record by record.
+    WindowIncremental,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DecodeCapabilityReport {
     pub native_incremental: bool,
     pub native_core_buffered: bool,
     pub full_engine_frame_buffered: bool,
+    pub window_incremental: bool,
 }
 pub fn capability_report() -> DecodeCapabilityReport {
     DecodeCapabilityReport {
         native_incremental: true,
         native_core_buffered: true,
         full_engine_frame_buffered: true,
+        window_incremental: true,
     }
 }
 fn check(l: &OperationLimits) -> Result<(), String> {
-    if l.memory_bytes == 0 || l.output_bytes == 0 || l.intermediate_bytes == 0 {
+    if l.memory_bytes == 0 || l.intermediate_bytes == 0 {
         return Err("full-engine decoder limits must be non-zero".into());
     }
     if l.cancellation
@@ -65,7 +69,9 @@ fn classify(prefix: &[u8]) -> Result<DecodePath, String> {
         b"CIXB\x20",
         b"CIXB\x21",
     ];
-    if prefix == b"CIXB1" {
+    if prefix == b"CIXW1" {
+        Ok(DecodePath::WindowIncremental)
+    } else if prefix == b"CIXB1" {
         Ok(DecodePath::NativeCoreBuffered)
     } else if NATIVE.contains(&prefix) {
         Ok(DecodePath::NativeIncremental)
@@ -75,6 +81,7 @@ fn classify(prefix: &[u8]) -> Result<DecodePath, String> {
         Err("unsupported or truncated CIX archive signature".into())
     }
 }
+
 struct PrefixReader<R> {
     prefix: [u8; 5],
     used: usize,
@@ -206,6 +213,40 @@ pub fn decode<R: Read, W: Write>(
         return Err("archive exceeds declared cap".into());
     }
     match classify(&first[..first_len])? {
+        DecodePath::WindowIncremental => {
+            let mut reader = CountingReader {
+                inner: PrefixReader {
+                    prefix: first,
+                    used: first_len,
+                    at: 0,
+                    source,
+                },
+                // The replayed signature is part of the archive limit.
+                remaining: max_archive_bytes,
+            };
+            super::window_stream::decode(
+                &mut reader,
+                &mut destination,
+                limits,
+                |payload, output, nested_limits| {
+                    // CIXW1 v1 has no recursive carrier semantics. The window
+                    // parser rejects this too; preserve the guard at the
+                    // dispatch boundary so the callback remains explicit.
+                    if payload.starts_with(super::window_stream::MAGIC) {
+                        return Err("nested CIXW1 archives are not supported".into());
+                    }
+                    decode(
+                        engine,
+                        io::Cursor::new(payload),
+                        output,
+                        payload.len(),
+                        nested_limits,
+                    )
+                    .map(|_| ())
+                },
+            )?;
+            Ok(DecodePath::WindowIncremental)
+        }
         DecodePath::NativeIncremental => {
             let deadline = limits
                 .deadline
@@ -324,6 +365,7 @@ mod tests {
     fn prefixes_are_exact() {
         assert_eq!(classify(b"CIXG1").unwrap(), DecodePath::NativeIncremental);
         assert_eq!(classify(b"CIXM5").unwrap(), DecodePath::NativeIncremental);
+        assert_eq!(classify(b"CIXW1").unwrap(), DecodePath::WindowIncremental);
         assert_eq!(classify(b"CIXB1").unwrap(), DecodePath::NativeCoreBuffered);
         assert_eq!(
             classify(b"CIXG\x01").unwrap(),

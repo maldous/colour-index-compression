@@ -1,0 +1,111 @@
+{
+  "components": {
+    "blosc2": [
+      {
+        "argv": [
+          "cmake",
+          "-S",
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v3/adapters/blosc2",
+          "-B",
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/blosc2",
+          "-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+          "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+          "-DBLOSC2_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/include",
+          "-DBLOSC2_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/libblosc2.so",
+          "-DCIX_BLOSC2_EXPERIMENTAL_CODEC_ID=240",
+          "-DCIX_BLOSC2_BUILD_CONTRACT_TEST=ON"
+        ],
+        "env_extra": {},
+        "returncode": 0,
+        "stdout": "-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/blosc2\n",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "cmake",
+          "--build",
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/blosc2",
+          "-j4"
+        ],
+        "env_extra": {},
+        "returncode": 0,
+        "stdout": "[ 25%] Building C object CMakeFiles/cix_blosc2_adapter.dir/src/cix_blosc2_adapter.c.o\n[ 50%] Linking C shared library libcix_blosc2_adapter.so\n[ 50%] Built target cix_blosc2_adapter\n[ 75%] Building C object CMakeFiles/cix_blosc2_contract.dir/tests/blosc2_cix_contract.c.o\n[100%] Linking C executable cix_blosc2_contract\n[100%] Built target cix_blosc2_contract\n",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "ctest",
+          "--test-dir",
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/blosc2",
+          "--output-on-failure"
+        ],
+        "env_extra": {},
+        "returncode": 0,
+        "stdout": "Internal ctest changing into directory: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/blosc2\nTest project /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/blosc2\n    Start 1: cix_blosc2_contract\n1/1 Test #1: cix_blosc2_contract ..............   Passed   31.64 sec\n\n100% tests passed, 0 tests failed out of 1\n\nTotal Test time (real) =  31.64 sec\n",
+        "stderr": ""
+      }
+    ],
+    "squash": [
+      {
+        "argv": [
+          "sh",
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v3/packaging/squash/build-plugin.sh"
+        ],
+        "env_extra": {
+          "PKG_CONFIG_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/pkgconfig",
+          "LD_LIBRARY_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib",
+          "SQUASH_SOURCE_REVISION": "713eeca85cccadde39bf57f8b59ea663a085a347",
+          "CIX_NATIVE_LIBRARY": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+          "CIX_INCLUDE_DIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+          "SQUASH_PLUGIN_ROOT": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/squash-plugins"
+        },
+        "returncode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "cc",
+          "-std=c11",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8",
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v3/packaging/squash/contract.c",
+          "-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib",
+          "-lsquash0.8",
+          "-o",
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/squash-contract"
+        ],
+        "env_extra": {
+          "PKG_CONFIG_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/pkgconfig",
+          "LD_LIBRARY_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib",
+          "SQUASH_SOURCE_REVISION": "713eeca85cccadde39bf57f8b59ea663a085a347",
+          "CIX_NATIVE_LIBRARY": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+          "CIX_INCLUDE_DIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+          "SQUASH_PLUGIN_ROOT": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/squash-plugins"
+        },
+        "returncode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "argv": [
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/squash-contract",
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/squash-plugins"
+        ],
+        "env_extra": {
+          "PKG_CONFIG_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/pkgconfig",
+          "LD_LIBRARY_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib",
+          "SQUASH_SOURCE_REVISION": "713eeca85cccadde39bf57f8b59ea663a085a347",
+          "CIX_NATIVE_LIBRARY": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+          "CIX_INCLUDE_DIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+          "SQUASH_PLUGIN_ROOT": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v3/squash-plugins"
+        },
+        "returncode": 1,
+        "stdout": "",
+        "stderr": "squash CIX contract: buffer round trip\n"
+      }
+    ]
+  }
+}

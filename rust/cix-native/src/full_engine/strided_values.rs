@@ -367,7 +367,11 @@ fn remaining_rank(ids: &[usize], counts: &[usize]) -> Result<BigUint, String> {
     Ok(rank)
 }
 
-pub(crate) fn type_class_decode(data: &[u8], mut at: usize, n: usize) -> Result<(Vec<u8>, usize), String> {
+pub(crate) fn type_class_decode(
+    data: &[u8],
+    mut at: usize,
+    n: usize,
+) -> Result<(Vec<u8>, usize), String> {
     let (encoded_n, next) = vdecode(data, at)?;
     at = next;
     if usize::try_from(encoded_n).map_err(|_| "type-class length overflow")? != n {
@@ -990,7 +994,10 @@ mod tests {
         // two-bit arithmetic terminator even when the sole symbol is forced.
         let frame = type_class_encode(&[9, 9, 9], true).unwrap();
         assert_eq!(frame, [3, 1, 9, 1, 2, 64]);
-        assert_eq!(type_class_decode(&frame, 0, 3).unwrap(), (vec![9, 9, 9], frame.len()));
+        assert_eq!(
+            type_class_decode(&frame, 0, 3).unwrap(),
+            (vec![9, 9, 9], frame.len())
+        );
     }
 
     fn grid(records: usize) -> Vec<u8> {

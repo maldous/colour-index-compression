@@ -1,0 +1,38 @@
+sevenzip ['cmake', '-S', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-source-v2/sevenzip'), '-B', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v2/sevenzip'), '-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so', '-DCIX_7ZIP_SDK_ROOT=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1', '-DCIX_7ZIP_SDK_ARCHIVE_SHA256=9cbde5099c6deb73691b0579063da5827522ccbbcba3f0020fd04e8c8c16c0d4', '-DCIX_7ZIP_BUILD_CONTRACT=ON'] 0
+sevenzip ['cmake', '--build', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v2/sevenzip'), '-j4'] 2
+sevenzip FAIL e-rc-check-v1/database-hosts-source-v2/sevenzip/cix_7zip_coder.cpp:128:1: note: in expansion of macro ‘Z7_CLASS_IMP_COM_4’
+  128 | Z7_CLASS_IMP_COM_4(CCix7zipCoder, ICompressCoder, ICompressSetCoderProperties,
+      | ^~~~~~~~~~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-source-v2/sevenzip/cix_7zip_coder.cpp:177:14: error: declaration of ‘virtual LONG {anonymous}::CCix7zipCoder::Code(ISequentialInStream*, ISequentialOutStream*, const UInt64*, const UInt64*, ICompressProgressInfo*)’ has a different exception specifier
+  177 | STDMETHODIMP CCix7zipCoder::Code(ISequentialInStream *in_stream,
+      |              ^~~~~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/ICoder.h:28:5: note: from previous declaration ‘virtual LONG {anonymous}::CCix7zipCoder::Code(ISequentialInStream*, ISequentialOutStream*, const UInt64*, const UInt64*, ICompressProgressInfo*) noexcept’
+   28 |   x(Code(ISequentialInStream *inStream, ISequentialOutStream *outStream, \
+      |     ^~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/IDecl.h:50:46: note: in definition of macro ‘Z7_COM7F_IMF’
+   50 | #define Z7_COM7F_IMF(f)       Z7_COM7F_B     f Z7_COM7F_E
+      |                                              ^
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/ICoder.h:28:3: note: in expansion of macro ‘Z7_COM7F_IMP’
+   28 |   x(Code(ISequentialInStream *inStream, ISequentialOutStream *outStream, \
+      |   ^
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/IDecl.h:64:43: note: in expansion of macro ‘Z7_IFACEM_ICompressCoder’
+   64 | #define Z7_IFACE_COM7_IMP(name)           Z7_IFACEM_ ## name(Z7_COM7F_IMP)
+      |                                           ^~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Common/MyCom.h:502:3: note: in expansion of macro ‘Z7_IFACE_COM7_IMP’
+  502 |   Z7_IFACE_COM7_IMP(i1) \
+      |   ^~~~~~~~~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Common/MyCom.h:573:3: note: in expansion of macro ‘Z7_IFACES_IMP_UNK_4’
+  573 |   Z7_IFACES_IMP_UNK_4(i1, i2, i3, i4) \
+      |   ^~~~~~~~~~~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-source-v2/sevenzip/cix_7zip_coder.cpp:128:1: note: in expansion of macro ‘Z7_CLASS_IMP_COM_4’
+  128 | Z7_CLASS_IMP_COM_4(CCix7zipCoder, ICompressCoder, ICompressSetCoderProperties,
+      | ^~~~~~~~~~~~~~~~~~
+gmake[2]: *** [CMakeFiles/cix_7zip_experimental_module.dir/build.make:90: CMakeFiles/cix_7zip_experimental_module.dir/cix_7zip_coder.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:113: CMakeFiles/cix_7zip_experimental_module.dir/all] Error 2
+gmake: *** [Makefile:91: all] Error 2
+
+wiredtiger ['cmake', '--build', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-sdk-build'), '--target', 'wt', '-j4'] 0
+wiredtiger ['cmake', '--install', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-sdk-build')] 0
+wiredtiger ['cmake', '-S', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-source-v2/wiredtiger'), '-B', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v2/wiredtiger'), '-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so', '-DWIREDTIGER_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-prefix/include', '-DWIREDTIGER_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-prefix/lib/libwiredtiger.so', '-DCIX_WIREDTIGER_BUILD_CONTRACT_TEST=ON'] 0
+wiredtiger ['cmake', '--build', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v2/wiredtiger'), '-j4'] 0
+wiredtiger ['ctest', '--test-dir', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v2/wiredtiger'), '--output-on-failure'] 0

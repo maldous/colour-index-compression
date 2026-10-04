@@ -178,7 +178,7 @@ fn staged_output_reservation(
 ) -> Result<usize, String> {
     let stage = match request.operation {
         // Selection writes an archive, constrained by both declared caps.
-        JobOperation::SelectWholeInput => request
+        JobOperation::SelectWholeInput | JobOperation::SelectIndependentWindows => request
             .limits
             .archive_bytes
             .min(request.limits.output_bytes),
@@ -334,7 +334,7 @@ fn apply_cancel_before_cutoff(cutoff: &Mutex<bool>, token: &CancelToken) -> bool
 fn cli_capabilities() -> job_protocol::JobCapability {
     let mut capabilities = job_protocol::capabilities();
     capabilities.data_transport =
-        "separate explicit absolute input/output files; whole selection input <= 128 MiB".into();
+        "separate explicit absolute input/output files; whole selection input <= 128 MiB; bounded independent CIXW1 windows with cumulative input/archive caps".into();
     capabilities.cancellation =
         "cooperative stage-boundary cancellation; parent terminates process for a hard stop".into();
     capabilities
@@ -442,7 +442,10 @@ pub fn main(args: Vec<OsString>) -> i32 {
         }
     };
     let mut execution_request = request.clone();
-    if request.operation == JobOperation::SelectWholeInput {
+    if matches!(
+        request.operation,
+        JobOperation::SelectWholeInput | JobOperation::SelectIndependentWindows
+    ) {
         execution_request.limits.temporary_bytes = request.limits.temporary_bytes - staged;
         if execution_request.limits.temporary_bytes == 0 {
             let mut out = output.lock().expect("stdout mutex poisoned");
@@ -492,6 +495,16 @@ pub fn main(args: Vec<OsString>) -> i32 {
     };
     let result = match request.operation {
         JobOperation::SelectWholeInput => job_protocol::execute_select_whole_input(
+            &execution_request,
+            &mut source,
+            &mut data_output,
+            NativeExecutor {
+                providers: installed.config.clone(),
+            },
+            cancel.clone(),
+            emit,
+        ),
+        JobOperation::SelectIndependentWindows => job_protocol::execute_select_independent_windows(
             &execution_request,
             &mut source,
             &mut data_output,
@@ -667,6 +680,7 @@ mod tests {
                 workers: 1,
                 deadline_millis: None,
             },
+            window_bytes: None,
             diagnostics: false,
         };
         // The CIXP prefix is non-native and may dispatch PAQ after an

@@ -2,7 +2,7 @@
   "schema": "cix.execution.v1",
   "approved": true,
   "baseline_commit": "0912dbd471b8630bacf0f78a0ea10a349e86d5f1",
-  "phase": "host-adapters-constraints-checkpoint",
+  "phase": "stream-hosts-and-window-jobs-qualification",
   "release_ready": false,
   "benchmark_status": "held-until-RC51",
   "publication_status": "held",
@@ -82,6 +82,16 @@
       "id": "constraints-v3,host-adapters-v3/v4/v6/v7,runtime-closure-v2,relocated-providers-v4",
       "status": "passing scoped checks",
       "scope": "46 Rust tests, tar/libarchive, four GIO tests, HDF5/netCDF/h5py matched ABI, installed JXL+four PAQ variants and level-zero admission; see host-adapters-evidence.json"
+    },
+    {
+      "id": "window-v6,concurrency-v1,portable-wasm-v1,codec-hosts-v3,codec-hosts-v7,codec-hosts-v8,consumer-hosts-v2,consumer-hosts-v3,grpc-host-v2,jvm-http-hosts-v3,rocksdb-host-v2,squashfs-host-v2,squashfs-host-v3,stream-storage-hosts-v1,gstreamer-host-v2",
+      "status": "scoped checks and failures preserved",
+      "scope": "See stream-hosts-evidence.json for source identities, actual host coverage, raw outcomes and exact qualification limits."
+    },
+    {
+      "id": "windows-jobs-mixed-v5",
+      "status": "passed",
+      "scope": "all-target compile +45 focusednative/job/CLI/transportchecks includingv1compatibility andmixedparallelfallback"
     }
   ],
   "active_work": [
@@ -131,8 +141,16 @@
     "constraints-v1 stale diagnostic and unsuccessful BEST child; v2 forced M6 used CIXG producer; corrected v3",
     "relocated-providers-v1/v3 PAQ level-zero SIGSEGV; pinned upstream null predictor; CIX worker rejects unsafe level in v4",
     "host-adapters-v1/v2/v3/v4 build, dynamic-discovery, child-environment and host-cancellation-contract failures; all scopes passed after fixes",
-    "host-adapters-v6 h5py loader package missing after HDF5/netCDF passed; v7 matched distro loader/ABI passes"
+    "host-adapters-v6 h5py loader package missing after HDF5/netCDF passed; v7 matched distro loader/ABI passes",
+    "window-v1 compile, window-v2 invalid test mutation, window-v4/v5 unstable source copy; window-v6 passed",
+    "Squash plugin v1..v7 bridge and lifecycle issues; v8 contracts passed",
+    "squashfs-host-v1 differential fixture overflow and v2 upstream status-path failure; actual extraction passed v3",
+    "rocksdb-host-v1 no-RTTI ABI mismatch; v2 passed",
+    "stream-storage-hosts-v1 GStreamer output before segment; gstreamer-host-v2 passed",
+    "windows-jobs-mixed-v1 error string type and v2 stale protocol-version rejection assertion; v3 pending",
+    "kernel-source-v1 streamed SDK extraction failed before tar header; diagnostic retry pending",
+    "windows-jobs-mixed-v3 helper admission assertion, v4 negative fixture ignored preceding progress; independent review caught v1 Capability/Result decode defect, fixed and45 focusedchecks passedv5"
   ],
-  "active_job": null,
-  "next_action": "Qualify pinned Blosc2/Squash and remaining host adapters, then complete full-engine streaming, parallelism, quality and platform contracts"
+  "active_job": "squashfs-readers-v4",
+  "next_action": "Finish window-job/mixed scheduling validation; qualify remaining SquashFS readers/kernel; complete source/quality/platform/distribution closure before RC51."
 }

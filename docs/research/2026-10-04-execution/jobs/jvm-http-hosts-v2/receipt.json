@@ -1,0 +1,40 @@
+[
+  {
+    "argv": [
+      "/usr/lib/jvm/java-21-openjdk-amd64/bin/javac",
+      "--release",
+      "17",
+      "-cp",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/commons-collections-3.2.2.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/commons-logging-1.2.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/hadoop-annotations-3.4.1.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/hadoop-common-3.4.1.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/hadoop-shaded-guava-1.3.0.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/slf4j-api-1.7.36.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/stax2-api-4.2.1.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/woodstox-core-5.4.0.jar",
+      "-d",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-hosts-v2/classes",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-source-v2/bindings/java/src/main/java/dev/cix/binding/NativeCix.java",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-source-v2/adapters/hadoop/src/test/java/dev/cix/hadoop/HadoopContract.java",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-source-v2/adapters/hadoop/src/main/java/dev/cix/hadoop/CixCodec.java"
+    ],
+    "env_extra": {},
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-source-v2/adapters/hadoop/src/main/java/dev/cix/hadoop/CixCodec.java:298: error: unreported exception IOException; must be caught or declared to be thrown\n        CixInputStream(InputStream in, CixDecompressor decompressor) { super(in); this.decompressor = decompressor; }\n                                                                            ^\n1 error\n"
+  },
+  {
+    "argv": [
+      "/usr/bin/go",
+      "-C",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-source-v2/adapters/network",
+      "test",
+      "./...",
+      "-count=1"
+    ],
+    "env_extra": {
+      "PKG_CONFIG_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/pkgconfig",
+      "LD_LIBRARY_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib",
+      "GOCACHE": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/go-binding-cache",
+      "GOPROXY": "off",
+      "CIX_NETWORK_HOST": "1"
+    },
+    "returncode": 1,
+    "stdout": "?   \texample.invalid/cix/network\t[no test files]\n--- FAIL: TestControlledPeerHTTPContract (0.00s)\n    http_contract_test.go:36: encode status=500 encoding=\"\"\nFAIL\nFAIL\texample.invalid/cix/network/contracts\t0.005s\nok  \texample.invalid/cix/network/httpapi\t0.002s\nFAIL\n",
+    "stderr": ""
+  }
+]

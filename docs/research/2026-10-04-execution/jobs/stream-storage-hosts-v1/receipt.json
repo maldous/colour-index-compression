@@ -1,0 +1,77 @@
+[
+  {
+    "argv": [
+      "cmake",
+      "-S",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-source-v1/storage-examples",
+      "-B",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-hosts-v1/storage-build",
+      "-DCIX_SDK_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+      "-DCIX_SDK_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+      "-DCMAKE_CXX_FLAGS=-Wall -Wextra -Werror"
+    ],
+    "returncode": 0,
+    "stdout": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version \"3.0.13\") found components: Crypto \n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-hosts-v1/storage-build\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "cmake",
+      "--build",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-hosts-v1/storage-build",
+      "-j4"
+    ],
+    "returncode": 0,
+    "stdout": "[ 50%] Building CXX object CMakeFiles/cix-backup.dir/cix_backup.cpp.o\n[100%] Linking CXX executable cix-backup\n[100%] Built target cix-backup\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "python3",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-source-v1/storage-examples/test_fixture.py",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-hosts-v1/storage-build/cix-backup"
+    ],
+    "returncode": 0,
+    "stdout": "storage fixture contract passed\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "cmake",
+      "-S",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-source-v1/gstreamer",
+      "-B",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-hosts-v1/gst-build",
+      "-DCIX_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+      "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+      "-DCMAKE_C_FLAGS=-Wall -Wextra -Werror"
+    ],
+    "returncode": 0,
+    "stdout": "-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Found PkgConfig: /usr/bin/pkg-config (found version \"1.8.1\") \n-- Checking for modules 'gstreamer-1.0;gstreamer-app-1.0'\n--   Found gstreamer-1.0, version 1.24.2\n--   Found gstreamer-app-1.0, version 1.24.2\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-hosts-v1/gst-build\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "cmake",
+      "--build",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-hosts-v1/gst-build",
+      "-j4"
+    ],
+    "returncode": 0,
+    "stdout": "[ 25%] Building C object CMakeFiles/gstcixstream.dir/src/gstcixstream.c.o\n[ 50%] Building C object CMakeFiles/cix-gstream-contract.dir/tests/contract.c.o\n[ 75%] Linking C executable cix-gstream-contract\n[100%] Linking C shared module libgstcixstream.so\n[100%] Built target cix-gstream-contract\n[100%] Built target gstcixstream\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-hosts-v1/gst-build",
+      "--output-on-failure",
+      "--timeout",
+      "30"
+    ],
+    "returncode": 8,
+    "stdout": "Internal ctest changing into directory: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-hosts-v1/gst-build\nTest project /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/stream-storage-hosts-v1/gst-build\n    Start 1: cix-gstream-contract\n1/1 Test #1: cix-gstream-contract .............***Failed    3.97 sec\n\n(cix-gstream-contract:2927893): GStreamer-WARNING **: 05:07:59.461: ../gst/gstpad.c:4736:gst_pad_push_data:<codec:src> Got data flow before segment event\n\n(cix-gstream-contract:2927893): GStreamer-WARNING **: 05:07:59.461: ../gst/gstpad.c:4463:gst_pad_chain_data_unchecked:<sink:sink> Got data flow before segment event\n\n\n0% tests passed, 1 tests failed out of 1\n\nTotal Test time (real) =   3.97 sec\n\nThe following tests FAILED:\n\t  1 - cix-gstream-contract (Failed)\n",
+    "stderr": "Errors while running CTest\n"
+  }
+]

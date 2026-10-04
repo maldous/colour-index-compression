@@ -17,6 +17,7 @@ use crate::{
             self, NativeExecutor, SelectionLimits, SelectionProfile, TrialDetails, WholeConstraints,
         },
         spatial_provider::SpatialProvider,
+        window_stream::{self, EncodeLimits, StreamSummary},
     },
 };
 use std::{
@@ -391,6 +392,135 @@ fn whole_constraints(o: &Opt) -> WholeConstraints {
     }
 }
 
+fn selection_profile(level: u8) -> SelectionProfile {
+    match level {
+        0..=1 => SelectionProfile::Fast,
+        2..=8 => SelectionProfile::Default,
+        _ => SelectionProfile::Best,
+    }
+}
+
+/// CIXW1 deliberately carries independent complete archives. Controls which
+/// require the legacy encoder's continuous state or time-driven flush promise
+/// are therefore not silently translated into a windowed archive.
+pub(crate) fn window_encode_ineligibility(o: &Opt) -> Option<&'static str> {
+    if o.stream {
+        Some("--stream requires the legacy framed encoder")
+    } else if o.flush_interval.is_some() {
+        Some("--flush-interval requires the legacy idle-time flush contract")
+    } else if o.history != 0 || o.independent_blocks {
+        Some("history/reset controls require the legacy encoder")
+    } else if !matches!(o.format.as_str(), "auto" | "cixg1" | "cixg2" | "cixm6") {
+        Some("the selected container cannot be embedded in CIXW1")
+    } else if o.route.as_deref().is_some_and(|route| route != "auto") {
+        Some("explicit route requires the legacy encoder")
+    } else if o.external_backend.is_some() || o.portfolio.is_some() {
+        Some("explicit external/portfolio selection requires the legacy encoder")
+    } else {
+        None
+    }
+}
+
+fn window_bytes(memory: usize) -> Option<usize> {
+    // Keep one reasonably useful local-search window while leaving the rest of
+    // the declared budget for source-aware selection and its bounded result.
+    // Halving preserves a useful window under smaller explicit memory limits.
+    let mut bytes = (16 << 20).min(selection::MAX_WHOLE_INPUT);
+    while bytes >= 64 << 10 {
+        let output = bytes.checked_add(2 << 20)?;
+        let selection_memory = memory.checked_sub(bytes)?;
+        if selection::minimum_whole_input_memory(bytes, output)
+            .is_ok_and(|required| required <= selection_memory)
+        {
+            return Some(bytes);
+        }
+        bytes /= 2;
+    }
+    None
+}
+
+/// Encode an unbounded source as independently selected, bounded CIXW1
+/// windows. The source is read once and only one source window plus its
+/// selected archive are live at a time.
+pub(crate) fn encode_windows<R: Read, W: Write>(
+    o: &Opt,
+    source: R,
+    destination: &mut W,
+) -> Result<Option<StreamSummary>, String> {
+    if window_encode_ineligibility(o).is_some() {
+        return Ok(None);
+    }
+    let Some(window_bytes) = window_bytes(o.memory) else {
+        return Ok(None);
+    };
+    let profile = selection_profile(o.level);
+    if profile == SelectionProfile::Best {
+        if let Err(error) = prepare_paq_root(o) {
+            if o.explain || o.verbose {
+                eprintln!("cix: paq_worker_omission={error}");
+            }
+        }
+    }
+    let providers = provider_config(o, false)?;
+    let constraints = whole_constraints(o);
+    let show_reports = o.explain || o.verbose;
+    let mut reported_windows = 0u64;
+    const MAX_WINDOW_SELECTION_REPORTS: u64 = 8;
+    let summary = window_stream::encode(
+        source,
+        destination,
+        &EncodeLimits {
+            window_bytes,
+            memory_bytes: o.memory,
+            // CIXW1 writes records directly. This cap controls serialized
+            // accounting only, not a retained output allocation.
+            output_bytes: usize::MAX,
+            deadline: None,
+            cancellation: Some(cancellation_token()),
+        },
+        |window, selection_memory| {
+            let output_bytes = window
+                .len()
+                .checked_add(2 << 20)
+                .ok_or("CIXW1 window output bound overflow")?;
+            let required = selection::minimum_whole_input_memory(window.len(), output_bytes)?;
+            if selection_memory < required {
+                return Err("CIXW1 window cannot admit bounded local selection".into());
+            }
+            let result = selection::select_whole_input_constrained(
+                window,
+                profile,
+                SelectionLimits {
+                    memory_bytes: selection_memory,
+                    workers: o.threads,
+                    temporary_bytes: selection_memory,
+                    output_bytes,
+                    intermediate_bytes: (selection_memory / 4).max(1),
+                    deadline: None,
+                    cancellation: Some(cancellation_token()),
+                },
+                NativeExecutor {
+                    providers: providers.clone(),
+                },
+                constraints.clone(),
+            )?;
+            if show_reports && reported_windows < MAX_WINDOW_SELECTION_REPORTS {
+                eprintln!("cix: window_sequence={reported_windows} selection_report_begin");
+                report_selection(&result.report);
+                reported_windows += 1;
+            }
+            Ok(result.archive)
+        },
+    )?;
+    if show_reports && summary.windows > reported_windows {
+        eprintln!(
+            "cix: window_selection_reports_omitted={} limit={MAX_WINDOW_SELECTION_REPORTS}",
+            summary.windows - reported_windows,
+        );
+    }
+    Ok(Some(summary))
+}
+
 fn whole_input_ineligibility(o: &Opt) -> Option<String> {
     let metadata = fs::metadata(&o.input).ok()?;
     if !metadata.is_file() {
@@ -475,11 +605,7 @@ pub(crate) fn encode_whole<W: Write>(
     if selection_memory < minimum_memory {
         return Ok(None);
     }
-    let profile = match o.level {
-        0..=1 => SelectionProfile::Fast,
-        2..=8 => SelectionProfile::Default,
-        _ => SelectionProfile::Best,
-    };
+    let profile = selection_profile(o.level);
     if profile == SelectionProfile::Best {
         if let Err(error) = prepare_paq_root(o) {
             if o.explain || o.verbose {
@@ -515,6 +641,16 @@ pub(crate) fn encode_ineligibility(o: &Opt) -> Option<String> {
     whole_encode_ineligibility(o)
         .map(str::to_owned)
         .or_else(|| whole_input_ineligibility(o))
+}
+
+pub(crate) fn report_window_summary(summary: &StreamSummary) {
+    eprintln!(
+        "cix: full_engine windowed=true windows={} input_bytes={} archive_bytes={} independent_windows={} cross_window_history=none whole_archive_comparison=none",
+        summary.windows,
+        summary.input_bytes,
+        summary.archive_bytes,
+        summary.independent_windows,
+    );
 }
 
 pub(crate) fn report_selection(report: &selection::SelectionReport) {

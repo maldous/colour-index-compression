@@ -75,6 +75,49 @@ fn error_record(bytes: Vec<u8>) -> cix_native::full_engine::job_protocol::JobErr
     error
 }
 
+fn terminal_error(bytes: Vec<u8>) -> cix_native::full_engine::job_protocol::JobError {
+    let mut wire = Cursor::new(bytes);
+    let mut error = None;
+    while (wire.position() as usize) < wire.get_ref().len() {
+        if let ControlRecord::Error(value) =
+            job_protocol::read_control(&mut wire).expect("job control record")
+        {
+            error = Some(value);
+        }
+    }
+    error.expect("terminal error control record")
+}
+
+fn no_owned_temporary(fixture: &Fixture) {
+    assert!(fs::read_dir(&fixture.root)
+        .expect("fixture root")
+        .all(|entry| !entry
+            .expect("entry")
+            .file_name()
+            .to_string_lossy()
+            .starts_with(".cix-job-")));
+}
+
+fn run_request(
+    fixture: &Fixture,
+    request: cix_native::full_engine::job_protocol::JobRequest,
+) -> std::process::Output {
+    let mut child = fixture
+        .command()
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("start cix job");
+    job_protocol::write_control(
+        child.stdin.as_mut().expect("child stdin"),
+        &ControlRecord::Request(request),
+    )
+    .expect("write request");
+    drop(child.stdin.take());
+    child.wait_with_output().expect("wait for cix job")
+}
+
 #[test]
 fn capabilities_are_a_single_bounded_control_record() {
     let output = Command::new(env!("CARGO_BIN_EXE_cix"))
@@ -181,6 +224,7 @@ fn decode_staging_cap_is_admitted_before_output_creation() {
             workers: 1,
             deadline_millis: None,
         },
+        window_bytes: None,
         diagnostics: false,
     };
     let mut child = fixture
@@ -236,6 +280,7 @@ fn decode_job_restores_a_raw_archive_to_the_private_output_file() {
             workers: 1,
             deadline_millis: None,
         },
+        window_bytes: None,
         diagnostics: false,
     };
     let mut child = fixture
@@ -279,4 +324,122 @@ fn decode_job_restores_a_raw_archive_to_the_private_output_file() {
         Some("native-incremental" | "native-core-buffered")
     ));
     assert!(saw_output);
+}
+
+#[test]
+fn window_job_encodes_then_fresh_job_decodes_exactly() {
+    use cix_native::full_engine::job_protocol::{JobLimits, JobOperation, JobProfile, JobRequest};
+
+    let encode = Fixture::new("window-encode");
+    let source = b"same executable CIXW1 job fixture\n".repeat(1024);
+    fs::write(&encode.input, &source).expect("window source");
+    let encode_request = JobRequest {
+        request_id: 71,
+        operation: JobOperation::SelectIndependentWindows,
+        profile: JobProfile::Fast,
+        limits: JobLimits {
+            input_bytes: source.len(),
+            archive_bytes: 1 << 20,
+            output_bytes: 1 << 20,
+            memory_bytes: 128 << 20,
+            intermediate_bytes: 8 << 20,
+            temporary_bytes: 128 << 20,
+            workers: 1,
+            deadline_millis: None,
+        },
+        window_bytes: Some(4096),
+        diagnostics: true,
+    };
+    let encoded = run_request(&encode, encode_request);
+    assert!(
+        encoded.status.success(),
+        "{}",
+        String::from_utf8_lossy(&encoded.stderr)
+    );
+    assert!(encoded.stderr.is_empty());
+    let archive = fs::read(&encode.output).expect("published CIXW1 archive");
+    assert!(archive.starts_with(b"CIXW1"));
+    let mut wire = Cursor::new(encoded.stdout);
+    let mut window_result = None;
+    while (wire.position() as usize) < wire.get_ref().len() {
+        if let ControlRecord::Result(result) =
+            job_protocol::read_control(&mut wire).expect("encode record")
+        {
+            window_result = result.windows;
+        }
+    }
+    let report = window_result.expect("window result report");
+    assert!(report.windows > 1);
+    assert_eq!(report.input_bytes as usize, source.len());
+    assert_eq!(report.independent_windows, report.windows);
+    no_owned_temporary(&encode);
+
+    let decode = Fixture::new("window-decode");
+    fs::write(&decode.input, &archive).expect("window archive input");
+    let decoded = run_request(
+        &decode,
+        JobRequest {
+            request_id: 72,
+            operation: JobOperation::DecodeArchive,
+            profile: JobProfile::Default,
+            limits: JobLimits {
+                input_bytes: archive.len(),
+                archive_bytes: archive.len(),
+                output_bytes: source.len(),
+                memory_bytes: 128 << 20,
+                intermediate_bytes: 8 << 20,
+                temporary_bytes: 128 << 20,
+                workers: 1,
+                deadline_millis: None,
+            },
+            window_bytes: None,
+            diagnostics: false,
+        },
+    );
+    assert!(
+        decoded.status.success(),
+        "{}",
+        String::from_utf8_lossy(&decoded.stderr)
+    );
+    assert_eq!(
+        fs::read(&decode.output).expect("exact restored source"),
+        source
+    );
+    no_owned_temporary(&decode);
+}
+
+#[test]
+fn window_job_cap_failure_cleans_its_private_staging_file() {
+    use cix_native::full_engine::job_protocol::{JobLimits, JobOperation, JobProfile, JobRequest};
+
+    let fixture = Fixture::new("window-cap");
+    fs::write(&fixture.input, b"window cap cleanup").expect("window source");
+    let result = run_request(
+        &fixture,
+        JobRequest {
+            request_id: 73,
+            operation: JobOperation::SelectIndependentWindows,
+            profile: JobProfile::Fast,
+            limits: JobLimits {
+                input_bytes: 18,
+                // CIXW1 needs its header and terminal even for empty input.
+                archive_bytes: 16,
+                output_bytes: 16,
+                memory_bytes: 128 << 20,
+                intermediate_bytes: 8 << 20,
+                temporary_bytes: 128 << 20,
+                workers: 1,
+                deadline_millis: None,
+            },
+            window_bytes: Some(4096),
+            diagnostics: false,
+        },
+    );
+    assert!(!result.status.success());
+    assert!(result.stderr.is_empty());
+    let error = terminal_error(result.stdout);
+    assert_eq!(error.request_id, 73);
+    assert_eq!(error.code, JobErrorCode::Execution);
+    assert!(!fixture.output.exists());
+    no_owned_temporary(&fixture);
 }

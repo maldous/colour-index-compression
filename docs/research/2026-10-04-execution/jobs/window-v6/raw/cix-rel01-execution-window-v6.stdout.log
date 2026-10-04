@@ -1,0 +1,41 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-window-v6/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-window-v6/Cargo.toml', '--lib', 'full_engine::window_stream', '--', '--test-threads=2']
+
+running 1 test
+test full_engine::window_stream::tests::writer_emits_independent_records_and_terminal ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 271 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-window-v6/Cargo.toml', '--lib', 'full_engine::job_protocol', '--', '--test-threads=2']
+
+running 6 tests
+test full_engine::job_protocol::tests::capabilities_describe_bounded_whole_selection_and_cixw1_decode ... ok
+test full_engine::job_protocol::tests::control_round_trip ... ok
+test full_engine::job_protocol::tests::decode_entry_counts_actual_native_output_and_finishes_stage ... ok
+test full_engine::job_protocol::tests::direct_selection_entry_applies_limits_cancel_and_reports_actual_output ... ok
+test full_engine::job_protocol::tests::rejects_unknown_version_oversize_truncated_and_utf8 ... ok
+test full_engine::job_protocol::tests::decode_entry_reports_incremental_window_path ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-window-v6/Cargo.toml', '--test', 'window_transport', '--test', 'window_cli', '--', '--test-threads=2']
+
+running 3 tests
+test completed_window_is_published_before_stdin_eof ... ok
+test explicit_legacy_stream_and_explicit_backend_keep_their_contracts ... ok
+test stdin_uses_independent_windows_and_shared_decode_test_list_paths ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.63s
+
+
+running 7 tests
+test cancelled_or_expired_decoders_do_not_write ... ok
+test cumulative_output_is_admitted_before_writing_a_record ... ok
+test encoded_payload_may_exceed_decoded_output_cap ... ok
+test every_truncation_and_trailing_bytes_are_rejected ... ok
+test exact_multiple_windows_empty_and_one_byte ... ok
+test huge_payload_and_recursive_carrier_are_rejected_before_dispatch ... ok
+test metadata_sequence_hash_and_terminal_are_checked ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

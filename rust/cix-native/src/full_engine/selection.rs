@@ -360,7 +360,7 @@ fn plans(
             priority: next_priority,
             kind: PlanKind::Mixed { profile },
             memory,
-            workers: 1,
+            workers: limits.workers,
             temporary: mixed_temporary,
         }),
         _ => trials.push(Trial {
@@ -499,7 +499,7 @@ impl CandidateExecutor for NativeExecutor {
         match &plan.kind {
             PlanKind::Mixed { profile } => {
                 let (engine, provider_omissions) = self.mixed_engine(limits.output_bytes);
-                return mixed_selection::encode_with_provider_omissions(
+                return mixed_selection::encode_with_provider_omissions_workers(
                     &engine,
                     data,
                     *profile,
@@ -511,6 +511,7 @@ impl CandidateExecutor for NativeExecutor {
                         cancellation: limits.cancellation.clone(),
                     },
                     &provider_omissions,
+                    plan.workers,
                 )
                 .map(|result| CandidateExecution {
                     archive: result.archive,

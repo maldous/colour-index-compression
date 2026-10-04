@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/rocksdb-host-v1/run.py", line 38, in <module>
+    run(['cmake', '--build', adapter, '-j4'])
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/rocksdb-host-v1/run.py", line 23, in run
+    raise RuntimeError(p.stderr[-7000:] or p.stdout[-7000:])
+RuntimeError: /usr/bin/ld: libcix_rocksdb_compression_manager.a(cix_compression_manager.cc.o): warning: relocation against `_ZTIN7rocksdb18CompressionManagerE' in read-only section `.text'
+/usr/bin/ld: libcix_rocksdb_compression_manager.a(cix_compression_manager.cc.o): in function `std::shared_ptr<rocksdb::(anonymous namespace)::CixManager> std::dynamic_pointer_cast<rocksdb::(anonymous namespace)::CixManager, rocksdb::CompressionManager>(std::shared_ptr<rocksdb::CompressionManager> const&)':
+cix_compression_manager.cc:(.text+0x163b): undefined reference to `typeinfo for rocksdb::CompressionManager'
+/usr/bin/ld: libcix_rocksdb_compression_manager.a(cix_compression_manager.cc.o):(.data.rel.ro+0x1a0): undefined reference to `typeinfo for rocksdb::CompressionManager'
+/usr/bin/ld: libcix_rocksdb_compression_manager.a(cix_compression_manager.cc.o):(.data.rel.ro+0x1d0): undefined reference to `typeinfo for rocksdb::Decompressor'
+/usr/bin/ld: warning: creating DT_TEXTREL in a PIE
+collect2: error: ld returned 1 exit status
+gmake[2]: *** [CMakeFiles/cix_rocksdb_contract.dir/build.make:100: cix_rocksdb_contract] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:111: CMakeFiles/cix_rocksdb_contract.dir/all] Error 2
+gmake: *** [Makefile:101: all] Error 2
+

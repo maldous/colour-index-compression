@@ -487,7 +487,11 @@ fn permutation_rank(data: &[u8], counts: &[usize], mut ways: BigUint) -> Result<
     Ok(rank)
 }
 
-fn permutation_unrank(mut rank: BigUint, counts: &[usize], mut ways: BigUint) -> Result<Vec<u8>, String> {
+fn permutation_unrank(
+    mut rank: BigUint,
+    counts: &[usize],
+    mut ways: BigUint,
+) -> Result<Vec<u8>, String> {
     let mut mutable = counts.to_vec();
     let mut fenwick = Fenwick::new(&mutable);
     let mut remaining: usize = counts.iter().sum();
@@ -946,7 +950,11 @@ mod tests {
     #[test]
     fn lowest_bit_preserves_fenwick_step() {
         for value in [0usize, 1, 2, 3, usize::MAX, 1 << (usize::BITS - 1)] {
-            let expected = if value == 0 { 0 } else { 1usize << value.trailing_zeros() };
+            let expected = if value == 0 {
+                0
+            } else {
+                1usize << value.trailing_zeros()
+            };
             assert_eq!(value.isolate_lowest_one(), expected);
         }
     }
@@ -1008,20 +1016,30 @@ mod tests {
     fn legacy_decode_type_class(data: &[u8], pos: &mut usize, n: usize) -> Result<Vec<u8>, String> {
         let m = read_varint(data, pos)?;
         if n == 0 {
-            if m != 0 { return Err("active symbols in empty CIX type class".into()); }
+            if m != 0 {
+                return Err("active symbols in empty CIX type class".into());
+            }
             return Ok(Vec::new());
         }
-        if m == 0 || m > 256 || m > n { return Err("invalid CIX active alphabet".into()); }
-        let active = if m == 256 { (0..256).collect() } else {
+        if m == 0 || m > 256 || m > n {
+            return Err("invalid CIX active alphabet".into());
+        }
+        let active = if m == 256 {
+            (0..256).collect()
+        } else {
             let width = fixed_width(&(choose(256, m) - BigUint::one()));
             colex_unrank(read_fixed(data, pos, width)?, m, 256)?
         };
-        let parts = if m == 1 { vec![n] } else {
+        let parts = if m == 1 {
+            vec![n]
+        } else {
             let width = fixed_width(&(choose(n - 1, m - 1) - BigUint::one()));
             composition_unrank(read_fixed(data, pos, width)?, n, m)?
         };
         let mut counts = vec![0usize; 256];
-        for (&symbol, count) in active.iter().zip(parts) { counts[symbol] = count; }
+        for (&symbol, count) in active.iter().zip(parts) {
+            counts[symbol] = count;
+        }
         let ways = cardinality(&counts);
         let width = fixed_width(&(&ways - BigUint::one()));
         let mode = *data.get(*pos).ok_or("missing CIX sequence mode")?;
@@ -1031,8 +1049,12 @@ mod tests {
             1 => {
                 let bit_length = read_varint(data, pos)?;
                 let byte_length = bit_length.div_ceil(8);
-                let end = pos.checked_add(byte_length).ok_or("range stream length overflow")?;
-                if end > data.len() { return Err("truncated CIX range stream".into()); }
+                let end = pos
+                    .checked_add(byte_length)
+                    .ok_or("range stream length overflow")?;
+                if end > data.len() {
+                    return Err("truncated CIX range stream".into());
+                }
                 let result = decode_sequence_range(&data[*pos..end], bit_length, &counts)?;
                 *pos = end;
                 Ok(result)
@@ -1063,8 +1085,14 @@ mod tests {
             assert_eq!(current, legacy);
             let mut old_pos = 0;
             let mut new_pos = 0;
-            assert_eq!(legacy_decode_type_class(&legacy, &mut old_pos, input.len()).unwrap(), input);
-            assert_eq!(decode_type_class(&current, &mut new_pos, input.len()).unwrap(), input);
+            assert_eq!(
+                legacy_decode_type_class(&legacy, &mut old_pos, input.len()).unwrap(),
+                input
+            );
+            assert_eq!(
+                decode_type_class(&current, &mut new_pos, input.len()).unwrap(),
+                input
+            );
             assert_eq!(old_pos, legacy.len());
             assert_eq!(new_pos, current.len());
         }
@@ -1080,7 +1108,9 @@ mod tests {
         for malformed in [mode_zero, mode_one] {
             let mut old_pos = 0;
             let mut new_pos = 0;
-            assert!(legacy_decode_type_class(&malformed, &mut old_pos, malformed_input.len()).is_err());
+            assert!(
+                legacy_decode_type_class(&malformed, &mut old_pos, malformed_input.len()).is_err()
+            );
             assert!(decode_type_class(&malformed, &mut new_pos, malformed_input.len()).is_err());
         }
     }
@@ -1129,7 +1159,12 @@ mod tests {
     #[test]
     fn context_layouts_round_trip_and_reject_trailing_bytes() {
         let cases = [
-            (b"aaaaabbbbccccddddeeeeffff".as_slice(), 1, 1, b"".as_slice()),
+            (
+                b"aaaaabbbbccccddddeeeeffff".as_slice(),
+                1,
+                1,
+                b"".as_slice(),
+            ),
             (
                 b"context lanes preserve canonical ordering across blocks".as_slice(),
                 3,

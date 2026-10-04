@@ -286,7 +286,7 @@ fn handle_special_option(argument: &str) -> bool {
     match argument {
         "--help" | "-h" => {
             usage();
-            println!("\nBEST compares complete compatible native containers and native-library backend archives within --memory. Streaming uses bounded framed candidates and retained history where supported. Expert controls constrain their specified dimensions. Use --verbose or --explain for evaluated candidates and resource exclusions.");
+            println!("\nBEST compares complete compatible native containers and native-library backend archives within --memory. Ordinary stdin, non-regular and oversized inputs use bounded independent CIXW1 windows when their controls permit it; --stream, history and flush controls retain the framed encoder. Expert controls constrain their specified dimensions. Use --verbose or --explain for evaluated candidates and resource exclusions.");
             process::exit(0)
         }
         "--version" => {
@@ -671,6 +671,16 @@ fn execute_to_stdout(
                 crate::cli_full_engine::encode_ineligibility(o).unwrap()
             );
         }
+        if crate::cli_full_engine::window_encode_ineligibility(o).is_none() {
+            let src = open_input(&o.input)?;
+            let mut lock = engine::stdout_writer::StdoutWriter::new().map_err(ioerr)?;
+            if let Some(summary) = crate::cli_full_engine::encode_windows(o, src, &mut lock)? {
+                if o.explain || o.verbose {
+                    crate::cli_full_engine::report_window_summary(&summary);
+                }
+                return Ok(());
+            }
+        }
     }
     let src = open_input(&o.input)?;
     let fd = input_fd(&src);
@@ -718,6 +728,15 @@ fn execute_to_file(
                     "cix: full_engine=not_admitted reason={}",
                     crate::cli_full_engine::encode_ineligibility(o).unwrap()
                 );
+            }
+            if crate::cli_full_engine::window_encode_ineligibility(o).is_none() {
+                let src = open_input(&o.input)?;
+                if let Some(summary) = crate::cli_full_engine::encode_windows(o, src, dst)? {
+                    if o.explain || o.verbose {
+                        crate::cli_full_engine::report_window_summary(&summary);
+                    }
+                    return Ok(());
+                }
             }
         }
         let src = open_input(&o.input)?;

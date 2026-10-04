@@ -107,8 +107,9 @@ impl BackendProvider {
             BackendVariant::Zlib { level } => {
                 external::raw_zlib_encode(input, level, r.output_limit)
             }
-            BackendVariant::Xz { preset } =>
-                external::raw_xz_encode_preset(input, preset, r.output_limit),
+            BackendVariant::Xz { preset } => {
+                external::raw_xz_encode_preset(input, preset, r.output_limit)
+            }
             BackendVariant::Brotli { quality, lgwin } => {
                 external::raw_brotli_encode(input, quality, lgwin, r.output_limit)
             }
@@ -176,11 +177,9 @@ impl BackendProvider {
     }
     fn state_bytes(&self, variant: BackendVariant) -> Result<usize, String> {
         match variant {
-            BackendVariant::Xz { preset } if preset <= 9 => {
-                external::xz_easy_memory_usage(preset)
-                    .try_into()
-                    .map_err(|_| "XZ memory estimate overflow".into())
-            }
+            BackendVariant::Xz { preset } if preset <= 9 => external::xz_easy_memory_usage(preset)
+                .try_into()
+                .map_err(|_| "XZ memory estimate overflow".into()),
             BackendVariant::Xz { .. } => Err("unsupported XZ preset".into()),
             BackendVariant::Brotli { lgwin, .. } if (10..=24).contains(&lgwin) => {
                 // Carry forward the canonical provider's conservative
