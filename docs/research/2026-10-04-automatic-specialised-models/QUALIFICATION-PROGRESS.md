@@ -1,10 +1,26 @@
 # Integrated runtime qualification
 
-The frozen 36-cell Silesia confirmation pass is **running** under
-`qualification/silesia-confirmation-v1/plan.json`. Product source is `5d93d9f1b`;
-freeze checkpoint `d026ee070` is pushed privately. The development checks below
-are separate from the fresh corpus results. The live summary is derived from
-individually verified cells and must remain labelled incomplete until all 36 pass.
+The frozen 36-cell Silesia confirmation pass is **STOPPED BY USER**. Five cells
+remain verified, Mozilla BEST was interrupted during encoding and is unqualified,
+and 30 cells never started. The controller and all children are gone; the active
+service is inactive/dead with no remaining cgroup. Both benchmark continuation
+automations are PAUSED. No restart or replacement benchmark is authorized until
+the consolidated cross-session feature/backlog requirements are integrated,
+checked and frozen as a new RC. Stop evidence is in
+`qualification/silesia-confirmation-v1/stop-20261004-user/stop.json`.
+
+The preserved plan is `qualification/silesia-confirmation-v1/plan.json`, product
+source `5d93d9f1b`, freeze checkpoint `d026ee070`. All existing source, archives,
+scratch and receipts remain preserved. Summary status is STOPPED_BY_USER; its
+five verified rows remain valid only for this build. Mozilla native BEST had
+completed an internal candidate of 12,306,640 bytes, but portfolio selection and
+independent final decode never completed, so this is not a verified BEST result.
+At interruption two PAQ candidates were running concurrently. Future scheduling
+must address maximum useful parallelism explicitly within the shared limits.
+
+The paragraphs below preserve the earlier milestone/history. All wording about
+continuing the pass or waiting for 36 completions is superseded by the user stop.
+CIX-owned source/hygiene work may proceed after requirements/ownership reconciliation.
 
 Checkpoint at 2026-10-04 02:21 UTC: **5/36 verified**, with all three Dickens
 modes and Mozilla FAST/DEFAULT complete. Mozilla BEST is encoding. All completed
@@ -28,6 +44,23 @@ compared with 19,359,815 bytes for the current native DEFAULT candidate in the
 same search; all seven admitted candidates completed. This is a measured
 specialist-selection benefit, not predictive mixing or a public record claim.
 The full mode/corpus comparison remains pending. Timings are single observations.
+
+The user subsequently clarified the release target: **one CIX executable;
+integrated codec libraries are acceptable**. The current frozen shell/Python
+launcher and separate backend executables provide valid evidence for this exact
+candidate, but do not satisfy that packaging target. Successful models remain
+required. The next integration will use CIX-owned library bridges and a distinct
+build identity after the frozen pass/report and CXX audit; see
+[SINGLE-EXECUTABLE-PLAN.md](SINGLE-EXECUTABLE-PLAN.md). No vendor source edits,
+renamed external programs or automatic repeat of the full tournament are allowed.
+
+The coordinating task reports a separate [read-only host audit](../2026-10-04-host-performance-audit.md) with active
+thermal throttling (CPU10 counter 133325 to 133422 to 133423), one 100 C package
+sample, busy clocks about 5.225–5.308 GHz and dynamic PL1 around 55.375–58.5 W
+with thermald active. These are attributed observations pending its full audit,
+not a measured correction to benchmark times. Root made no host setting change.
+Cooling and interacting power policies require review after the pass; do not
+raise power limits during the frozen run or claim a proven maximum-speed host.
 
 * `integrated-dev-unit-5`: 31 focused Python tests passed. Earlier unit failures
   remain recorded: missing decoder helpers, malformed test expectations, a

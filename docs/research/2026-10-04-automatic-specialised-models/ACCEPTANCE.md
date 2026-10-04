@@ -1,6 +1,24 @@
 # Acceptance checklist — integrated Silesia-first validation
 
-All unchecked implementation items are pending. The coordinating preflight hold is released; this checklist gates the 36-cell Silesia confirmation.
+The user has stopped the 36-cell confirmation until the complete cross-session RC
+scope is integrated and checked. Five completed cells remain verified; the active
+Mozilla BEST cell is interrupted/unqualified and 30 cells never started. Both
+benchmark automations are paused. Older items below preserve acceptance history;
+the coordinating task is reconciling the authoritative full RC ledger, including
+SDK/adapter/platform/filesystem requirements and maximum useful parallelism. Do
+not infer completion or deferral from an older unchecked box. No new benchmark
+may start before that consolidated RC gate is met.
+
+## Subsequent single-executable release requirement
+
+The user clarified: **one CIX executable; integrated codec libraries are acceptable**. This preserves useful third-party algorithms and specialised models. It supersedes the current multi-executable staging arrangement as a release target. Reconcile [SINGLE-EXECUTABLE-PLAN.md](SINGLE-EXECUTABLE-PLAN.md) with the full native-SDK and full-engine capability requirements before implementation; the benchmark has now been stopped to complete that source work.
+
+- [ ] Build a real compiled CIX host calling native/third-party codec library APIs; no separate Python, native-CIX or PAQ executable dependency, renamed backend, or extraction of hidden backend programs.
+- [ ] Preserve codec attribution, unchanged third-party source identities and all successful model families; record build/link flags and actual dependency closure.
+- [ ] Preserve the original no-Python shipping requirement: no Python executable or embedded interpreter library in runtime; native/library parity for every retained specialist. Disclose all remaining native library/data dependencies. Do not claim one static file or cross-platform qualification without evidence.
+- [ ] Trace execution and loaded libraries; any isolated worker executes the same CIX binary and calls the library implementation.
+- [ ] Verify deterministic old/new archive equality where applicable, bidirectional decoder compatibility and every supported route, resource/error/timeout behavior and worker isolation using focused tests.
+- [ ] Freeze the new source/build separately; report its packaging and throughput observations separately from the current 36-cell benchmark. Do not automatically repeat valid corpus cells.
 
 ## C/C++ remediation boundary
 

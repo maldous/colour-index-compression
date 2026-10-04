@@ -1,3 +1,17 @@
+# Current user stop and RC completion requirement
+
+The user stopped the active benchmark: all requested cross-session features and
+queued source changes must be complete and working in the release candidate
+before new benchmarks. The current pass is stopped, its continuation is paused,
+and completed/partial evidence is preserved. CIX-owned implementation and hygiene
+may proceed after requirements and ownership reconciliation. Maximum useful
+parallelism within aggregate resources must be addressed explicitly. No benchmark
+restart or replacement is authorized merely by this handoff. See `AGENTS.md` and
+`qualification/silesia-confirmation-v1/stop-20261004-user/stop.json` for status and
+coordination ownership. This supersedes older run-first wording below.
+
+---
+
 # Current release gate — FAST, DEFAULT and BEST confirmation
 
 The user now requires restoration/integration and justified performance work to finish, followed by applicable formatting, Clippy, fresh Sonar on the actual integrated source, proven dead-code removal, an optimized release-candidate build and focused optimized validation. Freeze actual source revision, dependencies/binaries, build flags, FAST/DEFAULT/BEST policies, worker strategy, resource/time budgets and harness after final edits.
