@@ -144,11 +144,24 @@ fn default_options() -> Opt {
     }
 }
 
+fn normalized_program_name(basename: &str, windows: bool) -> String {
+    if windows {
+        let lowercase = basename.to_ascii_lowercase();
+        lowercase
+            .strip_suffix(".exe")
+            .unwrap_or(&lowercase)
+            .to_owned()
+    } else {
+        basename.to_owned()
+    }
+}
+
 fn decoder_program_name(args: &[String]) -> (bool, bool) {
     let program = Path::new(args.first().map(String::as_str).unwrap_or("cix"))
         .file_name()
         .unwrap_or_default()
         .to_string_lossy();
+    let program = normalized_program_name(&program, cfg!(windows));
     let decode = program == "uncix" || program == "unsix" || program == "cixcat";
     (decode, program == "cixcat")
 }
@@ -1541,5 +1554,14 @@ mod policy_tests {
         let explicit_decode = options(&["uncix", "--memory", "768MiB", "archive"], true);
         assert_eq!(explicit_decode.memory, 768 << 20);
         assert!(explicit_decode.memory_set);
+    }
+
+    #[test]
+    fn program_name_normalization_is_platform_specific() {
+        assert_eq!(normalized_program_name("uncix.ExE", true), "uncix");
+        assert_eq!(normalized_program_name("CIXCAT.eXe", true), "cixcat");
+        assert_eq!(normalized_program_name("UNCIX", true), "uncix");
+        assert_eq!(normalized_program_name("uncix.exe", false), "uncix.exe");
+        assert_eq!(normalized_program_name("Uncix", false), "Uncix");
     }
 }

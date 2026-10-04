@@ -93,3 +93,12 @@ For a scheduled non-release source-export/build/install exercise using the
 same explicit inputs, retain the selected hashes and staging evidence. That
 procedure does not accept a dependency closure or qualify a distributable
 package.
+
+## Windows native-only layout
+
+On Windows, `native-only` staging installs `bin/cix.exe` and byte-for-byte
+copies it to `bin/uncix.exe` and `bin/cixcat.exe`; symlinks are deliberately
+not required. Full-engine Windows staging remains refused because no target
+companion closure or provider-loading qualification exists. This is a
+synthetic staging-layout contract, not Windows runtime, alias, provider, or
+archive qualification.

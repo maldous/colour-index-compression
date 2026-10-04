@@ -1,26 +1,44 @@
 cmake_minimum_required(VERSION 3.20)
 project(cix_spatial_bridge LANGUAGES CXX)
 
-# Inputs are selected by the distribution build.  The fallback hints cover
-# conventional prefix and Debian-style SDK layouts without searching the host.
+# Inputs are selected by the distribution build. CIX_SPATIAL_ROOT is retained
+# as the one-root compatibility spelling; CIX_SPATIAL_DEPENDENCY_ROOTS permits
+# separate target SDK prefixes. Neither setting permits host discovery.
 set(CIX_SPATIAL_ROOT "" CACHE PATH "Provisioned CharLS/OpenJPEG prefix")
+set(CIX_SPATIAL_DEPENDENCY_ROOTS "" CACHE STRING
+    "Semicolon-separated immutable CharLS/OpenJPEG target SDK prefixes")
 set(CIX_CHARLS_LIBRARY "" CACHE FILEPATH "Selected CharLS library in the provisioned prefix")
 set(CIX_OPENJPEG_LIBRARY "" CACHE FILEPATH "Selected OpenJPEG library in the provisioned prefix")
-if(NOT IS_DIRECTORY "${CIX_SPATIAL_ROOT}")
-    message(FATAL_ERROR "Set CIX_SPATIAL_ROOT to the immutable codec SDK prefix")
+set(CIX_SPATIAL_ROOTS ${CIX_SPATIAL_DEPENDENCY_ROOTS})
+if(CIX_SPATIAL_ROOT)
+    list(PREPEND CIX_SPATIAL_ROOTS "${CIX_SPATIAL_ROOT}")
 endif()
-set(CIX_SPATIAL_INCLUDE_HINTS
-    "${CIX_SPATIAL_ROOT}/include"
-    "${CIX_SPATIAL_ROOT}/usr/include")
-set(CIX_SPATIAL_LIBRARY_HINTS
-    "${CIX_SPATIAL_ROOT}/lib"
-    "${CIX_SPATIAL_ROOT}/lib64"
-    "${CIX_SPATIAL_ROOT}/usr/lib"
-    "${CIX_SPATIAL_ROOT}/usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}")
+list(REMOVE_DUPLICATES CIX_SPATIAL_ROOTS)
+if(NOT CIX_SPATIAL_ROOTS)
+    message(FATAL_ERROR "Set CIX_SPATIAL_ROOT or CIX_SPATIAL_DEPENDENCY_ROOTS to immutable target SDK prefixes")
+endif()
+
+set(CIX_SPATIAL_INCLUDE_HINTS)
+set(CIX_SPATIAL_LIBRARY_HINTS)
+foreach(root IN LISTS CIX_SPATIAL_ROOTS)
+    if(NOT IS_DIRECTORY "${root}")
+        message(FATAL_ERROR "CIX spatial dependency root is not a directory: ${root}")
+    endif()
+    list(APPEND CIX_SPATIAL_INCLUDE_HINTS "${root}/include" "${root}/usr/include")
+    # CMAKE_LIBRARY_ARCHITECTURE comes from the configured target toolchain;
+    # it is not a hard-coded or host-derived architecture string.
+    list(APPEND CIX_SPATIAL_LIBRARY_HINTS
+        "${root}/lib"
+        "${root}/lib64"
+        "${root}/usr/lib"
+        "${root}/usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}")
+endforeach()
+list(REMOVE_DUPLICATES CIX_SPATIAL_INCLUDE_HINTS)
+list(REMOVE_DUPLICATES CIX_SPATIAL_LIBRARY_HINTS)
+
 find_path(CIX_CHARLS_INCLUDE charls/charls.h HINTS ${CIX_SPATIAL_INCLUDE_HINTS} NO_DEFAULT_PATH REQUIRED)
-find_path(CIX_OPENJPEG_INCLUDE openjpeg.h
-    HINTS "${CIX_SPATIAL_ROOT}/include/openjpeg-2.5" "${CIX_SPATIAL_ROOT}/usr/include/openjpeg-2.5"
-    NO_DEFAULT_PATH REQUIRED)
+find_path(CIX_OPENJPEG_INCLUDE openjpeg.h HINTS ${CIX_SPATIAL_INCLUDE_HINTS}
+    PATH_SUFFIXES openjpeg-2.5 openjpeg-2.4 openjpeg-2.3 NO_DEFAULT_PATH REQUIRED)
 if(NOT CIX_CHARLS_LIBRARY)
     # CIX_CHARLS_LIBRARY is an empty cache entry by default. Discover into a
     # separate variable so CMake does not treat that empty cache value as a
@@ -54,9 +72,17 @@ set_target_properties(cix_spatial_bridge PROPERTIES
     OUTPUT_NAME cix_spatial_bridge)
 if(MSVC)
     target_compile_options(cix_spatial_bridge PRIVATE /O2 /fp:strict)
-else()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
+       CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$" AND
+       CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    # Preserve the exact flags used by the qualified Linux x86_64 bridge.
     target_compile_options(cix_spatial_bridge PRIVATE
         -O3 -fno-fast-math -ffp-contract=off -fno-strict-aliasing)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+    target_compile_options(cix_spatial_bridge PRIVATE
+        -O3 -fno-fast-math -ffp-contract=off -fno-strict-aliasing)
+else()
+    message(FATAL_ERROR "CIX spatial bridge needs explicit safe optimization settings for this compiler")
 endif()
 if(UNIX AND NOT APPLE)
     set_target_properties(cix_spatial_bridge PROPERTIES INSTALL_RPATH "$ORIGIN")

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
-project(CIXRuntime VERSION 0.1.0 LANGUAGES C)
+project(CIXRuntime VERSION 0.1.0 LANGUAGES NONE)
 
+# The prebuilt providers use the explicit lib/cix layout on every target.
+set(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "Runtime library installation directory")
 include(GNUInstallDirs)
 
 set(CIX_RUNTIME_CAPABILITY "full-engine" CACHE STRING
@@ -43,8 +45,9 @@ if(NOT CIX_RUNTIME_CAPABILITY STREQUAL "full-engine" AND
    NOT CIX_RUNTIME_CAPABILITY STREQUAL "native-only")
   message(FATAL_ERROR "CIX_RUNTIME_CAPABILITY must be full-engine or native-only")
 endif()
-if(WIN32)
-  message(FATAL_ERROR "Windows runtime staging is not qualified: use the SDK layout contract only until alias and provider-loading qualification exists")
+if(CIX_RUNTIME_CAPABILITY STREQUAL "full-engine" AND
+   NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  message(FATAL_ERROR "full-engine companion staging currently requires qualified ELF/Linux inputs")
 endif()
 if(NOT IS_ABSOLUTE "${CIX_RUNTIME_CIX_EXECUTABLE}" OR
    NOT EXISTS "${CIX_RUNTIME_CIX_EXECUTABLE}" OR
@@ -84,9 +87,6 @@ endif()
 # reuse these sonames on macOS or Windows: those targets need their own pinned
 # bundle identities and loader qualification.
 if(CIX_RUNTIME_CAPABILITY STREQUAL "full-engine")
-  if(APPLE OR WIN32)
-    message(FATAL_ERROR "full-engine companion staging is implemented only for qualified ELF/Linux inputs; use native-only or provide a target-specific runtime installer")
-  endif()
   set(CIX_RUNTIME_COMPANIONS
     "${CIX_RUNTIME_JXL_LIBRARY}|libjxl.so.0.12.0|libjxl.so.0.12"
     "${CIX_RUNTIME_JXL_THREADS_LIBRARY}|libjxl_threads.so.0.12.0|libjxl_threads.so.0.12"
@@ -130,9 +130,15 @@ if(CIX_RUNTIME_CAPABILITY STREQUAL "full-engine")
   endforeach()
 endif()
 
-install(PROGRAMS "${CIX_RUNTIME_CIX_EXECUTABLE}" DESTINATION "${CMAKE_INSTALL_BINDIR}" RENAME cix)
-install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink cix \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/uncix\" RESULT_VARIABLE result)\nif(NOT result EQUAL 0)\n  message(FATAL_ERROR \"cannot create uncix runtime alias\")\nendif()")
-install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink cix \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/cixcat\" RESULT_VARIABLE result)\nif(NOT result EQUAL 0)\n  message(FATAL_ERROR \"cannot create cixcat runtime alias\")\nendif()")
+if(WIN32)
+  install(PROGRAMS "${CIX_RUNTIME_CIX_EXECUTABLE}" DESTINATION "${CMAKE_INSTALL_BINDIR}" RENAME cix.exe)
+  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E copy \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/cix.exe\" \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/uncix.exe\" RESULT_VARIABLE result)\nif(NOT result EQUAL 0)\n  message(FATAL_ERROR \"cannot copy uncix Windows runtime alias\")\nendif()")
+  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E copy \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/cix.exe\" \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/cixcat.exe\" RESULT_VARIABLE result)\nif(NOT result EQUAL 0)\n  message(FATAL_ERROR \"cannot copy cixcat Windows runtime alias\")\nendif()")
+else()
+  install(PROGRAMS "${CIX_RUNTIME_CIX_EXECUTABLE}" DESTINATION "${CMAKE_INSTALL_BINDIR}" RENAME cix)
+  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink cix \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/uncix\" RESULT_VARIABLE result)\nif(NOT result EQUAL 0)\n  message(FATAL_ERROR \"cannot create uncix runtime alias\")\nendif()")
+  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink cix \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/cixcat\" RESULT_VARIABLE result)\nif(NOT result EQUAL 0)\n  message(FATAL_ERROR \"cannot create cixcat runtime alias\")\nendif()")
+endif()
 
 if(CIX_RUNTIME_CAPABILITY STREQUAL "full-engine")
   foreach(pair IN LISTS CIX_RUNTIME_BRIDGES)

@@ -88,12 +88,12 @@ static int buffer_roundtrip(SquashCodec *codec, const uint8_t *input, size_t inp
   archive = (uint8_t *) malloc(archive_capacity);
   restored = (uint8_t *) malloc(input_size == 0 ? 1 : input_size);
   if (archive == NULL || restored == NULL) goto done;
-  status = squash_codec_compress(codec, &archive_size, archive, input_size, input, NULL);
+  status = squash_codec_compress(codec, &archive_size, archive, input_size, input, (void *) 0);
   if (status != SQUASH_OK || archive_size == 0 || archive_size > archive_capacity) {
     fprintf(stderr, "compress input=%zu status=%d size=%zu\n", input_size, status, archive_size);
     goto done;
   }
-  status = squash_codec_decompress(codec, &restored_size, restored, archive_size, archive, NULL);
+  status = squash_codec_decompress(codec, &restored_size, restored, archive_size, archive, (void *) 0);
   if (status != SQUASH_OK || restored_size != input_size ||
       (input_size != 0 && memcmp(restored, input, input_size) != 0)) {
     fprintf(stderr, "decompress input=%zu archive=%zu status=%d restored=%zu\n",
@@ -119,21 +119,21 @@ static int buffer_failures(SquashCodec *codec, const uint8_t *input, size_t inpu
 
   /* The plugin must report a zero-capacity destination as insufficient, before
    * CIX receives a caller buffer. */
-  status = squash_codec_compress(codec, &too_small, &one, input_size, input, NULL);
+  status = squash_codec_compress(codec, &too_small, &one, input_size, input, (void *) 0);
   if (status != SQUASH_BUFFER_FULL) return 0;
-  status = squash_codec_compress(codec, &one_byte, &one, input_size, input, NULL);
+  status = squash_codec_compress(codec, &one_byte, &one, input_size, input, (void *) 0);
   if (status != SQUASH_BUFFER_FULL) return 0;
 
-  status = squash_codec_compress(codec, &archive_size, archive, input_size, input, NULL);
+  status = squash_codec_compress(codec, &archive_size, archive, input_size, input, (void *) 0);
   if (status != SQUASH_OK || archive_size + 1 > sizeof(archive) || input_size > sizeof(restored)) return 0;
   archive[archive_size / 2] ^= UINT8_C(0x80);
-  status = squash_codec_decompress(codec, &restored_size, restored, archive_size, archive, NULL);
+  status = squash_codec_decompress(codec, &restored_size, restored, archive_size, archive, (void *) 0);
   if (status == SQUASH_OK) return 0;
   archive[archive_size / 2] ^= UINT8_C(0x80);
 
   archive[archive_size] = UINT8_C(0xa5);
   restored_size = input_size;
-  status = squash_codec_decompress(codec, &restored_size, restored, archive_size + 1, archive, NULL);
+  status = squash_codec_decompress(codec, &restored_size, restored, archive_size + 1, archive, (void *) 0);
   return status != SQUASH_OK;
 }
 
@@ -149,12 +149,12 @@ static int splice_roundtrip(SquashCodec *codec, const uint8_t *input, size_t inp
   if (archive == NULL || restored == NULL) goto done;
   state = (struct Bytes) { input, input_size, 0, archive, CONTRACT_CAPACITY, 0, 13 };
   status = squash_splice_custom(codec, SQUASH_STREAM_COMPRESS, write_all,
-      read_fragment, &state, 0, NULL);
+      read_fragment, &state, 0, (void *) 0);
   if (status != SQUASH_OK || state.input_pos != input_size || state.output_size == 0) goto done;
 
   state = (struct Bytes) { archive, state.output_size, 0, restored, input_size, 0, 11 };
   status = squash_splice_custom(codec, SQUASH_STREAM_DECOMPRESS, write_all,
-      read_fragment, &state, 0, NULL);
+      read_fragment, &state, 0, (void *) 0);
   if (status != SQUASH_OK || state.input_pos != state.input_size ||
       state.output_size != input_size ||
       (input_size != 0 && memcmp(restored, input, input_size) != 0)) goto done;
@@ -167,8 +167,9 @@ done:
 
 static int stream_write(uint8_t *destination, size_t capacity, size_t *used,
     const uint8_t *data, size_t size) {
-  if (size > capacity - *used) return 0;
-  memcpy(destination + *used, data, size);
+  if (*used > capacity || size > capacity - *used ||
+      (size != 0 && data == NULL)) return 0;
+  if (size != 0) memcpy(destination + *used, data, size);
   *used += size;
   return 1;
 }
@@ -176,7 +177,7 @@ static int stream_write(uint8_t *destination, size_t capacity, size_t *used,
 static int stream_once(SquashCodec *codec, SquashStreamType type,
     const uint8_t *input, size_t input_size, uint8_t *output,
     size_t output_capacity, size_t *output_size) {
-  SquashStream *stream = squash_stream_new(codec, type, NULL);
+  SquashStream *stream = squash_stream_new(codec, type, (void *) 0);
   size_t input_pos = 0;
   SquashStatus status = SQUASH_OK;
   if (stream == NULL) return 0;

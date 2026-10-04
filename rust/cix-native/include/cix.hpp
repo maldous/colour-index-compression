@@ -11,6 +11,7 @@
 
 namespace cix {
 
+/** Exception that retains the #cix_status reported by the native ABI. */
 class StatusError : public std::runtime_error {
 public:
     StatusError(cix_status status, std::string message)
@@ -22,10 +23,13 @@ private:
     cix_status status_;
 };
 
+/** Move-only RAII owner for one native complete-buffer CIX context. */
 class Context {
 public:
+    /** Construct a context using native v1 defaults. */
     Context() : Context(default_options()) {}
 
+    /** Construct a context from a complete validated v1 options record. */
     explicit Context(const cix_options_v1 &options) {
         cix_context *created = nullptr;
         const cix_status status = cix_context_create(&options, &created);
@@ -50,6 +54,7 @@ public:
         return *this;
     }
 
+    /** Return the native ABI's complete v1 default options record. */
     static cix_options_v1 default_options() {
         cix_options_v1 options{};
         const cix_status status = cix_options_v1_default(&options);
@@ -59,10 +64,12 @@ public:
         return options;
     }
 
+    /** Encode one complete byte vector, allocating its returned result. */
     std::vector<std::uint8_t> encode(const std::vector<std::uint8_t> &input) {
         return process(input, cix_encode_buffer, "cix_encode_buffer");
     }
 
+    /** Decode one complete archive vector, allocating its returned result. */
     std::vector<std::uint8_t> decode(const std::vector<std::uint8_t> &input) {
         return process(input, cix_decode_buffer, "cix_decode_buffer");
     }

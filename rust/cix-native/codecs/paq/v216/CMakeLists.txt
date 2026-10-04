@@ -45,10 +45,19 @@ target_include_directories(cix_paq_v216_bridge PRIVATE
 if(MSVC)
     target_compile_options(cix_paq_v216_bridge PRIVATE
         /O2 /fp:strict $<$<COMPILE_LANGUAGE:CXX>:/GR->)
-else()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
+       CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$" AND
+       CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    # Preserve the exact flags used by the qualified Linux x86_64 bridge.
     target_compile_options(cix_paq_v216_bridge PRIVATE
         -O3 -fno-fast-math -ffp-contract=off -fno-strict-aliasing
         $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+    target_compile_options(cix_paq_v216_bridge PRIVATE
+        -O3 -fno-fast-math -ffp-contract=off -fno-strict-aliasing
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+else()
+    message(FATAL_ERROR "CIX PAQ bridge needs explicit safe optimization and RTTI settings for this compiler")
 endif()
 if(UNIX)
     target_compile_options(cix_paq_v216_bridge PRIVATE
