@@ -1,19 +1,57 @@
 cmake_minimum_required(VERSION 3.21)
-project(CIXSDK VERSION 0.1.0 LANGUAGES C)
+option(CIX_SDK_LAYOUT_ONLY "Configure install layout without a compiler; not a platform qualification" OFF)
+if(CIX_SDK_LAYOUT_ONLY)
+    project(CIXSDK VERSION 0.1.0 LANGUAGES NONE)
+    # A layout-only Windows fixture must not infer a host architecture.
+    set(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "Layout-only library directory" FORCE)
+else()
+    project(CIXSDK VERSION 0.1.0 LANGUAGES C)
+endif()
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
 set(CIX_NATIVE_LIBRARY "" CACHE FILEPATH
     "Path to an already-built libcix_native shared or static library")
+set(CIX_NATIVE_STATIC_LIBRARY "" CACHE FILEPATH
+    "Optional path to the matching already-built libcix_native static archive")
+set(CIX_NATIVE_IMPORT_LIBRARY "" CACHE FILEPATH
+    "Windows only: matching selected libcix_native DLL import library")
 if(NOT EXISTS "${CIX_NATIVE_LIBRARY}" OR IS_DIRECTORY "${CIX_NATIVE_LIBRARY}")
-    message(FATAL_ERROR "Set CIX_NATIVE_LIBRARY to a selected built libcix_native shared library or Unix static archive")
+    message(FATAL_ERROR "Set CIX_NATIVE_LIBRARY to a selected built libcix_native shared library, Windows DLL, or Unix static archive")
+endif()
+if(CIX_NATIVE_STATIC_LIBRARY AND
+   (NOT EXISTS "${CIX_NATIVE_STATIC_LIBRARY}" OR IS_DIRECTORY "${CIX_NATIVE_STATIC_LIBRARY}"))
+    message(FATAL_ERROR "CIX_NATIVE_STATIC_LIBRARY must be an existing static archive when supplied")
 endif()
 
 get_filename_component(CIX_SOURCE_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." REALPATH)
 get_filename_component(CIX_NATIVE_LIBRARY_NAME "${CIX_NATIVE_LIBRARY}" NAME)
-if(NOT CIX_NATIVE_LIBRARY_NAME MATCHES "^libcix_native\\.(so|dylib|a)$")
-    message(FATAL_ERROR "CIX_NATIVE_LIBRARY supports libcix_native.so, libcix_native.dylib, or libcix_native.a only; Windows DLL/import-library pairing is not implemented")
+set(CIX_NATIVE_IMPORT_LIBRARY_NAME "")
+if(WIN32)
+    if(NOT CIX_NATIVE_LIBRARY_NAME MATCHES "^cix_native\\.dll$")
+        message(FATAL_ERROR "CIX_NATIVE_LIBRARY must be the selected cix_native.dll on Windows")
+    endif()
+    if(NOT CIX_NATIVE_IMPORT_LIBRARY OR
+       NOT EXISTS "${CIX_NATIVE_IMPORT_LIBRARY}" OR
+       IS_DIRECTORY "${CIX_NATIVE_IMPORT_LIBRARY}")
+        message(FATAL_ERROR "Windows SDK installation requires matching CIX_NATIVE_IMPORT_LIBRARY")
+    endif()
+    get_filename_component(CIX_NATIVE_IMPORT_LIBRARY_NAME "${CIX_NATIVE_IMPORT_LIBRARY}" NAME)
+    if(NOT CIX_NATIVE_IMPORT_LIBRARY_NAME MATCHES "^cix_native(\\.dll)?\\.lib$")
+        message(FATAL_ERROR "CIX_NATIVE_IMPORT_LIBRARY must be cix_native.lib or cix_native.dll.lib")
+    endif()
+    if(CIX_NATIVE_STATIC_LIBRARY)
+        message(FATAL_ERROR "CIX_NATIVE_STATIC_LIBRARY is not supported by the unqualified Windows SDK layout")
+    endif()
+elseif(NOT CIX_NATIVE_LIBRARY_NAME MATCHES "^libcix_native\\.(so|dylib|a)$")
+    message(FATAL_ERROR "CIX_NATIVE_LIBRARY supports libcix_native.so, libcix_native.dylib, or libcix_native.a on this platform")
+endif()
+if(CIX_NATIVE_STATIC_LIBRARY)
+    get_filename_component(CIX_NATIVE_STATIC_LIBRARY_NAME "${CIX_NATIVE_STATIC_LIBRARY}" NAME)
+    if(NOT CIX_NATIVE_STATIC_LIBRARY_NAME STREQUAL "libcix_native.a")
+        message(FATAL_ERROR "CIX_NATIVE_STATIC_LIBRARY must be named libcix_native.a")
+    endif()
 endif()
 
 if(NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
@@ -51,7 +89,26 @@ install(FILES
     "${CIX_SOURCE_ROOT}/include/cix_formats.h"
     "${CIX_SOURCE_ROOT}/include/cix_dictionary.h"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-install(FILES "${CIX_NATIVE_LIBRARY}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+if(WIN32)
+    # Keep both halves of the shared-library contract. CMake classifies the
+    # DLL as a RUNTIME artifact and its import library as an ARCHIVE artifact.
+    add_library(cix_native_prebuilt SHARED IMPORTED GLOBAL)
+    set_target_properties(cix_native_prebuilt PROPERTIES
+        IMPORTED_LOCATION "${CIX_NATIVE_LIBRARY}"
+        IMPORTED_IMPLIB "${CIX_NATIVE_IMPORT_LIBRARY}")
+    # CMake's IMPORTED_RUNTIME_ARTIFACTS deliberately excludes DLL import
+    # libraries, so install the paired .lib explicitly in the conventional
+    # ARCHIVE directory after staging the DLL runtime artifact.
+    install(IMPORTED_RUNTIME_ARTIFACTS cix_native_prebuilt
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    install(FILES "${CIX_NATIVE_IMPORT_LIBRARY}"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+else()
+    install(FILES "${CIX_NATIVE_LIBRARY}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    if(CIX_NATIVE_STATIC_LIBRARY)
+        install(FILES "${CIX_NATIVE_STATIC_LIBRARY}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    endif()
+endif()
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/CIXConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/CIXConfigVersion.cmake"

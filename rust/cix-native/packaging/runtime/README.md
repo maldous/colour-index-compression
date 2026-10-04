@@ -76,7 +76,7 @@ selected non-system companions, installed beside the bridges in `lib/cix`:
 - `libcharls.so.2.4.2` and `libopenjp2.so.2.5.0`.
 
 The installer creates only the corresponding required ELF SONAME links in the
-same private directory. It does not collect arbitrary transitive libraries or
+same staged directory. It does not collect arbitrary transitive libraries or
 search any host location. The caller must explicitly provide an absolute
 `CIX_RUNTIME_READELF`. CMake invokes it read-only on each selected JXL/spatial
 bridge and every JXL/Brotli companion, rejecting inputs without `$ORIGIN`
@@ -88,3 +88,8 @@ bridge and each JXL/Brotli companion. This is an input-layout observation, not
 a staged provider-load or archive qualification. macOS and Windows full-engine
 companion staging remain open: their loader identities, bundle mechanics, and
 target execution must be implemented and qualified separately.
+
+For a scheduled non-release source-export/build/install exercise using the
+same explicit inputs, retain the selected hashes and staging evidence. That
+procedure does not accept a dependency closure or qualify a distributable
+package.

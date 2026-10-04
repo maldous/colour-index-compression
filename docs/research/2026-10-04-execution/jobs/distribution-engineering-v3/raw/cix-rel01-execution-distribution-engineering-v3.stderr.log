@@ -1,0 +1,31 @@
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v3/source-output/cix-0.1.0/rust/cix-native/Cargo.toml
+workspace: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v3/source-output/cix-0.1.0/Cargo.toml
+     Locking 32 packages to latest compatible versions
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v3/source-output/cix-0.1.0/rust/cix-native/Cargo.toml
+workspace: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v3/source-output/cix-0.1.0/Cargo.toml
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v3/source-output/cix-0.1.0/rust/cix-native/Cargo.toml
+workspace: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v3/source-output/cix-0.1.0/Cargo.toml
+error: profile `release-lto` is not defined
+make[1]: *** [Makefile:35: build] Error 101
+make: *** [Makefile:11: install] Error 2
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py", line 199, in <module>
+    main()
+  File "/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py", line 125, in main
+    run([args.make, "PROFILE=release-lto", f"CARGO={args.cargo}",
+  File "/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py", line 82, in run
+    subprocess.run(argv, cwd=cwd, env=env, check=True)
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/usr/bin/make', 'PROFILE=release-lto', 'CARGO=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'CARGO_TARGET_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v3/target', 'PREFIX=/usr', 'DESTDIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v3/stage', 'install']' returned non-zero exit status 2.
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/distribution-engineering-v3/run.py", line 44, in <module>
+    main()
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/distribution-engineering-v3/run.py", line 40, in main
+    subprocess.run(command, cwd=PROJECT, env=environment, check=True)
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/usr/bin/python3', '/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py', '--source-root', '/home/user/src/colour-index-compression/rust/cix-native', '--manifest', '/home/user/src/colour-index-compression/rust/cix-native/packaging/export/source-allowlist.json', '--provider-closure', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/distribution-engineering-v3/selected-provider-closure.json', '--work-directory', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v3', '--cargo', '/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', '--cmake', '/usr/bin/cmake', '--make', '/usr/bin/make', '--jobs', '2']' returned non-zero exit status 1.

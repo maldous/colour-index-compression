@@ -3,33 +3,50 @@
 include(CMakeFindDependencyMacro)
 
 set(CIX_ABI_VERSION 1)
-set(CIX_CAPABILITY_PROFILE "native-buffer-v1")
-set(CIX_CAPABILITY_NOTE "Process-free complete-buffer native ABI only; no incremental or full-engine worker API in this package.")
+set(CIX_CAPABILITY_PROFILE "native-sdk-v1")
+set(CIX_CAPABILITY_NOTE "Process-free complete-buffer API, CIXG1 independent-block stream API, and Zstd dictionary API; no full-engine worker or specialist-selection API in this package.")
 
-set(_cix_library_candidates
-    "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/libcix_native.so"
-    "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/libcix_native.dylib"
-    "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/libcix_native.a")
-set(_cix_library "")
-foreach(_candidate IN LISTS _cix_library_candidates)
-    if(EXISTS "${_candidate}")
-        set(_cix_library "${_candidate}")
-        break()
+if(WIN32)
+    set(_cix_library "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_BINDIR@/@CIX_NATIVE_LIBRARY_NAME@")
+    set(_cix_import_library "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/@CIX_NATIVE_IMPORT_LIBRARY_NAME@")
+    if(NOT EXISTS "${_cix_library}" OR NOT EXISTS "${_cix_import_library}")
+        set(CIX_FOUND FALSE)
+        set(CIX_NOT_FOUND_MESSAGE "CIX package requires both installed cix_native.dll and its import library")
+        return()
     endif()
-endforeach()
-if(NOT _cix_library)
-    set(CIX_FOUND FALSE)
-    set(CIX_NOT_FOUND_MESSAGE "CIX package has no installed libcix_native shared or static library")
-    return()
+else()
+    set(_cix_library_candidates
+        "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/libcix_native.so"
+        "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/libcix_native.dylib"
+        "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/libcix_native.a")
+    set(_cix_library "")
+    foreach(_candidate IN LISTS _cix_library_candidates)
+        if(EXISTS "${_candidate}")
+            set(_cix_library "${_candidate}")
+            break()
+        endif()
+    endforeach()
+    if(NOT _cix_library)
+        set(CIX_FOUND FALSE)
+        set(CIX_NOT_FOUND_MESSAGE "CIX package has no installed libcix_native shared or static library")
+        return()
+    endif()
 endif()
 
 if(NOT TARGET CIX::native)
-    add_library(CIX::native UNKNOWN IMPORTED)
+    if(WIN32)
+        add_library(CIX::native SHARED IMPORTED)
+    else()
+        add_library(CIX::native UNKNOWN IMPORTED)
+    endif()
     set_target_properties(CIX::native PROPERTIES
         IMPORTED_LOCATION "${_cix_library}"
         INTERFACE_INCLUDE_DIRECTORIES "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@")
+    if(WIN32)
+        set_property(TARGET CIX::native PROPERTY IMPORTED_IMPLIB "${_cix_import_library}")
+    endif()
 
-    if(_cix_library MATCHES "\\.a$")
+    if(NOT WIN32 AND _cix_library MATCHES "\\.a$")
         # build.rs directly links these system codecs. Its libzpaq/libbsc C++
         # objects are bundled into the Rust static archive, while build.rs
         # explicitly selects c++ on Apple and stdc++ on other non-MSVC targets.

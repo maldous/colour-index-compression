@@ -1,0 +1,44 @@
+{
+  "schema": "cix-paq-source-notice-review-v1",
+  "date": "2026-10-05",
+  "scope": "local source, bridge, notice, export, and runtime-staging evidence only; not legal advice or a licence determination",
+  "result": "source_and_identity_evidence_present_but_not_packaged_for_selected_full_engine_runtime",
+  "variants": {
+    "v215": {
+      "source_root": "benchmark-work/references/paq8px-v215/paq8px-215",
+      "source_receipt": "docs/research/2026-10-04-native-rc/jobs/paq-v215-build-v1/source.json",
+      "readme_sha256": "211a9d3a590de44b1b1956b4dc634b28faf2f4c3d600a1d7b617105febf13fdd",
+      "historical_executable_sha256": "b982f1e8307d6c38e8febc6415901fafcc2e84a14d51e0af7c5cbbe6322778e7",
+      "selected_bridge_sha256": "645f2f80dbe219465640d4489a219a90ae0787c9c8900d165045fe69b0e43757"
+    },
+    "v216": {
+      "source_root": "benchmark-work/references/paq8px-v216/paq8px-216",
+      "source_receipt": "docs/research/2026-10-04-native-rc/jobs/paq-v216-qualification-v1/source.json",
+      "readme_sha256": "88134d8f7367e51cbccd3b70a36c113b3f8e453608350e36b5e78819360e76a6",
+      "historical_executable_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+      "selected_bridge_sha256": "fc511f145184396f4cea39ac8281d12c7ac913914a9e2d6da770cf58f4098fb2"
+    },
+    "joint_discount": {
+      "source_root": "benchmark-work/references/paq8px-cix-joint-discount/source",
+      "source_receipt": "docs/research/2026-10-04-native-rc/jobs/paq-joint-discount-qualification-v1/source.json",
+      "readme_sha256": "211a9d3a590de44b1b1956b4dc634b28faf2f4c3d600a1d7b617105febf13fdd",
+      "historical_executable_sha256": "7f8a4605eca962cd6015839922afb2f2f7dd669d597921c216919aaf620e8b5a",
+      "selected_bridge_sha256": "8e8b74a7037654bf26d3a2d1c587ab3ff0d2028db68f4a48c387e8a2b925a597"
+    },
+    "store_state": {
+      "source_root": "benchmark-work/references/paq8px-cix-store-state/source",
+      "source_receipt": "docs/research/2026-10-04-native-rc/jobs/paq-store-state-qualification-v1/source.json",
+      "readme_sha256": "88134d8f7367e51cbccd3b70a36c113b3f8e453608350e36b5e78819360e76a6",
+      "historical_executable_sha256": "6b815f63502c515a95654df316deb30b6a050fbee1293897f4e643c54843212b",
+      "selected_bridge_sha256": "57bba97ddbe7d1cde36625a88060f7b2ee06a095d8e0966658b38d05bcb598b2"
+    }
+  },
+  "local_text_observation": "Each retained source root has README.md with GPL-related statements, but no top-level LICENSE, COPYING, or GPL text was found in these four roots.",
+  "packaging_gap": {
+    "runtime_staging_installs_selected_paq_bridge_dsos": true,
+    "runtime_staging_installs_paq_source_or_notice": false,
+    "source_export_includes_benchmark_work": false,
+    "cix_third_party_notices_cover_selected_paq_variants": false
+  },
+  "controlling_existing_contract": "rust/cix-native/packaging/export/source-allowlist.json codec_dependency_contracts requires unchanged, versioned PAQ source roots and notices selected by the final dependency freeze."
+}

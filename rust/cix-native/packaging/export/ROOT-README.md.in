@@ -1,0 +1,36 @@
+# CIX
+
+CIX is a native lossless command-line compressor and SDK. This source layout
+contains two Rust crates:
+
+- `rust/cix-native`: the native `cix` executable, its `uncix` and `cixcat`
+  aliases, process-free SDK, package recipes, native bridges, and optional host
+  adapters.
+- `rust/cix-portable`: a bounded pure-Rust CIXG1 subset for portable/WASM
+  consumers. It shares selected native core modules by workspace-relative path;
+  it is not a substitute for the full native engine.
+
+Build the native executable and SDK from the workspace root:
+
+```sh
+# A release export records this workspace lockfile after an offline resolution.
+cargo generate-lockfile --offline
+make PROFILE=release-lto build
+make PREFIX=/usr DESTDIR=/absolute/stage install
+```
+
+The installed Unix layout contains one `cix` executable and `uncix`/`cixcat`
+symlinks, manual pages, notices, headers, shared/static SDK libraries, CMake
+metadata, and pkg-config metadata. `make portable` builds the portable crate
+for the host; WASM targets require the corresponding Rust target to have been
+installed separately.
+
+The base package does not imply full-engine bridge providers or optional host
+adapter compatibility. `rust/cix-native/packaging/runtime/` stages selected
+full-engine providers only with an explicit qualified dependency closure.
+`rust/cix-native/packaging/` contains Debian, RPM, macOS, Windows, and
+Homebrew source-package recipes. See `rust/cix-native/README.md` for CLI,
+resource, platform, security, and licence details.
+
+This is a source candidate. It must not be published until project licence,
+dependency closure, platform test, package, and provenance gates are accepted.

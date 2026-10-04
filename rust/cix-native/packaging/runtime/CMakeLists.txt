@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(CIXRuntime VERSION 0.1.0 LANGUAGES NONE)
+project(CIXRuntime VERSION 0.1.0 LANGUAGES C)
 
 include(GNUInstallDirs)
 
@@ -43,6 +43,9 @@ if(NOT CIX_RUNTIME_CAPABILITY STREQUAL "full-engine" AND
    NOT CIX_RUNTIME_CAPABILITY STREQUAL "native-only")
   message(FATAL_ERROR "CIX_RUNTIME_CAPABILITY must be full-engine or native-only")
 endif()
+if(WIN32)
+  message(FATAL_ERROR "Windows runtime staging is not qualified: use the SDK layout contract only until alias and provider-loading qualification exists")
+endif()
 if(NOT IS_ABSOLUTE "${CIX_RUNTIME_CIX_EXECUTABLE}" OR
    NOT EXISTS "${CIX_RUNTIME_CIX_EXECUTABLE}" OR
    IS_DIRECTORY "${CIX_RUNTIME_CIX_EXECUTABLE}")
@@ -52,7 +55,9 @@ endif()
 # The names below exactly match full_engine::installed discovery at
 # <prefix>/bin/cix plus <prefix>/lib/cix.  No PATH/environment/directory scan
 # or build-host fallback is used by this installer.
-if(APPLE)
+if(WIN32)
+  set(CIX_RUNTIME_SHARED_SUFFIX ".dll")
+elseif(APPLE)
   set(CIX_RUNTIME_SHARED_SUFFIX ".dylib")
 else()
   set(CIX_RUNTIME_SHARED_SUFFIX ".so")

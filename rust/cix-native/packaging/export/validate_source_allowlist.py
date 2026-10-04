@@ -11,12 +11,13 @@ from typing import Any
 
 FULL_ENGINE_PROFILE = "full-engine-rc"
 OPTIONAL_PROFILE = "native-core-optional"
+ENGINEERING_PROFILE = "engineering-validation"
 SOURCE_MEMBERS_PROFILE = "source-members"
 
 
 def read_manifest(path: Path) -> dict[str, Any]:
     document = json.loads(path.read_text(encoding="utf-8"))
-    if document.get("schema") != "cix-native-source-export-allowlist-v1":
+    if document.get("schema") != "cix-native-source-export-allowlist-v2":
         raise ValueError("unsupported allowlist schema")
     return document
 
@@ -31,6 +32,17 @@ def has_prefix(path: str, prefix: str) -> bool:
     return path == prefix or path.startswith(f"{prefix}/")
 
 
+def allowed_below_exclusion(path: str, exclusion: str, allowed: list[str]) -> bool:
+    """Permit only an allowlist entry that narrows an excluded directory."""
+    for pattern in allowed:
+        if not matches(path, pattern):
+            continue
+        narrowed = pattern[:-3] if pattern.endswith("/**") else pattern
+        if has_prefix(narrowed, exclusion) and narrowed != exclusion:
+            return True
+    return False
+
+
 def source_members(source_root: Path, manifest: dict[str, Any]) -> list[str]:
     allowed = manifest["allowed_globs"]
     excluded_prefixes = manifest["excluded_path_prefixes"]
@@ -41,12 +53,12 @@ def source_members(source_root: Path, manifest: dict[str, Any]) -> list[str]:
         if not path.is_file():
             continue
         relative = path.relative_to(source_root).as_posix()
-        explicitly_allowed = any(
-            not pattern.endswith("/**") and matches(relative, pattern)
-            for pattern in allowed
-        )
-        if any(has_prefix(relative, prefix) for prefix in excluded_prefixes) and not explicitly_allowed:
+        excluded = [prefix for prefix in excluded_prefixes if has_prefix(relative, prefix)]
+        if excluded and not all(
+            allowed_below_exclusion(relative, prefix, allowed) for prefix in excluded
+        ):
             continue
+        explicitly_allowed = any(matches(relative, pattern) for pattern in allowed)
         if relative.endswith(excluded_suffixes) and not explicitly_allowed:
             continue
         if any(matches(relative, pattern) for pattern in allowed):
@@ -64,6 +76,8 @@ def validate_dependency_closure(source_root: Path, manifest: dict[str, Any], pro
     profiles = manifest["export_profiles"]
     if profile == OPTIONAL_PROFILE:
         return profiles[OPTIONAL_PROFILE]["disposition"]
+    if profile == ENGINEERING_PROFILE:
+        return profiles[ENGINEERING_PROFILE]["disposition"]
     if profile != FULL_ENGINE_PROFILE:
         raise ValueError(f"unknown export profile: {profile}")
     receipt = source_root / profiles[FULL_ENGINE_PROFILE]["required_dependency_closure"]
@@ -72,6 +86,12 @@ def validate_dependency_closure(source_root: Path, manifest: dict[str, Any], pro
     closure = json.loads(receipt.read_text(encoding="utf-8"))
     if closure.get("status") != "accepted_full_engine_rc":
         raise ValueError("full-engine RC source export blocked: dependency closure is not accepted_full_engine_rc")
+    notices = source_root / "packaging/notices/provider-notices.json"
+    if not notices.is_file():
+        raise ValueError("full-engine RC source export blocked: provider notice manifest is missing")
+    notice_document = json.loads(notices.read_text(encoding="utf-8"))
+    if notice_document.get("unresolved"):
+        raise ValueError("full-engine RC source export blocked: provider notice manifest still has unresolved provenance")
     return "accepted_full_engine_rc"
 
 
@@ -80,8 +100,15 @@ def validate(source_root: Path, manifest: dict[str, Any], profile: str = SOURCE_
     if not source_root.is_dir():
         raise ValueError(f"source root is not a directory: {source_root}")
     expected_root = manifest["source_root"]
-    if not source_root.as_posix().endswith(expected_root):
-        raise ValueError(f"source root must end with declared {expected_root}: {source_root}")
+    exported_root = manifest["export_prefix"].format(
+        version=manifest.get("version", "0.1.0")
+    )
+    if not (source_root.as_posix().endswith(expected_root) or
+            source_root.name == exported_root):
+        raise ValueError(
+            f"source root must be {expected_root} in the maintained tree or "
+            f"{exported_root} after export: {source_root}"
+        )
 
     required = manifest["required_exact_files"]
     missing_required = [item for item in required if not (source_root / item).is_file()]
@@ -91,7 +118,7 @@ def validate(source_root: Path, manifest: dict[str, Any], profile: str = SOURCE_
     closure_status = validate_dependency_closure(source_root, manifest, profile)
     members = source_members(source_root, manifest)
     return {
-        "schema": "cix-native-source-export-allowlist-report-v1",
+        "schema": "cix-native-source-export-allowlist-report-v2",
         "status": "validated_source_members_only_not_exported",
         "profile": profile,
         "dependency_closure_status": closure_status,
@@ -107,7 +134,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-root", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
-    parser.add_argument("--profile", default=SOURCE_MEMBERS_PROFILE, choices=(SOURCE_MEMBERS_PROFILE, OPTIONAL_PROFILE, FULL_ENGINE_PROFILE))
+    parser.add_argument("--profile", default=SOURCE_MEMBERS_PROFILE, choices=(SOURCE_MEMBERS_PROFILE, OPTIONAL_PROFILE, ENGINEERING_PROFILE, FULL_ENGINE_PROFILE))
     parser.add_argument("--report", type=Path, help="optional report destination; no archive is created")
     args = parser.parse_args()
     report = validate(args.source_root, read_manifest(args.manifest), args.profile)

@@ -72,6 +72,8 @@ Install to the conventional local prefix:
 
 ```sh
 make PREFIX=/usr/local install
+# stage without changing the host
+make PREFIX=/usr DESTDIR=/absolute/stage install
 ```
 
 For a user installation without Make:
@@ -94,12 +96,21 @@ Do not present an arbitrary copied binary as a portable standalone build.
 ## Packaging
 
 `packaging/debian/` and `packaging/rpm/` contain source-package recipes.
-They install `cix`, `uncix`, `cixcat`, the three manual pages, licence,
-and third-party notices. `packaging/macos/` and `packaging/windows/`
+They install one `cix` executable with `uncix` and `cixcat` aliases, the three
+manual pages, licence, and third-party notices. Their `-dev` packages also
+install the process-free native SDK headers, shared/static libraries, CMake
+metadata, pkg-config metadata, and a small embedding example. `packaging/macos/` and `packaging/windows/`
 contain native source-build recipes; neither claims a qualified binary. The
-optional Squash 0.8 plugin is under
-`packaging/squash/`; it is not part of the base package and needs a separate
-plugin load test.
+full-engine runtime bridge closure is staged separately by `packaging/runtime/`;
+it is not implied by the base package and needs its own selected-provider
+receipt. Optional host adapters, including the Squash 0.8 plugin under
+`packaging/squash/`, are source integrations with their declared host SDK and
+separate qualification requirements.
+
+A public source export contains only the files required to build, install, and
+package CIX. It projects the maintained Debian recipe to the conventional
+exported `debian/` directory for `dpkg-source`. Release publication and
+full-engine dependency acceptance are separate release-management steps.
 
 ## Security and compatibility
 
@@ -116,7 +127,8 @@ compatibility claims backed by the corresponding release test receipt.
 
 ## Licence and notices
 
-The proposed CIX project licence is MIT, pending owner approval. Vendored
+The proposed CIX project licence is MIT, pending owner approval. This private
+preparation copy is not a public licence grant. Vendored
 libzpaq and libbsc obligations are collected in
 [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt). The locked Rust dependency
 attribution is in [THIRD_PARTY_NOTICES_RUST.md](THIRD_PARTY_NOTICES_RUST.md).

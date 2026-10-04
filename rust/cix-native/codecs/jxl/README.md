@@ -48,6 +48,6 @@ Required qualification after provisioning:
 4. Run malformed/truncated input and geometry/type mismatch cases under the
    CIX output and memory policy; prove no output allocation occurs before
    basic-info bounds are checked.
-5. Run the generated Z/H/W 8- and 16-bit fixtures at depth 2, 3, and 5 in
-   `docs/research/2026-10-04-native-rc/jxl-completion/planar_fixture.py`,
-   including CIXV1 mode 3 and CIXI2 restore checks.
+5. Run bounded generated Z/H/W 8- and 16-bit fixtures at depths 2, 3, and 5,
+   including CIXV1 mode 3 and CIXI2 restoration checks. Record the fixture
+   generator version and digests in the release receipt.

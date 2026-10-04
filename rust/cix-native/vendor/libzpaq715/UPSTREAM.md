@@ -5,8 +5,7 @@ This directory is the source closure used by CIX's native CIXB1 ZPAQ backend.
 - Upstream project: ZPAQ / libzpaq by Matt Mahoney.
 - Requested tag: `7.15`.
 - Pinned source revision: `9ab539f644e364f0d92e2918b90ce2534c75653f`.
-- Imported from the already pinned local checkout
-  `/home/user/src/cix-baseline-tools/zpaq715`; no benchmark input was
+- Imported from a pinned source receipt for that revision; no input data was
   acquired for this import.
 - Upstream `libzpaq.cpp` SHA-256 before the CIX safety patch:
   `151eb6bd83cb6c6f5261d64b1db49358710f844ee1a2aa4b9cb63e17319df122`.
@@ -17,7 +16,7 @@ This directory is the source closure used by CIX's native CIXB1 ZPAQ backend.
 - License: public-domain libzpaq code, with the embedded libdivsufsort-lite component under the MIT notice retained in libzpaq.cpp. See ../../THIRD_PARTY_NOTICES.txt for redistribution notices.
 
 The header's historical banner says 7.12; the pinned 7.15 program source and
-the frozen research manifest identify the selected release. CIX records the
+the retained source receipt identify the selected release. CIX records the
 runtime backend version as `7.15` and never accepts an unversioned ZPAQ CIXB1
 backend identifier.
 

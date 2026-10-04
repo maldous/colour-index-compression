@@ -29,7 +29,7 @@ if ($VcpkgRoot) {
 }
 
 Write-Host "Building CIX with profile $Profile"
-& cargo build --locked --profile $Profile --bins
+& cargo build --locked --profile $Profile --lib --bin cix
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }

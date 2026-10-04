@@ -10,6 +10,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 file(GLOB_RECURSE PAQ_CPP CONFIGURE_DEPENDS
@@ -41,9 +42,14 @@ target_compile_definitions(cix_paq_store_state_bridge PRIVATE CIX_PAQ_STORE_STAT
 target_include_directories(cix_paq_store_state_bridge PRIVATE
     "${CIX_PAQ_SOURCE_ROOT}/src"
     "${CIX_PAQ_SOURCE_ROOT}/zlib")
-target_compile_options(cix_paq_store_state_bridge PRIVATE
-    -O3 -fno-fast-math -ffp-contract=off -fno-strict-aliasing
-    $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+if(MSVC)
+    target_compile_options(cix_paq_store_state_bridge PRIVATE
+        /O2 /fp:strict $<$<COMPILE_LANGUAGE:CXX>:/GR->)
+else()
+    target_compile_options(cix_paq_store_state_bridge PRIVATE
+        -O3 -fno-fast-math -ffp-contract=off -fno-strict-aliasing
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+endif()
 if(UNIX)
     target_compile_options(cix_paq_store_state_bridge PRIVATE
         $<$<COMPILE_LANGUAGE:C>:-include>
@@ -56,5 +62,8 @@ if(UNIX AND NOT APPLE)
 endif()
 
 include(GNUInstallDirs)
-install(TARGETS cix_paq_store_state_bridge LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+install(TARGETS cix_paq_store_state_bridge
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 install(FILES paq_store_state_bridge.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/cix")

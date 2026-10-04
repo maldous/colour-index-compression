@@ -2,8 +2,8 @@
 
 This is a source-side installation helper for the current **native-buffer-v1**
 ABI. It installs `cix.h`, `cix_stream.h`, `cix_formats.h`, `cix_dictionary.h`, the C++17 RAII convenience header
-`cix.hpp`, one already-built `libcix_native` library, `find_package(CIX CONFIG)` metadata, and
-`pkg-config` metadata. It does not build Rust itself, create an SDK artifact, or
+`cix.hpp`, an already-built shared `libcix_native` library and optional matching
+static archive, `find_package(CIX CONFIG)` metadata, and `pkg-config` metadata. It does not build Rust itself, create an SDK artifact, or
 qualify an installed consumer.
 
 ## Capability boundary
@@ -42,9 +42,8 @@ support through this Zstd-specific API.
 
 A library found through `CIX::native` is not proof that PAQ/JXL bridges,
 historical full-engine decoders, automatic specialist selection, platform
-adapters or a full CIX release candidate are present. The full-engine source
-export remains blocked by the dependency-closure rule in
-`packaging/export/source-allowlist.json`.
+adapters or a full CIX release candidate are present. Full-engine provider
+selection and dependency acceptance are separate release-management work.
 
 ## Prepare an install tree after a selected native build
 
@@ -54,6 +53,7 @@ closure has been recorded. For a shared Linux build, for example:
 ```sh
 cmake -S packaging/sdk -B sdk-build \
   -DCIX_NATIVE_LIBRARY="$PWD/target/release/libcix_native.so" \
+  -DCIX_NATIVE_STATIC_LIBRARY="$PWD/target/release/libcix_native.a" \
   -DCMAKE_INSTALL_PREFIX="$PWD/sdk-prefix"
 cmake --install sdk-build
 ```
@@ -67,11 +67,34 @@ architecture-appropriate default library directory rather than guessing under
 The installer rejects absolute include/library install directories because that
 would make a relocatable package claim false.
 
-The helper currently accepts only Unix `libcix_native.so`,
-`libcix_native.dylib`, or `libcix_native.a` inputs. It deliberately rejects a
-Windows DLL/import-library input because a paired install layout has not been
-implemented or qualified. When a static archive is installed, its generated
-CMake package resolves the system codecs directly linked by `src/external.rs`,
+On Unix the helper accepts `libcix_native.so`, `libcix_native.dylib`, or
+`libcix_native.a`. On Windows it requires the selected `cix_native.dll` **and**
+the matching `cix_native.lib` or `cix_native.dll.lib` import library. It stages
+the DLL in the runtime `bin` directory and the import library in the `lib`
+archive directory. The generated `CIX::native` imported target records both
+`IMPORTED_LOCATION` and `IMPORTED_IMPLIB`; a partial DLL-only install is
+rejected by `find_package`.
+
+The following is a source-layout contract for a Windows toolchain that has
+already built the two selected artifacts. It is not a Windows build, loader, or
+consumer qualification, and it must not use empty placeholder files:
+
+```sh
+cmake -S packaging/sdk -B sdk-windows-layout \
+  -DCMAKE_SYSTEM_NAME=Windows \
+  -DCIX_NATIVE_LIBRARY=/absolute/cix_native.dll \
+  -DCIX_NATIVE_IMPORT_LIBRARY=/absolute/cix_native.dll.lib \
+  -DCMAKE_INSTALL_PREFIX=/absolute/sdk-prefix
+cmake --install sdk-windows-layout
+```
+
+A focused Windows receipt must confirm the installed DLL/import-library pair,
+CMake package metadata, and a fresh Windows consumer before a Windows SDK or
+package claim can be made. No such receipt exists here. The bounded synthetic
+layout-only recipe is [WINDOWS-LAYOUT-TEST.md](WINDOWS-LAYOUT-TEST.md).
+
+When a Unix static archive is installed, its generated CMake package resolves
+the system codecs directly linked by `src/external.rs`,
 the platform thread/dynamic-loader facilities, and the C++ runtime explicitly
 selected by `build.rs` (`c++` on Apple, `stdc++` on other Unix targets). These
 are passed as compiler-resolved linker names, never as a build-host library
@@ -93,8 +116,6 @@ target_compile_features(consumer PRIVATE cxx_std_17)
 
 `tests/cpp_installed_consumer.cpp` is the small installed C++ consumer source.
 It should be built only against a staged prefix by the focused RC24 receipt.
-The Linux static-link set is evidenced by
-`benchmark-work/best-expanded-local/backend-tests.log` and the build-script
-link records in
-`docs/research/2026-10-04-release-0.1/raw/cargo-clippy-v2/cix-rel01-cargo-clippy-v2.stdout.log`;
-those historical receipts do not qualify the current source.
+The static-link set must be derived and checked against the selected target
+build. A source export contains no build-host paths or historical job receipts,
+and no such receipt is a qualification of a later source revision.

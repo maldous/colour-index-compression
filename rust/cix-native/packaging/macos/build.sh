@@ -6,5 +6,5 @@ if ! command -v cargo >/dev/null 2>&1; then
   exit 1
 fi
 
-cargo build --locked --release --bins
+cargo build --locked --release --lib --bin cix
 echo "Build complete. Native macOS qualification remains required."

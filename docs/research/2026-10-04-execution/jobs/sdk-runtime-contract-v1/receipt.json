@@ -1,0 +1,175 @@
+{
+  "schema": "cix-sdk-runtime-layout-contract-v1",
+  "status": "pass_layout_only",
+  "scope": "CMake layout checks only; no Windows runtime or platform qualification",
+  "inputs": {
+    "sdk_cmakelists_sha256": "58d4c92d3b628381b20117f7e25e7edfcf59a2ec01c3a671a3063090aef1edef",
+    "runtime_cmakelists_sha256": "3310b8b0ad20e9fae6b4f2f6addc2b077a41f6020ab1f84dbbef9b59253ba835",
+    "unix_shared_sha256": "d1dcbf32e0a7bdcecd749b382dcd38f45df7159a0abf453ebe7886f6b3f4d2de",
+    "unix_static_sha256": "4b1c2edd27c7c8fc0fbef28c63b47281e18faaa07a08d1cedb296b339b95a114",
+    "cix_sha256": "a3f2517b784bbfb20b284c6c6da6b768349cea9fb4a6da3e986430dadaa3cdf1"
+  },
+  "commands": [
+    {
+      "label": "unix-sdk-configure",
+      "argv": [
+        "/usr/bin/cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/rust/cix-native/packaging/sdk",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-build",
+        "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v4/target/release-lto/libcix_native.so",
+        "-DCIX_NATIVE_STATIC_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v4/target/release-lto/libcix_native.a",
+        "-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix"
+      ],
+      "returncode": 0,
+      "stdout": "-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-build\n",
+      "stderr": ""
+    },
+    {
+      "label": "unix-sdk-install",
+      "argv": [
+        "/usr/bin/cmake",
+        "--install",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-build"
+      ],
+      "returncode": 0,
+      "stdout": "-- Install configuration: \"\"\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/include/cix.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/include/cix.hpp\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/include/cix_stream.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/include/cix_formats.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/include/cix_dictionary.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/lib/libcix_native.so\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/lib/libcix_native.a\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/lib/cmake/CIX/CIXConfig.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/lib/cmake/CIX/CIXConfigVersion.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/lib/pkgconfig/cix-native.pc\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/share/doc/CIXSDK/README.md\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/unix-sdk-prefix/share/doc/CIXSDK/examples/dictionary.c\n",
+      "stderr": ""
+    },
+    {
+      "label": "windows-sdk-layout-configure",
+      "argv": [
+        "/usr/bin/cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/rust/cix-native/packaging/sdk",
+        "-DCMAKE_TOOLCHAIN_FILE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-layout-toolchain.cmake",
+        "-DCIX_SDK_LAYOUT_ONLY=ON",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-build",
+        "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-fixture/cix_native.dll",
+        "-DCIX_NATIVE_IMPORT_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-fixture/cix_native.dll.lib",
+        "-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix"
+      ],
+      "returncode": 0,
+      "stdout": "-- Configuring done (0.0s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-build\n",
+      "stderr": ""
+    },
+    {
+      "label": "windows-sdk-layout-install",
+      "argv": [
+        "/usr/bin/cmake",
+        "--install",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-build"
+      ],
+      "returncode": 0,
+      "stdout": "-- Install configuration: \"\"\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/include/cix.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/include/cix.hpp\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/include/cix_stream.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/include/cix_formats.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/include/cix_dictionary.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/bin/cix_native.dll\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/lib/cix_native.dll.lib\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/lib/cmake/CIX/CIXConfig.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/lib/cmake/CIX/CIXConfigVersion.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/lib/pkgconfig/cix-native.pc\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/share/doc/CIXSDK/README.md\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix/share/doc/CIXSDK/examples/dictionary.c\n",
+      "stderr": ""
+    },
+    {
+      "label": "windows-sdk-find-package-layout",
+      "argv": [
+        "/usr/bin/cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-find-package-source",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-find-package-build",
+        "-DCMAKE_TOOLCHAIN_FILE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-layout-toolchain.cmake",
+        "-DCMAKE_PREFIX_PATH=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-sdk-prefix"
+      ],
+      "returncode": 0,
+      "stdout": "-- Configuring done (0.0s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-find-package-build\n",
+      "stderr": ""
+    },
+    {
+      "label": "windows-sdk-partial-pair-negative",
+      "argv": [
+        "/usr/bin/cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/rust/cix-native/packaging/sdk",
+        "-DCMAKE_TOOLCHAIN_FILE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-layout-toolchain.cmake",
+        "-DCIX_SDK_LAYOUT_ONLY=ON",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-partial-build",
+        "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-fixture/cix_native.dll",
+        "-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/windows-partial-prefix"
+      ],
+      "returncode": 1,
+      "stdout": "-- Configuring incomplete, errors occurred!\n",
+      "stderr": "CMake Error at CMakeLists.txt:38 (message):\n  Windows SDK installation requires matching CIX_NATIVE_IMPORT_LIBRARY\n\n\n"
+    },
+    {
+      "label": "native-runtime-configure",
+      "argv": [
+        "/usr/bin/cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/rust/cix-native/packaging/runtime",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-build",
+        "-DCIX_RUNTIME_CAPABILITY=native-only",
+        "-DCIX_RUNTIME_CIX_EXECUTABLE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v4/target/release-lto/cix",
+        "-DCMAKE_INSTALL_PREFIX=/usr"
+      ],
+      "returncode": 0,
+      "stdout": "-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-build\n",
+      "stderr": ""
+    },
+    {
+      "label": "native-runtime-install",
+      "argv": [
+        "/usr/bin/cmake",
+        "--install",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-build",
+        "--prefix",
+        "/usr"
+      ],
+      "returncode": 0,
+      "stdout": "-- Install configuration: \"\"\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-stage/usr/bin/cix\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-stage/usr/share/doc/CIXRuntime/README.md\n",
+      "stderr": ""
+    },
+    {
+      "label": "full-runtime-configure",
+      "argv": [
+        "/usr/bin/cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/rust/cix-native/packaging/runtime",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-build",
+        "-DCIX_RUNTIME_CAPABILITY=full-engine",
+        "-DCIX_RUNTIME_CIX_EXECUTABLE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v4/target/release-lto/cix",
+        "-DCIX_RUNTIME_READELF=/usr/bin/x86_64-linux-gnu-readelf",
+        "-DCMAKE_INSTALL_PREFIX=/usr",
+        "-DCIX_RUNTIME_BROTLICOMMON_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v3/lib/libbrotlicommon.so.1.2.0",
+        "-DCIX_RUNTIME_BROTLIDEC_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v3/lib/libbrotlidec.so.1.2.0",
+        "-DCIX_RUNTIME_BROTLIENC_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v3/lib/libbrotlienc.so.1.2.0",
+        "-DCIX_RUNTIME_CHARLS_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/lib/x86_64-linux-gnu/libcharls.so.2.4.2",
+        "-DCIX_RUNTIME_JXL_BRIDGE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v3/lib/libcix_jxl_bridge.so",
+        "-DCIX_RUNTIME_JXL_CMS_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v3/lib/libjxl_cms.so.0.12.0",
+        "-DCIX_RUNTIME_JXL_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v3/lib/libjxl.so.0.12.0",
+        "-DCIX_RUNTIME_JXL_THREADS_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v3/lib/libjxl_threads.so.0.12.0",
+        "-DCIX_RUNTIME_OPENJPEG_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/lib/x86_64-linux-gnu/libopenjp2.so.2.5.0",
+        "-DCIX_RUNTIME_PAQ_JOINT_DISCOUNT_BRIDGE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/paq-cix-worker-v2-output/lib/libcix_paq_joint_discount_bridge.so",
+        "-DCIX_RUNTIME_PAQ_STORE_STATE_BRIDGE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/paq-cix-worker-v2-output/lib/libcix_paq_store_state_bridge.so",
+        "-DCIX_RUNTIME_PAQ_V215_BRIDGE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/paq-cix-worker-v2-output/lib/libcix_paq_v215_bridge.so",
+        "-DCIX_RUNTIME_PAQ_V216_BRIDGE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/paq-cix-worker-v2-output/lib/libcix_paq_v216_bridge.so",
+        "-DCIX_RUNTIME_SPATIAL_BRIDGE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v8/lib/libcix_spatial_bridge.so"
+      ],
+      "returncode": 0,
+      "stdout": "-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-build\n",
+      "stderr": ""
+    },
+    {
+      "label": "full-runtime-install",
+      "argv": [
+        "/usr/bin/cmake",
+        "--install",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-build",
+        "--prefix",
+        "/usr"
+      ],
+      "returncode": 0,
+      "stdout": "-- Install configuration: \"\"\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/bin/cix\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libcix_paq_v215_bridge.so\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libcix_paq_v216_bridge.so\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libcix_paq_joint_discount_bridge.so\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libcix_paq_store_state_bridge.so\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libcix_jxl_bridge.so\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libcix_spatial_bridge.so\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libjxl.so.0.12.0\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libjxl_threads.so.0.12.0\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libjxl_cms.so.0.12.0\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libbrotlidec.so.1.2.0\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libbrotlienc.so.1.2.0\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libbrotlicommon.so.1.2.0\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libcharls.so.2.4.2\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/lib/cix/libopenjp2.so.2.5.0\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-runtime-contract-v1/runtime-full-stage/usr/share/doc/CIXRuntime/README.md\n",
+      "stderr": ""
+    }
+  ]
+}

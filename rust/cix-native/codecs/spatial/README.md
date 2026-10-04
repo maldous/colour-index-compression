@@ -19,7 +19,7 @@ Configure only against the receipt-backed SDK prefix:
 
 ```sh
 cmake -S rust/cix-native/codecs/spatial -B <build> \
-  -DCIX_SPATIAL_ROOT=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix
+  -DCIX_SPATIAL_ROOT=/absolute/receipt-backed/spatial-sdk-prefix
 ```
 
 `SpatialProvider` loads an explicitly supplied absolute package bridge path,

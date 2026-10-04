@@ -1,0 +1,32 @@
+{
+  "schema": "cix-engineering-provider-closure-v1",
+  "status": "engineering_inputs_unaccepted",
+  "target": {
+    "os": "linux",
+    "architecture": "x86_64",
+    "linkage": "ELF shared objects"
+  },
+  "readelf": "/absolute/path/to/readelf",
+  "providers": {
+    "CIX_RUNTIME_PAQ_V215_BRIDGE": {"path": "/absolute/path/to/libcix_paq_v215_bridge.so", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_PAQ_V216_BRIDGE": {"path": "/absolute/path/to/libcix_paq_v216_bridge.so", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_PAQ_JOINT_DISCOUNT_BRIDGE": {"path": "/absolute/path/to/libcix_paq_joint_discount_bridge.so", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_PAQ_STORE_STATE_BRIDGE": {"path": "/absolute/path/to/libcix_paq_store_state_bridge.so", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_JXL_BRIDGE": {"path": "/absolute/path/to/libcix_jxl_bridge.so", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_SPATIAL_BRIDGE": {"path": "/absolute/path/to/libcix_spatial_bridge.so", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_JXL_LIBRARY": {"path": "/absolute/path/to/libjxl.so.0.12.0", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_JXL_THREADS_LIBRARY": {"path": "/absolute/path/to/libjxl_threads.so.0.12.0", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_JXL_CMS_LIBRARY": {"path": "/absolute/path/to/libjxl_cms.so.0.12.0", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_BROTLIDEC_LIBRARY": {"path": "/absolute/path/to/libbrotlidec.so.1.2.0", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_BROTLIENC_LIBRARY": {"path": "/absolute/path/to/libbrotlienc.so.1.2.0", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_BROTLICOMMON_LIBRARY": {"path": "/absolute/path/to/libbrotlicommon.so.1.2.0", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_CHARLS_LIBRARY": {"path": "/absolute/path/to/libcharls.so.2.4.2", "sha256": "replace-with-selected-sha256"},
+    "CIX_RUNTIME_OPENJPEG_LIBRARY": {"path": "/absolute/path/to/libopenjp2.so.2.5.0", "sha256": "replace-with-selected-sha256"}
+  },
+  "source_dependencies": [
+    {"component": "PAQ variants", "identity": "fill exact selected source revisions", "license_expression": "fill from selected source notices", "notice_reference": "THIRD_PARTY_NOTICES.txt or packaged source path", "provisioning": "pinned unchanged source or reproducible package input"},
+    {"component": "libjxl and Brotli companions", "identity": "fill exact selected source/package revisions", "license_expression": "fill from selected source notices", "notice_reference": "packaged source notice or distribution metadata", "provisioning": "pinned source or reproducible package input"},
+    {"component": "CharLS and OpenJPEG companions", "identity": "fill exact selected source/package revisions", "license_expression": "fill from selected source notices", "notice_reference": "packaged source notice or distribution metadata", "provisioning": "pinned source or reproducible package input"}
+  ],
+  "non_claim": "This template is for an engineering build/install exercise only. It is not a final source dependency closure, package manifest, licence determination, or release acceptance."
+}
