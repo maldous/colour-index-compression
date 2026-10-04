@@ -1,0 +1,145 @@
+Quick test on existing compressed assets
+2026-10-04
+
+Result
+
+The tested generator and mathematical representations did not produce additional
+compression on the selected real compressed data. This is a bounded negative
+result, not a proof that every generator/function/parameter combination must
+fail. The synthetic feasibility examples remain valid, but did not transfer to
+this screen.
+
+One separate ordinary recompression control did improve an existing archive:
+zlib level 9 reduced the historical CIX DEFAULT Mozilla archive by 17,002 bytes
+(0.133517%), after counting the experimental wrapper. This is conventional
+second-pass compression, not evidence for the generator/projection theory.
+
+Authorization and input scope
+
+The user explicitly requested a short test now on already-compressed local
+assets. This narrowly supersedes the earlier recommendation to wait for the RC
+gate for this experiment only. The stopped corpus qualification, production
+source, integrations, automations, dependencies and publication remain unchanged.
+
+Three existing archives were selected before evaluating any candidate. Their
+sizes and SHA-256 identities matched the previously VERIFIED confirmation
+records. Original uncompressed datasets were not read or re-encoded. The chosen
+archives are historical outputs, not a claim about the current RC build.
+
+For each archive, test exactly three 4,096-byte windows: beginning, an aligned
+middle position, and end. Total transformation coverage: 36,864 bytes across
+nine windows. Each whole-archive experimental candidate replaces exactly one
+window and carries all remaining archive bytes literally. Whole-file ordinary
+compression controls cover all 18,373,649 existing archive bytes.
+
+Complete byte results
+
+Existing archive             Original bytes    Best theory wrapper    Change
+Dickens / historical BEST       1,862,182             1,862,231          +49
+Dickens / historical DEFAULT    3,777,545             3,777,594          +49
+Mozilla / historical DEFAULT   12,733,922            12,733,971          +49
+
+The best theory choice for each is a generator XOR residual plus zlib. It
+does NOT help even before parameter/framing charges: every generator trial
+produces at least 4,107 coded bytes for a 4,096-byte window. Its best complete
+penalty is 11 coded-payload bytes + 33 patch-wrapper bytes + 5 parameter bytes.
+The encoder should retain the unchanged archive when all proposed additions lose.
+
+Whole-archive ordinary second-pass controls, including the 14-byte wrapper:
+
+Existing archive             zlib level 9 bytes       xz preset 1 bytes
+Dickens / historical BEST          1,862,772                 1,862,346
+Dickens / historical DEFAULT       3,778,720                 3,777,810
+Mozilla / historical DEFAULT      12,716,920                12,722,626
+
+The no-transformation wrapper costs 13 bytes. It is the smallest WRAPPED control
+for the Dickens archives; retaining the original without a wrapper is smaller
+still. For Mozilla, whole zlib wins. The source of its remaining redundancy has
+not been localized; do not attribute it to mathematical or generator structure.
+
+Methods and controls
+
+Generator: SHAKE256 with fixed versioned domain; eight literal one-byte seeds,
+plus SHA-256(window) explicitly transmitted as a 32-byte seed; offsets 0, 1, 16
+and 256 bytes; XOR or modular subtraction using 8-, 16- or 32-bit big-endian
+words. Both zlib-9 and xz-1 code each residual. All selected seed, offset and
+operation information is paid. Literal parameters occupy five bytes; the stored
+SHA parameters occupy 36 bytes. No unavailable checksum is treated as free.
+
+Exact projections on each 32-bit unsigned word X:
+  square root: q=floor(2^17 * sqrt(X)), stored in five bytes;
+  cube root:   q=floor(2^23 * cbrt(X)), stored in five bytes;
+  reciprocal: q=floor(2^64 / (X+1)), stored in nine bytes.
+All use exact integer operations and singleton inverse intervals, including
+zero. Expanded streams then pass through the same two ordinary coders. This
+tests whether newly exposed structure repays the finite precision/representation
+cost; smaller magnitude or conspicuous zero bytes are not counted as savings.
+
+Mathematical descriptions: the earlier frozen rational/power/generated-reference
+grammar is applied to each consecutive 32-byte value, with a one-byte inner-frame
+length and all existing length/tag/parameter/padding bytes. Both ordinary coders
+are then tested. All 1,152 examined values selected the literal inner fallback.
+No near-power, low-denominator rational or admitted exact reference replaced it.
+
+Direct controls: unchanged archive; raw whole wrapper; whole zlib/xz; and the
+same identity window with the same coders and patch framing. Selection charges
+the winning recipe; it does not use an unpaid hindsight choice.
+
+Across all nine windows, coded payload sizes before outer framing/parameters:
+
+Method                       Minimum bytes    Maximum bytes    Coded trials
+identity                           4,107            4,156             18
+generator residual                 4,107            4,156          2,592
+square-root projection             4,696            4,920             18
+cube-root projection               4,777            4,972             18
+reciprocal projection              5,232            5,766             18
+mathematical description stream     4,390            4,420             18
+
+Every window's best version of every method expanded. There was no beginning-
+window exception to confuse archive-header redundancy with a payload win.
+Detailed parameters, source/window hashes and every trial size are preserved
+in results.json; no failed or losing candidate was dropped.
+
+Validation and resources
+
+All 2,682 coded window candidates decoded and inverted exactly. Six complete
+wrappers (best theoretical and best wrapped control per archive) were physically
+serialized and decoded in fresh processes using only those wrappers and the
+fixed decoder grammar. Every restored compressed archive matched its original
+SHA-256. This checks preservation of the existing archive bytes; the historical
+records supply the earlier inner CIX decode qualification.
+
+Fresh processes use the same reference decoder implementation, not a second
+independent implementation or a hardened production format. Independent read-only
+review of the plan, code and results found no material defect in inverse
+arithmetic, parameter accounting or the scoped conclusions.
+
+One run took 5.07 seconds wall time on one CPU (core 8), 4.89 seconds user CPU,
+0.17 seconds system CPU, maximum resident memory 113,116 KiB, no swap, exit zero.
+This includes control work, parameter search, coding and verification. It is
+not a CIX production-throughput comparison. Six wrapper files totaling
+36,730,469 bytes remain outside Git under
+/home/user/src/colour-index-compression/benchmark-work/compressed-asset-screen-v1/.
+Temporary restored copies were removed after hash verification. Code and records
+remain below the one-megabyte research-evidence budget. No downloaded assets,
+GPU work, new full-corpus benchmark or production change was required.
+
+Decision
+
+Do not promote these tested representation/generator configurations. The short
+experiment did not substantiate the proposed improvement on real compressed
+data, and it supplies no reason for a large blind parameter search. It also does
+not prove global incompressibility or exhaust arbitrary functions and recursion.
+Retain the 17,002-byte conventional recompression observation as a separate,
+scoped finding for later release review; it is not a new compression record or
+an automatically qualified production route.
+
+Reproduction
+
+plan.json was frozen before evaluation; results.json records its SHA-256, the
+screen.py SHA-256 and the imported frozen evaluator SHA-256. Source paths, input
+identities, every candidate cost, full-wrapper hashes and fresh-process decode
+receipts are recorded. resources.txt contains the exact bounded invocation;
+run.log preserves progress and completion. A rerun must use a distinct output
+directory to preserve the six existing wrappers. Do not restart a full benchmark
+to reproduce this small research screen.
