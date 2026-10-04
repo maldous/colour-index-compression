@@ -68,7 +68,13 @@ mod wavelet;
 #[path = "zpaq_context.rs"]
 pub mod zpaq_context;
 
-pub(crate) fn put_frame<W: Write>(w: &mut W, r: u8, n: u32, s: u32, h: &[u8; 32]) -> io::Result<()> {
+pub(crate) fn put_frame<W: Write>(
+    w: &mut W,
+    r: u8,
+    n: u32,
+    s: u32,
+    h: &[u8; 32],
+) -> io::Result<()> {
     w.write_all(&[r])?;
     w.write_all(&n.to_le_bytes())?;
     w.write_all(&s.to_le_bytes())?;
@@ -127,7 +133,14 @@ fn input_ready(fd: i32, timeout: Option<Duration>) -> Result<bool, String> {
 }
 
 #[cfg(not(unix))]
-fn input_ready(_fd: i32, _timeout: Option<Duration>) -> Result<bool, String> {
+fn input_ready(_fd: i32, timeout: Option<Duration>) -> Result<bool, String> {
+    if timeout.is_some() {
+        // A synchronous Read can provide bounded block buffering on this
+        // platform, but it cannot report an idle deadline while a redirected
+        // console or pipe is blocked. Do not pretend that --flush-interval
+        // remains a timed guarantee without a platform readiness primitive.
+        return Err("timed pipe reads require Unix poll; use blocking stdin without --flush-interval on this platform".into());
+    }
     Ok(true)
 }
 fn read_exact_poll<R: Read>(src: &mut R, mut buffer: &mut [u8], fd: i32) -> Result<(), String> {
@@ -169,13 +182,6 @@ fn wait_input(fd: std::os::fd::RawFd, timeout: std::time::Duration) -> io::Resul
             return Err(error);
         }
     }
-}
-#[cfg(not(unix))]
-fn wait_input(_fd: i32, _timeout: std::time::Duration) -> io::Result<bool> {
-    Err(io::Error::new(
-        io::ErrorKind::Unsupported,
-        "timed pipe reads require Unix poll",
-    ))
 }
 fn rle(b: &[u8]) -> Vec<u8> {
     let mut o = Vec::new();
@@ -1950,7 +1956,12 @@ fn parallel_retained(block: u32, workers: usize) -> usize {
         .saturating_add(256 << 10)
 }
 
-pub(crate) fn automatic_workers(requested: usize, explicit: bool, block: u32, memory: usize) -> usize {
+pub(crate) fn automatic_workers(
+    requested: usize,
+    explicit: bool,
+    block: u32,
+    memory: usize,
+) -> usize {
     if explicit {
         return requested;
     }
@@ -3249,16 +3260,25 @@ fn portfolio_search_external(
     Ok(())
 }
 
+struct PortfolioNativeAttempt<'a> {
+    route: Option<&'a str>,
+    timeout_seconds: u64,
+    name: String,
+}
+
 fn portfolio_search_native(
     data: &Vec<u8>,
     level: u8,
     memory: usize,
     winner: &mut PortfolioWinner,
-    route: Option<&str>,
-    timeout_seconds: u64,
-    name: String,
+    attempt: PortfolioNativeAttempt<'_>,
     runner: &PortfolioNativeRunner,
 ) -> Result<(), String> {
+    let PortfolioNativeAttempt {
+        route,
+        timeout_seconds,
+        name,
+    } = attempt;
     let Some(candidate) = runner(
         data,
         level,
@@ -3320,16 +3340,19 @@ fn portfolio_search_size_routes(
             level,
             memory,
             winner,
-            Some(route),
-            candidate_seconds.min(remaining),
-            name,
+            PortfolioNativeAttempt {
+                route: Some(route),
+                timeout_seconds: candidate_seconds.min(remaining),
+                name,
+            },
             runner,
         )?;
     }
     Ok(())
 }
 
-pub(crate) type PortfolioNativeRunner = dyn Fn(&[u8], u8, usize, usize, Option<&str>, u64) -> Result<Option<Vec<u8>>, String>;
+pub(crate) type PortfolioNativeRunner =
+    dyn Fn(&[u8], u8, usize, usize, Option<&str>, u64) -> Result<Option<Vec<u8>>, String>;
 
 pub(crate) fn encode_portfolio<R: Read, W: Write>(
     src: R,
@@ -3419,9 +3442,11 @@ pub(crate) fn encode_portfolio<R: Read, W: Write>(
             level,
             memory,
             &mut winner,
-            None,
-            candidate_seconds.min(remaining),
-            "cix-adaptive".to_string(),
+            PortfolioNativeAttempt {
+                route: None,
+                timeout_seconds: candidate_seconds.min(remaining),
+                name: "cix-adaptive".to_string(),
+            },
             runner,
         )?;
     }
@@ -4825,15 +4850,36 @@ pub(crate) fn encode_persistent_stream<R: Read, W: Write>(
     dst: W,
     request: PersistentStreamRequest,
 ) -> Result<(), String> {
-    let PersistentStreamRequest { block, input_fd, flush_interval, memory, workers, explain, verbose } = request;
-    let (first, first_eof) = streaming_backend::read_probe(&mut src, block, input_fd, flush_interval)?;
+    let PersistentStreamRequest {
+        block,
+        input_fd,
+        flush_interval,
+        memory,
+        workers,
+        explain,
+        verbose,
+    } = request;
+    let (first, first_eof) =
+        streaming_backend::read_probe(&mut src, block, input_fd, flush_interval)?;
     // Observability belongs to the CLI adapter.  The codec receives the
     // flags because streaming candidate selection uses them internally, but
     // it never writes a diagnostic on behalf of an embedding caller.
-    streaming_backend::encode(src, dst, streaming_backend::EncodeRequest {
-        first, first_eof, block, level: 9, input_fd, flush_interval, memory,
-        workers, explain, verbose,
-    })
+    streaming_backend::encode(
+        src,
+        dst,
+        streaming_backend::EncodeRequest {
+            first,
+            first_eof,
+            block,
+            level: 9,
+            input_fd,
+            flush_interval,
+            memory,
+            workers,
+            explain,
+            verbose,
+        },
+    )
 }
 
 pub(crate) fn persistent_stream_required_memory(block: u32) -> usize {

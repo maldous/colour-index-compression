@@ -52,9 +52,10 @@ not-compressible reason; CIX retains a valid native fallback.
 
 The CIXB1 source and restored-size cap is 128 MiB. It accepts named regular
 input only, buffers that bounded input once, and conflicts with `--stream`.
-BEST and decoding default to a 2 GiB working-memory budget; this is an
-admission budget, not an RSS guarantee. ZPAQ L5 and BSC require particularly
-large reservations, so they may be omitted under a smaller explicit
+BEST and decoding default to a 6 GiB accounted working-memory budget. This is
+an admission budget, not an aggregate-process RSS guarantee. The decoder uses
+the same implicit policy so it can restore a PAQ archive emitted by BEST;
+ZPAQ L5 and BSC may still be omitted or rejected under a smaller explicit
 `--memory` setting.
 
 ## Cancellation and portability

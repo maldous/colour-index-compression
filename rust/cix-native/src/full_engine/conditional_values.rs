@@ -21,6 +21,7 @@ const MAX_RECORDS: usize = 8_000_000;
 const FIELD_WIDTHS: [usize; 4] = [8, 8, 4, 4];
 const MAX_RAW_INVERSE_BYTES: usize = 256 * 1024 * 1024;
 const INVERSE_WORKING_MULTIPLIER: usize = 7;
+type BaseField<'a> = (Vec<i64>, Vec<i64>, &'a [u8], usize);
 
 pub(crate) fn signed(value: i64) -> Result<Vec<u8>, String> {
     let code = if value >= 0 {
@@ -140,17 +141,21 @@ fn signed_le(value: i64, width: usize) -> Result<Vec<u8>, String> {
     }
 }
 fn read_signed_le(data: &[u8], width: usize) -> Result<Vec<i64>, String> {
-    if data.len() % width != 0 {
+    if !data.len().is_multiple_of(width) {
         return Err("raw correction size".into());
     }
     match width {
         4 => Ok(data
-            .chunks_exact(4)
-            .map(|item| i64::from(i32::from_le_bytes(item.try_into().unwrap())))
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .map(|item| i64::from(i32::from_le_bytes(*item)))
             .collect()),
         8 => Ok(data
-            .chunks_exact(8)
-            .map(|item| i64::from_le_bytes(item.try_into().unwrap()))
+            .as_chunks::<8>()
+            .0
+            .iter()
+            .map(|item| i64::from_le_bytes(*item))
             .collect()),
         _ => Err("unsupported correction width".into()),
     }
@@ -161,7 +166,7 @@ pub(crate) fn base_field(
     at: usize,
     n: usize,
     width: usize,
-) -> Result<(Vec<i64>, Vec<i64>, &[u8], usize), String> {
+) -> Result<BaseField<'_>, String> {
     let start = at;
     let scale_end = at.checked_add(8).ok_or("grid scale overflow")?;
     data.get(at..scale_end).ok_or("truncated grid scale")?;

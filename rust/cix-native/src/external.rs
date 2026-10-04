@@ -8,11 +8,7 @@ unsafe extern "C" {}
 #[link(name = "c++")]
 unsafe extern "C" {}
 
-use flate2::{
-    bufread::GzDecoder,
-    write::ZlibEncoder,
-    Compression, GzBuilder,
-};
+use flate2::{bufread::GzDecoder, write::ZlibEncoder, Compression, GzBuilder};
 use sha2::{Digest, Sha256};
 use std::ffi::{c_char, c_int, c_uint, c_void, CStr};
 use std::io::{Cursor, Read, Write};
@@ -1039,7 +1035,11 @@ fn wrap_archive(
     Ok(out)
 }
 
-pub(crate) fn encode_payload(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>, String> {
+pub(crate) fn encode_payload(
+    backend: &str,
+    profile: &str,
+    input: &[u8],
+) -> Result<Vec<u8>, String> {
     match backend {
         "gzip" => encode_gzip_payload(profile, input),
         "bzip2" => encode_bzip2_payload(profile, input),
@@ -1122,7 +1122,11 @@ pub fn raw_xz_encode(input: &[u8], profile: &str, output_limit: usize) -> Result
 }
 
 /// Encode a standard XZ member with an explicit liblzma easy preset.
-pub fn raw_xz_encode_preset(input: &[u8], preset: u32, output_limit: usize) -> Result<Vec<u8>, String> {
+pub fn raw_xz_encode_preset(
+    input: &[u8],
+    preset: u32,
+    output_limit: usize,
+) -> Result<Vec<u8>, String> {
     check_cancel()?;
     if preset > 9 {
         return Err("invalid raw XZ preset".into());

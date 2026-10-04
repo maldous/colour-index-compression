@@ -231,6 +231,12 @@ fn run_buffer(
 }
 
 /// Writes the v1 defaults.  The caller owns this plain value.
+///
+/// # Safety
+///
+/// `out` must be a non-null, properly aligned, writable `cix_options_v1` for
+/// the duration of this call. It must not alias memory concurrently accessed
+/// by another thread.
 #[no_mangle]
 pub unsafe extern "C" fn cix_options_v1_default(out: *mut cix_options_v1) -> i32 {
     catch_unwind(AssertUnwindSafe(|| {
@@ -254,6 +260,14 @@ pub unsafe extern "C" fn cix_options_v1_default(out: *mut cix_options_v1) -> i32
 }
 
 /// Creates an independently owned, reusable native buffer context.
+///
+/// # Safety
+///
+/// `options` must point to a readable, initialized v1 options structure and
+/// `out_context` to a writable, properly aligned pointer slot. The two regions
+/// must not overlap and must remain valid for the call. A successful call
+/// transfers ownership of the returned handle to the caller, which must later
+/// destroy it exactly once.
 #[no_mangle]
 pub unsafe extern "C" fn cix_context_create(
     options: *const cix_options_v1,
@@ -285,6 +299,12 @@ pub unsafe extern "C" fn cix_context_create(
 }
 
 /// Releases a context created by [`cix_context_create`].  Passing null is a no-op.
+///
+/// # Safety
+///
+/// A non-null `context` must be the live handle returned by
+/// [`cix_context_create`], and this must be its only destruction. No other
+/// thread may use or destroy the handle while this call runs.
 #[no_mangle]
 pub unsafe extern "C" fn cix_context_destroy(context: *mut cix_context) {
     let _ = catch_unwind(AssertUnwindSafe(|| {
@@ -352,6 +372,14 @@ unsafe fn buffer_call(
 
 /// Compresses one complete buffer.  On `CIX_STATUS_OUTPUT_TOO_SMALL`, `needed`
 /// receives the complete required byte count and output is not modified.
+///
+/// # Safety
+///
+/// `context` must be a live context not concurrently being destroyed.
+/// `input_ptr` must designate `input_len` readable bytes and `output_ptr`
+/// `output_capacity` writable bytes (null is permitted only for an empty
+/// region). `needed` must be a writable `usize`. These regions must be
+/// non-overlapping and valid for the complete call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_encode_buffer(
     context: *mut cix_context,
@@ -383,6 +411,14 @@ pub unsafe extern "C" fn cix_encode_buffer(
 
 /// Decompresses one complete buffer.  On `CIX_STATUS_OUTPUT_TOO_SMALL`, `needed`
 /// receives the complete required byte count and output is not modified.
+///
+/// # Safety
+///
+/// `context` must be a live context not concurrently being destroyed.
+/// `input_ptr` must designate `input_len` readable bytes and `output_ptr`
+/// `output_capacity` writable bytes (null is permitted only for an empty
+/// region). `needed` must be a writable `usize`. These regions must be
+/// non-overlapping and valid for the complete call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_decode_buffer(
     context: *mut cix_context,
@@ -414,6 +450,13 @@ pub unsafe extern "C" fn cix_decode_buffer(
 
 /// Copies the context-owned, bounded diagnostic text.  `needed` includes the
 /// terminating NUL.  This function does not replace the stored diagnostic.
+///
+/// # Safety
+///
+/// `context` must be a live context not concurrently being destroyed.
+/// `output` must designate `output_capacity` writable bytes when non-empty,
+/// and `needed` must be a writable `usize`. The output and count regions must
+/// not overlap and all supplied storage must remain valid for the call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_context_last_error(
     context: *const cix_context,
@@ -479,7 +522,7 @@ mod tests {
     #[test]
     fn truncating_utf8_diagnostic_stays_valid() {
         let message = bounded_message("é".repeat(300));
-        assert!(message.len() <= CIX_ERROR_MESSAGE_CAPACITY - 1);
+        assert!(message.len() < CIX_ERROR_MESSAGE_CAPACITY);
         assert!(std::str::from_utf8(message.as_bytes()).is_ok());
     }
 

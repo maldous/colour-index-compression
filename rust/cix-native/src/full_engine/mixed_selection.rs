@@ -362,6 +362,8 @@ fn speculative_failure_requires_serial_retry<T>(results: &[Result<T, String>]) -
     results.iter().any(Result::is_err)
 }
 
+// The independent limits and scheduling inputs mirror the selection contract.
+#[allow(clippy::too_many_arguments)]
 fn parallel_generic_choice(
     engine: &FullEngine,
     source: &[u8],
@@ -438,12 +440,9 @@ fn parallel_generic_choice(
         Ok(value) => value,
         Err(error) => return Some(Err(error.into())),
     };
-    let Some(available) = workspace
+    let available = workspace
         .checked_sub(retained)
-        .and_then(|value| value.checked_sub(payload_reservation))
-    else {
-        return None;
-    };
+        .and_then(|value| value.checked_sub(payload_reservation))?;
     let per_trial_memory = available / attempts.len();
     if per_trial_memory == 0 {
         return None;
@@ -697,12 +696,9 @@ pub(crate) fn encode_with_provider_omissions_workers(
         .map_err(|_| "CIXH1 range allocation failed")?;
     ranges.extend(partitions.iter().map(|item| item.start..item.end));
     let mut diagnostics = diagnostic_buffer()?;
-    diagnostics.provider_omissions.extend(
-        provider_omissions
-            .iter()
-            .take(4)
-            .map(|reason| truncate_detail(reason)),
-    );
+    diagnostics
+        .provider_omissions
+        .extend(provider_omissions.iter().take(4).map(truncate_detail));
     let mut parent_bytes = HEADER_BYTES;
     let mut region_number = 0usize;
     let archive = mixed::encode_with(

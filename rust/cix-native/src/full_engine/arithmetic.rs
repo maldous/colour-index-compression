@@ -161,7 +161,7 @@ impl Fenwick {
             if updated < 0 {
                 return Err("negative Fenwick count".into());
             }
-            let step = check_index & check_index.wrapping_neg();
+            let step = check_index.isolate_lowest_one();
             check_index = check_index
                 .checked_add(step)
                 .ok_or("Fenwick index overflow")?;
@@ -169,7 +169,7 @@ impl Fenwick {
         self.values[index] = next_value;
         while tree_index <= self.n {
             self.tree[tree_index] += delta;
-            let step = tree_index & tree_index.wrapping_neg();
+            let step = tree_index.isolate_lowest_one();
             tree_index += step;
         }
         Ok(())
@@ -309,6 +309,12 @@ impl ArithmeticEncoder {
             self.bytes.push(self.current << (8 - self.used));
         }
         (self.bytes, bit_length)
+    }
+}
+
+impl Default for ArithmeticEncoder {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -693,7 +699,7 @@ pub fn multinomial_cardinality(counts: &[usize]) -> Result<BigUint, String> {
 }
 
 pub fn composition_rank(parts: &[usize]) -> Result<BigUint, String> {
-    if parts.is_empty() || parts.iter().any(|part| *part == 0) {
+    if parts.is_empty() || parts.contains(&0) {
         return Err("composition parts must be positive".into());
     }
     if parts.len() == 1 {
@@ -743,7 +749,7 @@ pub fn composition_unrank(
         previous = next;
     }
     parts.push(total.checked_sub(previous).ok_or("invalid composition")?);
-    if parts.iter().any(|part| *part == 0) {
+    if parts.contains(&0) {
         return Err("invalid composition".into());
     }
     Ok(parts)

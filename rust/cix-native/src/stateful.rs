@@ -471,7 +471,12 @@ mod integer_overflow_tests {
         let mut decoder = PersistentAdaptiveStates::new();
 
         let (_, first_payload) = encoder.encode_best(first, &[], budget).unwrap();
-        assert_eq!(decoder.decode(&first_payload, first.len(), &[], budget).unwrap(), first);
+        assert_eq!(
+            decoder
+                .decode(&first_payload, first.len(), &[], budget)
+                .unwrap(),
+            first
+        );
         encoder.observe(first, &[]).unwrap();
         decoder.observe(first, &[]).unwrap();
 

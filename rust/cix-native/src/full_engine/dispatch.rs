@@ -328,8 +328,12 @@ impl FullEngine {
                                 if *mode == 0 {
                                     return encode(raw, brotli(24), false);
                                 }
+                                // The pinned v216 worker rejects -0 because that
+                                // archive level is not safely decodable. Filtered
+                                // fresh archives use the qualified v216 -8 stage;
+                                // their inverse remains the state-only decoder.
                                 let intermediate =
-                                    encode(raw, paq(PaqVariant::V216, 0, None), false)?;
+                                    encode(raw, paq(PaqVariant::V216, 8, None), false)?;
                                 self.encode_payload(
                                     &intermediate,
                                     brotli(24),
@@ -904,13 +908,20 @@ mod tests {
         assert_eq!(engine.decode(&stored, &limits).unwrap(), source);
         let native = core::encode_buffer(source, &core::NativeOptions::default()).unwrap();
         assert_eq!(engine.decode(&native, &limits).unwrap(), source);
-        let mixed = mixed::encode_with(source, &[0..source.len()], 4096, 1 << 20, |_, _| {
-            Ok(mixed::RegionChoice {
-                backend: mixed::RegionBackend::Specialist,
-                parameters: b"stored-test".to_vec(),
-                payload: stored.clone(),
-            })
-        })
+        let range = 0..source.len();
+        let mixed = mixed::encode_with(
+            source,
+            std::slice::from_ref(&range),
+            4096,
+            1 << 20,
+            |_, _| {
+                Ok(mixed::RegionChoice {
+                    backend: mixed::RegionBackend::Specialist,
+                    parameters: b"stored-test".to_vec(),
+                    payload: stored.clone(),
+                })
+            },
+        )
         .unwrap();
         assert_eq!(engine.decode(&mixed, &limits).unwrap(), source);
         assert!(engine.decode(b"CIXB\x1d", &limits).is_err());

@@ -260,7 +260,8 @@ mod tests {
     #[test]
     fn corrupt_lengths_checksums_and_incomplete_partitions_are_rejected() {
         let source = b"independent integrity checks";
-        let good = encode_with(source, &[0..source.len()], 1024, 4096, stored).unwrap();
+        let range = 0..source.len();
+        let good = encode_with(source, std::slice::from_ref(&range), 1024, 4096, stored).unwrap();
         for at in [5, 6, 14, 18, 50, 51, 55, 59, 61, good.len() - 1] {
             let mut bad = good.clone();
             bad[at] ^= 1;
@@ -275,14 +276,16 @@ mod tests {
         assert!(decode_with(&trailing, 1024, 4096, no_provider).is_err());
         assert!(decode_with(&good, source.len() - 1, 4096, no_provider).is_err());
         assert!(decode_with(&good, 1024, good.len() + source.len() - 1, no_provider).is_err());
-        assert!(encode_with(source, &[1..source.len()], 1024, 4096, stored).is_err());
+        let range = 1..source.len();
+        assert!(encode_with(source, std::slice::from_ref(&range), 1024, 4096, stored).is_err());
     }
 
     #[test]
     fn empty_carrier_and_nested_output_bounds() {
         let empty = encode_with(b"", &[], 50, 50, stored).unwrap();
         assert_eq!(decode_with(&empty, 0, 50, no_provider).unwrap(), b"");
-        let nested = encode_with(b"abc", &[0..3], 1024, 4096, |_, _| {
+        let range = 0..3;
+        let nested = encode_with(b"abc", std::slice::from_ref(&range), 1024, 4096, |_, _| {
             Ok(RegionChoice {
                 backend: RegionBackend::Specialist,
                 parameters: b"description".to_vec(),

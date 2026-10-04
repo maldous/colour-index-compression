@@ -1,20 +1,13 @@
 //! Test-only CIXM6 frame construction for legacy mode regression checks.
 
-#[path = "../src/adaptive.rs"]
-mod adaptive;
 #[path = "../src/bwt_legacy.rs"]
 mod bwt_legacy;
 #[path = "../src/combinatorics.rs"]
 mod combinatorics;
-#[path = "../src/limits.rs"]
-mod limits;
-#[path = "../src/ppm.rs"]
-mod ppm;
-#[path = "../src/rank.rs"]
-mod rank;
 #[path = "../src/sparse_runs.rs"]
 mod sparse_runs;
 
+use cix_native::{adaptive, limits, ppm, rank};
 use std::path::Path;
 
 fn put_varint(mut value: usize, out: &mut Vec<u8>) {

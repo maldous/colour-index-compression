@@ -243,8 +243,7 @@ fn plans(
             n.checked_mul(12).ok_or("native reservation overflow")?,
             256 * MIB,
         )?)
-        .max(64 * MIB)
-        .min(NATIVE_BASE);
+        .clamp(64 * MIB, NATIVE_BASE);
     out.push(Plan {
         id: "native".into(),
         priority: next_priority,

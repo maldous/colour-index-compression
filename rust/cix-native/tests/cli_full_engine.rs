@@ -3,8 +3,10 @@ use cix_native::full_engine::{containers, mixed};
 use std::{
     fs,
     io::Write,
+    ops::Range,
     path::PathBuf,
     process::{Command, Output, Stdio},
+    slice,
     sync::atomic::{AtomicUsize, Ordering},
 };
 
@@ -70,7 +72,8 @@ fn raw_frame_decodes_and_lists_without_optional_providers_or_home() {
 #[test]
 fn mixed_raw_member_needs_no_image_provider() {
     let data = b"a nested arbitrary region";
-    let archive = mixed::encode_with(data, &[0..data.len()], 4096, 4 << 20, |region, _| {
+    let whole: Range<usize> = 0..data.len();
+    let archive = mixed::encode_with(data, slice::from_ref(&whole), 4096, 4 << 20, |region, _| {
         Ok(mixed::RegionChoice {
             backend: mixed::RegionBackend::Specialist,
             parameters: b"raw-child".to_vec(),

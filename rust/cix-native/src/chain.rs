@@ -10,9 +10,9 @@ use super::{
 };
 use num_bigint::BigUint;
 use num_traits::{One, Zero};
-use std::collections::HashMap;
 #[cfg(test)]
 use std::cell::Cell;
+use std::collections::HashMap;
 
 const CHAIN_VERSION: u8 = 1;
 const INNER_MULTINOMIAL: u8 = 1;
@@ -104,9 +104,8 @@ struct CandidateSelectionState<'a> {
 }
 
 fn cache_table_bytes(slots: usize) -> usize {
-    std::mem::size_of::<Vec<CachedTransform>>().saturating_add(
-        slots.saturating_mul(std::mem::size_of::<CachedTransform>()),
-    )
+    std::mem::size_of::<Vec<CachedTransform>>()
+        .saturating_add(slots.saturating_mul(std::mem::size_of::<CachedTransform>()))
 }
 
 #[derive(Clone, Copy)]
@@ -1167,7 +1166,8 @@ fn consider_simple_transforms(
 
 impl CacheCapture {
     fn begin(key_capacity: usize, allowance: usize) -> Option<Self> {
-        let minimum_slots = MAX_INNER_CANDIDATES.saturating_mul(std::mem::size_of::<MaterializedInner>());
+        let minimum_slots =
+            MAX_INNER_CANDIDATES.saturating_mul(std::mem::size_of::<MaterializedInner>());
         if key_capacity.saturating_add(minimum_slots) > allowance {
             return None;
         }
@@ -1228,7 +1228,14 @@ fn record_captured(
     if failed {
         *capture = None;
     }
-    record_candidate(best, measurements, transform_id, inner_mode, inner, inner_name);
+    record_candidate(
+        best,
+        measurements,
+        transform_id,
+        inner_mode,
+        inner,
+        inner_name,
+    );
 }
 
 fn record_materialized_cached(
@@ -1319,7 +1326,11 @@ fn consider_selected_transform(
 
 /// Encode a frozen chain portfolio with a per-call, exact transformed-byte
 /// cache. A zero allowance preserves the historic uncached materialization.
-pub fn encode_with_cache(data: &[u8], options: EncodeOptions, cache_allowance: usize) -> Result<EncodeResult, String> {
+pub fn encode_with_cache(
+    data: &[u8],
+    options: EncodeOptions,
+    cache_allowance: usize,
+) -> Result<EncodeResult, String> {
     if data.is_empty() {
         return Err("cannot transform-chain encode an empty block".into());
     }
@@ -1871,7 +1882,8 @@ mod tests {
         let mut fixture_index = 0usize;
         let mut inner_modes = BTreeSet::new();
         for (index, source) in cases.iter().enumerate() {
-            let encoded = encode_with_cache(source, EncodeOptions { beam: 9, effort: 9 }, 0).unwrap();
+            let encoded =
+                encode_with_cache(source, EncodeOptions { beam: 9, effort: 9 }, 0).unwrap();
             assert!(!encoded.description.is_empty());
             verify_and_write(
                 encoded.payload.clone(),
@@ -1974,7 +1986,14 @@ mod tests {
         result
             .candidates
             .iter()
-            .map(|candidate| (candidate.transform_id, candidate.inner_mode, candidate.bytes, candidate.description.clone()))
+            .map(|candidate| {
+                (
+                    candidate.transform_id,
+                    candidate.inner_mode,
+                    candidate.bytes,
+                    candidate.description.clone(),
+                )
+            })
             .collect()
     }
 

@@ -12,39 +12,58 @@ use std::{
     process, thread,
 };
 
-#[cfg(unix)]
-fn open_input(path: &str) -> Result<std::fs::File, String> {
+enum Input {
+    File(File),
+    #[cfg(not(unix))]
+    Stdin(io::Stdin),
+}
+
+impl Read for Input {
+    fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        match self {
+            Self::File(file) => file.read(buffer),
+            #[cfg(not(unix))]
+            Self::Stdin(stdin) => stdin.read(buffer),
+        }
+    }
+}
+
+fn open_input(path: &str) -> Result<Input, String> {
     if path != "-" {
-        return std::fs::File::open(path).map_err(engine::ioerr);
+        return File::open(path).map(Input::File).map_err(engine::ioerr);
     }
-    use std::os::fd::FromRawFd;
-    let fd = unsafe { libc::dup(libc::STDIN_FILENO) };
-    if fd < 0 {
-        return Err(engine::ioerr(io::Error::last_os_error()));
+    #[cfg(unix)]
+    {
+        use std::os::fd::FromRawFd;
+        let fd = unsafe { libc::dup(libc::STDIN_FILENO) };
+        if fd < 0 {
+            return Err(engine::ioerr(io::Error::last_os_error()));
+        }
+        Ok(Input::File(unsafe { File::from_raw_fd(fd) }))
     }
-    Ok(unsafe { std::fs::File::from_raw_fd(fd) })
-}
-
-#[cfg(not(unix))]
-fn open_input(path: &str) -> Result<std::fs::File, String> {
-    if path == "-" {
-        return Err("stdin streaming is not implemented on this platform".into());
+    #[cfg(not(unix))]
+    {
+        // Stdin is consumed directly in bounded codec blocks. Windows has no
+        // portable equivalent of Unix poll for an arbitrary redirected handle,
+        // so this permits blocking streaming only; timed flush is rejected by
+        // the engine before any blocking read.
+        Ok(Input::Stdin(io::stdin()))
     }
-    std::fs::File::open(path).map_err(engine::ioerr)
 }
 
 #[cfg(unix)]
-fn input_fd(file: &std::fs::File) -> i32 {
+fn input_fd(input: &Input) -> i32 {
     use std::os::fd::AsRawFd;
-    if file.metadata().is_ok_and(|metadata| metadata.is_file()) {
-        -1
-    } else {
-        file.as_raw_fd()
+    match input {
+        Input::File(file) if !file.metadata().is_ok_and(|metadata| metadata.is_file()) => {
+            file.as_raw_fd()
+        }
+        Input::File(_) => -1,
     }
 }
 
 #[cfg(not(unix))]
-fn input_fd(_file: &std::fs::File) -> i32 {
+fn input_fd(_input: &Input) -> i32 {
     -1
 }
 
@@ -53,6 +72,12 @@ fn input_fd(_file: &std::fs::File) -> i32 {
 // same-CIX full-engine worker; the reusable codec never reaches it.
 #[path = "portfolio_auto.rs"]
 pub(crate) mod portfolio_auto;
+
+// BEST considers the PAQ v215-9L plan.  At the 128 MiB whole-input limit,
+// its declared codec reservation plus the retained source and bounded archive
+// needs just under 6 GiB.  This is an aggregate admission budget, not a
+// process-RSS guarantee; an explicit --memory always replaces it.
+const BEST_DEFAULT_MEMORY: usize = 6 << 30;
 
 #[derive(Clone, Default)]
 pub(crate) struct Opt {
@@ -101,7 +126,7 @@ pub(crate) fn cancellation_token() -> Arc<std::sync::atomic::AtomicBool> {
         .clone()
 }
 fn usage() {
-    println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] [FILE ...]\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] [FILE ...]\n       cixcat [FILE]\n\nFILE defaults to '-' (standard input); use '--' before a dash-prefixed filename. Input files are kept by default. Use '-' for standard input or output. Multiple named files receive their own derived output names; -o FILE and standard-output modes accept one input only. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format auto|cixg1|cixg2|cixm6|cixf1  Select or constrain the container version\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Constrain maximum uncompressed block size\n  --memory SIZE               Bound working memory (FAST/default 512 MiB; BEST/decode 2 GiB)\n  --threads N                 Bound CPU workers (1..20; default up to 4)\n  --parallelism blocks|candidates  Choose ordered blocks or within-block trials\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Flush framed partial blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
+    println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] [FILE ...]\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] [FILE ...]\n       cixcat [FILE]\n\nFILE defaults to '-' (standard input); use '--' before a dash-prefixed filename. Input files are kept by default. Use '-' for standard input or output. Multiple named files receive their own derived output names; -o FILE and standard-output modes accept one input only. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format auto|cixg1|cixg2|cixm6|cixf1  Select or constrain the container version\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Constrain maximum uncompressed block size\n  --memory SIZE               Bound accounted working memory (FAST/default 512 MiB; BEST/decode 6 GiB)\n  --threads N                 Bound CPU workers (1..20; default up to 4)\n  --parallelism blocks|candidates  Choose ordered blocks or within-block trials\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Flush framed partial blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
     println!("\nStandard streams: --output-format gzip|zlib|deflate|bzip2|xz|zstd|brotli|lz4|snappy writes a genuine one-shot standard stream. Use --input-format FORMAT with -d, -t or uncix to decode/test it; raw Deflate is never guessed. Standard streams are bounded to 128 MiB input/output and do not accept CIX route, container, portfolio, stream, history or block controls.");
     println!("\nInstalled full-engine providers: --private-library-dir names an absolute private CIX provider directory; --temporary-root names an absolute private PAQ worker root. Provider files are never searched through PATH.");
 }
@@ -369,7 +394,11 @@ fn finish_parse(o: &mut Opt, files: Vec<String>) -> Result<(), String> {
         return Err("--threads must be positive".into());
     }
     if o.decode && !o.memory_set {
-        o.memory = 2 * 1024 * 1024 * 1024;
+        // A default decoder must accept PAQ archives emitted by the implicit
+        // BEST policy. The worker receives this as an address-space request
+        // after parent buffers are reserved; it remains an admission estimate,
+        // not an aggregate-process RSS guarantee.
+        o.memory = BEST_DEFAULT_MEMORY;
     }
     if (o.output_format.is_some() || o.input_format.is_some()) && !o.memory_set {
         // Brotli's admitted one-shot workspace is 512 MiB in addition to
@@ -534,12 +563,11 @@ fn validate_standard_options(o: &Opt) -> Result<(), String> {
     Ok(())
 }
 
-fn read_standard_input(mut source: File, memory: usize) -> Result<Vec<u8>, String> {
+fn read_standard_input(mut source: Input, memory: usize) -> Result<Vec<u8>, String> {
     let cap = standard_formats::MAX_STANDARD_INPUT;
-    if source
-        .metadata()
-        .is_ok_and(|metadata| metadata.is_file() && metadata.len() > cap as u64)
-    {
+    let oversized_file = matches!(&source, Input::File(file) if file.metadata()
+        .is_ok_and(|metadata| metadata.is_file() && metadata.len() > cap as u64));
+    if oversized_file {
         return Err("standard format input exceeds 128 MiB".into());
     }
     if memory == 0 {
@@ -1242,7 +1270,7 @@ fn validate_threads_and_format(o: &mut Opt) -> Result<(), String> {
     // An explicit resource constraint is authoritative; raising search effort
     // alone must not silently exceed a caller's declared memory budget.
     if o.level >= 9 && !o.memory_set && !o.decode && !o.test && !o.list {
-        o.memory = 2 * 1024 * 1024 * 1024;
+        o.memory = BEST_DEFAULT_MEMORY;
     }
     if o.threads > 20 {
         return Err("--threads is limited to 20 workers".into());
@@ -1378,7 +1406,7 @@ fn validate_route_state(o: &Opt) -> Result<(), String> {
         return Err("--flush-interval applies to encoding only".into());
     }
     if o.flush_interval.is_some() && !cfg!(unix) {
-        return Err("--flush-interval on non-seekable input requires Unix poll support".into());
+        return Err("--flush-interval requires Unix poll support on this platform".into());
     }
     Ok(())
 }
@@ -1477,4 +1505,41 @@ pub(crate) fn validate_candidate_selection(o: &Opt, forced: Option<&str>) -> Res
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod policy_tests {
+    use super::*;
+
+    fn options(args: &[&str], decode: bool) -> Opt {
+        let mut options = default_options();
+        options.decode = decode;
+        let args = args
+            .iter()
+            .map(|value| (*value).to_owned())
+            .collect::<Vec<_>>();
+        let files = parse_command_arguments(&mut options, &args).expect("parse options");
+        finish_parse(&mut options, files).expect("finish parse");
+        validate_options(&mut options).expect("validate options");
+        options
+    }
+
+    #[test]
+    fn implicit_best_and_decode_memory_admit_paq_while_explicit_caps_win() {
+        let best = options(&["cix", "--best", "input"], false);
+        assert_eq!(best.memory, BEST_DEFAULT_MEMORY);
+        assert!(!best.memory_set);
+
+        let decode = options(&["uncix", "archive"], true);
+        assert_eq!(decode.memory, BEST_DEFAULT_MEMORY);
+        assert!(!decode.memory_set);
+
+        let explicit = options(&["cix", "--best", "--memory", "768MiB", "input"], false);
+        assert_eq!(explicit.memory, 768 << 20);
+        assert!(explicit.memory_set);
+
+        let explicit_decode = options(&["uncix", "--memory", "768MiB", "archive"], true);
+        assert_eq!(explicit_decode.memory, 768 << 20);
+        assert!(explicit_decode.memory_set);
+    }
 }

@@ -63,7 +63,7 @@ fn checked_region(data: &[u8], region: &DicomRegion) -> Result<(), String> {
 }
 
 fn source_bits(codec: SpatialCodec, pixels: &[u8]) -> Result<u32, String> {
-    if pixels.len() % 2 != 0 {
+    if !pixels.len().is_multiple_of(2) {
         return Err("unaligned spatial samples".into());
     }
     // Historical imagecodecs JPEG-LS was passed a uint16 ndarray without an
@@ -73,7 +73,9 @@ fn source_bits(codec: SpatialCodec, pixels: &[u8]) -> Result<u32, String> {
         return Ok(16);
     }
     let maximum = pixels
-        .chunks_exact(2)
+        .as_chunks::<2>()
+        .0
+        .iter()
         .map(|sample| u16::from_le_bytes([sample[0], sample[1]]))
         .max()
         .unwrap_or(0);
@@ -155,7 +157,7 @@ fn validate_decode_header(
     if header.original_bytes > maximum || header.original_bytes > memory {
         return Err("spatial output exceeds limit".into());
     }
-    if header.region_bytes == 0 || header.region_bytes % 2 != 0 {
+    if header.region_bytes == 0 || !header.region_bytes.is_multiple_of(2) {
         return Err("invalid spatial region byte count".into());
     }
     if header

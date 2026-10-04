@@ -1,7 +1,4 @@
-#[path = "../src/paq_bridge.rs"]
-mod paq_bridge;
-
-use paq_bridge::{
+use cix_native::paq_bridge::{
     validate, PaqBridgeError, PaqExecutionScope, PaqInvocation, PaqVariant, PaqWorkerEnvironment,
     PAQ_VARIANTS,
 };

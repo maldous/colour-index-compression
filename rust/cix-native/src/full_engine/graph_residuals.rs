@@ -7,7 +7,7 @@ use super::arithmetic::{vdecode, vencode, ArithmeticDecoder, ArithmeticEncoder};
 use crate::rank::{decode_type_class, encode_type_class};
 use num_bigint::BigUint;
 use num_traits::{ToPrimitive, Zero};
-use std::collections::HashMap;
+use std::{cmp::Reverse, collections::HashMap};
 
 const COORDINATE_STARTS: [usize; 3] = [0, 10, 20];
 const MAGIC: &[u8; 5] = b"SDFG\x01";
@@ -17,6 +17,9 @@ const DEFAULT_OUTPUT_LIMIT: usize = 1 << 30;
 const GROUP_COUNT: usize = 5;
 const TYPE_CLASS_BLOCK: usize = 4096;
 const PALETTE_SIZE: usize = 64;
+type PaletteStreams = (Vec<[i64; 3]>, [Vec<u8>; GROUP_COUNT], usize);
+type HydrogenChoicePayload = (Vec<Vec<u8>>, Vec<[i64; 3]>, Vec<u8>);
+type HydrogenParsed = (Vec<u8>, Vec<[i64; 3]>, Vec<(usize, usize)>);
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ExtractedRecord {
@@ -111,7 +114,7 @@ fn append_palette(
     }
     // Python Counter.most_common() retains first-occurrence order for tied
     // counts; stable sorting preserves that exact tie break.
-    counted.sort_by(|left, right| right.1.cmp(&left.1));
+    counted.sort_by_key(|item| Reverse(item.1));
     let palette = counted
         .into_iter()
         .take(palette_size)
@@ -153,7 +156,7 @@ fn decode_palette(
     blob: &[u8],
     mut pos: usize,
     group_counts: &[usize; GROUP_COUNT],
-) -> Result<(Vec<[i64; 3]>, [Vec<u8>; GROUP_COUNT], usize), String> {
+) -> Result<PaletteStreams, String> {
     let (count, after_count) = vdecode(blob, pos)?;
     let count = checked_usize(count, "palette count")?;
     if count > 254 {
@@ -606,7 +609,7 @@ pub fn decode_with_limit(blob: &[u8], output_limit: usize) -> Result<Vec<u8>, St
                 .ok_or("coordinate count overflow")?;
             if representation == 2 {
                 for atom in 0..atoms {
-                    let group = usize::from(atom_group(&lines[4 + atom][..]));
+                    let group = usize::from(atom_group(lines[4 + atom]));
                     group_counts[group] = group_counts[group]
                         .checked_add(1)
                         .ok_or("palette stream size overflow")?;
@@ -683,7 +686,7 @@ pub fn decode_with_limit(blob: &[u8], output_limit: usize) -> Result<Vec<u8>, St
             let atoms = layout(&lines)?.0;
             let mut values = Vec::with_capacity(atoms);
             for atom in 0..atoms {
-                let group = usize::from(atom_group(&lines[4 + atom][..]));
+                let group = usize::from(atom_group(lines[4 + atom]));
                 let at = palette_positions[group];
                 let token = *streams[group].get(at).ok_or("palette stream exhausted")?;
                 palette_positions[group] += 1;
@@ -843,10 +846,14 @@ fn hydrogen_direction(phase: i64, radius: i64) -> Result<[i64; 3], String> {
     ])
 }
 
-fn hydrogen_topology(
-    lines: &[&[u8]],
-    stripped: bool,
-) -> Result<(usize, Vec<usize>, Vec<Vec<usize>>, Vec<Vec<u8>>), String> {
+struct HydrogenTopology {
+    atoms: usize,
+    parents: Vec<usize>,
+    adjacency: Vec<Vec<usize>>,
+    types: Vec<Vec<u8>>,
+}
+
+fn hydrogen_topology(lines: &[&[u8]], stripped: bool) -> Result<HydrogenTopology, String> {
     let (atoms, parents) = layout(lines)?;
     let (_, bonds) = counts(lines)?;
     let mut adjacency = vec![Vec::new(); atoms];
@@ -869,19 +876,25 @@ fn hydrogen_topology(
         .ok_or("short coordinate line")?;
         types.push(trim_ascii(field).to_vec());
     }
-    Ok((atoms, parents, adjacency, types))
+    Ok(HydrogenTopology {
+        atoms,
+        parents,
+        adjacency,
+        types,
+    })
 }
 
 fn hydrogen_candidates(
     index: usize,
     coordinates: &[[i64; 3]],
-    parents: &[usize],
-    adjacency: &[Vec<usize>],
-    types: &[Vec<u8>],
+    topology: &HydrogenTopology,
     slots: &mut HashMap<usize, Vec<[i64; 3]>>,
     model: u8,
     radius: i64,
 ) -> Result<(Vec<[i64; 3]>, Option<usize>), String> {
+    let parents = &topology.parents;
+    let adjacency = &topology.adjacency;
+    let types = &topology.types;
     let base = if parents[index] < coordinates.len() {
         coordinates[parents[index]]
     } else {
@@ -1093,7 +1106,7 @@ fn hydrogen_choice_encode(
             frequencies[usize::from(chosen)] += 1;
             if frequencies.iter().sum::<u64>() > 4096 {
                 for value in frequencies {
-                    *value = (*value + 1) / 2;
+                    *value = (*value).div_ceil(2);
                 }
             }
         }
@@ -1104,7 +1117,7 @@ fn hydrogen_choice_encode(
 fn hydrogen_choice_payload(
     mut state: HydrogenEncodeState,
     representation: u8,
-) -> Result<(Vec<Vec<u8>>, Vec<[i64; 3]>, Vec<u8>), String> {
+) -> Result<HydrogenChoicePayload, String> {
     let mut payload = if representation == 0 {
         state.digits.into_iter().map(|digit| b'0' + digit).collect()
     } else {
@@ -1155,23 +1168,21 @@ pub fn encode_hydrogen_with_options(
         ..Default::default()
     };
     for (index, record) in records.iter().enumerate() {
-        let parsed = (|| -> Result<(Vec<u8>, Vec<[i64; 3]>, Vec<(usize, usize)>), String> {
+        let parsed = (|| -> Result<HydrogenParsed, String> {
             let (skeleton, coordinates) = hydrogen_extract(record)?;
             let lines = lines_keepends(record);
-            let (atoms, parents, adjacency, types) = hydrogen_topology(&lines, false)?;
-            if atoms != coordinates.len() {
+            let topology = hydrogen_topology(&lines, false)?;
+            if topology.atoms != coordinates.len() {
                 return Err("hydrogen coordinate count mismatch".into());
             }
             let mut slots = HashMap::new();
-            let mut residuals = Vec::with_capacity(atoms);
-            let mut choices = Vec::with_capacity(atoms);
+            let mut residuals = Vec::with_capacity(topology.atoms);
+            let mut choices = Vec::with_capacity(topology.atoms);
             for (atom, actual) in coordinates.iter().enumerate() {
                 let (options, key) = hydrogen_candidates(
                     atom,
                     &coordinates[..atom],
-                    &parents,
-                    &adjacency,
-                    &types,
+                    &topology,
                     &mut slots,
                     model,
                     radius as i64,
@@ -1302,7 +1313,7 @@ fn hydrogen_choice_decode(
                         frequencies[chosen] += 1;
                         if frequencies.iter().sum::<u64>() > 4096 {
                             for value in frequencies {
-                                *value = (*value + 1) / 2;
+                                *value = (*value).div_ceil(2);
                             }
                         }
                     }
@@ -1418,11 +1429,11 @@ pub fn decode_hydrogen_with_limit(blob: &[u8], output_limit: usize) -> Result<Ve
             continue;
         }
         let lines = lines_keepends(record);
-        let (atoms, parents, adjacency, types) = hydrogen_topology(&lines, true)?;
+        let topology = hydrogen_topology(&lines, true)?;
         let mut rebuilt = lines.iter().map(|line| line.to_vec()).collect::<Vec<_>>();
-        let mut coordinates = Vec::with_capacity(atoms);
+        let mut coordinates = Vec::with_capacity(topology.atoms);
         let mut slots = HashMap::new();
-        for atom in 0..atoms {
+        for atom in 0..topology.atoms {
             let signs = rebuilt[4 + atom]
                 .first()
                 .ok_or("short coordinate line")?
@@ -1434,9 +1445,7 @@ pub fn decode_hydrogen_with_limit(blob: &[u8], output_limit: usize) -> Result<Ve
             let (options, key) = hydrogen_candidates(
                 atom,
                 &coordinates,
-                &parents,
-                &adjacency,
-                &types,
+                &topology,
                 &mut slots,
                 model,
                 radius as i64,
@@ -1732,7 +1741,7 @@ mod tests {
             let frame = encode_hydrogen_with_options(&input, 2, representation, 6200).unwrap();
             let (_, after_radius) = vdecode(&frame, 7).unwrap();
             let (_, after_records) = vdecode(&frame, after_radius).unwrap();
-            let flags = (1usize + 7) / 8;
+            let flags = 1usize.div_ceil(8);
             let (skeleton_size, skeleton_start) = vdecode(&frame, after_records + flags).unwrap();
             let (choice_size, choice_start) =
                 vdecode(&frame, skeleton_start + skeleton_size as usize).unwrap();

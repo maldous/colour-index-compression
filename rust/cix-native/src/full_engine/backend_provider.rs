@@ -54,6 +54,14 @@ pub use paq_supervisor::PaqLevel;
 pub struct BackendProvider {
     pub paths: TrustedBackendPaths,
 }
+#[derive(Clone, Copy, Debug)]
+struct PaqOptions {
+    variant: PaqVariant,
+    operation: paq_supervisor::PaqOperation,
+    level: PaqLevel,
+    lstm_layers: u8,
+    joint: Option<u8>,
+}
 impl BackendProvider {
     pub fn decode_bounded(&self, payload: &[u8], r: &BackendRequest) -> Result<Vec<u8>, String> {
         let _library = crate::limits::LibraryGuard::new();
@@ -83,11 +91,13 @@ impl BackendProvider {
             } => self.paq(
                 payload,
                 r,
-                variant,
-                paq_supervisor::PaqOperation::Decode,
-                level,
-                lstm_layers,
-                joint_discount_mode,
+                PaqOptions {
+                    variant,
+                    operation: paq_supervisor::PaqOperation::Decode,
+                    level,
+                    lstm_layers,
+                    joint: joint_discount_mode,
+                },
             ),
         }?;
         self.native_admit(payload.len(), r, self.state_bytes(r.variant)?)?;
@@ -121,11 +131,13 @@ impl BackendProvider {
             } => self.paq(
                 input,
                 r,
-                variant,
-                paq_supervisor::PaqOperation::Encode,
-                level,
-                lstm_layers,
-                joint_discount_mode,
+                PaqOptions {
+                    variant,
+                    operation: paq_supervisor::PaqOperation::Encode,
+                    level,
+                    lstm_layers,
+                    joint: joint_discount_mode,
+                },
             ),
         }?;
         self.native_admit(input.len(), r, self.state_bytes(r.variant)?)?;
@@ -177,9 +189,9 @@ impl BackendProvider {
     }
     fn state_bytes(&self, variant: BackendVariant) -> Result<usize, String> {
         match variant {
-            BackendVariant::Xz { preset } if preset <= 9 => external::xz_easy_memory_usage(preset)
-                .try_into()
-                .map_err(|_| "XZ memory estimate overflow".into()),
+            BackendVariant::Xz { preset } if preset <= 9 => {
+                Ok(external::xz_easy_memory_usage(preset))
+            }
             BackendVariant::Xz { .. } => Err("unsupported XZ preset".into()),
             BackendVariant::Brotli { lgwin, .. } if (10..=24).contains(&lgwin) => {
                 // Carry forward the canonical provider's conservative
@@ -196,11 +208,7 @@ impl BackendProvider {
         &self,
         input: &[u8],
         r: &BackendRequest,
-        variant: PaqVariant,
-        operation: paq_supervisor::PaqOperation,
-        level: PaqLevel,
-        lstm_layers: u8,
-        joint: Option<u8>,
+        options: PaqOptions,
     ) -> Result<Vec<u8>, String> {
         let parent_bytes = input
             .len()
@@ -233,16 +241,16 @@ impl BackendProvider {
                 private_library_directory: self.paths.paq_libraries.clone(),
                 temporary_root: self.paths.temporary_root.clone(),
             },
-            variant,
-            operation,
+            variant: options.variant,
+            operation: options.operation,
             input: path,
             input_limit_bytes: input.len().max(1) as u64,
             output_limit_bytes: r.output_limit as u64,
             parent_result_limit_bytes: r.output_limit,
             memory_limit_bytes: worker_memory as u64,
-            level,
-            lstm_layers,
-            joint_discount_mode: joint,
+            level: options.level,
+            lstm_layers: options.lstm_layers,
+            joint_discount_mode: options.joint,
             deadline: r.deadline,
             cancellation: r.cancellation.clone(),
             diagnostic_limit_bytes: 65536,

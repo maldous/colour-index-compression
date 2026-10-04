@@ -95,7 +95,7 @@ fn predict(
             *t.entry(actual).or_default() += 1;
             if t.values().sum::<usize>() >= 1024 {
                 for n in t.values_mut() {
-                    *n = (*n + 1) / 2
+                    *n = (*n).div_ceil(2)
                 }
             }
         }

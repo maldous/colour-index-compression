@@ -1,7 +1,4 @@
-#[path = "../src/zpaq_context.rs"]
-mod zpaq_context;
-
-use zpaq_context::{Config, Feature, Predictor};
+use cix_native::zpaq_context::{Config, Feature, Predictor};
 
 #[test]
 fn serialized_fixture_and_stream_features_are_stable() {

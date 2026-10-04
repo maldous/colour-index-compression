@@ -4,7 +4,8 @@
 //! composes it into the full-engine route registry after all spatial providers
 //! are present. It never searches a host library or invokes Python.
 
-use std::ffi::{c_int, c_void, CString};
+use crate::full_engine::dynamic_library::{DynamicLibrary, DynamicLibraryError};
+use std::ffi::c_int;
 use std::path::{Path, PathBuf};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -64,8 +65,18 @@ impl std::fmt::Display for SpatialProviderError {
 }
 impl std::error::Error for SpatialProviderError {}
 
+impl From<DynamicLibraryError> for SpatialProviderError {
+    fn from(error: DynamicLibraryError) -> Self {
+        match error {
+            DynamicLibraryError::InvalidPath => Self::InvalidLibraryPath,
+            DynamicLibraryError::LoadFailed => Self::LoadFailed,
+            DynamicLibraryError::MissingSymbol(name) => Self::MissingSymbol(name),
+        }
+    }
+}
+
 pub struct SpatialProvider {
-    _library: Library,
+    _library: DynamicLibrary,
     encode: EncodeFn,
     probe: ProbeFn,
     probe_any: ProbeAnyFn,
@@ -108,7 +119,7 @@ impl SpatialProvider {
         {
             return Err(SpatialProviderError::MissingLibrary(path.to_path_buf()));
         }
-        let library = Library::open(path)?;
+        let library = DynamicLibrary::open(path)?;
         let encode = unsafe { library.symbol::<EncodeFn>("cix_spatial_encode_u16_gray")? };
         let probe = unsafe { library.symbol::<ProbeFn>("cix_spatial_probe_gray")? };
         let probe_any = unsafe { library.symbol::<ProbeAnyFn>("cix_spatial_probe_any_gray")? };
@@ -195,6 +206,8 @@ impl SpatialProvider {
     /// Encode with a tighter per-call cap than the package-wide cap. Envelope
     /// builders use this to admit an archive whose frame cap is smaller than
     /// the installed bridge's general output ceiling.
+    // The public bridge ABI carries dimensions, precision, and both caps separately.
+    #[allow(clippy::too_many_arguments)]
     pub fn encode_with_output_limit(
         &self,
         codec: SpatialCodec,
@@ -214,7 +227,9 @@ impl SpatialProvider {
             return Err(SpatialProviderError::InvalidImage);
         }
         let maximum = pixels
-            .chunks_exact(2)
+            .as_chunks::<2>()
+            .0
+            .iter()
             .map(|p| u16::from_le_bytes([p[0], p[1]]))
             .max()
             .unwrap_or(0);
@@ -340,7 +355,7 @@ impl SpatialProvider {
         payload: &[u8],
         max_output_bytes: usize,
     ) -> Result<SpatialImageInfo, SpatialProviderError> {
-        if payload.is_empty() || max_output_bytes < 2 || max_output_bytes % 2 != 0 {
+        if payload.is_empty() || max_output_bytes < 2 || !max_output_bytes.is_multiple_of(2) {
             return Err(SpatialProviderError::InvalidImage);
         }
         let mut info = RawInfo {
@@ -375,51 +390,6 @@ impl SpatialProvider {
         })
     }
 }
-#[cfg(target_os = "linux")]
-struct Library(*mut c_void);
-#[cfg(target_os = "linux")]
-impl Library {
-    fn open(path: &Path) -> Result<Self, SpatialProviderError> {
-        use std::os::unix::ffi::OsStrExt;
-        let text = CString::new(path.as_os_str().as_bytes())
-            .map_err(|_| SpatialProviderError::InvalidLibraryPath)?;
-        let handle = unsafe { libc::dlopen(text.as_ptr(), libc::RTLD_NOW | libc::RTLD_LOCAL) };
-        if handle.is_null() {
-            Err(SpatialProviderError::LoadFailed)
-        } else {
-            Ok(Self(handle))
-        }
-    }
-    unsafe fn symbol<T: Copy>(&self, name: &'static str) -> Result<T, SpatialProviderError> {
-        let text = CString::new(name).map_err(|_| SpatialProviderError::MissingSymbol(name))?;
-        let p = libc::dlsym(self.0, text.as_ptr());
-        if p.is_null() {
-            Err(SpatialProviderError::MissingSymbol(name))
-        } else {
-            Ok(std::mem::transmute_copy(&p))
-        }
-    }
-}
-#[cfg(target_os = "linux")]
-impl Drop for Library {
-    fn drop(&mut self) {
-        unsafe {
-            libc::dlclose(self.0);
-        }
-    }
-}
-#[cfg(not(target_os = "linux"))]
-struct Library;
-#[cfg(not(target_os = "linux"))]
-impl Library {
-    fn open(_: &Path) -> Result<Self, SpatialProviderError> {
-        Err(SpatialProviderError::LoadFailed)
-    }
-    unsafe fn symbol<T: Copy>(&self, name: &'static str) -> Result<T, SpatialProviderError> {
-        Err(SpatialProviderError::MissingSymbol(name))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

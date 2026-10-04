@@ -153,7 +153,20 @@ impl fmt::Display for PaqSupervisorError {
             Self::Spawn(error) => write!(f, "cannot start private CIX PAQ worker: {error}"),
             Self::Wait(error) => write!(f, "cannot wait for private CIX PAQ worker: {error}"),
             Self::Capture(error) => write!(f, "cannot capture PAQ worker diagnostics: {error}"),
-            Self::Exit { status, .. } => write!(f, "private CIX PAQ worker failed: {status}"),
+            Self::Exit { status, stderr, .. } => {
+                write!(f, "private CIX PAQ worker failed: {status}")?;
+                if !stderr.bytes.is_empty() {
+                    write!(
+                        f,
+                        "; worker stderr: {}",
+                        String::from_utf8_lossy(&stderr.bytes)
+                    )?;
+                    if stderr.truncated {
+                        f.write_str(" [truncated]")?;
+                    }
+                }
+                Ok(())
+            }
             Self::OutputTooLarge { actual, limit } => {
                 write!(
                     f,

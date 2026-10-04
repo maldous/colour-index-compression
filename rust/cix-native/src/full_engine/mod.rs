@@ -11,6 +11,7 @@ pub mod catalogue;
 pub mod conditional_values;
 pub mod containers;
 pub mod dispatch;
+pub(crate) mod dynamic_library;
 pub mod graph_residuals;
 pub mod grid_context;
 pub mod grid_counts;

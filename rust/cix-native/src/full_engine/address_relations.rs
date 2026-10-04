@@ -28,6 +28,9 @@ const GOT_TRAILER: &[u8; 5] = b"ECGT1";
 const POINTER_DELTA_TRAILER: &[u8; 5] = b"ECRD1";
 const SECTION_POINTER_TRAILER: &[u8; 5] = b"ECSP1";
 const SYMBOL_LOAD_TRAILER: &[u8; 5] = b"ECSL1";
+// The single-table pdata representation is retained as a fixture vector only.
+// Production historical frames use the combined pdata/symbol representation.
+#[cfg(test)]
 const PDATA_TRAILER: &[u8; 5] = b"ECPD1";
 const PDATA_SYMBOL_TRAILER: &[u8; 5] = b"ECPD2";
 const GOT_BLOCK: usize = 1024;
@@ -324,7 +327,7 @@ pub fn discover_executable_regions(data: &[u8]) -> Vec<ExecutableRegion> {
         length: data.len(),
         tar_member: false,
     };
-    if let Ok(_) = parse_ecoff_object(data, whole.clone()) {
+    if parse_ecoff_object(data, whole.clone()).is_ok() {
         return vec![ExecutableRegion {
             kind: ExecutableKind::Ecoff,
             span: whole,
@@ -488,7 +491,7 @@ pub fn constraints_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
             .get(after_length)
             .ok_or("missing ECOFF constraint mask")?;
         position = after_length + 1;
-        if !matches!(mask, 1 | 2 | 3) || checked_end(offset, length, output.len()).is_err() {
+        if !(1..=3).contains(&mask) || checked_end(offset, length, output.len()).is_err() {
             return Err("invalid ECOFF constraint descriptor".into());
         }
         let local = output[offset..offset + length].to_vec();
@@ -670,7 +673,7 @@ fn zigzag_delta(value: u64, previous: u64, bits: u32, inverse: bool) -> u64 {
 }
 
 fn transpose(data: &mut [u8], width: usize, inverse: bool) -> Result<(), String> {
-    if width == 0 || data.len() % width != 0 {
+    if width == 0 || !data.len().is_multiple_of(width) {
         return Err("partial ECOFF field matrix".into());
     }
     let rows = data.len() / width;
@@ -1224,7 +1227,7 @@ fn encode_choices(
                 .ok_or("GOT count overflow")?;
             if model.iter().sum::<u64>() > 4096 {
                 for count in model {
-                    *count = (*count + 1) / 2;
+                    *count = (*count).div_ceil(2);
                 }
             }
         }
@@ -1241,10 +1244,7 @@ fn decode_choices(
     contexts: &[u8],
     mode: u8,
 ) -> Result<Vec<usize>, String> {
-    if alphabets.len() != contexts.len()
-        || mode > 3
-        || alphabets.iter().any(|alphabet| *alphabet == 0)
-    {
+    if alphabets.len() != contexts.len() || mode > 3 || alphabets.contains(&0) {
         return Err("invalid GOT choice stream".into());
     }
     if mode == 0 {
@@ -1332,7 +1332,7 @@ fn decode_choices(
             model[digit] = model[digit].checked_add(1).ok_or("GOT count overflow")?;
             if model.iter().sum::<u64>() > 4096 {
                 for count in model {
-                    *count = (*count + 1) / 2;
+                    *count = (*count).div_ceil(2);
                 }
             }
         }
@@ -1855,6 +1855,7 @@ fn pdata_tables(source: &[u8]) -> Vec<(usize, usize)> {
         })
         .collect()
 }
+#[cfg(test)]
 fn pdata_transform(source: &[u8], mode: u8) -> Result<Vec<u8>, String> {
     if mode != 1 {
         return Err("unsupported procedure model".into());
@@ -1877,6 +1878,7 @@ fn pdata_transform(source: &[u8], mode: u8) -> Result<Vec<u8>, String> {
     output.extend_from_slice(PDATA_TRAILER);
     Ok(output)
 }
+#[cfg(test)]
 fn pdata_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
     let (mut output, metadata) = split_trailer(raw, PDATA_TRAILER, 1)?;
     if metadata != [1] {

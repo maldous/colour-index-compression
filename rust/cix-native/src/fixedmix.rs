@@ -274,12 +274,7 @@ impl State {
         };
         Some((probability, bucket, predicted, t[probability as usize]))
     }
-    fn probabilities(
-        &self,
-        bit: usize,
-        prefix: u8,
-        t: &[i32],
-    ) -> ProbabilityDetails {
+    fn probabilities(&self, bit: usize, prefix: u8, t: &[i32]) -> ProbabilityDetails {
         let mut probabilities = [0; EXPERTS];
         let mut keys = [None; PATTERN_EXPERTS];
         for (i, p) in PATTERNS.iter().enumerate() {

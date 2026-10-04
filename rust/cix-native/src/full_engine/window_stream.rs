@@ -324,7 +324,6 @@ where
         let next_total = total
             .checked_add(plain as u64)
             .ok_or("CIXW1 length overflow")?;
-        drop(writer);
         destination.flush().map_err(|e| e.to_string())?;
         total = next_total;
         seq = seq.checked_add(1).ok_or("CIXW1 sequence overflow")?;

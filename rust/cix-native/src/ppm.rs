@@ -327,25 +327,42 @@ fn prime_see(
         if index & 31 == 0 {
             crate::limits::check()?;
         }
-        prime_see_symbol(&mut tables, &mut history, &mut states, symbol, max_order, update_exclusion);
+        prime_see_symbol(
+            &mut tables,
+            &mut history,
+            &mut states,
+            symbol,
+            max_order,
+            update_exclusion,
+        );
     }
     Ok((tables, history, states))
 }
 
 fn prime_see_symbol(
-    tables: &mut Tables, history: &mut Vec<u8>, states: &mut SeeStates, symbol: u8,
-    max_order: usize, update_exclusion: bool,
+    tables: &mut Tables,
+    history: &mut Vec<u8>,
+    states: &mut SeeStates,
+    symbol: u8,
+    max_order: usize,
+    update_exclusion: bool,
 ) {
     let mut excluded = [false; 256];
     let mut matched_order = 0;
     let highest = max_order.min(history.len());
     for order in (0..=highest).rev() {
-        let Some(counts) = tables.get(context(history, order)) else { continue; };
+        let Some(counts) = tables.get(context(history, order)) else {
+            continue;
+        };
         let symbols = eligible(counts, &excluded);
-        if symbols.is_empty() { continue; }
+        if symbols.is_empty() {
+            continue;
+        }
         let key = see_key(order, &symbols);
         let hit = !excluded[symbol as usize]
-            && counts.binary_search_by_key(&symbol, |(value, _)| *value).is_ok();
+            && counts
+                .binary_search_by_key(&symbol, |(value, _)| *value)
+                .is_ok();
         see_update(states, key, !hit);
         if hit {
             matched_order = order;
@@ -486,7 +503,12 @@ pub fn encode_secondary(
             crate::limits::check()?;
         }
         encode_see_symbol(
-            &mut encoder, &mut tables, &mut history, &mut states, symbol, max_order,
+            &mut encoder,
+            &mut tables,
+            &mut history,
+            &mut states,
+            symbol,
+            max_order,
             update_exclusion,
         )?;
     }
@@ -498,17 +520,26 @@ pub fn encode_secondary(
 }
 
 fn encode_see_symbol(
-    encoder: &mut ArithmeticEncoder, tables: &mut Tables, history: &mut Vec<u8>,
-    states: &mut SeeStates, symbol: u8, max_order: usize, update_exclusion: bool,
+    encoder: &mut ArithmeticEncoder,
+    tables: &mut Tables,
+    history: &mut Vec<u8>,
+    states: &mut SeeStates,
+    symbol: u8,
+    max_order: usize,
+    update_exclusion: bool,
 ) -> Result<(), String> {
     let mut excluded = [false; 256];
     let mut matched_order = 0;
     let mut coded = false;
     let highest = max_order.min(history.len());
     for order in (0..=highest).rev() {
-        let Some(counts) = tables.get(context(history, order)) else { continue; };
+        let Some(counts) = tables.get(context(history, order)) else {
+            continue;
+        };
         let symbols = eligible(counts, &excluded);
-        if symbols.is_empty() { continue; }
+        if symbols.is_empty() {
+            continue;
+        }
         let key = see_key(order, &symbols);
         let (escape_count, hit_count) = see_state(states, key);
         let event_total = (escape_count + hit_count) as usize;
@@ -530,7 +561,10 @@ fn encode_see_symbol(
         encoder.encode(rank, rank + 1, remaining);
     }
     observe_from(
-        tables, history, symbol, max_order,
+        tables,
+        history,
+        symbol,
+        max_order,
         if update_exclusion { matched_order } else { 0 },
     );
     Ok(())
@@ -538,7 +572,10 @@ fn encode_see_symbol(
 
 fn encode_see_hit(encoder: &mut ArithmeticEncoder, symbols: &[(u8, u32)], index: usize) {
     let mass = symbol_mass(symbols);
-    let low = symbols[..index].iter().map(|(_, count)| *count as usize).sum::<usize>();
+    let low = symbols[..index]
+        .iter()
+        .map(|(_, count)| *count as usize)
+        .sum::<usize>();
     let high = low + symbols[index].1 as usize;
     encoder.encode(low, high, mass);
 }
@@ -685,7 +722,12 @@ pub fn decode_with_history(
             crate::limits::check()?;
         }
         let value = decode_fixed_symbol(
-            &mut decoder, &mut tables, &mut history, max_order, escape_method, update_exclusion,
+            &mut decoder,
+            &mut tables,
+            &mut history,
+            max_order,
+            escape_method,
+            update_exclusion,
         )?;
         out.push(value);
     }
@@ -693,35 +735,57 @@ pub fn decode_with_history(
 }
 
 fn decode_header(blob: &[u8]) -> Result<(u8, usize, u8, &[u8], usize), String> {
-    if blob.len() < 3 || !matches!(blob[0], 2..=5) { return Err("unsupported PPM payload version".into()); }
+    if blob.len() < 3 || !matches!(blob[0], 2..=5) {
+        return Err("unsupported PPM payload version".into());
+    }
     let (version, max_order, control) = (blob[0], blob[1] as usize, blob[2]);
-    if max_order > 8 { return Err("unsupported PPM order".into()); }
-    if version == 5 && control & !1 != 0 { return Err("unsupported PPM SEE flags".into()); }
-    if version != 5 && control > 3 { return Err("unsupported PPM escape method".into()); }
+    if max_order > 8 {
+        return Err("unsupported PPM order".into());
+    }
+    if version == 5 && control & !1 != 0 {
+        return Err("unsupported PPM SEE flags".into());
+    }
+    if version != 5 && control > 3 {
+        return Err("unsupported PPM escape method".into());
+    }
     let mut pos = 3;
     let bit_length = read_varint(blob, &mut pos)?;
-    let end = pos.checked_add(bit_length.div_ceil(8)).ok_or("PPM payload length overflow")?;
-    if end != blob.len() { return Err("PPM payload length mismatch".into()); }
+    let end = pos
+        .checked_add(bit_length.div_ceil(8))
+        .ok_or("PPM payload length overflow")?;
+    if end != blob.len() {
+        return Err("PPM payload length mismatch".into());
+    }
     Ok((version, max_order, control, &blob[pos..end], bit_length))
 }
 
 fn decode_fixed_symbol(
-    decoder: &mut ArithmeticDecoder, tables: &mut Tables, history: &mut Vec<u8>,
-    max_order: usize, escape_method: u8, update_exclusion: bool,
+    decoder: &mut ArithmeticDecoder,
+    tables: &mut Tables,
+    history: &mut Vec<u8>,
+    max_order: usize,
+    escape_method: u8,
+    update_exclusion: bool,
 ) -> Result<u8, String> {
     let mut excluded = [false; 256];
     let mut symbol = None;
     let mut matched_order = 0;
     for order in (0..=max_order.min(history.len())).rev() {
-        let Some(counts) = tables.get(context(history, order)) else { continue; };
+        let Some(counts) = tables.get(context(history, order)) else {
+            continue;
+        };
         let symbols = eligible(counts, &excluded);
-        if symbols.is_empty() { continue; }
+        if symbols.is_empty() {
+            continue;
+        }
         let mass = symbol_mass(&symbols);
         let total = mass + escape_mass(&symbols, escape_method)?;
         let target = decoder.target(total);
         if target < mass {
             symbol = decode_symbol_interval(decoder, &symbols, target, total)?;
-            if symbol.is_none() { return Err("PPM symbol interval not found".into()); }
+            if symbol.is_none() {
+                return Err("PPM symbol interval not found".into());
+            }
             matched_order = order;
             break;
         }
@@ -738,12 +802,21 @@ fn decode_fixed_symbol(
             "PPM fallback target outside alphabet",
         )?
     };
-    observe_from(tables, history, value, max_order, if update_exclusion { matched_order } else { 0 });
+    observe_from(
+        tables,
+        history,
+        value,
+        max_order,
+        if update_exclusion { matched_order } else { 0 },
+    );
     Ok(value)
 }
 
 fn decode_symbol_interval(
-    decoder: &mut ArithmeticDecoder, symbols: &[(u8, u32)], target: usize, total: usize,
+    decoder: &mut ArithmeticDecoder,
+    symbols: &[(u8, u32)],
+    target: usize,
+    total: usize,
 ) -> Result<Option<u8>, String> {
     let mut low = 0usize;
     for &(candidate, count) in symbols {
@@ -774,7 +847,12 @@ fn decode_see(
             crate::limits::check()?;
         }
         let value = decode_see_symbol(
-            &mut decoder, &mut tables, &mut history, &mut states, max_order, update_exclusion,
+            &mut decoder,
+            &mut tables,
+            &mut history,
+            &mut states,
+            max_order,
+            update_exclusion,
         )?;
         out.push(value);
     }
@@ -782,16 +860,24 @@ fn decode_see(
 }
 
 fn decode_see_symbol(
-    decoder: &mut ArithmeticDecoder, tables: &mut Tables, history: &mut Vec<u8>,
-    states: &mut SeeStates, max_order: usize, update_exclusion: bool,
+    decoder: &mut ArithmeticDecoder,
+    tables: &mut Tables,
+    history: &mut Vec<u8>,
+    states: &mut SeeStates,
+    max_order: usize,
+    update_exclusion: bool,
 ) -> Result<u8, String> {
     let mut excluded = [false; 256];
     let mut symbol = None;
     let mut matched_order = 0;
     for order in (0..=max_order.min(history.len())).rev() {
-        let Some(counts) = tables.get(context(history, order)) else { continue; };
+        let Some(counts) = tables.get(context(history, order)) else {
+            continue;
+        };
         let symbols = eligible(counts, &excluded);
-        if symbols.is_empty() { continue; }
+        if symbols.is_empty() {
+            continue;
+        }
         let key = see_key(order, &symbols);
         let (escape_count, hit_count) = see_state(states, key);
         let event_total = (escape_count + hit_count) as usize;
@@ -799,7 +885,9 @@ fn decode_see_symbol(
             decoder.update(0, hit_count as usize, event_total);
             let mass = symbol_mass(&symbols);
             symbol = decode_symbol_interval(decoder, &symbols, decoder.target(mass), mass)?;
-            if symbol.is_none() { return Err("PPM SEE symbol interval not found".into()); }
+            if symbol.is_none() {
+                return Err("PPM SEE symbol interval not found".into());
+            }
             matched_order = order;
             see_update(states, key, false);
             break;
@@ -819,7 +907,10 @@ fn decode_see_symbol(
         )?
     };
     observe_from(
-        tables, history, value, max_order,
+        tables,
+        history,
+        value,
+        max_order,
         if update_exclusion { matched_order } else { 0 },
     );
     Ok(value)
@@ -839,7 +930,10 @@ mod tests {
     #[test]
     fn rescale_ceil_matches_old_formula_for_normal_model_counts() {
         for count in 0u32..=32_768 {
-            assert_eq!(((count >> 1) + (count & 1)).max(1), count.div_ceil(2).max(1));
+            assert_eq!(
+                ((count >> 1) + (count & 1)).max(1),
+                count.div_ceil(2).max(1)
+            );
         }
     }
 

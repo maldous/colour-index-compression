@@ -157,6 +157,13 @@ unsafe fn run(
 
 /// Encode a standard member. Pointers must name readable/writable disjoint
 /// storage for the declared lengths; NULL is allowed only for zero buffers.
+///
+/// # Safety
+///
+/// `options` must point to a readable initialized options structure. `input`
+/// must provide `input_len` readable bytes, `output` `capacity` writable bytes,
+/// and `written` an aligned writable `usize`. All regions must be disjoint and
+/// remain valid for the call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_format_encode_v1(
     options: *const cix_format_options_v1,
@@ -170,6 +177,13 @@ pub unsafe extern "C" fn cix_format_encode_v1(
 }
 
 /// Decode exactly one standard member under the same ownership contract.
+///
+/// # Safety
+///
+/// `options` must point to a readable initialized options structure. `input`
+/// must provide `input_len` readable bytes, `output` `capacity` writable bytes,
+/// and `written` an aligned writable `usize`. All regions must be disjoint and
+/// remain valid for the call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_format_decode_v1(
     options: *const cix_format_options_v1,

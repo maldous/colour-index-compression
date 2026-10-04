@@ -101,10 +101,7 @@ impl<R: Read> Read for CountingReader<R> {
             let mut probe = [0u8; 1];
             return match self.inner.read(&mut probe)? {
                 0 => Ok(0),
-                _ => Err(io::Error::new(
-                    io::ErrorKind::Other,
-                    "native archive exceeds declared cap",
-                )),
+                _ => Err(io::Error::other("native archive exceeds declared cap")),
             };
         }
         let count = output.len().min(self.remaining);
@@ -439,7 +436,7 @@ mod tests {
         .is_err());
         let heterogeneous = crate::full_engine::mixed::encode_with(
             &input,
-            &[0..input.len()],
+            std::slice::from_ref(&(0..input.len())),
             1 << 20,
             8 << 20,
             |region, _| {

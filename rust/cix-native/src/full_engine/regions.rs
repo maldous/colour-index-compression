@@ -222,7 +222,7 @@ fn dicom_candidate(data: &[u8], start: usize) -> Option<Region> {
         }
         if (group, element) == (0x7fe0, 0x10) {
             let pixels = rows.checked_mul(cols)?.checked_mul(2)?;
-            return (bits == 16 && rows != 0 && cols != 0 && size % pixels == 0)
+            return (bits == 16 && rows != 0 && cols != 0 && size.is_multiple_of(pixels))
                 .then_some(Region::new(start, value_end, RegionKind::DicomImplicitVr));
         }
         pos = value_end;

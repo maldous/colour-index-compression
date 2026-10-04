@@ -4,8 +4,10 @@ fn main() {
     println!("cargo:rerun-if-env-changed=CIX_NATIVE_LIBRARY_DIR");
     if let Some(directory) = std::env::var_os("CIX_NATIVE_LIBRARY_DIR") {
         let directory = std::path::PathBuf::from(directory);
-        assert!(directory.is_absolute() && directory.is_dir(),
-                "CIX_NATIVE_LIBRARY_DIR must name an existing absolute directory");
+        assert!(
+            directory.is_absolute() && directory.is_dir(),
+            "CIX_NATIVE_LIBRARY_DIR must name an existing absolute directory"
+        );
         println!("cargo:rustc-link-search=native={}", directory.display());
     }
     println!("cargo:rerun-if-changed=src/zpaq_ffi.cpp");

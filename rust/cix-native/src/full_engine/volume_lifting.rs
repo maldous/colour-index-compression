@@ -91,7 +91,7 @@ pub fn dicom_regions(data: &[u8]) -> Vec<DicomRegion> {
                 if bits == 16
                     && rows > 0
                     && columns > 0
-                    && pixels_per_slice.is_some_and(|n| length % n == 0)
+                    && pixels_per_slice.is_some_and(|n| length.is_multiple_of(n))
                 {
                     return vec![DicomRegion {
                         offset: start,
@@ -111,11 +111,13 @@ pub fn dicom_regions(data: &[u8]) -> Vec<DicomRegion> {
 }
 
 fn samples(bytes: &[u8]) -> Result<Vec<u16>, String> {
-    if bytes.len() % 2 != 0 {
+    if !bytes.len().is_multiple_of(2) {
         return Err("unaligned u16 image region".into());
     }
     Ok(bytes
-        .chunks_exact(2)
+        .as_chunks::<2>()
+        .0
+        .iter()
         .map(|b| u16::from_le_bytes([b[0], b[1]]))
         .collect())
 }
@@ -406,7 +408,7 @@ pub fn encode_volume<B: ImageBackend>(
         .ok_or("volume dimensions overflow")?;
     if slice_bytes == 0
         || region.length == 0
-        || region.length % slice_bytes != 0
+        || !region.length.is_multiple_of(slice_bytes)
         || region
             .offset
             .checked_add(region.length)
@@ -776,12 +778,14 @@ pub fn decode_spatial<B: ImageBackend>(
 
 /// Split a depth/row/column u16 volume on one axis using the exact CIXI2
 /// reversible lifting rule. The returned shapes follow ceil/floor splitting.
+type MultiscaleBands = (Vec<u16>, [usize; 3], Vec<u16>, [usize; 3]);
+
 pub fn multiscale_split(
     values: &[u16],
     shape: [usize; 3],
     axis: usize,
     predictor: u8,
-) -> Result<(Vec<u16>, [usize; 3], Vec<u16>, [usize; 3]), String> {
+) -> Result<MultiscaleBands, String> {
     if predictor > 1 {
         return Err("unsupported multiscale predictor".into());
     }
@@ -935,6 +939,8 @@ fn multiscale_plan(axes: u8, levels: u8) -> Vec<usize> {
     plan
 }
 
+// Recursive bands retain their shape, plan, predictor, backend, and output state.
+#[allow(clippy::too_many_arguments)]
 fn encode_multiscale_tree<B: ImageBackend>(
     values: &[u16],
     shape: [usize; 3],
@@ -1008,6 +1014,8 @@ fn decode_multiscale_band<B: ImageBackend>(
     Ok((samples(&decoded)?, end))
 }
 
+// Recursive decode needs the same independently bounded band state.
+#[allow(clippy::too_many_arguments)]
 fn decode_multiscale_tree<B: ImageBackend>(
     frame: &[u8],
     pos: usize,
@@ -1067,7 +1075,7 @@ pub fn encode_multiscale<B: ImageBackend>(
         .ok_or("multiscale dimensions overflow")?;
     if slice_bytes == 0
         || region.length == 0
-        || region.length % slice_bytes != 0
+        || !region.length.is_multiple_of(slice_bytes)
         || region
             .offset
             .checked_add(region.length)

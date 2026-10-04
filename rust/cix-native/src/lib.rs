@@ -7,8 +7,8 @@ mod cli_full_engine;
 pub mod core;
 pub mod dictionaries;
 pub mod full_engine;
-pub mod jxl_bridge;
 mod job_cli;
+pub mod jxl_bridge;
 pub mod paq_bridge;
 mod paq_supervisor;
 mod paq_worker;
@@ -23,9 +23,10 @@ pub fn main_entry() {
     if first.as_deref() == Some(std::ffi::OsStr::new(paq_worker::SWITCH)) {
         std::process::exit(paq_worker::main(&args.collect::<Vec<_>>()));
     }
-    if first.as_deref().is_some_and(|value| {
-        value == "--cix-job-v1" || value == "--cix-job-capabilities-v1"
-    }) {
+    if first
+        .as_deref()
+        .is_some_and(|value| value == "--cix-job-v1" || value == "--cix-job-capabilities-v1")
+    {
         std::process::exit(job_cli::main(first.into_iter().chain(args).collect()));
     }
     cli::main_entry();

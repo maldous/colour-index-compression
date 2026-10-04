@@ -289,8 +289,8 @@ fn join_record_fields(row: &[Vec<u8>]) -> Result<Vec<u8>, String> {
     let mut body = Vec::new();
     body.extend_from_slice(b"\x60");
     body.push(if row[8].len() < 80 { 2 } else { 0 });
-    for index in 0..4 {
-        body.extend_from_slice(&row[index]);
+    for field in row.iter().take(4) {
+        body.extend_from_slice(field);
     }
     body.extend_from_slice(&row[4]);
     body.push(u8::try_from(date.len()).map_err(|_| "date too long")?);
@@ -304,7 +304,8 @@ fn join_record_fields(row: &[Vec<u8>]) -> Result<Vec<u8>, String> {
     Ok(body)
 }
 
-fn split_records(data: &[u8]) -> (Vec<Option<Vec<u8>>>, Vec<Vec<Vec<u8>>>) {
+type RecordColumns = Vec<Vec<Vec<u8>>>;
+fn split_records(data: &[u8]) -> (Vec<Option<Vec<u8>>>, RecordColumns) {
     let mut at = 0usize;
     let mut records = Vec::new();
     let mut columns = vec![Vec::new(); 9];
@@ -704,7 +705,7 @@ fn fixed_id_width(alphabet: usize) -> usize {
 }
 
 fn fixed_content(content: &[u8], width: usize, mode: u8) -> Result<Vec<u8>, String> {
-    if width == 0 || content.len() % width != 0 {
+    if width == 0 || !content.len().is_multiple_of(width) {
         return Err("invalid fixed column width".into());
     }
     let mut out = vec![mode];
@@ -819,10 +820,7 @@ fn fixed_decode(column: &[u8], records: usize, max_output: usize) -> Result<Vec<
         if ids.iter().any(|id| *id >= k) {
             return Err("fixed-column symbol outside alphabet".into());
         }
-        ids.into_iter()
-            .map(|id| palette[id..id + 1].to_vec())
-            .flatten()
-            .collect()
+        ids.into_iter().map(|id| palette[id]).collect()
     };
     if content.len() != length {
         return Err("fixed column length mismatch".into());
@@ -1058,8 +1056,7 @@ pub fn remaining_count_order_decode(blob: &[u8], counts: &[usize]) -> Result<Vec
             let mut rem = n;
             let mut v = Vec::with_capacity(n);
             for _ in 0..n {
-                let t = i128::try_from(d.target(rem as u64)?)
-                    .map_err(|_| "arithmetic target overflow")?;
+                let t = i128::from(d.target(rem as u64)?);
                 let s = tree.select(t)?;
                 let lo =
                     u64::try_from(tree.prefix(s)?).map_err(|_| "negative arithmetic prefix")?;

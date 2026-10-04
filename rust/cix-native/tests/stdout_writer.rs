@@ -1,10 +1,6 @@
 #![cfg(unix)]
 
-#[path = "../src/limits.rs"]
-mod limits;
-#[path = "../src/stdout_writer.rs"]
-mod stdout_writer;
-
+use cix_native::{limits, stdout_writer::StdoutWriter};
 use std::fs::{read, remove_file, File};
 use std::io::Write;
 use std::os::fd::{AsRawFd, FromRawFd};
@@ -12,7 +8,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 use std::time::{Duration, Instant};
-use stdout_writer::StdoutWriter;
 
 fn interrupt_lock() -> &'static Mutex<()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();

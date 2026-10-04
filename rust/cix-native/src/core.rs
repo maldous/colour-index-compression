@@ -104,10 +104,7 @@ struct LimitedWriter<W> {
 impl<W: Write> Write for LimitedWriter<W> {
     fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
         if bytes.len() > self.remaining {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "CIX output exceeds caller limit",
-            ));
+            return Err(std::io::Error::other("CIX output exceeds caller limit"));
         }
         let written = self.inner.write(bytes)?;
         self.remaining -= written;

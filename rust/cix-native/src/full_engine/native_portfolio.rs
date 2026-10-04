@@ -602,9 +602,7 @@ fn run_native_family(
                 input.len(),
                 winner_capacity,
                 |spec, memory| run_native_trial(input, o, winner_len, memory, spec),
-                |outcomes| {
-                    accept_native_outcomes(outcomes, input, o, winner, selected, diagnostics)
-                },
+                |outcomes| accept_native_outcomes(outcomes, o, winner, selected, diagnostics),
             )?;
         }
         return Ok(());
@@ -621,13 +619,12 @@ fn run_native_family(
         input.len(),
         winner_capacity,
         |spec, memory| run_native_trial(input, o, winner_len, memory, spec),
-        |outcomes| accept_native_outcomes(outcomes, input, o, winner, selected, diagnostics),
+        |outcomes| accept_native_outcomes(outcomes, o, winner, selected, diagnostics),
     )
 }
 
 fn accept_native_outcomes(
     outcomes: Vec<(NativeTrialSpec, Result<NativeTrialOutput, String>)>,
-    input: &[u8],
     o: &NativePortfolioOptions,
     winner: &mut Vec<u8>,
     selected: &mut String,
@@ -1091,7 +1088,7 @@ mod tests {
     use super::*;
     use std::sync::{
         atomic::{AtomicBool, AtomicUsize, Ordering},
-        mpsc, Arc, Mutex,
+        mpsc, Arc, Condvar, Mutex,
     };
 
     fn scheduler_options(
@@ -1180,6 +1177,10 @@ mod tests {
         let budgets = Arc::new(Mutex::new(Vec::new()));
         let completed = Arc::new(Mutex::new(Vec::new()));
         let accepted = Arc::new(Mutex::new(Vec::new()));
+        // Both first-wave trials must be live before either is allowed to
+        // release the ordering gate. Unlike Barrier, a broken serialized
+        // scheduler fails promptly instead of hanging the complete test run.
+        let overlap = Arc::new((Mutex::new((0usize, false)), Condvar::new()));
         let (second_done, first_release) = mpsc::channel();
         let first_release = Arc::new(Mutex::new(first_release));
         let options = scheduler_options(2, None);
@@ -1194,14 +1195,38 @@ mod tests {
                 let budgets = budgets.clone();
                 let completed = completed.clone();
                 let first_release = first_release.clone();
+                let overlap = overlap.clone();
                 move |spec, memory| {
                     budgets.lock().unwrap().push(memory);
                     let live = active.fetch_add(1, Ordering::SeqCst) + 1;
                     peak.fetch_max(live, Ordering::SeqCst);
+                    if spec.order < 2 {
+                        let (state, ready) = &*overlap;
+                        let mut gate = state.lock().unwrap();
+                        gate.0 += 1;
+                        if gate.0 == 2 {
+                            gate.1 = true;
+                            ready.notify_all();
+                        } else {
+                            let (updated, timeout) = ready
+                                .wait_timeout_while(gate, Duration::from_secs(5), |gate| !gate.1)
+                                .unwrap();
+                            gate = updated;
+                            if timeout.timed_out() && !gate.1 {
+                                active.fetch_sub(1, Ordering::SeqCst);
+                                return Err("native scheduler did not overlap first wave".into());
+                            }
+                        }
+                    }
                     if spec.order == 0 {
                         first_release.lock().unwrap().recv().unwrap();
                     } else if spec.order == 1 {
+                        // Record completion before releasing trial 0, making
+                        // the asserted completion order an actual happens-before relation.
+                        completed.lock().unwrap().push(spec.order);
                         second_done.send(()).unwrap();
+                        active.fetch_sub(1, Ordering::SeqCst);
+                        return Ok(3usize.saturating_sub(spec.order));
                     }
                     completed.lock().unwrap().push(spec.order);
                     active.fetch_sub(1, Ordering::SeqCst);

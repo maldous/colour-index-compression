@@ -540,7 +540,8 @@ mod tests {
     #[test]
     fn catalogue_is_deterministic_and_content_only() {
         let source = include_bytes!("../../tests/fixtures/regions/mixed.bin");
-        assert_eq!(catalog(source).unwrap(), catalog(&source.to_vec()).unwrap());
+        let owned = source.to_vec();
+        assert_eq!(catalog(source).unwrap(), catalog(&owned).unwrap());
     }
 
     #[test]

@@ -57,9 +57,7 @@ fn dictionary_contract_charges_trained_retained_capacity() {
     // produced dictionary. Admission must charge that allocation, not merely
     // the used dictionary byte count.
     assert!(dictionary.retained_bytes() >= 4096);
-    assert!(
-        dictionary
-            .encode(b"x", 3, 1, dictionary.retained_bytes())
-            .is_err()
-    );
+    assert!(dictionary
+        .encode(b"x", 3, 1, dictionary.retained_bytes())
+        .is_err());
 }

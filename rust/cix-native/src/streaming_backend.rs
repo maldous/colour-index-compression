@@ -363,19 +363,6 @@ fn native_memory() -> Result<usize, String> {
     Ok(encoder.max(decoder))
 }
 
-/// A one-block exact trial of the persistent stream, including the zstd frame
-/// epilogue that would be stored in the CIX footer.  The caller compares this
-/// against its incumbent's complete first-frame cost before committing the
-/// input stream to a stateful backend.
-pub(super) fn probe_payload(input: &[u8], level: u8) -> Result<usize, String> {
-    let mut compressor = Compressor::new(level_for(level))?;
-    let data = compressor.flush(input)?;
-    let tail = compressor.finish()?;
-    data.len()
-        .checked_add(tail.len())
-        .ok_or("zstd probe size overflow".into())
-}
-
 pub(super) fn read_probe<R: Read>(
     src: &mut R,
     block: u32,
@@ -696,7 +683,18 @@ pub(super) fn encode<R: Read, W: Write>(
     mut dst: W,
     request: EncodeRequest,
 ) -> Result<(), String> {
-    let EncodeRequest { first, first_eof, block, level, input_fd, flush_interval, memory, workers, explain, verbose } = request;
+    let EncodeRequest {
+        first,
+        first_eof,
+        block,
+        level,
+        input_fd,
+        flush_interval,
+        memory,
+        workers,
+        explain,
+        verbose,
+    } = request;
     if required_memory(block) > memory {
         return Err("persistent zstd stream exceeds --memory".into());
     }
@@ -937,7 +935,16 @@ fn finish_stream<R: Read, W: Write>(
     dst: &mut W,
     request: FinishRequest<'_>,
 ) -> Result<(), String> {
-    let FinishRequest { input_fd, frame, decoder, whole, verify_only, list, total, frames } = request;
+    let FinishRequest {
+        input_fd,
+        frame,
+        decoder,
+        whole,
+        verify_only,
+        list,
+        total,
+        frames,
+    } = request;
     let expected_tail = if decoder.is_some() {
         FINALIZATION_COST
     } else {
@@ -1082,7 +1089,18 @@ mod tests {
         encode(
             Cursor::new(rest),
             &mut archive,
-            EncodeRequest { first, first_eof: split == data.len(), block, level: 9, input_fd: -1, flush_interval: None, memory, workers: 1, explain: false, verbose: false },
+            EncodeRequest {
+                first,
+                first_eof: split == data.len(),
+                block,
+                level: 9,
+                input_fd: -1,
+                flush_interval: None,
+                memory,
+                workers: 1,
+                explain: false,
+                verbose: false,
+            },
         )
         .unwrap();
         assert_eq!(&archive[..5], MAGIC);
@@ -1108,7 +1126,18 @@ mod tests {
         encode(
             Cursor::new(Vec::<u8>::new()),
             &mut archive,
-            EncodeRequest { first: input, first_eof: true, block, level: 9, input_fd: -1, flush_interval: None, memory, workers: 1, explain: false, verbose: false },
+            EncodeRequest {
+                first: input,
+                first_eof: true,
+                block,
+                level: 9,
+                input_fd: -1,
+                flush_interval: None,
+                memory,
+                workers: 1,
+                explain: false,
+                verbose: false,
+            },
         )
         .unwrap();
         // Header then first CIX frame header.  Mutate payload only when the
@@ -1164,7 +1193,18 @@ mod tests {
         encode(
             Cursor::new(Vec::<u8>::new()),
             &mut archive,
-            EncodeRequest { first: input.clone(), first_eof: true, block, level: 9, input_fd: -1, flush_interval: None, memory, workers: 1, explain: false, verbose: false },
+            EncodeRequest {
+                first: input.clone(),
+                first_eof: true,
+                block,
+                level: 9,
+                input_fd: -1,
+                flush_interval: None,
+                memory,
+                workers: 1,
+                explain: false,
+                verbose: false,
+            },
         )
         .unwrap();
         assert_eq!(archive[13], ROUTE_RAW);

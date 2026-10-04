@@ -1,7 +1,4 @@
-#[path = "../src/resources.rs"]
-mod resources;
-
-use resources::{MemoryBudget, MemoryError};
+use cix_native::resources::{MemoryBudget, MemoryError};
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Barrier};

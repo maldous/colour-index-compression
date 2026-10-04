@@ -471,7 +471,11 @@ fn consider_adaptive_bytes(data: &[u8], best: &mut Vec<u8>) {
     for &order in orders {
         if conditional_bits(data, order) / 8.0 <= best.len() as f64 * 1.10 + 16.0 {
             let mut candidate = vec![3, order as u8];
-            candidate.extend(encode_adaptive(data, order, if order == 1 { 8 } else { 10 }));
+            candidate.extend(encode_adaptive(
+                data,
+                order,
+                if order == 1 { 8 } else { 10 },
+            ));
             keep_smaller(best, candidate);
         }
     }
@@ -514,9 +518,13 @@ fn rice_candidate(values: &[usize], width: usize, best_len: usize) -> Option<Vec
     }
     let mut writer = BitWriter::new();
     for &value in values {
-        for _ in 0..(value >> width) { writer.bit(1); }
+        for _ in 0..(value >> width) {
+            writer.bit(1);
+        }
         writer.bit(0);
-        if width > 0 { writer.write((value & ((1usize << width) - 1)) as u64, width); }
+        if width > 0 {
+            writer.write((value & ((1usize << width) - 1)) as u64, width);
+        }
     }
     let mut candidate = vec![1, width as u8];
     candidate.extend(writer.finish());
@@ -524,11 +532,17 @@ fn rice_candidate(values: &[usize], width: usize, best_len: usize) -> Option<Vec
 }
 
 fn encode_uints(values: &[usize]) -> Result<Vec<u8>, String> {
-    if values.is_empty() { return Ok(vec![0]); }
+    if values.is_empty() {
+        return Ok(vec![0]);
+    }
     let mut best = vec![0];
-    for &value in values { put_varint(value, &mut best); }
+    for &value in values {
+        put_varint(value, &mut best);
+    }
     for width in 0..=16usize {
-        if let Some(candidate) = rice_candidate(values, width, best.len()) { keep_smaller(&mut best, candidate); }
+        if let Some(candidate) = rice_candidate(values, width, best.len()) {
+            keep_smaller(&mut best, candidate);
+        }
     }
 
     let mut classes = Vec::with_capacity(values.len());
@@ -732,7 +746,10 @@ fn encode_pfor(
 /// Materialize the frozen reference's complete ordered mode-8 candidate set.
 fn pfor_widths(values: &[u64]) -> BTreeSet<usize> {
     let base = *values.iter().min().unwrap();
-    let mut widths: Vec<usize> = values.iter().map(|&value| bit_width(value - base)).collect();
+    let mut widths: Vec<usize> = values
+        .iter()
+        .map(|&value| bit_width(value - base))
+        .collect();
     widths.sort_unstable();
     let mut choices = BTreeSet::new();
     choices.insert(0usize);
@@ -760,7 +777,10 @@ fn append_word_candidates(
         ("delta", encode_delta(&values, tail, width, big)),
         ("delta2", encode_delta2(&values, tail, width, big)),
     ] {
-        candidates.push(EncodedCandidate { payload, description: format!("{name}-{suffix}") });
+        candidates.push(EncodedCandidate {
+            payload,
+            description: format!("{name}-{suffix}"),
+        });
     }
     for low_width in pfor_widths(&values) {
         if low_width < width * 8 {
@@ -884,72 +904,77 @@ fn decode_bytes(blob: &[u8], count: usize) -> Result<Vec<u8>, String> {
 }
 
 fn decode_uint_varints(blob: &[u8], count: usize, p: &mut usize) -> Result<Vec<usize>, String> {
-            let mut out = Vec::with_capacity(count);
-            for _ in 0..count {
-                out.push(get_varint(blob, p)?);
-            }
-            if *p != blob.len() {
-                return Err("trailing numeric exception varints".into());
-            }
-            Ok(out)
+    let mut out = Vec::with_capacity(count);
+    for _ in 0..count {
+        out.push(get_varint(blob, p)?);
+    }
+    if *p != blob.len() {
+        return Err("trailing numeric exception varints".into());
+    }
+    Ok(out)
 }
 
 fn decode_uint_rice(blob: &[u8], count: usize, p: &mut usize) -> Result<Vec<usize>, String> {
-            let k = *blob.get(*p).ok_or("missing Rice parameter")? as usize;
-            *p += 1;
-            if k >= usize::BITS as usize {
-                return Err("Rice parameter is too wide".into());
-            }
-            let mut bp = 0;
-            let mut out = Vec::with_capacity(count);
-            for _ in 0..count {
-                let mut q = 0usize;
-                while bits(&blob[*p..], &mut bp, 1)? != 0 {
-                    q = q.checked_add(1).ok_or("Rice overflow")?;
-                }
-                if q > (usize::MAX >> k) {
-                    return Err("Rice overflow".into());
-                }
-                let low = bits(&blob[*p..], &mut bp, k)? as usize;
-                out.push(q.checked_shl(k as u32).ok_or("Rice overflow")? | low);
-            }
-            Ok(out)
+    let k = *blob.get(*p).ok_or("missing Rice parameter")? as usize;
+    *p += 1;
+    if k >= usize::BITS as usize {
+        return Err("Rice parameter is too wide".into());
+    }
+    let mut bp = 0;
+    let mut out = Vec::with_capacity(count);
+    for _ in 0..count {
+        let mut q = 0usize;
+        while bits(&blob[*p..], &mut bp, 1)? != 0 {
+            q = q.checked_add(1).ok_or("Rice overflow")?;
+        }
+        if q > (usize::MAX >> k) {
+            return Err("Rice overflow".into());
+        }
+        let low = bits(&blob[*p..], &mut bp, k)? as usize;
+        out.push(q.checked_shl(k as u32).ok_or("Rice overflow")? | low);
+    }
+    Ok(out)
 }
 
-fn decode_uint_classes(blob: &[u8], count: usize, mode: u8, p: &mut usize) -> Result<Vec<usize>, String> {
-            let class_len = get_varint(blob, p)?;
-            let end = (*p)
-                .checked_add(class_len)
-                .ok_or("numeric integer class length overflow")?;
-            if end > blob.len() {
-                return Err("truncated numeric integer classes".into());
-            }
-            let classes = if mode == 2 {
-                let mut class_pos = *p;
-                let values = rank::decode_type_class(blob, &mut class_pos, count)?;
-                if class_pos != end {
-                    return Err("trailing numeric integer classes".into());
-                }
-                values
-            } else {
-                decode_bytes(&blob[*p..end], count)?
-            };
-            let mut bit_pos = 0;
-            let mut out = Vec::with_capacity(count);
-            for class in classes {
-                let width = class as usize;
-                if width >= usize::BITS as usize {
-                    return Err("numeric integer class exceeds host width".into());
-                }
-                let low = bits(&blob[end..], &mut bit_pos, width)? as usize;
-                out.push(
-                    (1usize << width)
-                        .checked_add(low)
-                        .and_then(|value| value.checked_sub(1))
-                        .ok_or("numeric integer overflow")?,
-                );
-            }
-            Ok(out)
+fn decode_uint_classes(
+    blob: &[u8],
+    count: usize,
+    mode: u8,
+    p: &mut usize,
+) -> Result<Vec<usize>, String> {
+    let class_len = get_varint(blob, p)?;
+    let end = (*p)
+        .checked_add(class_len)
+        .ok_or("numeric integer class length overflow")?;
+    if end > blob.len() {
+        return Err("truncated numeric integer classes".into());
+    }
+    let classes = if mode == 2 {
+        let mut class_pos = *p;
+        let values = rank::decode_type_class(blob, &mut class_pos, count)?;
+        if class_pos != end {
+            return Err("trailing numeric integer classes".into());
+        }
+        values
+    } else {
+        decode_bytes(&blob[*p..end], count)?
+    };
+    let mut bit_pos = 0;
+    let mut out = Vec::with_capacity(count);
+    for class in classes {
+        let width = class as usize;
+        if width >= usize::BITS as usize {
+            return Err("numeric integer class exceeds host width".into());
+        }
+        let low = bits(&blob[end..], &mut bit_pos, width)? as usize;
+        out.push(
+            (1usize << width)
+                .checked_add(low)
+                .and_then(|value| value.checked_sub(1))
+                .ok_or("numeric integer overflow")?,
+        );
+    }
+    Ok(out)
 }
 
 fn decode_uints(blob: &[u8], count: usize) -> Result<Vec<usize>, String> {
@@ -1211,15 +1236,13 @@ mod tests {
     #[test]
     fn uint_classes_skip_maximum_without_losing_varint_round_trip() {
         let highest_bit = 1usize << (usize::BITS - 1);
-        let values = [
-            highest_bit - 1,
-            highest_bit,
-            usize::MAX - 1,
-            usize::MAX,
-        ];
+        let values = [highest_bit - 1, highest_bit, usize::MAX - 1, usize::MAX];
         let encoded = encode_uints(&values).unwrap();
         assert_eq!(encoded[0], 0);
-        assert_eq!(decode_uints(&encoded, values.len()).unwrap(), values.to_vec());
+        assert_eq!(
+            decode_uints(&encoded, values.len()).unwrap(),
+            values.to_vec()
+        );
     }
 
     #[test]
@@ -1273,7 +1296,9 @@ mod rice_overflow_tests {
     fn payload(q: usize, low: usize) -> Vec<u8> {
         let width = usize::BITS as usize - 1;
         let mut writer = BitWriter::new();
-        for _ in 0..q { writer.bit(1); }
+        for _ in 0..q {
+            writer.bit(1);
+        }
         writer.bit(0);
         writer.write(low as u64, width);
         let mut blob = vec![1, width as u8];
@@ -1282,7 +1307,10 @@ mod rice_overflow_tests {
     }
     #[test]
     fn rice_accepts_max_rejects_high_bits() {
-        assert_eq!(decode_uints(&payload(1, usize::MAX >> 1), 1).unwrap(), vec![usize::MAX]);
+        assert_eq!(
+            decode_uints(&payload(1, usize::MAX >> 1), 1).unwrap(),
+            vec![usize::MAX]
+        );
         assert!(decode_uints(&payload(2, 0), 1).is_err());
         assert!(decode_uints(&[1, usize::BITS as u8], 1).is_err());
     }
@@ -1303,7 +1331,10 @@ mod pfor_overflow_tests {
     }
     #[test]
     fn pfor_accepts_max_rejects_high_bits() {
-        assert_eq!(decode_pfor(&payload(1, u64::MAX >> 1), 8, 8, false, 0).unwrap(), u64::MAX.to_le_bytes());
+        assert_eq!(
+            decode_pfor(&payload(1, u64::MAX >> 1), 8, 8, false, 0).unwrap(),
+            u64::MAX.to_le_bytes()
+        );
         assert!(decode_pfor(&payload(2, 0), 8, 8, false, 0).is_err());
         assert!(decode_pfor(&[64], 8, 8, false, 0).is_err());
     }

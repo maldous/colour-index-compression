@@ -82,7 +82,9 @@ fn valid_result(
     output: *mut u8,
     output_len: usize,
 ) -> bool {
-    if result.is_null() || (result as usize) % std::mem::align_of::<cix_stream_result_v1>() != 0 {
+    if result.is_null()
+        || !(result as usize).is_multiple_of(std::mem::align_of::<cix_stream_result_v1>())
+    {
         return false;
     }
     let start = result as usize;
@@ -96,12 +98,13 @@ fn valid_result(
     !overlaps(input as usize, input_len) && !overlaps(output as usize, output_len)
 }
 fn valid_context<T>(context: *mut T) -> bool {
-    !context.is_null() && (context as usize) % std::mem::align_of::<T>() == 0
+    !context.is_null() && (context as usize).is_multiple_of(std::mem::align_of::<T>())
 }
 fn valid_create_out<T>(out: *mut *mut T, options: *const cix_options_v1) -> bool {
     if out.is_null()
-        || (out as usize) % std::mem::align_of::<*mut T>() != 0
-        || (!options.is_null() && (options as usize) % std::mem::align_of::<cix_options_v1>() != 0)
+        || !(out as usize).is_multiple_of(std::mem::align_of::<*mut T>())
+        || (!options.is_null()
+            && !(options as usize).is_multiple_of(std::mem::align_of::<cix_options_v1>()))
     {
         return false;
     }
@@ -132,7 +135,9 @@ fn state(state: IncrementalState) -> u32 {
     }
 }
 fn write(result: *mut cix_stream_result_v1, progress: IncrementalProgress) -> i32 {
-    if result.is_null() || (result as usize) % std::mem::align_of::<cix_stream_result_v1>() != 0 {
+    if result.is_null()
+        || !(result as usize).is_multiple_of(std::mem::align_of::<cix_stream_result_v1>())
+    {
         return CIX_STATUS_INVALID_ARGUMENT;
     }
     unsafe {
@@ -150,6 +155,15 @@ fn write(result: *mut cix_stream_result_v1, progress: IncrementalProgress) -> i3
 
 macro_rules! create {
     ($name:ident, $ty:ident) => {
+        /// Creates an owned incremental stream context.
+        ///
+        /// # Safety
+        ///
+        /// `options_ptr` must be null or point to a readable initialized v1
+        /// options structure. `out` must be a writable, aligned pointer slot
+        /// that does not overlap the options. Both locations must remain live
+        /// for the call. A successful result is owned by the caller and must
+        /// be destroyed exactly once.
         #[no_mangle]
         pub unsafe extern "C" fn $name(
             options_ptr: *const cix_options_v1,
@@ -194,12 +208,24 @@ impl CixStreamDecoder {
 }
 create!(cix_stream_encoder_create, cix_stream_encoder);
 create!(cix_stream_decoder_create, cix_stream_decoder);
+/// Destroys an encoder context. Passing null is a no-op.
+///
+/// # Safety
+///
+/// A non-null `value` must be a live encoder returned by this API and may be
+/// destroyed only once. No concurrent call may access or destroy it.
 #[no_mangle]
 pub unsafe extern "C" fn cix_stream_encoder_destroy(value: *mut cix_stream_encoder) {
     if valid_context(value) {
         drop(unsafe { Box::from_raw(value) })
     }
 }
+/// Destroys a decoder context. Passing null is a no-op.
+///
+/// # Safety
+///
+/// A non-null `value` must be a live decoder returned by this API and may be
+/// destroyed only once. No concurrent call may access or destroy it.
 #[no_mangle]
 pub unsafe extern "C" fn cix_stream_decoder_destroy(value: *mut cix_stream_decoder) {
     if valid_context(value) {
@@ -207,6 +233,14 @@ pub unsafe extern "C" fn cix_stream_decoder_destroy(value: *mut cix_stream_decod
     }
 }
 
+/// Supplies encoder input and accepts available archive output.
+///
+/// # Safety
+///
+/// `context` must be live and not concurrently destroyed. `input` must provide
+/// `input_len` readable bytes, `output` `output_len` writable bytes, and
+/// `result` writable aligned result storage. All three regions must be
+/// disjoint and remain valid for the call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_stream_encoder_process(
     context: *mut cix_stream_encoder,
@@ -235,6 +269,14 @@ pub unsafe extern "C" fn cix_stream_encoder_process(
     }))
     .unwrap_or(CIX_STATUS_PANIC)
 }
+/// Supplies decoder input and accepts available restored output.
+///
+/// # Safety
+///
+/// `context` must be live and not concurrently destroyed. `input` must provide
+/// `input_len` readable bytes, `output` `output_len` writable bytes, and
+/// `result` writable aligned result storage. All three regions must be
+/// disjoint and remain valid for the call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_stream_decoder_process(
     context: *mut cix_stream_decoder,
@@ -263,6 +305,13 @@ pub unsafe extern "C" fn cix_stream_decoder_process(
     }))
     .unwrap_or(CIX_STATUS_PANIC)
 }
+/// Flushes pending encoder output without ending the stream.
+///
+/// # Safety
+///
+/// `context` must be live and not concurrently destroyed. `output` must
+/// designate `output_len` writable bytes and `result` writable aligned result
+/// storage; they must not overlap and must remain valid for the call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_stream_encoder_flush(
     context: *mut cix_stream_encoder,
@@ -289,6 +338,13 @@ pub unsafe extern "C" fn cix_stream_encoder_flush(
     }))
     .unwrap_or(CIX_STATUS_PANIC)
 }
+/// Finishes an encoder stream and emits its terminal bytes.
+///
+/// # Safety
+///
+/// `context` must be live and not concurrently destroyed. `output` must
+/// designate `output_len` writable bytes and `result` writable aligned result
+/// storage; they must not overlap and must remain valid for the call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_stream_encoder_finish(
     context: *mut cix_stream_encoder,
@@ -315,6 +371,13 @@ pub unsafe extern "C" fn cix_stream_encoder_finish(
     }))
     .unwrap_or(CIX_STATUS_PANIC)
 }
+/// Finishes a decoder stream after all archive input has been supplied.
+///
+/// # Safety
+///
+/// `context` must be live and not concurrently destroyed. `output` must
+/// designate `output_len` writable bytes and `result` writable aligned result
+/// storage; they must not overlap and must remain valid for the call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_stream_decoder_finish(
     context: *mut cix_stream_decoder,
@@ -341,6 +404,11 @@ pub unsafe extern "C" fn cix_stream_decoder_finish(
     }))
     .unwrap_or(CIX_STATUS_PANIC)
 }
+/// Resets an encoder context for a new archive.
+///
+/// # Safety
+///
+/// `context` must be live and not concurrently destroyed for the entire call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_stream_encoder_reset(context: *mut cix_stream_encoder) -> i32 {
     catch_unwind(AssertUnwindSafe(|| {
@@ -358,6 +426,11 @@ pub unsafe extern "C" fn cix_stream_encoder_reset(context: *mut cix_stream_encod
     }))
     .unwrap_or(CIX_STATUS_PANIC)
 }
+/// Resets a decoder context for a new archive.
+///
+/// # Safety
+///
+/// `context` must be live and not concurrently destroyed for the entire call.
 #[no_mangle]
 pub unsafe extern "C" fn cix_stream_decoder_reset(context: *mut cix_stream_decoder) -> i32 {
     catch_unwind(AssertUnwindSafe(|| {

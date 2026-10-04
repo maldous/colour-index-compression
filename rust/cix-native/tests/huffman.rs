@@ -1,5 +1,4 @@
-#[path = "../src/huffman.rs"]
-mod huffman;
+use cix_native::huffman;
 
 fn encoded(input: &[u8]) -> Vec<u8> {
     huffman::encode(input).expect("encode")

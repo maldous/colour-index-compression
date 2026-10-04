@@ -13,7 +13,7 @@ use crate::c_api::{
 };
 use crate::dictionaries::{DictionaryIdentity, ZstdDictionary};
 use std::{
-    panic::{AssertUnwindSafe, catch_unwind},
+    panic::{catch_unwind, AssertUnwindSafe},
     ptr, slice,
     sync::Mutex,
 };
@@ -125,25 +125,31 @@ fn identity_from_raw(value: cix_dictionary_identity_v1) -> DictionaryIdentity {
     }
 }
 
-fn operation_regions(
-    handle: *const cix_zstd_dictionary,
-    raw_options: *const cix_dictionary_options_v1,
-    identity: Option<*const cix_dictionary_identity_v1>,
+struct OperationBuffers {
     input: *const u8,
     input_len: usize,
     output: *mut u8,
     output_capacity: usize,
     written: *mut usize,
+}
+
+fn operation_regions(
+    handle: *const cix_zstd_dictionary,
+    raw_options: *const cix_dictionary_options_v1,
+    identity: Option<*const cix_dictionary_identity_v1>,
+    buffers: &OperationBuffers,
 ) -> Result<(), i32> {
-    if written.is_null() || !(written as usize).is_multiple_of(std::mem::align_of::<usize>()) {
+    if buffers.written.is_null()
+        || !(buffers.written as usize).is_multiple_of(std::mem::align_of::<usize>())
+    {
         return Err(CIX_STATUS_INVALID_ARGUMENT);
     }
     let base = [
         range(handle as usize, std::mem::size_of::<cix_zstd_dictionary>())?,
         range(raw_options as usize, OPTIONS_V1_SIZE)?,
-        range(input as usize, input_len)?,
-        range(output as usize, output_capacity)?,
-        range(written as usize, std::mem::size_of::<usize>())?,
+        range(buffers.input as usize, buffers.input_len)?,
+        range(buffers.output as usize, buffers.output_capacity)?,
+        range(buffers.written as usize, std::mem::size_of::<usize>())?,
     ];
     if !disjoint(&base) {
         return Err(CIX_STATUS_INVALID_ARGUMENT);
@@ -188,37 +194,24 @@ fn run_operation(
     handle: *const cix_zstd_dictionary,
     raw_options: *const cix_dictionary_options_v1,
     identity: Option<*const cix_dictionary_identity_v1>,
-    input: *const u8,
-    input_len: usize,
-    output: *mut u8,
-    output_capacity: usize,
-    written: *mut usize,
+    buffers: OperationBuffers,
     decode: bool,
 ) -> i32 {
-    if let Err(status) = operation_regions(
-        handle,
-        raw_options,
-        identity,
-        input,
-        input_len,
-        output,
-        output_capacity,
-        written,
-    ) {
+    if let Err(status) = operation_regions(handle, raw_options, identity, &buffers) {
         return status;
     }
     // SAFETY: operation_regions validated the aligned, writable destination.
-    unsafe { ptr::write(written, 0) };
+    unsafe { ptr::write(buffers.written, 0) };
     let result = catch_unwind(AssertUnwindSafe(|| -> Result<Vec<u8>, i32> {
         let (output_limit, memory_limit, level) = unsafe { options(raw_options) }?;
         // The dictionary implementation owns a temporary output vector while
         // the caller's destination remains live. Reserve both in the C ABI
         // admission budget, rather than treating caller storage as free.
         let memory_limit = memory_limit
-            .checked_sub(output_capacity)
+            .checked_sub(buffers.output_capacity)
             .and_then(|remaining| remaining.checked_sub(std::mem::size_of::<cix_zstd_dictionary>()))
             .ok_or(CIX_STATUS_RESOURCE_LIMIT)?;
-        let input = unsafe { copy_input(input, input_len) };
+        let input = unsafe { copy_input(buffers.input, buffers.input_len) };
         let dictionary = unsafe { dictionary(handle) }?;
         let locked = dictionary.inner.lock().map_err(|_| CIX_STATUS_PANIC)?;
         if decode {
@@ -239,7 +232,12 @@ fn run_operation(
         }
     }));
     match result {
-        Ok(Ok(bytes)) => write_result(bytes, output, output_capacity, written),
+        Ok(Ok(bytes)) => write_result(
+            bytes,
+            buffers.output,
+            buffers.output_capacity,
+            buffers.written,
+        ),
         Ok(Err(status)) => status,
         Err(_) => CIX_STATUS_PANIC,
     }
@@ -247,6 +245,13 @@ fn run_operation(
 
 /// Imports an owned Zstd dictionary. `memory_limit` must account for both the
 /// caller's input and the copied bytes retained in the resulting handle.
+///
+/// # Safety
+///
+/// `bytes` must designate `bytes_len` readable bytes and `out_handle` a
+/// writable, aligned pointer slot. They must not overlap and remain valid for
+/// the call. On success the caller owns the returned handle and must free it
+/// exactly once.
 #[no_mangle]
 pub unsafe extern "C" fn cix_zstd_dictionary_create_v1(
     bytes: *const u8,
@@ -309,6 +314,13 @@ pub unsafe extern "C" fn cix_zstd_dictionary_create_v1(
 }
 
 /// Trains an owned dictionary from contiguous samples and their exact sizes.
+///
+/// # Safety
+///
+/// `samples` and `sample_sizes` must designate readable regions of their
+/// stated sizes, and `out_handle` a writable, aligned pointer slot. The three
+/// regions must be disjoint and live for the call. A successful result handle
+/// is caller-owned and must be freed exactly once.
 #[no_mangle]
 pub unsafe extern "C" fn cix_zstd_dictionary_train_v1(
     samples: *const u8,
@@ -414,6 +426,11 @@ pub unsafe extern "C" fn cix_zstd_dictionary_train_v1(
 
 /// Frees a handle returned by `create` or `train`. A null handle is allowed.
 /// The caller must not call this concurrently with any operation on the handle.
+///
+/// # Safety
+///
+/// A non-null `handle` must be a live handle returned by this API and may be
+/// passed here only once. No other operation may access it while it is freed.
 #[no_mangle]
 pub unsafe extern "C" fn cix_zstd_dictionary_free(handle: *mut cix_zstd_dictionary) {
     if !handle.is_null()
@@ -427,6 +444,13 @@ pub unsafe extern "C" fn cix_zstd_dictionary_free(handle: *mut cix_zstd_dictiona
 /// Exports the exact dictionary bytes into caller-owned storage. On
 /// `CIX_STATUS_OUTPUT_TOO_SMALL`, `written` receives the required byte count
 /// and `output` remains untouched.
+///
+/// # Safety
+///
+/// `handle` must be live, `output` must designate `output_capacity` writable
+/// bytes, and `written` an aligned writable `usize`. The regions must not
+/// overlap and must remain valid for the call; the handle must not be freed
+/// concurrently.
 #[no_mangle]
 pub unsafe extern "C" fn cix_zstd_dictionary_bytes_v1(
     handle: *const cix_zstd_dictionary,
@@ -470,6 +494,13 @@ pub unsafe extern "C" fn cix_zstd_dictionary_bytes_v1(
     }
 }
 
+/// Returns the immutable identity of a live dictionary handle.
+///
+/// # Safety
+///
+/// `handle` must be live and `out_identity` must be writable storage for one
+/// identity value. They must not overlap, remain valid for the call, and the
+/// handle must not be freed concurrently.
 #[no_mangle]
 pub unsafe extern "C" fn cix_zstd_dictionary_identity_v1(
     handle: *const cix_zstd_dictionary,
@@ -511,6 +542,14 @@ pub unsafe extern "C" fn cix_zstd_dictionary_identity_v1(
 }
 
 /// Encodes one ordinary Zstd frame using this dictionary and the requested level.
+///
+/// # Safety
+///
+/// `handle` and `raw_options` must reference live, readable API objects.
+/// `input` must provide `input_len` readable bytes, `output` must provide
+/// `output_capacity` writable bytes, and `written` a writable aligned `usize`.
+/// All supplied regions must be disjoint and live for the call; the handle may
+/// not be freed concurrently.
 #[no_mangle]
 pub unsafe extern "C" fn cix_zstd_dictionary_encode_v1(
     handle: *const cix_zstd_dictionary,
@@ -525,17 +564,27 @@ pub unsafe extern "C" fn cix_zstd_dictionary_encode_v1(
         handle,
         raw_options,
         None,
-        input,
-        input_len,
-        output,
-        output_capacity,
-        written,
+        OperationBuffers {
+            input,
+            input_len,
+            output,
+            output_capacity,
+            written,
+        },
         false,
     )
 }
 
 /// Decodes exactly one ordinary Zstd frame with its declared dictionary
 /// identity. This is mandatory for ID-0 frames and verified for all frames.
+///
+/// # Safety
+///
+/// `handle`, `raw_options`, and `declared_identity` must reference live,
+/// readable API objects. `input` must provide `input_len` readable bytes,
+/// `output` `output_capacity` writable bytes, and `written` an aligned
+/// writable `usize`. These regions must be disjoint and live for the call;
+/// the handle may not be freed concurrently.
 #[no_mangle]
 pub unsafe extern "C" fn cix_zstd_dictionary_decode_v1(
     handle: *const cix_zstd_dictionary,
@@ -551,11 +600,13 @@ pub unsafe extern "C" fn cix_zstd_dictionary_decode_v1(
         handle,
         raw_options,
         Some(declared_identity),
-        input,
-        input_len,
-        output,
-        output_capacity,
-        written,
+        OperationBuffers {
+            input,
+            input_len,
+            output,
+            output_capacity,
+            written,
+        },
         true,
     )
 }

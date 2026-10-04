@@ -5,12 +5,15 @@
 //! Python wheel. The library handle is kept for the provider lifetime so its
 //! resolved symbols cannot outlive the bridge DSO.
 
-use crate::full_engine::volume_lifting::{ImageBackend, JpegxlImageInfo};
+use crate::full_engine::{
+    dynamic_library::{DynamicLibrary, DynamicLibraryError},
+    volume_lifting::{ImageBackend, JpegxlImageInfo},
+};
 use crate::jxl_bridge::{
     JxlBridge, JxlBridgeError, JxlDecodeFn, JxlEncodeFn, JxlFreeBufferFn, JxlLibraryVersionFn,
     JxlPlanarDecodeFn, JxlPlanarEncodeFn, JxlPlanarProbeFn, JxlProbeFn, JxlRawBuffer,
 };
-use std::ffi::{c_int, c_void, CString};
+use std::ffi::c_int;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
@@ -71,11 +74,21 @@ impl fmt::Display for JxlProviderError {
 
 impl std::error::Error for JxlProviderError {}
 
+impl From<DynamicLibraryError> for JxlProviderError {
+    fn from(error: DynamicLibraryError) -> Self {
+        match error {
+            DynamicLibraryError::InvalidPath => Self::InvalidLibraryPath,
+            DynamicLibraryError::LoadFailed => Self::LoadFailed,
+            DynamicLibraryError::MissingSymbol(name) => Self::MissingSymbol(name),
+        }
+    }
+}
+
 /// A loaded CIX-owned bridge plus the per-call output ceiling admitted by the
 /// full engine. The private handle must be declared before the bridge symbols
 /// and remains alive until after all provider use is complete.
 pub struct JxlProvider {
-    _library: Library,
+    _library: DynamicLibrary,
     bridge: JxlBridge,
     lzma_compress: LzmaCompressFn,
     lzma_decompress: LzmaDecompressFn,
@@ -102,7 +115,7 @@ impl JxlProvider {
         if !metadata.is_file() {
             return Err(JxlProviderError::MissingLibrary(library_path.to_path_buf()));
         }
-        let library = Library::open(library_path)?;
+        let library = DynamicLibrary::open(library_path)?;
         let encode = unsafe { library.symbol::<JxlEncodeFn>("cix_jxl_encode_gray_2d")? };
         let probe = unsafe { library.symbol::<JxlProbeFn>("cix_jxl_probe_gray_2d")? };
         let decode = unsafe { library.symbol::<JxlDecodeFn>("cix_jxl_decode_gray_2d")? };
@@ -376,55 +389,6 @@ impl ImageBackend for JxlProvider {
     }
 }
 
-#[cfg(target_os = "linux")]
-struct Library(*mut c_void);
-
-#[cfg(target_os = "linux")]
-impl Library {
-    fn open(path: &Path) -> Result<Self, JxlProviderError> {
-        use std::os::unix::ffi::OsStrExt;
-        let text = CString::new(path.as_os_str().as_bytes())
-            .map_err(|_| JxlProviderError::InvalidLibraryPath)?;
-        let handle = unsafe { libc::dlopen(text.as_ptr(), libc::RTLD_NOW | libc::RTLD_LOCAL) };
-        if handle.is_null() {
-            return Err(JxlProviderError::LoadFailed);
-        }
-        Ok(Self(handle))
-    }
-
-    unsafe fn symbol<T: Copy>(&self, name: &'static str) -> Result<T, JxlProviderError> {
-        let text = CString::new(name).map_err(|_| JxlProviderError::MissingSymbol(name))?;
-        let symbol = libc::dlsym(self.0, text.as_ptr());
-        if symbol.is_null() {
-            return Err(JxlProviderError::MissingSymbol(name));
-        }
-        Ok(std::mem::transmute_copy(&symbol))
-    }
-}
-
-#[cfg(target_os = "linux")]
-impl Drop for Library {
-    fn drop(&mut self) {
-        unsafe {
-            libc::dlclose(self.0);
-        }
-    }
-}
-
-#[cfg(not(target_os = "linux"))]
-struct Library;
-
-#[cfg(not(target_os = "linux"))]
-impl Library {
-    fn open(_path: &Path) -> Result<Self, JxlProviderError> {
-        Err(JxlProviderError::LoadFailed)
-    }
-
-    unsafe fn symbol<T: Copy>(&self, name: &'static str) -> Result<T, JxlProviderError> {
-        Err(JxlProviderError::MissingSymbol(name))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -434,9 +398,7 @@ mod tests {
     };
 
     fn packaged_provider() -> Option<JxlProvider> {
-        let Some(path) = std::env::var_os("CIX_TEST_JXL_BRIDGE") else {
-            return None;
-        };
+        let path = std::env::var_os("CIX_TEST_JXL_BRIDGE")?;
         Some(
             JxlProvider::load_package_bridge(Path::new(&path), 8 << 20)
                 .expect("CIX_TEST_JXL_BRIDGE must name a loadable pinned bridge"),

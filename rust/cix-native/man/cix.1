@@ -33,8 +33,9 @@ Use effort 1 for lower compression latency.
 .B \-\-best
 Use effort 9 for the broadest bounded archive search. With no explicit
 .BR \-\-memory ,
-BEST raises the memory admission limit to 2 GiB. Decoding, testing, and
-listing also start at 2 GiB unless an explicit limit is supplied. Eligible
+BEST raises the accounted memory-admission limit to 6 GiB. Decoding, testing,
+and listing also start at 6 GiB unless an explicit limit is supplied. This is
+not an aggregate-process RSS guarantee. Eligible
 whole-file native BEST work can use a 15-minute allowance plus up to 45 minutes
 based on input size. Direct external-library calls can add time and are not
 preemptible, so this is not a total wall-time limit.

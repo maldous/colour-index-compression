@@ -192,7 +192,7 @@ fn type_counts(data: &[u8]) -> [usize; 256] {
 }
 
 fn composition_rank(parts: &[usize]) -> Result<BigUint, String> {
-    if parts.is_empty() || parts.iter().any(|value| *value == 0) {
+    if parts.is_empty() || parts.contains(&0) {
         return Err("invalid composition".into());
     }
     let mut total = 0usize;
@@ -231,7 +231,7 @@ fn composition_unrank(rank: &BigUint, total: usize, count: usize) -> Result<Vec<
         previous = current;
     }
     parts.push(total.checked_sub(previous).ok_or("composition overflow")?);
-    if parts.iter().any(|value| *value == 0) {
+    if parts.contains(&0) {
         return Err("invalid composition".into());
     }
     Ok(parts)
@@ -269,8 +269,7 @@ fn range_decode(payload: &[u8], bits: usize, counts: &[usize]) -> Result<Vec<u8>
     let mut coder = ArithmeticDecoder::new(payload, bits)?;
     let mut out = Vec::with_capacity(remaining);
     while remaining != 0 {
-        let target =
-            i128::try_from(coder.target(remaining as u64)?).map_err(|_| "type class target")?;
+        let target = i128::from(coder.target(remaining as u64)?);
         let symbol = tree.select(target)?;
         let low = u64::try_from(tree.prefix(symbol)?).map_err(|_| "type class prefix")?;
         coder.update(
@@ -665,13 +664,17 @@ fn decode_grid_field(
         }
         if width == 8 {
             payload
-                .chunks_exact(8)
-                .map(|chunk| i64::from_le_bytes(chunk.try_into().unwrap()))
+                .as_chunks::<8>()
+                .0
+                .iter()
+                .map(|chunk| i64::from_le_bytes(*chunk))
                 .collect::<Vec<_>>()
         } else {
             payload
-                .chunks_exact(4)
-                .map(|chunk| i64::from(i32::from_le_bytes(chunk.try_into().unwrap())))
+                .as_chunks::<4>()
+                .0
+                .iter()
+                .map(|chunk| i64::from(i32::from_le_bytes(*chunk)))
                 .collect::<Vec<_>>()
         }
     } else {

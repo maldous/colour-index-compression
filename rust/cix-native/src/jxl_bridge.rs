@@ -318,6 +318,12 @@ pub struct JxlBridge {
 
 impl JxlBridge {
     /// Release an allocation returned by any CIX bridge entry point.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must describe a live allocation returned by this same bridge
+    /// and must not already have been released. It must not be accessed by any
+    /// other thread while this call releases its storage.
     pub unsafe fn free_bridge_buffer(self, buffer: &mut JxlRawBuffer) {
         unsafe { (self.free_buffer)(buffer) };
     }
@@ -369,6 +375,10 @@ impl JxlBridge {
     /// # Safety
     ///
     /// Every function must originate in the same CIX-owned package bridge.
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "the bridge ABI resolves eight independently typed symbols from one DSO"
+    )]
     pub const unsafe fn from_symbols_with_planar(
         encode: JxlEncodeFn,
         probe: JxlProbeFn,
@@ -475,14 +485,18 @@ impl JxlBridge {
             ));
         }
         let maximum = canonical_le_u16
-            .chunks_exact(2)
-            .map(|sample| u16::from_le_bytes([sample[0], sample[1]]))
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|sample| u16::from_le_bytes(*sample))
             .max()
             .unwrap_or(0);
         let bits_per_sample = (u16::BITS - maximum.leading_zeros()).max(1);
         if bits_per_sample <= 8 {
             let compact: Vec<u8> = canonical_le_u16
-                .chunks_exact(2)
+                .as_chunks::<2>()
+                .0
+                .iter()
                 .map(|sample| sample[0])
                 .collect();
             self.encode_gray_2d(
@@ -721,8 +735,10 @@ impl JxlBridge {
             ));
         }
         let maximum = canonical_le_u16
-            .chunks_exact(2)
-            .map(|sample| u16::from_le_bytes([sample[0], sample[1]]))
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|sample| u16::from_le_bytes(*sample))
             .max()
             .unwrap_or(0);
         let bits = (u16::BITS - maximum.leading_zeros()).max(1);
@@ -730,7 +746,9 @@ impl JxlBridge {
             (
                 JxlSampleType::Uint8,
                 canonical_le_u16
-                    .chunks_exact(2)
+                    .as_chunks::<2>()
+                    .0
+                    .iter()
                     .map(|sample| sample[0])
                     .collect(),
             )

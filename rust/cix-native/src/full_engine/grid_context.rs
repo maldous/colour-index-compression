@@ -15,6 +15,7 @@ pub const MAGIC: &[u8] = b"CIXY\x01";
 pub const RAW_MAGIC: &[u8] = b"SGFB1";
 const WIDTHS: [usize; 4] = [8, 8, 4, 4];
 const MAX_RECORDS: usize = 8_000_000;
+type GridField = (Vec<i64>, Vec<i64>, Vec<u8>, usize);
 
 pub type EncodeBackend<'a> = dyn Fn(&[u8]) -> Result<Vec<u8>, String> + 'a;
 pub type DecodeBackend<'a> = dyn Fn(&[u8], usize) -> Result<Vec<u8>, String> + 'a;
@@ -49,12 +50,16 @@ fn read_le_values(data: &[u8], width: usize, n: usize) -> Result<Vec<i64>, Strin
     }
     match width {
         4 => Ok(data
-            .chunks_exact(4)
-            .map(|item| i64::from(i32::from_le_bytes(item.try_into().unwrap())))
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .map(|item| i64::from(i32::from_le_bytes(*item)))
             .collect()),
         8 => Ok(data
-            .chunks_exact(8)
-            .map(|item| i64::from_le_bytes(item.try_into().unwrap()))
+            .as_chunks::<8>()
+            .0
+            .iter()
+            .map(|item| i64::from_le_bytes(*item))
             .collect()),
         _ => Err("unsupported correction width".into()),
     }
@@ -96,7 +101,7 @@ fn read_field(
     n: usize,
     width: usize,
     mode: u8,
-) -> Result<(Vec<i64>, Vec<i64>, Vec<u8>, usize), String> {
+) -> Result<GridField, String> {
     let start = at;
     let scale_end = at.checked_add(8).ok_or("grid scale overflow")?;
     data.get(at..scale_end).ok_or("truncated grid scale")?;

@@ -241,8 +241,8 @@ fn decode_integers_policy(data: &[u8], n: usize, policy: u8) -> Result<Vec<i64>,
                 }
                 values
             }
-            1..=6 if policy == 0 || (kind + 1) / 2 == policy => {
-                policy_uninterval(&part[1..], count, (kind + 1) / 2)?
+            1..=6 if policy == 0 || kind.div_ceil(2) == policy => {
+                policy_uninterval(&part[1..], count, kind.div_ceil(2))?
             }
             7 | 8 => unrice(&part[1..], count)?,
             _ => return Err("invalid integer representation".into()),

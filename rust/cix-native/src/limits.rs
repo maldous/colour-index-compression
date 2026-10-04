@@ -80,6 +80,11 @@ impl Drop for ContextGuard {
 pub struct LibraryGuard {
     previous: u32,
 }
+impl Default for LibraryGuard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl LibraryGuard {
     pub fn new() -> Self {
         let previous = LIBRARY_DEPTH.with(|s| {
