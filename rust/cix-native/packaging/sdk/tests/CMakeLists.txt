@@ -9,3 +9,7 @@ target_compile_features(cix_installed_cpp_consumer PRIVATE cxx_std_17)
 add_executable(cix_installed_stream_consumer c_stream_installed_consumer.c)
 target_link_libraries(cix_installed_stream_consumer PRIVATE CIX::native)
 target_compile_features(cix_installed_stream_consumer PRIVATE c_std_11)
+
+add_executable(cix_installed_format_consumer c_format_installed_consumer.c)
+target_link_libraries(cix_installed_format_consumer PRIVATE CIX::native)
+target_compile_features(cix_installed_format_consumer PRIVATE c_std_11)

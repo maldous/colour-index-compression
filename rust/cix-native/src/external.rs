@@ -1039,7 +1039,7 @@ fn wrap_archive(
     Ok(out)
 }
 
-fn encode_payload(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>, String> {
+pub(crate) fn encode_payload(backend: &str, profile: &str, input: &[u8]) -> Result<Vec<u8>, String> {
     match backend {
         "gzip" => encode_gzip_payload(profile, input),
         "bzip2" => encode_bzip2_payload(profile, input),
@@ -1118,6 +1118,15 @@ pub fn raw_xz_encode(input: &[u8], profile: &str, output_limit: usize) -> Result
         "size" => 9,
         _ => return Err("invalid raw XZ preset".into()),
     };
+    raw_xz_encode_preset(input, preset, output_limit)
+}
+
+/// Encode a standard XZ member with an explicit liblzma easy preset.
+pub fn raw_xz_encode_preset(input: &[u8], preset: u32, output_limit: usize) -> Result<Vec<u8>, String> {
+    check_cancel()?;
+    if preset > 9 {
+        return Err("invalid raw XZ preset".into());
+    }
     let bound = unsafe { lzma_stream_buffer_bound(input.len()) };
     let cap = bound.min(output_limit);
     let mut out = Vec::new();
@@ -1579,7 +1588,7 @@ pub fn decode(archive: &[u8], memory_limit: usize) -> Result<Vec<u8>, String> {
     Ok(output)
 }
 
-fn decode_payload(
+pub(crate) fn decode_payload(
     backend_id: u8,
     payload: &[u8],
     output: &mut Vec<u8>,

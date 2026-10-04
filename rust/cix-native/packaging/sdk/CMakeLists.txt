@@ -48,6 +48,7 @@ install(FILES
     "${CIX_SOURCE_ROOT}/include/cix.h"
     "${CIX_SOURCE_ROOT}/include/cix.hpp"
     "${CIX_SOURCE_ROOT}/include/cix_stream.h"
+    "${CIX_SOURCE_ROOT}/include/cix_formats.h"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 install(FILES "${CIX_NATIVE_LIBRARY}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 install(FILES

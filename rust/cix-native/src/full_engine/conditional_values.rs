@@ -93,7 +93,7 @@ pub(crate) fn base_prefix(data: &[u8]) -> Result<(usize, usize), String> {
     Ok((n, at))
 }
 
-fn decode_q(data: &[u8], n: usize) -> Result<Vec<i64>, String> {
+pub(crate) fn decode_q(data: &[u8], n: usize) -> Result<Vec<i64>, String> {
     let mut out = Vec::new();
     out.try_reserve(n).map_err(|_| "coordinate allocation")?;
     let mut at = 0;

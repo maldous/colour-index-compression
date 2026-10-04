@@ -1,4 +1,13 @@
 fn main() {
+    // An explicit build-time dependency prefix supports private/packaged SDKs.
+    // This never changes the runtime loader's search policy.
+    println!("cargo:rerun-if-env-changed=CIX_NATIVE_LIBRARY_DIR");
+    if let Some(directory) = std::env::var_os("CIX_NATIVE_LIBRARY_DIR") {
+        let directory = std::path::PathBuf::from(directory);
+        assert!(directory.is_absolute() && directory.is_dir(),
+                "CIX_NATIVE_LIBRARY_DIR must name an existing absolute directory");
+        println!("cargo:rustc-link-search=native={}", directory.display());
+    }
     println!("cargo:rerun-if-changed=src/zpaq_ffi.cpp");
     println!("cargo:rerun-if-changed=vendor/libzpaq715/libzpaq.cpp");
     println!("cargo:rerun-if-changed=vendor/libzpaq715/libzpaq.h");

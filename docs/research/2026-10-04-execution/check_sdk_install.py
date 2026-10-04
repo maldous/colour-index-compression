@@ -28,6 +28,7 @@ for kind, suffix in [('shared', '.so'), ('static', '.a')]:
         run(['cmake', '--build', str(consumer), '--parallel', '2'])
         run([str(consumer/'cix_installed_cpp_consumer')])
         run([str(consumer/'cix_installed_stream_consumer')])
+        run([str(consumer/'cix_installed_format_consumer')])
         packages = list(relocated.rglob('cix-native.pc'))
         assert len(packages) == 1
         env = dict(os.environ, PKG_CONFIG_PATH=str(packages[0].parent))

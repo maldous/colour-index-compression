@@ -1,9 +1,16 @@
 //! Command parser and compatibility facade.
-use std::{env, fs::{self, File, OpenOptions}, process, thread, path::Path, io};
+use crate::core::engine;
+use crate::standard_formats::{self, StandardFormat, StandardOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::sync::atomic::Ordering;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use crate::core::engine;
+use std::{
+    env,
+    fs::{self, File, OpenOptions},
+    io,
+    path::Path,
+    process, thread,
+};
 
 #[cfg(unix)]
 fn open_input(path: &str) -> Result<std::fs::File, String> {
@@ -37,7 +44,9 @@ fn input_fd(file: &std::fs::File) -> i32 {
 }
 
 #[cfg(not(unix))]
-fn input_fd(_file: &std::fs::File) -> i32 { -1 }
+fn input_fd(_file: &std::fs::File) -> i32 {
+    -1
+}
 
 // Whole-file BEST selection is an executable capability.  It is deliberately
 // kept beside the command adapter because it reads named paths and may use the
@@ -71,6 +80,9 @@ pub(crate) struct Opt {
     pub(crate) level_set: bool,
     pub(crate) portfolio: Option<String>,
     pub(crate) format: String,
+    pub(crate) format_set: bool,
+    pub(crate) output_format: Option<StandardFormat>,
+    pub(crate) input_format: Option<StandardFormat>,
     pub(crate) block: Option<u32>,
     pub(crate) stream: bool,
     pub(crate) history: usize,
@@ -81,6 +93,7 @@ pub(crate) struct Opt {
 }
 fn usage() {
     println!("CIX (pronounced six) — automatic lossless stream compression\n\nUsage: cix [--fast|--best] [-c] [-k] [-f] [-o FILE] [FILE]\n       uncix [-c] [-k] [-f] [-t|-l] [-o FILE] [FILE]\n       cixcat [FILE]\n\nFILE defaults to '-' (standard input); use '--' before a dash-prefixed filename. Input files are kept by default. Use '-' for standard input or output. CIX archives are CIX streams, not ZIP or gzip. Tar pipelines support directories.\n\nEffort: --fast minimises compression latency; no option is balanced automatic selection; --best searches aggressively for smaller output. Numeric aliases: -1 fast, -6 default, -9 best.\n\nObservability: --explain reports per-block candidate costs and decisions; --verbose reports aggregate search statistics.\n\nAdvanced / expert controls (usually unnecessary):\n  --format auto|cixg1|cixg2|cixm6|cixf1  Select or constrain the container version\n  --route auto|ROUTE          Override route selection\n  --backend NAME              Override nested substream backend\n  --block-size SIZE           Constrain maximum uncompressed block size\n  --memory SIZE               Bound working memory (FAST/default 512 MiB; BEST/decode 2 GiB)\n  --threads N                 Bound CPU workers (1..20; default up to 4)\n  --parallelism blocks|candidates  Choose ordered blocks or within-block trials\n  --history SIZE              Request retained history\n  --independent-blocks        Request model reset boundaries\n  --stream                    Require streaming operation\n  --flush-interval DURATION   Flush framed partial blocks after idle time\n  --profile fast|default|size Select external profile or native effort\n  --portfolio PROFILE         Compare CIX and direct external candidates (CIXB1)\n  --external CODEC            Explicitly wrap a direct external codec (CIXB1)");
+    println!("\nStandard streams: --output-format gzip|zlib|deflate|bzip2|xz|zstd|brotli|lz4|snappy writes a genuine one-shot standard stream. Use --input-format FORMAT with -d, -t or uncix to decode/test it; raw Deflate is never guessed. Standard streams are bounded to 128 MiB input/output and do not accept CIX route, container, portfolio, stream, history or block controls.");
 }
 
 fn default_options() -> Opt {
@@ -119,6 +132,8 @@ fn takes_option_value(argument: &str) -> bool {
             | "--profile"
             | "--portfolio"
             | "--format"
+            | "--output-format"
+            | "--input-format"
             | "--block"
             | "--block-size"
             | "--history"
@@ -149,6 +164,23 @@ fn set_backend(o: &mut Opt, value: String) -> Result<(), String> {
     o.backend_set = true;
     Ok(())
 }
+fn standard_format(value: &str) -> Result<StandardFormat, String> {
+    match value {
+        "gzip" | "gz" => Ok(StandardFormat::Gzip),
+        "zlib" => Ok(StandardFormat::Zlib),
+        "deflate" | "raw-deflate" => Ok(StandardFormat::Deflate),
+        "bzip2" | "bz2" => Ok(StandardFormat::Bzip2),
+        "xz" => Ok(StandardFormat::Xz),
+        "zstd" | "zst" => Ok(StandardFormat::Zstd),
+        "brotli" | "br" => Ok(StandardFormat::Brotli),
+        "lz4" | "lz4frame" | "lz4-frame" => Ok(StandardFormat::Lz4Frame),
+        "snappy" | "snappyframed" | "snappy-framed" => Ok(StandardFormat::SnappyFramed),
+        _ => Err(
+            "standard format accepts gzip, zlib, deflate, bzip2, xz, zstd, brotli, lz4 or snappy"
+                .into(),
+        ),
+    }
+}
 
 fn set_option_value(o: &mut Opt, argument: &str, value: String) -> Result<(), String> {
     match argument {
@@ -172,7 +204,12 @@ fn set_option_value(o: &mut Opt, argument: &str, value: String) -> Result<(), St
             o.profile_set = true;
         }
         "--portfolio" => o.portfolio = Some(value),
-        "--format" => o.format = value,
+        "--format" => {
+            o.format = value;
+            o.format_set = true;
+        }
+        "--output-format" => o.output_format = Some(standard_format(&value)?),
+        "--input-format" => o.input_format = Some(standard_format(&value)?),
         "--block" => o.block = Some(value.parse().map_err(|_| "invalid block size")?),
         "--block-size" => {
             o.block = Some(
@@ -294,6 +331,11 @@ fn finish_parse(o: &mut Opt, mut files: Vec<String>) -> Result<(), String> {
     if o.decode && !o.memory_set {
         o.memory = 2 * 1024 * 1024 * 1024;
     }
+    if (o.output_format.is_some() || o.input_format.is_some()) && !o.memory_set {
+        // Brotli's admitted one-shot workspace is 512 MiB in addition to
+        // retained source and bounded output.
+        o.memory = 1024 * 1024 * 1024;
+    }
     Ok(())
 }
 
@@ -336,12 +378,165 @@ pub use crate::core::engine::*;
 
 fn selected_output_path(o: &Opt) -> String {
     o.output.clone().unwrap_or_else(|| {
+        if let Some(format) = o.output_format {
+            if o.input == "-" {
+                return "-".into();
+            }
+            let suffix = match format {
+                StandardFormat::Gzip => "gz",
+                StandardFormat::Zlib => "zlib",
+                StandardFormat::Deflate => "deflate",
+                StandardFormat::Bzip2 => "bz2",
+                StandardFormat::Xz => "xz",
+                StandardFormat::Zstd => "zst",
+                StandardFormat::Brotli => "br",
+                StandardFormat::Lz4Frame => "lz4",
+                StandardFormat::SnappyFramed => "sz",
+            };
+            return format!("{}.{}", o.input, suffix);
+        }
         if o.decode {
             cixf1_original_name(&o.input).unwrap_or_else(|| default_output(&o.input, true))
         } else {
             default_output(&o.input, false)
         }
     })
+}
+
+fn standard_mode(o: &Opt) -> Option<StandardFormat> {
+    if o.decode {
+        o.input_format
+    } else {
+        o.output_format
+    }
+}
+
+fn validate_standard_options(o: &Opt) -> Result<(), String> {
+    if o.output_format.is_some() && o.input_format.is_some() {
+        return Err("--output-format and --input-format cannot be combined".into());
+    }
+    if o.output_format.is_some() && o.decode {
+        return Err("--output-format is an encoding option; use --input-format to decode".into());
+    }
+    if o.input_format.is_some() && !o.decode {
+        return Err("--input-format requires decode mode (-d, -t, or uncix)".into());
+    }
+    if standard_mode(o).is_none() {
+        return Ok(());
+    }
+    if o.list
+        || o.format_set
+        || o.route.is_some()
+        || o.backend_set
+        || o.external_backend.is_some()
+        || o.portfolio.is_some()
+        || o.stream
+        || o.flush_interval.is_some()
+        || o.history != 0
+        || o.independent_blocks
+        || o.block.is_some()
+        || o.profile_set
+        || o.parallelism_set
+        || o.threads_set
+    {
+        return Err("standard formats conflict with CIX container, route, backend, portfolio, stream, history, block, profile, parallelism, or thread overrides".into());
+    }
+    if o.decode && o.level_set {
+        return Err(
+            "compression effort options cannot be used while decoding a standard stream".into(),
+        );
+    }
+    Ok(())
+}
+
+fn read_standard_input(mut source: File, memory: usize) -> Result<Vec<u8>, String> {
+    let cap = standard_formats::MAX_STANDARD_INPUT;
+    if source
+        .metadata()
+        .is_ok_and(|metadata| metadata.is_file() && metadata.len() > cap as u64)
+    {
+        return Err("standard format input exceeds 128 MiB".into());
+    }
+    if memory == 0 {
+        return Err("standard format memory limit must be non-zero".into());
+    }
+    let mut bytes = Vec::new();
+    let mut chunk = [0u8; 64 << 10];
+    loop {
+        let read = source.read(&mut chunk).map_err(engine::ioerr)?;
+        if read == 0 {
+            break;
+        }
+        let next = bytes
+            .len()
+            .checked_add(read)
+            .ok_or("standard format input size overflow")?;
+        if next > cap {
+            return Err("standard format input exceeds 128 MiB".into());
+        }
+        if next.checked_add(bytes.capacity()).and_then(|n| n.checked_add(chunk.len()))
+            .is_none_or(|n| n > memory) {
+            return Err("standard format input exceeds memory limit".into());
+        }
+        bytes
+            .try_reserve_exact(read)
+            .map_err(|_| "standard input allocation failed")?;
+        if bytes.capacity() > memory {
+            return Err("standard format input buffer exceeds memory limit".into());
+        }
+        bytes.extend_from_slice(&chunk[..read]);
+    }
+    Ok(bytes)
+}
+
+fn execute_standard<R: Write>(o: &Opt, destination: &mut R) -> Result<(), String> {
+    let source = read_standard_input(open_input(&o.input)?, o.memory)?;
+    let memory_limit = o
+        .memory
+        .checked_sub(source.capacity().saturating_sub(source.len()))
+        .ok_or("standard input buffer exceeds memory limit")?;
+    let output_limit = if o.decode {
+        standard_formats::MAX_STANDARD_INPUT
+    } else {
+        source
+            .len()
+            .saturating_add(2 << 20)
+            .min(standard_formats::MAX_STANDARD_INPUT)
+    };
+    let options = StandardOptions {
+        level: o.level,
+        output_limit,
+        memory_limit,
+    };
+    let output = if o.decode {
+        standard_formats::decode(
+            o.input_format.expect("validated input format"),
+            &source,
+            &options,
+        )
+    } else {
+        standard_formats::encode(
+            o.output_format.expect("validated output format"),
+            &source,
+            &options,
+        )
+    }
+    .map_err(|error| error.to_string())?;
+    destination.write_all(&output).map_err(engine::ioerr)
+}
+
+fn execute_standard_to_stdout(o: &Opt) -> Result<(), String> {
+    let mut lock = engine::stdout_writer::StdoutWriter::new().map_err(engine::ioerr)?;
+    execute_standard(o, &mut lock)
+}
+
+fn execute_standard_to_file(o: &Opt, out: &str) -> Result<(), String> {
+    if o.input == out {
+        return Err("input and output paths must differ".into());
+    }
+    atomic_file(out, o.force, |destination| execute_standard(o, destination))?;
+    eprintln!("{out}");
+    Ok(())
 }
 
 fn verify_or_list(o: &Opt) -> Result<bool, String> {
@@ -429,6 +624,20 @@ fn execute_to_file(
 fn run() -> Result<(), String> {
     let mut o = parse()?;
     validate_options(&mut o)?;
+    if standard_mode(&o).is_some() {
+        if o.test {
+            execute_standard(&o, &mut io::sink())?;
+            eprintln!("archive OK");
+            return Ok(());
+        }
+        let out = selected_output_path(&o);
+        if o.stdout || out == "-" {
+            execute_standard_to_stdout(&o)?;
+        } else {
+            execute_standard_to_file(&o, &out)?;
+        }
+        return Ok(());
+    }
     let block = prepare_block(&mut o)?;
     let forced = o.route.as_deref().filter(|r| *r != "auto");
     validate_candidate_selection(&o, forced)?;
@@ -456,7 +665,9 @@ fn run() -> Result<(), String> {
 }
 
 pub fn main_entry() {
-    if let Err(e) = ctrlc::set_handler(|| engine::limits::INTERRUPTED.store(true, Ordering::Relaxed)) {
+    if let Err(e) =
+        ctrlc::set_handler(|| engine::limits::INTERRUPTED.store(true, Ordering::Relaxed))
+    {
         eprintln!("cix: could not install interrupt handler: {e}");
         process::exit(2);
     }
@@ -469,47 +680,90 @@ pub fn main_entry() {
 /// Full-engine-only route trial.  The SDK never installs this callback, so a
 /// buffer/stream encode cannot discover the executable or create a child.
 pub(crate) fn portfolio_cix_candidate(
-    data: &[u8], level: u8, memory: usize, retained_bytes: usize,
-    route: Option<&str>, timeout_seconds: u64,
+    data: &[u8],
+    level: u8,
+    memory: usize,
+    retained_bytes: usize,
+    route: Option<&str>,
+    timeout_seconds: u64,
 ) -> Result<Option<Vec<u8>>, String> {
     use std::process::{Command, Stdio};
     let input_len = data.len();
     let output_cap = input_len.saturating_mul(2).saturating_add(2 * 1024 * 1024);
-    let child_memory = memory.checked_sub(retained_bytes)
+    let child_memory = memory
+        .checked_sub(retained_bytes)
         .and_then(|value| value.checked_sub(input_len))
         .and_then(|value| value.checked_sub(output_cap));
-    let Some(child_memory) = child_memory else { return Ok(None) };
-    if child_memory < 128 * 1024 { return Ok(None) }
+    let Some(child_memory) = child_memory else {
+        return Ok(None);
+    };
+    if child_memory < 128 * 1024 {
+        return Ok(None);
+    }
     let executable = env::current_exe().map_err(engine::ioerr)?;
     let mut command = Command::new(executable);
-    command.arg(format!("-{level}"))
+    command
+        .arg(format!("-{level}"))
         .args(["--format", "cixg1", "--stream", "--block-size", "65536B"])
-        .arg("--memory").arg(format!("{child_memory}B"))
+        .arg("--memory")
+        .arg(format!("{child_memory}B"))
         .args(["--threads", "1", "-c"]);
-    if let Some(route) = route { command.args(["--route", route]); }
-    command.arg("-").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::null());
+    if let Some(route) = route {
+        command.args(["--route", route]);
+    }
+    command
+        .arg("-")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null());
     let mut child = command.spawn().map_err(engine::ioerr)?;
-    let mut child_stdin = child.stdin.take().ok_or("portfolio child stdin unavailable")?;
+    let mut child_stdin = child
+        .stdin
+        .take()
+        .ok_or("portfolio child stdin unavailable")?;
     let input = data.to_vec();
     let writer = thread::spawn(move || child_stdin.write_all(&input));
-    let child_stdout = child.stdout.take().ok_or("portfolio child stdout unavailable")?;
+    let child_stdout = child
+        .stdout
+        .take()
+        .ok_or("portfolio child stdout unavailable")?;
     let reader = thread::spawn(move || {
         let mut out = Vec::with_capacity(input_len.saturating_add(1024));
-        child_stdout.take(output_cap as u64).read_to_end(&mut out).map(|_| out)
+        child_stdout
+            .take(output_cap as u64)
+            .read_to_end(&mut out)
+            .map(|_| out)
     });
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(timeout_seconds);
     let status = loop {
         if let Err(error) = engine::check_interrupted() {
-            let _ = child.kill(); let _ = child.wait(); let _ = writer.join(); let _ = reader.join();
+            let _ = child.kill();
+            let _ = child.wait();
+            let _ = writer.join();
+            let _ = reader.join();
             return Err(error);
         }
-        if let Some(status) = child.try_wait().map_err(engine::ioerr)? { break Some(status) }
-        if std::time::Instant::now() >= deadline { let _ = child.kill(); let _ = child.wait(); break None }
+        if let Some(status) = child.try_wait().map_err(engine::ioerr)? {
+            break Some(status);
+        }
+        if std::time::Instant::now() >= deadline {
+            let _ = child.kill();
+            let _ = child.wait();
+            break None;
+        }
         thread::sleep(std::time::Duration::from_millis(10));
     };
     let _ = writer.join();
-    let output = reader.join().map_err(|_| "portfolio child output thread panicked")?.map_err(engine::ioerr)?;
-    Ok(match status { Some(status) if status.success() && !output.is_empty() && output.len() < output_cap => Some(output), _ => None })
+    let output = reader
+        .join()
+        .map_err(|_| "portfolio child output thread panicked")?
+        .map_err(engine::ioerr)?;
+    Ok(match status {
+        Some(status) if status.success() && !output.is_empty() && output.len() < output_cap => {
+            Some(output)
+        }
+        _ => None,
+    })
 }
 pub(crate) fn cixf1_original_name(input: &str) -> Option<String> {
     if input == "-" {
@@ -619,7 +873,11 @@ fn block_min(o: &Opt) -> usize {
     o.block.unwrap_or(default_block(o.level)).min(MAX_BLOCK) as usize
 }
 
-pub(crate) fn automatic_persistent_stream_eligible(o: &Opt, whole_archive_best: bool, block: u32) -> bool {
+pub(crate) fn automatic_persistent_stream_eligible(
+    o: &Opt,
+    whole_archive_best: bool,
+    block: u32,
+) -> bool {
     o.level >= 9
         && !whole_archive_best
         && !o.decode
@@ -986,6 +1244,10 @@ fn validate_route_name(o: &Opt) -> Result<(), String> {
 }
 
 pub(crate) fn validate_options(o: &mut Opt) -> Result<(), String> {
+    validate_standard_options(o)?;
+    if standard_mode(o).is_some() {
+        return Ok(());
+    }
     validate_execution_mode(o)?;
     apply_native_profile(o)?;
     validate_threads_and_format(o)?;

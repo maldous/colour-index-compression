@@ -287,7 +287,7 @@ fn range_decode(payload: &[u8], bits: usize, counts: &[usize]) -> Result<Vec<u8>
     Ok(out)
 }
 
-fn type_class_encode(data: &[u8], force_range: bool) -> Result<Vec<u8>, String> {
+pub(crate) fn type_class_encode(data: &[u8], force_range: bool) -> Result<Vec<u8>, String> {
     let counts = type_counts(data);
     let active = counts
         .iter()
@@ -367,7 +367,7 @@ fn remaining_rank(ids: &[usize], counts: &[usize]) -> Result<BigUint, String> {
     Ok(rank)
 }
 
-fn type_class_decode(data: &[u8], mut at: usize, n: usize) -> Result<(Vec<u8>, usize), String> {
+pub(crate) fn type_class_decode(data: &[u8], mut at: usize, n: usize) -> Result<(Vec<u8>, usize), String> {
     let (encoded_n, next) = vdecode(data, at)?;
     at = next;
     if usize::try_from(encoded_n).map_err(|_| "type-class length overflow")? != n {

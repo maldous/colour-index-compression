@@ -40,6 +40,8 @@ if(NOT TARGET CIX::native)
         pkg_check_modules(CIX_ZSTD REQUIRED IMPORTED_TARGET libzstd)
         pkg_check_modules(CIX_BROTLI_ENC REQUIRED IMPORTED_TARGET libbrotlienc)
         pkg_check_modules(CIX_BROTLI_DEC REQUIRED IMPORTED_TARGET libbrotlidec)
+        find_library(CIX_LZ4_LIBRARY NAMES lz4 REQUIRED)
+        find_library(CIX_SNAPPY_LIBRARY NAMES snappy REQUIRED)
         find_package(Threads REQUIRED)
         if(APPLE)
             # Use the active consumer toolchain's standard library search path.
@@ -55,7 +57,7 @@ if(NOT TARGET CIX::native)
             message(FATAL_ERROR "CIX static SDK packaging has no qualified non-Linux/non-Apple runtime layout")
         endif()
         set_property(TARGET CIX::native APPEND PROPERTY INTERFACE_LINK_LIBRARIES
-            "ZLIB::ZLIB;BZip2::BZip2;LibLZMA::LibLZMA;PkgConfig::CIX_ZSTD;PkgConfig::CIX_BROTLI_ENC;PkgConfig::CIX_BROTLI_DEC;${CIX_STATIC_PLATFORM_LIBRARIES}")
+            "ZLIB::ZLIB;BZip2::BZip2;LibLZMA::LibLZMA;PkgConfig::CIX_ZSTD;PkgConfig::CIX_BROTLI_ENC;PkgConfig::CIX_BROTLI_DEC;${CIX_LZ4_LIBRARY};${CIX_SNAPPY_LIBRARY};${CIX_STATIC_PLATFORM_LIBRARIES}")
     endif()
 endif()
 

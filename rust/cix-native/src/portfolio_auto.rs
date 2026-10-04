@@ -6,11 +6,11 @@
 //! changes the streaming path: it reads the source once, rejects a metadata
 //! race, and owns every whole-input allocation explicitly.
 
+use super::Opt;
 use crate::core::engine::{
     check_interrupted, decode, encode_m6, encode_with_strategy, external, ioerr, EncodeOptions,
     MAX_BLOCK,
 };
-use super::Opt;
 use std::fs::{self, File, Metadata};
 use std::io::{self, Read, Write};
 use std::time::{Duration, Instant};
@@ -988,7 +988,8 @@ mod tests {
         // Materialize this bounded model directly: a debug selector can
         // legitimately time out the trial and choose raw, which would not
         // exercise the decoder's large-model admission being tested.
-        let payload = crate::core::engine::fixedmix::encode_with_history_eta(&data, &[], 6).unwrap();
+        let payload =
+            crate::core::engine::fixedmix::encode_with_history_eta(&data, &[], 6).unwrap();
         let hash: [u8; 32] = Sha256::digest(&data).into();
         output.write_all(crate::core::engine::MAGIC_V2).unwrap();
         output.write_all(&MAX_BLOCK.to_le_bytes()).unwrap();

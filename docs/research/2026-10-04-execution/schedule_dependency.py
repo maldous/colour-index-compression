@@ -1,7 +1,7 @@
 """Use the release resource lease for explicitly networked build provisioning.
 
 Compression/qualification jobs retain their offline runner. This adapter only
-accepts the pinned libjxl provision script with a separate immutable identity.
+accepts pinned libjxl provisioning or the pinned codec SDK package manifest.
 It changes no resource, user, privilege, or filesystem enforcement.
 """
 import importlib.util
@@ -16,7 +16,9 @@ script = Path(spec["command"][1]).resolve()
 if (spec.get("purpose") != "pinned-build-dependency-provision"
         or spec["command"][0] != "python3"
         or script.parent.parent != AREA / "jobs"
-        or not script.parent.name.startswith("jxl-provision-v")
+        or not (script.parent.name.startswith("jxl-provision-v")
+                or (script.parent.name == "codec-sdk-provision-v1"
+                    and (script.parent / "packages.json").is_file()))
         or script.name != "run.py"):
     raise SystemExit("only explicit pinned build dependency provisioning is admitted")
 original = subprocess.run

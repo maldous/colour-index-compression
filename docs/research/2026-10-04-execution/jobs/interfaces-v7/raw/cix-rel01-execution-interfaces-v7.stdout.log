@@ -1,0 +1,208 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'build', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/Cargo.toml', '--lib', '--bin', 'cix']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/Cargo.toml', '--lib', 'full_engine::selection::', '--', '--test-threads=2']
+
+running 5 tests
+test full_engine::selection::cancellation_regressions::cancellation_after_raw_never_returns_archive ... ok
+test full_engine::selection::cancellation_regressions::panicking_worker_is_recorded_without_scheduler_hang ... ok
+test full_engine::selection::cancellation_regressions::pre_cancel_is_terminal ... ok
+test full_engine::selection::tests::default_marks_paq_specialists_as_profile_omitted ... ok
+test full_engine::selection::tests::first_priority_wins_equal_complete_frames_and_generic_trials_overlap ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 219 filtered out; finished in 0.01s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/Cargo.toml', '--lib', 'full_engine::mixed_selection::', '--', '--test-threads=2']
+
+running 4 tests
+test full_engine::mixed_selection::tests::generic_competition_preserves_stored_bytes_when_backends_fail ... ok
+test full_engine::mixed_selection::tests::late_and_interleaved_regions_remain_complete_partitions ... ok
+test full_engine::mixed_selection::tests::round_robin_alternates_catalogue_families ... ok
+test full_engine::mixed_selection::tests::default_profile_round_trips_interleaved_regions_through_native_providers ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 220 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/Cargo.toml', '--lib', 'full_engine::spatial_provider::', '--', '--test-threads=2']
+
+running 3 tests
+test full_engine::spatial_provider::tests::decode_admission_requires_working_estimate_before_output_allocation ... ok
+test full_engine::spatial_provider::tests::conservative_admission_counts_all_cix_owned_encode_copies ... ok
+test full_engine::spatial_provider::tests::packaged_bridge_roundtrips_tiny_lossless_spatial_codecs ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 221 filtered out; finished in 0.01s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/Cargo.toml', '--lib', 'full_engine::grid_context::', '--', '--test-threads=2']
+
+running 2 tests
+test full_engine::grid_context::tests::grid_context_raw_fixture_identity_and_reference_inverse ... ok
+test full_engine::grid_context::tests::grid_context_frame_identity_crc_trailing_and_caps ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 222 filtered out; finished in 0.01s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/Cargo.toml', '--lib', 'full_engine::backend_provider::', '--', '--test-threads=2']
+
+running 3 tests
+test full_engine::backend_provider::tests::direct_raw_decoders_reject_unrepresentable_output_caps ... ok
+test full_engine::backend_provider::tests::request_stops_and_memory_limits_precede_provider_work ... ok
+test full_engine::backend_provider::tests::native_payloads_are_exact_and_reject_trailing_truncated_and_capped_output ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 221 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/Cargo.toml', '--lib', 'frozen_ecoff_relation_vectors', '--', '--test-threads=2']
+
+running 1 test
+test full_engine::address_relations::tests::frozen_ecoff_relation_vectors_match_native_raw_transforms_and_inverses ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 223 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/Cargo.toml', '--test', 'standard_formats_contract', '--test', 'dictionary_contract', '--test', 'standard_formats_cli', '--test', 'c_format_contract', '--', '--test-threads=2']
+
+running 2 tests
+test null_empty_and_alias_validation_do_not_create_invalid_borrows ... ok
+test all_standard_formats_cross_buffer_roundtrip_and_sizing ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+
+running 2 tests
+test dictionary_contract_rejects_invalid_training_and_trailing ... ok
+test dictionary_contract_roundtrip_wrong_identity_and_cap ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 3 tests
+test raw_deflate_requires_explicit_input_format_and_cix_overrides_are_rejected ... ok
+test small_standard_memory_fails_before_large_buffer_admission ... ok
+test explicit_standard_format_roundtrips_without_cix_envelope ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.63s
+
+
+running 4 tests
+test limits_are_checked_before_output_allocation_and_empty_is_valid ... ok
+test each_format_emits_its_native_stream_and_roundtrips ... ok
+test standard_magic_and_cross_decoder_contracts ... ok
+test rejects_truncated_trailing_and_concatenated_streams ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+CHECK ['python3', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/interfaces-v7/check_sdk_install.py', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1', 'interfaces-v7']
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/packaging/sdk', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-interfaces-v7', '-G', 'Ninja', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/libcix_native.so', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-interfaces-v7']
+-- The C compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-interfaces-v7
+SDK_CHECK ['cmake', '--install', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-interfaces-v7']
+-- Install configuration: ""
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-interfaces-v7/include/cix.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-interfaces-v7/include/cix.hpp
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-interfaces-v7/include/cix_stream.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-interfaces-v7/include/cix_formats.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-interfaces-v7/lib/libcix_native.so
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-interfaces-v7/lib/cmake/CIX/CIXConfig.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-interfaces-v7/lib/cmake/CIX/CIXConfigVersion.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-interfaces-v7/lib/pkgconfig/cix-native.pc
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-interfaces-v7/share/doc/CIXSDK/README.md
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/packaging/sdk/tests', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-interfaces-v7', '-G', 'Ninja', '-DCMAKE_PREFIX_PATH=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-interfaces-v7']
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-interfaces-v7
+SDK_CHECK ['cmake', '--build', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-interfaces-v7', '--parallel', '2']
+[1/6] Building C object CMakeFiles/cix_installed_stream_consumer.dir/c_stream_installed_consumer.c.o
+[2/6] Linking C executable cix_installed_stream_consumer
+[3/6] Building C object CMakeFiles/cix_installed_format_consumer.dir/c_format_installed_consumer.c.o
+[4/6] Linking C executable cix_installed_format_consumer
+[5/6] Building CXX object CMakeFiles/cix_installed_cpp_consumer.dir/cpp_installed_consumer.cpp.o
+[6/6] Linking CXX executable cix_installed_cpp_consumer
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-interfaces-v7/cix_installed_cpp_consumer']
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-interfaces-v7/cix_installed_stream_consumer']
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-interfaces-v7/cix_installed_format_consumer']
+SDK_CHECK ['cc', '-std=c11', '-Wall', '-Wextra', '-Werror', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/tests/c_api_consumer.c', '-o', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-interfaces-v7/c_installed_consumer', '-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-interfaces-v7/lib/pkgconfig/../../include', '-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-interfaces-v7/lib/pkgconfig/../../lib', '-lcix_native', '-Wl,-rpath,/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-interfaces-v7/lib']
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-interfaces-v7/c_installed_consumer']
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/packaging/sdk', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-interfaces-v7', '-G', 'Ninja', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/libcix_native.a', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-interfaces-v7']
+-- The C compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-interfaces-v7
+SDK_CHECK ['cmake', '--install', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-interfaces-v7']
+-- Install configuration: ""
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-interfaces-v7/include/cix.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-interfaces-v7/include/cix.hpp
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-interfaces-v7/include/cix_stream.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-interfaces-v7/include/cix_formats.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-interfaces-v7/lib/libcix_native.a
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-interfaces-v7/lib/cmake/CIX/CIXConfig.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-interfaces-v7/lib/cmake/CIX/CIXConfigVersion.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-interfaces-v7/lib/pkgconfig/cix-native.pc
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-interfaces-v7/share/doc/CIXSDK/README.md
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/packaging/sdk/tests', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-interfaces-v7', '-G', 'Ninja', '-DCMAKE_PREFIX_PATH=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-relocated-interfaces-v7']
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.3")  
+-- Found BZip2: /usr/lib/x86_64-linux-gnu/libbz2.so (found version "1.0.8") 
+-- Looking for BZ2_bzCompressInit
+-- Looking for BZ2_bzCompressInit - found
+-- Looking for lzma_auto_decoder in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_auto_decoder in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Looking for lzma_easy_encoder in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_easy_encoder in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Looking for lzma_lzma_preset in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_lzma_preset in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Found LibLZMA: /usr/lib/x86_64-linux-gnu/liblzma.so (found version "5.4.5") 
+-- Found PkgConfig: /usr/bin/pkg-config (found version "1.8.1") 
+-- Checking for module 'libzstd'
+--   Found libzstd, version 1.5.5
+-- Checking for module 'libbrotlienc'
+--   Found libbrotlienc, version 1.1.0
+-- Checking for module 'libbrotlidec'
+--   Found libbrotlidec, version 1.1.0
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-interfaces-v7
+SDK_CHECK ['cmake', '--build', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-interfaces-v7', '--parallel', '2']
+[1/6] Building C object CMakeFiles/cix_installed_stream_consumer.dir/c_stream_installed_consumer.c.o
+[2/6] Building CXX object CMakeFiles/cix_installed_cpp_consumer.dir/cpp_installed_consumer.cpp.o
+[3/6] Linking C executable cix_installed_stream_consumer
+[4/6] Building C object CMakeFiles/cix_installed_format_consumer.dir/c_format_installed_consumer.c.o
+[5/6] Linking CXX executable cix_installed_cpp_consumer
+[6/6] Linking C executable cix_installed_format_consumer
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-interfaces-v7/cix_installed_cpp_consumer']
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-interfaces-v7/cix_installed_stream_consumer']
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-interfaces-v7/cix_installed_format_consumer']
+SDK_CHECK ['cc', '-std=c11', '-Wall', '-Wextra', '-Werror', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v7/tests/c_api_consumer.c', '-o', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-interfaces-v7/c_installed_consumer', '-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-relocated-interfaces-v7/lib/pkgconfig/../../include', '-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-relocated-interfaces-v7/lib/pkgconfig/../../lib', '-lcix_native', '-lbz2', '-llzma', '-llz4', '-lsnappy', '-lstdc++', '-lm', '-ldl', '-lpthread', '-lrt', '-lutil', '-lz', '-lzstd', '-pthread', '-lbrotlienc', '-lbrotlicommon', '-lbrotlidec', '-lbrotlicommon', '-Wl,-rpath,/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-relocated-interfaces-v7/lib']
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-interfaces-v7/c_installed_consumer']

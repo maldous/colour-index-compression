@@ -10,4 +10,4 @@ Libs: -L${libdir} -lcix_native
 Cflags: -I${includedir}
 # Linux static consumers must also resolve the selected target's codec, Rust runtime, and build.rs C++ runtime links.
 Requires.private: zlib libzstd libbrotlienc libbrotlidec
-Libs.private: -lbz2 -llzma -lstdc++ -lm -ldl -lpthread -lrt -lutil
+Libs.private: -lbz2 -llzma -llz4 -lsnappy -lstdc++ -lm -ldl -lpthread -lrt -lutil

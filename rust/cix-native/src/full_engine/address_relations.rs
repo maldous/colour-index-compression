@@ -2629,6 +2629,10 @@ mod tests {
         const AMBIGUOUS: &[u8] =
             include_bytes!("../../tests/fixtures/address_relations/ambiguous_source.bin");
         assert_eq!(
+            pointer_delta_transform(SOURCE, 5).unwrap(),
+            include_bytes!("../../tests/fixtures/address_relations/pointer_delta_mode5.raw")
+        );
+        assert_eq!(
             section_pointer_transform(SOURCE, 4).unwrap(),
             include_bytes!("../../tests/fixtures/address_relations/section_mode4.raw")
         );
@@ -2649,6 +2653,13 @@ mod tests {
         assert_eq!(
             pdata_symbols_transform(SOURCE, 1).unwrap(),
             include_bytes!("../../tests/fixtures/address_relations/pdata_symbols_mode1.raw")
+        );
+        assert_eq!(
+            pointer_delta_inverse(include_bytes!(
+                "../../tests/fixtures/address_relations/pointer_delta_mode5.raw"
+            ))
+            .unwrap(),
+            SOURCE
         );
         assert_eq!(
             section_pointer_inverse(include_bytes!(

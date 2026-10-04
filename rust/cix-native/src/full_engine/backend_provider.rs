@@ -107,16 +107,8 @@ impl BackendProvider {
             BackendVariant::Zlib { level } => {
                 external::raw_zlib_encode(input, level, r.output_limit)
             }
-            BackendVariant::Xz { preset } => external::raw_xz_encode(
-                input,
-                match preset {
-                    0 => "fast",
-                    6 => "default",
-                    9 => "size",
-                    _ => return Err("unsupported XZ preset".into()),
-                },
-                r.output_limit,
-            ),
+            BackendVariant::Xz { preset } =>
+                external::raw_xz_encode_preset(input, preset, r.output_limit),
             BackendVariant::Brotli { quality, lgwin } => {
                 external::raw_brotli_encode(input, quality, lgwin, r.output_limit)
             }
@@ -184,7 +176,7 @@ impl BackendProvider {
     }
     fn state_bytes(&self, variant: BackendVariant) -> Result<usize, String> {
         match variant {
-            BackendVariant::Xz { preset } if matches!(preset, 0 | 6 | 9) => {
+            BackendVariant::Xz { preset } if preset <= 9 => {
                 external::xz_easy_memory_usage(preset)
                     .try_into()
                     .map_err(|_| "XZ memory estimate overflow".into())
@@ -306,6 +298,7 @@ mod tests {
         for variant in [
             BackendVariant::Zlib { level: 6 },
             BackendVariant::Xz { preset: 0 },
+            BackendVariant::Xz { preset: 3 },
             BackendVariant::Brotli {
                 quality: 4,
                 lgwin: 18,

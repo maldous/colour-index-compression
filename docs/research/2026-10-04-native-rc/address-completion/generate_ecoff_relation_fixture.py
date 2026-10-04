@@ -15,6 +15,7 @@ from pathlib import Path
 from cix_runtime.legacy import (
     ecoff_pdata,
     ecoff_pdata_symbols,
+    ecoff_pointer_deltas,
     ecoff_section_pointers,
     ecoff_symbol_loads,
 )
@@ -74,13 +75,15 @@ def main():
     load_raw, load_stats = ecoff_symbol_loads.transform(source, 2)
     pdata_raw, pdata_stats = ecoff_pdata.transform(source, 1)
     combined_raw, combined_stats = ecoff_pdata_symbols.transform(source, 1)
-    print(json.dumps({"section": section_stats, "symbol_load": load_stats, "pdata": pdata_stats, "pdata_symbols": combined_stats}, sort_keys=True), file=sys.stderr)
+    pointer_raw, pointer_stats = ecoff_pointer_deltas.transform(source, 5)
+    print(json.dumps({"pointer_delta": pointer_stats, "section": section_stats, "symbol_load": load_stats, "pdata": pdata_stats, "pdata_symbols": combined_stats}, sort_keys=True), file=sys.stderr)
+    assert pointer_stats["mapped_pointers"] >= 1 and pointer_stats["small_residuals"] >= 1
     assert section_stats["eligible_pointers"] >= 1 and section_stats["in_candidates"] >= 1
     assert load_stats["eligible_loads"] >= 1 and load_stats["normalized_loads"] >= 1
     assert pdata_stats["tables"] >= 1
     assert struct.unpack_from("<I", pdata_raw, 0x468)[0] == 4
     assert combined_stats["predicted_addresses"] >= 1
-    for raw, inverse in ((section_raw, ecoff_section_pointers.inverse), (load_raw, ecoff_symbol_loads.inverse), (pdata_raw, ecoff_pdata.inverse), (combined_raw, ecoff_pdata_symbols.inverse)):
+    for raw, inverse in ((pointer_raw, ecoff_pointer_deltas.inverse), (section_raw, ecoff_section_pointers.inverse), (load_raw, ecoff_symbol_loads.inverse), (pdata_raw, ecoff_pdata.inverse), (combined_raw, ecoff_pdata_symbols.inverse)):
         assert inverse(raw) == source
     ambiguous = bytearray(source)
     # Mapping both duplicate names gives _maps an ambiguous two-slot name. The
@@ -93,12 +96,14 @@ def main():
     args.output.write_text(json.dumps({
         "schema": "cix.ecoff-relation-fixture.v1",
         "source_hex": source.hex(),
+        "pointer_delta_mode5_hex": pointer_raw.hex(),
         "section_pointer_mode4_hex": section_raw.hex(),
         "symbol_load_mode2_hex": load_raw.hex(),
         "pdata_mode1_hex": pdata_raw.hex(),
         "pdata_symbols_mode1_hex": combined_raw.hex(),
         "symbol_load_ambiguous_mode2_hex": ambiguous_raw.hex(),
         "event_counts": {
+            "pointer_delta": pointer_stats,
             "section": section_stats,
             "symbol_load": load_stats,
             "pdata": pdata_stats,
