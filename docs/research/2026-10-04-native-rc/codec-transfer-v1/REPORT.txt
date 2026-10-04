@@ -1,0 +1,159 @@
+Exact recompression transfer beyond gzip: calibrated cross-codec screen
+2026-10-04
+
+Outcome and interpretation
+
+Within this known-encoder calibration screen, exact recompression transfers to
+bzip2 on both tested real source ranges, with
+complete archive savings of 36 bytes (5.547%) and 85 bytes (2.999%). It also
+improves fast Brotli on one range by 477 bytes (14.768%) and fast XZ on one
+range by 71 bytes (2.518%). All these beat both the original compressed file
+and the strongest declared ordinary second-pass control.
+
+Size-focused Brotli, XZ and Zstandard lose on both ranges. Fast Zstandard
+becomes much smaller than its original almost-stored stream, but ordinary
+second-pass compression is smaller still; it is NOT a reconstruction-method
+win. The other fast Brotli input ties the original and does not count as a win.
+
+This experiment is an encoder-calibration/reproduction screen. It uses 16
+preexisting compressed streams from the earlier codec-profiles experiment:
+TWO underlying real 16 KiB ranges, each repeated across four codecs and two
+source-effort profiles. They are repeated measurements, not 16 independent
+corpus observations. The recipes explicitly include historical source settings.
+Every selected reference reproduced its original compressed stream EXACTLY;
+therefore every selected correction residual is all zero. The main result is
+that known encoder outputs can sometimes be stored more compactly by coding
+their underlying contents differently and retaining the reproduction recipe.
+It does not demonstrate learned native token prediction, robustness to unknown
+encoders or a new information-theoretic mechanism.
+
+Selection and frozen method
+
+The sources are the existing exposed golf JSON and fcbench-mhd numerical
+ranges from docs/research/2026-09-30-codec-profiles. Existing candidate.bin,
+restored.bin and manifest identities were checked before the run. No current
+source was recompressed to create a favorable primary input; all primary
+compressed streams predate this experiment. Synthetic recipe fixtures validate
+only and are excluded from the real tables. No production behavior changed,
+no corpus was acquired and no stopped RC benchmark was restarted.
+
+plan.json freezes source/manifest hashes, the 21-recipe dictionary, runtime,
+script hash, controls, fixed tie order and resource bounds before execution.
+Recipes include XZ presets 0/1/6/9-extreme with CRC32/CRC64, bzip2 levels1/9,
+Zstandard levels -131072/3/19/22 with checksum off/on, and Brotli quality0/5/11.
+Zstandard uses known content size and no workers; Brotli uses generic mode and
+lgwin22. Recipes are searched only within the known source codec family. Each
+recipe is a fixed format ID and is paid in the archive; the decoder receives
+that ID and does not need an external source-family hint.
+
+Paid plaintext alternatives are XZ preset1 and preset6, each explicitly tagged.
+The outer coder is fixed XZ preset1. Selection is a finite offline portfolio
+with every winner's recipe/coder information stored, not an unpaid hindsight
+symbol oracle. No recipe was added or adjusted after observing these results.
+
+Physical format and exact reconstruction
+
+CTR1 consists of four magic bytes and a one-byte mode, followed for mode3 by
+xz1(body). The decoded body contains recipe ID:u8, inner-XZ preset:u8, original
+compressed size:u64le, plaintext size:u64le, inner stream size:u64le, runtime
+identity SHA256:32 bytes, inner compressed plaintext and an exactly-original-
+compressed-size residual. At overlapping positions residual = original XOR
+reference; any original tail beyond the reference is copied literally. Excess
+regenerated reference bytes are ignored. These rules handle unequal lengths.
+
+The inverse recovers the paid plaintext first, regenerates the selected
+compressed reference, and reverses the residual to recover every original
+compressed byte. All reference settings and dependency versions are fixed by
+the grammar/runtime identity. A version fingerprint is a prototype guard, not
+a portable cross-runtime specification; fixed reference implementations are
+needed before any enduring format can be proposed.
+
+Every stored component, including plaintext, selector, lengths, runtime field,
+corrections and inner/outer framing is charged. Decoder software is shared,
+not counted as a self-extracting program. The experiment makes no Prize score.
+
+Complete archive results (bytes)
+
+SIZE SOURCE-ENCODER SETTINGS
+Input / family                  Original  Best generic*  Exact re-archive  Change vs original
+fcbench-mhd / brotli                 366            366              609   +66.393%
+fcbench-mhd / bzip2                  649            649              613    -5.547%
+fcbench-mhd / xz                     468            468              609   +30.128%
+fcbench-mhd / zstd                   384            384              609   +58.594%
+golf / brotli                      2,306          2,306            2,749   +19.211%
+golf / bzip2                       2,834          2,834            2,749    -2.999%
+golf / xz                          2,568          2,568            2,749    +7.048%
+golf / zstd                        2,631          2,631            2,749    +4.485%
+
+FAST SOURCE-ENCODER SETTINGS
+Input / family                  Original  Best generic*  Exact re-archive  Change vs original
+fcbench-mhd / brotli                 613            613              613    +0.000%
+fcbench-mhd / bzip2                  649            649              613    -5.547%
+fcbench-mhd / xz                     476            476              609   +27.941%
+fcbench-mhd / zstd                16,398            479              653   -96.018%
+golf / brotli                      3,230          3,230            2,753   -14.768%
+golf / bzip2                       2,834          2,834            2,749    -2.999%
+golf / xz                          2,820          2,820            2,749    -2.518%
+golf / zstd                       16,398          2,593            2,781   -83.041%
+
+* Best generic includes retaining the original unchanged, or a complete CTR1
+  raw/zlib9/xz1/xz6 wrapper, whichever is smallest. This prevents the five-byte
+  raw wrapper from manufacturing a win. Fast and size are properties of the
+  HISTORICAL source encoder, not CIX FAST/DEFAULT/BEST modes.
+
+The selected inner plaintext uses XZ6: 472 bytes for fcbench-mhd and 2,572 bytes
+for golf. The selected complete representation adds 137-209 bytes relative to
+that component. This difference includes the effects of outer XZ coding; it is
+not an independently additive metadata measurement. results.json reports each
+candidate's reference size, residual nonzero count and separately coded residual,
+component times, empty-reference ablation and exactness.
+
+Attribution and sensitivity
+
+All selected references were exact. The code did not obtain source bytes from a
+lookup: it regenerated them from stored plaintext using the paid recipe and
+runtime. Nevertheless, the historical encoder settings were available when
+defining the recipe set, so this is stronger calibration than an unknown-encoder
+test. Two size profiles with identical bzip2 byte lengths are not independent
+replications on different data; the source range is repeated.
+
+After the frozen primary run, sensitivity.json describes existing candidates
+with every byte-exact reference excluded. This is POST-HOC DESCRIPTIVE analysis,
+not a new qualification gate or a changed selection rule. It runs no new codec.
+The bzip2 savings remain 32 bytes and 81 bytes with a one-byte residual difference
+between block-size headers. Golf fast-XZ retains 35 bytes saving with 36 changed
+compressed bytes. The fast-Brotli gain disappears when its exact recipe is
+excluded. Near-identical headers are not evidence of robustness to arbitrary
+foreign encoder decisions. Preserve this limitation explicitly.
+
+Validation and resources
+
+Six unequal/empty residual tests and all 21 reference-recipe fixtures passed.
+All 16 originals decompress to their recorded plaintext hashes. Every generated
+reference decompresses to that same plaintext. Every one of the 168 complete
+real candidate archives passed an in-process original-byte inverse. The best
+reconstruction and best framed generic control per input were each read and
+restored in fresh processes: 32/32 hashes match. Expected source hashes are used
+only for final checking, not reconstruction. Replays use the same reference
+implementation, not a separately implemented production decoder.
+
+The entire run took 1.97 seconds wall, 1.30 seconds user and 0.63 seconds system
+CPU, with 113,444 KiB peak RSS and zero swaps, one pinned CPU8. The budget was
+120 seconds, 1.5 GB address space and 256 MB aggregate retained output. Individual
+candidate/reference encode and fresh-decode measurements are in results.json;
+these tiny samples and one observation are not reliable production throughput.
+All binary archives remain outside Git in benchmark-work/codec-transfer-v1.
+
+Independent read-only review confirmed complete accounting and sound unequal-
+length inversion. Its key qualification was the known-encoder calibration and
+two-source repeated-measures scope, both made explicit above. This prototype
+uses generic compressed-byte corrections, not a native token model for these
+four codecs. No malformed-input hardening, external dictionary support or
+unknown implementation coverage is established by these inputs.
+
+Exactly one evidence-selected next action
+
+Retain bzip2 exact reconstruction as the clearest transfer candidate and qualify
+it on additional existing independently produced archives with source encoder
+settings withheld from recipe design before considering a CIX implementation.
+This report does not authorize a broad benchmark or production promotion.
