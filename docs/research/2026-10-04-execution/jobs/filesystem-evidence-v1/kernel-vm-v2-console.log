@@ -1,0 +1,2564 @@
+[    0.000000] Linux version 6.8.0-142-generic (buildd@lcy02-amd64-049) (x86_64-linux-gnu-gcc-13 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, GNU ld (GNU Binutils for Ubuntu) 2.42) #142-Ubuntu SMP PREEMPT_DYNAMIC Wed Sep  2 14:24:27 UTC 2026 (Ubuntu 6.8.0-142.142-generic 6.8.12)
+[    0.000000] Command line: console=ttyS0 panic=-1
+[    0.000000] KERNEL supported cpus:
+[    0.000000]   Intel GenuineIntel
+[    0.000000]   AMD AuthenticAMD
+[    0.000000]   Hygon HygonGenuine
+[    0.000000]   Centaur CentaurHauls
+[    0.000000]   zhaoxin   Shanghai  
+[    0.000000] BIOS-provided physical RAM map:
+[    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+[    0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
+[    0.000000] BIOS-e820: [mem 0x0000000000100000-0x000000003ffd3fff] usable
+[    0.000000] BIOS-e820: [mem 0x000000003ffd4000-0x000000003fffffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
+[    0.000000] BIOS-e820: [mem 0x000000fd00000000-0x000000ffffffffff] reserved
+[    0.000000] NX (Execute Disable) protection: active
+[    0.000000] APIC: Static calls initialized
+[    0.000000] SMBIOS 3.0.0 present.
+[    0.000000] DMI: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+[    0.000000] tsc: Fast TSC calibration using PIT
+[    0.000000] tsc: Detected 2995.123 MHz processor
+[    0.004355] AGP: No AGP bridge found
+[    0.004514] last_pfn = 0x3ffd4 max_arch_pfn = 0x400000000
+[    0.004991] MTRR map: 4 entries (3 fixed + 1 variable; max 19), built from 8 variable MTRRs
+[    0.005138] x86/PAT: Configuration [0-7]: WB  WC  UC- UC  WB  WP  UC- WT  
+[    0.017241] found SMP MP-table at [mem 0x000f5460-0x000f546f]
+[    0.020444] RAMDISK: [mem 0x3fbab000-0x3ffcffff]
+[    0.020764] ACPI: Early table checksum verification disabled
+[    0.021061] ACPI: RSDP 0x00000000000F5270 000014 (v00 BOCHS )
+[    0.021271] ACPI: RSDT 0x000000003FFE1C96 000034 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
+[    0.021726] ACPI: FACP 0x000000003FFE1B42 000074 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
+[    0.022211] ACPI: DSDT 0x000000003FFE0040 001B02 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
+[    0.022285] ACPI: FACS 0x000000003FFE0000 000040
+[    0.022334] ACPI: APIC 0x000000003FFE1BB6 000080 (v03 BOCHS  BXPC     00000001 BXPC 00000001)
+[    0.022359] ACPI: HPET 0x000000003FFE1C36 000038 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
+[    0.022380] ACPI: WAET 0x000000003FFE1C6E 000028 (v01 BOCHS  BXPC     00000001 BXPC 00000001)
+[    0.022452] ACPI: Reserving FACP table memory at [mem 0x3ffe1b42-0x3ffe1bb5]
+[    0.022468] ACPI: Reserving DSDT table memory at [mem 0x3ffe0040-0x3ffe1b41]
+[    0.022476] ACPI: Reserving FACS table memory at [mem 0x3ffe0000-0x3ffe003f]
+[    0.022482] ACPI: Reserving APIC table memory at [mem 0x3ffe1bb6-0x3ffe1c35]
+[    0.022487] ACPI: Reserving HPET table memory at [mem 0x3ffe1c36-0x3ffe1c6d]
+[    0.022492] ACPI: Reserving WAET table memory at [mem 0x3ffe1c6e-0x3ffe1c95]
+[    0.024159] No NUMA configuration found
+[    0.024181] Faking a node at [mem 0x0000000000000000-0x000000003ffd3fff]
+[    0.024623] NODE_DATA(0) allocated [mem 0x3fb80000-0x3fbaafff]
+[    0.026817] Zone ranges:
+[    0.026845]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
+[    0.026912]   DMA32    [mem 0x0000000001000000-0x000000003ffd3fff]
+[    0.026923]   Normal   empty
+[    0.026938]   Device   empty
+[    0.026950] Movable zone start for each node
+[    0.026972] Early memory node ranges
+[    0.026991]   node   0: [mem 0x0000000000001000-0x000000000009efff]
+[    0.027098]   node   0: [mem 0x0000000000100000-0x000000003ffd3fff]
+[    0.027232] Initmem setup node 0 [mem 0x0000000000001000-0x000000003ffd3fff]
+[    0.028124] On node 0, zone DMA: 1 pages in unavailable ranges
+[    0.028271] On node 0, zone DMA: 97 pages in unavailable ranges
+[    0.038920] On node 0, zone DMA32: 44 pages in unavailable ranges
+[    0.039359] ACPI: PM-Timer IO Port: 0x608
+[    0.039698] ACPI: LAPIC_NMI (acpi_id[0xff] dfl dfl lint[0x1])
+[    0.040038] IOAPIC[0]: apic_id 0, version 32, address 0xfec00000, GSI 0-23
+[    0.040114] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+[    0.040328] ACPI: INT_SRC_OVR (bus 0 bus_irq 5 global_irq 5 high level)
+[    0.040370] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+[    0.040438] ACPI: INT_SRC_OVR (bus 0 bus_irq 10 global_irq 10 high level)
+[    0.040446] ACPI: INT_SRC_OVR (bus 0 bus_irq 11 global_irq 11 high level)
+[    0.040593] ACPI: Using ACPI (MADT) for SMP configuration information
+[    0.040625] ACPI: HPET id: 0x8086a201 base: 0xfed00000
+[    0.040813] smpboot: Allowing 2 CPUs, 0 hotplug CPUs
+[    0.041321] PM: hibernation: Registered nosave memory: [mem 0x00000000-0x00000fff]
+[    0.041352] PM: hibernation: Registered nosave memory: [mem 0x0009f000-0x000fffff]
+[    0.041440] [mem 0x40000000-0xfffbffff] available for PCI devices
+[    0.041483] Booting paravirtualized kernel on bare hardware
+[    0.041670] clocksource: refined-jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1910969940391419 ns
+[    0.042271] setup_percpu: NR_CPUS:8192 nr_cpumask_bits:2 nr_cpu_ids:2 nr_node_ids:1
+[    0.043250] percpu: Embedded 86 pages/cpu s229376 r8192 d114688 u1048576
+[    0.044239] Kernel command line: console=ttyS0 panic=-1
+[    0.045191] Dentry cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)
+[    0.045310] Inode-cache hash table entries: 65536 (order: 7, 524288 bytes, linear)
+[    0.047379] Fallback order for Node 0: 0 
+[    0.047674] Built 1 zonelists, mobility grouping on.  Total pages: 257748
+[    0.047695] Policy zone: DMA32
+[    0.048067] mem auto-init: stack:all(zero), heap alloc:on, heap free:off
+[    0.048167] AGP: Checking aperture...
+[    0.048816] AGP: No AGP bridge found
+[    0.055243] Memory: 970712K/1048008K available (22528K kernel code, 4441K rwdata, 14428K rodata, 4932K init, 4776K bss, 77036K reserved, 0K cma-reserved)
+[    0.177576] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
+[    0.180057] ftrace: allocating 58336 entries in 228 pages
+[    0.209822] ftrace: allocated 228 pages with 4 groups
+[    0.217835] Dynamic Preempt: voluntary
+[    0.221275] rcu: Preemptible hierarchical RCU implementation.
+[    0.221308] rcu: 	RCU restricting CPUs from NR_CPUS=8192 to nr_cpu_ids=2.
+[    0.221388] 	Trampoline variant of Tasks RCU enabled.
+[    0.221395] 	Rude variant of Tasks RCU enabled.
+[    0.221400] 	Tracing variant of Tasks RCU enabled.
+[    0.221487] rcu: RCU calculated value of scheduler-enlistment delay is 100 jiffies.
+[    0.221510] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=2
+[    0.222514] RCU Tasks: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.222542] RCU Tasks Rude: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.222553] RCU Tasks Trace: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.239816] NR_IRQS: 524544, nr_irqs: 440, preallocated irqs: 16
+[    0.247704] rcu: srcu_init: Setting srcu_struct sizes based on contention.
+[    0.252265] Console: colour *CGA 80x25
+[    0.253569] printk: legacy console [ttyS0] enabled
+[    0.261624] ACPI: Core revision 20230628
+[    0.266533] clocksource: hpet: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604467 ns
+[    0.268099] APIC: Switch to symmetric I/O mode setup
+[    0.274556] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+[    0.279642] tsc: Marking TSC unstable due to TSCs unsynchronized
+[    0.280268] Calibrating delay loop (skipped), value calculated using timer frequency.. 5990.24 BogoMIPS (lpj=2995123)
+[    0.283482] process: using AMD E400 aware idle routine
+[    0.283703] Last level iTLB entries: 4KB 512, 2MB 255, 4MB 127
+[    0.283807] Last level dTLB entries: 4KB 512, 2MB 255, 4MB 127, 1GB 0
+[    0.284062] Spectre V1 : Mitigation: usercopy/swapgs barriers and __user pointer sanitization
+[    0.284308] Spectre V2 : Mitigation: Retpolines
+[    0.284373] Spectre V2 : Spectre v2 / SpectreRSB: Filling RSB on context switch and VMEXIT
+[    0.285157] x86/fpu: x87 FPU will use FXSAVE
+[    0.406678] Freeing SMP alternatives memory: 48K
+[    0.407291] pid_max: default: 32768 minimum: 301
+[    0.416058] LSM: initializing lsm=lockdown,capability,landlock,yama,apparmor,integrity
+[    0.417571] landlock: Up and running.
+[    0.417627] Yama: becoming mindful.
+[    0.420958] AppArmor: AppArmor initialized
+[    0.424625] Mount-cache hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    0.424779] Mountpoint-cache hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    0.552799] smpboot: CPU0: AMD QEMU Virtual CPU version 2.5+ (family: 0xf, model: 0x6b, stepping: 0x1)
+[    0.558443] Performance Events: PMU not available due to virtualization, using software events only.
+[    0.559317] signal: max sigframe size: 1440
+[    0.560477] rcu: Hierarchical SRCU implementation.
+[    0.560557] rcu: 	Max phase no-delay instances is 400.
+[    0.567482] NMI watchdog: Perf NMI watchdog permanently disabled
+[    0.569113] smp: Bringing up secondary CPUs ...
+[    0.573599] smpboot: x86: Booting SMP configuration:
+[    0.573688] .... node  #0, CPUs:      #1
+[    0.644251] smp: Brought up 1 node, 2 CPUs
+[    0.644406] smpboot: Max logical packages: 1
+[    0.644539] smpboot: Total of 2 processors activated (11978.62 BogoMIPS)
+[    0.657181] devtmpfs: initialized
+[    0.660356] x86/mm: Memory block size: 128MB
+[    0.666711] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1911260446275000 ns
+[    0.667143] futex hash table entries: 512 (order: 3, 32768 bytes, linear)
+[    0.670720] pinctrl core: initialized pinctrl subsystem
+[    0.676354] PM: RTC time: 18:59:00, date: 2026-10-04
+[    0.684812] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    0.688021] DMA: preallocated 128 KiB GFP_KERNEL pool for atomic allocations
+[    0.688466] DMA: preallocated 128 KiB GFP_KERNEL|GFP_DMA pool for atomic allocations
+[    0.688613] DMA: preallocated 128 KiB GFP_KERNEL|GFP_DMA32 pool for atomic allocations
+[    0.688848] audit: initializing netlink subsys (disabled)
+[    0.690048] audit: type=2000 audit(1791140339.420:1): state=initialized audit_enabled=0 res=1
+[    0.693702] thermal_sys: Registered thermal governor 'fair_share'
+[    0.693732] thermal_sys: Registered thermal governor 'bang_bang'
+[    0.693814] thermal_sys: Registered thermal governor 'step_wise'
+[    0.693873] thermal_sys: Registered thermal governor 'user_space'
+[    0.693929] thermal_sys: Registered thermal governor 'power_allocator'
+[    0.694279] cpuidle: using governor ladder
+[    0.694472] cpuidle: using governor menu
+[    0.695690] acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+[    0.698445] PCI: Using configuration type 1 for base access
+[    0.698808] mtrr: your CPUs had inconsistent fixed MTRR settings
+[    0.698879] mtrr: your CPUs had inconsistent variable MTRR settings
+[    0.698944] mtrr: your CPUs had inconsistent MTRRdefType settings
+[    0.699001] mtrr: probably your BIOS does not setup all CPUs.
+[    0.699054] mtrr: corrected configuration.
+[    0.700504] kprobes: kprobe jump-optimization is enabled. All kprobes are optimized if possible.
+[    0.862343] HugeTLB: registered 2.00 MiB page size, pre-allocated 0 pages
+[    0.862598] HugeTLB: 28 KiB vmemmap can be freed for a 2.00 MiB page
+[    0.879893] ACPI: Added _OSI(Module Device)
+[    0.879970] ACPI: Added _OSI(Processor Device)
+[    0.880016] ACPI: Added _OSI(Processor Aggregator Device)
+[    0.891648] ACPI: 1 ACPI AML tables successfully acquired and loaded
+[    0.902967] ACPI: _OSC evaluation for CPUs failed, trying _PDC
+[    0.904385] ACPI: Interpreter enabled
+[    0.905132] ACPI: PM: (supports S0 S3 S4 S5)
+[    0.905198] ACPI: Using IOAPIC for interrupt routing
+[    0.906156] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+[    0.906255] PCI: Using E820 reservations for host bridge windows
+[    0.907361] ACPI: Enabled 2 GPEs in block 00 to 0F
+[    0.930429] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+[    0.931162] acpi PNP0A03:00: _OSC: OS supports [ASPM ClockPM Segments MSI EDR HPX-Type3]
+[    0.931365] acpi PNP0A03:00: _OSC: not requesting OS control; OS requires [ExtendedConfig ASPM ClockPM MSI]
+[    0.931947] acpi PNP0A03:00: fail to add MMCONFIG information, can't access extended configuration space under this bridge
+[    0.935957] acpiphp: Slot [2] registered
+[    0.936070] acpiphp: Slot [3] registered
+[    0.936149] acpiphp: Slot [4] registered
+[    0.936224] acpiphp: Slot [5] registered
+[    0.936313] acpiphp: Slot [6] registered
+[    0.936399] acpiphp: Slot [7] registered
+[    0.936483] acpiphp: Slot [8] registered
+[    0.936557] acpiphp: Slot [9] registered
+[    0.936630] acpiphp: Slot [10] registered
+[    0.936705] acpiphp: Slot [11] registered
+[    0.936815] acpiphp: Slot [12] registered
+[    0.936907] acpiphp: Slot [13] registered
+[    0.936986] acpiphp: Slot [14] registered
+[    0.937061] acpiphp: Slot [15] registered
+[    0.937135] acpiphp: Slot [16] registered
+[    0.937209] acpiphp: Slot [17] registered
+[    0.937284] acpiphp: Slot [18] registered
+[    0.937360] acpiphp: Slot [19] registered
+[    0.937445] acpiphp: Slot [20] registered
+[    0.937524] acpiphp: Slot [21] registered
+[    0.937600] acpiphp: Slot [22] registered
+[    0.937674] acpiphp: Slot [23] registered
+[    0.937748] acpiphp: Slot [24] registered
+[    0.937840] acpiphp: Slot [25] registered
+[    0.937915] acpiphp: Slot [26] registered
+[    0.938000] acpiphp: Slot [27] registered
+[    0.938077] acpiphp: Slot [28] registered
+[    0.938152] acpiphp: Slot [29] registered
+[    0.938227] acpiphp: Slot [30] registered
+[    0.938300] acpiphp: Slot [31] registered
+[    0.938561] PCI host bridge to bus 0000:00
+[    0.938688] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
+[    0.938816] pci_bus 0000:00: root bus resource [io  0x0d00-0xffff window]
+[    0.938872] pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff window]
+[    0.938950] pci_bus 0000:00: root bus resource [mem 0x40000000-0xfebfffff window]
+[    0.939007] pci_bus 0000:00: root bus resource [mem 0x100000000-0x17fffffff window]
+[    0.939155] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    0.940096] pci 0000:00:00.0: [8086:1237] type 00 class 0x060000 conventional PCI endpoint
+[    0.943074] pci 0000:00:01.0: [8086:7000] type 00 class 0x060100 conventional PCI endpoint
+[    0.943522] pci 0000:00:01.1: [8086:7010] type 00 class 0x010180 conventional PCI endpoint
+[    0.943945] pci 0000:00:01.1: BAR 4 [io  0xc200-0xc20f]
+[    0.944041] pci 0000:00:01.1: BAR 0 [io  0x01f0-0x01f7]: legacy IDE quirk
+[    0.944109] pci 0000:00:01.1: BAR 1 [io  0x03f6]: legacy IDE quirk
+[    0.944177] pci 0000:00:01.1: BAR 2 [io  0x0170-0x0177]: legacy IDE quirk
+[    0.944248] pci 0000:00:01.1: BAR 3 [io  0x0376]: legacy IDE quirk
+[    0.944846] pci 0000:00:01.3: [8086:7113] type 00 class 0x068000 conventional PCI endpoint
+[    0.945166] pci 0000:00:01.3: quirk: [io  0x0600-0x063f] claimed by PIIX4 ACPI
+[    0.945249] pci 0000:00:01.3: quirk: [io  0x0700-0x070f] claimed by PIIX4 SMB
+[    0.945734] pci 0000:00:02.0: [1af4:1001] type 00 class 0x010000 conventional PCI endpoint
+[    0.946636] pci 0000:00:02.0: BAR 0 [io  0xc000-0xc07f]
+[    0.946709] pci 0000:00:02.0: BAR 1 [mem 0xfebfc000-0xfebfcfff]
+[    0.946844] pci 0000:00:02.0: BAR 4 [mem 0xfebec000-0xfebeffff 64bit pref]
+[    0.951531] pci 0000:00:03.0: [1af4:1001] type 00 class 0x010000 conventional PCI endpoint
+[    0.952073] pci 0000:00:03.0: BAR 0 [io  0xc080-0xc0ff]
+[    0.952144] pci 0000:00:03.0: BAR 1 [mem 0xfebfd000-0xfebfdfff]
+[    0.952202] pci 0000:00:03.0: BAR 4 [mem 0xfebf0000-0xfebf3fff 64bit pref]
+[    0.956125] pci 0000:00:04.0: [1af4:1001] type 00 class 0x010000 conventional PCI endpoint
+[    0.956818] pci 0000:00:04.0: BAR 0 [io  0xc100-0xc17f]
+[    0.956887] pci 0000:00:04.0: BAR 1 [mem 0xfebfe000-0xfebfefff]
+[    0.956947] pci 0000:00:04.0: BAR 4 [mem 0xfebf4000-0xfebf7fff 64bit pref]
+[    0.960893] pci 0000:00:05.0: [1af4:1001] type 00 class 0x010000 conventional PCI endpoint
+[    0.961799] pci 0000:00:05.0: BAR 0 [io  0xc180-0xc1ff]
+[    0.961877] pci 0000:00:05.0: BAR 1 [mem 0xfebff000-0xfebfffff]
+[    0.961932] pci 0000:00:05.0: BAR 4 [mem 0xfebf8000-0xfebfbfff 64bit pref]
+[    0.968378] ACPI: PCI: Interrupt link LNKA configured for IRQ 10
+[    0.968997] ACPI: PCI: Interrupt link LNKB configured for IRQ 10
+[    0.969431] ACPI: PCI: Interrupt link LNKC configured for IRQ 11
+[    0.969872] ACPI: PCI: Interrupt link LNKD configured for IRQ 11
+[    0.970098] ACPI: PCI: Interrupt link LNKS configured for IRQ 9
+[    0.973050] iommu: Default domain type: Translated
+[    0.973880] iommu: DMA domain TLB invalidation policy: lazy mode
+[    0.975998] SCSI subsystem initialized
+[    0.976645] ACPI: bus type USB registered
+[    0.976929] usbcore: registered new interface driver usbfs
+[    0.977164] usbcore: registered new interface driver hub
+[    0.977279] usbcore: registered new device driver usb
+[    0.977555] pps_core: LinuxPPS API ver. 1 registered
+[    0.977605] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+[    0.977716] PTP clock support registered
+[    0.977976] EDAC MC: Ver: 3.0.0
+[    0.983832] NetLabel: Initializing
+[    0.983887] NetLabel:  domain hash size = 128
+[    0.983928] NetLabel:  protocols = UNLABELED CIPSOv4 CALIPSO
+[    0.984493] NetLabel:  unlabeled traffic allowed by default
+[    0.988028] mctp: management component transport protocol core
+[    0.988029] NET: Registered PF_MCTP protocol family
+[    0.988358] PCI: Using ACPI for IRQ routing
+[    0.990020] vgaarb: loaded
+[    0.991132] hpet: 3 channels of 0 reserved for per-cpu timers
+[    0.991375] hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0
+[    0.991476] hpet0: 3 comparators, 64-bit 100.000000 MHz counter
+[    0.995547] clocksource: Switched to clocksource hpet
+[    1.000002] VFS: Disk quotas dquot_6.6.0
+[    1.000232] VFS: Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+[    1.002962] AppArmor: AppArmor Filesystem Enabled
+[    1.003237] pnp: PnP ACPI init
+[    1.006227] pnp: PnP ACPI: found 5 devices
+[    1.024522] clocksource: acpi_pm: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 2085701024 ns
+[    1.025731] NET: Registered PF_INET protocol family
+[    1.026414] IP idents hash table entries: 16384 (order: 5, 131072 bytes, linear)
+[    1.064936] tcp_listen_portaddr_hash hash table entries: 512 (order: 1, 8192 bytes, linear)
+[    1.065129] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    1.065236] TCP established hash table entries: 8192 (order: 4, 65536 bytes, linear)
+[    1.065456] TCP bind hash table entries: 8192 (order: 6, 262144 bytes, linear)
+[    1.065618] TCP: Hash tables configured (established 8192 bind 8192)
+[    1.066731] MPTCP token hash table entries: 1024 (order: 3, 24576 bytes, linear)
+[    1.067052] UDP hash table entries: 512 (order: 2, 16384 bytes, linear)
+[    1.067259] UDP-Lite hash table entries: 512 (order: 2, 16384 bytes, linear)
+[    1.068296] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    1.068583] NET: Registered PF_XDP protocol family
+[    1.069184] pci_bus 0000:00: resource 4 [io  0x0000-0x0cf7 window]
+[    1.069251] pci_bus 0000:00: resource 5 [io  0x0d00-0xffff window]
+[    1.069303] pci_bus 0000:00: resource 6 [mem 0x000a0000-0x000bffff window]
+[    1.069358] pci_bus 0000:00: resource 7 [mem 0x40000000-0xfebfffff window]
+[    1.069412] pci_bus 0000:00: resource 8 [mem 0x100000000-0x17fffffff window]
+[    1.069849] pci 0000:00:01.0: PIIX3: Enabling Passive Release
+[    1.069966] pci 0000:00:00.0: Limiting direct PCI/PCI transfers
+[    1.070071] PCI: CLS 0 bytes, default 64
+[    1.071418] Trying to unpack rootfs image as initramfs...
+[    1.075937] Initialise system trusted keyrings
+[    1.077207] Key type blacklist registered
+[    1.077919] workingset: timestamp_bits=36 max_order=18 bucket_order=0
+[    1.078093] zbud: loaded
+[    1.082678] squashfs: version 4.0 (2009/01/31) Phillip Lougher
+[    1.085745] fuse: init (API version 7.39)
+[    1.089092] integrity: Platform Keyring initialized
+[    1.089346] integrity: Machine keyring initialized
+[    1.124735] Key type asymmetric registered
+[    1.124735] Asymmetric key parser 'x509' registered
+[    1.124735] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 243)
+[    1.124735] io scheduler mq-deadline registered
+[    1.129787] shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+[    1.129964] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
+[    1.134681] ACPI: button: Power Button [PWRF]
+[    1.173612] Freeing initrd memory: 4244K
+[    1.242581] ACPI: \_SB_.LNKB: Enabled at IRQ 10
+[    1.346148] ACPI: \_SB_.LNKC: Enabled at IRQ 11
+[    1.448895] ACPI: \_SB_.LNKD: Enabled at IRQ 11
+[    1.550865] ACPI: \_SB_.LNKA: Enabled at IRQ 10
+[    1.552185] Serial: 8250/16550 driver, 32 ports, IRQ sharing enabled
+[    1.575243] 00:03: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200) is a 16550A
+[    1.589581] Linux agpgart interface v0.103
+[    1.603206] loop: module loaded
+[    1.603935] virtio_blk virtio0: 2/0/0 default/read/poll queues
+[    1.610380] virtio_blk virtio0: [vda] 120 512-byte logical blocks (61.4 kB/60.0 KiB)
+[    1.619448] virtio_blk virtio1: 2/0/0 default/read/poll queues
+[    1.620195] virtio_blk virtio1: [vdb] 120 512-byte logical blocks (61.4 kB/60.0 KiB)
+[    1.621433] virtio_blk virtio2: 2/0/0 default/read/poll queues
+[    1.622141] virtio_blk virtio2: [vdc] 120 512-byte logical blocks (61.4 kB/60.0 KiB)
+[    1.623252] virtio_blk virtio3: 2/0/0 default/read/poll queues
+[    1.624021] virtio_blk virtio3: [vdd] 120 512-byte logical blocks (61.4 kB/60.0 KiB)
+[    1.631103] scsi host0: ata_piix
+[    1.632351] scsi host1: ata_piix
+[    1.632641] ata1: PATA max MWDMA2 cmd 0x1f0 ctl 0x3f6 bmdma 0xc200 irq 14 lpm-pol 0
+[    1.632799] ata2: PATA max MWDMA2 cmd 0x170 ctl 0x376 bmdma 0xc208 irq 15 lpm-pol 0
+[    1.633254] ACPI: bus type drm_connector registered
+[    1.636776] tun: Universal TUN/TAP device driver, 1.6
+[    1.637192] PPP generic driver version 2.4.2
+[    1.638802] i8042: PNP: PS/2 Controller [PNP0303:KBD,PNP0f13:MOU] at 0x60,0x64 irq 1,12
+[    1.641261] serio: i8042 KBD port at 0x60,0x64 irq 1
+[    1.641449] serio: i8042 AUX port at 0x60,0x64 irq 12
+[    1.642483] mousedev: PS/2 mouse device common for all mice
+[    1.644104] rtc_cmos 00:04: RTC can wake from S4
+[    1.644492] input: AT Translated Set 2 keyboard as /devices/platform/i8042/serio0/input/input1
+[    1.647176] rtc_cmos 00:04: registered as rtc0
+[    1.647604] rtc_cmos 00:04: setting system clock to 2026-10-04T18:59:01 UTC (1791140341)
+[    1.648532] rtc_cmos 00:04: alarms up to one day, y3k, 242 bytes nvram, hpet irqs
+[    1.648719] i2c_dev: i2c /dev entries driver
+[    1.649032] device-mapper: core: CONFIG_IMA_DISABLE_HTABLE is disabled. Duplicate IMA measurements will not be recorded in the IMA log.
+[    1.649229] device-mapper: uevent: version 1.0.3
+[    1.649777] device-mapper: ioctl: 4.48.0-ioctl (2023-03-01) initialised: dm-devel@redhat.com
+[    1.650045] amd_pstate: the _CPC object is not present in SBIOS or ACPI disabled
+[    1.650342] ledtrig-cpu: registered to indicate activity on CPUs
+[    1.650916] drop_monitor: Initializing network drop monitor service
+[    1.652000] NET: Registered PF_INET6 protocol family
+[    1.662959] Segment Routing with IPv6
+[    1.663146] In-situ OAM (IOAM) with IPv6
+[    1.663509] NET: Registered PF_PACKET protocol family
+[    1.663833] Key type dns_resolver registered
+[    1.665928] IPI shorthand broadcast: enabled
+[    1.675189] registered taskstats version 1
+[    1.677293] Loading compiled-in X.509 certificates
+[    1.683986] Loaded X.509 cert 'Build time autogenerated kernel key: aaf6cface807121d2b25f83f2288de5f0eb7acff'
+[    1.684952] Loaded X.509 cert 'Canonical Ltd. Live Patch Signing 2025 Kmod: d541cef61dc7e793b7eb7e899970a2eef0b5dc8c'
+[    1.685834] Loaded X.509 cert 'Canonical Ltd. Live Patch Signing: 14df34d1a87cf37625abec039ef2bf521249b969'
+[    1.686732] Loaded X.509 cert 'Canonical Ltd. Kernel Module Signing 2025 Kmod: 4627603d2357a2a3f81006370894c221175893e9'
+[    1.687580] Loaded X.509 cert 'Canonical Ltd. Kernel Module Signing: 88f752e560a1e0737e31163a466ad7b70a850c19'
+[    1.687718] blacklist: Loading compiled-in revocation X.509 certificates
+[    1.688581] Loaded X.509 cert 'Canonical Ltd. Secure Boot Signing: 61482aa2830d0ab2ad5af10b7250da9033ddcef0'
+[    1.688786] Loaded X.509 cert 'Canonical Ltd. Secure Boot Signing (2017): 242ade75ac4a15e50d50c84b0d45ff3eae707a03'
+[    1.688934] Loaded X.509 cert 'Canonical Ltd. Secure Boot Signing (ESM 2018): 365188c1d374d6b07c3c8f240f8ef722433d6a8b'
+[    1.689092] Loaded X.509 cert 'Canonical Ltd. Secure Boot Signing (2019): c0746fd6c5da3ae827864651ad66ae47fe24b3e8'
+[    1.689218] Loaded X.509 cert 'Canonical Ltd. Secure Boot Signing (2021 v1): a8d54bbb3825cfb94fa13c9f8a594a195c107b8d'
+[    1.689352] Loaded X.509 cert 'Canonical Ltd. Secure Boot Signing (2021 v2): 4cf046892d6fd3c9a5b03f98d845f90851dc6a8c'
+[    1.689476] Loaded X.509 cert 'Canonical Ltd. Secure Boot Signing (2021 v3): 100437bb6de6e469b581e61cd66bce3ef4ed53af'
+[    1.689600] Loaded X.509 cert 'Canonical Ltd. Secure Boot Signing (Ubuntu Core 2019): c1d57b8f6b743f23ee41f4f7ee292f06eecadfb9'
+[    1.706256] Key type .fscrypt registered
+[    1.706316] Key type fscrypt-provisioning registered
+[    1.709900] Key type encrypted registered
+[    1.709978] AppArmor: AppArmor sha256 policy hashing enabled
+[    1.710302] ima: No TPM chip found, activating TPM-bypass!
+[    1.710410] Loading compiled-in module X.509 certificates
+[    1.711250] Loaded X.509 cert 'Build time autogenerated kernel key: aaf6cface807121d2b25f83f2288de5f0eb7acff'
+[    1.711371] ima: Allocated hash algorithm: sha256
+[    1.713018] ima: No architecture policies found
+[    1.713374] evm: Initialising EVM extended attributes:
+[    1.713435] evm: security.selinux
+[    1.713476] evm: security.SMACK64
+[    1.713504] evm: security.SMACK64EXEC
+[    1.713533] evm: security.SMACK64TRANSMUTE
+[    1.713565] evm: security.SMACK64MMAP
+[    1.713594] evm: security.apparmor
+[    1.713621] evm: security.ima
+[    1.713645] evm: security.capability
+[    1.713739] evm: HMAC attrs: 0x1
+[    1.715745] PM:   Magic number: 14:676:998
+[    1.715903] i8042 kbd 00:00: hash matches
+[    1.716540] powernow_k8: Power state transitions not supported
+[    1.716634] powernow_k8: Power state transitions not supported
+[    1.753661] RAS: Correctable Errors collector initialized.
+[    1.754851] Unstable clock detected, switching default tracing clock to "global"
+[    1.754851] If you want to keep using the local clock, then add:
+[    1.754851]   "trace_clock=local"
+[    1.754851] on the kernel command line
+[    1.755520] clk: Disabling unused clocks
+[    1.796898] Freeing unused decrypted memory: 2028K
+[    1.856204] Freeing unused kernel image (initmem) memory: 4932K
+[    1.856337] Write protecting the kernel read-only data: 38912k
+[    1.857995] Freeing unused kernel image (rodata/data gap) memory: 1956K
+[    1.938099] x86/mm: Checked W+X mappings: passed, no W+X pages found.
+[    1.938321] Run /init as init process
+[    2.007563] cix_squashfs: loading out-of-tree module taints kernel.
+[    2.007778] cix_squashfs: module verification failed: signature and/or required key missing - tainting kernel
+[    2.013772] cix_squashfs: version 4.0 (2009/01/31) Phillip Lougher
+empty: OK
+fragment: OK
+incompressible: OK
+repeated: OK
+sparse: OK
+tiny/0: OK
+tiny/1: OK
+tiny/10: OK
+tiny/100: OK
+tiny/101: OK
+tiny/102: OK
+tiny/103: OK
+tiny/104: OK
+tiny/105: OK
+tiny/106: OK
+tiny/107: OK
+tiny/108: OK
+tiny/109: OK
+tiny/11: OK
+tiny/110: OK
+tiny/111: OK
+tiny/112: OK
+tiny/113: OK
+tiny/114: OK
+tiny/115: OK
+tiny/116: OK
+tiny/117: OK
+tiny/118: OK
+tiny/119: OK
+tiny/12: OK
+tiny/120: OK
+tiny/121: OK
+tiny/122: OK
+tiny/123: OK
+tiny/124: OK
+tiny/125: OK
+tiny/126: OK
+tiny/127: OK
+tiny/128: OK
+tiny/129: OK
+tiny/13: OK
+tiny/130: OK
+tiny/131: OK
+tiny/132: OK
+tiny/133: OK
+tiny/134: OK
+tiny/135: OK
+tiny/136: OK
+tiny/137: OK
+tiny/138: OK
+tiny/139: OK
+tiny/14: OK
+tiny/140: OK
+tiny/141: OK
+tiny/142: OK
+tiny/143: OK
+tiny/144: OK
+tiny/145: OK
+tiny/146: OK
+tiny/147: OK
+tiny/148: OK
+tiny/149: OK
+tiny/15: OK
+tiny/150: OK
+tiny/151: OK
+tiny/152: OK
+tiny/153: OK
+tiny/154: OK
+tiny/155: OK
+tiny/156: OK
+tiny/157: OK
+tiny/158: OK
+tiny/159: OK
+tiny/16: OK
+tiny/160: OK
+tiny/161: OK
+tiny/162: OK
+tiny/163: OK
+tiny/164: OK
+tiny/165: OK
+tiny/166: OK
+tiny/167: OK
+tiny/168: OK
+tiny/169: OK
+tiny/17: OK
+tiny/170: OK
+tiny/171: OK
+tiny/172: OK
+tiny/173: OK
+tiny/174: OK
+tiny/175: OK
+tiny/176: OK
+tiny/177: OK
+tiny/178: OK
+tiny/179: OK
+tiny/18: OK
+tiny/180: OK
+tiny/181: OK
+tiny/182: OK
+tiny/183: OK
+tiny/184: OK
+tiny/185: OK
+tiny/186: OK
+tiny/187: OK
+tiny/188: OK
+tiny/189: OK
+tiny/19: OK
+tiny/190: OK
+tiny/191: OK
+tiny/192: OK
+tiny/193: OK
+tiny/194: OK
+tiny/195: OK
+tiny/196: OK
+tiny/197: OK
+tiny/198: OK
+tiny/199: OK
+tiny/2: OK
+tiny/20: OK
+tiny/200: OK
+tiny/201: OK
+tiny/202: OK
+tiny/203: OK
+tiny/204: OK
+tiny/205: OK
+tiny/206: OK
+tiny/207: OK
+tiny/208: OK
+tiny/209: OK
+tiny/21: OK
+tiny/210: OK
+tiny/211: OK
+tiny/212: OK
+tiny/213: OK
+tiny/214: OK
+tiny/215: OK
+tiny/216: OK
+tiny/217: OK
+tiny/218: OK
+tiny/219: OK
+tiny/22: OK
+tiny/220: OK
+tiny/221: OK
+tiny/222: OK
+tiny/223: OK
+tiny/224: OK
+tiny/225: OK
+tiny/226: OK
+tiny/227: OK
+tiny/228: OK
+tiny/229: OK
+tiny/23: OK
+tiny/230: OK
+tiny/231: OK
+tiny/232: OK
+tiny/233: OK
+tiny/234: OK
+tiny/235: OK
+tiny/236: OK
+tiny/237: OK
+tiny/238: OK
+tiny/239: OK
+tiny/24: OK
+tiny/240: OK
+tiny/241: OK
+tiny/242: OK
+tiny/243: OK
+tiny/244: OK
+tiny/245: OK
+tiny/246: OK
+tiny/247: OK
+tiny/248: OK
+tiny/249: OK
+tiny/25: OK
+tiny/250: OK
+tiny/251: OK
+tiny/252: OK
+tiny/253: OK
+tiny/254: OK
+tiny/255: OK
+tiny/256: OK
+tiny/257: OK
+tiny/258: OK
+tiny/259: OK
+tiny/26: OK
+tiny/260: OK
+tiny/261: OK
+tiny/262: OK
+tiny/263: OK
+tiny/264: OK
+tiny/265: OK
+tiny/266: OK
+tiny/267: OK
+tiny/268: OK
+tiny/269: OK
+tiny/27: OK
+tiny/270: OK
+tiny/271: OK
+tiny/272: OK
+tiny/273: OK
+tiny/274: OK
+tiny/275: OK
+tiny/276: OK
+tiny/277: OK
+tiny/278: OK
+tiny/279: OK
+tiny/28: OK
+tiny/280: OK
+tiny/281: OK
+tiny/282: OK
+tiny/283: OK
+tiny/284: OK
+tiny/285: OK
+tiny/286: OK
+tiny/287: OK
+tiny/288: OK
+tiny/289: OK
+tiny/29: OK
+tiny/290: OK
+tiny/291: OK
+tiny/292: OK
+tiny/293: OK
+tiny/294: OK
+tiny/295: OK
+tiny/296: OK
+tiny/297: OK
+tiny/298: OK
+tiny/299: OK
+tiny/3: OK
+tiny/30: OK
+tiny/31: OK
+tiny/32: OK
+tiny/33: OK
+tiny/34: OK
+tiny/35: OK
+tiny/36: OK
+tiny/37: OK
+tiny/38: OK
+tiny/39: OK
+tiny/4: OK
+tiny/40: OK
+tiny/41: OK
+tiny/42: OK
+tiny/43: OK
+tiny/44: OK
+tiny/45: OK
+tiny/46: OK
+tiny/47: OK
+tiny/48: OK
+tiny/49: OK
+tiny/5: OK
+tiny/50: OK
+tiny/51: OK
+tiny/52: OK
+tiny/53: OK
+tiny/54: OK
+tiny/55: OK
+tiny/56: OK
+tiny/57: OK
+tiny/58: OK
+tiny/59: OK
+tiny/6: OK
+tiny/60: OK
+tiny/61: OK
+tiny/62: OK
+tiny/63: OK
+tiny/64: OK
+tiny/65: OK
+tiny/66: OK
+tiny/67: OK
+tiny/68: OK
+tiny/69: OK
+tiny/7: OK
+tiny/70: OK
+tiny/71: OK
+tiny/72: OK
+tiny/73: OK
+tiny/74: OK
+tiny/75: OK
+tiny/76: OK
+tiny/77: OK
+tiny/78: OK
+tiny/79: OK
+tiny/8: OK
+tiny/80: OK
+tiny/81: OK
+tiny/82: OK
+tiny/83: OK
+tiny/84: OK
+tiny/85: OK
+tiny/86: OK
+tiny/87: OK
+tiny/88: OK
+tiny/89: OK
+tiny/9: OK
+tiny/90: OK
+tiny/91: OK
+tiny/92: OK
+tiny/93: OK
+tiny/94: OK
+tiny/95: OK
+tiny/96: OK
+tiny/97: OK
+tiny/98: OK
+tiny/99: OK
+CIX_VM_PASS mount-read-metadata-fragment-empty
+empty: OK
+fragment: OK
+incompressible: OK
+repeated: OK
+sparse: OK
+tiny/0: OK
+tiny/1: OK
+tiny/10: OK
+tiny/100: OK
+tiny/101: OK
+tiny/102: OK
+tiny/103: OK
+tiny/104: OK
+tiny/105: OK
+tiny/106: OK
+tiny/107: OK
+tiny/108: OK
+tiny/109: OK
+tiny/11: OK
+tiny/110: OK
+tiny/111: OK
+tiny/112: OK
+tiny/113: OK
+tiny/114: OK
+tiny/115: OK
+tiny/116: OK
+tiny/117: OK
+tiny/118: OK
+tiny/119: OK
+tiny/12: OK
+tiny/120: OK
+tiny/121: OK
+tiny/122: OK
+tiny/123: OK
+tiny/124: OK
+tiny/125: OK
+tiny/126: OK
+tiny/127: OK
+tiny/128: OK
+tiny/129: OK
+tiny/13: OK
+tiny/130: OK
+tiny/131: OK
+tiny/132: OK
+tiny/133: OK
+tiny/134: OK
+tiny/135: OK
+tiny/136: OK
+tiny/137: OK
+tiny/138: OK
+tiny/139: OK
+tiny/14: OK
+tiny/140: OK
+tiny/141: OK
+tiny/142: OK
+tiny/143: OK
+tiny/144: OK
+tiny/145: OK
+tiny/146: OK
+tiny/147: OK
+tiny/148: OK
+tiny/149: OK
+tiny/15: OK
+tiny/150: OK
+tiny/151: OK
+tiny/152: OK
+tiny/153: OK
+tiny/154: OK
+tiny/155: OK
+tiny/156: OK
+tiny/157: OK
+tiny/158: OK
+tiny/159: OK
+tiny/16: OK
+tiny/160: OK
+tiny/161: OK
+tiny/162: OK
+tiny/163: OK
+tiny/164: OK
+tiny/165: OK
+tiny/166: OK
+tiny/167: OK
+tiny/168: OK
+tiny/169: OK
+tiny/17: OK
+tiny/170: OK
+tiny/171: OK
+tiny/172: OK
+tiny/173: OK
+tiny/174: OK
+tiny/175: OK
+tiny/176: OK
+tiny/177: OK
+tiny/178: OK
+tiny/179: OK
+tiny/18: OK
+tiny/180: OK
+tiny/181: OK
+tiny/182: OK
+tiny/183: OK
+tiny/184: OK
+tiny/185: OK
+tiny/186: OK
+tiny/187: OK
+tiny/188: OK
+tiny/189: OK
+tiny/19: OK
+tiny/190: OK
+tiny/191: OK
+tiny/192: OK
+tiny/193: OK
+tiny/194: OK
+tiny/195: OK
+tiny/196: OK
+tiny/197: OK
+tiny/198: OK
+tiny/199: OK
+tiny/2: OK
+tiny/20: OK
+tiny/200: OK
+tiny/201: OK
+tiny/202: OK
+tiny/203: OK
+tiny/204: OK
+tiny/205: OK
+tiny/206: OK
+tiny/207: OK
+tiny/208: OK
+tiny/209: OK
+tiny/21: OK
+tiny/210: OK
+tiny/211: OK
+tiny/212: OK
+tiny/213: OK
+tiny/214: OK
+tiny/215: OK
+tiny/216: OK
+tiny/217: OK
+tiny/218: OK
+tiny/219: OK
+tiny/22: OK
+tiny/220: OK
+tiny/221: OK
+tiny/222: OK
+tiny/223: OK
+tiny/224: OK
+tiny/225: OK
+tiny/226: OK
+tiny/227: OK
+tiny/228: OK
+tiny/229: OK
+tiny/23: OK
+tiny/230: OK
+tiny/231: OK
+tiny/232: OK
+tiny/233: OK
+tiny/234: OK
+tiny/235: OK
+tiny/236: OK
+tiny/237: OK
+tiny/238: OK
+tiny/239: OK
+tiny/24: OK
+tiny/240: OK
+tiny/241: OK
+tiny/242: OK
+tiny/243: OK
+tiny/244: OK
+tiny/245: OK
+tiny/246: OK
+tiny/247: OK
+tiny/248: OK
+tiny/249: OK
+tiny/25: OK
+tiny/250: OK
+tiny/251: OK
+tiny/252: OK
+tiny/253: OK
+tiny/254: OK
+tiny/255: OK
+tiny/256: OK
+tiny/257: OK
+tiny/258: OK
+tiny/259: OK
+tiny/26: OK
+tiny/260: OK
+tiny/261: OK
+tiny/262: OK
+tiny/263: OK
+tiny/264: OK
+tiny/265: OK
+tiny/266: OK
+tiny/267: OK
+tiny/268: OK
+tiny/269: OK
+tiny/27: OK
+tiny/270: OK
+tiny/271: OK
+tiny/272: OK
+tiny/273: OK
+tiny/274: OK
+tiny/275: OK
+tiny/276: OK
+tiny/277: OK
+tiny/278: OK
+tiny/279: OK
+tiny/28: OK
+tiny/280: OK
+tiny/281: OK
+tiny/282: OK
+tiny/283: OK
+tiny/284: OK
+tiny/285: OK
+tiny/286: OK
+tiny/287: OK
+tiny/288: OK
+tiny/289: OK
+tiny/29: OK
+tiny/290: OK
+tiny/291: OK
+tiny/292: OK
+tiny/293: OK
+tiny/294: OK
+tiny/295: OK
+tiny/296: OK
+tiny/297: OK
+tiny/298: OK
+tiny/299: OK
+tiny/3: OK
+tiny/30: OK
+tiny/31: OK
+tiny/32: OK
+tiny/33: OK
+tiny/34: OK
+tiny/35: OK
+tiny/36: OK
+tiny/37: OK
+tiny/38: OK
+tiny/39: OK
+tiny/4: OK
+tiny/40: OK
+tiny/41: OK
+tiny/42: OK
+tiny/43: OK
+tiny/44: OK
+tiny/45: OK
+tiny/46: OK
+tiny/47: OK
+tiny/48: OK
+tiny/49: OK
+tiny/5: OK
+tiny/50: OK
+tiny/51: OK
+tiny/52: OK
+tiny/53: OK
+tiny/54: OK
+tiny/55: OK
+tiny/56: OK
+tiny/57: OK
+tiny/58: OK
+tiny/59: OK
+tiny/6: OK
+tiny/60: OK
+tiny/61: OK
+tiny/62: OK
+tiny/63: OK
+tiny/64: OK
+tiny/65: OK
+tiny/66: OK
+tiny/67: OK
+tiny/68: OK
+tiny/69: OK
+tiny/7: OK
+tiny/70: OK
+tiny/71: OK
+tiny/72: OK
+tiny/73: OK
+tiny/74: OK
+tiny/75: OK
+tiny/76: OK
+tiny/77: OK
+tiny/78: OK
+tiny/79: OK
+tiny/8: OK
+tiny/80: OK
+tiny/81: OK
+tiny/82: OK
+tiny/83: OK
+tiny/84: OK
+tiny/85: OK
+tiny/86: OK
+tiny/87: OK
+tiny/88: OK
+tiny/89: OK
+tiny/9: OK
+tiny/90: OK
+tiny/91: OK
+tiny/92: OK
+tiny/93: OK
+tiny/94: OK
+tiny/95: OK
+tiny/96: OK
+tiny/97: OK
+tiny/98: OK
+tiny/99: OK
+CIX_VM_PASS fuse-read-xattr
+[    3.360039] SQUASHFS error: cix-experimental-65001 decompression failed, data probably corrupt
+[    3.360152] SQUASHFS error: Failed to read block 0xd338: -5
+[    3.360220] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.360287] SQUASHFS error: Unable to read inode 0x0
+[    3.360703] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.360767] SQUASHFS error: Unable to read inode 0x20
+[    3.360914] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.360962] SQUASHFS error: Unable to read inode 0x40
+[    3.361034] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.361079] SQUASHFS error: Unable to read inode 0x60
+[    3.361144] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.361188] SQUASHFS error: Unable to read inode 0x98
+[    3.361270] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.361315] SQUASHFS error: Unable to read inode 0xd4
+[    3.361385] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.361429] SQUASHFS error: Unable to read inode 0x10c
+[    3.361495] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.361538] SQUASHFS error: Unable to read inode 0x12c
+[    3.361603] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.361646] SQUASHFS error: Unable to read inode 0x14c
+[    3.361805] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.361855] SQUASHFS error: Unable to read inode 0x16c
+[    3.361926] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.361969] SQUASHFS error: Unable to read inode 0x18c
+[    3.362036] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.362079] SQUASHFS error: Unable to read inode 0x1ac
+[    3.362145] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.362188] SQUASHFS error: Unable to read inode 0x1cc
+[    3.362254] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.362297] SQUASHFS error: Unable to read inode 0x1ec
+[    3.362364] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.362407] SQUASHFS error: Unable to read inode 0x20c
+[    3.362474] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.362518] SQUASHFS error: Unable to read inode 0x22c
+[    3.362587] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.362631] SQUASHFS error: Unable to read inode 0x24c
+[    3.362757] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.362807] SQUASHFS error: Unable to read inode 0x26c
+[    3.362880] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.362924] SQUASHFS error: Unable to read inode 0x28c
+[    3.362994] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.363037] SQUASHFS error: Unable to read inode 0x2ac
+[    3.363106] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.363149] SQUASHFS error: Unable to read inode 0x2cc
+[    3.363220] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.363264] SQUASHFS error: Unable to read inode 0x2ec
+[    3.363334] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.363378] SQUASHFS error: Unable to read inode 0x30c
+[    3.363448] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.363491] SQUASHFS error: Unable to read inode 0x32c
+[    3.363562] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.363605] SQUASHFS error: Unable to read inode 0x34c
+[    3.363716] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.363775] SQUASHFS error: Unable to read inode 0x36c
+[    3.363855] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.363899] SQUASHFS error: Unable to read inode 0x38c
+[    3.363973] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.364016] SQUASHFS error: Unable to read inode 0x3ac
+[    3.364090] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.364133] SQUASHFS error: Unable to read inode 0x3cc
+[    3.364207] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.364250] SQUASHFS error: Unable to read inode 0x3ec
+[    3.364324] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.364367] SQUASHFS error: Unable to read inode 0x40c
+[    3.364441] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.364488] SQUASHFS error: Unable to read inode 0x42c
+[    3.364563] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.364607] SQUASHFS error: Unable to read inode 0x44c
+[    3.364736] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.364787] SQUASHFS error: Unable to read inode 0x46c
+[    3.364869] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.364912] SQUASHFS error: Unable to read inode 0x48c
+[    3.364988] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.365031] SQUASHFS error: Unable to read inode 0x4ac
+[    3.365107] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.365149] SQUASHFS error: Unable to read inode 0x4cc
+[    3.365226] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.365270] SQUASHFS error: Unable to read inode 0x4ec
+[    3.365347] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.365391] SQUASHFS error: Unable to read inode 0x50c
+[    3.365468] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.365512] SQUASHFS error: Unable to read inode 0x52c
+[    3.365589] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.365631] SQUASHFS error: Unable to read inode 0x54c
+[    3.365801] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.365851] SQUASHFS error: Unable to read inode 0x56c
+[    3.365936] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.365979] SQUASHFS error: Unable to read inode 0x58c
+[    3.366060] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.366103] SQUASHFS error: Unable to read inode 0x5ac
+[    3.366183] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.366227] SQUASHFS error: Unable to read inode 0x5cc
+[    3.366307] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.366350] SQUASHFS error: Unable to read inode 0x5ec
+[    3.366430] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.366474] SQUASHFS error: Unable to read inode 0x60c
+[    3.366554] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.366598] SQUASHFS error: Unable to read inode 0x62c
+[    3.366713] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.366779] SQUASHFS error: Unable to read inode 0x64c
+[    3.366866] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.366909] SQUASHFS error: Unable to read inode 0x66c
+[    3.366992] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.367035] SQUASHFS error: Unable to read inode 0x68c
+[    3.367117] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.367160] SQUASHFS error: Unable to read inode 0x6ac
+[    3.367272] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.367317] SQUASHFS error: Unable to read inode 0x6cc
+[    3.367403] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.367447] SQUASHFS error: Unable to read inode 0x6ec
+[    3.367544] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.367587] SQUASHFS error: Unable to read inode 0x70c
+[    3.367672] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.367742] SQUASHFS error: Unable to read inode 0x72c
+[    3.367831] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.367875] SQUASHFS error: Unable to read inode 0x74c
+[    3.367961] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.368005] SQUASHFS error: Unable to read inode 0x76c
+[    3.368090] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.368133] SQUASHFS error: Unable to read inode 0x78c
+[    3.368220] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.368263] SQUASHFS error: Unable to read inode 0x7ac
+[    3.368350] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.368394] SQUASHFS error: Unable to read inode 0x7cc
+[    3.368481] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.368525] SQUASHFS error: Unable to read inode 0x7ec
+[    3.368615] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.368658] SQUASHFS error: Unable to read inode 0x80c
+[    3.368806] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.368850] SQUASHFS error: Unable to read inode 0x82c
+[    3.368939] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.368981] SQUASHFS error: Unable to read inode 0x84c
+[    3.369070] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.369113] SQUASHFS error: Unable to read inode 0x86c
+[    3.369203] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.369246] SQUASHFS error: Unable to read inode 0x88c
+[    3.369336] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.369379] SQUASHFS error: Unable to read inode 0x8ac
+[    3.369470] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.369513] SQUASHFS error: Unable to read inode 0x8cc
+[    3.369603] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.369646] SQUASHFS error: Unable to read inode 0x8ec
+[    3.369798] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.369843] SQUASHFS error: Unable to read inode 0x90c
+[    3.369935] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.369977] SQUASHFS error: Unable to read inode 0x92c
+[    3.370068] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.370112] SQUASHFS error: Unable to read inode 0x94c
+[    3.370202] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.370245] SQUASHFS error: Unable to read inode 0x96c
+[    3.370337] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.370381] SQUASHFS error: Unable to read inode 0x98c
+[    3.370473] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.370517] SQUASHFS error: Unable to read inode 0x9ac
+[    3.370612] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.370652] SQUASHFS error: Unable to read inode 0x9cc
+[    3.370778] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.370824] SQUASHFS error: Unable to read inode 0x9ec
+[    3.370919] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.370962] SQUASHFS error: Unable to read inode 0xa0c
+[    3.371056] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.371100] SQUASHFS error: Unable to read inode 0xa2c
+[    3.371194] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.371237] SQUASHFS error: Unable to read inode 0xa4c
+[    3.371331] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.371374] SQUASHFS error: Unable to read inode 0xa6c
+[    3.371470] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.371512] SQUASHFS error: Unable to read inode 0xa8c
+[    3.371611] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.371651] SQUASHFS error: Unable to read inode 0xaac
+[    3.371772] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.371817] SQUASHFS error: Unable to read inode 0xacc
+[    3.371915] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.371957] SQUASHFS error: Unable to read inode 0xaec
+[    3.372055] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.372098] SQUASHFS error: Unable to read inode 0xb0c
+[    3.372196] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.372239] SQUASHFS error: Unable to read inode 0xb2c
+[    3.372337] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.372381] SQUASHFS error: Unable to read inode 0xb4c
+[    3.372480] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.372524] SQUASHFS error: Unable to read inode 0xb6c
+[    3.372622] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.372665] SQUASHFS error: Unable to read inode 0xb8c
+[    3.372824] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.372869] SQUASHFS error: Unable to read inode 0xbac
+[    3.372969] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.373014] SQUASHFS error: Unable to read inode 0xbcc
+[    3.373115] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.373159] SQUASHFS error: Unable to read inode 0xbec
+[    3.373277] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.373322] SQUASHFS error: Unable to read inode 0xc0c
+[    3.373423] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.373467] SQUASHFS error: Unable to read inode 0xc2c
+[    3.373572] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.373614] SQUASHFS error: Unable to read inode 0xc4c
+[    3.373765] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.373813] SQUASHFS error: Unable to read inode 0xc6c
+[    3.373924] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.373967] SQUASHFS error: Unable to read inode 0xc8c
+[    3.374071] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.374115] SQUASHFS error: Unable to read inode 0xcac
+[    3.374221] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.374265] SQUASHFS error: Unable to read inode 0xccc
+[    3.374368] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.374411] SQUASHFS error: Unable to read inode 0xcec
+[    3.374515] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.374559] SQUASHFS error: Unable to read inode 0xd0c
+[    3.374664] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.374804] SQUASHFS error: Unable to read inode 0xd2c
+[    3.374919] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.374963] SQUASHFS error: Unable to read inode 0xd4c
+[    3.375069] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.375113] SQUASHFS error: Unable to read inode 0xd6c
+[    3.375218] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.375261] SQUASHFS error: Unable to read inode 0xd8c
+[    3.375368] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.375411] SQUASHFS error: Unable to read inode 0xdac
+[    3.375519] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.375562] SQUASHFS error: Unable to read inode 0xdcc
+[    3.375704] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.375753] SQUASHFS error: Unable to read inode 0xdec
+[    3.375865] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.375908] SQUASHFS error: Unable to read inode 0xe0c
+[    3.376015] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.376057] SQUASHFS error: Unable to read inode 0xe2c
+[    3.376166] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.376209] SQUASHFS error: Unable to read inode 0xe4c
+[    3.376317] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.376360] SQUASHFS error: Unable to read inode 0xe6c
+[    3.376469] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.376511] SQUASHFS error: Unable to read inode 0xe8c
+[    3.376620] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.376664] SQUASHFS error: Unable to read inode 0xeac
+[    3.376805] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.376850] SQUASHFS error: Unable to read inode 0xecc
+[    3.376959] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.377004] SQUASHFS error: Unable to read inode 0xeec
+[    3.377118] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.377161] SQUASHFS error: Unable to read inode 0xf0c
+[    3.377276] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.377319] SQUASHFS error: Unable to read inode 0xf2c
+[    3.377431] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.377474] SQUASHFS error: Unable to read inode 0xf4c
+[    3.377587] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.377631] SQUASHFS error: Unable to read inode 0xf6c
+[    3.377792] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.377839] SQUASHFS error: Unable to read inode 0xf8c
+[    3.377961] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.378004] SQUASHFS error: Unable to read inode 0xfac
+[    3.378117] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.378159] SQUASHFS error: Unable to read inode 0xfcc
+[    3.378274] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.378317] SQUASHFS error: Unable to read inode 0xfec
+[    3.378430] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.378474] SQUASHFS error: Unable to read inode 0x100c
+[    3.378589] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.378633] SQUASHFS error: Unable to read inode 0x102c
+[    3.378843] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.378892] SQUASHFS error: Unable to read inode 0x104c
+[    3.379015] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.379058] SQUASHFS error: Unable to read inode 0x106c
+[    3.379175] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.379218] SQUASHFS error: Unable to read inode 0x108c
+[    3.379335] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.379377] SQUASHFS error: Unable to read inode 0x10ac
+[    3.379494] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.379537] SQUASHFS error: Unable to read inode 0x10cc
+[    3.379655] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.379748] SQUASHFS error: Unable to read inode 0x10ec
+[    3.379970] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.380017] SQUASHFS error: Unable to read inode 0x110c
+[    3.380143] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.380186] SQUASHFS error: Unable to read inode 0x112c
+[    3.380306] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.380349] SQUASHFS error: Unable to read inode 0x114c
+[    3.380486] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.380530] SQUASHFS error: Unable to read inode 0x116c
+[    3.380652] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.380763] SQUASHFS error: Unable to read inode 0x118c
+[    3.380896] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.380941] SQUASHFS error: Unable to read inode 0x11ac
+[    3.381066] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.381110] SQUASHFS error: Unable to read inode 0x11cc
+[    3.381233] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.381276] SQUASHFS error: Unable to read inode 0x11ec
+[    3.381400] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.381444] SQUASHFS error: Unable to read inode 0x120c
+[    3.381572] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.381615] SQUASHFS error: Unable to read inode 0x122c
+[    3.381798] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.381845] SQUASHFS error: Unable to read inode 0x124c
+[    3.381979] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.382022] SQUASHFS error: Unable to read inode 0x126c
+[    3.382145] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.382189] SQUASHFS error: Unable to read inode 0x128c
+[    3.382313] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.382357] SQUASHFS error: Unable to read inode 0x12ac
+[    3.382484] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.382527] SQUASHFS error: Unable to read inode 0x12cc
+[    3.382653] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.382778] SQUASHFS error: Unable to read inode 0x12ec
+[    3.382912] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.382956] SQUASHFS error: Unable to read inode 0x130c
+[    3.383080] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.383123] SQUASHFS error: Unable to read inode 0x132c
+[    3.383249] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.383292] SQUASHFS error: Unable to read inode 0x134c
+[    3.383418] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.383463] SQUASHFS error: Unable to read inode 0x136c
+[    3.383594] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.383637] SQUASHFS error: Unable to read inode 0x138c
+[    3.383803] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.383849] SQUASHFS error: Unable to read inode 0x13ac
+[    3.383983] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.384027] SQUASHFS error: Unable to read inode 0x13cc
+[    3.384156] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.384200] SQUASHFS error: Unable to read inode 0x13ec
+[    3.384329] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.384372] SQUASHFS error: Unable to read inode 0x140c
+[    3.384504] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.384548] SQUASHFS error: Unable to read inode 0x142c
+[    3.384707] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.384765] SQUASHFS error: Unable to read inode 0x144c
+[    3.384905] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.384948] SQUASHFS error: Unable to read inode 0x146c
+[    3.385080] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.385123] SQUASHFS error: Unable to read inode 0x148c
+[    3.385255] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.385299] SQUASHFS error: Unable to read inode 0x14ac
+[    3.385442] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.385486] SQUASHFS error: Unable to read inode 0x14cc
+[    3.385619] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.385663] SQUASHFS error: Unable to read inode 0x14ec
+[    3.385862] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.385908] SQUASHFS error: Unable to read inode 0x150c
+[    3.386043] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.386086] SQUASHFS error: Unable to read inode 0x152c
+[    3.386222] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.386266] SQUASHFS error: Unable to read inode 0x154c
+[    3.386403] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.386447] SQUASHFS error: Unable to read inode 0x156c
+[    3.386583] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.386627] SQUASHFS error: Unable to read inode 0x158c
+[    3.386811] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.386859] SQUASHFS error: Unable to read inode 0x15ac
+[    3.386999] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.387043] SQUASHFS error: Unable to read inode 0x15cc
+[    3.387177] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.387221] SQUASHFS error: Unable to read inode 0x15ec
+[    3.387357] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.387401] SQUASHFS error: Unable to read inode 0x160c
+[    3.387538] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.387581] SQUASHFS error: Unable to read inode 0x162c
+[    3.387769] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.387817] SQUASHFS error: Unable to read inode 0x164c
+[    3.387962] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.388006] SQUASHFS error: Unable to read inode 0x166c
+[    3.388145] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.388188] SQUASHFS error: Unable to read inode 0x168c
+[    3.388328] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.388372] SQUASHFS error: Unable to read inode 0x16ac
+[    3.388530] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.388574] SQUASHFS error: Unable to read inode 0x16cc
+[    3.388754] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.388807] SQUASHFS error: Unable to read inode 0x16ec
+[    3.388951] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.388995] SQUASHFS error: Unable to read inode 0x170c
+[    3.389137] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.389183] SQUASHFS error: Unable to read inode 0x172c
+[    3.389320] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.389363] SQUASHFS error: Unable to read inode 0x174c
+[    3.389502] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.389545] SQUASHFS error: Unable to read inode 0x176c
+[    3.389731] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.389782] SQUASHFS error: Unable to read inode 0x178c
+[    3.389928] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.389971] SQUASHFS error: Unable to read inode 0x17ac
+[    3.390113] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.390156] SQUASHFS error: Unable to read inode 0x17cc
+[    3.390298] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.390341] SQUASHFS error: Unable to read inode 0x17ec
+[    3.390484] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.390528] SQUASHFS error: Unable to read inode 0x180c
+[    3.390705] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.390769] SQUASHFS error: Unable to read inode 0x182c
+[    3.390919] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.390963] SQUASHFS error: Unable to read inode 0x184c
+[    3.391110] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.391154] SQUASHFS error: Unable to read inode 0x186c
+[    3.391298] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.391342] SQUASHFS error: Unable to read inode 0x188c
+[    3.391484] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.391528] SQUASHFS error: Unable to read inode 0x18ac
+[    3.391720] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.391777] SQUASHFS error: Unable to read inode 0x18cc
+[    3.391927] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.391971] SQUASHFS error: Unable to read inode 0x18ec
+[    3.392117] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.392161] SQUASHFS error: Unable to read inode 0x190c
+[    3.392306] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.392350] SQUASHFS error: Unable to read inode 0x192c
+[    3.392496] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.392538] SQUASHFS error: Unable to read inode 0x194c
+[    3.392714] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.392779] SQUASHFS error: Unable to read inode 0x196c
+[    3.392939] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.392982] SQUASHFS error: Unable to read inode 0x198c
+[    3.393133] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.393177] SQUASHFS error: Unable to read inode 0x19ac
+[    3.393325] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.393369] SQUASHFS error: Unable to read inode 0x19cc
+[    3.393516] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.393559] SQUASHFS error: Unable to read inode 0x19ec
+[    3.393762] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.393809] SQUASHFS error: Unable to read inode 0x1a0c
+[    3.393963] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.394007] SQUASHFS error: Unable to read inode 0x1a2c
+[    3.394156] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.394200] SQUASHFS error: Unable to read inode 0x1a4c
+[    3.394355] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.394398] SQUASHFS error: Unable to read inode 0x1a6c
+[    3.394548] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.394590] SQUASHFS error: Unable to read inode 0x1a8c
+[    3.394775] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.394821] SQUASHFS error: Unable to read inode 0x1aac
+[    3.394978] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.395022] SQUASHFS error: Unable to read inode 0x1acc
+[    3.395174] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.395218] SQUASHFS error: Unable to read inode 0x1aec
+[    3.395379] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.395421] SQUASHFS error: Unable to read inode 0x1b0c
+[    3.395575] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.395619] SQUASHFS error: Unable to read inode 0x1b2c
+[    3.395813] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.395860] SQUASHFS error: Unable to read inode 0x1b4c
+[    3.396017] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.396060] SQUASHFS error: Unable to read inode 0x1b6c
+[    3.396226] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.396270] SQUASHFS error: Unable to read inode 0x1b8c
+[    3.396425] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.396468] SQUASHFS error: Unable to read inode 0x1bac
+[    3.396624] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.396664] SQUASHFS error: Unable to read inode 0x1bcc
+[    3.396854] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.396899] SQUASHFS error: Unable to read inode 0x1bec
+[    3.397074] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.397119] SQUASHFS error: Unable to read inode 0x1c0c
+[    3.397281] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.397325] SQUASHFS error: Unable to read inode 0x1c2c
+[    3.397484] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.397527] SQUASHFS error: Unable to read inode 0x1c4c
+[    3.397718] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.397775] SQUASHFS error: Unable to read inode 0x1c6c
+[    3.397939] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.397982] SQUASHFS error: Unable to read inode 0x1c8c
+[    3.398146] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.398190] SQUASHFS error: Unable to read inode 0x1cac
+[    3.398344] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.398388] SQUASHFS error: Unable to read inode 0x1ccc
+[    3.398544] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.398588] SQUASHFS error: Unable to read inode 0x1cec
+[    3.398797] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.398843] SQUASHFS error: Unable to read inode 0x1d0c
+[    3.399008] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.399052] SQUASHFS error: Unable to read inode 0x1d2c
+[    3.399215] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.399258] SQUASHFS error: Unable to read inode 0x1d4c
+[    3.399418] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.399461] SQUASHFS error: Unable to read inode 0x1d6c
+[    3.399620] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.399663] SQUASHFS error: Unable to read inode 0x1d8c
+[    3.399876] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.399920] SQUASHFS error: Unable to read inode 0x1dac
+[    3.400084] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.400127] SQUASHFS error: Unable to read inode 0x1dcc
+[    3.400285] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.400329] SQUASHFS error: Unable to read inode 0x1dec
+[    3.400486] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.400530] SQUASHFS error: Unable to read inode 0x1e0c
+[    3.400735] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.400781] SQUASHFS error: Unable to read inode 0x1e2c
+[    3.400947] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.400991] SQUASHFS error: Unable to read inode 0x1e4c
+[    3.401152] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.401196] SQUASHFS error: Unable to read inode 0x1e6c
+[    3.401363] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.401407] SQUASHFS error: Unable to read inode 0x1e8c
+[    3.401574] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.401617] SQUASHFS error: Unable to read inode 0x1eac
+[    3.401815] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.401863] SQUASHFS error: Unable to read inode 0x1ecc
+[    3.402031] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.402074] SQUASHFS error: Unable to read inode 0x1eec
+[    3.402243] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.402287] SQUASHFS error: Unable to read inode 0x1f0c
+[    3.402456] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.402500] SQUASHFS error: Unable to read inode 0x1f2c
+[    3.402664] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.402787] SQUASHFS error: Unable to read inode 0x1f4c
+[    3.402964] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.403008] SQUASHFS error: Unable to read inode 0x1f6c
+[    3.403173] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.403216] SQUASHFS error: Unable to read inode 0x1f8c
+[    3.403385] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.403428] SQUASHFS error: Unable to read inode 0x1fac
+[    3.403597] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.403640] SQUASHFS error: Unable to read inode 0x1fcc
+[    3.403836] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.403881] SQUASHFS error: Unable to read inode 0x1fec
+CIX_VM_REJECT malformed-version
+[    3.440835] SQUASHFS error: cix-experimental-65001 decompression failed, data probably corrupt
+[    3.440930] SQUASHFS error: Failed to read block 0xd338: -5
+[    3.440971] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.441013] SQUASHFS error: Unable to read inode 0x0
+[    3.441196] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.441246] SQUASHFS error: Unable to read inode 0x20
+[    3.441322] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.441365] SQUASHFS error: Unable to read inode 0x40
+[    3.441431] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.441474] SQUASHFS error: Unable to read inode 0x60
+[    3.441539] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.441583] SQUASHFS error: Unable to read inode 0x98
+[    3.441662] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.441783] SQUASHFS error: Unable to read inode 0xd4
+[    3.441860] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.441905] SQUASHFS error: Unable to read inode 0x10c
+[    3.441971] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.442014] SQUASHFS error: Unable to read inode 0x12c
+[    3.442079] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.442122] SQUASHFS error: Unable to read inode 0x14c
+[    3.442203] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.442248] SQUASHFS error: Unable to read inode 0x16c
+[    3.442315] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.442359] SQUASHFS error: Unable to read inode 0x18c
+[    3.442425] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.442469] SQUASHFS error: Unable to read inode 0x1ac
+[    3.442536] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.442579] SQUASHFS error: Unable to read inode 0x1cc
+[    3.442645] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.442765] SQUASHFS error: Unable to read inode 0x1ec
+[    3.442880] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.442926] SQUASHFS error: Unable to read inode 0x20c
+[    3.442997] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.443040] SQUASHFS error: Unable to read inode 0x22c
+[    3.443108] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.443151] SQUASHFS error: Unable to read inode 0x24c
+[    3.443219] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.443263] SQUASHFS error: Unable to read inode 0x26c
+[    3.443331] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.443375] SQUASHFS error: Unable to read inode 0x28c
+[    3.443445] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.443494] SQUASHFS error: Unable to read inode 0x2ac
+[    3.443563] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.443605] SQUASHFS error: Unable to read inode 0x2cc
+[    3.443730] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.443780] SQUASHFS error: Unable to read inode 0x2ec
+[    3.443860] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.443903] SQUASHFS error: Unable to read inode 0x30c
+[    3.443975] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.444019] SQUASHFS error: Unable to read inode 0x32c
+[    3.444090] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.444132] SQUASHFS error: Unable to read inode 0x34c
+[    3.444204] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.444247] SQUASHFS error: Unable to read inode 0x36c
+[    3.444318] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.444360] SQUASHFS error: Unable to read inode 0x38c
+[    3.444432] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.444475] SQUASHFS error: Unable to read inode 0x3ac
+[    3.444548] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.444591] SQUASHFS error: Unable to read inode 0x3cc
+[    3.444686] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.444737] SQUASHFS error: Unable to read inode 0x3ec
+[    3.444815] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.444859] SQUASHFS error: Unable to read inode 0x40c
+[    3.444934] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.444978] SQUASHFS error: Unable to read inode 0x42c
+[    3.445052] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.445096] SQUASHFS error: Unable to read inode 0x44c
+[    3.445170] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.445213] SQUASHFS error: Unable to read inode 0x46c
+[    3.445288] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.445332] SQUASHFS error: Unable to read inode 0x48c
+[    3.445409] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.445452] SQUASHFS error: Unable to read inode 0x4ac
+[    3.445527] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.445570] SQUASHFS error: Unable to read inode 0x4cc
+[    3.445645] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.445717] SQUASHFS error: Unable to read inode 0x4ec
+[    3.445821] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.445866] SQUASHFS error: Unable to read inode 0x50c
+[    3.445944] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.445988] SQUASHFS error: Unable to read inode 0x52c
+[    3.446065] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.446110] SQUASHFS error: Unable to read inode 0x54c
+[    3.446188] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.446232] SQUASHFS error: Unable to read inode 0x56c
+[    3.446310] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.446353] SQUASHFS error: Unable to read inode 0x58c
+[    3.446432] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.446475] SQUASHFS error: Unable to read inode 0x5ac
+[    3.446554] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.446598] SQUASHFS error: Unable to read inode 0x5cc
+[    3.446707] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.446766] SQUASHFS error: Unable to read inode 0x5ec
+[    3.446857] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.446901] SQUASHFS error: Unable to read inode 0x60c
+[    3.446983] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.447026] SQUASHFS error: Unable to read inode 0x62c
+[    3.447109] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.447152] SQUASHFS error: Unable to read inode 0x64c
+[    3.447234] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.447277] SQUASHFS error: Unable to read inode 0x66c
+[    3.447362] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.447406] SQUASHFS error: Unable to read inode 0x68c
+[    3.447487] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.447531] SQUASHFS error: Unable to read inode 0x6ac
+[    3.447642] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.447766] SQUASHFS error: Unable to read inode 0x6cc
+[    3.447864] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.447908] SQUASHFS error: Unable to read inode 0x6ec
+[    3.448004] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.448048] SQUASHFS error: Unable to read inode 0x70c
+[    3.448135] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.448178] SQUASHFS error: Unable to read inode 0x72c
+[    3.448263] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.448306] SQUASHFS error: Unable to read inode 0x74c
+[    3.448391] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.448434] SQUASHFS error: Unable to read inode 0x76c
+[    3.448520] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.448563] SQUASHFS error: Unable to read inode 0x78c
+[    3.448649] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.448720] SQUASHFS error: Unable to read inode 0x7ac
+[    3.448819] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.448862] SQUASHFS error: Unable to read inode 0x7cc
+[    3.448948] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.448992] SQUASHFS error: Unable to read inode 0x7ec
+[    3.449079] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.449123] SQUASHFS error: Unable to read inode 0x80c
+[    3.449211] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.449254] SQUASHFS error: Unable to read inode 0x82c
+[    3.449342] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.449385] SQUASHFS error: Unable to read inode 0x84c
+[    3.449473] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.449516] SQUASHFS error: Unable to read inode 0x86c
+[    3.449605] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.449650] SQUASHFS error: Unable to read inode 0x88c
+[    3.449765] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.449811] SQUASHFS error: Unable to read inode 0x8ac
+[    3.449902] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.449945] SQUASHFS error: Unable to read inode 0x8cc
+[    3.450036] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.450078] SQUASHFS error: Unable to read inode 0x8ec
+[    3.450168] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.450213] SQUASHFS error: Unable to read inode 0x90c
+[    3.450304] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.450348] SQUASHFS error: Unable to read inode 0x92c
+[    3.450439] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.450483] SQUASHFS error: Unable to read inode 0x94c
+[    3.450573] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.450617] SQUASHFS error: Unable to read inode 0x96c
+[    3.450748] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.450801] SQUASHFS error: Unable to read inode 0x98c
+[    3.450900] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.450944] SQUASHFS error: Unable to read inode 0x9ac
+[    3.451040] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.451084] SQUASHFS error: Unable to read inode 0x9cc
+[    3.451178] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.451222] SQUASHFS error: Unable to read inode 0x9ec
+[    3.451315] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.451358] SQUASHFS error: Unable to read inode 0xa0c
+[    3.451454] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.451497] SQUASHFS error: Unable to read inode 0xa2c
+[    3.451591] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.451638] SQUASHFS error: Unable to read inode 0xa4c
+[    3.451806] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.451854] SQUASHFS error: Unable to read inode 0xa6c
+[    3.451951] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.451995] SQUASHFS error: Unable to read inode 0xa8c
+[    3.452091] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.452135] SQUASHFS error: Unable to read inode 0xaac
+[    3.452230] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.452274] SQUASHFS error: Unable to read inode 0xacc
+[    3.452370] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.452414] SQUASHFS error: Unable to read inode 0xaec
+[    3.452513] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.452556] SQUASHFS error: Unable to read inode 0xb0c
+[    3.452655] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.452731] SQUASHFS error: Unable to read inode 0xb2c
+[    3.452851] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.452894] SQUASHFS error: Unable to read inode 0xb4c
+[    3.452996] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.453040] SQUASHFS error: Unable to read inode 0xb6c
+[    3.453139] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.453182] SQUASHFS error: Unable to read inode 0xb8c
+[    3.453281] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.453324] SQUASHFS error: Unable to read inode 0xbac
+[    3.453423] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.453467] SQUASHFS error: Unable to read inode 0xbcc
+[    3.453567] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.453610] SQUASHFS error: Unable to read inode 0xbec
+[    3.453796] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.453848] SQUASHFS error: Unable to read inode 0xc0c
+[    3.453960] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.454004] SQUASHFS error: Unable to read inode 0xc2c
+[    3.454107] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.454151] SQUASHFS error: Unable to read inode 0xc4c
+[    3.454255] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.454298] SQUASHFS error: Unable to read inode 0xc6c
+[    3.454400] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.454445] SQUASHFS error: Unable to read inode 0xc8c
+[    3.454548] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.454592] SQUASHFS error: Unable to read inode 0xcac
+[    3.454748] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.454799] SQUASHFS error: Unable to read inode 0xccc
+[    3.454911] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.454954] SQUASHFS error: Unable to read inode 0xcec
+[    3.455060] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.455104] SQUASHFS error: Unable to read inode 0xd0c
+[    3.455209] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.455253] SQUASHFS error: Unable to read inode 0xd2c
+[    3.455359] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.455403] SQUASHFS error: Unable to read inode 0xd4c
+[    3.455509] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.455553] SQUASHFS error: Unable to read inode 0xd6c
+[    3.455657] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.455795] SQUASHFS error: Unable to read inode 0xd8c
+[    3.455913] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.455957] SQUASHFS error: Unable to read inode 0xdac
+[    3.456065] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.456109] SQUASHFS error: Unable to read inode 0xdcc
+[    3.456226] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.456271] SQUASHFS error: Unable to read inode 0xdec
+[    3.456380] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.456424] SQUASHFS error: Unable to read inode 0xe0c
+[    3.456535] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.456579] SQUASHFS error: Unable to read inode 0xe2c
+[    3.456720] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.456775] SQUASHFS error: Unable to read inode 0xe4c
+[    3.456894] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.456938] SQUASHFS error: Unable to read inode 0xe6c
+[    3.457048] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.457091] SQUASHFS error: Unable to read inode 0xe8c
+[    3.457204] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.457246] SQUASHFS error: Unable to read inode 0xeac
+[    3.457357] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.457400] SQUASHFS error: Unable to read inode 0xecc
+[    3.457508] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.457552] SQUASHFS error: Unable to read inode 0xeec
+[    3.457660] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.457759] SQUASHFS error: Unable to read inode 0xf0c
+[    3.457878] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.457922] SQUASHFS error: Unable to read inode 0xf2c
+[    3.458035] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.458078] SQUASHFS error: Unable to read inode 0xf4c
+[    3.458190] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.458232] SQUASHFS error: Unable to read inode 0xf6c
+[    3.458345] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.458389] SQUASHFS error: Unable to read inode 0xf8c
+[    3.458503] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.458547] SQUASHFS error: Unable to read inode 0xfac
+[    3.458660] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.458778] SQUASHFS error: Unable to read inode 0xfcc
+[    3.458902] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.458946] SQUASHFS error: Unable to read inode 0xfec
+[    3.459062] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.459105] SQUASHFS error: Unable to read inode 0x100c
+[    3.459221] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.459266] SQUASHFS error: Unable to read inode 0x102c
+[    3.459382] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.459426] SQUASHFS error: Unable to read inode 0x104c
+[    3.459541] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.459584] SQUASHFS error: Unable to read inode 0x106c
+[    3.459733] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.459778] SQUASHFS error: Unable to read inode 0x108c
+[    3.459900] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.459942] SQUASHFS error: Unable to read inode 0x10ac
+[    3.460061] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.460104] SQUASHFS error: Unable to read inode 0x10cc
+[    3.460222] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.460265] SQUASHFS error: Unable to read inode 0x10ec
+[    3.460382] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.460427] SQUASHFS error: Unable to read inode 0x110c
+[    3.460546] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.460589] SQUASHFS error: Unable to read inode 0x112c
+[    3.460751] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.460798] SQUASHFS error: Unable to read inode 0x114c
+[    3.460945] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.460989] SQUASHFS error: Unable to read inode 0x116c
+[    3.461115] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.461158] SQUASHFS error: Unable to read inode 0x118c
+[    3.461281] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.461323] SQUASHFS error: Unable to read inode 0x11ac
+[    3.461445] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.461488] SQUASHFS error: Unable to read inode 0x11cc
+[    3.461611] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.461657] SQUASHFS error: Unable to read inode 0x11ec
+[    3.461817] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.461862] SQUASHFS error: Unable to read inode 0x120c
+[    3.461987] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.462031] SQUASHFS error: Unable to read inode 0x122c
+[    3.462155] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.462198] SQUASHFS error: Unable to read inode 0x124c
+[    3.462322] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.462365] SQUASHFS error: Unable to read inode 0x126c
+[    3.462487] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.462530] SQUASHFS error: Unable to read inode 0x128c
+[    3.462658] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.462728] SQUASHFS error: Unable to read inode 0x12ac
+[    3.462862] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.462906] SQUASHFS error: Unable to read inode 0x12cc
+[    3.463033] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.463076] SQUASHFS error: Unable to read inode 0x12ec
+[    3.463201] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.463245] SQUASHFS error: Unable to read inode 0x130c
+[    3.463371] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.463415] SQUASHFS error: Unable to read inode 0x132c
+[    3.463544] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.463587] SQUASHFS error: Unable to read inode 0x134c
+[    3.463752] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.463798] SQUASHFS error: Unable to read inode 0x136c
+[    3.463928] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.463973] SQUASHFS error: Unable to read inode 0x138c
+[    3.464100] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.464143] SQUASHFS error: Unable to read inode 0x13ac
+[    3.464272] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.464315] SQUASHFS error: Unable to read inode 0x13cc
+[    3.464449] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.464491] SQUASHFS error: Unable to read inode 0x13ec
+[    3.464622] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.464666] SQUASHFS error: Unable to read inode 0x140c
+[    3.464884] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.464930] SQUASHFS error: Unable to read inode 0x142c
+[    3.465061] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.465104] SQUASHFS error: Unable to read inode 0x144c
+[    3.465234] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.465278] SQUASHFS error: Unable to read inode 0x146c
+[    3.465405] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.465450] SQUASHFS error: Unable to read inode 0x148c
+[    3.465580] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.465624] SQUASHFS error: Unable to read inode 0x14ac
+[    3.465822] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.465871] SQUASHFS error: Unable to read inode 0x14cc
+[    3.466010] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.466053] SQUASHFS error: Unable to read inode 0x14ec
+[    3.466186] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.466230] SQUASHFS error: Unable to read inode 0x150c
+[    3.466366] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.466410] SQUASHFS error: Unable to read inode 0x152c
+[    3.466542] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.466586] SQUASHFS error: Unable to read inode 0x154c
+[    3.466791] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.466838] SQUASHFS error: Unable to read inode 0x156c
+[    3.466979] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.467024] SQUASHFS error: Unable to read inode 0x158c
+[    3.467164] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.467207] SQUASHFS error: Unable to read inode 0x15ac
+[    3.467345] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.467388] SQUASHFS error: Unable to read inode 0x15cc
+[    3.467521] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.467564] SQUASHFS error: Unable to read inode 0x15ec
+[    3.467740] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.467796] SQUASHFS error: Unable to read inode 0x160c
+[    3.467936] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.467980] SQUASHFS error: Unable to read inode 0x162c
+[    3.468119] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.468161] SQUASHFS error: Unable to read inode 0x164c
+[    3.468298] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.468341] SQUASHFS error: Unable to read inode 0x166c
+[    3.468479] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.468521] SQUASHFS error: Unable to read inode 0x168c
+[    3.468661] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.468779] SQUASHFS error: Unable to read inode 0x16ac
+[    3.468945] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.468990] SQUASHFS error: Unable to read inode 0x16cc
+[    3.469131] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.469175] SQUASHFS error: Unable to read inode 0x16ec
+[    3.469317] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.469359] SQUASHFS error: Unable to read inode 0x170c
+[    3.469497] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.469540] SQUASHFS error: Unable to read inode 0x172c
+[    3.469697] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.469745] SQUASHFS error: Unable to read inode 0x174c
+[    3.469888] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.469932] SQUASHFS error: Unable to read inode 0x176c
+[    3.470073] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.470117] SQUASHFS error: Unable to read inode 0x178c
+[    3.470258] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.470303] SQUASHFS error: Unable to read inode 0x17ac
+[    3.470447] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.470491] SQUASHFS error: Unable to read inode 0x17cc
+[    3.470638] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.470702] SQUASHFS error: Unable to read inode 0x17ec
+[    3.470859] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.470903] SQUASHFS error: Unable to read inode 0x180c
+[    3.471047] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.471091] SQUASHFS error: Unable to read inode 0x182c
+[    3.471235] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.471279] SQUASHFS error: Unable to read inode 0x184c
+[    3.471424] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.471468] SQUASHFS error: Unable to read inode 0x186c
+[    3.471611] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.471656] SQUASHFS error: Unable to read inode 0x188c
+[    3.471844] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.471888] SQUASHFS error: Unable to read inode 0x18ac
+[    3.472034] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.472078] SQUASHFS error: Unable to read inode 0x18cc
+[    3.472222] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.472265] SQUASHFS error: Unable to read inode 0x18ec
+[    3.472409] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.472453] SQUASHFS error: Unable to read inode 0x190c
+[    3.472601] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.472644] SQUASHFS error: Unable to read inode 0x192c
+[    3.472838] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.472883] SQUASHFS error: Unable to read inode 0x194c
+[    3.473035] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.473078] SQUASHFS error: Unable to read inode 0x196c
+[    3.473224] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.473269] SQUASHFS error: Unable to read inode 0x198c
+[    3.473417] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.473460] SQUASHFS error: Unable to read inode 0x19ac
+[    3.473608] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.473652] SQUASHFS error: Unable to read inode 0x19cc
+[    3.473832] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.473878] SQUASHFS error: Unable to read inode 0x19ec
+[    3.474026] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.474069] SQUASHFS error: Unable to read inode 0x1a0c
+[    3.474218] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.474262] SQUASHFS error: Unable to read inode 0x1a2c
+[    3.474412] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.474455] SQUASHFS error: Unable to read inode 0x1a4c
+[    3.474606] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.474649] SQUASHFS error: Unable to read inode 0x1a6c
+[    3.474832] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.474877] SQUASHFS error: Unable to read inode 0x1a8c
+[    3.475034] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.475077] SQUASHFS error: Unable to read inode 0x1aac
+[    3.475227] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.475270] SQUASHFS error: Unable to read inode 0x1acc
+[    3.475424] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.475467] SQUASHFS error: Unable to read inode 0x1aec
+[    3.475618] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.475662] SQUASHFS error: Unable to read inode 0x1b0c
+[    3.475858] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.475904] SQUASHFS error: Unable to read inode 0x1b2c
+[    3.476057] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.476100] SQUASHFS error: Unable to read inode 0x1b4c
+[    3.476251] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.476294] SQUASHFS error: Unable to read inode 0x1b6c
+[    3.476456] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.476499] SQUASHFS error: Unable to read inode 0x1b8c
+[    3.476656] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.476766] SQUASHFS error: Unable to read inode 0x1bac
+[    3.476924] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.476968] SQUASHFS error: Unable to read inode 0x1bcc
+[    3.477128] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.477172] SQUASHFS error: Unable to read inode 0x1bec
+[    3.477346] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.477391] SQUASHFS error: Unable to read inode 0x1c0c
+[    3.477549] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.477594] SQUASHFS error: Unable to read inode 0x1c2c
+[    3.477786] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.477833] SQUASHFS error: Unable to read inode 0x1c4c
+[    3.477999] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.478043] SQUASHFS error: Unable to read inode 0x1c6c
+[    3.478200] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.478244] SQUASHFS error: Unable to read inode 0x1c8c
+[    3.478401] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.478444] SQUASHFS error: Unable to read inode 0x1cac
+[    3.478604] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.478646] SQUASHFS error: Unable to read inode 0x1ccc
+[    3.478860] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.478907] SQUASHFS error: Unable to read inode 0x1cec
+[    3.479065] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.479109] SQUASHFS error: Unable to read inode 0x1d0c
+[    3.479265] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.479308] SQUASHFS error: Unable to read inode 0x1d2c
+[    3.479466] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.479512] SQUASHFS error: Unable to read inode 0x1d4c
+[    3.479670] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.479742] SQUASHFS error: Unable to read inode 0x1d6c
+[    3.479903] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.479947] SQUASHFS error: Unable to read inode 0x1d8c
+[    3.480105] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.480148] SQUASHFS error: Unable to read inode 0x1dac
+[    3.480308] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.480353] SQUASHFS error: Unable to read inode 0x1dcc
+[    3.480510] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.480555] SQUASHFS error: Unable to read inode 0x1dec
+[    3.480742] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.480791] SQUASHFS error: Unable to read inode 0x1e0c
+[    3.480953] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.480997] SQUASHFS error: Unable to read inode 0x1e2c
+[    3.481162] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.481206] SQUASHFS error: Unable to read inode 0x1e4c
+[    3.481368] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.481413] SQUASHFS error: Unable to read inode 0x1e6c
+[    3.481574] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.481618] SQUASHFS error: Unable to read inode 0x1e8c
+[    3.481869] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.481920] SQUASHFS error: Unable to read inode 0x1eac
+[    3.482099] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.482143] SQUASHFS error: Unable to read inode 0x1ecc
+[    3.482310] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.482353] SQUASHFS error: Unable to read inode 0x1eec
+[    3.482518] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.482562] SQUASHFS error: Unable to read inode 0x1f0c
+[    3.482770] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.482816] SQUASHFS error: Unable to read inode 0x1f2c
+[    3.482991] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.483036] SQUASHFS error: Unable to read inode 0x1f4c
+[    3.483201] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.483245] SQUASHFS error: Unable to read inode 0x1f6c
+[    3.483409] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.483451] SQUASHFS error: Unable to read inode 0x1f8c
+[    3.483616] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.483657] SQUASHFS error: Unable to read inode 0x1fac
+[    3.483853] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.483898] SQUASHFS error: Unable to read inode 0x1fcc
+[    3.484063] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.484107] SQUASHFS error: Unable to read inode 0x1fec
+CIX_VM_REJECT truncated-profile-payload
+[    3.521420] SQUASHFS error: cix-experimental-65001 decompression failed, data probably corrupt
+[    3.521512] SQUASHFS error: Failed to read block 0xd338: -5
+[    3.521555] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.521597] SQUASHFS error: Unable to read inode 0x0
+[    3.521857] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.521915] SQUASHFS error: Unable to read inode 0x20
+[    3.521997] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.522041] SQUASHFS error: Unable to read inode 0x40
+[    3.522109] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.522153] SQUASHFS error: Unable to read inode 0x60
+[    3.522219] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.522263] SQUASHFS error: Unable to read inode 0x98
+[    3.522345] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.522390] SQUASHFS error: Unable to read inode 0xd4
+[    3.522459] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.522503] SQUASHFS error: Unable to read inode 0x10c
+[    3.522571] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.522621] SQUASHFS error: Unable to read inode 0x12c
+[    3.522738] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.522789] SQUASHFS error: Unable to read inode 0x14c
+[    3.522879] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.522925] SQUASHFS error: Unable to read inode 0x16c
+[    3.522993] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.523038] SQUASHFS error: Unable to read inode 0x18c
+[    3.523106] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.523151] SQUASHFS error: Unable to read inode 0x1ac
+[    3.523219] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.523263] SQUASHFS error: Unable to read inode 0x1cc
+[    3.523332] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.523374] SQUASHFS error: Unable to read inode 0x1ec
+[    3.523443] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.523487] SQUASHFS error: Unable to read inode 0x20c
+[    3.523556] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.523601] SQUASHFS error: Unable to read inode 0x22c
+[    3.523669] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.523786] SQUASHFS error: Unable to read inode 0x24c
+[    3.523870] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.523914] SQUASHFS error: Unable to read inode 0x26c
+[    3.523986] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.524030] SQUASHFS error: Unable to read inode 0x28c
+[    3.524103] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.524147] SQUASHFS error: Unable to read inode 0x2ac
+[    3.524219] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.524263] SQUASHFS error: Unable to read inode 0x2cc
+[    3.524335] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.524379] SQUASHFS error: Unable to read inode 0x2ec
+[    3.524450] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.524495] SQUASHFS error: Unable to read inode 0x30c
+[    3.524567] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.524611] SQUASHFS error: Unable to read inode 0x32c
+[    3.524730] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.524783] SQUASHFS error: Unable to read inode 0x34c
+[    3.524861] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.524905] SQUASHFS error: Unable to read inode 0x36c
+[    3.524980] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.525023] SQUASHFS error: Unable to read inode 0x38c
+[    3.525097] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.525142] SQUASHFS error: Unable to read inode 0x3ac
+[    3.525217] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.525261] SQUASHFS error: Unable to read inode 0x3cc
+[    3.525335] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.525379] SQUASHFS error: Unable to read inode 0x3ec
+[    3.525454] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.525498] SQUASHFS error: Unable to read inode 0x40c
+[    3.525573] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.525618] SQUASHFS error: Unable to read inode 0x42c
+[    3.525789] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.525842] SQUASHFS error: Unable to read inode 0x44c
+[    3.525936] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.525981] SQUASHFS error: Unable to read inode 0x46c
+[    3.526061] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.526106] SQUASHFS error: Unable to read inode 0x48c
+[    3.526184] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.526230] SQUASHFS error: Unable to read inode 0x4ac
+[    3.526309] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.526353] SQUASHFS error: Unable to read inode 0x4cc
+[    3.526432] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.526477] SQUASHFS error: Unable to read inode 0x4ec
+[    3.526559] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.526603] SQUASHFS error: Unable to read inode 0x50c
+[    3.526722] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.526779] SQUASHFS error: Unable to read inode 0x52c
+[    3.526867] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.526911] SQUASHFS error: Unable to read inode 0x54c
+[    3.526993] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.527037] SQUASHFS error: Unable to read inode 0x56c
+[    3.527119] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.527163] SQUASHFS error: Unable to read inode 0x58c
+[    3.527245] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.527289] SQUASHFS error: Unable to read inode 0x5ac
+[    3.527371] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.527416] SQUASHFS error: Unable to read inode 0x5cc
+[    3.527499] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.527544] SQUASHFS error: Unable to read inode 0x5ec
+[    3.527627] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.527714] SQUASHFS error: Unable to read inode 0x60c
+[    3.527815] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.527859] SQUASHFS error: Unable to read inode 0x62c
+[    3.527945] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.527988] SQUASHFS error: Unable to read inode 0x64c
+[    3.528073] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.528116] SQUASHFS error: Unable to read inode 0x66c
+[    3.528200] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.528245] SQUASHFS error: Unable to read inode 0x68c
+[    3.528328] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.528373] SQUASHFS error: Unable to read inode 0x6ac
+[    3.528487] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.528533] SQUASHFS error: Unable to read inode 0x6cc
+[    3.528624] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.528667] SQUASHFS error: Unable to read inode 0x6ec
+[    3.528844] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.528891] SQUASHFS error: Unable to read inode 0x70c
+[    3.528980] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.529023] SQUASHFS error: Unable to read inode 0x72c
+[    3.529110] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.529155] SQUASHFS error: Unable to read inode 0x74c
+[    3.529243] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.529287] SQUASHFS error: Unable to read inode 0x76c
+[    3.529375] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.529420] SQUASHFS error: Unable to read inode 0x78c
+[    3.529509] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.529553] SQUASHFS error: Unable to read inode 0x7ac
+[    3.529643] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.529743] SQUASHFS error: Unable to read inode 0x7cc
+[    3.529838] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.529883] SQUASHFS error: Unable to read inode 0x7ec
+[    3.529972] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.530016] SQUASHFS error: Unable to read inode 0x80c
+[    3.530107] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.530151] SQUASHFS error: Unable to read inode 0x82c
+[    3.530241] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.530285] SQUASHFS error: Unable to read inode 0x84c
+[    3.530376] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.530420] SQUASHFS error: Unable to read inode 0x86c
+[    3.530511] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.530555] SQUASHFS error: Unable to read inode 0x88c
+[    3.530647] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.530756] SQUASHFS error: Unable to read inode 0x8ac
+[    3.530854] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.530903] SQUASHFS error: Unable to read inode 0x8cc
+[    3.530997] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.531041] SQUASHFS error: Unable to read inode 0x8ec
+[    3.531134] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.531178] SQUASHFS error: Unable to read inode 0x90c
+[    3.531271] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.531316] SQUASHFS error: Unable to read inode 0x92c
+[    3.531410] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.531454] SQUASHFS error: Unable to read inode 0x94c
+[    3.531547] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.531590] SQUASHFS error: Unable to read inode 0x96c
+[    3.531714] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.531765] SQUASHFS error: Unable to read inode 0x98c
+[    3.531866] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.531911] SQUASHFS error: Unable to read inode 0x9ac
+[    3.532007] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.532052] SQUASHFS error: Unable to read inode 0x9cc
+[    3.532148] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.532193] SQUASHFS error: Unable to read inode 0x9ec
+[    3.532288] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.532332] SQUASHFS error: Unable to read inode 0xa0c
+[    3.532429] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.532472] SQUASHFS error: Unable to read inode 0xa2c
+[    3.532568] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.532611] SQUASHFS error: Unable to read inode 0xa4c
+[    3.532795] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.532849] SQUASHFS error: Unable to read inode 0xa6c
+[    3.532963] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.533007] SQUASHFS error: Unable to read inode 0xa8c
+[    3.533109] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.533153] SQUASHFS error: Unable to read inode 0xaac
+[    3.533252] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.533296] SQUASHFS error: Unable to read inode 0xacc
+[    3.533398] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.533443] SQUASHFS error: Unable to read inode 0xaec
+[    3.533542] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.533586] SQUASHFS error: Unable to read inode 0xb0c
+[    3.533785] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.533837] SQUASHFS error: Unable to read inode 0xb2c
+[    3.533952] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.533995] SQUASHFS error: Unable to read inode 0xb4c
+[    3.534098] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.534141] SQUASHFS error: Unable to read inode 0xb6c
+[    3.534245] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.534288] SQUASHFS error: Unable to read inode 0xb8c
+[    3.534390] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.534435] SQUASHFS error: Unable to read inode 0xbac
+[    3.534537] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.534582] SQUASHFS error: Unable to read inode 0xbcc
+[    3.534733] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.534781] SQUASHFS error: Unable to read inode 0xbec
+[    3.534912] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.534958] SQUASHFS error: Unable to read inode 0xc0c
+[    3.535063] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.535108] SQUASHFS error: Unable to read inode 0xc2c
+[    3.535214] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.535258] SQUASHFS error: Unable to read inode 0xc4c
+[    3.535362] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.535408] SQUASHFS error: Unable to read inode 0xc6c
+[    3.535512] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.535557] SQUASHFS error: Unable to read inode 0xc8c
+[    3.535664] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.535748] SQUASHFS error: Unable to read inode 0xcac
+[    3.535862] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.535906] SQUASHFS error: Unable to read inode 0xccc
+[    3.536014] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.536059] SQUASHFS error: Unable to read inode 0xcec
+[    3.536166] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.536210] SQUASHFS error: Unable to read inode 0xd0c
+[    3.536319] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.536364] SQUASHFS error: Unable to read inode 0xd2c
+[    3.536471] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.536516] SQUASHFS error: Unable to read inode 0xd4c
+[    3.536624] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.536668] SQUASHFS error: Unable to read inode 0xd6c
+[    3.536805] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.536851] SQUASHFS error: Unable to read inode 0xd8c
+[    3.536961] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.537005] SQUASHFS error: Unable to read inode 0xdac
+[    3.537116] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.537161] SQUASHFS error: Unable to read inode 0xdcc
+[    3.537280] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.537325] SQUASHFS error: Unable to read inode 0xdec
+[    3.537437] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.537481] SQUASHFS error: Unable to read inode 0xe0c
+[    3.537591] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.537636] SQUASHFS error: Unable to read inode 0xe2c
+[    3.537788] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.537835] SQUASHFS error: Unable to read inode 0xe4c
+[    3.537951] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.537995] SQUASHFS error: Unable to read inode 0xe6c
+[    3.538108] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.538151] SQUASHFS error: Unable to read inode 0xe8c
+[    3.538264] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.538308] SQUASHFS error: Unable to read inode 0xeac
+[    3.538420] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.538464] SQUASHFS error: Unable to read inode 0xecc
+[    3.538574] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.538618] SQUASHFS error: Unable to read inode 0xeec
+[    3.538777] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.538825] SQUASHFS error: Unable to read inode 0xf0c
+[    3.538944] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.538989] SQUASHFS error: Unable to read inode 0xf2c
+[    3.539102] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.539146] SQUASHFS error: Unable to read inode 0xf4c
+[    3.539261] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.539304] SQUASHFS error: Unable to read inode 0xf6c
+[    3.539418] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.539462] SQUASHFS error: Unable to read inode 0xf8c
+[    3.539577] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.539621] SQUASHFS error: Unable to read inode 0xfac
+[    3.539801] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.539850] SQUASHFS error: Unable to read inode 0xfcc
+[    3.539977] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.540022] SQUASHFS error: Unable to read inode 0xfec
+[    3.540144] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.540189] SQUASHFS error: Unable to read inode 0x100c
+[    3.540309] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.540354] SQUASHFS error: Unable to read inode 0x102c
+[    3.540472] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.540516] SQUASHFS error: Unable to read inode 0x104c
+[    3.540635] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.540723] SQUASHFS error: Unable to read inode 0x106c
+[    3.540876] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.540920] SQUASHFS error: Unable to read inode 0x108c
+[    3.541044] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.541088] SQUASHFS error: Unable to read inode 0x10ac
+[    3.541208] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.541252] SQUASHFS error: Unable to read inode 0x10cc
+[    3.541372] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.541416] SQUASHFS error: Unable to read inode 0x10ec
+[    3.541538] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.541583] SQUASHFS error: Unable to read inode 0x110c
+[    3.541739] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.541795] SQUASHFS error: Unable to read inode 0x112c
+[    3.541923] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.541967] SQUASHFS error: Unable to read inode 0x114c
+[    3.542110] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.542156] SQUASHFS error: Unable to read inode 0x116c
+[    3.542280] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.542325] SQUASHFS error: Unable to read inode 0x118c
+[    3.542447] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.542491] SQUASHFS error: Unable to read inode 0x11ac
+[    3.542611] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.542656] SQUASHFS error: Unable to read inode 0x11cc
+[    3.542883] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.542931] SQUASHFS error: Unable to read inode 0x11ec
+[    3.543058] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.543103] SQUASHFS error: Unable to read inode 0x120c
+[    3.543228] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.543273] SQUASHFS error: Unable to read inode 0x122c
+[    3.543398] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.543443] SQUASHFS error: Unable to read inode 0x124c
+[    3.543570] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.543616] SQUASHFS error: Unable to read inode 0x126c
+[    3.543779] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.543827] SQUASHFS error: Unable to read inode 0x128c
+[    3.543960] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.544005] SQUASHFS error: Unable to read inode 0x12ac
+[    3.544135] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.544181] SQUASHFS error: Unable to read inode 0x12cc
+[    3.544307] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.544352] SQUASHFS error: Unable to read inode 0x12ec
+[    3.544481] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.544526] SQUASHFS error: Unable to read inode 0x130c
+[    3.544653] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.544764] SQUASHFS error: Unable to read inode 0x132c
+[    3.544903] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.544948] SQUASHFS error: Unable to read inode 0x134c
+[    3.545078] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.545122] SQUASHFS error: Unable to read inode 0x136c
+[    3.545251] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.545296] SQUASHFS error: Unable to read inode 0x138c
+[    3.545426] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.545471] SQUASHFS error: Unable to read inode 0x13ac
+[    3.545601] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.545646] SQUASHFS error: Unable to read inode 0x13cc
+[    3.545809] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.545856] SQUASHFS error: Unable to read inode 0x13ec
+[    3.545989] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.546034] SQUASHFS error: Unable to read inode 0x140c
+[    3.546169] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.546214] SQUASHFS error: Unable to read inode 0x142c
+[    3.546349] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.546394] SQUASHFS error: Unable to read inode 0x144c
+[    3.546526] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.546572] SQUASHFS error: Unable to read inode 0x146c
+[    3.546719] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.546769] SQUASHFS error: Unable to read inode 0x148c
+[    3.546907] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.546950] SQUASHFS error: Unable to read inode 0x14ac
+[    3.547097] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.547142] SQUASHFS error: Unable to read inode 0x14cc
+[    3.547277] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.547321] SQUASHFS error: Unable to read inode 0x14ec
+[    3.547455] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.547499] SQUASHFS error: Unable to read inode 0x150c
+[    3.547637] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.547729] SQUASHFS error: Unable to read inode 0x152c
+[    3.547876] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.547921] SQUASHFS error: Unable to read inode 0x154c
+[    3.548058] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.548102] SQUASHFS error: Unable to read inode 0x156c
+[    3.548239] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.548283] SQUASHFS error: Unable to read inode 0x158c
+[    3.548419] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.548464] SQUASHFS error: Unable to read inode 0x15ac
+[    3.548603] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.548648] SQUASHFS error: Unable to read inode 0x15cc
+[    3.548839] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.548885] SQUASHFS error: Unable to read inode 0x15ec
+[    3.549025] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.549070] SQUASHFS error: Unable to read inode 0x160c
+[    3.549210] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.549254] SQUASHFS error: Unable to read inode 0x162c
+[    3.549392] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.549436] SQUASHFS error: Unable to read inode 0x164c
+[    3.549575] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.549619] SQUASHFS error: Unable to read inode 0x166c
+[    3.549812] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.549860] SQUASHFS error: Unable to read inode 0x168c
+[    3.550005] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.550049] SQUASHFS error: Unable to read inode 0x16ac
+[    3.550208] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.550254] SQUASHFS error: Unable to read inode 0x16cc
+[    3.550398] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.550442] SQUASHFS error: Unable to read inode 0x16ec
+[    3.550584] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.550628] SQUASHFS error: Unable to read inode 0x170c
+[    3.550822] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.550871] SQUASHFS error: Unable to read inode 0x172c
+[    3.551016] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.551060] SQUASHFS error: Unable to read inode 0x174c
+[    3.551205] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.551248] SQUASHFS error: Unable to read inode 0x176c
+[    3.551391] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.551435] SQUASHFS error: Unable to read inode 0x178c
+[    3.551578] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.551622] SQUASHFS error: Unable to read inode 0x17ac
+[    3.551815] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.551864] SQUASHFS error: Unable to read inode 0x17cc
+[    3.552010] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.552055] SQUASHFS error: Unable to read inode 0x17ec
+[    3.552200] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.552248] SQUASHFS error: Unable to read inode 0x180c
+[    3.552393] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.552438] SQUASHFS error: Unable to read inode 0x182c
+[    3.552582] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.552627] SQUASHFS error: Unable to read inode 0x184c
+[    3.552837] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.552886] SQUASHFS error: Unable to read inode 0x186c
+[    3.553035] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.553080] SQUASHFS error: Unable to read inode 0x188c
+[    3.553224] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.553269] SQUASHFS error: Unable to read inode 0x18ac
+[    3.553415] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.553460] SQUASHFS error: Unable to read inode 0x18cc
+[    3.553608] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.553653] SQUASHFS error: Unable to read inode 0x18ec
+[    3.553833] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.553879] SQUASHFS error: Unable to read inode 0x190c
+[    3.554029] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.554074] SQUASHFS error: Unable to read inode 0x192c
+[    3.554223] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.554268] SQUASHFS error: Unable to read inode 0x194c
+[    3.554415] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.554460] SQUASHFS error: Unable to read inode 0x196c
+[    3.554613] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.554658] SQUASHFS error: Unable to read inode 0x198c
+[    3.554842] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.554889] SQUASHFS error: Unable to read inode 0x19ac
+[    3.555043] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.555086] SQUASHFS error: Unable to read inode 0x19cc
+[    3.555238] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.555282] SQUASHFS error: Unable to read inode 0x19ec
+[    3.555431] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.555476] SQUASHFS error: Unable to read inode 0x1a0c
+[    3.555629] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.555672] SQUASHFS error: Unable to read inode 0x1a2c
+[    3.555879] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.555925] SQUASHFS error: Unable to read inode 0x1a4c
+[    3.556077] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.556121] SQUASHFS error: Unable to read inode 0x1a6c
+[    3.556275] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.556319] SQUASHFS error: Unable to read inode 0x1a8c
+[    3.556475] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.556520] SQUASHFS error: Unable to read inode 0x1aac
+[    3.556695] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.556759] SQUASHFS error: Unable to read inode 0x1acc
+[    3.556921] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.556966] SQUASHFS error: Unable to read inode 0x1aec
+[    3.557122] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.557166] SQUASHFS error: Unable to read inode 0x1b0c
+[    3.557322] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.557366] SQUASHFS error: Unable to read inode 0x1b2c
+[    3.557524] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.557569] SQUASHFS error: Unable to read inode 0x1b4c
+[    3.557758] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.557806] SQUASHFS error: Unable to read inode 0x1b6c
+[    3.557980] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.558025] SQUASHFS error: Unable to read inode 0x1b8c
+[    3.558184] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.558227] SQUASHFS error: Unable to read inode 0x1bac
+[    3.558384] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.558429] SQUASHFS error: Unable to read inode 0x1bcc
+[    3.558589] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.558634] SQUASHFS error: Unable to read inode 0x1bec
+[    3.558875] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.558926] SQUASHFS error: Unable to read inode 0x1c0c
+[    3.559090] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.559134] SQUASHFS error: Unable to read inode 0x1c2c
+[    3.559295] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.559339] SQUASHFS error: Unable to read inode 0x1c4c
+[    3.559499] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.559543] SQUASHFS error: Unable to read inode 0x1c6c
+[    3.559743] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.559798] SQUASHFS error: Unable to read inode 0x1c8c
+[    3.559964] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.560008] SQUASHFS error: Unable to read inode 0x1cac
+[    3.560165] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.560209] SQUASHFS error: Unable to read inode 0x1ccc
+[    3.560365] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.560409] SQUASHFS error: Unable to read inode 0x1cec
+[    3.560570] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.560614] SQUASHFS error: Unable to read inode 0x1d0c
+[    3.560829] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.560878] SQUASHFS error: Unable to read inode 0x1d2c
+[    3.561041] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.561085] SQUASHFS error: Unable to read inode 0x1d4c
+[    3.561245] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.561289] SQUASHFS error: Unable to read inode 0x1d6c
+[    3.561448] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.561492] SQUASHFS error: Unable to read inode 0x1d8c
+[    3.561653] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.561728] SQUASHFS error: Unable to read inode 0x1dac
+[    3.561898] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.561942] SQUASHFS error: Unable to read inode 0x1dcc
+[    3.562108] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.562152] SQUASHFS error: Unable to read inode 0x1dec
+[    3.562312] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.562356] SQUASHFS error: Unable to read inode 0x1e0c
+[    3.562518] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.562562] SQUASHFS error: Unable to read inode 0x1e2c
+[    3.562749] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.562796] SQUASHFS error: Unable to read inode 0x1e4c
+[    3.562960] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.563005] SQUASHFS error: Unable to read inode 0x1e6c
+[    3.563168] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.563212] SQUASHFS error: Unable to read inode 0x1e8c
+[    3.563378] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.563422] SQUASHFS error: Unable to read inode 0x1eac
+[    3.563586] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.563630] SQUASHFS error: Unable to read inode 0x1ecc
+[    3.563895] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.563949] SQUASHFS error: Unable to read inode 0x1eec
+[    3.564124] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.564168] SQUASHFS error: Unable to read inode 0x1f0c
+[    3.564341] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.564385] SQUASHFS error: Unable to read inode 0x1f2c
+[    3.564554] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.564599] SQUASHFS error: Unable to read inode 0x1f4c
+[    3.564823] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.564872] SQUASHFS error: Unable to read inode 0x1f6c
+[    3.565053] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.565097] SQUASHFS error: Unable to read inode 0x1f8c
+[    3.565273] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.565317] SQUASHFS error: Unable to read inode 0x1fac
+[    3.565495] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.565539] SQUASHFS error: Unable to read inode 0x1fcc
+[    3.565747] SQUASHFS error: Unable to read metadata cache entry [d336]
+[    3.565806] SQUASHFS error: Unable to read inode 0x1fec
+CIX_VM_REJECT declared-profile-cap
+CIX_VM_PASS reject-corrupt-oversize-truncated-profile-cap
+[    3.603546] ACPI: PM: Preparing to enter system sleep state S5
+[    3.604151] reboot: Power down

@@ -9,7 +9,9 @@
 #define METHOD_ADAPTIVE 2u
 #define HEADER 10u
 #define SUBSTREAM 10u
+#ifndef CIX_SQUASHFS_PROFILE_DECODER_ONLY
 #define MAX_BITS_RESERVE 5u
+#endif
 #define AC_MAX UINT64_C(0xffffffff)
 #define AC_HALF UINT64_C(0x80000000)
 #define AC_Q1 UINT64_C(0x40000000)
@@ -21,6 +23,9 @@ typedef struct {
     uint32_t seen;
 } model;
 
+#define MODEL_ALIGNMENT offsetof(struct { char padding; model value; }, value)
+
+#ifndef CIX_SQUASHFS_PROFILE_DECODER_ONLY
 typedef struct {
     uint8_t *p;
     size_t cap;
@@ -30,6 +35,7 @@ typedef struct {
     uint32_t bits;
     int failed;
 } bit_writer;
+#endif
 
 typedef struct {
     const uint8_t *p;
@@ -38,12 +44,14 @@ typedef struct {
     uint64_t pos;
 } bit_reader;
 
+#ifndef CIX_SQUASHFS_PROFILE_DECODER_ONLY
 typedef struct {
     uint64_t low;
     uint64_t high;
     uint32_t pending;
     bit_writer writer;
 } encoder;
+#endif
 
 typedef struct {
     uint64_t low;
@@ -57,12 +65,14 @@ static uint32_t le32(const uint8_t *p) {
         ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
 }
 
+#ifndef CIX_SQUASHFS_PROFILE_DECODER_ONLY
 static void put32(uint8_t *p, uint32_t value) {
     p[0] = (uint8_t)value;
     p[1] = (uint8_t)(value >> 8);
     p[2] = (uint8_t)(value >> 16);
     p[3] = (uint8_t)(value >> 24);
 }
+#endif
 
 size_t cix_squashfs_profile_max_input(enum cix_squashfs_profile_kind kind) {
     switch (kind) {
@@ -145,6 +155,7 @@ static int select_symbol(const model *state, uint32_t target, unsigned *symbol,
     return 1;
 }
 
+#ifndef CIX_SQUASHFS_PROFILE_DECODER_ONLY
 static void bw_bit(bit_writer *writer, unsigned bit) {
     if (writer->failed != 0) {
         return;
@@ -213,6 +224,7 @@ static int enc_finish(encoder *state) {
     }
     return state->writer.failed == 0;
 }
+#endif
 
 static unsigned br_bit(bit_reader *reader) {
     unsigned bit = 0;
@@ -269,6 +281,7 @@ static void dec_update(decoder *state, uint32_t low, uint32_t high, uint32_t tot
     }
 }
 
+#ifndef CIX_SQUASHFS_PROFILE_DECODER_ONLY
 static size_t varint(uint32_t value, uint8_t *output) {
     size_t written = 0;
 
@@ -279,6 +292,7 @@ static size_t varint(uint32_t value, uint8_t *output) {
     output[written++] = (uint8_t)value;
     return written;
 }
+#endif
 
 static int get_varint(const uint8_t *input, size_t length, size_t *offset,
                       uint32_t *output) {
@@ -300,6 +314,7 @@ static int get_varint(const uint8_t *input, size_t length, size_t *offset,
     return 0;
 }
 
+#ifndef CIX_SQUASHFS_PROFILE_DECODER_ONLY
 static size_t rle_size(const uint8_t *input, size_t length) {
     size_t offset = 0;
     size_t result = 0;
@@ -447,6 +462,7 @@ int cix_squashfs_profile_encode(enum cix_squashfs_profile_kind kind,
     *written = HEADER + best;
     return CIX_SQUASHFS_OK;
 }
+#endif
 
 static int decode_rle(const uint8_t *input, size_t offset, size_t end,
                       uint8_t *output, size_t plain_length) {
@@ -474,13 +490,13 @@ static int decode_rle(const uint8_t *input, size_t offset, size_t end,
 }
 
 static int decode_adaptive(const uint8_t *input, size_t offset, size_t end,
-                           uint8_t *output, size_t plain_length) {
+                           uint8_t *output, size_t plain_length,
+                           model *state) {
     uint32_t substream_length;
     uint32_t adaptive_length;
     uint32_t bits;
     size_t bytes;
     size_t index;
-    model state;
     decoder arithmetic;
 
     if (end - offset < SUBSTREAM + 4 || input[offset++] != 1 || input[offset++] != 4) {
@@ -499,29 +515,33 @@ static int decode_adaptive(const uint8_t *input, size_t offset, size_t end,
     if (bytes != end - offset) {
         return CIX_SQUASHFS_MALFORMED;
     }
-    memset(&state, 0, sizeof(state));
+    memset(state, 0, sizeof(*state));
     dec_init(&arithmetic, input + offset, bytes, bits);
     for (index = 0; index < plain_length; ++index) {
         uint32_t low;
         uint32_t high;
         uint32_t total;
-        uint32_t target = dec_target(&arithmetic, 2u * state.seen + 256u);
+        uint32_t target = dec_target(&arithmetic, 2u * state->seen + 256u);
         unsigned symbol;
 
-        if (!select_symbol(&state, target, &symbol, &low, &high, &total)) {
+        if (!select_symbol(state, target, &symbol, &low, &high, &total)) {
             return CIX_SQUASHFS_MALFORMED;
         }
         dec_update(&arithmetic, low, high, total);
-        model_add(&state, symbol);
+        model_add(state, symbol);
         output[index] = (uint8_t)symbol;
     }
     return CIX_SQUASHFS_OK;
 }
 
-int cix_squashfs_profile_decode(enum cix_squashfs_profile_kind kind,
-                                const uint8_t *input, size_t input_length,
-                                uint8_t *output, size_t output_capacity,
-                                size_t *written) {
+size_t cix_squashfs_profile_decode_workspace_size(void) {
+    return sizeof(model);
+}
+
+int cix_squashfs_profile_decode_with_workspace(
+    enum cix_squashfs_profile_kind kind, const uint8_t *input,
+    size_t input_length, uint8_t *output, size_t output_capacity,
+    void *workspace, size_t workspace_length, size_t *written) {
     size_t limit = cix_squashfs_profile_max_input(kind);
     size_t end;
     uint32_t plain_length;
@@ -531,9 +551,15 @@ int cix_squashfs_profile_decode(enum cix_squashfs_profile_kind kind,
     if (written != NULL) {
         *written = 0;
     }
-    if (written == NULL || limit == 0 || !valid_io(input, input_length) ||
+    if (written == NULL || workspace == NULL ||
+        workspace_length < sizeof(model) || limit == 0 || !valid_io(input, input_length) ||
         !valid_io(output, output_capacity) ||
         ranges_overlap(input, input_length, output, output_capacity)) {
+        return CIX_SQUASHFS_INVALID_ARGUMENT;
+    }
+    if ((uintptr_t)workspace % MODEL_ALIGNMENT != 0 ||
+        ranges_overlap((const uint8_t *)workspace, sizeof(model), input, input_length) ||
+        ranges_overlap((const uint8_t *)workspace, sizeof(model), output, output_capacity)) {
         return CIX_SQUASHFS_INVALID_ARGUMENT;
     }
     if (input_length < HEADER || input[0] != VERSION) {
@@ -568,7 +594,8 @@ int cix_squashfs_profile_decode(enum cix_squashfs_profile_kind kind,
         status = decode_rle(input, HEADER, end, output, plain_length);
         break;
     case METHOD_ADAPTIVE:
-        status = decode_adaptive(input, HEADER, end, output, plain_length);
+        status = decode_adaptive(input, HEADER, end, output, plain_length,
+                                 (model *)workspace);
         break;
     default:
         return CIX_SQUASHFS_MALFORMED;
@@ -579,3 +606,15 @@ int cix_squashfs_profile_decode(enum cix_squashfs_profile_kind kind,
     *written = plain_length;
     return CIX_SQUASHFS_OK;
 }
+
+#ifndef CIX_SQUASHFS_PROFILE_DECODER_ONLY
+int cix_squashfs_profile_decode(enum cix_squashfs_profile_kind kind,
+                                const uint8_t *input, size_t input_length,
+                                uint8_t *output, size_t output_capacity,
+                                size_t *written) {
+    model workspace;
+
+    return cix_squashfs_profile_decode_with_workspace(kind, input, input_length,
+        output, output_capacity, &workspace, sizeof(workspace), written);
+}
+#endif

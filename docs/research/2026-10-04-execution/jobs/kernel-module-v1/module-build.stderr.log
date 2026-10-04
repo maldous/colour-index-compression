@@ -1,0 +1,48 @@
+warning: the compiler differs from the one used to build the kernel
+  The kernel was built by: x86_64-linux-gnu-gcc-13 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+  You are using:           gcc-13 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+In file included from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/profile/include/cix_squashfs_profile.h:6,
+                 from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/profile/src/cix_squashfs_profile.c:1,
+                 from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/cix_profile_portable.c:10:
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/include/stdint.h:11: warning: "UINTPTR_MAX" redefined
+   11 | #define UINTPTR_MAX (~(uintptr_t)0)
+      | 
+In file included from ./include/linux/limits.h:7,
+                 from ./include/linux/kernel.h:17,
+                 from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/include/cix_profile_kernel_shim.h:10,
+                 from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/cix_profile_portable.c:6:
+./include/vdso/limits.h:17: note: this is the location of the previous definition
+   17 | #define UINTPTR_MAX     ULONG_MAX
+      | 
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/profile/src/cix_squashfs_profile.c: In function ‘decode_adaptive.constprop’:
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/profile/src/cix_squashfs_profile.c:519:1: warning: the frame size of 2192 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+  519 | }
+      | ^
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/profile/src/cix_squashfs_profile.c: In function ‘adaptive_encode.constprop’:
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/profile/src/cix_squashfs_profile.c:400:1: warning: the frame size of 2200 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+  400 | }
+      | ^
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/cix_squashfs_fs_register.c:5:5: warning: no previous prototype for ‘cix_squashfs_register_filesystem’ [-Wmissing-prototypes]
+    5 | int cix_squashfs_register_filesystem(struct file_system_type *fs)
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/cix_squashfs_fs_register.c:11:5: warning: no previous prototype for ‘cix_squashfs_unregister_filesystem’ [-Wmissing-prototypes]
+   11 | int cix_squashfs_unregister_filesystem(struct file_system_type *fs)
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/cix_upstream_super.c:3:
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/upstream/super.c:17: warning: "pr_fmt" redefined
+   17 | #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+      | 
+In file included from ./include/asm-generic/bug.h:22,
+                 from ./arch/x86/include/asm/bug.h:100,
+                 from ./arch/x86/include/asm/alternative.h:8,
+                 from ./arch/x86/include/asm/barrier.h:5,
+                 from ./include/linux/list.h:11,
+                 from ./include/linux/wait.h:7,
+                 from ./include/linux/wait_bit.h:8,
+                 from ./include/linux/fs.h:6,
+                 from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/include/cix_squashfs_prefix.h:6,
+                 from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/cix_upstream_super.c:2:
+./include/linux/printk.h:354: note: this is the location of the previous definition
+  354 | #define pr_fmt(fmt) fmt
+      | 
+Skipping BTF generation for /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-module-v1/stage/cix_squashfs.ko due to unavailability of vmlinux

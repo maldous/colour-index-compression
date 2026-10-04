@@ -43,6 +43,10 @@ int main(void) {
     uint8_t output[32];
     uint8_t repeated[4096];
     uint8_t overlapping[sizeof(raw_abc)];
+    union {
+        uint32_t aligned;
+        uint8_t bytes[4096];
+    } workspace;
     size_t written = 0;
     unsigned index;
 
@@ -50,6 +54,40 @@ int main(void) {
                                     output, sizeof(output), &written) != CIX_SQUASHFS_OK ||
         written != 3 || !equal(output, (const uint8_t *)"abc", 3)) {
         return 1;
+    }
+    if (cix_squashfs_profile_decode_workspace_size() > sizeof(workspace.bytes) ||
+        cix_squashfs_profile_decode_with_workspace(CIX_SQUASHFS_DATA, raw_abc,
+            sizeof(raw_abc), output, sizeof(output), workspace.bytes,
+            sizeof(workspace.bytes), &written) != CIX_SQUASHFS_OK ||
+        written != 3 || !equal(output, (const uint8_t *)"abc", 3)) {
+        return 13;
+    }
+    if (cix_squashfs_profile_decode_with_workspace(CIX_SQUASHFS_DATA,
+            adaptive_zero, sizeof(adaptive_zero), output, sizeof(output),
+            workspace.bytes, sizeof(workspace.bytes), &written) != CIX_SQUASHFS_OK ||
+        written != 1 || output[0] != 0) {
+        return 14;
+    }
+    if (cix_squashfs_profile_decode_with_workspace(CIX_SQUASHFS_DATA,
+            adaptive_zero, sizeof(adaptive_zero), output, sizeof(output), NULL,
+            0, &written) != CIX_SQUASHFS_INVALID_ARGUMENT) {
+        return 15;
+    }
+    if (cix_squashfs_profile_decode_with_workspace(CIX_SQUASHFS_DATA,
+            adaptive_zero, sizeof(adaptive_zero), output, sizeof(output),
+            workspace.bytes, cix_squashfs_profile_decode_workspace_size() - 1,
+            &written) != CIX_SQUASHFS_INVALID_ARGUMENT) {
+        return 16;
+    }
+    if (cix_squashfs_profile_decode_with_workspace(CIX_SQUASHFS_DATA,
+            raw_abc, sizeof(raw_abc), output, sizeof(output), workspace.bytes + 1,
+            sizeof(workspace.bytes) - 1, &written) != CIX_SQUASHFS_INVALID_ARGUMENT) {
+        return 17;
+    }
+    if (cix_squashfs_profile_decode_with_workspace(CIX_SQUASHFS_DATA,
+            raw_abc, sizeof(raw_abc), workspace.bytes, sizeof(workspace.bytes),
+            workspace.bytes, sizeof(workspace.bytes), &written) != CIX_SQUASHFS_INVALID_ARGUMENT) {
+        return 18;
     }
     if (cix_squashfs_profile_decode(CIX_SQUASHFS_DATA, rle_aaa, sizeof(rle_aaa),
                                     output, sizeof(output), &written) != CIX_SQUASHFS_OK ||
