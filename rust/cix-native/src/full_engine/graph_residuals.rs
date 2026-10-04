@@ -1,14 +1,19 @@
 //! Exact historical SDFG framing plus V2000 coordinate skeleton/residuals.
 //!
-//! It owns the byte-preserving record operation and the two native historical
-//! payload representations which do not depend on palette coding.
+//! It owns the byte-preserving record operation and all native historical
+//! payload representations.
 
 use super::arithmetic::{vdecode, vencode};
+use crate::rank::{decode_type_class, encode_type_class};
+use std::collections::HashMap;
 
 const COORDINATE_STARTS: [usize; 3] = [0, 10, 20];
 const MAGIC: &[u8; 5] = b"SDFG\x01";
 const SEP: &[u8] = b"$$$$\n";
 const DEFAULT_OUTPUT_LIMIT: usize = 1 << 30;
+const GROUP_COUNT: usize = 5;
+const TYPE_CLASS_BLOCK: usize = 4096;
+const PALETTE_SIZE: usize = 64;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ExtractedRecord {
@@ -43,6 +48,148 @@ fn append_signed_vectors(out: &mut Vec<u8>, vectors: &[[i64; 3]]) {
             out.extend_from_slice(&signed(*value));
         }
     }
+}
+
+fn append_signed_vector(out: &mut Vec<u8>, vector: [i64; 3]) {
+    for value in vector {
+        out.extend_from_slice(&signed(value));
+    }
+}
+
+fn read_signed_vector(blob: &[u8], pos: usize) -> Result<([i64; 3], usize), String> {
+    let (x, pos) = read_signed(blob, pos)?;
+    let (y, pos) = read_signed(blob, pos)?;
+    let (z, pos) = read_signed(blob, pos)?;
+    Ok(([x, y, z], pos))
+}
+
+/// The historical Python helper wraps the native known-length type-class
+/// stream with its own length varint.
+fn encode_palette_type_class(data: &[u8]) -> Result<Vec<u8>, String> {
+    let mut out = vencode(data.len() as u64);
+    out.extend_from_slice(&encode_type_class(data)?);
+    Ok(out)
+}
+
+fn decode_palette_type_class(data: &[u8], expected: usize) -> Result<Vec<u8>, String> {
+    let (declared, mut pos) = vdecode(data, 0)?;
+    if checked_usize(declared, "type-class block size")? != expected {
+        return Err("type class block mismatch".into());
+    }
+    let chunk = decode_type_class(data, &mut pos, expected)?;
+    if pos != data.len() {
+        return Err("unused type class bytes".into());
+    }
+    Ok(chunk)
+}
+
+fn append_palette(
+    out: &mut Vec<u8>,
+    vectors: &[[i64; 3]],
+    groups: &[u8],
+    palette_size: usize,
+) -> Result<(), String> {
+    if vectors.len() != groups.len() {
+        return Err("palette coordinate/group mismatch".into());
+    }
+    if !(1..=254).contains(&palette_size) {
+        return Err("palette outside byte alphabet".into());
+    }
+    let mut indices: HashMap<[i64; 3], usize> = HashMap::new();
+    let mut counted = Vec::<([i64; 3], usize)>::new();
+    for vector in vectors {
+        if let Some(index) = indices.get(vector) {
+            counted[*index].1 += 1;
+        } else {
+            let index = counted.len();
+            indices.insert(*vector, index);
+            counted.push((*vector, 1));
+        }
+    }
+    // Python Counter.most_common() retains first-occurrence order for tied
+    // counts; stable sorting preserves that exact tie break.
+    counted.sort_by(|left, right| right.1.cmp(&left.1));
+    let palette = counted
+        .into_iter()
+        .take(palette_size)
+        .map(|(vector, _)| vector)
+        .collect::<Vec<_>>();
+    let mut identifiers = HashMap::new();
+    for (index, vector) in palette.iter().enumerate() {
+        identifiers.insert(*vector, index as u8);
+    }
+    out.extend_from_slice(&vencode(palette.len() as u64));
+    append_signed_vectors(out, &palette);
+    let mut streams: [Vec<u8>; GROUP_COUNT] = std::array::from_fn(|_| Vec::new());
+    let mut escaped = Vec::new();
+    let escape = u8::try_from(palette.len()).map_err(|_| "oversized palette")?;
+    for (vector, group) in vectors.iter().zip(groups) {
+        let group = usize::from(*group);
+        let stream = streams.get_mut(group).ok_or("invalid atom group")?;
+        match identifiers.get(vector) {
+            Some(token) => stream.push(*token),
+            None => {
+                stream.push(escape);
+                append_signed_vector(&mut escaped, *vector);
+            }
+        }
+    }
+    for stream in streams {
+        out.extend_from_slice(&vencode(stream.len() as u64));
+        for block in stream.chunks(TYPE_CLASS_BLOCK) {
+            let frame = encode_palette_type_class(block)?;
+            out.extend_from_slice(&vencode(frame.len() as u64));
+            out.extend_from_slice(&frame);
+        }
+    }
+    out.extend_from_slice(&escaped);
+    Ok(())
+}
+
+fn decode_palette(
+    blob: &[u8],
+    mut pos: usize,
+    group_counts: &[usize; GROUP_COUNT],
+) -> Result<(Vec<[i64; 3]>, [Vec<u8>; GROUP_COUNT], usize), String> {
+    let (count, after_count) = vdecode(blob, pos)?;
+    let count = checked_usize(count, "palette count")?;
+    if count > 254 {
+        return Err("oversized palette".into());
+    }
+    pos = after_count;
+    let mut palette = Vec::with_capacity(count);
+    for _ in 0..count {
+        let (vector, after_vector) = read_signed_vector(blob, pos)?;
+        pos = after_vector;
+        palette.push(vector);
+    }
+    let mut streams: [Vec<u8>; GROUP_COUNT] = std::array::from_fn(|_| Vec::new());
+    for (group, stream) in streams.iter_mut().enumerate() {
+        let (size, after_size) = vdecode(blob, pos)?;
+        let size = checked_usize(size, "palette stream size")?;
+        if size != group_counts[group] {
+            return Err("palette stream coordinate count mismatch".into());
+        }
+        pos = after_size;
+        stream.reserve(size);
+        let mut offset = 0usize;
+        while offset < size {
+            let (frame_size, after_frame_size) = vdecode(blob, pos)?;
+            let frame_size = checked_usize(frame_size, "type-class frame size")?;
+            let frame_end = after_frame_size
+                .checked_add(frame_size)
+                .ok_or("frame offset overflow")?;
+            let frame = blob
+                .get(after_frame_size..frame_end)
+                .ok_or("truncated type class frame")?;
+            let expected = (size - offset).min(TYPE_CLASS_BLOCK);
+            let chunk = decode_palette_type_class(frame, expected)?;
+            stream.extend_from_slice(&chunk);
+            offset += expected;
+            pos = frame_end;
+        }
+    }
+    Ok((palette, streams, pos))
 }
 
 fn split_records(data: &[u8]) -> Vec<&[u8]> {
@@ -337,13 +484,21 @@ pub fn restore(skeleton: &[u8], mode: u8, residuals: &[[i64; 3]]) -> Result<Vec<
 /// Encodes the historical `SDFG\x01` geometry frame.  Unsupported records are
 /// retained literally and indicated by their clear record-flag bit.
 pub fn encode(data: &[u8], mode: u8, representation: u8) -> Result<Vec<u8>, String> {
+    encode_with_palette(data, mode, representation, PALETTE_SIZE)
+}
+
+/// Encodes the historical `SDFG\x01` geometry frame with the supplied
+/// representation-2 palette size.  Representations 0 and 1 ignore this value,
+/// as the historical encoder does.
+pub fn encode_with_palette(
+    data: &[u8],
+    mode: u8,
+    representation: u8,
+    palette_size: usize,
+) -> Result<Vec<u8>, String> {
     if mode > 2 || representation > 2 {
         return Err("unknown geometry mode".into());
     }
-    if representation == 2 {
-        return Err("palette geometry representation is unsupported".into());
-    }
-
     let records = split_records(data);
     let mut skeletons = Vec::with_capacity(records.len());
     let mut flags = vec![
@@ -355,11 +510,13 @@ pub fn encode(data: &[u8], mode: u8, representation: u8) -> Result<Vec<u8>, Stri
             / 8
     ];
     let mut vectors = Vec::new();
+    let mut groups = Vec::new();
     for (index, record) in records.iter().enumerate() {
         match extract(record, mode) {
             Ok(extracted) => {
                 flags[index / 8] |= 1 << (index % 8);
                 vectors.extend(extracted.residuals);
+                groups.extend(extracted.groups);
                 skeletons.push(extracted.skeleton);
             }
             Err(_) => skeletons.push((*record).to_vec()),
@@ -390,6 +547,7 @@ pub fn encode(data: &[u8], mode: u8, representation: u8) -> Result<Vec<u8>, Stri
                 );
             }
         }
+        2 => append_palette(&mut out, &vectors, &groups, palette_size)?,
         _ => unreachable!(),
     }
     Ok(out)
@@ -405,9 +563,6 @@ pub fn decode_with_limit(blob: &[u8], output_limit: usize) -> Result<Vec<u8>, St
     let representation = blob[6];
     if mode > 2 || representation > 2 {
         return Err("unknown geometry mode".into());
-    }
-    if representation == 2 {
-        return Err("palette geometry representation is unsupported".into());
     }
     let (records_count, mut pos) = vdecode(blob, 7)?;
     let records_count = checked_usize(records_count, "record count")?;
@@ -438,11 +593,22 @@ pub fn decode_with_limit(blob: &[u8], output_limit: usize) -> Result<Vec<u8>, St
         return Err("record count mismatch".into());
     }
     let mut parsed_atoms = 0usize;
+    let mut group_counts = [0usize; GROUP_COUNT];
     for (index, record) in records.iter().enumerate() {
         if flags[index / 8] & (1 << (index % 8)) != 0 {
+            let lines = lines_keepends(record);
+            let atoms = layout(&lines)?.0;
             parsed_atoms = parsed_atoms
-                .checked_add(layout(&lines_keepends(record))?.0)
+                .checked_add(atoms)
                 .ok_or("coordinate count overflow")?;
+            if representation == 2 {
+                for atom in 0..atoms {
+                    let group = usize::from(atom_group(&lines[4 + atom][..]));
+                    group_counts[group] = group_counts[group]
+                        .checked_add(1)
+                        .ok_or("palette stream size overflow")?;
+                }
+            }
         }
     }
     if parsed_atoms != vectors_count {
@@ -477,9 +643,22 @@ pub fn decode_with_limit(blob: &[u8], output_limit: usize) -> Result<Vec<u8>, St
             pos = blob.len();
             vectors
         }
+        2 => Vec::new(),
         _ => unreachable!(),
     };
+    let (palette, streams, palette_positions) = if representation == 2 {
+        let (palette, streams, after_palette) = decode_palette(blob, pos, &group_counts)?;
+        pos = after_palette;
+        (palette, streams, [0usize; GROUP_COUNT])
+    } else {
+        (
+            Vec::new(),
+            std::array::from_fn(|_| Vec::new()),
+            [0usize; GROUP_COUNT],
+        )
+    };
     let mut vector_at = 0usize;
+    let mut palette_positions = palette_positions;
     let mut restored = Vec::with_capacity(records_count);
     for (index, record) in records.iter().enumerate() {
         if flags[index / 8] & (1 << (index % 8)) == 0 {
@@ -496,6 +675,29 @@ pub fn decode_with_limit(blob: &[u8], output_limit: usize) -> Result<Vec<u8>, St
                 .ok_or("missing coordinate data")?;
             vector_at = end;
             values.to_vec()
+        } else if representation == 2 {
+            let lines = lines_keepends(record);
+            let atoms = layout(&lines)?.0;
+            let mut values = Vec::with_capacity(atoms);
+            for atom in 0..atoms {
+                let group = usize::from(atom_group(&lines[4 + atom][..]));
+                let at = palette_positions[group];
+                let token = *streams[group].get(at).ok_or("palette stream exhausted")?;
+                palette_positions[group] += 1;
+                if usize::from(token) < palette.len() {
+                    values.push(palette[usize::from(token)]);
+                } else if usize::from(token) == palette.len() {
+                    let (vector, after_vector) = read_signed_vector(blob, pos)?;
+                    pos = after_vector;
+                    values.push(vector);
+                } else {
+                    return Err("palette token invalid".into());
+                }
+            }
+            vector_at = vector_at
+                .checked_add(atoms)
+                .ok_or("coordinate count overflow")?;
+            values
         } else {
             let atoms = layout(&lines_keepends(record))?.0;
             let mut values = Vec::with_capacity(atoms);
@@ -515,6 +717,14 @@ pub fn decode_with_limit(blob: &[u8], output_limit: usize) -> Result<Vec<u8>, St
     }
     if pos != blob.len() || vector_at != vectors_count {
         return Err("unused or missing coordinate data".into());
+    }
+    if representation == 2
+        && palette_positions
+            .iter()
+            .zip(streams.iter())
+            .any(|(position, stream)| *position != stream.len())
+    {
+        return Err("unused palette tokens".into());
     }
     let output = join_records(&restored);
     if output.len() > output_limit {
@@ -685,7 +895,6 @@ mod tests {
         let mut palette = binary;
         palette[6] = 2;
         assert!(decode(&palette).is_err());
-        assert!(encode(&input, 0, 2).is_err());
     }
 
     #[test]
@@ -713,5 +922,40 @@ mod tests {
         frame[payload_at..]
             .copy_from_slice(b"10000,-20000,0\x0b30000,20000,0\n40000,-10000,5000\n");
         assert!(decode(&frame).is_err());
+    }
+
+    #[test]
+    fn palette_frames_restore_all_prediction_modes_and_reject_trailing_bytes() {
+        let input = fixture(&[b"\r\n", b"\n"]);
+        for mode in 0..=2 {
+            let frame = encode(&input, mode, 2).unwrap();
+            assert_eq!(decode(&frame).unwrap(), input);
+            let mut trailing = frame;
+            trailing.push(0);
+            assert!(decode(&trailing).is_err());
+        }
+        assert!(encode_with_palette(&input, 0, 2, 0).is_err());
+        assert!(encode_with_palette(&input, 0, 2, 255).is_err());
+    }
+
+    #[test]
+    fn palette_uses_first_seen_order_and_escapes_the_sixty_fifth_vector() {
+        let vectors = (0..65)
+            .map(|value| [value, -value, value * 2])
+            .collect::<Vec<_>>();
+        let groups = vec![0; vectors.len()];
+        let mut payload = Vec::new();
+        append_palette(&mut payload, &vectors, &groups, 64).unwrap();
+        let (palette, streams, escaped_at) =
+            decode_palette(&payload, 0, &[65, 0, 0, 0, 0]).unwrap();
+        assert_eq!(palette, vectors[..64]);
+        assert_eq!(streams[0].len(), 65);
+        assert_eq!(streams[0][64], 64);
+        for stream in &streams[1..] {
+            assert!(stream.is_empty());
+        }
+        let (escaped, end) = read_signed_vector(&payload, escaped_at).unwrap();
+        assert_eq!(escaped, vectors[64]);
+        assert_eq!(end, payload.len());
     }
 }

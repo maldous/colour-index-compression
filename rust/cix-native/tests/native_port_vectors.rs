@@ -43,3 +43,23 @@ fn pointer_frames_match_preserved_reference_for_all_modes() {
         );
     }
 }
+
+#[test]
+fn palette_frames_match_preserved_reference_with_grouped_tokens_and_escapes() {
+    let input = fixture("palette.input");
+    for mode in 0..=2 {
+        for palette_size in [1, 2, 64] {
+            let expected = fixture(&format!("palette-{mode}-{palette_size}.frame"));
+            assert_eq!(
+                graph_residuals::encode_with_palette(&input, mode, 2, palette_size).unwrap(),
+                expected,
+                "mode {mode}, palette {palette_size}"
+            );
+            assert_eq!(
+                graph_residuals::decode_with_limit(&expected, input.len()).unwrap(),
+                input
+            );
+            assert!(graph_residuals::decode_with_limit(&expected, input.len() - 1).is_err());
+        }
+    }
+}

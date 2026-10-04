@@ -4,6 +4,18 @@
 preserves implementation progress and failed as well as passing checks. It is
 not full-engine qualification, a public release or a compression record.
 
+## Latest palette compatibility check
+
+The subsequent [palette check](palette-check-summary.json) completes the historical
+SDFG palette representation using the existing exact type-class coder. All nine
+new generated reference frames match byte for byte across three predictor modes
+and palette sizes 1, 2 and 64, including grouped tokens, ties and escaped values.
+The check passed all-target compilation, 31 full-engine unit tests and three
+reference-vector integration tests covering 21 total archives. The signed scalar
+mapping now handles `i64::MIN` without overflow; both signed endpoints are tested.
+These are faithful retained-format ports and fixes, not new structural research
+or new compression records. Full-engine admission remains unfinished.
+
 ## Latest integration batch
 
 The latest [integration summary](integration-summary.json) extends the saved
@@ -33,7 +45,7 @@ standalone runtime and future distribution allowlist.
 | Exact arithmetic | Checked varints, big integer rank/composition, Fenwick frequencies and arithmetic interval coding with reference/small exhaustive checks | Complete route/frame parity and final resource qualification |
 | Record ordering | Count-conditioned streams, permutation rank blocks and framing primitives | Complete retained column/fixed-record models and native dispatch |
 | Address relations | Validated object discovery, constraints, fields, GOT and pointer-delta transforms and historical envelope helpers; golden choice-code bytes; corrected historical mode-0 inverse | Remaining section/other specialists, broader object/frame reference fixtures, model allocation budgets and end-to-end backend integration |
-| Graph residuals | Fixed-width coordinate extraction/restoration, graph/sequential residuals, canonical-field checks, mixed line-ending preservation and historical varint/text framing | Complete palettes, hydrogen constraints and dispatch |
+| Graph residuals | Fixed-width coordinate extraction/restoration, graph/sequential residuals, canonical-field checks, mixed line-ending preservation and historical varint/text framing | Hydrogen constraints and dispatch |
 | Strided values | Strict extent recognition and signed scalar mapping | Complete retained grid representations and frame qualification |
 | Volume lifting | Volume modes, finite-width residuals, axis layouts and bounded multiscale shape operations; explicit codec callbacks | Actual JXL bridge/dependency build, CIXI1 migration constraints and cross-decoding all retained physical frames |
 | PAQ boundary | Four variant libraries with exact archive/cross-decode checks; same-CIX child invocation, SDK rejection, bounded error text, exact Unix arguments, environment and per-child limits | Parent supervisor, candidate dispatch, aggregate resource/cancellation guarantees, all retained options and platform paths |

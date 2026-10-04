@@ -46,11 +46,7 @@ pub fn recognize_wcs_grid(data: &[u8]) -> Option<WcsGrid> {
 }
 
 pub fn zigzag_i64(value: i64) -> u64 {
-    if value >= 0 {
-        (value as u64) << 1
-    } else {
-        ((-value as u64) << 1) - 1
-    }
+    ((value as u64) << 1) ^ ((value >> 63) as u64)
 }
 pub fn unzigzag_i64(value: u64) -> i64 {
     if value & 1 == 0 {
@@ -78,8 +74,10 @@ mod tests {
 
     #[test]
     fn signed_varint_mapping_round_trips() {
-        for value in [-123i64, -1, 0, 1, 127] {
+        for value in [i64::MIN, i64::MIN + 1, -123, -1, 0, 1, 127, i64::MAX] {
             assert_eq!(unzigzag_i64(zigzag_i64(value)), value);
         }
+        assert_eq!(zigzag_i64(i64::MIN), u64::MAX);
+        assert_eq!(zigzag_i64(i64::MAX), u64::MAX - 1);
     }
 }
