@@ -2,6 +2,11 @@
 
 # Public source exports retain both crates under rust/. Override only for a
 # deliberately direct crate build; Debian source packages use the root layout.
+# This base package excludes full-engine providers. A separately selected
+# full-engine assembly, only after its dependency closure is accepted, must
+# install the GPL-3.0 text, PAQ notices, PAQ SOURCE-IDENTITY, and the applicable
+# PAQ build source with its providers. These base-package rules do not claim
+# that closure or install those providers.
 CIX_SOURCE_ROOT ?= rust/cix-native
 CARGO_TARGET_DIR ?= $(CURDIR)/target
 DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)

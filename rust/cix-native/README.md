@@ -5,8 +5,8 @@ byte streams. It writes self-describing CIX archives and provides separate
 commands to compress, restore, and stream restored bytes.
 
 This repository is the source-only 0.1.0 release-preparation candidate. Its
-project licence is pending owner confirmation; do not redistribute this copy
-until the notice at the top of [LICENSE](LICENSE) is removed by that owner.
+publication remains blocked by the documented technical release gates,
+including full-engine dependency closure and qualified platform/package evidence.
 
 ## Commands
 
@@ -127,9 +127,15 @@ compatibility claims backed by the corresponding release test receipt.
 
 ## Licence and notices
 
-The proposed CIX project licence is MIT, pending owner approval. This private
-preparation copy is not a public licence grant. Vendored
-libzpaq and libbsc obligations are collected in
-[THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt). The locked Rust dependency
-attribution is in [THIRD_PARTY_NOTICES_RUST.md](THIRD_PARTY_NOTICES_RUST.md).
-Keep both files with every source or binary distribution.
+CIX-authored user-space and library material is MIT-licensed. Third-party
+material retains its own licence terms; see
+[THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt) and
+[THIRD_PARTY_NOTICES_RUST.md](THIRD_PARTY_NOTICES_RUST.md).
+
+A complete full-engine distribution that includes the mandatory PAQ bridge
+providers is conveyed under GPL-3.0-or-later and must retain the applicable
+PAQ source, build, and notice materials. The separate experimental Linux
+SquashFS kernel adapter is GPL-2.0-only; this user-space statement does not
+change that module's licence. The full-engine source/build closure and its
+provider notices remain unresolved release requirements, so this statement
+makes no redistribution-readiness claim.
