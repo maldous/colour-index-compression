@@ -2,7 +2,7 @@
   "schema": "cix.execution.v1",
   "approved": true,
   "baseline_commit": "0912dbd471b8630bacf0f78a0ea10a349e86d5f1",
-  "phase": "native-interfaces-and-selection-checkpoint",
+  "phase": "native-portfolio-and-grid-checkpoint",
   "release_ready": false,
   "benchmark_status": "held-until-RC51",
   "publication_status": "held",
@@ -57,6 +57,11 @@
       "id": "interfaces-v7/v8",
       "status": "passing scoped checks",
       "scope": "29 native/interface tests plus relocated shared/static SDK consumers; v7 temp-interrupted after tests, SDK-only v8 passed; see interfaces-evidence.json"
+    },
+    {
+      "id": "portfolio-grid-v1/v2",
+      "status": "passing scoped checks",
+      "scope": "19 focused tests including full retained native BEST family reporting, exact interval raw parity, 21 native-backend grid archives; v1 interval failure retained; see portfolio-grid-evidence.json"
     }
   ],
   "active_work": [
@@ -90,7 +95,8 @@
     "interfaces-v4 malformed selector fixture, obsolete mixed test, JPEG-LS trailing-byte acceptance",
     "interfaces-v5 source changed during snapshot; no valid job",
     "interfaces-v6 grid transform temporary borrow",
-    "interfaces-v7 temp budget after all tests; SDK-only v8 rerun"
+    "interfaces-v7 temp budget after all tests; SDK-only v8 rerun",
+    "portfolio-grid-v1 singleton interval emitted a spurious zero byte; corrected v2"
   ],
   "active_job": null,
   "next_action": "Bind the qualified native selector into the ordinary CLI and complete historical decoder/frame coverage"

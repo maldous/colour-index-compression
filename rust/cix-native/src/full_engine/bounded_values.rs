@@ -6,10 +6,10 @@
 
 use super::arithmetic::{vdecode, vencode, ArithmeticDecoder, ArithmeticEncoder};
 use super::conditional_values::{
-    base_field, base_prefix, decode_integers, encode_integers, feedback, pack, q_bytes, read,
-    read_signed, rice, signed, unrice, write_base_field,
+    base_field, base_prefix, feedback, pack, q_bytes, read, read_signed, rice, signed, unrice,
+    write_base_field,
 };
-use super::strided_values::{inverse_wcs_grid_numeric, transform_wcs_grid_numeric, GRID_RAW_MAGIC};
+use super::strided_values::{inverse_wcs_grid_numeric, transform_wcs_grid_numeric};
 use num_bigint::BigUint;
 use num_traits::{One, ToPrimitive, Zero};
 
@@ -22,6 +22,9 @@ pub type EncodeBackend<'a> = dyn Fn(&[u8]) -> Result<Vec<u8>, String> + 'a;
 pub type DecodeBackend<'a> = dyn Fn(&[u8], usize) -> Result<Vec<u8>, String> + 'a;
 
 fn fixed_bytes(value: &BigUint, bits: usize) -> Vec<u8> {
+    if bits == 0 {
+        return Vec::new();
+    }
     let mut out = value.to_bytes_be();
     let length = bits.div_ceil(8);
     if out.len() < length {
@@ -106,6 +109,9 @@ fn policy_uninterval(data: &[u8], n: usize, policy: u8) -> Result<Vec<i64>, Stri
             return Err("interval rank length".into());
         }
         let mut rank = BigUint::from_bytes_be(&data[at..]);
+        if rank.bits() > bits as u64 {
+            return Err("rank outside interval".into());
+        }
         for _ in 0..n {
             let digit = if policy == 1 {
                 let width = fixed_width(span);
@@ -164,15 +170,12 @@ fn policy_uninterval(data: &[u8], n: usize, policy: u8) -> Result<Vec<i64>, Stri
         .collect()
 }
 
-fn encode_integers_policy(values: &[i64], policy: u8) -> Result<Vec<u8>, String> {
-    if !matches!(policy, 1..=3) {
+fn encode_integers_policy(values: &[i64], policy: u8, block: usize) -> Result<Vec<u8>, String> {
+    if !matches!(policy, 1..=3) || !(1..=4096).contains(&block) {
         return Err("invalid integer policy".into());
     }
-    if policy == 2 {
-        return encode_integers(values);
-    }
-    let mut out = vencode(4096);
-    for block in values.chunks(4096) {
+    let mut out = vencode(block as u64);
+    for block in values.chunks(block) {
         let delta = block
             .iter()
             .enumerate()
@@ -210,8 +213,8 @@ fn encode_integers_policy(values: &[i64], policy: u8) -> Result<Vec<u8>, String>
 }
 
 fn decode_integers_policy(data: &[u8], n: usize, policy: u8) -> Result<Vec<i64>, String> {
-    if policy == 2 {
-        return decode_integers(data, n);
+    if policy > 3 {
+        return Err("invalid integer policy".into());
     }
     let (block, mut at) = vdecode(data, 0)?;
     let block = usize::try_from(block).map_err(|_| "integer block")?;
@@ -238,7 +241,9 @@ fn decode_integers_policy(data: &[u8], n: usize, policy: u8) -> Result<Vec<i64>,
                 }
                 values
             }
-            1..=6 if (kind + 1) / 2 == policy => policy_uninterval(&part[1..], count, policy)?,
+            1..=6 if policy == 0 || (kind + 1) / 2 == policy => {
+                policy_uninterval(&part[1..], count, (kind + 1) / 2)?
+            }
             7 | 8 => unrice(&part[1..], count)?,
             _ => return Err("invalid integer representation".into()),
         };
@@ -312,7 +317,7 @@ fn feedback_inverse(raw: &[u8], max_output: usize) -> Result<Vec<u8>, String> {
     inverse_wcs_grid_numeric(&out)
 }
 
-fn interval_transform(source: &[u8], policy: u8) -> Result<Vec<u8>, String> {
+fn interval_transform(source: &[u8], policy: u8, block: usize) -> Result<Vec<u8>, String> {
     let feedback = feedback_transform(source)?;
     let inner = &feedback[7..];
     let (n, mut at) = base_prefix(inner)?;
@@ -323,7 +328,7 @@ fn interval_transform(source: &[u8], policy: u8) -> Result<Vec<u8>, String> {
         let start = at;
         let (q, _, prefix, next) = base_field(inner, at, n, width)?;
         at = next;
-        let integers = encode_integers_policy(&q, policy)?;
+        let integers = encode_integers_policy(&q, policy, block)?;
         out.extend_from_slice(&prefix[..8]);
         out.extend(pack(&integers));
         out.extend_from_slice(&inner[start + prefix.len()..next]);
@@ -377,13 +382,31 @@ fn interval_inverse(raw: &[u8], max_output: usize, policy: u8) -> Result<Vec<u8>
     feedback_inverse(&out, max_output)
 }
 
+/// Exact historical `SGBI1` transform used by the `CIXZ\x01` envelope.
+/// Unlike the later CIXB route, CIXZ stores its original 256-record integer
+/// block size.  The policy is an encoder choice; it is not a raw header byte.
+pub(crate) fn transform_interval_raw(
+    source: &[u8],
+    policy: u8,
+    block: usize,
+) -> Result<Vec<u8>, String> {
+    interval_transform(source, policy, block)
+}
+
+/// Decodes every legal historical integer representation.  `SGBI1` has no
+/// policy tag, so a raw decoder must accept the fixed-bit, mixed-radix and
+/// arithmetic interval kinds emitted by all three encoders.
+pub(crate) fn inverse_interval_raw(raw: &[u8], max_output: usize) -> Result<Vec<u8>, String> {
+    interval_inverse(raw, max_output, 0)
+}
+
 pub fn transform_backend(source: &[u8], mode: u8) -> Result<Vec<u8>, String> {
     match mode {
         0 => Ok(source.to_vec()),
         1 => feedback_transform(source),
-        2 => interval_transform(source, 2),
-        3 => interval_transform(source, 3),
-        4 => interval_transform(source, 1),
+        2 => interval_transform(source, 2, 4096),
+        3 => interval_transform(source, 3, 4096),
+        4 => interval_transform(source, 1, 4096),
         _ => Err("invalid grid mode".into()),
     }
 }
@@ -469,6 +492,16 @@ pub fn decode_backend_frame(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn singleton_interval_uses_zero_bits_and_padding_is_rejected() {
+        for policy in [1, 2] {
+            let encoded = policy_interval(&[0, 0, 0], policy).unwrap().unwrap();
+            assert_eq!(encoded, [0, 1]);
+            assert_eq!(policy_uninterval(&encoded, 3, policy).unwrap(), [0, 0, 0]);
+        }
+        // The two-bit digit is zero; its nonzero high padding is invalid.
+        assert!(policy_uninterval(&[0, 3, 0x80], 1, 1).is_err());
+    }
     #[test]
     fn retained_feedback_and_policy_two_raw_parity() {
         let source = include_bytes!(concat!(

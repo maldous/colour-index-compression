@@ -1,0 +1,84 @@
+{
+  "schema": "cix.portfolio-grid-checkpoint.v1",
+  "release_ready": false,
+  "benchmark_status": "held-until-RC51",
+  "source_paths": [
+    "rust/cix-native/src/full_engine/native_portfolio.rs",
+    "rust/cix-native/src/full_engine/selection.rs",
+    "rust/cix-native/src/full_engine/mod.rs",
+    "rust/cix-native/src/full_engine/dispatch.rs",
+    "rust/cix-native/src/full_engine/bounded_values.rs",
+    "rust/cix-native/src/full_engine/interval_context.rs",
+    "rust/cix-native/tests/fixtures/grid_interval/tiny-input.bin",
+    "rust/cix-native/tests/fixtures/grid_interval/tiny-policy1.raw",
+    "rust/cix-native/tests/fixtures/grid_interval/make_fixtures.py",
+    "rust/cix-native/tests/fixtures/grid_interval/manifest.json",
+    "rust/cix-native/tests/fixtures/grid_interval/tiny-policy2.raw",
+    "rust/cix-native/tests/fixtures/grid_interval/boundary256-input.bin",
+    "rust/cix-native/tests/fixtures/grid_interval/README.md",
+    "rust/cix-native/tests/fixtures/grid_interval/tiny-policy3.raw",
+    "rust/cix-native/tests/fixtures/grid_interval/boundary256-policy2.raw",
+    "rust/cix-native/tests/fixtures/grid_interval/boundary256-policy3.raw",
+    "rust/cix-native/tests/fixtures/grid_interval/boundary256-policy1.raw"
+  ],
+  "scoped_checks": [
+    {
+      "job": "portfolio-grid-v1",
+      "groups": {
+        "native_portfolio": 6,
+        "selection": 6
+      },
+      "status": "passed-scopes-only",
+      "later_failure": "two interval reference comparisons failed: zero-bit BigUint serialized as one byte"
+    },
+    {
+      "job": "portfolio-grid-v2",
+      "groups": {
+        "interval_context": 2,
+        "bounded_values": 3,
+        "feedback_dispatch": 1,
+        "interval_dispatch": 1
+      },
+      "status": "passed",
+      "actual_feedback_archive_combinations": 18,
+      "actual_interval_archive_combinations": 3
+    }
+  ],
+  "total_scoped_tests": 19,
+  "source_identity": "jobs/portfolio-grid-v2/source.json; unchanged native_portfolio/selection hashes match v1",
+  "metrics": {
+    "grid-interval-fixture-v1": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 0.32853336998960003,
+      "cpu_usage_seconds": 0.107178,
+      "peak_temp_bytes": 3426886698,
+      "sampled_cgroup_memory_high_water_bytes": 528384,
+      "cgroup_verified": true
+    },
+    "portfolio-grid-v1": {
+      "exit_code": 101,
+      "stop_reason": null,
+      "elapsed_seconds": 19.038630447001196,
+      "cpu_usage_seconds": 25.041966,
+      "peak_temp_bytes": 3551837270,
+      "sampled_cgroup_memory_high_water_bytes": 842395648,
+      "cgroup_verified": true
+    },
+    "portfolio-grid-v2": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 7.307091073002084,
+      "cpu_usage_seconds": 13.229791,
+      "peak_temp_bytes": 3614171753,
+      "sampled_cgroup_memory_high_water_bytes": 809865216,
+      "cgroup_verified": true
+    }
+  },
+  "remaining": [
+    "ordinary CLI full-engine encode/decode binding",
+    "historical SGCC1/2 and spatial image envelope qualification",
+    "dictionary C API and full-engine job interfaces",
+    "consumer adapters, platform execution, quality and lean distribution"
+  ]
+}

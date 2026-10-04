@@ -9,7 +9,7 @@ use super::{
     backend_provider::*,
     bounded_values,
     catalogue::{Candidate, Recipe},
-    conditional_values, containers, graph_residuals,
+    conditional_values, containers, graph_residuals, grid_context, interval_context,
     jxl_provider::JxlProvider,
     mixed, record_ordering, strided_values, structured_frames, volume_lifting,
 };
@@ -467,6 +467,33 @@ impl FullEngine {
                 workspace,
                 &|payload, memory| decode(payload, memory, paq(PaqVariant::V215, 8, None), true),
             )
+        } else if archive.starts_with(grid_context::MAGIC) {
+            let backend = *archive.get(5).ok_or("truncated feedback backend")?;
+            grid_context::decode_frame(
+                archive,
+                maximum,
+                workspace,
+                &|payload, memory| match backend {
+                    0 => decode(payload, memory, BackendVariant::Xz { preset: 9 }, false),
+                    1 => decode(payload, memory, brotli(22), false),
+                    2 => crate::standard_formats::decode(
+                        crate::standard_formats::StandardFormat::Zstd,
+                        payload,
+                        &crate::standard_formats::StandardOptions {
+                            level: 9,
+                            output_limit: limits.intermediate_bytes.min(memory / 2),
+                            memory_limit: memory,
+                        },
+                    )
+                    .map_err(|error| error.to_string()),
+                    3 => decode(payload, memory, paq(PaqVariant::V215, 8, None), true),
+                    _ => Err("invalid feedback backend".into()),
+                },
+            )
+        } else if archive.starts_with(interval_context::MAGIC) {
+            interval_context::decode_frame(archive, maximum, workspace, &|payload, memory| {
+                decode(payload, memory, brotli(22), false)
+            })
         } else if archive.starts_with(bounded_values::BACKEND_MAGIC) {
             let selector = *archive.get(6).ok_or("truncated grid backend")?;
             bounded_values::decode_backend_frame(archive, maximum, workspace, &|payload, memory| {
@@ -629,6 +656,69 @@ mod tests {
             cancellation: None,
         }
     }
+    #[test]
+    fn feedback_legacy_frames_dispatch_all_policies_and_native_backends() {
+        use crate::standard_formats::{self, StandardFormat, StandardOptions};
+        let source = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/grid_feedback/input.bin"
+        ));
+        let engine = engine();
+        let limits = limits();
+        for mode in 1..=3 {
+            for model in 0..=1 {
+                for backend in 0..=2 {
+                    let frame = grid_context::encode_frame(source, mode, model, backend, &|raw| {
+                        match backend {
+                            0 => crate::external::raw_xz_encode_preset(raw, 9, 1 << 20),
+                            1 => crate::external::raw_brotli_encode(raw, 11, 22, 1 << 20),
+                            2 => standard_formats::encode(
+                                StandardFormat::Zstd,
+                                raw,
+                                &StandardOptions {
+                                    level: 6,
+                                    output_limit: 4 << 20,
+                                    memory_limit: 1 << 30,
+                                },
+                            )
+                            .map_err(|error| error.to_string()),
+                            _ => unreachable!(),
+                        }
+                    })
+                    .unwrap();
+                    assert_eq!(
+                        engine.decode(&frame, &limits).unwrap(),
+                        source,
+                        "mode {mode} model {model} backend {backend}"
+                    );
+                    let mut trailing = frame;
+                    trailing.push(0);
+                    assert!(engine.decode(&trailing, &limits).is_err());
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn interval_legacy_frames_dispatch_all_policies() {
+        let source = include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/grid_interval/boundary256-input.bin"
+        ));
+        let engine = engine();
+        let limits = limits();
+        for policy in 1..=3 {
+            let frame = interval_context::encode_frame(source, policy, &|raw| {
+                crate::external::raw_brotli_encode(raw, 11, 22, 1 << 20)
+            })
+            .unwrap();
+            assert_eq!(engine.decode(&frame, &limits).unwrap(), source);
+            let mut trailing = frame;
+            trailing.push(0);
+            assert!(engine.decode(&trailing, &limits).is_err());
+        }
+    }
+
     #[test]
     fn record_brotli_archive_dispatch_and_corruption() {
         let source = include_bytes!(concat!(

@@ -1,0 +1,32 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-portfolio-grid-v2/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-portfolio-grid-v2/Cargo.toml', '--lib', 'full_engine::interval_context', '--', '--test-threads=1']
+
+running 2 tests
+test full_engine::interval_context::tests::interval_context_all_policy_raw_fixture_identity_and_inverse ... ok
+test full_engine::interval_context::tests::interval_context_frame_identity_crc_bounds_and_malformed_raw ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 234 filtered out; finished in 0.02s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-portfolio-grid-v2/Cargo.toml', '--lib', 'full_engine::bounded_values', '--', '--test-threads=1']
+
+running 3 tests
+test full_engine::bounded_values::tests::invalid_mode_is_not_aliased ... ok
+test full_engine::bounded_values::tests::retained_feedback_and_policy_two_raw_parity ... ok
+test full_engine::bounded_values::tests::singleton_interval_uses_zero_bits_and_padding_is_rejected ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 233 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-portfolio-grid-v2/Cargo.toml', '--lib', 'feedback_legacy_frames', '--', '--test-threads=1']
+
+running 1 test
+test full_engine::dispatch::tests::feedback_legacy_frames_dispatch_all_policies_and_native_backends ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 235 filtered out; finished in 0.10s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-portfolio-grid-v2/Cargo.toml', '--lib', 'interval_legacy_frames', '--', '--test-threads=1']
+
+running 1 test
+test full_engine::dispatch::tests::interval_legacy_frames_dispatch_all_policies ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 235 filtered out; finished in 0.03s
+

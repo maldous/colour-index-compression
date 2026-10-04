@@ -14,9 +14,9 @@ use super::{
     containers,
     dispatch::{FullEngine, OperationLimits},
     jxl_provider::JxlProvider,
-    mixed_selection,
+    mixed_selection, native_portfolio,
 };
-use crate::{core, paq_bridge::PaqVariant};
+use crate::paq_bridge::PaqVariant;
 use std::{
     path::PathBuf,
     sync::{
@@ -73,6 +73,29 @@ pub struct Trial {
     pub status: TrialStatus,
     pub reason: Option<String>,
     pub archive_bytes: Option<usize>,
+    /// Inner searches retain their own units: native complete archives and
+    /// mixed-region payloads must not be confused in reporting.
+    pub details: TrialDetails,
+}
+#[derive(Clone, Debug, Default)]
+pub enum TrialDetails {
+    #[default]
+    None,
+    Native(Vec<native_portfolio::NativePortfolioCandidate>),
+    Mixed(mixed_selection::MixedDiagnostics),
+}
+#[derive(Clone, Debug)]
+pub struct CandidateExecution {
+    pub archive: Vec<u8>,
+    pub details: TrialDetails,
+}
+impl CandidateExecution {
+    fn bare(archive: Vec<u8>) -> Self {
+        Self {
+            archive,
+            details: TrialDetails::None,
+        }
+    }
 }
 #[derive(Clone, Debug)]
 pub struct SelectionReport {
@@ -102,7 +125,9 @@ enum PlanKind {
         lstm: bool,
     },
     Specialist(Candidate),
-    Mixed { profile: SelectionProfile },
+    Mixed {
+        profile: SelectionProfile,
+    },
 }
 #[derive(Clone, Debug)]
 pub struct Plan {
@@ -112,7 +137,6 @@ pub struct Plan {
     memory: usize,
     workers: usize,
     temporary: usize,
-    native_backend_memory: Option<usize>,
 }
 
 fn checked_add(a: usize, b: usize) -> Result<usize, String> {
@@ -168,7 +192,6 @@ fn plans(
         memory: raw_memory,
         workers: 1,
         temporary: temp,
-        native_backend_memory: None,
     });
     next_priority += 1;
     let native_budget = limits
@@ -192,7 +215,6 @@ fn plans(
         )?,
         workers: limits.workers,
         temporary: temp,
-        native_backend_memory: Some(native_budget),
     });
     next_priority += 1;
     if profile == SelectionProfile::Best {
@@ -218,7 +240,6 @@ fn plans(
                         .checked_mul(2)
                         .ok_or("selection reservation overflow")?,
                 )?,
-                native_backend_memory: None,
             });
             next_priority += 1;
         }
@@ -236,6 +257,7 @@ fn plans(
                 status: TrialStatus::ProfileOmitted,
                 reason: Some("DEFAULT omits PAQ-backed specialist trials".into()),
                 archive_bytes: None,
+                details: TrialDetails::None,
             });
             continue;
         }
@@ -245,7 +267,6 @@ fn plans(
             memory: candidate.memory_bytes,
             workers: 1,
             temporary: checked_add(limits.intermediate_bytes, limits.output_bytes)?,
-            native_backend_memory: None,
             kind: PlanKind::Specialist(candidate),
         });
     }
@@ -256,13 +277,20 @@ fn plans(
         memory: 5 << 30,
         workers: 1,
         temporary: checked_add(limits.intermediate_bytes, limits.output_bytes)?,
-        native_backend_memory: None,
     });
     Ok(out)
 }
 
 pub trait CandidateExecutor: Clone + Send + Sync + 'static {
     fn run(&self, plan: &Plan, data: &[u8], limits: &SelectionLimits) -> Result<Vec<u8>, String>;
+    fn run_detailed(
+        &self,
+        plan: &Plan,
+        data: &[u8],
+        limits: &SelectionLimits,
+    ) -> Result<CandidateExecution, String> {
+        self.run(plan, data, limits).map(CandidateExecution::bare)
+    }
 }
 #[derive(Clone, Debug)]
 pub struct NativeExecutor {
@@ -286,43 +314,64 @@ impl NativeExecutor {
 }
 impl CandidateExecutor for NativeExecutor {
     fn run(&self, plan: &Plan, data: &[u8], limits: &SelectionLimits) -> Result<Vec<u8>, String> {
+        self.run_detailed(plan, data, limits)
+            .map(|result| result.archive)
+    }
+    fn run_detailed(
+        &self,
+        plan: &Plan,
+        data: &[u8],
+        limits: &SelectionLimits,
+    ) -> Result<CandidateExecution, String> {
         if cancelled(limits) {
             return Err("selection cancelled or deadline exceeded".into());
         }
         match &plan.kind {
-            PlanKind::Mixed { profile } => mixed_selection::encode(
-                &self.engine(limits.output_bytes)?, data, *profile,
-                &OperationLimits {
-                    memory_bytes: plan.memory,
-                    output_bytes: limits.output_bytes,
-                    intermediate_bytes: limits.intermediate_bytes,
-                    deadline: limits.deadline,
-                    cancellation: limits.cancellation.clone(),
-                },
-            ).map(|result| result.archive),
-            PlanKind::Raw => containers::encode_raw(data, limits.output_bytes),
-            PlanKind::Native { profile } => {
-                let remaining = limits
-                    .deadline
-                    .map(|d| d.saturating_duration_since(Instant::now()));
-                core::encode_buffer(
+            PlanKind::Mixed { profile } => {
+                return mixed_selection::encode(
+                    &self.engine(limits.output_bytes)?,
                     data,
-                    &core::NativeOptions {
-                        profile: match profile {
-                            SelectionProfile::Fast => crate::core::NativeProfile::Fast,
-                            SelectionProfile::Default => crate::core::NativeProfile::Default,
-                            SelectionProfile::Best => crate::core::NativeProfile::Best,
-                        },
-                        output_limit: limits.output_bytes,
-                        memory_limit: plan
-                            .native_backend_memory
-                            .ok_or("missing native backend budget")?,
-                        workers: plan.workers,
-                        deadline: remaining,
+                    *profile,
+                    &OperationLimits {
+                        memory_bytes: plan.memory,
+                        output_bytes: limits.output_bytes,
+                        intermediate_bytes: limits.intermediate_bytes,
+                        deadline: limits.deadline,
                         cancellation: limits.cancellation.clone(),
                     },
                 )
-                .map_err(|e| e.to_string())
+                .map(|result| CandidateExecution {
+                    archive: result.archive,
+                    details: TrialDetails::Mixed(result.diagnostics),
+                })
+            }
+            PlanKind::Raw => containers::encode_raw(data, limits.output_bytes),
+            PlanKind::Native { profile } => {
+                return native_portfolio::select(
+                    data,
+                    &native_portfolio::NativePortfolioOptions {
+                        profile: match profile {
+                            SelectionProfile::Fast => {
+                                native_portfolio::NativePortfolioProfile::Fast
+                            }
+                            SelectionProfile::Default => {
+                                native_portfolio::NativePortfolioProfile::Default
+                            }
+                            SelectionProfile::Best => {
+                                native_portfolio::NativePortfolioProfile::Best
+                            }
+                        },
+                        output_bytes: limits.output_bytes,
+                        memory_bytes: plan.memory,
+                        workers: plan.workers,
+                        deadline: limits.deadline,
+                        cancellation: limits.cancellation.clone(),
+                    },
+                )
+                .map(|result| CandidateExecution {
+                    archive: result.archive,
+                    details: TrialDetails::Native(result.candidates),
+                });
             }
             PlanKind::Paq {
                 variant,
@@ -364,6 +413,7 @@ impl CandidateExecutor for NativeExecutor {
                 },
             ),
         }
+        .map(CandidateExecution::bare)
     }
 }
 
@@ -396,7 +446,7 @@ pub fn select_whole_input<E: CandidateExecutor>(
     let mut aborted = false;
     let accept = |priority: usize,
                   plan: Plan,
-                  result: Result<Vec<u8>, String>,
+                  result: Result<CandidateExecution, String>,
                   incumbent: &mut Option<(usize, Vec<u8>)>,
                   trials: &mut Vec<Trial>| {
         if cancelled(&limits) {
@@ -406,14 +456,15 @@ pub fn select_whole_input<E: CandidateExecutor>(
                 status: TrialStatus::BudgetOmitted,
                 reason: Some("deadline or cancellation before result acceptance".into()),
                 archive_bytes: None,
+                details: TrialDetails::None,
             });
             return;
         }
         match result {
-            Ok(frame)
-                if frame.len() <= limits.output_bytes
-                    && frame.capacity() <= limits.output_bytes =>
-            {
+            Ok(CandidateExecution {
+                archive: frame,
+                details,
+            }) if frame.len() <= limits.output_bytes && frame.capacity() <= limits.output_bytes => {
                 let bytes = frame.len();
                 if incumbent
                     .as_ref()
@@ -427,6 +478,7 @@ pub fn select_whole_input<E: CandidateExecutor>(
                     status: TrialStatus::Completed,
                     reason: None,
                     archive_bytes: Some(bytes),
+                    details,
                 });
             }
             Ok(_) => trials.push(Trial {
@@ -435,6 +487,7 @@ pub fn select_whole_input<E: CandidateExecutor>(
                 status: TrialStatus::Failed,
                 reason: Some("candidate returned frame beyond declared output reservation".into()),
                 archive_bytes: None,
+                details: TrialDetails::None,
             }),
             Err(reason) => trials.push(Trial {
                 id: plan.id,
@@ -442,6 +495,7 @@ pub fn select_whole_input<E: CandidateExecutor>(
                 status: TrialStatus::Failed,
                 reason: Some(reason),
                 archive_bytes: None,
+                details: TrialDetails::None,
             }),
         }
     };
@@ -462,13 +516,14 @@ pub fn select_whole_input<E: CandidateExecutor>(
                 status: TrialStatus::BudgetOmitted,
                 reason: Some("raw memory/workers/temporary admission".into()),
                 archive_bytes: None,
+                details: TrialDetails::None,
             });
         } else {
             peak.0 = raw_memory;
             peak.1 = raw.workers;
             peak.2 = raw.temporary;
             let raw_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                executor.run(&raw, data, &limits)
+                executor.run_detailed(&raw, data, &limits)
             }))
             .unwrap_or_else(|_| Err("candidate worker panicked".into()));
             accept(
@@ -494,6 +549,7 @@ pub fn select_whole_input<E: CandidateExecutor>(
                         status: TrialStatus::BudgetOmitted,
                         reason: Some("deadline or cancellation".into()),
                         archive_bytes: None,
+                        details: TrialDetails::None,
                     });
                 }
             }
@@ -543,7 +599,7 @@ pub fn select_whole_input<E: CandidateExecutor>(
                     let running_plan = plan.clone();
                     let handle = scope.spawn(move || {
                         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                            worker.run(&plan, data, &job_limits)
+                            worker.run_detailed(&plan, data, &job_limits)
                         }))
                         .unwrap_or_else(|_| Err("candidate worker panicked".into()));
                         let _ = tx.send((priority, plan, result));
@@ -565,6 +621,7 @@ pub fn select_whole_input<E: CandidateExecutor>(
                     status: TrialStatus::BudgetOmitted,
                     reason: Some("memory/workers/temporary first-fit admission".into()),
                     archive_bytes: None,
+                    details: TrialDetails::None,
                 });
                 continue;
             }
@@ -664,6 +721,44 @@ mod tests {
         // cap, so changing a worker's Vec allocation cannot change scheduling.
         assert!(result.report.peak_reserved_memory >= (64 << 20));
     }
+    #[test]
+    fn nested_diagnostics_survive_outer_selection() {
+        #[derive(Clone)]
+        struct Detailed;
+        impl CandidateExecutor for Detailed {
+            fn run(&self, _: &Plan, _: &[u8], _: &SelectionLimits) -> Result<Vec<u8>, String> {
+                unreachable!("scheduler must preserve detailed results")
+            }
+            fn run_detailed(
+                &self,
+                plan: &Plan,
+                _: &[u8],
+                _: &SelectionLimits,
+            ) -> Result<CandidateExecution, String> {
+                Ok(CandidateExecution {
+                    archive: vec![0; if plan.id == "native" { 1 } else { 7 }],
+                    details: TrialDetails::Native(vec![
+                        native_portfolio::NativePortfolioCandidate {
+                            id: "inner-size-trial".into(),
+                            status: native_portfolio::NativePortfolioStatus::Completed,
+                            archive_bytes: Some(1),
+                            reason: None,
+                        },
+                    ]),
+                })
+            }
+        }
+        let result =
+            select_whole_input(b"diagnostics", SelectionProfile::Fast, limits(), Detailed).unwrap();
+        assert_eq!(result.report.selected, "native");
+        for trial in &result.report.trials {
+            let TrialDetails::Native(inner) = &trial.details else {
+                panic!("inner diagnostics lost")
+            };
+            assert_eq!(inner[0].id, "inner-size-trial");
+        }
+    }
+
     #[test]
     fn default_marks_paq_specialists_as_profile_omitted() {
         // A validated grid provides PAQ-only specialist recipes without using a codec.

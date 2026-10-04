@@ -1,0 +1,15 @@
+# Native portfolio and historical grid checkpoint
+
+The library whole-input selector now preserves the existing native BEST search: CIXG1/CIXG2 block candidates, CIXM6 and all fourteen registered CIXB1 backend descriptors. It also retains the separate PAQ, specialist and heterogeneous candidates. Inner native archive diagnostics and mixed-region payload diagnostics survive outer selection as distinct typed records. FAST/DEFAULT keep their original direct core behavior. Ordinary CLI binding remains open.
+
+The extracted native search accepts explicit aggregate memory/output/worker limits, preserves deterministic ties, validates completed archives, and reports omitted trials. Output buffers are fallibly reserved. Native calls cooperate with cancellation; one-shot backend calls can only observe it before/after the call. Estimated allocation admission is not a hard embedding-process RSS ceiling.
+
+CIXY1 feedback dispatch now handles the historical XZ, Brotli, Zstd and PAQ tags; the focused actual-backend check covers the eighteen XZ/Brotli/Zstd combinations. The PAQ tag is wired but is not newly qualified by this checkpoint. CIXZ1 interval dispatch handles all three policies through the historical Brotli envelope. Tiny and 300-record Python reference fixtures prove exact raw bytes, including crossing the historical 256-record block boundary.
+
+The first interval comparison exposed a zero-bit interval defect: BigUint zero serialized as a one-byte payload rather than the required empty rank. That changed candidate selection and raw bytes. The corrected serializer and invalid-padding rejection pass both new reference fixtures and the retained bounded-grid fixtures. The failed attempt remains preserved.
+
+`portfolio-grid-v1` passed six native-portfolio tests and six selector tests before failing the two interval comparisons. `portfolio-grid-v2` passed seven targeted interval, bounded-grid and real-backend dispatch tests after the correction. The native portfolio/selector source hashes match across both snapshots; their successful checks were not repeated. This is nineteen passing scoped tests, not an overall v1 pass or a compression benchmark. The tiny BEST test checks every retained family is reported, the selected frame is the smallest completed archive, and archive-only decoding restores its input.
+
+Source hashes, frozen snapshots, command/output receipts and resource observations are recorded in `portfolio-grid-evidence.json` and the referenced jobs. Tests used the root WaveScheduler with four physical CPUs at most, six GB RAM, four GB tracked temporary storage and no swap; the reference generator used one CPU. Incremental compilation was disabled to keep temporary storage within its cap. Third-party source remains unchanged.
+
+The release candidate remains incomplete. Full-engine CLI and decoder routing, remaining historical/image coverage, dictionaries and adapters, final Sonar/dead-code work, distribution/platform qualification and RC51 acceptance remain open. The stopped benchmark, publication, corpus acquisition and old automations remain on hold.
