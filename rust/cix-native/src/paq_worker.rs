@@ -6,6 +6,7 @@ use crate::paq_bridge::{
     PaqBridge, PaqExecutionScope, PaqInvocation, PaqVariant, PaqWorkerEnvironment,
 };
 use std::ffi::OsString;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 pub(crate) const SWITCH: &str = "--internal-paq-worker-v1";
@@ -125,7 +126,7 @@ impl Request {
         if variant != PaqVariant::JointDiscount && joint_discount.is_some() {
             return Err("joint mode requires the joint-discount variant".into());
         }
-        Ok(Self {
+        let request = Self {
             variant,
             operation,
             directory: (&args[2]).into(),
@@ -136,7 +137,33 @@ impl Request {
             level,
             layers,
             joint_discount,
-        })
+        };
+        if request.operation == Operation::Encode && request.level.number == 0 {
+            return Err(
+                "PAQ level -0 is unsupported: pinned level-0 archives cannot be safely decoded"
+                    .into(),
+            );
+        }
+        Ok(request)
+    }
+
+    /// Every packaged PAQ variant has the same pinned level-zero null path:
+    /// its raw-byte decoder leaves `predictorMain` null, while the retained
+    /// block transform dispatcher unconditionally dereferences it. Inspect no
+    /// more than the stable seven-byte `paq8px` header before the FFI call.
+    fn reject_level_zero_archive(&self) -> Result<(), String> {
+        if self.operation != Operation::Decode {
+            return Ok(());
+        }
+        let mut header = [0_u8; 7];
+        let read = std::fs::File::open(&self.input)
+            .map_err(|error| format!("cannot read PAQ archive header: {error}"))?
+            .read(&mut header)
+            .map_err(|error| format!("cannot read PAQ archive header: {error}"))?;
+        if read == header.len() && &header[..6] == b"paq8px" && header[6] == 0 {
+            return Err("PAQ level-0 archive is unsupported: pinned decoder dereferences an absent predictor".into());
+        }
+        Ok(())
     }
     fn library(&self) -> Result<PathBuf, String> {
         for path in [&self.directory, &self.input, &self.output] {
@@ -220,6 +247,7 @@ fn run(_: &Request) -> Result<(), String> {
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 fn run(request: &Request) -> Result<(), String> {
     let library_path = request.library()?;
+    request.reject_level_zero_archive()?;
     if !std::is_x86_feature_detected!("avx2") {
         return Err("this PAQ worker profile requires AVX2".into());
     }
@@ -451,6 +479,43 @@ mod tests {
             assert_eq!(symbol, format!("{}_version", d.library_basename));
             assert!(version.ends_with(b"-bridge/1"));
         }
+    }
+    #[test]
+    fn all_pinned_variants_reject_level_zero_before_native_invocation() {
+        for variant in [
+            ("v215", "none"),
+            ("v216", "none"),
+            ("joint-discount", "0"),
+            ("store-state", "none"),
+        ] {
+            let mut request = args();
+            request[0] = variant.0.into();
+            request[7] = "-0".into();
+            request[9] = variant.1.into();
+            let error = Request::parse(&request).unwrap_err().to_string();
+            assert!(error.contains("level -0 is unsupported"), "{error}");
+        }
+    }
+    #[test]
+    fn exact_level_zero_header_rejects_before_dlopen() {
+        let path = std::env::temp_dir().join(format!("cix-paq-level-zero-{}", std::process::id()));
+        std::fs::write(&path, b"paq8px\0trailing archive bytes").unwrap();
+        let mut request = Request::parse(&args()).unwrap();
+        request.operation = Operation::Decode;
+        request.input = path.clone();
+        let error = request.reject_level_zero_archive().unwrap_err();
+        assert!(error.contains("level-0 archive is unsupported"));
+        std::fs::remove_file(path).unwrap();
+    }
+    #[test]
+    fn nonzero_or_nonpaq_header_stays_admitted() {
+        let path = std::env::temp_dir().join(format!("cix-paq-level-one-{}", std::process::id()));
+        std::fs::write(&path, b"paq8px\x01").unwrap();
+        let mut request = Request::parse(&args()).unwrap();
+        request.operation = Operation::Decode;
+        request.input = path.clone();
+        assert!(request.reject_level_zero_archive().is_ok());
+        std::fs::remove_file(path).unwrap();
     }
     #[cfg(target_os = "linux")]
     #[test]

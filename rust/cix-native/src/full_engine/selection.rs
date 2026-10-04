@@ -50,6 +50,10 @@ pub struct SelectionLimits {
     pub deadline: Option<Instant>,
     pub cancellation: Option<Arc<AtomicBool>>,
 }
+#[derive(Clone, Debug, Default)]
+pub struct WholeConstraints {
+    pub native: native_portfolio::NativePortfolioConstraints,
+}
 
 #[derive(Clone, Debug)]
 pub struct ProviderConfig {
@@ -124,6 +128,7 @@ enum PlanKind {
     Raw,
     Native {
         profile: SelectionProfile,
+        constraints: native_portfolio::NativePortfolioConstraints,
     },
     Paq {
         variant: PaqVariant,
@@ -214,21 +219,24 @@ fn plans(
     limits: &SelectionLimits,
     discovery: &mut Vec<catalogue::Diagnostic>,
     trials: &mut Vec<Trial>,
+    constraints: &WholeConstraints,
 ) -> Result<Vec<Plan>, String> {
     let n = data.len();
     let temp = temporary(n, limits.output_bytes)?;
     let mut out = Vec::new();
     let mut next_priority = 0usize;
-    let raw_memory = raw_plan_memory(n)?;
-    out.push(Plan {
-        id: "raw".into(),
-        priority: next_priority,
-        kind: PlanKind::Raw,
-        memory: raw_memory,
-        workers: 1,
-        temporary: temp,
-    });
-    next_priority += 1;
+    if !constraints.native.constrains_wire() {
+        let raw_memory = raw_plan_memory(n)?;
+        out.push(Plan {
+            id: "raw".into(),
+            priority: next_priority,
+            kind: PlanKind::Raw,
+            memory: raw_memory,
+            workers: 1,
+            temporary: temp,
+        });
+        next_priority += 1;
+    }
     let native_budget = limits
         .memory_bytes
         .saturating_sub(checked_add(
@@ -240,7 +248,10 @@ fn plans(
     out.push(Plan {
         id: "native".into(),
         priority: next_priority,
-        kind: PlanKind::Native { profile },
+        kind: PlanKind::Native {
+            profile,
+            constraints: constraints.native.clone(),
+        },
         memory: checked_add(
             native_budget,
             checked_add(
@@ -252,6 +263,31 @@ fn plans(
         temporary: temp,
     });
     next_priority += 1;
+    // A forced native container has one faithful whole-input producer: the
+    // constrained native portfolio.  Raw CIXR1, CIXB1, PAQ, specialist and
+    // mixed plans cannot satisfy this wire request.
+    if constraints.native.constrains_wire() {
+        for id in [
+            "raw",
+            "paq-v216-8",
+            "paq-v215-8",
+            "paq-v215-9L",
+            "heterogeneous-cixh1-v1",
+        ] {
+            trials.push(Trial {
+                id: id.into(),
+                priority: next_priority,
+                status: TrialStatus::ProfileOmitted,
+                reason: Some(
+                    "explicit native container constraint excludes incompatible wire".into(),
+                ),
+                archive_bytes: None,
+                details: TrialDetails::None,
+            });
+            next_priority += 1;
+        }
+        return Ok(out);
+    }
     if profile == SelectionProfile::Best {
         for (id, variant, level, lstm, base) in [
             ("paq-v216-8", PaqVariant::V216, 8, false, PAQ_BASE),
@@ -482,8 +518,11 @@ impl CandidateExecutor for NativeExecutor {
                 });
             }
             PlanKind::Raw => containers::encode_raw(data, limits.output_bytes),
-            PlanKind::Native { profile } => {
-                return native_portfolio::select(
+            PlanKind::Native {
+                profile,
+                constraints,
+            } => {
+                return native_portfolio::select_constrained(
                     data,
                     &native_portfolio::NativePortfolioOptions {
                         profile: match profile {
@@ -503,6 +542,7 @@ impl CandidateExecutor for NativeExecutor {
                         deadline: limits.deadline,
                         cancellation: limits.cancellation.clone(),
                     },
+                    constraints,
                 )
                 .map(|result| CandidateExecution {
                     archive: result.archive,
@@ -572,6 +612,16 @@ pub fn select_whole_input<E: CandidateExecutor>(
     limits: SelectionLimits,
     executor: E,
 ) -> Result<SelectionResult, String> {
+    select_whole_input_constrained(data, profile, limits, executor, WholeConstraints::default())
+}
+
+pub fn select_whole_input_constrained<E: CandidateExecutor>(
+    data: &[u8],
+    profile: SelectionProfile,
+    limits: SelectionLimits,
+    executor: E,
+    constraints: WholeConstraints,
+) -> Result<SelectionResult, String> {
     if data.len() > MAX_WHOLE_INPUT
         || limits.workers == 0
         || limits.memory_bytes == 0
@@ -584,7 +634,14 @@ pub fn select_whole_input<E: CandidateExecutor>(
     }
     let mut discovery = Vec::new();
     let mut trials = Vec::new();
-    let queue = plans(data, profile, &limits, &mut discovery, &mut trials)?;
+    let queue = plans(
+        data,
+        profile,
+        &limits,
+        &mut discovery,
+        &mut trials,
+        &constraints,
+    )?;
     let mut pending: Vec<(usize, Plan)> = queue
         .into_iter()
         .map(|plan| (plan.priority, plan))
@@ -648,11 +705,12 @@ pub fn select_whole_input<E: CandidateExecutor>(
         }
     };
     // Raw runs by itself before any concurrent work, matching the historical policy.
-    if let Some((priority, raw)) = pending.first().cloned() {
+    if let Some((priority, raw)) = pending
+        .first()
+        .cloned()
+        .filter(|(_, plan)| plan.id == "raw")
+    {
         pending.remove(0);
-        if raw.id != "raw" {
-            return Err("raw candidate priority invariant".into());
-        }
         let raw_memory = checked_add(data.len(), checked_add(raw.memory, limits.output_bytes)?)?;
         if raw_memory > limits.memory_bytes
             || raw.workers > limits.workers

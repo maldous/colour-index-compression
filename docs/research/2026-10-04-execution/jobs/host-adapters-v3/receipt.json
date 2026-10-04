@@ -1,0 +1,175 @@
+{
+  "sources": {
+    "gio/CMakeLists.txt": "1433c93b37921c0be8070e349db9fb0cc6a97bc406ebad13840903c41349479e",
+    "gio/README.md": "672dcda82d9554b9a5eaace5959b63f70517890665bd60a0431501024929b1f9",
+    "gio/cix-gconverter.c": "d9d0b16a59859f29c44f51ba79daa452489694840ca5b02f6375b7cbb9048270",
+    "gio/cix-gconverter.h": "f4c0b491af49df3f56a84213368fbd2fc38d58e3f5b1e4bec1dfa1ff98d34990",
+    "gio/contract.c": "9050e89e5bc4c3cef2fd7ae006d5c770698f984b6b09254fe9e9c16f2654ccf9",
+    "hdf5/CMakeLists.txt": "2a7ba9848d475d3b45e9f74a03e785181d819552e07735eae2d7ec77bdc6b717",
+    "hdf5/README.md": "5770ecaf75dcc2e715b59a2875fcd9d53ff25393d911f56fed161326c5508845",
+    "hdf5/examples/h5py_filter.py": "9dbc79e8de1b7e889379bda2e8b5a880778dd4621e7cb10ae9fb2b17d4f793bc",
+    "hdf5/examples/netcdf_filter.c": "88c225911665c78f630a5bc4d438b3cbabe50220ba45bc0075b6b6f5140f92d0",
+    "hdf5/src/cix_hdf5_filter.c": "ae4ba3fbbd50510dbec23e6e8784d57d2fbcb8ae5eb3a0d438c7033c4be2787c",
+    "hdf5/tests/filter_contract.c": "03096678ba9d9af5dbe940af5d94a5467cd1c46a57bdf4498113bce287148b2c",
+    "libarchive/README.md": "42e0bc4f6a11c55bf224ab709ba8aae9a09a1af2beae51741053b1e12d811d5e",
+    "libarchive/cix-tar-filter.sh": "041561771783c2904cc7b032bb61818dab89b541449e88ba2900d679013d1561",
+    "libarchive/libarchive_program_filter.c": "08e6a37305317627d883cfdfa8d713fc7ce91e654ffceea3c45c581967ef4557",
+    "libarchive/qualify.sh": "45ed1f8d278f8a64407763c4d853e72b9e5fc1c70d9e1f1d3245c777d6133143"
+  },
+  "cix_sha256": "fde4c550f0702be4c8d1e81330bd8b6ad902ece07ba583350bbf4607c6020d15",
+  "native_library_sha256": "8cfb14fe08a81105eaf6135b4eada992dae6d6c91e9ca17367fd578dec7205d1",
+  "components": {
+    "hdf5": {
+      "commands": [
+        {
+          "argv": [
+            "cmake",
+            "-S",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v3/hdf5",
+            "-B",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/hdf5",
+            "-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+            "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+            "-DCIX_HDF5_FILTER_ID=65001",
+            "-DCIX_HDF5_BUILD_CONTRACT_TEST=ON",
+            "-DHDF5_C_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1/usr/include/hdf5/serial",
+            "-DHDF5_hdf5_LIBRARY_RELEASE=/usr/lib/x86_64-linux-gnu/libhdf5_serial.so.103"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3",
+          "returncode": 0,
+          "stdout": "-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Found HDF5: /usr/lib/x86_64-linux-gnu/libhdf5_serial.so.103 (found suitable version \"1.10.10\", minimum required is \"1.10\") found components: C \n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/hdf5\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "cmake",
+            "--build",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/hdf5",
+            "-j4"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3",
+          "returncode": 0,
+          "stdout": "[ 25%] Building C object CMakeFiles/H5Zcix.dir/src/cix_hdf5_filter.c.o\n[ 50%] Building C object CMakeFiles/cix_hdf5_filter_contract.dir/tests/filter_contract.c.o\n[ 75%] Linking C shared module H5Zcix.so\n[100%] Linking C executable cix_hdf5_filter_contract\n[100%] Built target H5Zcix\n[100%] Built target cix_hdf5_filter_contract\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "ctest",
+            "--test-dir",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/hdf5",
+            "--output-on-failure"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3",
+          "returncode": 8,
+          "stdout": "Internal ctest changing into directory: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/hdf5\nTest project /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/hdf5\n    Start 1: cix_hdf5_filter_contract\n1/1 Test #1: cix_hdf5_filter_contract .........***Failed    0.00 sec\nmain:145: required_invalid_parameters_fail(invalid_path, compressible)\n\n\n0% tests passed, 1 tests failed out of 1\n\nTotal Test time (real) =   0.00 sec\n\nThe following tests FAILED:\n\t  1 - cix_hdf5_filter_contract (Failed)\n",
+          "stderr": "Errors while running CTest\n"
+        }
+      ],
+      "status": "fail",
+      "error": "Errors while running CTest\n"
+    },
+    "gio": {
+      "commands": [
+        {
+          "argv": [
+            "cmake",
+            "-S",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v3/gio",
+            "-B",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/gio",
+            "-DCIX_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+            "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3",
+          "returncode": 0,
+          "stdout": "-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Found PkgConfig: /usr/bin/pkg-config (found version \"1.8.1\") \n-- Checking for module 'gio-2.0'\n--   Found gio-2.0, version 2.80.0\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/gio\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "cmake",
+            "--build",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/gio",
+            "-j4"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3",
+          "returncode": 0,
+          "stdout": "[ 25%] Building C object CMakeFiles/cix-gconverter.dir/cix-gconverter.c.o\n[ 50%] Linking C shared library libcix-gconverter.so\n[ 50%] Built target cix-gconverter\n[ 75%] Building C object CMakeFiles/cix-gconverter-contract.dir/contract.c.o\n[100%] Linking C executable cix-gconverter-contract\n[100%] Built target cix-gconverter-contract\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/gio/cix-gconverter-contract"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3",
+          "returncode": -6,
+          "stdout": "TAP version 13\n# random seed: R02S5837defb47b985c5f3694e829fb87eaa\n1..4\n# Start of cix-gio tests\nok 1 /cix-gio/round-trip\nok 2 /cix-gio/backpressure-reset\nok 3 /cix-gio/truncated\nnot ok /cix-gio/cancelled-output - ERROR:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v3/gio/contract.c:155:cancelled_output: 'g_output_stream_write_all(stream, \"x\", 1, NULL, cancel, &error)' should be FALSE\nBail out!\n",
+          "stderr": "**\nERROR:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v3/gio/contract.c:155:cancelled_output: 'g_output_stream_write_all(stream, \"x\", 1, NULL, cancel, &error)' should be FALSE\n"
+        }
+      ],
+      "status": "fail",
+      "error": "**\nERROR:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v3/gio/contract.c:155:cancelled_output: 'g_output_stream_write_all(stream, \"x\", 1, NULL, cancel, &error)' should be FALSE\n"
+    },
+    "libarchive": {
+      "commands": [
+        {
+          "argv": [
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v3/libarchive/qualify.sh"
+          ],
+          "env_extra": {
+            "CIX_TAR_CIX": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-closure-v1/relocated/usr/bin/cix",
+            "TMPDIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3",
+            "CIX_TAR_RECEIPT_DIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/tar-receipt"
+          },
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3",
+          "returncode": 0,
+          "stdout": "GNU tar: tar (GNU tar) 1.35\nCIX: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-closure-v1/relocated/usr/bin/cix\ntar program-filter qualification passed; libarchive consumer remains separate\n",
+          "stderr": "cix: -: truncated archive\ncix: 1 of 1 input files failed\ntar: Child returned status 2\ntar: Error is not recoverable: exiting now\n"
+        },
+        {
+          "argv": [
+            "cc",
+            "-std=c11",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1/usr/include",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v3/libarchive/libarchive_program_filter.c",
+            "/usr/lib/x86_64-linux-gnu/libarchive.so.13",
+            "-o",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/libarchive-contract"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3",
+          "returncode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/libarchive-contract",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v3/libarchive/cix-tar-filter.sh",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-closure-v1/relocated/usr/bin/cix",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/libarchive.tar.cix"
+          ],
+          "env_extra": {
+            "CIX_TAR_CIX": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-closure-v1/relocated/usr/bin/cix",
+            "TMPDIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3",
+            "CIX_TAR_RECEIPT_DIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3/tar-receipt"
+          },
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v3",
+          "returncode": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ],
+      "status": "pass"
+    }
+  }
+}

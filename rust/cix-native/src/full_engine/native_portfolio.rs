@@ -48,6 +48,61 @@ pub struct NativePortfolioOptions {
     pub cancellation: Option<Arc<AtomicBool>>,
 }
 
+/// Explicit whole-input constraints. Empty fields retain the historical
+/// automatic portfolio; the CLI maps only controls with a native wire meaning.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct NativePortfolioConstraints {
+    pub formats: Option<Vec<String>>,
+    pub blocks: Option<Vec<u32>>,
+    pub backend: Option<String>,
+    pub effort: Option<u8>,
+    pub strategy: Option<String>,
+}
+
+impl NativePortfolioConstraints {
+    pub fn constrains_wire(&self) -> bool {
+        self.formats.is_some() || self.blocks.is_some() || self.backend.is_some()
+    }
+    fn allows(&self, format: &str) -> bool {
+        if self.backend.as_ref().is_some_and(|backend| {
+            format == "cixm6"
+                || (format == "cixg1"
+                    && (backend == "huffman" || backend.starts_with("context-range-")))
+        }) {
+            return false;
+        }
+        self.formats
+            .as_ref()
+            .is_none_or(|formats| formats.iter().any(|value| value == format))
+    }
+    fn block_list(&self, input_len: usize) -> Vec<u32> {
+        self.blocks.clone().unwrap_or_else(|| {
+            if input_len <= 16 * MIB {
+                vec![16 * 1024, 32 * 1024, MAX_BLOCK]
+            } else {
+                vec![MAX_BLOCK]
+            }
+        })
+    }
+    fn backend(&self) -> &str {
+        self.backend.as_deref().unwrap_or("hybrid")
+    }
+    fn effort(&self, fallback: u8) -> Result<u8, String> {
+        let effort = self.effort.unwrap_or(fallback);
+        if (1..=9).contains(&effort) {
+            Ok(effort)
+        } else {
+            Err("native effort must be 1 through 9".into())
+        }
+    }
+    fn strategy(&self) -> Result<&str, String> {
+        match self.strategy.as_deref().unwrap_or("blocks") {
+            "blocks" | "candidates" => Ok(self.strategy.as_deref().unwrap_or("blocks")),
+            _ => Err("native strategy must be blocks or candidates".into()),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum NativePortfolioStatus {
     Completed,
@@ -292,6 +347,9 @@ fn native_trial(
     budget: Duration,
     format: &str,
     block: u32,
+    backend: &str,
+    backend_set: bool,
+    constraints: &NativePortfolioConstraints,
 ) -> Result<(), String> {
     check_interrupted()?;
     let Some(memory) = available(o, input.len(), winner.capacity(), o.output_bytes) else {
@@ -315,10 +373,14 @@ fn native_trial(
         &mut writer,
         EncodeOptions {
             block,
-            level: 9,
+            level: constraints.effort(match o.profile {
+                NativePortfolioProfile::Fast => 1,
+                NativePortfolioProfile::Default => 6,
+                NativePortfolioProfile::Best => 9,
+            })?,
             forced: None,
-            backend: "hybrid",
-            backend_set: false,
+            backend,
+            backend_set,
             format,
             input_fd: -1,
             flush_interval: None,
@@ -326,7 +388,7 @@ fn native_trial(
             workers: o.workers,
             explain: false,
             verbose: false,
-            strategy: "blocks",
+            strategy: constraints.strategy()?,
         },
     );
     let terminal = check_interrupted();
@@ -359,6 +421,7 @@ fn m6_trial(
     id: String,
     budget: Duration,
     block: usize,
+    effort: u8,
 ) -> Result<(), String> {
     check_interrupted()?;
     let Some(memory) = available(o, input.len(), winner.capacity(), o.output_bytes) else {
@@ -377,7 +440,14 @@ fn m6_trial(
         }
     };
     let guard = crate::limits::DeadlineGuard::new(budget);
-    let result = encode_m6(io::Cursor::new(input), &mut writer, block, None, 9, memory);
+    let result = encode_m6(
+        io::Cursor::new(input),
+        &mut writer,
+        block,
+        None,
+        effort,
+        memory,
+    );
     let terminal = check_interrupted();
     drop(guard);
     if let Err(error) = terminal {
@@ -407,7 +477,47 @@ pub fn select(
     input: &[u8],
     options: &NativePortfolioOptions,
 ) -> Result<NativePortfolioResult, String> {
+    select_constrained(input, options, &NativePortfolioConstraints::default())
+}
+
+pub fn select_constrained(
+    input: &[u8],
+    options: &NativePortfolioOptions,
+    constraints: &NativePortfolioConstraints,
+) -> Result<NativePortfolioResult, String> {
     options.validate(input.len())?;
+    if constraints.formats.as_ref().is_some_and(|formats| {
+        formats.is_empty()
+            || formats
+                .iter()
+                .any(|format| !matches!(format.as_str(), "cixg1" | "cixg2" | "cixm6"))
+    }) || constraints.blocks.as_ref().is_some_and(|blocks| {
+        blocks.is_empty() || blocks.iter().any(|block| *block == 0 || *block > MAX_BLOCK)
+    }) {
+        return Err("invalid native whole-container constraint".into());
+    }
+    constraints.effort(6)?;
+    constraints.strategy()?;
+    if constraints.backend.as_deref().is_some_and(|backend| {
+        !matches!(
+            backend,
+            "cix"
+                | "raw"
+                | "runs"
+                | "ppm"
+                | "mixture"
+                | "deflate"
+                | "hybrid"
+                | "range"
+                | "count-range"
+                | "context-range-o1-b4"
+                | "context-range-o1-b8"
+                | "context-range-o2-b8"
+                | "huffman"
+        )
+    }) {
+        return Err("unsupported native backend constraint".into());
+    }
     if stopped(options) {
         return Err("native portfolio cancelled or deadline exceeded".into());
     }
@@ -430,24 +540,77 @@ pub fn select(
         // can exceed its logical writer limit. Reserve the caller's complete
         // output bound first and pass that bounded writer to the core path.
         let mut writer = CappedWriter::new(options.output_bytes, None)?;
-        core::encode(
-            input,
-            &mut writer,
-            &core::NativeOptions {
-                profile: match options.profile {
-                    NativePortfolioProfile::Fast => core::NativeProfile::Fast,
-                    _ => core::NativeProfile::Default,
+        if constraints == &NativePortfolioConstraints::default() {
+            core::encode(
+                input,
+                &mut writer,
+                &core::NativeOptions {
+                    profile: match options.profile {
+                        NativePortfolioProfile::Fast => core::NativeProfile::Fast,
+                        _ => core::NativeProfile::Default,
+                    },
+                    output_limit: options.output_bytes,
+                    memory_limit,
+                    workers: options.workers,
+                    deadline: options
+                        .deadline
+                        .map(|d| d.saturating_duration_since(Instant::now())),
+                    cancellation: options.cancellation.clone(),
                 },
-                output_limit: options.output_bytes,
-                memory_limit,
-                workers: options.workers,
-                deadline: options
-                    .deadline
-                    .map(|d| d.saturating_duration_since(Instant::now())),
-                cancellation: options.cancellation.clone(),
-            },
-        )
-        .map_err(|e| e.to_string())?;
+            )
+            .map_err(|e| e.to_string())?;
+        } else {
+            let format = ["cixg2", "cixg1", "cixm6"]
+                .into_iter()
+                .find(|format| constraints.allows(format))
+                .ok_or("no native whole-container satisfies the explicit format constraint")?;
+            let block = constraints
+                .blocks
+                .as_ref()
+                .and_then(|blocks| blocks.first())
+                .copied()
+                .unwrap_or(MAX_BLOCK);
+            if format == "cixm6" {
+                encode_m6(
+                    io::Cursor::new(input),
+                    &mut writer,
+                    block as usize,
+                    None,
+                    constraints.effort(if options.profile == NativePortfolioProfile::Fast {
+                        1
+                    } else {
+                        6
+                    })?,
+                    memory_limit,
+                )?;
+            } else {
+                encode_with_strategy(
+                    io::Cursor::new(input),
+                    &mut writer,
+                    EncodeOptions {
+                        block,
+                        level: constraints.effort(
+                            if options.profile == NativePortfolioProfile::Fast {
+                                1
+                            } else {
+                                6
+                            },
+                        )?,
+                        forced: None,
+                        backend: constraints.backend(),
+                        backend_set: constraints.backend.is_some(),
+                        format,
+                        input_fd: -1,
+                        flush_interval: None,
+                        memory: memory_limit,
+                        workers: options.workers,
+                        explain: false,
+                        verbose: false,
+                        strategy: constraints.strategy()?,
+                    },
+                )?;
+            }
+        }
         check_interrupted()?;
         let archive = writer.bytes;
         let archive_bytes = archive.len();
@@ -467,33 +630,59 @@ pub fn select(
         });
     }
     let cap = best_fallback_cap(options, input.len())?;
+    let baseline_format = ["cixg2", "cixg1", "cixm6"]
+        .into_iter()
+        .find(|format| constraints.allows(format))
+        .ok_or("no native whole-container satisfies the explicit format constraint")?;
     let Some(memory) = available(options, input.len(), 0, cap) else {
         return Err("BEST cannot admit source, raw fallback and codec remainder".into());
     };
     let mut raw = CappedWriter::new(cap, None)?;
-    encode_with_strategy(
-        io::Cursor::new(input),
-        &mut raw,
-        EncodeOptions {
-            block: MAX_BLOCK,
-            level: 9,
-            forced: Some("raw"),
-            backend: "hybrid",
-            backend_set: false,
-            format: "cixg2",
-            input_fd: -1,
-            flush_interval: None,
+    let baseline_block = constraints
+        .blocks
+        .as_ref()
+        .and_then(|blocks| blocks.first().copied())
+        .unwrap_or(MAX_BLOCK);
+    if baseline_format == "cixm6" {
+        encode_m6(
+            io::Cursor::new(input),
+            &mut raw,
+            baseline_block as usize,
+            None,
+            constraints.effort(9)?,
             memory,
-            workers: options.workers,
-            explain: false,
-            verbose: false,
-            strategy: "blocks",
-        },
-    )?;
+        )?;
+    } else {
+        encode_with_strategy(
+            io::Cursor::new(input),
+            &mut raw,
+            EncodeOptions {
+                // Preserve the historical unconstrained raw baseline. An explicit
+                // block is a real wire constraint and is therefore authoritative.
+                block: baseline_block,
+                level: constraints.effort(9)?,
+                forced: (baseline_format != "cixm6").then_some("raw"),
+                backend: constraints.backend(),
+                backend_set: constraints.backend.is_some(),
+                format: baseline_format,
+                input_fd: -1,
+                flush_interval: None,
+                memory,
+                workers: options.workers,
+                explain: false,
+                verbose: false,
+                strategy: constraints.strategy()?,
+            },
+        )?;
+    }
     let mut winner = raw.bytes;
     check_interrupted()?;
     validate(&winner, winner.capacity(), input, options, 0)?;
-    let mut selected = "cixg2:raw-baseline".to_string();
+    let mut selected = if baseline_format == "cixm6" {
+        format!("cixm6:native-auto:block={baseline_block}")
+    } else {
+        format!("{baseline_format}:raw-baseline")
+    };
     let mut diagnostics = vec![NativePortfolioCandidate {
         id: selected.clone(),
         status: NativePortfolioStatus::Completed,
@@ -503,14 +692,11 @@ pub fn select(
     let budget = whole_budget(input.len());
     let cixg_budget = budget / 2;
     let m6_budget = budget.saturating_sub(cixg_budget);
-    let blocks: Vec<u32> = if input.len() <= 16 * MIB {
-        vec![16 * 1024, 32 * 1024, MAX_BLOCK]
-    } else {
-        vec![MAX_BLOCK]
-    };
+    let blocks = constraints.block_list(input.len());
     let cixg_started = Instant::now();
     for (i, (format, block)) in ["cixg1", "cixg2"]
         .into_iter()
+        .filter(|format| constraints.allows(format))
         .flat_map(|f| blocks.iter().copied().map(move |b| (f, b)))
         .enumerate()
     {
@@ -534,10 +720,23 @@ pub fn select(
             slice,
             format,
             block,
+            constraints.backend(),
+            constraints.backend.is_some(),
+            constraints,
         )?;
     }
     let m6_started = Instant::now();
     for (i, block) in blocks.iter().copied().enumerate() {
+        if !constraints.allows("cixm6") || constraints.backend.is_some() {
+            if constraints.backend.is_some() {
+                omission(
+                    &mut diagnostics,
+                    format!("cixm6:native-auto:block={block}"),
+                    "explicit backend does not apply to CIXM6",
+                );
+            }
+            continue;
+        }
         let id = format!("cixm6:native-auto:block={block}");
         let Some(slice) = remaining(options, m6_budget, m6_started, blocks.len() - i) else {
             omission(
@@ -556,9 +755,18 @@ pub fn select(
             id,
             slice,
             block as usize,
+            constraints.effort(9)?,
         )?;
     }
     for descriptor in external::best_candidates() {
+        if constraints.constrains_wire() {
+            omission(
+                &mut diagnostics,
+                descriptor.id,
+                "explicit native wire constraint excludes CIXB1 candidate",
+            );
+            continue;
+        }
         check_interrupted()?;
         if stopped(options) {
             return Err("native portfolio cancelled or deadline exceeded".into());

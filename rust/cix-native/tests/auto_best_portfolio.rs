@@ -75,7 +75,8 @@ fn named_best_compares_complete_archives_and_fresh_cli_decodes() {
     ]);
     assert!(
         output.status.success(),
-        "BEST failed: {}",
+        "BEST failed ({:?}): {}",
+        output.status,
         String::from_utf8_lossy(&output.stderr)
     );
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -177,7 +178,7 @@ fn block_override_retains_matching_cixm6_packaging_trial() {
     );
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("packaging_candidate=cixm6:native-auto:block=16384"),
+        stderr.contains("native_candidate=cixm6:native-auto:block=16384"),
         "--block-size must retain the matching complete CIXM6 trial: {stderr}"
     );
     let restored = uncix(&archive.0);

@@ -1,0 +1,115 @@
+{
+  "sources": {
+    "gio/CMakeLists.txt": "1433c93b37921c0be8070e349db9fb0cc6a97bc406ebad13840903c41349479e",
+    "gio/README.md": "2078d81f2300e5fef4fcffc311087a3c2484ada429297d74094439b0fa3c9441",
+    "gio/cix-gconverter.c": "9faa9ba797845de6068189a208c316593da64333ce75490d84775c451ddcf5d1",
+    "gio/cix-gconverter.h": "6b51d6b0aa0268dcd1fee35a38583b00ef1df5f3bc69cdaa51ed09c8431ec3d8",
+    "gio/contract.c": "208955c4e9244279891f9b194dbb5680ab5500622646b8e0f446cf636bae0210",
+    "hdf5/CMakeLists.txt": "2a7ba9848d475d3b45e9f74a03e785181d819552e07735eae2d7ec77bdc6b717",
+    "hdf5/README.md": "5770ecaf75dcc2e715b59a2875fcd9d53ff25393d911f56fed161326c5508845",
+    "hdf5/examples/h5py_filter.py": "9dbc79e8de1b7e889379bda2e8b5a880778dd4621e7cb10ae9fb2b17d4f793bc",
+    "hdf5/examples/netcdf_filter.c": "88c225911665c78f630a5bc4d438b3cbabe50220ba45bc0075b6b6f5140f92d0",
+    "hdf5/src/cix_hdf5_filter.c": "ae4ba3fbbd50510dbec23e6e8784d57d2fbcb8ae5eb3a0d438c7033c4be2787c",
+    "hdf5/tests/filter_contract.c": "2ce9c51c605a6a232974f896cea20b7fc94ef6ab3c277f40ed6a5ddea2195999"
+  },
+  "cix_sha256": "fde4c550f0702be4c8d1e81330bd8b6ad902ece07ba583350bbf4607c6020d15",
+  "native_library_sha256": "8cfb14fe08a81105eaf6135b4eada992dae6d6c91e9ca17367fd578dec7205d1",
+  "components": {
+    "hdf5": {
+      "commands": [
+        {
+          "argv": [
+            "cmake",
+            "-S",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v4/hdf5",
+            "-B",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4/hdf5",
+            "-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+            "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+            "-DCIX_HDF5_FILTER_ID=65001",
+            "-DCIX_HDF5_BUILD_CONTRACT_TEST=ON",
+            "-DHDF5_C_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1/usr/include/hdf5/serial",
+            "-DHDF5_hdf5_LIBRARY_RELEASE=/usr/lib/x86_64-linux-gnu/libhdf5_serial.so.103"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4",
+          "returncode": 0,
+          "stdout": "-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Found HDF5: /usr/lib/x86_64-linux-gnu/libhdf5_serial.so.103 (found suitable version \"1.10.10\", minimum required is \"1.10\") found components: C \n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4/hdf5\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "cmake",
+            "--build",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4/hdf5",
+            "-j4"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4",
+          "returncode": 0,
+          "stdout": "[ 50%] Building C object CMakeFiles/H5Zcix.dir/src/cix_hdf5_filter.c.o\n[ 50%] Building C object CMakeFiles/cix_hdf5_filter_contract.dir/tests/filter_contract.c.o\n[ 75%] Linking C shared module H5Zcix.so\n[100%] Linking C executable cix_hdf5_filter_contract\n[100%] Built target H5Zcix\n[100%] Built target cix_hdf5_filter_contract\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "ctest",
+            "--test-dir",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4/hdf5",
+            "--output-on-failure"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4",
+          "returncode": 8,
+          "stdout": "Internal ctest changing into directory: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4/hdf5\nTest project /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4/hdf5\n    Start 1: cix_hdf5_filter_contract\n1/1 Test #1: cix_hdf5_filter_contract .........***Failed    0.00 sec\nmain:175: H5Zfilter_avail((H5Z_filter_t)CIX_HDF5_FILTER_ID) > 0\n\n\n0% tests passed, 1 tests failed out of 1\n\nTotal Test time (real) =   0.00 sec\n\nThe following tests FAILED:\n\t  1 - cix_hdf5_filter_contract (Failed)\n",
+          "stderr": "Errors while running CTest\n"
+        }
+      ],
+      "status": "fail",
+      "error": "Errors while running CTest\n"
+    },
+    "gio": {
+      "commands": [
+        {
+          "argv": [
+            "cmake",
+            "-S",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v4/gio",
+            "-B",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4/gio",
+            "-DCIX_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+            "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4",
+          "returncode": 0,
+          "stdout": "-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Found PkgConfig: /usr/bin/pkg-config (found version \"1.8.1\") \n-- Checking for module 'gio-2.0'\n--   Found gio-2.0, version 2.80.0\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4/gio\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "cmake",
+            "--build",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4/gio",
+            "-j4"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4",
+          "returncode": 0,
+          "stdout": "[ 25%] Building C object CMakeFiles/cix-gconverter.dir/cix-gconverter.c.o\n[ 50%] Linking C shared library libcix-gconverter.so\n[ 50%] Built target cix-gconverter\n[ 75%] Building C object CMakeFiles/cix-gconverter-contract.dir/contract.c.o\n[100%] Linking C executable cix-gconverter-contract\n[100%] Built target cix-gconverter-contract\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4/gio/cix-gconverter-contract"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v4",
+          "returncode": 0,
+          "stdout": "TAP version 13\n# random seed: R02Sa6f3c35b82a4d9f7cab2fb41cb3112fb\n1..4\n# Start of cix-gio tests\nok 1 /cix-gio/round-trip\nok 2 /cix-gio/backpressure-reset\nok 3 /cix-gio/truncated\nok 4 /cix-gio/cancelled-output\n# End of cix-gio tests\n",
+          "stderr": ""
+        }
+      ],
+      "status": "pass"
+    }
+  }
+}

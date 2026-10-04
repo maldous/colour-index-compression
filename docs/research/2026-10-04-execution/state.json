@@ -2,7 +2,7 @@
   "schema": "cix.execution.v1",
   "approved": true,
   "baseline_commit": "0912dbd471b8630bacf0f78a0ea10a349e86d5f1",
-  "phase": "jobs-bindings-runtime-checkpoint",
+  "phase": "host-adapters-constraints-checkpoint",
   "release_ready": false,
   "benchmark_status": "held-until-RC51",
   "publication_status": "held",
@@ -77,6 +77,11 @@
       "id": "job-mode-v3/v5,language-consumers-v2/v3/v4,dotnet-consumer-v2,runtime-closure-v1",
       "status": "passing scoped checks",
       "scope": "multi-file CLI, job protocol, Java/Node/.NET bindings, Python bounds and Zarr v2/v3, explicit relocated Linux runtime; see jobs-consumers-evidence.json"
+    },
+    {
+      "id": "constraints-v3,host-adapters-v3/v4/v6/v7,runtime-closure-v2,relocated-providers-v4",
+      "status": "passing scoped checks",
+      "scope": "46 Rust tests, tar/libarchive, four GIO tests, HDF5/netCDF/h5py matched ABI, installed JXL+four PAQ variants and level-zero admission; see host-adapters-evidence.json"
     }
   ],
   "active_work": [
@@ -122,8 +127,12 @@
     "cli-bindings-v7 prepared but not dispatched after bound review",
     "job-mode-v1 prepared not dispatched; v2 CLI reference compile error; v4 reservation error type mismatch",
     "language-consumers-v1 Node syntax; v2 runner DNS after Node/Java passed; v3 Zarr API fixture mismatch",
-    "dotnet-consumer-v1 contract imports; native library compiled, full corrected contract passed v2"
+    "dotnet-consumer-v1 contract imports; native library compiled, full corrected contract passed v2",
+    "constraints-v1 stale diagnostic and unsuccessful BEST child; v2 forced M6 used CIXG producer; corrected v3",
+    "relocated-providers-v1/v3 PAQ level-zero SIGSEGV; pinned upstream null predictor; CIX worker rejects unsafe level in v4",
+    "host-adapters-v1/v2/v3/v4 build, dynamic-discovery, child-environment and host-cancellation-contract failures; all scopes passed after fixes",
+    "host-adapters-v6 h5py loader package missing after HDF5/netCDF passed; v7 matched distro loader/ABI passes"
   ],
   "active_job": null,
-  "next_action": "Complete actual relocated PAQ/JXL operations and remaining full-engine streaming, expert-control, scheduling and host-adapter contracts"
+  "next_action": "Qualify pinned Blosc2/Squash and remaining host adapters, then complete full-engine streaming, parallelism, quality and platform contracts"
 }

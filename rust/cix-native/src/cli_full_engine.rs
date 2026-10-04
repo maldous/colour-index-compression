@@ -13,7 +13,9 @@ use crate::{
         installed,
         io::{self, DecodePath},
         jxl_provider::JxlProvider,
-        selection::{self, NativeExecutor, SelectionLimits, SelectionProfile, TrialDetails},
+        selection::{
+            self, NativeExecutor, SelectionLimits, SelectionProfile, TrialDetails, WholeConstraints,
+        },
         spatial_provider::SpatialProvider,
     },
 };
@@ -364,16 +366,28 @@ fn whole_encode_ineligibility(o: &Opt) -> Option<&'static str> {
         Some("stream/flush controls require the bounded streaming encoder")
     } else if o.history != 0 || o.independent_blocks {
         Some("history/reset controls require the bounded streaming encoder")
-    } else if !matches!(o.format.as_str(), "auto") {
+    } else if !matches!(o.format.as_str(), "auto" | "cixg1" | "cixg2" | "cixm6") {
         Some("explicit container format constrains the native encoder")
     } else if o.route.as_deref().is_some_and(|route| route != "auto") {
         Some("explicit route constrains the native encoder")
-    } else if o.backend_set || o.block.is_some() {
-        Some("backend/block override constrains the native encoder")
     } else if o.external_backend.is_some() || o.portfolio.is_some() {
         Some("explicit external/portfolio selection controls encoding")
     } else {
         None
+    }
+}
+
+fn whole_constraints(o: &Opt) -> WholeConstraints {
+    WholeConstraints {
+        native: crate::full_engine::native_portfolio::NativePortfolioConstraints {
+            formats: (!matches!(o.format.as_str(), "auto")).then(|| vec![o.format.clone()]),
+            blocks: o
+                .block
+                .map(|block| vec![block.min(crate::core::engine::MAX_BLOCK)]),
+            backend: o.backend_set.then(|| o.backend.clone()),
+            effort: (o.level_set && !matches!(o.level, 1 | 6 | 9)).then_some(o.level),
+            strategy: o.parallelism_set.then(|| o.parallelism.clone()),
+        },
     }
 }
 
@@ -476,7 +490,7 @@ pub(crate) fn encode_whole<W: Write>(
     // PAQ plans are present only in BEST. Default/FAST retain their normal
     // policy without creating a PAQ root merely because it may be configured.
     let providers = provider_config(o, false)?;
-    let result = selection::select_whole_input(
+    let result = selection::select_whole_input_constrained(
         &input,
         profile,
         SelectionLimits {
@@ -489,6 +503,7 @@ pub(crate) fn encode_whole<W: Write>(
             cancellation: Some(cancellation_token()),
         },
         NativeExecutor { providers },
+        whole_constraints(o),
     )?;
     destination
         .write_all(&result.archive)

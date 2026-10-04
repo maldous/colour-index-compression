@@ -1,0 +1,5 @@
+import subprocess
+commands=[['dpkg-deb', '-x', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-sdk-debs-v1/libarchive-dev_3.7.2-2ubuntu0.8_amd64.deb', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1'], ['dpkg-deb', '-x', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-sdk-debs-v1/libhdf5-dev_1.10.10+repack-3.1ubuntu4_amd64.deb', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1'], ['dpkg-deb', '-x', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-sdk-debs-v1/libnetcdf-dev_4.9.2-5ubuntu4_amd64.deb', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1']]
+for c in commands:
+ print(c,flush=True)
+ subprocess.run(c,check=True)
