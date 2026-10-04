@@ -1,7 +1,10 @@
 # Integrated runtime qualification
 
-The 36-cell Silesia confirmation pass has **not started**. These are focused
-development and release-construction checks, not compression benchmark results.
+The frozen 36-cell Silesia confirmation pass is **running** under
+`qualification/silesia-confirmation-v1/plan.json`. Product source is `5d93d9f1b`;
+freeze checkpoint `d026ee070` is pushed privately. The development checks below
+are separate from the fresh corpus results. The live summary is derived from
+individually verified cells and must remain labelled incomplete until all 36 pass.
 
 * `integrated-dev-unit-5`: 31 focused Python tests passed. Earlier unit failures
   remain recorded: missing decoder helpers, malformed test expectations, a
@@ -79,6 +82,22 @@ ordinary FAST/DEFAULT/BEST CLI exact-restoration checks, shared-image verificati
 and source/stage parity. The final four functional harness fixtures also pass.
 The independent freeze review is closed; its temporary-accounting concern was
 withdrawn after verifying total (not incremental) live-directory measurement.
-The source/dependency freeze is being assembled. The stage
+The source/dependency freeze is complete and checked before each phase. The stage
 is intentionally host-pinned Linux qualification material; integrated portable
 source builds, platform packages and public distribution remain unqualified.
+
+The root launched the full serial pass in exec session 85334, using absolute
+paths throughout. FAST and DEFAULT Dickens have completed fresh exact decode;
+BEST Dickens is active at this checkpoint. Do not mistake these two cells for
+complete mode or corpus qualification. Read the live `summary.json` and cell
+receipts for current progress.
+
+The current-task heartbeat `finish-frozen-cix-silesia-confirmation` checks every
+15 minutes solely to supervise this already-running pass and produce its final
+report. It must stay quiet on unchanged healthy state and pause after reporting.
+The older `complete-cix-0-1-release-qualification` automation remains PAUSED.
+No new dataset, public publication or Sites work follows before the Silesia report.
+
+The finite history review is [FINAL-OPPORTUNITY-REVIEW.md](FINAL-OPPORTUNITY-REVIEW.md).
+CPI1 contained **28 experts** (not 128); the causal gain failed its predeclared gate.
+No research result establishes a universal limit on possible compression.
