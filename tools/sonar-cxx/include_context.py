@@ -66,6 +66,12 @@ def _disposition(flag: str, resolved: Path) -> tuple[str, Path | None]:
 
 
 def _forced_file(value: str, directory: Path, search_roots: list[Path]) -> tuple[Path, str]:
+    """Resolve only direct or explicit user-include candidates.
+
+    Implicit compiler system directories are intentionally unavailable here.
+    If none of the recorded user stages selects a file, closure is unknown and
+    the caller fails closed instead of substituting a host header.
+    """
     direct = _absolute(value, directory)
     if direct.is_file():
         return direct, "resolved-forced-file"
@@ -74,6 +80,34 @@ def _forced_file(value: str, directory: Path, search_roots: list[Path]) -> tuple
         if candidate.is_file():
             return candidate, "resolved-forced-file-via-recorded-include-search"
     raise IncludeContextError("recorded forced include does not resolve to a file: " + value)
+
+
+def _user_include_search_roots(operands: list[tuple[str, str, str, int]], directory: Path) -> list[Path]:
+    """Return GCC quoted-include user stages, preserving order within stages.
+
+    ``-idirafter`` is deliberately excluded because unknown implicit system
+    roots precede it.  Do not deduplicate roots across the remaining flag
+    classes: that would change the compiler's search ordering.  Implicit
+    system roots are deliberately not guessed by this bounded mapping helper.
+    """
+    roots: list[Path] = []
+    system_roots = {
+        _absolute(value, directory) for flag, value, _, _ in operands
+        if flag == "-isystem" and _absolute(value, directory).is_dir()
+    }
+    for expected_flag in ("-iquote", "-I", "-isystem"):
+        for flag, value, _, _ in operands:
+            if flag != expected_flag:
+                continue
+            resolved = _absolute(value, directory)
+            # GCC ignores an -I directory that is also named by -isystem;
+            # retaining it in the earlier stage would select a different
+            # header context from the compiler.
+            if expected_flag == "-I" and resolved in system_roots:
+                continue
+            if resolved.is_dir():
+                roots.append(resolved)
+    return roots
 
 
 def _path_mapper(source: Path, mounts: list[tuple[Path, str]]):
@@ -121,8 +155,7 @@ def rebase_include_context(commands: list[dict[str, Any]], source: Path) -> tupl
                 continue
             raw_operands.append(parsed)
             index += 2 if parsed[2] == "two-token" else 1
-        search_roots = [_absolute(value, directory) for flag, value, _, _ in raw_operands
-                        if flag in _DIRECTORY_FLAGS and _absolute(value, directory).is_dir()]
+        search_roots = _user_include_search_roots(raw_operands, directory)
         operands: list[dict[str, Any]] = []
         for flag, value, spelling, value_index in raw_operands:
             if flag in _FILE_FLAGS:
@@ -163,7 +196,9 @@ def rebase_include_context(commands: list[dict[str, Any]], source: Path) -> tupl
                 operand["mapped"] = mapped
             else:
                 operand["mapped"] = None
-            evidence.append({"source": row["file"], "directory": str(directory), "mount_read_only": True, **operand})
+            evidence.append({"source": row["file"], "directory": str(directory), "mount_read_only": True,
+                             "forced_fallback_limit": "direct file then explicit user include stages; no implicit system roots",
+                             **operand})
         source_file = _absolute(row["file"], directory)
         non_path_values = {index + 1 for index, argument in enumerate(rewritten)
                            if argument in _NON_PATH_VALUE_FLAGS and index + 1 < len(rewritten)}

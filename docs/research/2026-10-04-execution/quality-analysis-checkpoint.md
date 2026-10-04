@@ -85,3 +85,12 @@ and RC51 acceptance remain open. Benchmarking and publication remain held.
 The six-bridge follow-up `header-context-v3` indexed all six intended headers with independent captured compiler contexts. Parser recovery fell from 39 to zero. It retained 98 other findings, including 81 API-documentation findings. The recorded per-file GNU visibility normalization remains analyzer-only; the legacy top-level flag refers only to the unused single-header option, as explained in `reviews/six-bridge-header-context-v3-review.md`. No final quality, ABI, or platform acceptance follows from this result.
 
 `include-context-check-v1` validated rebasing on 43 retained adapter compilation records: 138 include directories and nine forced files resolve to the recorded host identities through 17 read-only mount roots. The corrected helper resolves relative operands against each compiler working directory and follows their actual symlink targets. This is a mapping check, not a new Sonar scan or proof that every nested external header resolves. `sonar-tool-tests-v14` passed 54 CXX and three native helper tests, planning validation and current CLI formatting.
+
+The follow-up `include-context-tests-v2` passed ten focused tests after correcting
+forced-header search precedence. Explicit quoted, ordinary and system include
+stages retain compiler order; an ordinary directory duplicated as a system
+directory is not searched early. An `-idirafter` directory cannot substitute
+for unknown implicit compiler directories. Missing recorded context fails
+closed. This is tool qualification; the adapter analysis still requires a fresh
+probe. The later bridge-header documentation edits also require fresh source
+identities before any final quality claim.

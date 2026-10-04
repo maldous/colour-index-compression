@@ -82,6 +82,32 @@ class IncludeContextTests(unittest.TestCase):
         self.assertEqual(entry["mapped"], dict(mounts)[headers] + "/recorded.h")
         self.assertEqual(mapped[0]["arguments"][4], entry["mapped"])
 
+    def test_forced_include_uses_iquote_before_an_earlier_i_directory(self):
+        ordinary = self.root / "ordinary"; ordinary.mkdir()
+        preferred = self.root / "preferred"; preferred.mkdir()
+        (ordinary / "cfg.h").write_text("#define PICK ORDINARY\n")
+        (preferred / "cfg.h").write_text("#define PICK PREFERRED\n")
+        row = {"file": str(self.unit), "directory": str(self.build),
+               "arguments": ["cc", "-I", str(ordinary), "-iquote", str(preferred), "-include", "cfg.h", "-c", str(self.unit)]}
+        mapped, mounts, evidence = context.rebase_include_context([row], self.source)
+        entry = next(item for item in evidence if item["flag"] == "-include")
+        self.assertEqual(entry["resolved"], str((preferred / "cfg.h").resolve()))
+        self.assertEqual(entry["mapped"], dict(mounts)[preferred] + "/cfg.h")
+        self.assertEqual(mapped[0]["arguments"][6], entry["mapped"])
+
+    def test_forced_fallback_never_selects_an_idirafter_header(self):
+        after = self.root / "after"; after.mkdir()
+        (after / "late.h").write_text("#define LATE 1\n")
+        row = {"file": str(self.unit), "directory": str(self.build),
+               "arguments": ["cc", "-idirafter", str(after), "-include", "late.h", "-c", str(self.unit)]}
+        with self.assertRaises(context.IncludeContextError):
+            context.rebase_include_context([row], self.source)
+
+    def test_i_duplicate_of_isystem_is_not_an_earlier_forced_search_root(self):
+        shared = self.root / "shared"; shared.mkdir()
+        operands = [("-I", str(shared), "two-token", 2), ("-isystem", str(shared), "two-token", 4)]
+        self.assertEqual(context._user_include_search_roots(operands, self.build), [shared.resolve()])
+
     def test_keeps_paired_macro_values_opaque_while_mapping_absolute_output(self):
         row = {"file": str(self.unit), "directory": str(self.build),
                "arguments": ["cc", "-D", "ORIGIN=$ORIGIN", "-c", str(self.unit), "-o", str(self.build / "out.o")]}
