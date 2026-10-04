@@ -22,6 +22,8 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use crate::paq_worker::SWITCH;
 
 const POLL_INTERVAL: Duration = Duration::from_millis(10);
+#[cfg(unix)]
+const CLEANUP_DRAIN_LIMIT: Duration = Duration::from_millis(100);
 const TEMP_ATTEMPTS: u32 = 256;
 static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
@@ -219,18 +221,46 @@ pub fn run(request: &PaqWorkerRequest) -> Result<PaqWorkerResult, PaqSupervisorE
     if let Some(mode) = request.joint_discount_mode {
         command.env("CIX_JOINT_DISCOUNT", mode.to_string());
     }
+    configure_owned_process_group(&mut command);
     let mut child = ChildCleanup::new(command.spawn().map_err(PaqSupervisorError::Spawn)?);
     let stdout = child.take_stdout()?;
     let stderr = child.take_stderr()?;
     // Readers start before polling the child: both pipes are continuously
     // drained, including after the retained transcript reaches its cap.
+    let capture_stop = Arc::new(AtomicBool::new(false));
+    let _capture_stop_guard = CaptureStopGuard(capture_stop.clone());
+    #[cfg(unix)]
+    let stdout_reader =
+        capture_child_thread(stdout, request.diagnostic_limit_bytes, capture_stop.clone())?;
+    #[cfg(unix)]
+    let stderr_reader =
+        capture_child_thread(stderr, request.diagnostic_limit_bytes, capture_stop.clone())?;
+    #[cfg(not(unix))]
     let stdout_reader = capture_thread(stdout, request.diagnostic_limit_bytes);
+    #[cfg(not(unix))]
     let stderr_reader = capture_thread(stderr, request.diagnostic_limit_bytes);
+    #[cfg(unix)]
     let status = loop {
         match check_stop(request) {
             Ok(()) => {}
             Err(error) => {
-                let (stdout, stderr) = child.terminate_and_collect(stdout_reader, stderr_reader)?;
+                let (stdout, stderr) =
+                    child.terminate_and_collect(stdout_reader, stderr_reader, &capture_stop)?;
+                return Err(with_diagnostics(error, stdout, stderr));
+            }
+        }
+        if child.exit_is_pending()? {
+            break child.terminate_group_and_reap()?;
+        }
+        thread::sleep(POLL_INTERVAL);
+    };
+    #[cfg(not(unix))]
+    let status = loop {
+        match check_stop(request) {
+            Ok(()) => {}
+            Err(error) => {
+                let (stdout, stderr) =
+                    child.terminate_and_collect(stdout_reader, stderr_reader, &capture_stop)?;
                 return Err(with_diagnostics(error, stdout, stderr));
             }
         }
@@ -239,7 +269,9 @@ pub fn run(request: &PaqWorkerRequest) -> Result<PaqWorkerResult, PaqSupervisorE
         }
         thread::sleep(POLL_INTERVAL);
     };
+    #[cfg(not(unix))]
     child.disarm();
+    capture_stop.store(true, Ordering::Release);
     let stdout = finish_capture(stdout_reader)?;
     let stderr = finish_capture(stderr_reader)?;
     if !status.success() {
@@ -436,6 +468,7 @@ fn joint_argument(mode: Option<u8>) -> &'static str {
     }
 }
 
+#[cfg(any(not(unix), test))]
 fn capture_thread<R: Read + Send + 'static>(
     reader: R,
     cap: usize,
@@ -461,6 +494,85 @@ fn capture_thread<R: Read + Send + 'static>(
     })
 }
 
+struct CaptureStopGuard(Arc<AtomicBool>);
+
+impl Drop for CaptureStopGuard {
+    fn drop(&mut self) {
+        self.0.store(true, Ordering::Release);
+    }
+}
+
+/// Drain a child diagnostic pipe without allowing an escaped descendant to
+/// hold the parent forever. The descriptor is nonblocking; after cleanup sets
+/// `stop`, the reader preserves bytes already available then exits at its next
+/// empty read instead of waiting for a foreign writer to close the pipe.
+#[cfg(unix)]
+fn capture_child_thread<R>(
+    mut reader: R,
+    cap: usize,
+    stop: Arc<AtomicBool>,
+) -> Result<JoinHandle<io::Result<CapturedStream>>, PaqSupervisorError>
+where
+    R: Read + std::os::unix::io::AsRawFd + Send + 'static,
+{
+    let descriptor = reader.as_raw_fd();
+    // SAFETY: descriptor remains owned by `reader` for the lifetime of the
+    // thread. Only its O_NONBLOCK status is changed.
+    let flags = unsafe { libc::fcntl(descriptor, libc::F_GETFL) };
+    if flags < 0 {
+        return Err(PaqSupervisorError::Capture(io::Error::last_os_error()));
+    }
+    // SAFETY: as above; F_SETFL receives the current flags plus O_NONBLOCK.
+    if unsafe { libc::fcntl(descriptor, libc::F_SETFL, flags | libc::O_NONBLOCK) } < 0 {
+        return Err(PaqSupervisorError::Capture(io::Error::last_os_error()));
+    }
+    Ok(thread::spawn(move || {
+        let mut saved = Vec::with_capacity(cap.min(8192));
+        let mut buffer = [0u8; 8192];
+        let mut truncated = false;
+        let mut cleanup_started = None;
+        loop {
+            if stop.load(Ordering::Acquire) {
+                let started = cleanup_started.get_or_insert_with(Instant::now);
+                if started.elapsed() >= CLEANUP_DRAIN_LIMIT {
+                    // An escaped writer can keep this pipe readable forever.
+                    // Preserve the cap semantics and mark this forced cutoff.
+                    truncated = true;
+                    return Ok(CapturedStream {
+                        bytes: saved,
+                        truncated,
+                    });
+                }
+            }
+            match reader.read(&mut buffer) {
+                Ok(0) => {
+                    return Ok(CapturedStream {
+                        bytes: saved,
+                        truncated,
+                    })
+                }
+                Ok(count) => {
+                    let remaining = cap.saturating_sub(saved.len());
+                    let kept = remaining.min(count);
+                    saved.extend_from_slice(&buffer[..kept]);
+                    truncated |= kept != count;
+                }
+                Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+                    if cleanup_started.is_some() {
+                        return Ok(CapturedStream {
+                            bytes: saved,
+                            truncated,
+                        });
+                    }
+                    thread::sleep(POLL_INTERVAL);
+                }
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                Err(error) => return Err(error),
+            }
+        }
+    }))
+}
+
 fn finish_capture(
     handle: JoinHandle<io::Result<CapturedStream>>,
 ) -> Result<CapturedStream, PaqSupervisorError> {
@@ -470,6 +582,31 @@ fn finish_capture(
         .map_err(PaqSupervisorError::Capture)
 }
 
+/// Make the private worker the leader of a fresh process group in the child,
+/// before it executes the CIX worker switch.  The parent can then terminate
+/// only that group on every incomplete execution path; it never signals its
+/// own group or an inherited caller group.
+#[cfg(unix)]
+fn configure_owned_process_group(command: &mut Command) {
+    use std::os::unix::process::CommandExt;
+
+    // SAFETY: this closure runs only in the forked child immediately before
+    // exec. `setpgid(0, 0)` uses no Rust-managed state and creates a group
+    // whose id is the new child pid.
+    unsafe {
+        command.pre_exec(|| {
+            if libc::setpgid(0, 0) == 0 {
+                Ok(())
+            } else {
+                Err(io::Error::last_os_error())
+            }
+        });
+    }
+}
+
+#[cfg(not(unix))]
+fn configure_owned_process_group(_: &mut Command) {}
+
 struct ChildCleanup {
     child: Option<Child>,
 }
@@ -478,12 +615,45 @@ impl ChildCleanup {
     fn new(child: Child) -> Self {
         Self { child: Some(child) }
     }
+    #[cfg(not(unix))]
     fn try_wait(&mut self) -> Result<Option<ExitStatus>, PaqSupervisorError> {
         self.child
             .as_mut()
             .expect("child remains armed")
             .try_wait()
             .map_err(PaqSupervisorError::Wait)
+    }
+    #[cfg(not(unix))]
+    fn disarm(&mut self) {
+        self.child.take();
+    }
+    #[cfg(unix)]
+    fn exit_is_pending(&mut self) -> Result<bool, PaqSupervisorError> {
+        let child = self.child.as_mut().expect("child remains armed");
+        let pid = libc::id_t::try_from(child.id()).map_err(|_| {
+            PaqSupervisorError::Wait(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "worker pid cannot be represented for waitid",
+            ))
+        })?;
+        let mut info = std::mem::MaybeUninit::<libc::siginfo_t>::zeroed();
+        // SAFETY: `pid` is the still-owned direct child. WNOWAIT observes an
+        // exited child but deliberately leaves it waitable, preserving its
+        // process-group id until the parent has signalled that group.
+        let result = unsafe {
+            libc::waitid(
+                libc::P_PID,
+                pid,
+                info.as_mut_ptr(),
+                libc::WEXITED | libc::WNOHANG | libc::WNOWAIT,
+            )
+        };
+        if result != 0 {
+            return Err(PaqSupervisorError::Wait(io::Error::last_os_error()));
+        }
+        // SAFETY: waitid success initializes siginfo_t. For WNOHANG, si_pid
+        // is zero when no matching state change is available.
+        Ok(unsafe { info.assume_init().si_pid() } != 0)
     }
     fn take_stdout(&mut self) -> Result<std::process::ChildStdout, PaqSupervisorError> {
         self.child
@@ -505,33 +675,101 @@ impl ChildCleanup {
                 "worker stderr pipe unavailable",
             ))
     }
-    fn disarm(&mut self) {
+    #[cfg(unix)]
+    fn terminate_group_and_reap(&mut self) -> Result<ExitStatus, PaqSupervisorError> {
+        let child = self.child.as_mut().expect("child remains armed");
+        if let Err(group_error) = terminate_owned_worker_group(child) {
+            // A group signal failure must not leave the child armed only in a
+            // local binding. Fall back to the previous direct-child cleanup,
+            // wait for it, and keep Drop armed if that wait itself fails.
+            let direct_error = child
+                .kill()
+                .err()
+                .filter(|error| error.kind() != io::ErrorKind::InvalidInput);
+            match child.wait() {
+                Ok(_) => {
+                    self.child.take();
+                    return Err(PaqSupervisorError::Wait(
+                        direct_error.unwrap_or(group_error),
+                    ));
+                }
+                Err(wait_error) => return Err(PaqSupervisorError::Wait(wait_error)),
+            }
+        }
+        let status = child.wait().map_err(PaqSupervisorError::Wait)?;
         self.child.take();
+        Ok(status)
     }
     fn terminate_and_collect(
         &mut self,
         stdout: JoinHandle<io::Result<CapturedStream>>,
         stderr: JoinHandle<io::Result<CapturedStream>>,
+        capture_stop: &AtomicBool,
     ) -> Result<(CapturedStream, CapturedStream), PaqSupervisorError> {
-        if let Some(mut child) = self.child.take() {
-            // kill may race a normal exit; either way wait reaps the child.
-            if let Err(error) = child.kill() {
-                if error.kind() != io::ErrorKind::InvalidInput {
-                    return Err(PaqSupervisorError::Wait(error));
-                }
+        #[cfg(unix)]
+        let termination = self.terminate_group_and_reap().map(|_| ());
+        #[cfg(not(unix))]
+        let termination = (|| {
+            if let Some(mut child) = self.child.take() {
+                terminate_owned_worker_group(&mut child).map_err(PaqSupervisorError::Wait)?;
+                child.wait().map_err(PaqSupervisorError::Wait)?;
             }
-            child.wait().map_err(PaqSupervisorError::Wait)?;
-        }
-        Ok((finish_capture(stdout)?, finish_capture(stderr)?))
+            Ok(())
+        })();
+        capture_stop.store(true, Ordering::Release);
+        let captured = (finish_capture(stdout)?, finish_capture(stderr)?);
+        termination?;
+        Ok(captured)
     }
 }
 
 impl Drop for ChildCleanup {
     fn drop(&mut self) {
         if let Some(mut child) = self.child.take() {
-            let _ = child.kill();
+            if terminate_owned_worker_group(&mut child).is_err() {
+                let _ = child.kill();
+            }
             let _ = child.wait();
         }
+    }
+}
+
+/// Stop a group created by [`configure_owned_process_group`]. `ESRCH` means
+/// the group has already gone away, which is equivalent to the previous
+/// best-effort `Child::kill` race handling.
+#[cfg(unix)]
+fn terminate_owned_worker_group(child: &mut Child) -> io::Result<()> {
+    let pid = libc::pid_t::try_from(child.id()).map_err(|_| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "worker pid cannot be represented as a process-group id",
+        )
+    })?;
+    if pid <= 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "worker process-group id must be positive",
+        ));
+    }
+    // SAFETY: `pid` is the child-created process-group id. A negative value
+    // asks POSIX to signal that group, never the parent process group.
+    if unsafe { libc::kill(-pid, libc::SIGKILL) } == 0 {
+        return Ok(());
+    }
+    let error = io::Error::last_os_error();
+    if error.raw_os_error() == Some(libc::ESRCH) {
+        Ok(())
+    } else {
+        Err(error)
+    }
+}
+
+#[cfg(not(unix))]
+fn terminate_owned_worker_group(child: &mut Child) -> io::Result<()> {
+    match child.kill() {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == io::ErrorKind::InvalidInput => Ok(()),
+        Err(error) => Err(error),
     }
 }
 
@@ -803,6 +1041,231 @@ mod tests {
         create_private_directory(&root).unwrap();
         validate_private_temporary_root(&root).unwrap();
         root
+    }
+
+    #[cfg(unix)]
+    struct ProcessGroupFixture {
+        root: PathBuf,
+        marker: PathBuf,
+        request: PaqWorkerRequest,
+    }
+
+    #[cfg(unix)]
+    impl Drop for ProcessGroupFixture {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.root);
+        }
+    }
+
+    #[cfg(unix)]
+    fn process_group_fixture(label: &str, script_tail: &str) -> ProcessGroupFixture {
+        use std::os::unix::fs::PermissionsExt;
+
+        let root = private_test_root(label);
+        let libraries = root.join("libraries");
+        create_private_directory(&libraries).expect("create private library directory");
+        let input = root.join("input");
+        fs::write(&input, b"fixture input").expect("write fixture input");
+        let executable = root.join("private-cix-worker.sh");
+        // `$0` is the absolute executable path supplied to Command, so this
+        // does not depend on an inherited environment or PATH entry.
+        fs::write(
+            &executable,
+            format!(
+                "#!/bin/sh\nmarker=\"${{0%/*}}/marker\"\n/bin/sleep 60 &\nsleeper=$!\nprintf '%s %s\\n' \"$$\" \"$sleeper\" > \"$marker\"\n{script_tail}\n"
+            ),
+        )
+        .expect("write private worker fixture");
+        fs::set_permissions(&executable, fs::Permissions::from_mode(0o700))
+            .expect("make private worker fixture executable");
+        let request = PaqWorkerRequest {
+            paths: PaqWorkerPaths {
+                cix_executable: executable,
+                private_library_directory: libraries,
+                temporary_root: root.clone(),
+            },
+            variant: PaqVariant::V215,
+            operation: PaqOperation::Encode,
+            input,
+            input_limit_bytes: 4096,
+            output_limit_bytes: 4096,
+            parent_result_limit_bytes: 4096,
+            memory_limit_bytes: 1 << 20,
+            level: PaqLevel {
+                number: 1,
+                lstm: false,
+            },
+            lstm_layers: 1,
+            joint_discount_mode: None,
+            deadline: None,
+            cancellation: None,
+            diagnostic_limit_bytes: 1024,
+        };
+        ProcessGroupFixture {
+            marker: root.join("marker"),
+            root,
+            request,
+        }
+    }
+
+    #[cfg(unix)]
+    fn fixture_processes(marker: &Path) -> (libc::pid_t, libc::pid_t) {
+        let deadline = Instant::now() + Duration::from_secs(2);
+        loop {
+            if let Ok(text) = fs::read_to_string(marker) {
+                let mut pids = text.split_whitespace();
+                if let (Some(leader), Some(descendant)) = (
+                    pids.next().and_then(|text| text.parse().ok()),
+                    pids.next().and_then(|text| text.parse().ok()),
+                ) {
+                    return (leader, descendant);
+                }
+            }
+            assert!(Instant::now() < deadline, "fixture worker did not launch");
+            thread::sleep(Duration::from_millis(5));
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    fn fixture_pid(path: &Path) -> libc::pid_t {
+        let deadline = Instant::now() + Duration::from_secs(2);
+        loop {
+            if let Ok(text) = fs::read_to_string(path) {
+                if let Ok(pid) = text.trim().parse() {
+                    return pid;
+                }
+            }
+            assert!(Instant::now() < deadline, "fixture pid was not written");
+            thread::sleep(Duration::from_millis(5));
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    struct EscapedFixtureProcess(libc::pid_t);
+
+    #[cfg(target_os = "linux")]
+    impl Drop for EscapedFixtureProcess {
+        fn drop(&mut self) {
+            // SAFETY: this pid is written by the private test fixture. This
+            // also covers assertion panics after the writer has escaped.
+            unsafe { libc::kill(self.0, libc::SIGKILL) };
+        }
+    }
+
+    #[cfg(unix)]
+    fn assert_process_gone(pid: libc::pid_t) {
+        let deadline = Instant::now() + Duration::from_secs(2);
+        loop {
+            // SAFETY: signal zero only queries the known fixture process; it
+            // does not deliver a signal.
+            if unsafe { libc::kill(pid, 0) } != 0
+                && io::Error::last_os_error().raw_os_error() == Some(libc::ESRCH)
+            {
+                return;
+            }
+            assert!(
+                Instant::now() < deadline,
+                "fixture process {pid} survived cleanup"
+            );
+            thread::sleep(Duration::from_millis(5));
+        }
+    }
+
+    #[cfg(unix)]
+    fn assert_fixture_group(leader: libc::pid_t, descendant: libc::pid_t) {
+        // SAFETY: both ids were written by the running local test fixture.
+        assert_eq!(unsafe { libc::getpgid(leader) }, leader);
+        // SAFETY: both ids were written by the running local test fixture.
+        assert_eq!(unsafe { libc::getpgid(descendant) }, leader);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn cancellation_terminates_the_private_worker_group_and_reaps_its_leader() {
+        let mut fixture = process_group_fixture("group-cancel", "wait \"$sleeper\"");
+        let cancellation = Arc::new(AtomicBool::new(false));
+        fixture.request.cancellation = Some(cancellation.clone());
+        let request = fixture.request.clone();
+        let started = Instant::now();
+        let worker = thread::spawn(move || run(&request));
+        let (leader, descendant) = fixture_processes(&fixture.marker);
+        assert_fixture_group(leader, descendant);
+        cancellation.store(true, Ordering::Release);
+        assert!(matches!(
+            worker.join().unwrap(),
+            Err(PaqSupervisorError::Cancelled)
+        ));
+        assert!(started.elapsed() < Duration::from_secs(3));
+        assert_process_gone(leader);
+        assert_process_gone(descendant);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn deadline_terminates_the_private_worker_group_and_reaps_its_leader() {
+        let mut fixture = process_group_fixture("group-deadline", "wait \"$sleeper\"");
+        fixture.request.deadline = Some(Instant::now() + Duration::from_secs(1));
+        let request = fixture.request.clone();
+        let started = Instant::now();
+        let worker = thread::spawn(move || run(&request));
+        let (leader, descendant) = fixture_processes(&fixture.marker);
+        assert_fixture_group(leader, descendant);
+        assert!(matches!(
+            worker.join().unwrap(),
+            Err(PaqSupervisorError::DeadlineExceeded)
+        ));
+        assert!(started.elapsed() < Duration::from_secs(3));
+        assert_process_gone(leader);
+        assert_process_gone(descendant);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn failed_leader_cleans_up_a_pipe_holding_descendant_group() {
+        let fixture = process_group_fixture("group-error", "exit 47");
+        let request = fixture.request.clone();
+        let worker = thread::spawn(move || run(&request));
+        let (leader, descendant) = fixture_processes(&fixture.marker);
+        assert!(matches!(
+            worker.join().unwrap(),
+            Err(PaqSupervisorError::Exit { .. })
+        ));
+        assert_process_gone(leader);
+        assert_process_gone(descendant);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn escaped_continuous_writer_cannot_hold_cleanup_join() {
+        let mut fixture = process_group_fixture(
+            "group-escaped-writer",
+            "/usr/bin/setsid /bin/sh -c 'while :; do printf x >&2; done' &\nwriter=$!\nprintf '%s\\n' \"$writer\" > \"${0%/*}/writer\"\nwait \"$sleeper\"",
+        );
+        let cancellation = Arc::new(AtomicBool::new(false));
+        fixture.request.cancellation = Some(cancellation.clone());
+        let request = fixture.request.clone();
+        let started = Instant::now();
+        let worker = thread::spawn(move || run(&request));
+        let (_, descendant) = fixture_processes(&fixture.marker);
+        let escaped_writer = fixture_pid(&fixture.root.join("writer"));
+        let escaped_writer_guard = EscapedFixtureProcess(escaped_writer);
+        // SAFETY: this pid was written by the running private fixture.
+        assert_eq!(unsafe { libc::getsid(escaped_writer) }, escaped_writer);
+        // SAFETY: this pid was written by the running private fixture.
+        assert_eq!(unsafe { libc::getpgid(escaped_writer) }, escaped_writer);
+        cancellation.store(true, Ordering::Release);
+        assert!(matches!(
+            worker.join().unwrap(),
+            Err(PaqSupervisorError::Cancelled)
+        ));
+        assert!(started.elapsed() < Duration::from_secs(3));
+        // This writer intentionally escaped the worker group to prove the
+        // bounded join. The fixture terminates it; PID 1 reaps this non-child.
+        // SAFETY: the pid came from this test's private fixture.
+        unsafe { libc::kill(escaped_writer, libc::SIGKILL) };
+        assert_process_gone(descendant);
+        assert_process_gone(escaped_writer);
+        drop(escaped_writer_guard);
     }
 
     #[cfg(unix)]
