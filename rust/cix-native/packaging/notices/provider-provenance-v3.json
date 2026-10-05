@@ -30,6 +30,10 @@
     "spatial_binary_binding": {
       "path": "docs/research/2026-10-04-execution/reviews/provider-binary-binding-v1.json",
       "sha256": "b274d649f68f7f2bb753c764937d7ee7ffa42e35a8abc73e71981501bd912f54"
+    },
+    "ubuntu_codec_source_provenance": {
+      "path": "docs/research/2026-10-04-execution/reviews/ubuntu-codec-source-provenance-v1.json",
+      "sha256": "a97830d01db307629fde6094fea5b083f9a55a5e7211f31a6e96000555ecb0a3"
     }
   },
   "source_identities": {
@@ -66,6 +70,18 @@
       "version_tag": "v216",
       "commit": "bf7b658fdcfc045a892920d01e830e6c6a790c21",
       "archive_sha256": "d231d814a0dc79657a2691ed166692a5dfbfa740388357654253ecadbdf8ef75"
+    },
+    "charls_ubuntu_source": {
+      "source_url": "https://archive.ubuntu.com/ubuntu/pool/universe/c/charls/",
+      "source_package": "charls",
+      "source_version": "2.4.2-2build2",
+      "source_receipt": "ubuntu_codec_source_provenance"
+    },
+    "openjpeg2_ubuntu_source": {
+      "source_url": "https://archive.ubuntu.com/ubuntu/pool/main/o/openjpeg2/",
+      "source_package": "openjpeg2",
+      "source_version": "2.5.0-2ubuntu0.5",
+      "source_receipt": "ubuntu_codec_source_provenance"
     }
   },
   "package_identities": {
@@ -87,7 +103,12 @@
       "package_receipts": [
         "codec_packages",
         "codec_install"
-      ]
+      ],
+      "source_package": {
+        "identity": "charls_ubuntu_source",
+        "evidence": "ubuntu_codec_source_provenance",
+        "status": "immutable_source_archives_identified_not_retained"
+      }
     },
     "openjpeg": {
       "runtime": {
@@ -107,7 +128,12 @@
       "package_receipts": [
         "codec_packages",
         "codec_install"
-      ]
+      ],
+      "source_package": {
+        "identity": "openjpeg2_ubuntu_source",
+        "evidence": "ubuntu_codec_source_provenance",
+        "status": "immutable_source_archives_identified_not_retained"
+      }
     }
   },
   "providers": {
@@ -327,7 +353,14 @@
       "package": "charls",
       "notices": [
         "licenses/CharLS-Debian-copyright.txt"
-      ]
+      ],
+      "source_package_evidence": {
+        "receipt": "ubuntu_codec_source_provenance",
+        "source_package": "charls",
+        "source_version": "2.4.2-2build2",
+        "binary_package_member": "usr/lib/x86_64-linux-gnu/libcharls.so.2.4.2",
+        "binary_package_member_sha256": "6fc5859988357c676d874fa98509445b8a8c8eee4eac533b5ae3eb884e0b858c"
+      }
     },
     "CIX_RUNTIME_OPENJPEG_LIBRARY": {
       "sha256": "19906c0334e8db2137912f83cceed5a03d954a9c12d9781901a9a27f92ce1c4d",
@@ -339,7 +372,14 @@
       "package": "openjpeg",
       "notices": [
         "licenses/OpenJPEG-Debian-copyright.txt"
-      ]
+      ],
+      "source_package_evidence": {
+        "receipt": "ubuntu_codec_source_provenance",
+        "source_package": "openjpeg2",
+        "source_version": "2.5.0-2ubuntu0.5",
+        "binary_package_member": "usr/lib/x86_64-linux-gnu/libopenjp2.so.2.5.0",
+        "binary_package_member_sha256": "19906c0334e8db2137912f83cceed5a03d954a9c12d9781901a9a27f92ce1c4d"
+      }
     }
   },
   "notice_files": {
@@ -355,7 +395,7 @@
   "staging_direction": "For every selected provider, copy the listed exact notice text(s) with hash verification. Source availability is separately recorded above; this manifest does not infer that any source material must be redistributed.",
   "unresolved": [
     "The PAQ canonical base archives and immutable commits are recorded above. Distribution assembly still needs to carry their source identities, exact tree receipts, and fork derivation records with each selected PAQ bridge.",
-    "The codec package evidence fixes package filenames, versions, architectures and archive hashes, but does not record an archive base URL or upstream source-package URL/checksum for CharLS or OpenJPEG.",
+    "CharLS and OpenJPEG source descriptors and exact archive SHA-256 values are now recorded, but the four source archives are not yet retained and receipt-verified as staged source trees.",
     "A final distribution review must determine the applicable legal obligations from the staged texts and package/source evidence. This engineering manifest makes no legal conclusion."
   ]
 }
