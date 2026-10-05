@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include "cix-gconverter.h"
 
 typedef enum { CIX_ACTION_NONE, CIX_ACTION_FLUSH, CIX_ACTION_FINISH } CixAction;

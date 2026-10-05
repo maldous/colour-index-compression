@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* Installed libarchive program-filter consumer for CIX. */
 #include <archive.h>
 #include <archive_entry.h>

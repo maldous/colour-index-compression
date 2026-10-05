@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* CIX-owned call-site bridge for the pinned squashfs-tools-ng/libsqfs overlay.
  * It decodes actual SquashFS compressed payload bytes, never CIX archives. */
 #include "cix_sqfs_userspace.h"

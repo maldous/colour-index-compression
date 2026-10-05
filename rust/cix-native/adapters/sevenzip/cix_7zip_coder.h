@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #ifndef CIX_7ZIP_CODER_H
 #define CIX_7ZIP_CODER_H
 

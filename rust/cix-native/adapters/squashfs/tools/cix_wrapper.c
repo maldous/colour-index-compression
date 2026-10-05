@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* GPL-2.0-or-later: experimental squashfs-tools 4.6.1 overlay only. */
 #include <stdint.h>
 #include <stdio.h>

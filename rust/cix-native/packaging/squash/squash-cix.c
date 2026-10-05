@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /*
  * Optional QuixDB Squash plugin boundary.
  *

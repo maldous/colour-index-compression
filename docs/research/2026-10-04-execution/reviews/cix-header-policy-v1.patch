@@ -1,0 +1,301 @@
+--- a/rust/cix-native/adapters/blosc2/include/cix_blosc2_adapter.h
++++ b/rust/cix-native/adapters/blosc2/include/cix_blosc2_adapter.h
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #ifndef CIX_BLOSC2_ADAPTER_H
+ #define CIX_BLOSC2_ADAPTER_H
+ 
+--- a/rust/cix-native/adapters/blosc2/src/cix_blosc2_adapter.c
++++ b/rust/cix-native/adapters/blosc2/src/cix_blosc2_adapter.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include "cix_blosc2_adapter.h"
+ 
+ #include <limits.h>
+--- a/rust/cix-native/adapters/blosc2/tests/blosc2_cix_contract.c
++++ b/rust/cix-native/adapters/blosc2/tests/blosc2_cix_contract.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include <stdint.h>
+ #include <stdio.h>
+ #include <string.h>
+--- a/rust/cix-native/adapters/gio/cix-gconverter.c
++++ b/rust/cix-native/adapters/gio/cix-gconverter.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include "cix-gconverter.h"
+ 
+ typedef enum { CIX_ACTION_NONE, CIX_ACTION_FLUSH, CIX_ACTION_FINISH } CixAction;
+--- a/rust/cix-native/adapters/gio/cix-gconverter.h
++++ b/rust/cix-native/adapters/gio/cix-gconverter.h
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #pragma once
+ #include <gio/gio.h>
+ #include "cix_stream.h"
+--- a/rust/cix-native/adapters/gio/contract.c
++++ b/rust/cix-native/adapters/gio/contract.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include "cix-gconverter.h"
+ #include <string.h>
+ 
+--- a/rust/cix-native/adapters/gstreamer/src/gstcixstream.c
++++ b/rust/cix-native/adapters/gstreamer/src/gstcixstream.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include "cix_stream.h"
+ #include <gst/gst.h>
+ #include <string.h>
+--- a/rust/cix-native/adapters/gstreamer/tests/contract.c
++++ b/rust/cix-native/adapters/gstreamer/tests/contract.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Installed-plugin contract: appsrc ! cixstream ! appsink, with no private
+  * CIX or plugin headers.  Every terminal wait is bounded. */
+ #include <gst/app/gstappsink.h>
+--- a/rust/cix-native/adapters/hdf5/examples/netcdf_filter.c
++++ b/rust/cix-native/adapters/hdf5/examples/netcdf_filter.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Optional netCDF-C integration. Requires a netCDF-C build exposing
+  * nc_def_var_filter (netCDF-C 4.9+) over an HDF5 backend with the CIX plugin
+  * already visible through HDF5_PLUGIN_PATH. */
+--- a/rust/cix-native/adapters/hdf5/src/cix_hdf5_filter.c
++++ b/rust/cix-native/adapters/hdf5/src/cix_hdf5_filter.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Experimental CIX HDF5 chunk filter.  This source depends only on the
+  * installed HDF5 C API and the public installed CIX SDK; it has no Python
+  * runtime or full-engine dependency. */
+--- a/rust/cix-native/adapters/hdf5/tests/filter_contract.c
++++ b/rust/cix-native/adapters/hdf5/tests/filter_contract.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include <limits.h>
+ #include <stdint.h>
+ #include <stdio.h>
+--- a/rust/cix-native/adapters/libarchive/libarchive_program_filter.c
++++ b/rust/cix-native/adapters/libarchive/libarchive_program_filter.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Installed libarchive program-filter consumer for CIX. */
+ #include <archive.h>
+ #include <archive_entry.h>
+--- a/rust/cix-native/adapters/rocksdb/cix_compression_manager.cc
++++ b/rust/cix-native/adapters/rocksdb/cix_compression_manager.cc
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include "cix_compression_manager.h"
+ 
+ #include <cix.h>
+--- a/rust/cix-native/adapters/rocksdb/cix_compression_manager.h
++++ b/rust/cix-native/adapters/rocksdb/cix_compression_manager.h
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #pragma once
+ 
+ #include <cstddef>
+--- a/rust/cix-native/adapters/rocksdb/contract_test.cc
++++ b/rust/cix-native/adapters/rocksdb/contract_test.cc
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include "cix_compression_manager.h"
+ #include <rocksdb/db.h>
+ #include <rocksdb/options.h>
+--- a/rust/cix-native/adapters/sevenzip/cix_7zip_coder.cpp
++++ b/rust/cix-native/adapters/sevenzip/cix_7zip_coder.cpp
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include "cix_7zip_coder.h"
+ 
+ #include "Common/MyCom.h"
+--- a/rust/cix-native/adapters/sevenzip/cix_7zip_coder.h
++++ b/rust/cix-native/adapters/sevenzip/cix_7zip_coder.h
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #ifndef CIX_7ZIP_CODER_H
+ #define CIX_7ZIP_CODER_H
+ 
+--- a/rust/cix-native/adapters/sevenzip/cix_7zip_contract.cpp
++++ b/rust/cix-native/adapters/sevenzip/cix_7zip_contract.cpp
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Source-only qualification executable for cix_7zip_experimental_module. */
+ #include "cix_7zip_coder.h"
+ #include "Common/MyCom.h"
+--- a/rust/cix-native/adapters/sevenzip/cix_7zip_module.cpp
++++ b/rust/cix-native/adapters/sevenzip/cix_7zip_module.cpp
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /*
+  * CIX-owned 7-Zip SDK module registry.  CodecExports.cpp is compiled unchanged
+  * from the selected official SDK and consumes these exact globals.
+--- a/rust/cix-native/adapters/squashfs/profile/include/cix_squashfs_profile.h
++++ b/rust/cix-native/adapters/squashfs/profile/include/cix_squashfs_profile.h
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Experimental, block-local CIX SquashFS profile. See SPEC.md. */
+ #ifndef CIX_SQUASHFS_PROFILE_H
+ #define CIX_SQUASHFS_PROFILE_H
+--- a/rust/cix-native/adapters/squashfs/profile/src/cix_squashfs_profile.c
++++ b/rust/cix-native/adapters/squashfs/profile/src/cix_squashfs_profile.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include "cix_squashfs_profile.h"
+ 
+ #include <limits.h>
+--- a/rust/cix-native/adapters/squashfs/profile/tests/profile_contract.c
++++ b/rust/cix-native/adapters/squashfs/profile/tests/profile_contract.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include "cix_squashfs_profile.h"
+ 
+ #include <stdint.h>
+--- a/rust/cix-native/adapters/squashfs/tools/cix_compressor_table.c
++++ b/rust/cix-native/adapters/squashfs/tools/cix_compressor_table.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* GPL-2.0-or-later: CIX-owned table replacement for squashfs-tools 4.6.1.
+  * Compile this file instead of that revision's compressor.c. */
+ #include <stdio.h>
+--- a/rust/cix-native/adapters/squashfs/tools/cix_wrapper.c
++++ b/rust/cix-native/adapters/squashfs/tools/cix_wrapper.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* GPL-2.0-or-later: experimental squashfs-tools 4.6.1 overlay only. */
+ #include <stdint.h>
+ #include <stdio.h>
+--- a/rust/cix-native/adapters/squashfs/userspace/cix_sqfs_userspace.c
++++ b/rust/cix-native/adapters/squashfs/userspace/cix_sqfs_userspace.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include "cix_sqfs_userspace.h"
+ #include "cix_squashfs_profile.h"
+ 
+--- a/rust/cix-native/adapters/squashfs/userspace/include/cix_sqfs_userspace.h
++++ b/rust/cix-native/adapters/squashfs/userspace/include/cix_sqfs_userspace.h
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Experimental userspace-only SquashFS CIX decoder bridge. */
+ #ifndef CIX_SQFS_USERSPACE_H
+ #define CIX_SQFS_USERSPACE_H
+--- a/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_compressor.c
++++ b/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_compressor.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Replacement TU for squashfs-tools-ng v1.2.0 compressor.c. */
+ #define SQFS_BUILDING_DLL
+ #include "config.h"
+--- a/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_decode.c
++++ b/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_decode.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* CIX-owned call-site bridge for the pinned squashfs-tools-ng/libsqfs overlay.
+  * It decodes actual SquashFS compressed payload bytes, never CIX archives. */
+ #include "cix_sqfs_userspace.h"
+--- a/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_read_super.c
++++ b/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_read_super.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Replacement TU for squashfs-tools-ng v1.2.0 read_super.c.
+  * Header guards let the range check be widened only while compiling the
+  * unchanged upstream implementation; no vendor source file is edited. */
+--- a/rust/cix-native/adapters/squashfs/userspace/squashfuse/cix_squashfuse_decode.c
++++ b/rust/cix-native/adapters/squashfs/userspace/squashfuse/cix_squashfuse_decode.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Replacement translation unit for Squashfuse 0.5.0 (3f4dd292...).
+  * Compile this instead of decompress.c, defining CIX_SQUASHFUSE_DECOMPRESS_SOURCE
+  * to that unchanged source file. */
+--- a/rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_library_fixture_contract.c
++++ b/rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_library_fixture_contract.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Full public-libsquashfuse reader contract, independent of demo extraction.
+  * Usage: IMAGE EXPECTED_ROOT EXPECTED_REGULAR_FILES EXPECTED_DIRECTORIES.
+  * It deliberately accepts every upstream inode representation supported by
+--- a/rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_xattr_contract.c
++++ b/rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_xattr_contract.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /* Direct public-library xattr read check for the pinned Squashfuse overlay.
+  * Usage: IMAGE PATH XATTR_NAME VALUE_HEX. Extraction does not restore xattrs. */
+ #include "fs.h"
+--- a/rust/cix-native/adapters/storage-examples/cix_backup.cpp
++++ b/rust/cix-native/adapters/storage-examples/cix_backup.cpp
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ // Linux/POSIX local repository example. A provider adapter must preserve these
+ // no-follow/no-overwrite and publish-order guarantees.
+ #include "cix.h"
+--- a/rust/cix-native/adapters/wiredtiger/src/cix_wt_compressor.c
++++ b/rust/cix-native/adapters/wiredtiger/src/cix_wt_compressor.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include <errno.h>
+ #include <limits.h>
+ #include <stdint.h>
+--- a/rust/cix-native/adapters/wiredtiger/tests/wiredtiger_contract.c
++++ b/rust/cix-native/adapters/wiredtiger/tests/wiredtiger_contract.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include <errno.h>
+ #include <stdint.h>
+ #include <stdio.h>
+--- a/rust/cix-native/bindings/java/src/main/c/cix_jni.c
++++ b/rust/cix-native/bindings/java/src/main/c/cix_jni.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include <jni.h>
+ #include <stdint.h>
+ #include <stdio.h>
+--- a/rust/cix-native/bindings/node/src/cix_node.c
++++ b/rust/cix-native/bindings/node/src/cix_node.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include <cix.h>
+ #include <cix_stream.h>
+ #include <math.h>
+--- a/rust/cix-native/packaging/sdk/tests/c_format_installed_consumer.c
++++ b/rust/cix-native/packaging/sdk/tests/c_format_installed_consumer.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include <cix_formats.h>
+ #include <string.h>
+ int main(void) {
+--- a/rust/cix-native/packaging/sdk/tests/c_stream_installed_consumer.c
++++ b/rust/cix-native/packaging/sdk/tests/c_stream_installed_consumer.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include <cix_stream.h>
+ 
+ #include <stdint.h>
+--- a/rust/cix-native/packaging/sdk/tests/cpp_installed_consumer.cpp
++++ b/rust/cix-native/packaging/sdk/tests/cpp_installed_consumer.cpp
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include <cix.hpp>
+ 
+ #include <utility>
+--- a/rust/cix-native/packaging/squash/contract.c
++++ b/rust/cix-native/packaging/squash/contract.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /*
+  * Focused installed-host contract for the CIX QuixDB Squash plugin.
+  *
+--- a/rust/cix-native/packaging/squash/squash-cix.c
++++ b/rust/cix-native/packaging/squash/squash-cix.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ /*
+  * Optional QuixDB Squash plugin boundary.
+  *
+--- a/rust/cix-native/tests/c_api_consumer.c
++++ b/rust/cix-native/tests/c_api_consumer.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: MIT
+ #include "cix.h"
+ #include <stdint.h>
+ #include <stdlib.h>

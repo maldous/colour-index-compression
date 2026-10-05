@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include "cix_7zip_coder.h"
 
 #include "Common/MyCom.h"

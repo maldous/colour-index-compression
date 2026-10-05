@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* Direct public-library xattr read check for the pinned Squashfuse overlay.
  * Usage: IMAGE PATH XATTR_NAME VALUE_HEX. Extraction does not restore xattrs. */
 #include "fs.h"

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* Replacement TU for squashfs-tools-ng v1.2.0 compressor.c. */
 #define SQFS_BUILDING_DLL
 #include "config.h"

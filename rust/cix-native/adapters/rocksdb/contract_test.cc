@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include "cix_compression_manager.h"
 #include <rocksdb/db.h>
 #include <rocksdb/options.h>

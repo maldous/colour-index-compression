@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* Installed-plugin contract: appsrc ! cixstream ! appsink, with no private
  * CIX or plugin headers.  Every terminal wait is bounded. */
 #include <gst/app/gstappsink.h>

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* Experimental CIX HDF5 chunk filter.  This source depends only on the
  * installed HDF5 C API and the public installed CIX SDK; it has no Python
  * runtime or full-engine dependency. */

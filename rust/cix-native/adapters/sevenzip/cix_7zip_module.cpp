@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /*
  * CIX-owned 7-Zip SDK module registry.  CodecExports.cpp is compiled unchanged
  * from the selected official SDK and consumes these exact globals.

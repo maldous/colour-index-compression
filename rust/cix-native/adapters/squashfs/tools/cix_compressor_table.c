@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* GPL-2.0-or-later: CIX-owned table replacement for squashfs-tools 4.6.1.
  * Compile this file instead of that revision's compressor.c. */
 #include <stdio.h>

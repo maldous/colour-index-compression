@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include "cix_blosc2_adapter.h"
 
 #include <limits.h>

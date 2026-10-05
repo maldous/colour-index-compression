@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /*
  * Focused installed-host contract for the CIX QuixDB Squash plugin.
  *

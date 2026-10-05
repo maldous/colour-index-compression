@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* Replacement translation unit for Squashfuse 0.5.0 (3f4dd292...).
  * Compile this instead of decompress.c, defining CIX_SQUASHFUSE_DECOMPRESS_SOURCE
  * to that unchanged source file. */

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* Source-only qualification executable for cix_7zip_experimental_module. */
 #include "cix_7zip_coder.h"
 #include "Common/MyCom.h"

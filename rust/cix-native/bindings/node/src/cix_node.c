@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include <cix.h>
 #include <cix_stream.h>
 #include <math.h>
@@ -38,7 +39,9 @@ static napi_value fail(napi_env e, const char *m) {
 }
 
 static int ok(napi_env e, napi_status s) {
-    if (s == napi_ok) return 1;
+    if (s == napi_ok) {
+        return 1;
+    }
     fail(e, "Node-API call failed");
     return 0;
 }
@@ -62,7 +65,9 @@ static int options(napi_env e, napi_value v, cix_options_v1 *o) {
         fail(e, "CIX default options failed");
         return 0;
     }
-    if (!v) return 1;
+    if (!v) {
+        return 1;
+    }
 
     napi_valuetype t;
     if (!ok(e, napi_typeof(e, v, &t)) || t != napi_object)
@@ -72,16 +77,26 @@ static int options(napi_env e, napi_value v, cix_options_v1 *o) {
     for (size_t i = 0; i < 4; i++) {
         bool has;
         napi_value x;
-        if (!ok(e, napi_has_named_property(e, v, names[i], &has)) || !has) continue;
-        if (!ok(e, napi_get_named_property(e, v, names[i], &x))) return 0;
+        if (!ok(e, napi_has_named_property(e, v, names[i], &has)) || !has) {
+            continue;
+        }
+        if (!ok(e, napi_get_named_property(e, v, names[i], &x))) {
+            return 0;
+        }
 
         uint64_t n;
-        if (!u64(e, x, &n)) return 0;
+        if (!u64(e, x, &n)) {
+            return 0;
+        }
         if (i == 0) {
-            if (n < 1 || n > 3) return fail(e, "profile must be 1, 2, or 3"), 0;
+            if (n < 1 || n > 3) {
+                return fail(e, "profile must be 1, 2, or 3"), 0;
+            }
             o->profile = (uint32_t)n;
         } else if (i == 1) {
-            if (n == 0 || n > UINT32_MAX) return fail(e, "workers is out of range"), 0;
+            if (n == 0 || n > UINT32_MAX) {
+                return fail(e, "workers is out of range"), 0;
+            }
             o->workers = (uint32_t)n;
         } else if (i == 2) {
             o->output_limit = n;
@@ -134,8 +149,12 @@ static int unwrap(
     bool matches = false;
     if (!ok(e, napi_get_cb_info(e, i, argc, argv, &th, NULL))
         || !ok(e, napi_check_object_type_tag(e, th, expected_tag, &matches))) return 0;
-    if (!matches) return fail(e, "invalid CIX receiver type"), 0;
-    if (!ok(e, napi_unwrap(e, th, p))) return 0;
+    if (!matches) {
+        return fail(e, "invalid CIX receiver type"), 0;
+    }
+    if (!ok(e, napi_unwrap(e, th, p))) {
+        return 0;
+    }
     if (*p == NULL) {
         fail(e, "invalid CIX object");
         return 0;
@@ -146,10 +165,14 @@ static int unwrap(
 static napi_value context_new(napi_env e, napi_callback_info i) {
     size_t n = 1;
     napi_value a[1], th;
-    if (!ok(e, napi_get_cb_info(e, i, &n, a, &th, NULL))) return NULL;
+    if (!ok(e, napi_get_cb_info(e, i, &n, a, &th, NULL))) {
+        return NULL;
+    }
 
     context *x = calloc(1, sizeof(*x));
-    if (!x) return fail(e, "allocation failed");
+    if (!x) {
+        return fail(e, "allocation failed");
+    }
     if (!options(e, n ? a[0] : NULL, &x->options)
         || cix_context_create(&x->options, &x->native) != CIX_STATUS_OK || !x->native) {
         free(x);
@@ -172,7 +195,9 @@ static napi_value buffer_op(napi_env e, napi_callback_info i, int decode) {
 
     uint8_t *p;
     size_t z, need = 0;
-    if (!input(e, a[0], &p, &z)) return NULL;
+    if (!input(e, a[0], &p, &z)) {
+        return NULL;
+    }
     cix_status s = decode ? cix_decode_buffer(x->native, p, z, NULL, 0, &need)
                           : cix_encode_buffer(x->native, p, z, NULL, 0, &need);
     if (s != CIX_STATUS_OUTPUT_TOO_SMALL && s != CIX_STATUS_OK)
@@ -186,7 +211,9 @@ static napi_value buffer_op(napi_env e, napi_callback_info i, int decode) {
 
     void *out;
     napi_value r;
-    if (!ok(e, napi_create_buffer(e, expected, &out, &r))) return NULL;
+    if (!ok(e, napi_create_buffer(e, expected, &out, &r))) {
+        return NULL;
+    }
     s = decode ? cix_decode_buffer(x->native, p, z, out, expected, &need)
                : cix_encode_buffer(x->native, p, z, out, expected, &need);
     if (s != CIX_STATUS_OK || need != expected)
@@ -200,7 +227,9 @@ static napi_value context_decode(napi_env e, napi_callback_info i) { return buff
 static napi_value context_dispose(napi_env e, napi_callback_info i) {
     size_t n = 0;
     context *x;
-    if (!unwrap(e, i, &CONTEXT_TAG, (void **)&x, NULL, &n)) return NULL;
+    if (!unwrap(e, i, &CONTEXT_TAG, (void **)&x, NULL, &n)) {
+        return NULL;
+    }
     if (!x->closed) {
         cix_context_destroy(x->native);
         x->native = NULL;
@@ -215,7 +244,9 @@ static napi_value stream_new(napi_env e, napi_callback_info i) {
     size_t n = 1;
     napi_value a[1], th;
     void *kind = NULL;
-    if (!ok(e, napi_get_cb_info(e, i, &n, a, &th, &kind))) return NULL;
+    if (!ok(e, napi_get_cb_info(e, i, &n, a, &th, &kind))) {
+        return NULL;
+    }
 
     stream *x = calloc(1, sizeof(*x));
     cix_options_v1 o;
@@ -248,18 +279,24 @@ static napi_value stream_call(napi_env e, napi_callback_info i, int mode) {
     stream *x;
     if (!unwrap(e, i, &STREAM_TAG, (void **)&x, a, &n) || x->closed || !x->native)
         return fail(e, "stream is disposed");
-    if (x->cancelled) return fail(e, "stream is cancelled; call reset before reuse");
+    if (x->cancelled) {
+        return fail(e, "stream is cancelled; call reset before reuse");
+    }
 
     uint8_t *in = NULL;
     size_t ilen = 0, cap = 0;
     if (mode == 0) {
-        if (n != 2 || !input(e, a[0], &in, &ilen)) return NULL;
+        if (n != 2 || !input(e, a[0], &in, &ilen)) {
+            return NULL;
+        }
         uint64_t q;
         if (!u64(e, a[1], &q) || q > SIZE_MAX)
             return fail(e, "output capacity is out of range");
         cap = (size_t)q;
     } else {
-        if (n != 1) return fail(e, "output capacity is required");
+        if (n != 1) {
+            return fail(e, "output capacity is required");
+        }
         uint64_t q;
         if (!u64(e, a[0], &q) || q > SIZE_MAX)
             return fail(e, "output capacity is out of range");
@@ -272,7 +309,9 @@ static napi_value stream_call(napi_env e, napi_callback_info i, int mode) {
 
     void *out;
     napi_value data;
-    if (!ok(e, napi_create_buffer(e, cap, &out, &data))) return NULL;
+    if (!ok(e, napi_create_buffer(e, cap, &out, &data))) {
+        return NULL;
+    }
 
     cix_stream_result_v1 r = {0};
     cix_status s;
@@ -281,7 +320,9 @@ static napi_value stream_call(napi_env e, napi_callback_info i, int mode) {
             ? cix_stream_decoder_process(x->native, in, ilen, out, cap, &r)
             : cix_stream_encoder_process(x->native, in, ilen, out, cap, &r);
     } else if (mode == 1) {
-        if (x->decoder) return fail(e, "decoder streams do not support flush");
+        if (x->decoder) {
+            return fail(e, "decoder streams do not support flush");
+        }
         s = cix_stream_encoder_flush(x->native, out, cap, &r);
     } else {
         s = x->decoder
@@ -317,7 +358,9 @@ static napi_value stream_reset(napi_env e, napi_callback_info i) {
         return fail(e, "stream is disposed");
     cix_status s = x->decoder ? cix_stream_decoder_reset(x->native)
                               : cix_stream_encoder_reset(x->native);
-    if (s != CIX_STATUS_OK) return fail(e, "CIX stream reset failed");
+    if (s != CIX_STATUS_OK) {
+        return fail(e, "CIX stream reset failed");
+    }
     x->cancelled = 0;
     x->produced = 0;
     napi_value u;
@@ -328,7 +371,9 @@ static napi_value stream_reset(napi_env e, napi_callback_info i) {
 static napi_value stream_cancel(napi_env e, napi_callback_info i) {
     size_t n = 0;
     stream *x;
-    if (!unwrap(e, i, &STREAM_TAG, (void **)&x, NULL, &n)) return NULL;
+    if (!unwrap(e, i, &STREAM_TAG, (void **)&x, NULL, &n)) {
+        return NULL;
+    }
     x->cancelled = 1;
     napi_value u;
     napi_get_undefined(e, &u);
@@ -338,7 +383,9 @@ static napi_value stream_cancel(napi_env e, napi_callback_info i) {
 static napi_value stream_dispose(napi_env e, napi_callback_info i) {
     size_t n = 0;
     stream *x;
-    if (!unwrap(e, i, &STREAM_TAG, (void **)&x, NULL, &n)) return NULL;
+    if (!unwrap(e, i, &STREAM_TAG, (void **)&x, NULL, &n)) {
+        return NULL;
+    }
     if (!x->closed) {
         if (x->decoder) cix_stream_decoder_destroy(x->native);
         else cix_stream_encoder_destroy(x->native);

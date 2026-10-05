@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 // Linux/POSIX local repository example. A provider adapter must preserve these
 // no-follow/no-overwrite and publish-order guarantees.
 #include "cix.h"

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include <cix.hpp>
 
 #include <utility>

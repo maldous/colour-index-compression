@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include <cix_formats.h>
 #include <string.h>
 int main(void) {

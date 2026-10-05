@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* Replacement TU for squashfs-tools-ng v1.2.0 read_super.c.
  * Header guards let the range check be widened only while compiling the
  * unchanged upstream implementation; no vendor source file is edited. */

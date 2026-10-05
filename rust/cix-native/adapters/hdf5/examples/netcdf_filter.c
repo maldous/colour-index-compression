@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* Optional netCDF-C integration. Requires a netCDF-C build exposing
  * nc_def_var_filter (netCDF-C 4.9+) over an HDF5 backend with the CIX plugin
  * already visible through HDF5_PLUGIN_PATH. */

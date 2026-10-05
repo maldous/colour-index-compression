@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* Full public-libsquashfuse reader contract, independent of demo extraction.
  * Usage: IMAGE EXPECTED_ROOT EXPECTED_REGULAR_FILES EXPECTED_DIRECTORIES.
  * It deliberately accepts every upstream inode representation supported by

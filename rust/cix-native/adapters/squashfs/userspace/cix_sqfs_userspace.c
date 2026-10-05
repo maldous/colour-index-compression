@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include "cix_sqfs_userspace.h"
 #include "cix_squashfs_profile.h"
 

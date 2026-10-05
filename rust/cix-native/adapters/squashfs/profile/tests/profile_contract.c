@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include "cix_squashfs_profile.h"
 
 #include <stdint.h>
