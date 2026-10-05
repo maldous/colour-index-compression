@@ -60,6 +60,7 @@ fn classify(prefix: &[u8]) -> Result<DecodePath, String> {
         b"CIXI\x02",
         b"CIXV\x01",
         b"CIXB\x03",
+        super::address_relations::RELOCATED_MAGIC,
         b"CIXB\x0b",
         b"CIXB\x0c",
         b"CIXB\x13",
@@ -368,6 +369,13 @@ mod tests {
             classify(b"CIXG\x01").unwrap(),
             DecodePath::FullFrameBuffered
         );
+        let relocated = super::super::address_relations::RELOCATED_MAGIC;
+        assert_eq!(classify(relocated).unwrap(), DecodePath::FullFrameBuffered);
+        for length in 0..relocated.len() {
+            assert!(classify(&relocated[..length]).is_err());
+        }
+        assert!(classify(b"CIXB\xff").is_err());
+        assert!(classify(b"CIXB\x0a\x00").is_err());
         assert!(classify(b"CIXG").is_err());
     }
     #[test]

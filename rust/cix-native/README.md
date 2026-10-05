@@ -38,14 +38,14 @@ per invocation; use tar or another archiver when preserving directory trees.
 ## Build from source
 
 CIX requires Rust 1.98 or later, a C++17 compiler, and development libraries
-for zlib, bzip2, liblzma, Zstandard, and Brotli. The locked dependency graph
+for zlib, bzip2, liblzma, Zstandard, Brotli, LZ4, and Snappy. The locked dependency graph
 is fetched from crates.io by Cargo unless your build environment supplies it
 from an approved local mirror or vendor directory.
 
 Debian or Ubuntu:
 
 ```sh
-sudo apt install cargo rustc build-essential pkg-config zlib1g-dev libbz2-dev liblzma-dev libzstd-dev libbrotli-dev
+sudo apt install cargo rustc build-essential pkg-config zlib1g-dev libbz2-dev liblzma-dev libzstd-dev libbrotli-dev liblz4-dev libsnappy-dev
 rustc --version   # must report 1.98 or later
 make build
 ```
@@ -53,7 +53,7 @@ make build
 Fedora, RHEL-compatible systems, or derivatives:
 
 ```sh
-sudo dnf install cargo rust gcc-c++ pkgconf-pkg-config zlib-devel bzip2-devel xz-devel libzstd-devel brotli-devel
+sudo dnf install cargo rust gcc-c++ pkgconf-pkg-config zlib-devel bzip2-devel xz-devel libzstd-devel brotli-devel lz4-devel snappy-devel
 rustc --version   # must report 1.98 or later
 make build
 ```
@@ -89,7 +89,7 @@ x86_64 is the only currently qualified host. macOS and Windows recipes are
 provided for native qualification; no binaries for those systems are claimed
 or supplied by this source candidate.
 
-The normal CLI links system zlib, bzip2, liblzma, Zstandard, Brotli, and the
+The normal CLI links system zlib, bzip2, liblzma, Zstandard, Brotli, LZ4, Snappy, and the
 platform C++ runtime. Distribution packages should use their system libraries.
 Do not present an arbitrary copied binary as a portable standalone build.
 

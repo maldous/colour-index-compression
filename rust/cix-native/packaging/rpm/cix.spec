@@ -14,6 +14,8 @@ BuildRequires:  bzip2-devel
 BuildRequires:  xz-devel
 BuildRequires:  libzstd-devel
 BuildRequires:  brotli-devel
+BuildRequires:  lz4-devel
+BuildRequires:  snappy-devel
 
 %description
 CIX creates and restores lossless, self-describing CIX archives. The base

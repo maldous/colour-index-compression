@@ -11,6 +11,8 @@ class Cix < Formula
   depends_on "brotli"
   depends_on "xz"
   depends_on "zstd"
+  depends_on "lz4"
+  depends_on "snappy"
 
   def install
     system "cargo", "build", "--locked", "--release", "--lib", "--bin", "cix"

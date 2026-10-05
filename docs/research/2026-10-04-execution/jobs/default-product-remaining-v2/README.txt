@@ -1,0 +1,4 @@
+Remaining qualification v2, environment-only follow-up.
+
+Same fullcfgtest source334 files/169 fixtures and remaining PAQ/CRC/rawnegative/prefix checks as preserved v1. Reuses accepted V4 executable, no fullCLIbuild or basecheck repetition. Namespace construction follows observed preflight94f2c6a3; explicit readonly usr/etc/homeuser and pinnedstandardaliases, readonly generatedroot, bounded scratch/evidence. Repeat actualnamespace UID/ancestor/mode/link/provider/version/frame/V4identity checks before anynativeCLI. No source or originalprivateownershipguard change.
+190MBtotal inclprep:169996288hard scratch,167MBearlystop,18MBexport,2MBouter includesstated64KiBnamespace dataallowance. This is not inodeoverheadmeasurement/kernelmetadataquota. Oneattempt, allremainingtestsrequired, preserve anyfailure/noautoretry.

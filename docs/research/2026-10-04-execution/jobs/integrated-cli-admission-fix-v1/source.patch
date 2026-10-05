@@ -1,0 +1,94 @@
+--- a/rust/cix-native/README.md
++++ b/rust/cix-native/README.md
+@@ -38,14 +38,14 @@
+ ## Build from source
+ 
+ CIX requires Rust 1.98 or later, a C++17 compiler, and development libraries
+-for zlib, bzip2, liblzma, Zstandard, and Brotli. The locked dependency graph
++for zlib, bzip2, liblzma, Zstandard, Brotli, LZ4, and Snappy. The locked dependency graph
+ is fetched from crates.io by Cargo unless your build environment supplies it
+ from an approved local mirror or vendor directory.
+ 
+ Debian or Ubuntu:
+ 
+ ```sh
+-sudo apt install cargo rustc build-essential pkg-config zlib1g-dev libbz2-dev liblzma-dev libzstd-dev libbrotli-dev
++sudo apt install cargo rustc build-essential pkg-config zlib1g-dev libbz2-dev liblzma-dev libzstd-dev libbrotli-dev liblz4-dev libsnappy-dev
+ rustc --version   # must report 1.98 or later
+ make build
+ ```
+@@ -53,7 +53,7 @@
+ Fedora, RHEL-compatible systems, or derivatives:
+ 
+ ```sh
+-sudo dnf install cargo rust gcc-c++ pkgconf-pkg-config zlib-devel bzip2-devel xz-devel libzstd-devel brotli-devel
++sudo dnf install cargo rust gcc-c++ pkgconf-pkg-config zlib-devel bzip2-devel xz-devel libzstd-devel brotli-devel lz4-devel snappy-devel
+ rustc --version   # must report 1.98 or later
+ make build
+ ```
+@@ -89,7 +89,7 @@
+ provided for native qualification; no binaries for those systems are claimed
+ or supplied by this source candidate.
+ 
+-The normal CLI links system zlib, bzip2, liblzma, Zstandard, Brotli, and the
++The normal CLI links system zlib, bzip2, liblzma, Zstandard, Brotli, LZ4, Snappy, and the
+ platform C++ runtime. Distribution packages should use their system libraries.
+ Do not present an arbitrary copied binary as a portable standalone build.
+ 
+--- a/rust/cix-native/packaging/debian/control
++++ b/rust/cix-native/packaging/debian/control
+@@ -2,7 +2,7 @@
+ Section: utils
+ Priority: optional
+ Maintainer: maldous <matthew.aldous@gmail.com>
+-Build-Depends: debhelper-compat (= 13), cargo, rustc, cmake, g++, pkg-config, zlib1g-dev, libbz2-dev, liblzma-dev, libzstd-dev, libbrotli-dev
++Build-Depends: debhelper-compat (= 13), cargo, rustc, cmake, g++, pkg-config, zlib1g-dev, libbz2-dev, liblzma-dev, libzstd-dev, libbrotli-dev, liblz4-dev, libsnappy-dev
+ Standards-Version: 4.7.0
+ Rules-Requires-Root: no
+ 
+--- a/rust/cix-native/packaging/homebrew/Cix.rb.in
++++ b/rust/cix-native/packaging/homebrew/Cix.rb.in
+@@ -11,6 +11,8 @@
+   depends_on "brotli"
+   depends_on "xz"
+   depends_on "zstd"
++  depends_on "lz4"
++  depends_on "snappy"
+ 
+   def install
+     system "cargo", "build", "--locked", "--release", "--lib", "--bin", "cix"
+--- a/rust/cix-native/packaging/rpm/cix.spec
++++ b/rust/cix-native/packaging/rpm/cix.spec
+@@ -14,6 +14,8 @@
+ BuildRequires:  xz-devel
+ BuildRequires:  libzstd-devel
+ BuildRequires:  brotli-devel
++BuildRequires:  lz4-devel
++BuildRequires:  snappy-devel
+ 
+ %description
+ CIX creates and restores lossless, self-describing CIX archives. The base
+--- a/rust/cix-native/src/full_engine/io.rs
++++ b/rust/cix-native/src/full_engine/io.rs
+@@ -60,6 +60,7 @@
+         b"CIXI\x02",
+         b"CIXV\x01",
+         b"CIXB\x03",
++        super::address_relations::RELOCATED_MAGIC,
+         b"CIXB\x0b",
+         b"CIXB\x0c",
+         b"CIXB\x13",
+@@ -368,6 +369,13 @@
+             classify(b"CIXG\x01").unwrap(),
+             DecodePath::FullFrameBuffered
+         );
++        let relocated = super::super::address_relations::RELOCATED_MAGIC;
++        assert_eq!(classify(relocated).unwrap(), DecodePath::FullFrameBuffered);
++        for length in 0..relocated.len() {
++            assert!(classify(&relocated[..length]).is_err());
++        }
++        assert!(classify(b"CIXB\xff").is_err());
++        assert!(classify(b"CIXB\x0a\x00").is_err());
+         assert!(classify(b"CIXG").is_err());
+     }
+     #[test]
