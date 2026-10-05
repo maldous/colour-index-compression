@@ -382,6 +382,25 @@ fn add_address_candidates(
             paq,
         );
     }
+    // Append the restored ECRP1 pair without changing existing relative order.
+    if pointer {
+        for (id, use_paq, memory) in [
+            ("relocated-pointer-mode5-paq", true, paq),
+            ("relocated-pointer-mode5-brotli", false, filter),
+        ] {
+            add(
+                candidates,
+                id,
+                "executable-relocated-pointer",
+                Recipe::Address {
+                    family: HistoricalFrame::Relocated,
+                    paq: use_paq,
+                    mode: 5,
+                },
+                memory,
+            );
+        }
+    }
     Ok(())
 }
 /// Build the fixed-order, content-only specialist registry for `data`.

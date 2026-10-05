@@ -1,0 +1,704 @@
+--- a/rust/cix-native/src/full_engine/address_relations.rs
++++ b/rust/cix-native/src/full_engine/address_relations.rs
+@@ -16,6 +16,7 @@
+ pub const JOINT_MAGIC: &[u8; 5] = b"CIXB\x1d";
+ pub const FILTER_MAGIC: &[u8; 5] = b"CIXB\x13";
+ pub const GOT_MAGIC: &[u8; 5] = b"CIXB\x03";
++pub const RELOCATED_MAGIC: &[u8; 5] = b"CIXB\x0a";
+ pub const POINTER_MAGIC: &[u8; 5] = b"CIXB\x0b";
+ pub const SECTION_MAGIC: &[u8; 5] = b"CIXB\x0c";
+ 
+@@ -25,6 +26,7 @@
+ const CONSTRAINT_TRAILER: &[u8; 5] = b"ECFX1";
+ const FIELDS_TRAILER: &[u8; 5] = b"ECFC1";
+ const GOT_TRAILER: &[u8; 5] = b"ECGT1";
++const RELOCATED_POINTER_TRAILER: &[u8; 5] = b"ECRP1";
+ const POINTER_DELTA_TRAILER: &[u8; 5] = b"ECRD1";
+ const SECTION_POINTER_TRAILER: &[u8; 5] = b"ECSP1";
+ const SYMBOL_LOAD_TRAILER: &[u8; 5] = b"ECSL1";
+@@ -64,6 +66,7 @@
+     Constraints { mode: u8 },
+     Fields { mode: u8 },
+     Got { mode: u8 },
++    RelocatedPointers { mode: u8, shared: bool },
+     PointerDeltas { mode: u8 },
+     SectionPointers { mode: u8 },
+     PdataSymbols { mode: u8 },
+@@ -73,6 +76,7 @@
+ #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+ pub enum HistoricalFrame {
+     Got,
++    Relocated,
+     Pointer,
+     Section,
+     JointDiscount,
+@@ -541,9 +545,15 @@
+     );
+     let metadata_length =
+         usize::try_from(metadata_length).map_err(|_| "ECOFF metadata too large")?;
++    if metadata_length < minimum {
++        return Err("ECOFF metadata too short".into());
++    }
++    let trailer_length = metadata_length
++        .checked_add(13)
++        .ok_or("ECOFF metadata length overflow")?;
+     let start = raw
+         .len()
+-        .checked_sub(13 + metadata_length)
++        .checked_sub(trailer_length)
+         .ok_or("ECOFF metadata outside frame")?;
+     Ok((raw[..start].to_vec(), &raw[start..raw.len() - 13]))
+ }
+@@ -1421,6 +1431,7 @@
+     where_: usize,
+     options: Vec<u64>,
+     key: usize,
++    context: u8,
+ }
+ 
+ #[derive(Clone, Debug)]
+@@ -1937,7 +1948,7 @@
+     got_candidates(source, true).is_ok_and(|fields| !fields.is_empty())
+ }
+ 
+-/// Content-only eligibility for relocated-pointer delta candidates.
++/// Content-only eligibility for relocated-pointer and pointer-delta candidates.
+ pub fn eligible_pointer_deltas(source: &[u8]) -> bool {
+     relocated_pointer_candidates(source, true).is_ok_and(|fields| !fields.is_empty())
+ }
+@@ -2043,6 +2054,7 @@
+                     .ok_or("pointer field overflow")?,
+                 options,
+                 key,
++                context: u8::from(table.symbols[symbol].1 == 0),
+             });
+         }
+     }
+@@ -2063,6 +2075,145 @@
+         .enumerate()
+         .filter_map(|(index, field)| (!blocked.contains(&index)).then_some(field))
+         .collect())
++}
++
++/// Historic ECRP1 representation. Every candidate value is reconstructed
++/// from the input's own symbol tables; misses are carried as literal bytes.
++pub fn relocated_pointer_transform(
++    source: &[u8],
++    mode: u8,
++    shared: bool,
++) -> Result<Vec<u8>, String> {
++    if mode > 5 {
++        return Err("invalid relocated-pointer representation".into());
++    }
++    let fields = relocated_pointer_candidates(source, shared)?;
++    let mut output = source.to_vec();
++    let mut flags = if mode == 1 {
++        vec![0u8; fields.len().div_ceil(8)]
++    } else {
++        Vec::new()
++    };
++    let mut digits = Vec::new();
++    let mut alphabets = Vec::new();
++    let mut contexts = Vec::new();
++    let mut exceptions = Vec::new();
++    for (index, field) in fields.iter().enumerate() {
++        let value = le_u64(source, field.where_)?;
++        let digit = field
++            .options
++            .iter()
++            .position(|candidate| *candidate == value)
++            .unwrap_or(field.options.len());
++        if mode == 1 && digit < field.options.len() {
++            flags[index / 8] |= 1 << (index % 8);
++            write_u64(&mut output, field.where_, digit as u64)?;
++        } else if mode >= 2 {
++            let end = checked_end(field.where_, 8, output.len())?;
++            output[field.where_..end].fill(0);
++            digits.push(digit);
++            alphabets.push(
++                field
++                    .options
++                    .len()
++                    .checked_add(1)
++                    .ok_or("pointer alphabet overflow")?,
++            );
++            contexts.push(field.context);
++            if digit == field.options.len() {
++                exceptions.extend_from_slice(&source[field.where_..end]);
++            }
++        }
++    }
++    let choices = if mode >= 2 {
++        encode_choices(&digits, &alphabets, &contexts, mode - 2)?
++    } else {
++        Vec::new()
++    };
++    // The nested GOT model always uses shared symbols, independently of the
++    // ECRP1 local/shared flag. This is part of the existing reference wire.
++    let mut raw = got_transform(&output, 3, true)?;
++    let mut metadata = vec![mode, u8::from(shared)];
++    metadata.extend_from_slice(&pack(&flags));
++    metadata.extend_from_slice(&pack(&choices));
++    metadata.extend_from_slice(&exceptions);
++    raw.extend_from_slice(&metadata);
++    raw.extend_from_slice(&(metadata.len() as u64).to_le_bytes());
++    raw.extend_from_slice(RELOCATED_POINTER_TRAILER);
++    Ok(raw)
++}
++
++/// Restore ECRP1 using only its paid skeleton, symbol tables and metadata.
++pub fn relocated_pointer_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
++    let (skeleton, metadata) = split_trailer(raw, RELOCATED_POINTER_TRAILER, 4)?;
++    let (mode, shared) = (metadata[0], metadata[1]);
++    if mode > 5 || shared > 1 {
++        return Err("invalid relocated-pointer model".into());
++    }
++    let (flags, next) = read_packed(metadata, 2)?;
++    let (choices, mut position) = read_packed(metadata, next)?;
++    let mut output = got_inverse(&skeleton)?;
++    let fields = relocated_pointer_candidates(&output, shared != 0)?;
++    let expected_flags = if mode == 1 {
++        fields.len().div_ceil(8)
++    } else {
++        0
++    };
++    if flags.len() != expected_flags {
++        return Err("pointer membership length mismatch".into());
++    }
++    if mode < 2 && !choices.is_empty() {
++        return Err("unexpected pointer choices".into());
++    }
++    let digits = if mode >= 2 {
++        let alphabets = fields
++            .iter()
++            .map(|field| {
++                field
++                    .options
++                    .len()
++                    .checked_add(1)
++                    .ok_or_else(|| "pointer alphabet overflow".to_string())
++            })
++            .collect::<Result<Vec<_>, _>>()?;
++        let contexts = fields.iter().map(|field| field.context).collect::<Vec<_>>();
++        decode_choices(choices, &alphabets, &contexts, mode - 2)?
++    } else {
++        Vec::new()
++    };
++    for (index, field) in fields.iter().enumerate() {
++        if mode == 1 && flags[index / 8] & (1 << (index % 8)) != 0 {
++            let digit = usize::try_from(le_u64(&output, field.where_)?)
++                .map_err(|_| "pointer index too large")?;
++            let value = *field
++                .options
++                .get(digit)
++                .ok_or("pointer index outside alphabet")?;
++            write_u64(&mut output, field.where_, value)?;
++        } else if mode >= 2 {
++            let end = checked_end(field.where_, 8, output.len())?;
++            if output[field.where_..end].iter().any(|byte| *byte != 0) {
++                return Err("pointer skeleton is not zero".into());
++            }
++            let digit = digits[index];
++            if digit == field.options.len() {
++                let next = checked_end(position, 8, metadata.len())
++                    .map_err(|_| "truncated pointer exception")?;
++                output[field.where_..end].copy_from_slice(&metadata[position..next]);
++                position = next;
++            } else {
++                let value = *field
++                    .options
++                    .get(digit)
++                    .ok_or("pointer index outside alphabet")?;
++                write_u64(&mut output, field.where_, value)?;
++            }
++        }
++    }
++    if position != metadata.len() {
++        return Err("unused pointer metadata".into());
++    }
++    Ok(output)
+ }
+ 
+ fn pointer_prediction(
+@@ -2174,6 +2325,9 @@
+         Transform::Identity => Ok(source.to_vec()),
+         Transform::Fields { mode } => fields_transform(source, mode),
+         Transform::Got { mode } => got_transform(source, mode, true),
++        Transform::RelocatedPointers { mode, shared } => {
++            relocated_pointer_transform(source, mode, shared)
++        }
+         Transform::PointerDeltas { mode } => pointer_delta_transform(source, mode),
+         Transform::SectionPointers { mode } => section_pointer_transform(source, mode),
+         Transform::PdataSymbols { mode } => pdata_symbols_transform(source, mode),
+@@ -2186,6 +2340,7 @@
+         Transform::Identity => Ok(raw.to_vec()),
+         Transform::Fields { .. } => fields_inverse(raw),
+         Transform::Got { .. } => got_inverse(raw),
++        Transform::RelocatedPointers { .. } => relocated_pointer_inverse(raw),
+         Transform::PointerDeltas { .. } => pointer_delta_inverse(raw),
+         Transform::SectionPointers { .. } => section_pointer_inverse(raw),
+         Transform::PdataSymbols { .. } => pdata_symbols_inverse(raw),
+@@ -2311,7 +2466,7 @@
+     verify(restored, declared, checksum)
+ }
+ 
+-/// Encode CIXB03, CIXB0b and CIXB0c.  The caller picks a real native backend;
++/// Encode CIXB03, CIXB0a, CIXB0b and CIXB0c.  The caller picks a real native backend;
+ /// a mismatch is an error rather than a hidden route substitution.
+ pub fn encode_transformed_frame(
+     frame: HistoricalFrame,
+@@ -2328,6 +2483,12 @@
+                 _ => return Err("GOT frame requires GOT transform".into()),
+             }),
+         ),
++        HistoricalFrame::Relocated => {
++            if !matches!(transform, Transform::RelocatedPointers { .. }) {
++                return Err("relocated frame requires relocated-pointer transform".into());
++            }
++            (RELOCATED_MAGIC, None)
++        }
+         HistoricalFrame::Pointer => (POINTER_MAGIC, None),
+         HistoricalFrame::Section => (SECTION_MAGIC, None),
+         _ => return Err("wrong executable frame family".into()),
+@@ -2373,6 +2534,14 @@
+             };
+             (GOT_MAGIC, transform, 6)
+         }
++        HistoricalFrame::Relocated => (
++            RELOCATED_MAGIC,
++            Transform::RelocatedPointers {
++                mode: 5,
++                shared: true,
++            },
++            5,
++        ),
+         HistoricalFrame::Pointer => (POINTER_MAGIC, Transform::PointerDeltas { mode: 5 }, 5),
+         HistoricalFrame::Section => (SECTION_MAGIC, Transform::SectionPointers { mode: 4 }, 5),
+         _ => return Err("wrong executable frame family".into()),
+@@ -2425,6 +2594,7 @@
+         JOINT_MAGIC,
+         FILTER_MAGIC,
+         GOT_MAGIC,
++        RELOCATED_MAGIC,
+         POINTER_MAGIC,
+         SECTION_MAGIC,
+     ]
+--- a/rust/cix-native/src/full_engine/dispatch.rs
++++ b/rust/cix-native/src/full_engine/dispatch.rs
+@@ -259,9 +259,13 @@
+                     stream: 0,
+                 };
+                 match family {
+-                    F::Got | F::Pointer | F::Section => {
++                    F::Got | F::Relocated | F::Pointer | F::Section => {
+                         let transform = match family {
+                             F::Got => T::Got { mode: *mode },
++                            F::Relocated => T::RelocatedPointers {
++                                mode: *mode,
++                                shared: true,
++                            },
+                             F::Pointer => T::PointerDeltas { mode: *mode },
+                             _ => T::SectionPointers { mode: *mode },
+                         };
+@@ -628,11 +632,14 @@
+             self.decode_payload(payload, kind, wrapped, workspace, limits)
+         };
+         if archive.starts_with(address::GOT_MAGIC)
++            || archive.starts_with(address::RELOCATED_MAGIC)
+             || archive.starts_with(address::POINTER_MAGIC)
+             || archive.starts_with(address::SECTION_MAGIC)
+         {
+             let family = if archive.starts_with(address::GOT_MAGIC) {
+                 F::Got
++            } else if archive.starts_with(address::RELOCATED_MAGIC) {
++                F::Relocated
+             } else if archive.starts_with(address::POINTER_MAGIC) {
+                 F::Pointer
+             } else {
+@@ -993,6 +1000,7 @@
+         }
+         for (family, mode) in [
+             (address::HistoricalFrame::Got, 3),
++            (address::HistoricalFrame::Relocated, 5),
+             (address::HistoricalFrame::Pointer, 5),
+             (address::HistoricalFrame::Section, 4),
+             (address::HistoricalFrame::JointDiscount, 2),
+--- a/rust/cix-native/src/full_engine/catalogue.rs
++++ b/rust/cix-native/src/full_engine/catalogue.rs
+@@ -381,6 +381,25 @@
+             },
+             paq,
+         );
++    }
++    // Append the restored ECRP1 pair without changing existing relative order.
++    if pointer {
++        for (id, use_paq, memory) in [
++            ("relocated-pointer-mode5-paq", true, paq),
++            ("relocated-pointer-mode5-brotli", false, filter),
++        ] {
++            add(
++                candidates,
++                id,
++                "executable-relocated-pointer",
++                Recipe::Address {
++                    family: HistoricalFrame::Relocated,
++                    paq: use_paq,
++                    mode: 5,
++                },
++                memory,
++            );
++        }
+     }
+     Ok(())
+ }
+--- /dev/null
++++ b/rust/cix-native/tests/relocated_pointer_contract.rs
+@@ -0,0 +1,348 @@
++//! ECRP1 reference-byte and framing-logic contracts. Callback payloads below
++//! are deliberate unit fixtures, not Brotli/PAQ streams or physical archives.
++use cix_native::full_engine::{
++    address_relations as address,
++    arithmetic::{vdecode, vencode},
++    catalogue,
++};
++use std::path::Path;
++
++fn fixture(name: &str) -> Vec<u8> {
++    std::fs::read(
++        Path::new(env!("CARGO_MANIFEST_DIR"))
++            .join("tests/fixtures/ecoff_relocated_reference")
++            .join(name),
++    )
++    .unwrap()
++}
++fn raw(mode: u8, shared: bool) -> Vec<u8> {
++    fixture(&format!("mode{mode}-shared{}.raw", u8::from(shared)))
++}
++fn parts(raw: &[u8]) -> (&[u8], &[u8]) {
++    let size = u64::from_le_bytes(raw[raw.len() - 13..raw.len() - 5].try_into().unwrap()) as usize;
++    let at = raw.len() - 13 - size;
++    (&raw[..at], &raw[at..raw.len() - 13])
++}
++fn packed(blob: &[u8]) -> Vec<u8> {
++    let mut result = vencode(blob.len() as u64);
++    result.extend_from_slice(blob);
++    result
++}
++fn unpack(blob: &[u8], at: usize) -> (&[u8], usize) {
++    let (n, start) = vdecode(blob, at).unwrap();
++    let end = start + n as usize;
++    (&blob[start..end], end)
++}
++fn assemble(skeleton: &[u8], metadata: &[u8]) -> Vec<u8> {
++    let mut result = skeleton.to_vec();
++    result.extend_from_slice(metadata);
++    result.extend_from_slice(&(metadata.len() as u64).to_le_bytes());
++    result.extend_from_slice(b"ECRP1");
++    result
++}
++fn metadata(mode: u8, shared: bool, flags: &[u8], choices: &[u8], exceptions: &[u8]) -> Vec<u8> {
++    let mut result = vec![mode, u8::from(shared)];
++    result.extend_from_slice(&packed(flags));
++    result.extend_from_slice(&packed(choices));
++    result.extend_from_slice(exceptions);
++    result
++}
++
++#[test]
++fn all_twelve_raw_vectors_match_independent_reference_and_restore_exactly() {
++    let original = fixture("original.tar");
++    for mode in 0..=5 {
++        for shared in [false, true] {
++            let expected = raw(mode, shared);
++            assert_eq!(
++                address::relocated_pointer_transform(&original, mode, shared).unwrap(),
++                expected
++            );
++            assert_eq!(
++                address::relocated_pointer_inverse(&expected).unwrap(),
++                original
++            );
++        }
++    }
++}
++
++#[test]
++fn local_shared_membership_and_literal_escape_costs_match_the_fixture() {
++    let local = raw(1, false);
++    let shared = raw(1, true);
++    assert_eq!(unpack(parts(&local).1, 2).0, &[0b0001]);
++    assert_eq!(unpack(parts(&shared).1, 2).0, &[0b1011]);
++    for shared in [false, true] {
++        let value = raw(2, shared);
++        let (_, meta) = parts(&value);
++        let (flags, next) = unpack(meta, 2);
++        let (choices, next) = unpack(meta, next);
++        assert!(flags.is_empty());
++        assert_eq!(
++            choices,
++            if shared {
++                &[0, 1, 3, 1][..]
++            } else {
++                &[0, 1, 1, 1][..]
++            }
++        );
++        assert_eq!(meta.len() - next, if shared { 8 } else { 24 });
++    }
++    // The last reference member has an undefined local symbol, but a shared
++    // definition rescues it. Modes 4/5 golden bytes also bind the causal context.
++    assert_ne!(raw(5, false), raw(5, true));
++}
++
++#[test]
++fn empty_admission_remains_reversible_in_every_representation() {
++    for source in [&b""[..], &b"arbitrary bytes without executable tables"[..]] {
++        for mode in 0..=5 {
++            for shared in [false, true] {
++                let encoded = address::relocated_pointer_transform(source, mode, shared).unwrap();
++                assert_eq!(
++                    address::relocated_pointer_inverse(&encoded).unwrap(),
++                    source
++                );
++            }
++        }
++    }
++    assert!(address::relocated_pointer_transform(b"", 6, false).is_err());
++}
++
++#[test]
++fn malformed_trailer_lengths_and_model_tags_return_errors() {
++    let valid = raw(2, false);
++    for n in 0..17 {
++        assert!(address::relocated_pointer_inverse(&valid[..n]).is_err());
++    }
++    let mut damaged = valid.clone();
++    *damaged.last_mut().unwrap() ^= 1;
++    assert!(address::relocated_pointer_inverse(&damaged).is_err());
++    for size in [0u64, 1, 3, u64::MAX] {
++        let mut damaged = valid.clone();
++        let n = damaged.len();
++        damaged[n - 13..n - 5].copy_from_slice(&size.to_le_bytes());
++        assert!(address::relocated_pointer_inverse(&damaged).is_err());
++    }
++    let (skeleton, meta) = parts(&valid);
++    for (at, value) in [(0, 6), (1, 2)] {
++        let mut damaged = meta.to_vec();
++        damaged[at] = value;
++        assert!(address::relocated_pointer_inverse(&assemble(skeleton, &damaged)).is_err());
++    }
++}
++
++#[test]
++fn membership_choice_and_exception_corruption_is_rejected() {
++    let valid = raw(2, false);
++    let (skeleton, meta) = parts(&valid);
++    let (_, next) = unpack(meta, 2);
++    let (choices, next) = unpack(meta, next);
++    let exceptions = &meta[next..];
++    for damaged in [
++        metadata(2, false, &[1], choices, exceptions),
++        metadata(2, false, &[], &[2, 1, 1, 1], exceptions),
++        metadata(2, false, &[], &[0], exceptions),
++        metadata(2, false, &[], &[0, 1, 1, 1, 0], exceptions),
++        metadata(2, false, &[], choices, &exceptions[..exceptions.len() - 1]),
++        {
++            let mut m = meta.to_vec();
++            m.push(0);
++            m
++        },
++    ] {
++        assert!(address::relocated_pointer_inverse(&assemble(skeleton, &damaged)).is_err());
++    }
++    let literal = raw(0, false);
++    assert!(address::relocated_pointer_inverse(&assemble(
++        parts(&literal).0,
++        &metadata(0, false, &[], &[0], &[])
++    ))
++    .is_err());
++    let membership = raw(1, false);
++    assert!(address::relocated_pointer_inverse(&assemble(
++        parts(&membership).0,
++        &metadata(1, false, &[], &[], &[])
++    ))
++    .is_err());
++}
++
++#[test]
++fn nonzero_choice_skeleton_and_invalid_membership_index_are_rejected() {
++    // This offset belongs solely to the checked-in synthetic fixture layout:
++    // first USTAR payload (512) plus its .rdata pointer field (0x470).
++    const FIELD: usize = 512 + 0x470;
++    for (mode, value) in [(2, 1u64), (1, u64::MAX)] {
++        let valid = raw(mode, false);
++        let (skeleton, meta) = parts(&valid);
++        let mut inner = address::got_inverse(skeleton).unwrap();
++        inner[FIELD..FIELD + 8].copy_from_slice(&value.to_le_bytes());
++        let damaged_parent = address::got_transform(&inner, 3, true).unwrap();
++        assert!(address::relocated_pointer_inverse(&assemble(&damaged_parent, meta)).is_err());
++    }
++}
++
++#[test]
++fn callback_framing_covers_both_selectors_and_every_internal_representation() {
++    let source = fixture("original.tar");
++    for mode in 0..=5 {
++        for shared in [false, true] {
++            for (variant, selector) in [
++                (address::BackendVariant::Brotli, 0),
++                (address::BackendVariant::PaqV215, 1),
++            ] {
++                let expected = raw(mode, shared);
++                let request = address::BackendRequest {
++                    variant,
++                    options: "unit".into(),
++                    stream: 0,
++                };
++                let frame = address::encode_transformed_frame(
++                    address::HistoricalFrame::Relocated,
++                    address::Transform::RelocatedPointers { mode, shared },
++                    &source,
++                    request,
++                    &mut |request, payload| {
++                        assert_eq!(request.variant, variant);
++                        assert_eq!(payload, expected);
++                        Ok(b"unit-callback-payload".to_vec())
++                    },
++                )
++                .unwrap();
++                assert_eq!(&frame[..5], b"CIXB\x0a");
++                assert_eq!(frame[5], selector);
++                assert!(address::recognizes_magic(&frame));
++                let restored = address::decode_transformed_frame(
++                    address::HistoricalFrame::Relocated,
++                    &frame,
++                    source.len(),
++                    1 << 20,
++                    &mut |request, payload, maximum| {
++                        assert_eq!(request.variant, variant);
++                        assert_eq!(payload, b"unit-callback-payload");
++                        assert!(expected.len() <= maximum);
++                        Ok(expected.clone())
++                    },
++                )
++                .unwrap();
++                assert_eq!(restored, source);
++            }
++        }
++    }
++    assert!(!address::recognizes_magic(b"CIXB0a"));
++}
++
++#[test]
++fn frame_output_memory_backend_and_crc_limits_are_enforced() {
++    let source = fixture("original.tar");
++    let value = raw(5, true);
++    let request = address::BackendRequest {
++        variant: address::BackendVariant::Brotli,
++        options: "unit".into(),
++        stream: 0,
++    };
++    let frame = address::encode_transformed_frame(
++        address::HistoricalFrame::Relocated,
++        address::Transform::RelocatedPointers {
++            mode: 5,
++            shared: true,
++        },
++        &source,
++        request.clone(),
++        &mut |_, _| Ok(vec![0]),
++    )
++    .unwrap();
++    for (output, memory) in [
++        (source.len() - 1, 1 << 20),
++        (source.len(), 0),
++        (source.len(), source.len() * 6 - 1),
++    ] {
++        assert!(address::decode_transformed_frame(
++            address::HistoricalFrame::Relocated,
++            &frame,
++            output,
++            memory,
++            &mut |_, _, _| panic!("limits must precede backend")
++        )
++        .is_err());
++    }
++    let mut damaged = frame.clone();
++    damaged[5] = 2;
++    assert!(address::decode_transformed_frame(
++        address::HistoricalFrame::Relocated,
++        &damaged,
++        source.len(),
++        1 << 20,
++        &mut |_, _, _| panic!("selector must precede backend")
++    )
++    .is_err());
++    let (_, crc_at) = vdecode(&frame, 6).unwrap();
++    let mut damaged = frame;
++    damaged[crc_at] ^= 1;
++    assert!(address::decode_transformed_frame(
++        address::HistoricalFrame::Relocated,
++        &damaged,
++        source.len(),
++        1 << 20,
++        &mut |_, _, _| Ok(value.clone())
++    )
++    .is_err());
++    assert!(address::encode_transformed_frame(
++        address::HistoricalFrame::Relocated,
++        address::Transform::Got { mode: 3 },
++        &source,
++        request,
++        &mut |_, _| panic!("wrong transform must precede backend")
++    )
++    .is_err());
++}
++
++#[test]
++fn catalogue_restores_pair_without_reordering_existing_families_or_using_names() {
++    let source = fixture("original.tar");
++    let result = catalogue::catalog(&source).unwrap();
++    let selected = result
++        .candidates
++        .iter()
++        .filter(|c| c.family == "executable-relocated-pointer")
++        .map(|c| c.id.as_str())
++        .collect::<Vec<_>>();
++    assert_eq!(
++        selected,
++        [
++            "relocated-pointer-mode5-paq",
++            "relocated-pointer-mode5-brotli"
++        ]
++    );
++    let previous = [
++        "ecoff-got-mode3-paq",
++        "ecoff-got-mode3-brotli",
++        "ecoff-pointer-mode5-paq",
++        "ecoff-pointer-mode5-brotli",
++        "ecoff-section-mode4-paq",
++        "ecoff-section-mode4-brotli",
++        "ecoff-filter-mode0",
++        "ecoff-filter-mode1",
++        "ecoff-filter-mode2",
++        "executable-joint-discount",
++    ];
++    let indices = result
++        .candidates
++        .iter()
++        .filter_map(|c| previous.iter().position(|id| *id == c.id))
++        .collect::<Vec<_>>();
++    assert!(indices.windows(2).all(|pair| pair[0] < pair[1]));
++    let mut renamed = source.clone();
++    renamed[..100].fill(0);
++    renamed[..11].copy_from_slice(b"renamed.bin");
++    renamed[148..156].fill(b' ');
++    let checksum: u32 = renamed[..512].iter().map(|b| u32::from(*b)).sum();
++    renamed[148..156].copy_from_slice(format!("{checksum:06o}\0 ").as_bytes());
++    assert_eq!(result, catalogue::catalog(&renamed).unwrap());
++    assert_eq!(result, catalogue::catalog(&source.to_vec()).unwrap());
++    let unrelated = catalogue::catalog(b"arbitrary CIXB0a ECOFF text").unwrap();
++    assert!(!unrelated
++        .candidates
++        .iter()
++        .any(|c| c.family == "executable-relocated-pointer"));
++}

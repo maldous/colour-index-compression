@@ -1,0 +1,3 @@
+ECRP1 native module qualification, one offline attempt.
+Admission ca89937b; root prep claim68acd071. Eight actual modules, unchanged nine new test groups and affected address regressions. This is not full dispatch/service/CLI or physical PAQ/Brotli qualification.
+90MB hard scratch tmpfs +8MB bounded verified evidence export +2MB outer/preparation =100MB total new allocation. Compiler/vendor intermediates are disposable tmpfs; their hashes are preserved, archives/source remain pinned. Driver, exact raw bytes, fresh decodes, logs and receipts are retained in verified recovery. No product writes, network, source acquisition, benchmark or cleanup.

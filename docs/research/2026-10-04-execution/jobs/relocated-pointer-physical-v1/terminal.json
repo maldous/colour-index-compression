@@ -1,0 +1,92 @@
+{
+  "status": "PASS_physical_provider_scope_only",
+  "at_utc": "2026-10-05T16:53:44.918623+00:00",
+  "admission": "a27a2391-49c2-47d5-a47a-b8095548d062",
+  "claim": "8722ed6a-2ac6-40ab-b5b4-8701caa75547",
+  "execution": "ae6fdc87-d86b-40e5-940b-b8db9aaad1de",
+  "native_physical_archives": 2,
+  "reference_physical_archives": 2,
+  "fresh_archive_only_decodes": 4,
+  "independent_reference_inverse_crossdecodes": 2,
+  "negative_checks": [
+    {
+      "label": "brotli-reject-crc",
+      "expected_error": "checksum mismatch",
+      "rejected": true,
+      "output_absent": true
+    },
+    {
+      "label": "brotli-reject-selector",
+      "expected_error": "invalid executable backend selector",
+      "rejected": true,
+      "output_absent": true
+    },
+    {
+      "label": "brotli-reject-truncated",
+      "expected_error": "brotli truncated, invalid or oversized data",
+      "rejected": true,
+      "output_absent": true
+    },
+    {
+      "label": "paq-reject-crc",
+      "expected_error": "checksum mismatch",
+      "rejected": true,
+      "output_absent": true
+    },
+    {
+      "label": "paq-reject-selector",
+      "expected_error": "invalid executable backend selector",
+      "rejected": true,
+      "output_absent": true
+    }
+  ],
+  "cases": [
+    {
+      "backend": "brotli",
+      "input_bytes": 10240,
+      "raw_bytes": 10355,
+      "payload_bytes": 372,
+      "framing_bytes": 12,
+      "archive_bytes": 384,
+      "archive_sha256": "6095fe3a3d0785f97e2588c0bec8753cc402a3d8ffa487cc41ca500f00c2535c",
+      "native_reference_frame_equal": true,
+      "fresh_native_archive_decodes": 2,
+      "independent_payload_reference_inverse": true
+    },
+    {
+      "backend": "paq",
+      "input_bytes": 10240,
+      "raw_bytes": 10355,
+      "payload_bytes": 283,
+      "framing_bytes": 12,
+      "archive_bytes": 295,
+      "archive_sha256": "890b1130ded9c9110214c5d63867c13ff20bed66d54006b63396732b78326a96",
+      "native_reference_frame_equal": true,
+      "fresh_native_archive_decodes": 2,
+      "independent_payload_reference_inverse": true
+    }
+  ],
+  "test_fixture_only": true,
+  "ratio_record_or_throughput_claim": false,
+  "full_product_dispatch_service_CLI_qualification": false,
+  "elapsed_outer_seconds": 12.642549548007082,
+  "cpu_usage_seconds": 11.567397,
+  "sampled_cgroup_memory_high_water_lower_bound_bytes": 1126932480,
+  "paq_upstream_self_reported_memory_bytes": 2525751093,
+  "memory_metrics_not_interchangeable": true,
+  "peak_sampled_tmpfs_bytes": 56664064,
+  "source_tools_providers_unchanged": true,
+  "projected_lock_unchanged": true,
+  "export_reverified_files": 55,
+  "recovery_sha256": "20ccc1e28191ac133ddde5ad0e8c3802fce37c97fe06739bd832e494d98d83e5",
+  "recovery_bytes": 809955,
+  "process_state": "ControlGroup=\nActiveState=inactive\nSubState=dead\n",
+  "scratch_empty": true,
+  "root_reservation_released_bytes": 100000000,
+  "before_art_spent_bytes": 9691136,
+  "before_art_remaining_bytes": 10308864,
+  "finite_census_before_terminal": 3875520512,
+  "independent_review": "pending",
+  "benchmark": "HOLD",
+  "whole_RC_acceptance": false
+}

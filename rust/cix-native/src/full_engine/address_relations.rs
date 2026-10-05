@@ -16,6 +16,7 @@ use std::collections::{BTreeMap, BTreeSet};
 pub const JOINT_MAGIC: &[u8; 5] = b"CIXB\x1d";
 pub const FILTER_MAGIC: &[u8; 5] = b"CIXB\x13";
 pub const GOT_MAGIC: &[u8; 5] = b"CIXB\x03";
+pub const RELOCATED_MAGIC: &[u8; 5] = b"CIXB\x0a";
 pub const POINTER_MAGIC: &[u8; 5] = b"CIXB\x0b";
 pub const SECTION_MAGIC: &[u8; 5] = b"CIXB\x0c";
 
@@ -25,6 +26,7 @@ const ECOFF_OPTIONAL_HEADER: u16 = 80;
 const CONSTRAINT_TRAILER: &[u8; 5] = b"ECFX1";
 const FIELDS_TRAILER: &[u8; 5] = b"ECFC1";
 const GOT_TRAILER: &[u8; 5] = b"ECGT1";
+const RELOCATED_POINTER_TRAILER: &[u8; 5] = b"ECRP1";
 const POINTER_DELTA_TRAILER: &[u8; 5] = b"ECRD1";
 const SECTION_POINTER_TRAILER: &[u8; 5] = b"ECSP1";
 const SYMBOL_LOAD_TRAILER: &[u8; 5] = b"ECSL1";
@@ -64,6 +66,7 @@ pub enum Transform {
     Constraints { mode: u8 },
     Fields { mode: u8 },
     Got { mode: u8 },
+    RelocatedPointers { mode: u8, shared: bool },
     PointerDeltas { mode: u8 },
     SectionPointers { mode: u8 },
     PdataSymbols { mode: u8 },
@@ -73,6 +76,7 @@ pub enum Transform {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HistoricalFrame {
     Got,
+    Relocated,
     Pointer,
     Section,
     JointDiscount,
@@ -541,9 +545,15 @@ fn split_trailer<'a>(
     );
     let metadata_length =
         usize::try_from(metadata_length).map_err(|_| "ECOFF metadata too large")?;
+    if metadata_length < minimum {
+        return Err("ECOFF metadata too short".into());
+    }
+    let trailer_length = metadata_length
+        .checked_add(13)
+        .ok_or("ECOFF metadata length overflow")?;
     let start = raw
         .len()
-        .checked_sub(13 + metadata_length)
+        .checked_sub(trailer_length)
         .ok_or("ECOFF metadata outside frame")?;
     Ok((raw[..start].to_vec(), &raw[start..raw.len() - 13]))
 }
@@ -1421,6 +1431,7 @@ struct RelocatedPointerField {
     where_: usize,
     options: Vec<u64>,
     key: usize,
+    context: u8,
 }
 
 #[derive(Clone, Debug)]
@@ -1937,7 +1948,7 @@ pub fn eligible_got(source: &[u8]) -> bool {
     got_candidates(source, true).is_ok_and(|fields| !fields.is_empty())
 }
 
-/// Content-only eligibility for relocated-pointer delta candidates.
+/// Content-only eligibility for relocated-pointer and pointer-delta candidates.
 pub fn eligible_pointer_deltas(source: &[u8]) -> bool {
     relocated_pointer_candidates(source, true).is_ok_and(|fields| !fields.is_empty())
 }
@@ -2043,6 +2054,7 @@ fn relocated_pointer_candidates(
                     .ok_or("pointer field overflow")?,
                 options,
                 key,
+                context: u8::from(table.symbols[symbol].1 == 0),
             });
         }
     }
@@ -2063,6 +2075,145 @@ fn relocated_pointer_candidates(
         .enumerate()
         .filter_map(|(index, field)| (!blocked.contains(&index)).then_some(field))
         .collect())
+}
+
+/// Historic ECRP1 representation. Every candidate value is reconstructed
+/// from the input's own symbol tables; misses are carried as literal bytes.
+pub fn relocated_pointer_transform(
+    source: &[u8],
+    mode: u8,
+    shared: bool,
+) -> Result<Vec<u8>, String> {
+    if mode > 5 {
+        return Err("invalid relocated-pointer representation".into());
+    }
+    let fields = relocated_pointer_candidates(source, shared)?;
+    let mut output = source.to_vec();
+    let mut flags = if mode == 1 {
+        vec![0u8; fields.len().div_ceil(8)]
+    } else {
+        Vec::new()
+    };
+    let mut digits = Vec::new();
+    let mut alphabets = Vec::new();
+    let mut contexts = Vec::new();
+    let mut exceptions = Vec::new();
+    for (index, field) in fields.iter().enumerate() {
+        let value = le_u64(source, field.where_)?;
+        let digit = field
+            .options
+            .iter()
+            .position(|candidate| *candidate == value)
+            .unwrap_or(field.options.len());
+        if mode == 1 && digit < field.options.len() {
+            flags[index / 8] |= 1 << (index % 8);
+            write_u64(&mut output, field.where_, digit as u64)?;
+        } else if mode >= 2 {
+            let end = checked_end(field.where_, 8, output.len())?;
+            output[field.where_..end].fill(0);
+            digits.push(digit);
+            alphabets.push(
+                field
+                    .options
+                    .len()
+                    .checked_add(1)
+                    .ok_or("pointer alphabet overflow")?,
+            );
+            contexts.push(field.context);
+            if digit == field.options.len() {
+                exceptions.extend_from_slice(&source[field.where_..end]);
+            }
+        }
+    }
+    let choices = if mode >= 2 {
+        encode_choices(&digits, &alphabets, &contexts, mode - 2)?
+    } else {
+        Vec::new()
+    };
+    // The nested GOT model always uses shared symbols, independently of the
+    // ECRP1 local/shared flag. This is part of the existing reference wire.
+    let mut raw = got_transform(&output, 3, true)?;
+    let mut metadata = vec![mode, u8::from(shared)];
+    metadata.extend_from_slice(&pack(&flags));
+    metadata.extend_from_slice(&pack(&choices));
+    metadata.extend_from_slice(&exceptions);
+    raw.extend_from_slice(&metadata);
+    raw.extend_from_slice(&(metadata.len() as u64).to_le_bytes());
+    raw.extend_from_slice(RELOCATED_POINTER_TRAILER);
+    Ok(raw)
+}
+
+/// Restore ECRP1 using only its paid skeleton, symbol tables and metadata.
+pub fn relocated_pointer_inverse(raw: &[u8]) -> Result<Vec<u8>, String> {
+    let (skeleton, metadata) = split_trailer(raw, RELOCATED_POINTER_TRAILER, 4)?;
+    let (mode, shared) = (metadata[0], metadata[1]);
+    if mode > 5 || shared > 1 {
+        return Err("invalid relocated-pointer model".into());
+    }
+    let (flags, next) = read_packed(metadata, 2)?;
+    let (choices, mut position) = read_packed(metadata, next)?;
+    let mut output = got_inverse(&skeleton)?;
+    let fields = relocated_pointer_candidates(&output, shared != 0)?;
+    let expected_flags = if mode == 1 {
+        fields.len().div_ceil(8)
+    } else {
+        0
+    };
+    if flags.len() != expected_flags {
+        return Err("pointer membership length mismatch".into());
+    }
+    if mode < 2 && !choices.is_empty() {
+        return Err("unexpected pointer choices".into());
+    }
+    let digits = if mode >= 2 {
+        let alphabets = fields
+            .iter()
+            .map(|field| {
+                field
+                    .options
+                    .len()
+                    .checked_add(1)
+                    .ok_or_else(|| "pointer alphabet overflow".to_string())
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let contexts = fields.iter().map(|field| field.context).collect::<Vec<_>>();
+        decode_choices(choices, &alphabets, &contexts, mode - 2)?
+    } else {
+        Vec::new()
+    };
+    for (index, field) in fields.iter().enumerate() {
+        if mode == 1 && flags[index / 8] & (1 << (index % 8)) != 0 {
+            let digit = usize::try_from(le_u64(&output, field.where_)?)
+                .map_err(|_| "pointer index too large")?;
+            let value = *field
+                .options
+                .get(digit)
+                .ok_or("pointer index outside alphabet")?;
+            write_u64(&mut output, field.where_, value)?;
+        } else if mode >= 2 {
+            let end = checked_end(field.where_, 8, output.len())?;
+            if output[field.where_..end].iter().any(|byte| *byte != 0) {
+                return Err("pointer skeleton is not zero".into());
+            }
+            let digit = digits[index];
+            if digit == field.options.len() {
+                let next = checked_end(position, 8, metadata.len())
+                    .map_err(|_| "truncated pointer exception")?;
+                output[field.where_..end].copy_from_slice(&metadata[position..next]);
+                position = next;
+            } else {
+                let value = *field
+                    .options
+                    .get(digit)
+                    .ok_or("pointer index outside alphabet")?;
+                write_u64(&mut output, field.where_, value)?;
+            }
+        }
+    }
+    if position != metadata.len() {
+        return Err("unused pointer metadata".into());
+    }
+    Ok(output)
 }
 
 fn pointer_prediction(
@@ -2174,6 +2325,9 @@ fn transform_encode(transform: Transform, source: &[u8]) -> Result<Vec<u8>, Stri
         Transform::Identity => Ok(source.to_vec()),
         Transform::Fields { mode } => fields_transform(source, mode),
         Transform::Got { mode } => got_transform(source, mode, true),
+        Transform::RelocatedPointers { mode, shared } => {
+            relocated_pointer_transform(source, mode, shared)
+        }
         Transform::PointerDeltas { mode } => pointer_delta_transform(source, mode),
         Transform::SectionPointers { mode } => section_pointer_transform(source, mode),
         Transform::PdataSymbols { mode } => pdata_symbols_transform(source, mode),
@@ -2186,6 +2340,7 @@ fn transform_decode(transform: Transform, raw: &[u8]) -> Result<Vec<u8>, String>
         Transform::Identity => Ok(raw.to_vec()),
         Transform::Fields { .. } => fields_inverse(raw),
         Transform::Got { .. } => got_inverse(raw),
+        Transform::RelocatedPointers { .. } => relocated_pointer_inverse(raw),
         Transform::PointerDeltas { .. } => pointer_delta_inverse(raw),
         Transform::SectionPointers { .. } => section_pointer_inverse(raw),
         Transform::PdataSymbols { .. } => pdata_symbols_inverse(raw),
@@ -2311,7 +2466,7 @@ pub fn decode_checked_frame(
     verify(restored, declared, checksum)
 }
 
-/// Encode CIXB03, CIXB0b and CIXB0c.  The caller picks a real native backend;
+/// Encode CIXB03, CIXB0a, CIXB0b and CIXB0c.  The caller picks a real native backend;
 /// a mismatch is an error rather than a hidden route substitution.
 pub fn encode_transformed_frame(
     frame: HistoricalFrame,
@@ -2328,6 +2483,12 @@ pub fn encode_transformed_frame(
                 _ => return Err("GOT frame requires GOT transform".into()),
             }),
         ),
+        HistoricalFrame::Relocated => {
+            if !matches!(transform, Transform::RelocatedPointers { .. }) {
+                return Err("relocated frame requires relocated-pointer transform".into());
+            }
+            (RELOCATED_MAGIC, None)
+        }
         HistoricalFrame::Pointer => (POINTER_MAGIC, None),
         HistoricalFrame::Section => (SECTION_MAGIC, None),
         _ => return Err("wrong executable frame family".into()),
@@ -2373,6 +2534,14 @@ pub fn decode_transformed_frame(
             };
             (GOT_MAGIC, transform, 6)
         }
+        HistoricalFrame::Relocated => (
+            RELOCATED_MAGIC,
+            Transform::RelocatedPointers {
+                mode: 5,
+                shared: true,
+            },
+            5,
+        ),
         HistoricalFrame::Pointer => (POINTER_MAGIC, Transform::PointerDeltas { mode: 5 }, 5),
         HistoricalFrame::Section => (SECTION_MAGIC, Transform::SectionPointers { mode: 4 }, 5),
         _ => return Err("wrong executable frame family".into()),
@@ -2425,6 +2594,7 @@ pub fn recognizes_magic(prefix: &[u8]) -> bool {
         JOINT_MAGIC,
         FILTER_MAGIC,
         GOT_MAGIC,
+        RELOCATED_MAGIC,
         POINTER_MAGIC,
         SECTION_MAGIC,
     ]

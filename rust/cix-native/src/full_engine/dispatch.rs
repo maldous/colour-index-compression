@@ -259,9 +259,13 @@ impl FullEngine {
                     stream: 0,
                 };
                 match family {
-                    F::Got | F::Pointer | F::Section => {
+                    F::Got | F::Relocated | F::Pointer | F::Section => {
                         let transform = match family {
                             F::Got => T::Got { mode: *mode },
+                            F::Relocated => T::RelocatedPointers {
+                                mode: *mode,
+                                shared: true,
+                            },
                             F::Pointer => T::PointerDeltas { mode: *mode },
                             _ => T::SectionPointers { mode: *mode },
                         };
@@ -628,11 +632,14 @@ impl FullEngine {
             self.decode_payload(payload, kind, wrapped, workspace, limits)
         };
         if archive.starts_with(address::GOT_MAGIC)
+            || archive.starts_with(address::RELOCATED_MAGIC)
             || archive.starts_with(address::POINTER_MAGIC)
             || archive.starts_with(address::SECTION_MAGIC)
         {
             let family = if archive.starts_with(address::GOT_MAGIC) {
                 F::Got
+            } else if archive.starts_with(address::RELOCATED_MAGIC) {
+                F::Relocated
             } else if archive.starts_with(address::POINTER_MAGIC) {
                 F::Pointer
             } else {
@@ -993,6 +1000,7 @@ mod tests {
         }
         for (family, mode) in [
             (address::HistoricalFrame::Got, 3),
+            (address::HistoricalFrame::Relocated, 5),
             (address::HistoricalFrame::Pointer, 5),
             (address::HistoricalFrame::Section, 4),
             (address::HistoricalFrame::JointDiscount, 2),

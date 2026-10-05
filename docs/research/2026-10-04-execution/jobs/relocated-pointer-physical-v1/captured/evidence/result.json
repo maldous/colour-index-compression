@@ -1,0 +1,280 @@
+{
+  "scope": "real PAQ/Brotli relocated-pointer physical framing; no full-product dispatch/service/CLI proof",
+  "admission": "a27a2391-49c2-47d5-a47a-b8095548d062",
+  "benchmarks": "HOLD",
+  "status": "PASS",
+  "native_physical_archives": 2,
+  "reference_physical_archives": 2,
+  "fresh_archive_only_decodes": 4,
+  "independent_reference_inverse_crossdecodes": 2,
+  "negative_checks": 5,
+  "projected_lock_unchanged": true,
+  "cases": [
+    {
+      "backend": "brotli",
+      "input_bytes": 10240,
+      "raw_bytes": 10355,
+      "payload_bytes": 372,
+      "framing_bytes": 12,
+      "archive_bytes": 384,
+      "archive_sha256": "6095fe3a3d0785f97e2588c0bec8753cc402a3d8ffa487cc41ca500f00c2535c",
+      "native_reference_frame_equal": true,
+      "fresh_native_archive_decodes": 2,
+      "independent_payload_reference_inverse": true
+    },
+    {
+      "backend": "paq",
+      "input_bytes": 10240,
+      "raw_bytes": 10355,
+      "payload_bytes": 283,
+      "framing_bytes": 12,
+      "archive_bytes": 295,
+      "archive_sha256": "890b1130ded9c9110214c5d63867c13ff20bed66d54006b63396732b78326a96",
+      "native_reference_frame_equal": true,
+      "fresh_native_archive_decodes": 2,
+      "independent_payload_reference_inverse": true
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/harness/Cargo.toml",
+        "--bin",
+        "physical-driver"
+      ],
+      "label": "native-physical-driver-build",
+      "exit": 0,
+      "seconds": 3.250325956993038,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/usr/bin/ldd",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver"
+      ],
+      "label": "actual-driver-linkage",
+      "exit": 0,
+      "seconds": 0.02114536298904568,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "encode-frame",
+        "brotli",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/relocated-pointer-physical-v1/harness/tests/fixtures/ecoff_relocated_reference/original.tar",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/frames/brotli-native.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/brotli-native-frame-encode"
+      ],
+      "label": "brotli-native-frame-encode",
+      "exit": 0,
+      "seconds": 0.021785365999676287,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "decode-frame",
+        "brotli",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/frames/brotli-native.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/decoded/brotli-native.decoded",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/brotli-native-frame-decode"
+      ],
+      "label": "brotli-native-frame-decode",
+      "exit": 0,
+      "seconds": 0.0009662589873187244,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "decode-payload",
+        "brotli",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/payloads/brotli-native.payload",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/decoded/brotli-raw.decoded",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/brotli-independent-payload-decode"
+      ],
+      "label": "brotli-independent-payload-decode",
+      "exit": 0,
+      "seconds": 0.0006292640173342079,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "encode-payload",
+        "brotli",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/relocated-pointer-physical-v1/harness/tests/fixtures/ecoff_relocated_reference/mode5-shared1.raw",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/payloads/brotli-reference.payload",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/brotli-reference-raw-encode"
+      ],
+      "label": "brotli-reference-raw-encode",
+      "exit": 0,
+      "seconds": 0.02366440399782732,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "decode-frame",
+        "brotli",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/frames/brotli-reference.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/decoded/brotli-reference-frame.decoded",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/brotli-reference-frame-native-decode"
+      ],
+      "label": "brotli-reference-frame-native-decode",
+      "exit": 0,
+      "seconds": 0.0008721659833099693,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "decode-frame",
+        "brotli",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/frames/brotli-crc.invalid",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/decoded/brotli-crc.rejected",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/brotli-reject-crc"
+      ],
+      "label": "brotli-reject-crc",
+      "exit": 2,
+      "seconds": 0.000754108012188226,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "decode-frame",
+        "brotli",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/frames/brotli-selector.invalid",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/decoded/brotli-selector.rejected",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/brotli-reject-selector"
+      ],
+      "label": "brotli-reject-selector",
+      "exit": 2,
+      "seconds": 0.0005569130007643253,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "decode-frame",
+        "brotli",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/frames/brotli-truncated.invalid",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/decoded/brotli-truncated.rejected",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/brotli-reject-truncated"
+      ],
+      "label": "brotli-reject-truncated",
+      "exit": 2,
+      "seconds": 0.0006006809999234974,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "encode-frame",
+        "paq",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/relocated-pointer-physical-v1/harness/tests/fixtures/ecoff_relocated_reference/original.tar",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/frames/paq-native.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/paq-native-frame-encode"
+      ],
+      "label": "paq-native-frame-encode",
+      "exit": 0,
+      "seconds": 1.2085080519900657,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "decode-frame",
+        "paq",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/frames/paq-native.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/decoded/paq-native.decoded",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/paq-native-frame-decode"
+      ],
+      "label": "paq-native-frame-decode",
+      "exit": 0,
+      "seconds": 1.2087079659977462,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "decode-payload",
+        "paq",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/payloads/paq-native.payload",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/decoded/paq-raw.decoded",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/paq-independent-payload-decode"
+      ],
+      "label": "paq-independent-payload-decode",
+      "exit": 0,
+      "seconds": 1.2281823309895117,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "encode-payload",
+        "paq",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/relocated-pointer-physical-v1/harness/tests/fixtures/ecoff_relocated_reference/mode5-shared1.raw",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/payloads/paq-reference.payload",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/paq-reference-raw-encode"
+      ],
+      "label": "paq-reference-raw-encode",
+      "exit": 0,
+      "seconds": 1.250623694009846,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "decode-frame",
+        "paq",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/frames/paq-reference.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/decoded/paq-reference-frame.decoded",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/paq-reference-frame-native-decode"
+      ],
+      "label": "paq-reference-frame-native-decode",
+      "exit": 0,
+      "seconds": 1.2286899290047586,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "decode-frame",
+        "paq",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/frames/paq-crc.invalid",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/decoded/paq-crc.rejected",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/paq-reject-crc"
+      ],
+      "label": "paq-reject-crc",
+      "exit": 2,
+      "seconds": 1.2286218089866452,
+      "stop_reason": null
+    },
+    {
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/build/target/debug/physical-driver",
+        "decode-frame",
+        "paq",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/frames/paq-selector.invalid",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/decoded/paq-selector.rejected",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-pointer-physical-v1/scratch/run/calls/paq-reject-selector"
+      ],
+      "label": "paq-reject-selector",
+      "exit": 2,
+      "seconds": 0.0007682729919906706,
+      "stop_reason": null
+    }
+  ],
+  "elapsed_seconds": 10.901241794985253,
+  "peak_sampled_tmpfs_bytes": 56664064,
+  "final_tmpfs_bytes": 56836096,
+  "disposable_build_policy": "Vendor and build intermediates hash-inventoried; original archive and source pins permit reconstruction. Native driver, raw vectors, exact decodes and logs retained."
+}
