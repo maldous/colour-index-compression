@@ -1,0 +1,27 @@
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/preserve-artifact-archives-xz-v1/run.py", line 211, in write_bundle
+    archive.addfile(info, body)
+  File "/usr/lib/python3.12/tarfile.py", line 2288, in addfile
+    copyfileobj(fileobj, self.fileobj, tarinfo.size, bufsize=bufsize)
+  File "/usr/lib/python3.12/tarfile.py", line 254, in copyfileobj
+    dst.write(buf)
+  File "/usr/lib/python3.12/tarfile.py", line 443, in write
+    self.__write(s)
+  File "/usr/lib/python3.12/tarfile.py", line 451, in __write
+    self.fileobj.write(self.buf[:self.bufsize])
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/preserve-artifact-archives-xz-v1/run.py", line 351, in <module>
+    main()
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/preserve-artifact-archives-xz-v1/run.py", line 307, in main
+    write_bundle(manifest, first)
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/preserve-artifact-archives-xz-v1/run.py", line 191, in write_bundle
+    with tarfile.open(fileobj=process.stdin, mode="w|") as archive:
+  File "/usr/lib/python3.12/tarfile.py", line 2935, in __exit__
+    self.fileobj.close()
+  File "/usr/lib/python3.12/tarfile.py", line 467, in close
+    self.fileobj.write(self.buf)
+BrokenPipeError: [Errno 32] Broken pipe

@@ -1,0 +1,11 @@
+{
+  "schema": "cix-linux-arm64-feasibility-v1",
+  "status": "blocked-before-provisioning",
+  "installed_qemu": {"system_arm": "1:8.2.2+ds-0ubuntu1.16", "efi_aarch64": "2024.02-2ubuntu0.8"},
+  "missing_execution_inputs": ["ARM64 kernel", "bootable ARM64 rootfs/cloud image", "ARM64 Rust standard library", "ARM64 gcc/g++ and sysroot"],
+  "bridge_assessment": "CMake safe GNU/Clang branch has no x86 ISA flag; retained upstream cross scripts are source instructions only",
+  "product_blocker": {"path": "rust/cix-native/src/paq_worker.rs", "condition": "native PAQ worker is cfg-gated to Linux x86_64", "effect": "current ARM64 CLI plus PAQ functional validation is unavailable"},
+  "preferred_target_after_source_gate": "native ubuntu-24.04-arm hosted runner",
+  "local_qemu_job_ceiling_bytes": {"guest_disk_growth": 1600000000, "target_build": 1000000000, "paq_private": 512000000, "kernel_seed_logs_artifacts": 256000000, "headroom": 132000000, "total": 3500000000},
+  "non_claims": ["no QEMU guest exists", "no cross compile is target qualification", "no acquisition or build performed", "no ARM64 PAQ qualification"]
+}

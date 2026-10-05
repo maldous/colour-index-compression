@@ -1,0 +1,22 @@
+{
+  "schema": "cix-linux-arm64-local-fallback-v1",
+  "status": "local-execution-blocked; no-provisioning-performed",
+  "observed": {
+    "qemu_system_aarch64": "/bin/qemu-system-aarch64",
+    "qemu_aarch64_user": null,
+    "aarch64_linux_gcc": null,
+    "aarch64_linux_gpp": null,
+    "installed_rust_targets": ["x86_64-unknown-linux-gnu"],
+    "retained_guest_rootfs": "benchmark-work/native-rc-check-v1/kernel-vm-v1/fuse-guest/rootfs",
+    "retained_guest_rootfs_architecture": "x86-64 library overlay"
+  },
+  "retained_non_executable_inputs": [
+    "benchmark-work/references/paq8px-v215/paq8px-215/build/build-linux-cross-compile-aarch64.sh",
+    "benchmark-work/references/paq8px-v216/paq8px-216/build/build-linux-cross-compile-aarch64.sh",
+    "benchmark-work/references/libjxl-v0.12.0/tools/fast_lossless/cross_compile_aarch64.sh"
+  ],
+  "smallest_actual_path": "one native ubuntu-24.04-arm runner job; frozen CLI build plus selected ARM64 PAQ bridge and generated exact CLI/PAQ encode-fresh-decode checks",
+  "not_established": ["local ARM64 execution", "cross compile", "full-engine provider closure", "cross-target archive exchange"],
+  "admission_bytes": {"native_target_build": 2500000000, "paq_and_private_worker": 512000000, "source_logs_artifacts": 512000000, "headroom": 476000000, "aggregate": 4000000000},
+  "missing": ["ARM64 executable environment", "Rust ARM64 standard library", "ARM64 toolchain/linker/sysroot", "selected ARM64 PAQ bridge outputs"]
+}
