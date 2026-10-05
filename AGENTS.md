@@ -19,9 +19,18 @@ The repository remains private. No publication, benchmark restart, corpus
 acquisition, third-party source edits, new paid service purchase or implicit
 increase to the shared four-core / 12 GB / 4 GB / no-swap policy is authorized.
 
+The latest launch direction includes the 159 candidate groups catalogued in
+`docs/research/2026-10-05-launch-integration-coverage/`. These are work groups,
+not a count of supported products. Appropriately source-bound target-built or
+package-ready artifacts may launch with target execution explicitly labelled
+unvalidated; an unavailable runner is not a universal launch gate. Keep source
+SDKs, recipes and proposals separate from built artifacts. Actual core
+correctness, provider/ABI/license/package closure and known-defect repair remain
+required; this does not waive mandatory PAQ in the complete product.
+
 Record target OS/architecture and native, virtualized or emulated execution.
-Cross-compilation alone does not establish platform support, and QEMU timing
-does not establish native throughput. Preserve PAQ variant decoders and test
+Cross-compilation alone does not establish tested platform support, and QEMU
+timing does not establish native throughput. Preserve PAQ variant decoders and test
 archive exchange between qualified targets. Full requirements and the runner
 discovery are in `docs/research/2026-10-04-rc-reconciliation/PLATFORM-DELIVERY-2026-10-05.txt`
 and its JSON companion. All 55 requirement IDs and the RC51 benchmark HOLD remain.

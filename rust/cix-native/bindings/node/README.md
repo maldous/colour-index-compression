@@ -7,3 +7,7 @@ This dependency-free C Node-API addon is an **installed CIX SDK consumer**. It r
 `cancel()` is truthful cooperative cancellation: it blocks later addon calls, but the installed v1 C ABI has no native cancellation handle and cannot stop a call already executing. `reset()` clears this local cancellation fence. This addon does not claim full-engine routing, retained-history streaming, or a process-RSS hard limit.
 
 `test/contract.js` is dependency-free and requires `CIX_NODE_ADDON` to name the explicitly built `.node` file; it never attempts a build.
+
+## TypeScript package surface
+
+`package.json` and `index.d.ts` describe the compiled `cix_node.node` add-on. The binding accepts **Node `Buffer`** inputs and JavaScript safe-integer `number` options/capacities; it does not accept generic `Uint8Array` inputs or `bigint` values. The package requires Node 18+ with N-API 8 and a compiled installed-SDK native add-on. It remains an SDK buffer/stream consumer and does not expose CIX full-engine capabilities.
