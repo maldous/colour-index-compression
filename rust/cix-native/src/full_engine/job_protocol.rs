@@ -657,7 +657,7 @@ fn get_report(t: &mut Take<'_>) -> Result<JobSelectionReport, String> {
     let peak_reserved_temporary = t.usize()?;
     let selected = t.text()?;
     let discovery_count = usize::try_from(t.u32()?).map_err(|_| "discovery count overflow")?;
-    if discovery_count > t.b.len().saturating_sub(t.p) / 7 {
+    if discovery_count > t.b.len().saturating_sub(t.p) / 10 {
         return Err("too many discovery diagnostics".into());
     }
     let mut discovery = Vec::new();
@@ -685,7 +685,7 @@ fn get_report(t: &mut Take<'_>) -> Result<JobSelectionReport, String> {
         });
     }
     let count = usize::try_from(t.u32()?).map_err(|_| "trial count overflow")?;
-    if count > MAX_CONTROL_RECORD_BYTES / 8 || count > t.b.len().saturating_sub(t.p) / 23 {
+    if count > MAX_CONTROL_RECORD_BYTES / 8 || count > t.b.len().saturating_sub(t.p) / 34 {
         return Err("too many trial diagnostics".into());
     }
     let mut trials = Vec::new();
@@ -712,7 +712,7 @@ fn get_report(t: &mut Take<'_>) -> Result<JobSelectionReport, String> {
             provider_omissions.push(t.text()?);
         }
         let nested_count = usize::try_from(t.u32()?).map_err(|_| "nested count overflow")?;
-        if nested_count > t.b.len().saturating_sub(t.p) / 12 {
+        if nested_count > t.b.len().saturating_sub(t.p) / 20 {
             return Err("too many nested diagnostics".into());
         }
         let mut nested = Vec::new();
@@ -1411,6 +1411,167 @@ mod tests {
             assert_eq!(reader.header.position(), 11);
         }
     }
+    fn compact_report() -> JobSelectionReport {
+        JobSelectionReport {
+            profile: JobProfile::Fast,
+            input_bytes: 0,
+            discovery: Vec::new(),
+            trials: Vec::new(),
+            peak_reserved_memory: 0,
+            peak_reserved_workers: 0,
+            peak_reserved_temporary: 0,
+            selected: String::new(),
+        }
+    }
+
+    fn report_prefix() -> Buf {
+        let mut b = Buf::default();
+        b.u8(profile_tag(JobProfile::Fast));
+        for _ in 0..4 {
+            b.usize(0).unwrap();
+        }
+        b.text("").unwrap();
+        b
+    }
+
+    #[test]
+    fn report_rejects_impossible_discovery_count_before_record_read() {
+        // Nine remaining bytes passed the old seven-byte bound, but even
+        // empty family/reason strings and two booleans require ten bytes.
+        let mut b = report_prefix();
+        b.u32(1);
+        let record_start = b.bytes.len();
+        b.add(&[0; 9]);
+        let mut t = Take {
+            b: &b.bytes,
+            p: 0,
+        };
+        assert_eq!(
+            get_report(&mut t).unwrap_err(),
+            "too many discovery diagnostics"
+        );
+        assert_eq!(t.p, record_start);
+    }
+
+    #[test]
+    fn report_rejects_impossible_trial_count_before_record_read() {
+        // Empty strings, absent options and empty child lists still need
+        // 34 bytes; the old 23-byte bound admitted this truncated record.
+        let mut b = report_prefix();
+        b.u32(0);
+        b.u32(1);
+        let record_start = b.bytes.len();
+        b.add(&[0; 33]);
+        let mut t = Take {
+            b: &b.bytes,
+            p: 0,
+        };
+        assert_eq!(
+            get_report(&mut t).unwrap_err(),
+            "too many trial diagnostics"
+        );
+        assert_eq!(t.p, record_start);
+    }
+
+    #[test]
+    fn report_rejects_impossible_nested_count_before_record_read() {
+        let mut b = report_prefix();
+        b.u32(0);
+        b.u32(1);
+        b.text("").unwrap();
+        b.usize(0).unwrap();
+        b.text("").unwrap();
+        b.opt_text(&None).unwrap();
+        b.opt_usize(None).unwrap();
+        b.usize(0).unwrap();
+        b.u32(0);
+        b.u32(1);
+        let record_start = b.bytes.len();
+        // Four empty strings and four absent options require twenty bytes,
+        // rather than the old twelve-byte minimum.
+        b.add(&[0; 19]);
+        let mut t = Take {
+            b: &b.bytes,
+            p: 0,
+        };
+        assert_eq!(
+            get_report(&mut t).unwrap_err(),
+            "too many nested diagnostics"
+        );
+        assert_eq!(t.p, record_start);
+    }
+
+    #[test]
+    fn compact_and_empty_selection_reports_remain_compatible_with_v1_and_v2() {
+        let empty = compact_report();
+        let mut compact = empty.clone();
+        compact.discovery.push(JobDiscovery {
+            family: String::new(),
+            admitted: false,
+            available: false,
+            reason: String::new(),
+        });
+        compact.trials.push(JobTrial {
+            id: String::new(),
+            priority: 0,
+            status: String::new(),
+            reason: None,
+            archive_bytes: None,
+            nested: vec![JobDiagnostic {
+                kind: String::new(),
+                id: String::new(),
+                status: String::new(),
+                region: None,
+                backend: None,
+                bytes_unit: String::new(),
+                bytes: None,
+                detail: None,
+            }],
+            nested_omitted: 0,
+            provider_omissions: Vec::new(),
+        });
+        for report in [empty, compact] {
+            // Also decode without result trailers so the final nested record
+            // exercises its exact twenty-byte minimum at the end of input.
+            let mut encoded = Buf::default();
+            put_report(&mut encoded, &report).unwrap();
+            let mut t = Take {
+                b: &encoded.bytes,
+                p: 0,
+            };
+            assert_eq!(get_report(&mut t).unwrap(), report);
+            t.end().unwrap();
+            for version in [JOB_PROTOCOL_V1, JOB_PROTOCOL_VERSION] {
+                let expected = ControlRecord::Result(JobResult {
+                    request_id: 7,
+                    operation: JobOperation::SelectWholeInput,
+                    output_bytes: 0,
+                    selection: Some(report.clone()),
+                    windows: None,
+                    decode_path: None,
+                });
+                let mut payload = Buf::default();
+                payload.u64(7);
+                payload.u8(1); // Whole-input selection in both wire versions.
+                payload.usize(0).unwrap();
+                payload.u8(1);
+                put_report(&mut payload, &report).unwrap();
+                payload.opt_text(&None).unwrap();
+                if version == JOB_PROTOCOL_VERSION {
+                    put_window_report(&mut payload, &None).unwrap();
+                }
+                let mut frame = Vec::from(MAGIC);
+                frame.extend_from_slice(&version.to_be_bytes());
+                frame.push(4);
+                frame.extend_from_slice(&(payload.bytes.len() as u32).to_be_bytes());
+                frame.extend_from_slice(&payload.bytes);
+                let mut reader = Cursor::new(frame);
+                assert_eq!(read_control(&mut reader).unwrap(), expected);
+                assert_eq!(reader.position() as usize, reader.get_ref().len());
+            }
+        }
+    }
+
     #[test]
     fn control_round_trip() {
         let r = ControlRecord::Request(request());
