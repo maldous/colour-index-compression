@@ -1747,7 +1747,11 @@ mod tests {
     fn decode_entry_reports_incremental_window_path() {
         use crate::full_engine::window_stream::{self, EncodeLimits};
 
-        let source = b"windowed job".to_vec();
+        let source: Vec<u8> = (0u8..129)
+            .map(|index| index.wrapping_mul(37).wrapping_add(11))
+            .collect();
+        assert_eq!(source.len(), 129);
+        let mut encoded_window_lengths = Vec::new();
         let mut archive = Vec::new();
         window_stream::encode(
             Cursor::new(source.clone()),
@@ -1760,6 +1764,7 @@ mod tests {
                 cancellation: None,
             },
             |window, memory| {
+                encoded_window_lengths.push(window.len());
                 core::encode_buffer(
                     window,
                     &NativeOptions {
@@ -1772,6 +1777,7 @@ mod tests {
             },
         )
         .unwrap();
+        assert_eq!(encoded_window_lengths, [64, 64, 1]);
         let engine = FullEngine {
             backends: BackendProvider {
                 paths: TrustedBackendPaths {
@@ -1790,16 +1796,21 @@ mod tests {
         request.limits.memory_bytes = 64 << 20;
         request.limits.intermediate_bytes = 1 << 20;
         let mut output = Vec::new();
+        let mut stages = Vec::new();
         let result = execute_decode(
             &request,
             &engine,
             Cursor::new(archive),
             &mut output,
             CancelToken::new(),
-            |_| {},
+            |progress| stages.push(progress.stage),
         )
         .unwrap();
         assert_eq!(output, source);
+        assert_eq!(result.operation, JobOperation::DecodeArchive);
+        assert_eq!(result.output_bytes, 129);
+        assert_eq!(result.output_bytes, output.len());
         assert_eq!(result.decode_path.as_deref(), Some("window-incremental"));
+        assert_eq!(stages.last(), Some(&JobStage::OutputWritten));
     }
 }
