@@ -496,6 +496,9 @@ pub fn read_control<R: Read>(input: &mut R) -> Result<ControlRecord, String> {
     if n > MAX_CONTROL_RECORD_BYTES {
         return Err("control record exceeds limit".into());
     }
+    if !(1..=6).contains(&h[6]) {
+        return Err("unknown control record kind".into());
+    }
     let mut b = Vec::new();
     b.try_reserve_exact(n)
         .map_err(|_| "control allocation failed")?;
@@ -1380,6 +1383,32 @@ mod tests {
             },
             window_bytes: None,
             diagnostics: true,
+        }
+    }
+    #[test]
+    fn unknown_control_kind_rejects_before_body_read() {
+        struct HeaderOnlyReader {
+            header: Cursor<Vec<u8>>,
+        }
+        impl Read for HeaderOnlyReader {
+            fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+                assert!(self.header.position() < 11, "control body requested");
+                self.header.read(buf)
+            }
+        }
+        for version in [JOB_PROTOCOL_V1, JOB_PROTOCOL_VERSION] {
+            let mut header = Vec::from(MAGIC);
+            header.extend_from_slice(&version.to_be_bytes());
+            header.push(7);
+            header.extend_from_slice(&(MAX_CONTROL_RECORD_BYTES as u32).to_be_bytes());
+            let mut reader = HeaderOnlyReader {
+                header: Cursor::new(header),
+            };
+            assert_eq!(
+                read_control(&mut reader).unwrap_err(),
+                "unknown control record kind"
+            );
+            assert_eq!(reader.header.position(), 11);
         }
     }
     #[test]
