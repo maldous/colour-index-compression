@@ -578,4 +578,265 @@ mod tests {
         );
         unsafe { cix_context_destroy(context) };
     }
+
+
+    // Test consumers own handles through the public API, including cleanup on
+    // assertion unwinding. No private context fields or codec entry points are used.
+    struct OwnedContext(*mut cix_context);
+
+    impl OwnedContext {
+        fn new() -> Self {
+            let mut options = std::mem::MaybeUninit::<cix_options_v1>::uninit();
+            assert_eq!(
+                unsafe { cix_options_v1_default(options.as_mut_ptr()) },
+                CIX_STATUS_OK
+            );
+            let mut options = unsafe { options.assume_init() };
+            options.profile = CIX_PROFILE_FAST;
+            options.workers = 1;
+            let mut handle = ptr::null_mut();
+            assert_eq!(
+                unsafe { cix_context_create(&options, &mut handle) },
+                CIX_STATUS_OK
+            );
+            assert!(!handle.is_null());
+            Self(handle)
+        }
+    }
+
+    impl Drop for OwnedContext {
+        fn drop(&mut self) {
+            // Each handle stays on its creating thread and is destroyed once.
+            unsafe { cix_context_destroy(self.0) };
+        }
+    }
+
+    fn diagnostic(context: &OwnedContext) -> Vec<u8> {
+        let mut needed = usize::MAX;
+        assert_eq!(
+            unsafe { cix_context_last_error(context.0, ptr::null_mut(), 0, &mut needed) },
+            CIX_STATUS_OUTPUT_TOO_SMALL
+        );
+        assert!((1..=CIX_ERROR_MESSAGE_CAPACITY).contains(&needed));
+        let required = needed;
+        let mut short = vec![0x5a_u8; required - 1];
+        assert_eq!(
+            unsafe {
+                cix_context_last_error(
+                    context.0, short.as_mut_ptr().cast(), short.len(), &mut needed,
+                )
+            },
+            CIX_STATUS_OUTPUT_TOO_SMALL
+        );
+        assert_eq!(needed, required);
+        assert!(short.iter().all(|&byte| byte == 0x5a));
+        let mut bytes = vec![0x5a_u8; required + 1];
+        assert_eq!(
+            unsafe {
+                cix_context_last_error(
+                    context.0, bytes.as_mut_ptr().cast(), required, &mut needed,
+                )
+            },
+            CIX_STATUS_OK
+        );
+        assert_eq!(needed, required);
+        assert_eq!(bytes[required - 1], 0);
+        assert_eq!(bytes[required], 0x5a);
+        bytes.truncate(required - 1);
+        assert!(std::str::from_utf8(&bytes).is_ok());
+        bytes
+    }
+
+    fn public_roundtrip(context: &OwnedContext, input: &[u8]) -> Vec<u8> {
+        let mut needed = usize::MAX;
+        assert_eq!(
+            unsafe {
+                cix_encode_buffer(
+                    context.0, input.as_ptr(), input.len(), ptr::null_mut(), 0, &mut needed,
+                )
+            },
+            CIX_STATUS_OUTPUT_TOO_SMALL
+        );
+        let archive_len = needed;
+        assert!(archive_len > 0);
+        let mut short = vec![0xa5; archive_len - 1];
+        assert_eq!(
+            unsafe {
+                cix_encode_buffer(
+                    context.0, input.as_ptr(), input.len(), short.as_mut_ptr(),
+                    short.len(), &mut needed,
+                )
+            },
+            CIX_STATUS_OUTPUT_TOO_SMALL
+        );
+        assert_eq!(needed, archive_len);
+        assert!(short.iter().all(|&byte| byte == 0xa5));
+        let mut archive = vec![0xa5; archive_len + 1];
+        assert_eq!(
+            unsafe {
+                cix_encode_buffer(
+                    context.0, input.as_ptr(), input.len(), archive.as_mut_ptr(),
+                    archive_len, &mut needed,
+                )
+            },
+            CIX_STATUS_OK
+        );
+        assert_eq!(needed, archive_len);
+        assert_eq!(archive[archive_len], 0xa5);
+        archive.truncate(archive_len);
+        assert!(diagnostic(context).is_empty());
+
+        let query_status = unsafe {
+            cix_decode_buffer(
+                context.0, archive.as_ptr(), archive.len(), ptr::null_mut(), 0, &mut needed,
+            )
+        };
+        assert_eq!(needed, input.len());
+        assert_eq!(query_status, if input.is_empty() {
+            CIX_STATUS_OK
+        } else {
+            CIX_STATUS_OUTPUT_TOO_SMALL
+        });
+        if !input.is_empty() {
+            let mut short = vec![0x5a; input.len() - 1];
+            assert_eq!(
+                unsafe {
+                    cix_decode_buffer(
+                        context.0, archive.as_ptr(), archive.len(), short.as_mut_ptr(),
+                        short.len(), &mut needed,
+                    )
+                },
+                CIX_STATUS_OUTPUT_TOO_SMALL
+            );
+            assert_eq!(needed, input.len());
+            assert!(short.iter().all(|&byte| byte == 0x5a));
+        }
+        let mut restored = vec![0x5a; input.len() + 1];
+        assert_eq!(
+            unsafe {
+                cix_decode_buffer(
+                    context.0, archive.as_ptr(), archive.len(), restored.as_mut_ptr(),
+                    input.len(), &mut needed,
+                )
+            },
+            CIX_STATUS_OK
+        );
+        assert_eq!(needed, input.len());
+        assert_eq!(&restored[..needed], input);
+        assert_eq!(restored[needed], 0x5a);
+        assert!(diagnostic(context).is_empty());
+        archive
+    }
+
+    #[test]
+    fn public_c_abi_roundtrip_reports_needed_and_preserves_short_buffers() {
+        let context = OwnedContext::new();
+        public_roundtrip(&context, &[]);
+        public_roundtrip(&context, b"CIX public ABI\0roundtrip\xff\n");
+        let input: Vec<u8> = (0..1024).map(|index| (index % 256) as u8).collect();
+        public_roundtrip(&context, &input);
+    }
+
+    #[test]
+    fn public_c_abi_invalid_input_and_codec_errors_reset_needed() {
+        let context = OwnedContext::new();
+        let mut output = [0xa5; 64];
+        let mut needed = usize::MAX;
+        assert_eq!(
+            unsafe {
+                cix_encode_buffer(
+                    context.0, ptr::null(), 1, output.as_mut_ptr(), output.len(), &mut needed,
+                )
+            },
+            CIX_STATUS_INVALID_ARGUMENT
+        );
+        assert_eq!(needed, 0);
+        assert_eq!(diagnostic(&context), b"input is null with non-zero length");
+        needed = usize::MAX;
+        let invalid_archive = b"not a CIX archive";
+        assert_eq!(
+            unsafe {
+                cix_decode_buffer(
+                    context.0, invalid_archive.as_ptr(), invalid_archive.len(),
+                    output.as_mut_ptr(), output.len(), &mut needed,
+                )
+            },
+            CIX_STATUS_CODEC_ERROR
+        );
+        assert_eq!(needed, 0);
+        assert_eq!(output, [0xa5; 64]);
+        assert!(!diagnostic(&context).is_empty());
+        public_roundtrip(&context, b"reusable after errors");
+    }
+
+    #[test]
+    fn public_c_abi_concurrent_owned_contexts_isolate_buffers_and_diagnostics() {
+        let (left_tx, left_rx) = std::sync::mpsc::channel();
+        let (right_tx, right_rx) = std::sync::mpsc::channel();
+        std::thread::scope(|scope| {
+            let handles: Vec<_> = [(left_tx, right_rx), (right_tx, left_rx)]
+                .into_iter()
+                .enumerate()
+                .map(|(worker, (tx, rx))| {
+                scope.spawn(move || {
+                    // Channel rendezvous coordinates real calls, with bounded
+                    // failure rather than a barrier hanging if a peer panics.
+                    let rendezvous = || {
+                        tx.send(()).expect("public ABI peer disconnected");
+                        rx.recv_timeout(std::time::Duration::from_secs(60))
+                            .expect("public ABI peer failed to reach rendezvous");
+                    };
+                    let context = OwnedContext::new();
+                    let input = vec![if worker == 0 { 0x17 } else { 0xe9 }; 1024];
+                    // Both contexts exist before real codec operations begin.
+                    rendezvous();
+                    let archive = public_roundtrip(&context, &input);
+                    let mut needed = usize::MAX;
+                    let status = if worker == 0 {
+                        unsafe {
+                            cix_encode_buffer(
+                                context.0, ptr::null(), 1, ptr::null_mut(), 0, &mut needed,
+                            )
+                        }
+                    } else {
+                        unsafe {
+                            cix_decode_buffer(
+                                context.0, archive.as_ptr(), archive.len(),
+                                ptr::null_mut(), 0, &mut needed,
+                            )
+                        }
+                    };
+                    assert_eq!(status, if worker == 0 {
+                        CIX_STATUS_INVALID_ARGUMENT
+                    } else {
+                        CIX_STATUS_OUTPUT_TOO_SMALL
+                    });
+                    assert_eq!(needed, if worker == 0 { 0 } else { input.len() });
+                    let expected = if worker == 0 {
+                        b"input is null with non-zero length".as_slice()
+                    } else {
+                        b"caller output buffer is too small".as_slice()
+                    };
+                    rendezvous();
+                    assert_eq!(diagnostic(&context), expected);
+                    rendezvous();
+                    if worker == 0 {
+                        public_roundtrip(&context, &input);
+                    }
+                    // A success clearing one diagnostic must leave the other intact.
+                    rendezvous();
+                    if worker == 1 {
+                        assert_eq!(diagnostic(&context), expected);
+                        public_roundtrip(&context, &input);
+                    }
+                    (input, archive)
+                })
+            }).collect();
+            let results: Vec<_> = handles.into_iter()
+                .map(|handle| handle.join().expect("public ABI consumer thread panicked"))
+                .collect();
+            assert_ne!(results[0].0, results[1].0);
+            assert_ne!(results[0].1, results[1].1);
+        });
+    }
 }
