@@ -1,0 +1,31 @@
+# SYSTEM manager /etc/systemd/system only; never systemctl --user.
+# PREPARED ONLY: not installed or enabled. Requires completed inputs and owner secure binding.
+[Unit]
+Description=CIX single native Symphony primary scheduler
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=user
+Group=user
+WorkingDirectory=/home/user/src/cix-approved-migration
+Slice=cix-bau139.slice
+MemoryMax=20000000000
+MemorySwapMax=0
+KillMode=control-group
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=30
+UMask=0077
+LoadCredential=linear-api-key:/etc/cix-symphony-primary/linear-api-key
+ExecStartPre=/usr/bin/python3 /home/user/src/cix-approved-migration/successor-preparation/service/verify-system-placement.py
+ExecStartPre=/usr/bin/python3 /home/user/src/cix-approved-migration/successor-preparation/service/verify-runtime.py
+ExecStart=/bin/bash /home/user/src/cix-approved-migration/successor-preparation/service/service-start.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
