@@ -50,13 +50,12 @@ pub struct cix_context {
 const OPTIONS_V1_SIZE: usize = std::mem::size_of::<cix_options_v1>();
 
 fn bounded_message(message: impl AsRef<str>) -> String {
-    let mut value = message.as_ref().to_owned();
+    let value = message.as_ref();
     let mut end = value.len().min(CIX_ERROR_MESSAGE_CAPACITY - 1);
     while end != 0 && !value.is_char_boundary(end) {
         end -= 1;
     }
-    value.truncate(end);
-    value
+    value[..end].to_owned()
 }
 
 fn set_error(context: &cix_context, message: impl AsRef<str>) {
@@ -524,6 +523,30 @@ mod tests {
         let message = bounded_message("é".repeat(300));
         assert!(message.len() < CIX_ERROR_MESSAGE_CAPACITY);
         assert!(std::str::from_utf8(message.as_bytes()).is_ok());
+    }
+
+    #[test]
+    fn bounded_diagnostic_allocation_and_context_retention() {
+        let context = OwnedContext(context());
+        for (input, expected) in [
+            ("a".repeat(65_536), "a".repeat(511)),
+            ("é".repeat(32_768), "é".repeat(255)),
+            (String::new(), String::new()),
+            ("short é\0text".to_owned(), "short é\0text".to_owned()),
+        ] {
+            let message = bounded_message(&input);
+            assert_eq!(message.as_bytes(), expected.as_bytes());
+            assert!(message.capacity() < CIX_ERROR_MESSAGE_CAPACITY);
+
+            let native_context = unsafe { &*context.0 };
+            set_error(native_context, &input);
+            {
+                let retained = native_context.last_error.lock().unwrap();
+                assert_eq!(retained.as_bytes(), expected.as_bytes());
+                assert!(retained.capacity() < CIX_ERROR_MESSAGE_CAPACITY);
+            }
+            assert_eq!(diagnostic(&context), expected.as_bytes());
+        }
     }
 
     #[test]
