@@ -7,11 +7,15 @@ mod cli_full_engine;
 pub mod core;
 pub mod dictionaries;
 pub mod full_engine;
+pub mod i18n;
 mod job_cli;
 pub mod jxl_bridge;
+pub mod managed_sdk;
 pub mod paq_bridge;
 mod paq_supervisor;
 mod paq_worker;
+#[cfg(feature = "server")]
+pub mod service;
 pub mod standard_formats;
 
 /// Retained Squash callback ABI; it is implemented by the native core.
