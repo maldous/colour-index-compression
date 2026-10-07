@@ -1,0 +1,1761 @@
+diff --git a/README.md b/README.md
+index e0f24a0..6c3736e 100644
+--- a/README.md
++++ b/README.md
+@@ -39,3 +39,5 @@ help with the setup:
+ ## License
+ 
+ This project is licensed under the [Apache License 2.0](LICENSE).
++
++The Elixir implementation includes an optional native, issue-backed failure-isolation extension. It preserves failure streaks and in-flight holds across parent restarts using the existing Linear issue record; configuration, trust boundaries and focused validation are documented in `elixir/README.md`. It is disabled by default and does not qualify or activate a changed runtime asset on its own.
+diff --git a/elixir/README.md b/elixir/README.md
+index a34ea32..195def3 100644
+--- a/elixir/README.md
++++ b/elixir/README.md
+@@ -397,3 +397,37 @@ you.
+ ## License
+ 
+ This project is licensed under the [Apache License 2.0](../LICENSE).
++
++### Optional durable failure isolation
++
++`agent.failure_isolation_enabled` defaults to `false`. Enabling it requires an
++explicit non-secret `agent.failure_isolation_context` naming the exact approved
++workflow/source context. It currently requires the native Linear adapter's issue
++comment read/create operations. Unsupported capabilities and context changes
++hold dispatch; they do not silently fall back to volatile retries.
++
++The orchestrator is the sole native state writer. It appends compact
++`symphony-failure-v1:` JSON events to the existing authoritative issue, with issue
++ID, context, sequence, unique revision, parent revision and failure streak. It
++reads all comment pages and verifies the event chain before dispatch, writes an
++in-flight event before any worker/setup starts, and verifies each append by exact
++readback. An unknown write is never blindly repeated. Forks, gaps, malformed
++records and orphaned in-flight events after restart hold dispatch. Normal turns,
++heartbeats and token activity do not reset failure counts. Three consecutive
++confirmed identical typed failures block; typed permission denial and operator
++input block immediately. Opaque failures hold without inventing a confirmed
++count. Raw hook output, exception messages and authentication settings are not
++written to these events or exposed through the public Issue prompt object.
++
++Issue comment writers are trusted operators, not an authenticated state store.
++Preserve these events: deleting every event is indistinguishable from a new issue;
++editing/forging an event may hold the chain. This implementation does not claim
++protection against privileged record deletion or competing native parents.
++After resolving and fencing the prior attempt, an operator can use
++`FailureIsolation.resume/2` on the exact current event with a new non-secret
++progress reference, then append its `FailureIsolation.body/1` through the existing
++Linear comment tool and verify readback. Never treat an ordinary reopen or source
++context change as automatic progress; retained holds require reconciliation.
++The helper is not a new scheduler, daemon or local ledger. Packaging and effective
++activation of the changed native modules require the separate owner's exact
++source/artifact binding; the old runtime asset alone does not include this change.
+diff --git a/elixir/WORKFLOW.md b/elixir/WORKFLOW.md
+index c87d048..7d95239 100644
+--- a/elixir/WORKFLOW.md
++++ b/elixir/WORKFLOW.md
+@@ -327,3 +327,9 @@ Use this exact structure for the persistent workpad comment and keep it updated
+ 
+ - <only include when something was confusing during execution>
+ ````
++
++<!-- Optional native extension: agent.failure_isolation_enabled: false (default).
++When enabled, set agent.failure_isolation_context to the approved exact
++workflow/source identity. Linear comments require read/create access and one
++native mutation owner. Missing capabilities, context mismatch and uncertain
++state hold dispatch. See README.md durable failure isolation contract. -->
+diff --git a/elixir/lib/symphony_elixir/agent_runner.ex b/elixir/lib/symphony_elixir/agent_runner.ex
+index f99a2d9..d129aec 100644
+--- a/elixir/lib/symphony_elixir/agent_runner.ex
++++ b/elixir/lib/symphony_elixir/agent_runner.ex
+@@ -21,22 +21,38 @@ defmodule SymphonyElixir.AgentRunner do
+   @spec run(map(), pid() | nil, keyword()) :: :ok | no_return()
+   def run(issue, codex_update_recipient \\ nil, opts \\ []) do
+     # The orchestrator owns host retries so one worker lifetime never hops machines.
+-    worker_host = selected_worker_host(Keyword.get(opts, :worker_host), Config.settings!().worker.ssh_hosts)
++    worker_host =
++      selected_worker_host(Keyword.get(opts, :worker_host), Config.settings!().worker.ssh_hosts)
+ 
+-    Logger.info("Starting agent run for #{issue_context(issue)} worker_host=#{worker_host_for_log(worker_host)}")
++    Logger.info(
++      "Starting agent run for #{issue_context(issue)} worker_host=#{worker_host_for_log(worker_host)}"
++    )
+ 
+     case run_on_worker_host(issue, codex_update_recipient, opts, worker_host) do
+       :ok ->
+         :ok
+ 
+       {:error, reason} ->
+-        Logger.error("Agent run failed for #{issue_context(issue)}: #{inspect(reason)}")
+-        raise RuntimeError, "Agent run failed for #{issue_context(issue)}: #{inspect(reason)}"
++        if is_pid(codex_update_recipient),
++          do: send(codex_update_recipient, {:agent_failure, issue.id, reason})
++
++        if Keyword.get(opts, :durable_failure_enabled, false) do
++          Logger.error(
++            "Agent run failed for #{issue_context(issue)}; durable failure reconciliation required"
++          )
++
++          raise RuntimeError, "Agent run failed; durable failure reconciliation required"
++        else
++          Logger.error("Agent run failed for #{issue_context(issue)}: #{inspect(reason)}")
++          raise RuntimeError, "Agent run failed for #{issue_context(issue)}: #{inspect(reason)}"
++        end
+     end
+   end
+ 
+   defp run_on_worker_host(issue, codex_update_recipient, opts, worker_host) do
+-    Logger.info("Starting worker attempt for #{issue_context(issue)} worker_host=#{worker_host_for_log(worker_host)}")
++    Logger.info(
++      "Starting worker attempt for #{issue_context(issue)} worker_host=#{worker_host_for_log(worker_host)}"
++    )
+ 
+     case Workspace.create_for_issue(issue, worker_host) do
+       {:ok, workspace} ->
+@@ -91,14 +107,32 @@ defmodule SymphonyElixir.AgentRunner do
+ 
+     with {:ok, session} <- AppServer.start_session(workspace, worker_host: worker_host) do
+       try do
+-        do_run_codex_turns(session, workspace, issue, codex_update_recipient, opts, issue_state_fetcher, 1, max_turns)
++        do_run_codex_turns(
++          session,
++          workspace,
++          issue,
++          codex_update_recipient,
++          opts,
++          issue_state_fetcher,
++          1,
++          max_turns
++        )
+       after
+         AppServer.stop_session(session)
+       end
+     end
+   end
+ 
+-  defp do_run_codex_turns(app_session, workspace, issue, codex_update_recipient, opts, issue_state_fetcher, turn_number, max_turns) do
++  defp do_run_codex_turns(
++         app_session,
++         workspace,
++         issue,
++         codex_update_recipient,
++         opts,
++         issue_state_fetcher,
++         turn_number,
++         max_turns
++       ) do
+     prompt = build_turn_prompt(issue, opts, turn_number, max_turns)
+ 
+     with {:ok, turn_session} <-
+@@ -108,11 +142,15 @@ defmodule SymphonyElixir.AgentRunner do
+              issue,
+              on_message: codex_message_handler(codex_update_recipient, issue)
+            ) do
+-      Logger.info("Completed agent run for #{issue_context(issue)} session_id=#{turn_session[:session_id]} workspace=#{workspace} turn=#{turn_number}/#{max_turns}")
++      Logger.info(
++        "Completed agent run for #{issue_context(issue)} session_id=#{turn_session[:session_id]} workspace=#{workspace} turn=#{turn_number}/#{max_turns}"
++      )
+ 
+       case continue_with_issue?(issue, issue_state_fetcher) do
+         {:continue, refreshed_issue} when turn_number < max_turns ->
+-          Logger.info("Continuing agent run for #{issue_context(refreshed_issue)} after normal turn completion turn=#{turn_number}/#{max_turns}")
++          Logger.info(
++            "Continuing agent run for #{issue_context(refreshed_issue)} after normal turn completion turn=#{turn_number}/#{max_turns}"
++          )
+ 
+           do_run_codex_turns(
+             app_session,
+@@ -126,7 +164,9 @@ defmodule SymphonyElixir.AgentRunner do
+           )
+ 
+         {:continue, refreshed_issue} ->
+-          Logger.info("Reached agent.max_turns for #{issue_context(refreshed_issue)} with issue still active; returning control to orchestrator")
++          Logger.info(
++            "Reached agent.max_turns for #{issue_context(refreshed_issue)} with issue still active; returning control to orchestrator"
++          )
+ 
+           :ok
+ 
+@@ -153,7 +193,8 @@ defmodule SymphonyElixir.AgentRunner do
+     """
+   end
+ 
+-  defp continue_with_issue?(%Issue{id: issue_id} = issue, issue_state_fetcher) when is_binary(issue_id) do
++  defp continue_with_issue?(%Issue{id: issue_id} = issue, issue_state_fetcher)
++       when is_binary(issue_id) do
+     case issue_state_fetcher.([issue_id]) do
+       {:ok, [%Issue{} = refreshed_issue | _]} ->
+         if active_issue_state?(refreshed_issue.state) and issue_routable?(refreshed_issue) do
+diff --git a/elixir/lib/symphony_elixir/config/schema.ex b/elixir/lib/symphony_elixir/config/schema.ex
+index 6ebb278..7bf1ca7 100644
+--- a/elixir/lib/symphony_elixir/config/schema.ex
++++ b/elixir/lib/symphony_elixir/config/schema.ex
+@@ -151,6 +151,8 @@ defmodule SymphonyElixir.Config.Schema do
+     embedded_schema do
+       field(:max_concurrent_agents, :integer, default: 10)
+       field(:max_turns, :integer, default: 20)
++      field(:failure_isolation_enabled, :boolean, default: false)
++      field(:failure_isolation_context, :string)
+       field(:max_retry_backoff_ms, :integer, default: 300_000)
+       field(:max_concurrent_agents_by_state, :map, default: %{})
+     end
+@@ -160,7 +162,14 @@ defmodule SymphonyElixir.Config.Schema do
+       schema
+       |> cast(
+         attrs,
+-        [:max_concurrent_agents, :max_turns, :max_retry_backoff_ms, :max_concurrent_agents_by_state],
++        [
++          :max_concurrent_agents,
++          :max_turns,
++          :max_retry_backoff_ms,
++          :max_concurrent_agents_by_state,
++          :failure_isolation_enabled,
++          :failure_isolation_context
++        ],
+         empty_values: []
+       )
+       |> validate_number(:max_concurrent_agents, greater_than: 0)
+@@ -244,7 +253,9 @@ defmodule SymphonyElixir.Config.Schema do
+     @spec changeset(%__MODULE__{}, map()) :: Ecto.Changeset.t()
+     def changeset(schema, attrs) do
+       schema
+-      |> cast(attrs, [:after_create, :before_run, :after_run, :before_remove, :timeout_ms], empty_values: [])
++      |> cast(attrs, [:after_create, :before_run, :after_run, :before_remove, :timeout_ms],
++        empty_values: []
++      )
+       |> validate_number(:timeout_ms, greater_than: 0)
+     end
+   end
+@@ -451,7 +462,11 @@ defmodule SymphonyElixir.Config.Schema do
+ 
+     workspace = %{
+       settings.workspace
+-      | root: resolve_path_value(settings.workspace.root, Path.join(System.tmp_dir!(), "symphony_workspaces"))
++      | root:
++          resolve_path_value(
++            settings.workspace.root,
++            Path.join(System.tmp_dir!(), "symphony_workspaces")
++          )
+     }
+ 
+     codex = %{
+diff --git a/elixir/lib/symphony_elixir/linear/adapter.ex b/elixir/lib/symphony_elixir/linear/adapter.ex
+index d281154..6d0b8d4 100644
+--- a/elixir/lib/symphony_elixir/linear/adapter.ex
++++ b/elixir/lib/symphony_elixir/linear/adapter.ex
+@@ -34,6 +34,14 @@ defmodule SymphonyElixir.Linear.Adapter do
+   @spec fetch_issues_by_ids([String.t()]) :: {:ok, [Issue.t()]} | {:error, term()}
+   def fetch_issues_by_ids(issue_ids), do: client_module().fetch_issues_by_ids(issue_ids)
+ 
++  @spec fetch_failure_record(Issue.t(), keyword()) :: {:ok, map()} | {:error, term()}
++  def fetch_failure_record(issue, opts),
++    do: Keyword.fetch!(opts, :client).fetch_failure_record(issue, opts)
++
++  @spec persist_failure_record(Issue.t(), map(), keyword()) :: {:ok, map()} | {:error, term()}
++  def persist_failure_record(issue, record, opts),
++    do: Keyword.fetch!(opts, :client).persist_failure_record(issue, record, opts)
++
+   @spec agent_tool_specs() :: [map()]
+   def agent_tool_specs, do: AgentTool.tool_specs()
+ 
+diff --git a/elixir/lib/symphony_elixir/linear/client.ex b/elixir/lib/symphony_elixir/linear/client.ex
+index fb32b60..646dae8 100644
+--- a/elixir/lib/symphony_elixir/linear/client.ex
++++ b/elixir/lib/symphony_elixir/linear/client.ex
+@@ -104,6 +104,90 @@ defmodule SymphonyElixir.Linear.Client do
+   }
+   """
+ 
++  @failure_comments """
++  query SymphonyFailureComments($id: String!, $after: String) {
++    issue(id: $id) {
++      comments(first: 50, after: $after) {
++        nodes { id body }
++        pageInfo { hasNextPage endCursor }
++      }
++    }
++  }
++  """
++  @failure_append """
++  mutation SymphonyFailureRecord($input: CommentCreateInput!) {
++    commentCreate(input: $input) { success }
++  }
++  """
++
++  @spec fetch_failure_record(Issue.t(), keyword()) :: {:ok, map()} | {:error, term()}
++  def fetch_failure_record(%Issue{id: id}, opts \\ []) do
++    with {:ok, comments} <- failure_comments(id, nil, [], MapSet.new(), opts) do
++      SymphonyElixir.FailureIsolation.from_comments(comments)
++    end
++  end
++
++  defp failure_comments(id, after_cursor, acc, seen, opts) do
++    opts = Keyword.put(opts, :redact_errors, true)
++
++    case graphql(@failure_comments, %{"id" => id, "after" => after_cursor}, opts) do
++      {:ok, %{"data" => %{"issue" => %{"comments" => %{"nodes" => nodes, "pageInfo" => page}}}}} =
++          response ->
++        if Map.has_key?(elem(response, 1), "errors") or not is_list(nodes) do
++          {:error, :failure_record_unconfirmed}
++        else
++          case page do
++            %{"hasNextPage" => false} ->
++              {:ok, acc ++ nodes}
++
++            %{"hasNextPage" => true, "endCursor" => cursor} when is_binary(cursor) ->
++              if MapSet.member?(seen, cursor),
++                do: {:error, :failure_record_unconfirmed},
++                else: failure_comments(id, cursor, acc ++ nodes, MapSet.put(seen, cursor), opts)
++
++            _ ->
++              {:error, :failure_record_unconfirmed}
++          end
++        end
++
++      _ ->
++        {:error, :failure_record_unconfirmed}
++    end
++  end
++
++  @spec persist_failure_record(Issue.t(), map(), keyword()) :: {:ok, map()} | {:error, term()}
++  def persist_failure_record(%Issue{id: id} = expected, record, opts \\ []) do
++    alias SymphonyElixir.FailureIsolation
++
++    with {:ok, prior} <- FailureIsolation.read(Keyword.get(opts, :expected_failure_record)),
++         {:ok, current} <- fetch_failure_record(expected, opts) do
++      cond do
++        current == record ->
++          {:ok, record}
++
++        current != prior ->
++          {:error, :failure_record_conflict}
++
++        record["parent"] != prior["revision"] or record["sequence"] != prior["sequence"] + 1 ->
++          {:error, :failure_record_conflict}
++
++        true ->
++          # Append once. Unknown mutation outcomes are resolved by exact event
++          # readback, never by blindly repeating a write. No human text changes.
++          graphql(
++            @failure_append,
++            %{"input" => %{"issueId" => id, "body" => FailureIsolation.body(record)}},
++            Keyword.put(opts, :redact_errors, true)
++          )
++
++          case fetch_failure_record(expected, opts) do
++            {:ok, ^record} -> {:ok, record}
++            _ -> {:error, :failure_record_unconfirmed}
++          end
++      end
++    end
++  end
++
+   @spec fetch_issues_by_states([String.t()]) :: {:ok, [Issue.t()]} | {:error, term()}
+   def fetch_issues_by_states(state_names) when is_list(state_names) do
+     normalized_states = Enum.map(state_names, &to_string/1) |> Enum.uniq()
+@@ -140,7 +224,9 @@ defmodule SymphonyElixir.Linear.Client do
+   def graphql(query, variables \\ %{}, opts \\ [])
+       when is_binary(query) and is_map(variables) and is_list(opts) do
+     payload = build_graphql_payload(query, variables, Keyword.get(opts, :operation_name))
+-    tracker_settings = Keyword.get_lazy(opts, :tracker_settings, fn -> Config.settings!().tracker end)
++
++    tracker_settings =
++      Keyword.get_lazy(opts, :tracker_settings, fn -> Config.settings!().tracker end)
+ 
+     request_fun =
+       Keyword.get(opts, :request_fun, fn request_payload, headers ->
+@@ -152,15 +238,24 @@ defmodule SymphonyElixir.Linear.Client do
+       {:ok, body}
+     else
+       {:ok, response} ->
+-        Logger.error(
+-          "Linear GraphQL request failed status=#{response.status}" <>
+-            linear_error_context(payload, response)
+-        )
++        if Keyword.get(opts, :redact_errors, false) do
++          Logger.error("Linear failure record HTTP response unconfirmed")
++        else
++          Logger.error(
++            "Linear GraphQL request failed status=#{response.status}" <>
++              linear_error_context(payload, response)
++          )
++        end
+ 
+         {:error, {:linear_api_status, response.status}}
+ 
+       {:error, reason} ->
+-        Logger.error("Linear GraphQL request failed: #{inspect(reason)}")
++        Logger.error(
++          if Keyword.get(opts, :redact_errors, false),
++            do: "Linear failure record request unconfirmed",
++            else: "Linear GraphQL request failed: #{inspect(reason)}"
++        )
++
+         {:error, {:linear_api_request, reason}}
+     end
+   end
+@@ -202,7 +297,8 @@ defmodule SymphonyElixir.Linear.Client do
+   end
+ 
+   @doc false
+-  @spec fetch_issues_by_ids_for_test([String.t()], (String.t(), map() -> {:ok, map()} | {:error, term()})) ::
++  @spec fetch_issues_by_ids_for_test([String.t()], (String.t(), map() ->
++                                                      {:ok, map()} | {:error, term()})) ::
+           {:ok, [Issue.t()]} | {:error, term()}
+   def fetch_issues_by_ids_for_test(issue_ids, graphql_fun)
+       when is_list(issue_ids) and is_function(graphql_fun, 2) do
+@@ -221,7 +317,13 @@ defmodule SymphonyElixir.Linear.Client do
+     do_fetch_by_states_page(project_slug, state_names, assignee_filter, nil, [])
+   end
+ 
+-  defp do_fetch_by_states_page(project_slug, state_names, assignee_filter, after_cursor, acc_issues) do
++  defp do_fetch_by_states_page(
++         project_slug,
++         state_names,
++         assignee_filter,
++         after_cursor,
++         acc_issues
++       ) do
+     with {:ok, body} <-
+            graphql(@query, %{
+              projectSlug: project_slug,
+@@ -235,7 +337,13 @@ defmodule SymphonyElixir.Linear.Client do
+ 
+       case next_page_cursor(page_info) do
+         {:ok, next_cursor} ->
+-          do_fetch_by_states_page(project_slug, state_names, assignee_filter, next_cursor, updated_acc)
++          do_fetch_by_states_page(
++            project_slug,
++            state_names,
++            assignee_filter,
++            next_cursor,
++            updated_acc
++          )
+ 
+         :done ->
+           {:ok, finalize_paginated_issues(updated_acc)}
+@@ -250,7 +358,8 @@ defmodule SymphonyElixir.Linear.Client do
+     Enum.reverse(issues, acc_issues)
+   end
+ 
+-  defp finalize_paginated_issues(acc_issues) when is_list(acc_issues), do: Enum.reverse(acc_issues)
++  defp finalize_paginated_issues(acc_issues) when is_list(acc_issues),
++    do: Enum.reverse(acc_issues)
+ 
+   defp do_fetch_issue_states(ids, project_slug, assignee_filter) do
+     do_fetch_issue_states(ids, project_slug, assignee_filter, &graphql/2)
+@@ -259,17 +368,39 @@ defmodule SymphonyElixir.Linear.Client do
+   defp do_fetch_issue_states(ids, project_slug, assignee_filter, graphql_fun)
+        when is_list(ids) and is_binary(project_slug) and is_function(graphql_fun, 2) do
+     issue_order_index = issue_order_index(ids)
+-    do_fetch_issue_states_page(ids, project_slug, assignee_filter, graphql_fun, [], issue_order_index)
++
++    do_fetch_issue_states_page(
++      ids,
++      project_slug,
++      assignee_filter,
++      graphql_fun,
++      [],
++      issue_order_index
++    )
+   end
+ 
+-  defp do_fetch_issue_states_page([], _project_slug, _assignee_filter, _graphql_fun, acc_issues, issue_order_index) do
++  defp do_fetch_issue_states_page(
++         [],
++         _project_slug,
++         _assignee_filter,
++         _graphql_fun,
++         acc_issues,
++         issue_order_index
++       ) do
+     acc_issues
+     |> finalize_paginated_issues()
+     |> sort_issues_by_requested_ids(issue_order_index)
+     |> then(&{:ok, &1})
+   end
+ 
+-  defp do_fetch_issue_states_page(ids, project_slug, assignee_filter, graphql_fun, acc_issues, issue_order_index) do
++  defp do_fetch_issue_states_page(
++         ids,
++         project_slug,
++         assignee_filter,
++         graphql_fun,
++         acc_issues,
++         issue_order_index
++       ) do
+     {batch_ids, rest_ids} = Enum.split(ids, @issue_page_size)
+ 
+     case graphql_fun.(@query_by_ids, %{
+@@ -447,12 +578,17 @@ defmodule SymphonyElixir.Linear.Client do
+          },
+          assignee_filter
+        ) do
+-    with {:ok, issues} <- decode_linear_response(%{"data" => %{"issues" => %{"nodes" => nodes}}}, assignee_filter) do
++    with {:ok, issues} <-
++           decode_linear_response(
++             %{"data" => %{"issues" => %{"nodes" => nodes}}},
++             assignee_filter
++           ) do
+       {:ok, issues, %{has_next_page: has_next_page == true, end_cursor: end_cursor}}
+     end
+   end
+ 
+-  defp decode_linear_page_response(response, assignee_filter), do: decode_linear_response(response, assignee_filter)
++  defp decode_linear_page_response(response, assignee_filter),
++    do: decode_linear_response(response, assignee_filter)
+ 
+   defp next_page_cursor(%{has_next_page: true, end_cursor: end_cursor})
+        when is_binary(end_cursor) and byte_size(end_cursor) > 0 do
+@@ -465,7 +601,10 @@ defmodule SymphonyElixir.Linear.Client do
+   defp normalize_issue(issue, assignee_filter) when is_map(issue) do
+     state_name = get_in(issue, ["state", "name"])
+ 
+-    if Enum.all?([issue["id"], issue["identifier"], issue["title"], state_name], &present_string?/1) do
++    if Enum.all?(
++         [issue["id"], issue["identifier"], issue["title"], state_name],
++         &present_string?/1
++       ) do
+       assignee = issue["assignee"]
+       blockers = extract_blockers(issue)
+ 
+diff --git a/elixir/lib/symphony_elixir/orchestrator.ex b/elixir/lib/symphony_elixir/orchestrator.ex
+index b52e991..18b2168 100644
+--- a/elixir/lib/symphony_elixir/orchestrator.ex
++++ b/elixir/lib/symphony_elixir/orchestrator.ex
+@@ -7,7 +7,15 @@ defmodule SymphonyElixir.Orchestrator do
+   require Logger
+   import Bitwise, only: [<<<: 2]
+ 
+-  alias SymphonyElixir.{AgentRunner, Config, StatusDashboard, Tracker, Workspace}
++  alias SymphonyElixir.{
++    AgentRunner,
++    Config,
++    FailureIsolation,
++    StatusDashboard,
++    Tracker,
++    Workspace
++  }
++
+   alias SymphonyElixir.Tracker.Issue
+ 
+   @continuation_retry_delay_ms 1_000
+@@ -140,7 +148,9 @@ defmodule SymphonyElixir.Orchestrator do
+ 
+         state = handle_agent_down(reason, state, issue_id, running_entry, session_id)
+ 
+-        Logger.info("Agent task finished for issue_id=#{issue_id} session_id=#{session_id} reason=#{inspect(reason)}")
++        Logger.info(
++          "Agent task finished for issue_id=#{issue_id} session_id=#{session_id} reason=#{inspect(loggable_failure(reason, running_entry))}"
++        )
+ 
+         notify_dashboard()
+         {:noreply, state}
+@@ -164,6 +174,20 @@ defmodule SymphonyElixir.Orchestrator do
+     end
+   end
+ 
++  def handle_info({:agent_failure, issue_id, reason}, state) do
++    case Map.get(state.running, issue_id) do
++      nil ->
++        {:noreply, state}
++
++      entry ->
++        {:noreply,
++         %{
++           state
++           | running: Map.put(state.running, issue_id, Map.put(entry, :failure_reason, reason))
++         }}
++    end
++  end
++
+   def handle_info(
+         {:codex_worker_update, issue_id, %{event: _, timestamp: _} = update},
+         %{running: running} = state
+@@ -181,7 +205,14 @@ defmodule SymphonyElixir.Orchestrator do
+           |> apply_codex_rate_limits(update)
+ 
+         notify_dashboard()
+-        {:noreply, %{state | running: Map.put(running, issue_id, updated_running_entry)}}
++        state = %{state | running: Map.put(running, issue_id, updated_running_entry)}
++
++        if update.event in [:turn_input_required, :approval_required] do
++          {:noreply,
++           stop_and_block_issue(state, issue_id, updated_running_entry, "operator input required")}
++        else
++          {:noreply, state}
++        end
+     end
+   end
+ 
+@@ -209,17 +240,26 @@ defmodule SymphonyElixir.Orchestrator do
+     if input_required_blocker?(running_entry) do
+       block_input_required_agent_down(state, issue_id, running_entry, session_id, :normal)
+     else
+-      Logger.info("Agent task completed for issue_id=#{issue_id} session_id=#{session_id}; scheduling active-state continuation check")
++      case persist_attempt_outcome(running_entry, :normal, false) do
++        {:ok, _issue} ->
++          state
++          |> complete_issue(issue_id)
++          |> schedule_issue_retry(issue_id, 1, %{
++            identifier: running_entry.identifier,
++            issue_url: running_entry.issue.url,
++            delay_type: :continuation,
++            worker_host: Map.get(running_entry, :worker_host),
++            workspace_path: Map.get(running_entry, :workspace_path)
++          })
+ 
+-      state
+-      |> complete_issue(issue_id)
+-      |> schedule_issue_retry(issue_id, 1, %{
+-        identifier: running_entry.identifier,
+-        issue_url: running_entry.issue.url,
+-        delay_type: :continuation,
+-        worker_host: Map.get(running_entry, :worker_host),
+-        workspace_path: Map.get(running_entry, :workspace_path)
+-      })
++        {:error, _} ->
++          block_issue_from_entry(
++            state,
++            issue_id,
++            running_entry,
++            "durable failure record unconfirmed"
++          )
++      end
+     end
+   end
+ 
+@@ -232,25 +272,83 @@ defmodule SymphonyElixir.Orchestrator do
+   end
+ 
+   defp block_input_required_agent_down(state, issue_id, running_entry, session_id, reason) do
+-    error = blocker_error(running_entry, "agent exited: #{inspect(reason)}")
++    error =
++      if Map.get(running_entry, :failure_context),
++        do: "operator input required",
++        else: blocker_error(running_entry, "agent exited: #{inspect(reason)}")
+ 
+-    Logger.warning("Agent task blocked for issue_id=#{issue_id} issue_identifier=#{running_entry.identifier} session_id=#{session_id}: #{error}")
++    Logger.warning(
++      "Agent task blocked for issue_id=#{issue_id} issue_identifier=#{running_entry.identifier} session_id=#{session_id}: #{error}"
++    )
+ 
++    persist_attempt_outcome(running_entry, :operator_input_required, true)
+     block_issue_from_entry(state, issue_id, running_entry, error)
+   end
+ 
+   defp retry_agent_down(state, issue_id, running_entry, session_id, reason) do
+-    Logger.warning("Agent task exited for issue_id=#{issue_id} session_id=#{session_id} reason=#{inspect(reason)}; scheduling retry")
++    Logger.warning(
++      "Agent task exited for issue_id=#{issue_id} session_id=#{session_id} reason=#{inspect(loggable_failure(reason, running_entry))}; scheduling retry"
++    )
+ 
+     next_attempt = next_retry_attempt_from_running(running_entry)
+ 
+-    schedule_issue_retry(state, issue_id, next_attempt, %{
+-      identifier: running_entry.identifier,
+-      issue_url: running_entry.issue.url,
+-      error: "agent exited: #{inspect(reason)}",
+-      worker_host: Map.get(running_entry, :worker_host),
+-      workspace_path: Map.get(running_entry, :workspace_path)
+-    })
++    case persist_attempt_outcome(
++           running_entry,
++           Map.get(running_entry, :failure_reason, reason),
++           false
++         ) do
++      {:ok, _issue} ->
++        schedule_issue_retry(state, issue_id, next_attempt, %{
++          identifier: running_entry.identifier,
++          issue_url: running_entry.issue.url,
++          error: "agent exited: #{inspect(loggable_failure(reason, running_entry))}",
++          worker_host: Map.get(running_entry, :worker_host),
++          workspace_path: Map.get(running_entry, :workspace_path)
++        })
++
++      {:error, _} ->
++        block_issue_from_entry(state, issue_id, running_entry, "durable failure hold")
++    end
++  end
++
++  defp loggable_failure(reason, entry),
++    do: if(Map.get(entry, :failure_context), do: :durable_failure, else: reason)
++
++  defp persist_attempt_outcome(
++         %{issue: issue, failure_context: %{record: record, authority: binding}},
++         reason,
++         blocked
++       ) do
++    next =
++      if(reason == :normal,
++        do: FailureIsolation.continue(record),
++        else: FailureIsolation.finish(record, reason, blocked)
++      )
++
++    with true <- is_map(next),
++         {:ok, _verified} <- Tracker.persist_failure_record(issue, next, record, binding) do
++      if next["status"] == "blocked", do: {:error, :durable_failure_hold}, else: {:ok, issue}
++    else
++      _ -> {:error, :durable_failure_hold}
++    end
++  end
++
++  defp persist_attempt_outcome(%{issue: issue}, _reason, _blocked), do: {:ok, issue}
++  defp persist_attempt_outcome(_entry, _reason, _blocked), do: {:error, :missing_issue}
++
++  defp prepare_durable_attempt(issue) do
++    case Tracker.bind_failure_authority() do
++      nil ->
++        {:ok, nil}
++
++      binding ->
++        with {:ok, record} <- Tracker.fetch_failure_record(issue, binding),
++             {:ok, scoped} <- FailureIsolation.scope(record, issue.id, binding.context),
++             {:ok, next} <- FailureIsolation.begin_attempt(scoped),
++             {:ok, _verified} <- Tracker.persist_failure_record(issue, next, record, binding) do
++          {:ok, %{record: next, authority: binding}}
++        end
++    end
+   end
+ 
+   defp maybe_dispatch(%State{} = state) do
+@@ -325,7 +423,9 @@ defmodule SymphonyElixir.Orchestrator do
+           |> reconcile_missing_running_issue_ids(running_ids, issues)
+ 
+         {:error, reason} ->
+-          Logger.debug("Failed to refresh running issue states: #{inspect(reason)}; keeping active workers")
++          Logger.debug(
++            "Failed to refresh running issue states: #{inspect(reason)}; keeping active workers"
++          )
+ 
+           state
+       end
+@@ -349,7 +449,9 @@ defmodule SymphonyElixir.Orchestrator do
+           |> reconcile_missing_blocked_issue_ids(blocked_ids, issues)
+ 
+         {:error, reason} ->
+-          Logger.debug("Failed to refresh blocked issue states: #{inspect(reason)}; keeping blocked issues")
++          Logger.debug(
++            "Failed to refresh blocked issue states: #{inspect(reason)}; keeping blocked issues"
++          )
+ 
+           state
+       end
+@@ -373,11 +475,25 @@ defmodule SymphonyElixir.Orchestrator do
+   end
+ 
+   @doc false
+-  @spec handle_retry_issue_lookup_for_test(Issue.t(), term(), String.t(), non_neg_integer(), map()) ::
++  @spec handle_retry_issue_lookup_for_test(
++          Issue.t(),
++          term(),
++          String.t(),
++          non_neg_integer(),
++          map()
++        ) ::
+           term()
+-  def handle_retry_issue_lookup_for_test(%Issue{} = issue, %State{} = state, issue_id, attempt, metadata)
++  def handle_retry_issue_lookup_for_test(
++        %Issue{} = issue,
++        %State{} = state,
++        issue_id,
++        attempt,
++        metadata
++      )
+       when is_binary(issue_id) and is_integer(attempt) and attempt >= 0 and is_map(metadata) do
+-    {:noreply, updated_state} = handle_retry_issue_lookup(issue, state, issue_id, attempt, metadata)
++    {:noreply, updated_state} =
++      handle_retry_issue_lookup(issue, state, issue_id, attempt, metadata)
++
+     updated_state
+   end
+ 
+@@ -402,7 +518,8 @@ defmodule SymphonyElixir.Orchestrator do
+   end
+ 
+   @doc false
+-  @spec select_worker_host_for_test(term(), String.t() | nil) :: String.t() | nil | :no_worker_capacity
++  @spec select_worker_host_for_test(term(), String.t() | nil) ::
++          String.t() | nil | :no_worker_capacity
+   def select_worker_host_for_test(%State{} = state, preferred_worker_host) do
+     select_worker_host(state, preferred_worker_host)
+   end
+@@ -421,12 +538,16 @@ defmodule SymphonyElixir.Orchestrator do
+   defp reconcile_issue_state(%Issue{} = issue, state, active_states, terminal_states) do
+     cond do
+       terminal_issue_state?(issue.state, terminal_states) ->
+-        Logger.info("Issue moved to terminal state: #{issue_context(issue)} state=#{issue.state}; stopping active agent")
++        Logger.info(
++          "Issue moved to terminal state: #{issue_context(issue)} state=#{issue.state}; stopping active agent"
++        )
+ 
+         terminate_running_issue(state, issue.id, true)
+ 
+       !issue_routable?(issue) ->
+-        Logger.info("Issue no longer routed to this worker: #{issue_context(issue)} assignee=#{inspect(issue.assignee_id)}; stopping active agent")
++        Logger.info(
++          "Issue no longer routed to this worker: #{issue_context(issue)} assignee=#{inspect(issue.assignee_id)}; stopping active agent"
++        )
+ 
+         terminate_running_issue(state, issue.id, false)
+ 
+@@ -434,7 +555,9 @@ defmodule SymphonyElixir.Orchestrator do
+         refresh_running_issue_state(state, issue)
+ 
+       true ->
+-        Logger.info("Issue moved to non-active state: #{issue_context(issue)} state=#{issue.state}; stopping active agent")
++        Logger.info(
++          "Issue moved to non-active state: #{issue_context(issue)} state=#{issue.state}; stopping active agent"
++        )
+ 
+         terminate_running_issue(state, issue.id, false)
+     end
+@@ -456,19 +579,28 @@ defmodule SymphonyElixir.Orchestrator do
+   defp reconcile_blocked_issue_state(%Issue{} = issue, state, active_states, terminal_states) do
+     cond do
+       terminal_issue_state?(issue.state, terminal_states) ->
+-        Logger.info("Blocked issue moved to terminal state: #{issue_context(issue)} state=#{issue.state}; releasing block")
++        Logger.info(
++          "Blocked issue moved to terminal state: #{issue_context(issue)} state=#{issue.state}; releasing block"
++        )
++
+         cleanup_issue_workspace(issue, Map.get(state.blocked, issue.id, %{}))
+         release_issue_claim(state, issue.id)
+ 
+       !issue_routable?(issue) ->
+-        Logger.info("Blocked issue no longer routed to this worker: #{issue_context(issue)} assignee=#{inspect(issue.assignee_id)}; releasing block")
++        Logger.info(
++          "Blocked issue no longer routed to this worker: #{issue_context(issue)} assignee=#{inspect(issue.assignee_id)}; releasing block"
++        )
++
+         release_issue_claim(state, issue.id)
+ 
+       active_issue_state?(issue.state, active_states) ->
+         refresh_blocked_issue_state(state, issue)
+ 
+       true ->
+-        Logger.info("Blocked issue moved to non-active state: #{issue_context(issue)} state=#{issue.state}; releasing block")
++        Logger.info(
++          "Blocked issue moved to non-active state: #{issue_context(issue)} state=#{issue.state}; releasing block"
++        )
++
+         release_issue_claim(state, issue.id)
+     end
+   end
+@@ -511,7 +643,10 @@ defmodule SymphonyElixir.Orchestrator do
+       if MapSet.member?(visible_issue_ids, issue_id) do
+         state_acc
+       else
+-        Logger.info("Blocked issue no longer visible during state refresh: issue_id=#{issue_id}; releasing block")
++        Logger.info(
++          "Blocked issue no longer visible during state refresh: issue_id=#{issue_id}; releasing block"
++        )
++
+         release_issue_claim(state_acc, issue_id)
+       end
+     end)
+@@ -522,10 +657,14 @@ defmodule SymphonyElixir.Orchestrator do
+   defp log_missing_running_issue(%State{} = state, issue_id) when is_binary(issue_id) do
+     case Map.get(state.running, issue_id) do
+       %{identifier: identifier} ->
+-        Logger.info("Issue no longer visible during running-state refresh: issue_id=#{issue_id} issue_identifier=#{identifier}; stopping active agent")
++        Logger.info(
++          "Issue no longer visible during running-state refresh: issue_id=#{issue_id} issue_identifier=#{identifier}; stopping active agent"
++        )
+ 
+       _ ->
+-        Logger.info("Issue no longer visible during running-state refresh: issue_id=#{issue_id}; stopping active agent")
++        Logger.info(
++          "Issue no longer visible during running-state refresh: issue_id=#{issue_id}; stopping active agent"
++        )
+     end
+   end
+ 
+@@ -613,25 +752,40 @@ defmodule SymphonyElixir.Orchestrator do
+       session_id = running_entry_session_id(running_entry)
+ 
+       if input_required_blocker?(running_entry) do
+-        error = blocker_error(running_entry, "stalled for #{elapsed_ms}ms after Codex requested operator input")
++        error =
++          blocker_error(
++            running_entry,
++            "stalled for #{elapsed_ms}ms after Codex requested operator input"
++          )
+ 
+-        Logger.warning("Issue blocked: issue_id=#{issue_id} issue_identifier=#{identifier} session_id=#{session_id} elapsed_ms=#{elapsed_ms}; #{error}")
++        Logger.warning(
++          "Issue blocked: issue_id=#{issue_id} issue_identifier=#{identifier} session_id=#{session_id} elapsed_ms=#{elapsed_ms}; #{error}"
++        )
+ 
+         state
+         |> record_session_completion_totals(running_entry)
+         |> stop_and_block_issue(issue_id, running_entry, error)
+       else
+-        Logger.warning("Issue stalled: issue_id=#{issue_id} issue_identifier=#{identifier} session_id=#{session_id} elapsed_ms=#{elapsed_ms}; restarting with backoff")
++        Logger.warning(
++          "Issue stalled: issue_id=#{issue_id} issue_identifier=#{identifier} session_id=#{session_id} elapsed_ms=#{elapsed_ms}; restarting with backoff"
++        )
+ 
+         next_attempt = next_retry_attempt_from_running(running_entry)
+ 
+-        state
+-        |> terminate_running_issue(issue_id, false)
+-        |> schedule_issue_retry(issue_id, next_attempt, %{
+-          identifier: identifier,
+-          issue_url: running_entry.issue.url,
+-          error: "stalled for #{elapsed_ms}ms without codex activity"
+-        })
++        outcome = persist_attempt_outcome(running_entry, :stalled_without_progress, false)
++        stopped = terminate_running_issue(state, issue_id, false)
++
++        case outcome do
++          {:ok, _} ->
++            schedule_issue_retry(stopped, issue_id, next_attempt, %{
++              identifier: identifier,
++              issue_url: running_entry.issue.url,
++              error: "stalled without progress"
++            })
++
++          {:error, _} ->
++            block_issue_from_entry(stopped, issue_id, running_entry, "durable failure hold")
++        end
+       end
+     else
+       state
+@@ -702,9 +856,14 @@ defmodule SymphonyElixir.Orchestrator do
+ 
+   defp completion_blocker_error(completion) do
+     case input_required_completion_outcome(completion) do
+-      outcome when outcome in [:input_required, :needs_input] -> "codex turn requires operator input"
+-      :approval_required -> "codex turn requires approval"
+-      nil -> nil
++      outcome when outcome in [:input_required, :needs_input] ->
++        "codex turn requires operator input"
++
++      :approval_required ->
++        "codex turn requires approval"
++
++      nil ->
++        nil
+     end
+   end
+ 
+@@ -745,6 +904,8 @@ defmodule SymphonyElixir.Orchestrator do
+   end
+ 
+   defp stop_and_block_issue(%State{} = state, issue_id, running_entry, error) do
++    persist_attempt_outcome(running_entry, :operator_input_required, true)
++
+     stop_running_task(
+       Map.get(running_entry, :pid),
+       Map.get(running_entry, :ref),
+@@ -796,7 +957,8 @@ defmodule SymphonyElixir.Orchestrator do
+   defp sort_issues_for_dispatch(issues) when is_list(issues) do
+     Enum.sort_by(issues, fn
+       %Issue{} = issue ->
+-        {priority_rank(issue.priority), issue_created_at_sort_key(issue), issue.identifier || issue.id || ""}
++        {priority_rank(issue.priority), issue_created_at_sort_key(issue),
++         issue.identifier || issue.id || ""}
+ 
+       _ ->
+         {priority_rank(nil), issue_created_at_sort_key(nil), ""}
+@@ -918,21 +1080,33 @@ defmodule SymphonyElixir.Orchestrator do
+   end
+ 
+   defp refresh_issue_for_dispatch(issue) do
+-    case revalidate_issue_for_dispatch(issue, &Tracker.fetch_issues_by_ids/1, terminal_state_set()) do
++    case revalidate_issue_for_dispatch(
++           issue,
++           &Tracker.fetch_issues_by_ids/1,
++           terminal_state_set()
++         ) do
+       {:ok, %Issue{} = refreshed_issue} ->
+         {:ok, refreshed_issue}
+ 
+       {:skip, :missing} ->
+-        Logger.info("Skipping dispatch; issue no longer active or visible: #{issue_context(issue)}")
++        Logger.info(
++          "Skipping dispatch; issue no longer active or visible: #{issue_context(issue)}"
++        )
++
+         {:skip, :missing}
+ 
+       {:skip, %Issue{} = refreshed_issue} ->
+-        Logger.info("Skipping stale dispatch after issue refresh: #{issue_context(refreshed_issue)} state=#{inspect(refreshed_issue.state)} blocked_by=#{length(refreshed_issue.blocked_by)}")
++        Logger.info(
++          "Skipping stale dispatch after issue refresh: #{issue_context(refreshed_issue)} state=#{inspect(refreshed_issue.state)} blocked_by=#{length(refreshed_issue.blocked_by)}"
++        )
+ 
+         {:skip, refreshed_issue}
+ 
+       {:error, reason} ->
+-        Logger.warning("Skipping dispatch; issue refresh failed for #{issue_context(issue)}: #{inspect(reason)}")
++        Logger.warning(
++          "Skipping dispatch; issue refresh failed for #{issue_context(issue)}: #{inspect(reason)}"
++        )
++
+         {:error, reason}
+     end
+   end
+@@ -942,26 +1116,54 @@ defmodule SymphonyElixir.Orchestrator do
+ 
+     case select_worker_host(state, preferred_worker_host) do
+       :no_worker_capacity ->
+-        Logger.debug("No SSH worker slots available for #{issue_context(issue)} preferred_worker_host=#{inspect(preferred_worker_host)}")
++        Logger.debug(
++          "No SSH worker slots available for #{issue_context(issue)} preferred_worker_host=#{inspect(preferred_worker_host)}"
++        )
++
+         state
+ 
+       worker_host ->
+-        spawn_issue_on_worker_host(state, issue, attempt, recipient, worker_host)
++        case prepare_durable_attempt(issue) do
++          {:ok, context} ->
++            spawn_issue_on_worker_host(state, issue, attempt, recipient, worker_host, context)
++
++          {:error, _} ->
++            block_issue_from_entry(
++              state,
++              issue.id,
++              %{issue: issue, identifier: issue.identifier},
++              "durable failure hold"
++            )
++        end
+     end
+   end
+ 
+-  defp spawn_issue_on_worker_host(%State{} = state, issue, attempt, recipient, worker_host) do
++  defp spawn_issue_on_worker_host(
++         %State{} = state,
++         issue,
++         attempt,
++         recipient,
++         worker_host,
++         context
++       ) do
+     case Task.Supervisor.start_child(state.task_supervisor, fn ->
+-           AgentRunner.run(issue, recipient, attempt: attempt, worker_host: worker_host)
++           AgentRunner.run(issue, recipient,
++             attempt: attempt,
++             worker_host: worker_host,
++             durable_failure_enabled: not is_nil(context)
++           )
+          end) do
+       {:ok, pid} ->
+         ref = Process.monitor(pid)
+ 
+-        Logger.info("Dispatching issue to agent: #{issue_context(issue)} pid=#{inspect(pid)} attempt=#{inspect(attempt)} worker_host=#{worker_host || "local"}")
++        Logger.info(
++          "Dispatching issue to agent: #{issue_context(issue)} pid=#{inspect(pid)} attempt=#{inspect(attempt)} worker_host=#{worker_host || "local"}"
++        )
+ 
+         running =
+           Map.put(state.running, issue.id, %{
+             pid: pid,
++            failure_context: context,
+             ref: ref,
+             identifier: issue.identifier,
+             issue: issue,
+@@ -991,15 +1193,34 @@ defmodule SymphonyElixir.Orchestrator do
+         }
+ 
+       {:error, reason} ->
+-        Logger.error("Unable to spawn agent for #{issue_context(issue)}: #{inspect(reason)}")
++        Logger.error(
++          "Unable to spawn agent for #{issue_context(issue)}: #{inspect(if(context, do: :durable_failure, else: reason))}"
++        )
++
+         next_attempt = if is_integer(attempt), do: attempt + 1, else: nil
+ 
+-        schedule_issue_retry(state, issue.id, next_attempt, %{
+-          identifier: issue.identifier,
+-          issue_url: issue.url,
+-          error: "failed to spawn agent: #{inspect(reason)}",
+-          worker_host: worker_host
+-        })
++        case persist_attempt_outcome(
++               %{issue: issue, failure_context: context},
++               {:worker_spawn, reason},
++               false
++             ) do
++          {:ok, _verified} ->
++            schedule_issue_retry(state, issue.id, next_attempt, %{
++              identifier: issue.identifier,
++              issue_url: issue.url,
++              error:
++                "failed to spawn agent: #{inspect(if(context, do: :durable_failure, else: reason))}",
++              worker_host: worker_host
++            })
++
++          {:error, _} ->
++            block_issue_from_entry(
++              state,
++              issue.id,
++              %{issue: issue, identifier: issue.identifier},
++              "durable failure hold"
++            )
++        end
+     end
+   end
+ 
+@@ -1053,7 +1274,9 @@ defmodule SymphonyElixir.Orchestrator do
+ 
+     error_suffix = if is_binary(error), do: " error=#{error}", else: ""
+ 
+-    Logger.warning("Retrying issue_id=#{issue_id} issue_identifier=#{identifier} in #{delay_ms}ms (attempt #{next_attempt})#{error_suffix}")
++    Logger.warning(
++      "Retrying issue_id=#{issue_id} issue_identifier=#{identifier} in #{delay_ms}ms (attempt #{next_attempt})#{error_suffix}"
++    )
+ 
+     %{
+       state
+@@ -1072,7 +1295,8 @@ defmodule SymphonyElixir.Orchestrator do
+     }
+   end
+ 
+-  defp pop_retry_attempt_state(%State{} = state, issue_id, retry_token) when is_reference(retry_token) do
++  defp pop_retry_attempt_state(%State{} = state, issue_id, retry_token)
++       when is_reference(retry_token) do
+     case Map.get(state.retry_attempts, issue_id) do
+       %{attempt: attempt, retry_token: ^retry_token} = retry_entry ->
+         metadata = %{
+@@ -1083,7 +1307,8 @@ defmodule SymphonyElixir.Orchestrator do
+           workspace_path: Map.get(retry_entry, :workspace_path)
+         }
+ 
+-        {:ok, attempt, metadata, %{state | retry_attempts: Map.delete(state.retry_attempts, issue_id)}}
++        {:ok, attempt, metadata,
++         %{state | retry_attempts: Map.delete(state.retry_attempts, issue_id)}}
+ 
+       _ ->
+         :missing
+@@ -1098,7 +1323,9 @@ defmodule SymphonyElixir.Orchestrator do
+         |> handle_retry_issue_lookup(state, issue_id, attempt, metadata)
+ 
+       {:error, reason} ->
+-        Logger.warning("Retry poll failed for issue_id=#{issue_id} issue_identifier=#{metadata[:identifier] || issue_id}: #{inspect(reason)}")
++        Logger.warning(
++          "Retry poll failed for issue_id=#{issue_id} issue_identifier=#{metadata[:identifier] || issue_id}: #{inspect(reason)}"
++        )
+ 
+         {:noreply,
+          schedule_issue_retry(
+@@ -1115,7 +1342,9 @@ defmodule SymphonyElixir.Orchestrator do
+ 
+     cond do
+       terminal_issue_state?(issue.state, terminal_states) ->
+-        Logger.info("Issue state is terminal: issue_id=#{issue_id} issue_identifier=#{issue.identifier} state=#{issue.state}; removing associated workspace")
++        Logger.info(
++          "Issue state is terminal: issue_id=#{issue_id} issue_identifier=#{issue.identifier} state=#{issue.state}; removing associated workspace"
++        )
+ 
+         cleanup_issue_workspace(issue, metadata)
+         {:noreply, release_issue_claim(state, issue_id)}
+@@ -1124,7 +1353,9 @@ defmodule SymphonyElixir.Orchestrator do
+         handle_active_retry(state, issue, attempt, metadata)
+ 
+       true ->
+-        Logger.debug("Issue left active states, removing claim issue_id=#{issue_id} issue_identifier=#{issue.identifier}")
++        Logger.debug(
++          "Issue left active states, removing claim issue_id=#{issue_id} issue_identifier=#{issue.identifier}"
++        )
+ 
+         {:noreply, release_issue_claim(state, issue_id)}
+     end
+@@ -1170,7 +1401,9 @@ defmodule SymphonyElixir.Orchestrator do
+         end)
+ 
+       {:error, reason} ->
+-        Logger.warning("Skipping startup terminal workspace cleanup; failed to fetch terminal issues: #{inspect(reason)}")
++        Logger.warning(
++          "Skipping startup terminal workspace cleanup; failed to fetch terminal issues: #{inspect(reason)}"
++        )
+     end
+   end
+ 
+@@ -1229,7 +1462,8 @@ defmodule SymphonyElixir.Orchestrator do
+     }
+   end
+ 
+-  defp retry_delay(attempt, metadata) when is_integer(attempt) and attempt > 0 and is_map(metadata) do
++  defp retry_delay(attempt, metadata)
++       when is_integer(attempt) and attempt > 0 and is_map(metadata) do
+     if metadata[:delay_type] == :continuation and attempt == 1 do
+       @continuation_retry_delay_ms
+     else
+@@ -1239,7 +1473,11 @@ defmodule SymphonyElixir.Orchestrator do
+ 
+   defp failure_retry_delay(attempt) do
+     max_delay_power = min(attempt - 1, 10)
+-    min(@failure_retry_base_ms * (1 <<< max_delay_power), Config.settings!().agent.max_retry_backoff_ms)
++
++    min(
++      @failure_retry_base_ms * (1 <<< max_delay_power),
++      Config.settings!().agent.max_retry_backoff_ms
++    )
+   end
+ 
+   defp normalize_retry_attempt(attempt) when is_integer(attempt) and attempt > 0, do: attempt
+@@ -1315,7 +1553,8 @@ defmodule SymphonyElixir.Orchestrator do
+     |> elem(0)
+   end
+ 
+-  defp running_worker_host_count(running, worker_host) when is_map(running) and is_binary(worker_host) do
++  defp running_worker_host_count(running, worker_host)
++       when is_map(running) and is_binary(worker_host) do
+     Enum.count(running, fn
+       {_issue_id, %{worker_host: ^worker_host}} -> true
+       _ -> false
+diff --git a/elixir/lib/symphony_elixir/tracker.ex b/elixir/lib/symphony_elixir/tracker.ex
+index f588e63..2e2267b 100644
+--- a/elixir/lib/symphony_elixir/tracker.ex
++++ b/elixir/lib/symphony_elixir/tracker.ex
+@@ -25,10 +25,110 @@ defmodule SymphonyElixir.Tracker do
+   @callback execute_agent_tool(String.t(), term(), keyword()) :: map()
+   @callback secret_environment_names(map()) :: [String.t()]
+   @callback validate_config(map()) :: :ok | {:error, term()}
++  @callback fetch_failure_record(Issue.t(), keyword()) :: {:ok, map()} | {:error, term()}
++  @callback persist_failure_record(Issue.t(), map(), keyword()) :: {:ok, map()} | {:error, term()}
+ 
+   @optional_callbacks agent_tool_specs: 0,
+                       execute_agent_tool: 3,
+-                      validate_config: 1
++                      validate_config: 1,
++                      persist_failure_record: 3,
++                      fetch_failure_record: 2
++
++  @spec bind_failure_authority() :: map() | nil
++  def bind_failure_authority do
++    settings = Config.settings!().tracker
++
++    if Map.get(Config.settings!().agent, :failure_isolation_enabled, false) do
++      %{
++        adapter: adapter(),
++        client:
++          if(settings.kind == "linear",
++            do:
++              Application.get_env(
++                :symphony_elixir,
++                :linear_client_module,
++                SymphonyElixir.Linear.Client
++              ),
++            else: adapter()
++          ),
++        identity: failure_authority_identity(settings),
++        context: Map.get(Config.settings!().agent, :failure_isolation_context)
++      }
++    end
++  end
++
++  @spec fetch_failure_record(Issue.t(), map()) :: {:ok, map()} | {:error, term()}
++  def fetch_failure_record(issue, binding) do
++    with :ok <- failure_authority_available(binding) do
++      binding.adapter.fetch_failure_record(issue, failure_options(binding))
++    end
++  end
++
++  @spec persist_failure_record(Issue.t(), map(), map(), map()) :: {:ok, map()} | {:error, term()}
++  def persist_failure_record(issue, record, expected, binding) do
++    with :ok <- failure_authority_available(binding) do
++      binding.adapter.persist_failure_record(
++        issue,
++        record,
++        Keyword.put(failure_options(binding), :expected_failure_record, expected)
++      )
++    end
++  end
++
++  defp failure_authority_available(%{
++         adapter: adapter,
++         client: client,
++         identity: identity,
++         context: context
++       }) do
++    cond do
++      not is_binary(context) or byte_size(context) not in 1..128 ->
++        {:error, :missing_failure_isolation_context}
++
++      Map.get(Config.settings!().agent, :failure_isolation_context) != context ->
++        {:error, :tracker_authority_changed}
++
++      failure_authority_identity(Config.settings!().tracker) != identity ->
++        {:error, :tracker_authority_changed}
++
++      not Code.ensure_loaded?(client) or not function_exported?(client, :fetch_failure_record, 2) or
++          not function_exported?(client, :persist_failure_record, 3) ->
++        {:error, :durable_failure_persistence_unsupported}
++
++      not Code.ensure_loaded?(adapter) or
++        not function_exported?(adapter, :fetch_failure_record, 2) or
++          not function_exported?(adapter, :persist_failure_record, 3) ->
++        {:error, :durable_failure_persistence_unsupported}
++
++      true ->
++        :ok
++    end
++  end
++
++  defp failure_authority_available(_binding),
++    do: {:error, :durable_failure_persistence_unsupported}
++
++  defp failure_options(binding),
++    do: Keyword.put(Map.to_list(binding), :tracker_settings, Config.settings!().tracker)
++
++  defp failure_authority_identity(settings) do
++    scope =
++      Map.take(settings, [
++        :kind,
++        :endpoint,
++        :project_slug,
++        :assignee,
++        :required_labels,
++        :active_states,
++        :terminal_states
++      ])
++
++    generation =
++      :crypto.hash(:sha256, :erlang.term_to_binary(Map.get(settings, :api_key)))
++      |> Base.encode16(case: :lower)
++
++    Map.put(scope, :credential_generation, generation)
++  end
+ 
+   @spec fetch_issues_by_states([String.t()]) :: {:ok, [Issue.t()]} | {:error, term()}
+   def fetch_issues_by_states(states) do
+diff --git a/elixir/lib/symphony_elixir/failure_isolation.ex b/elixir/lib/symphony_elixir/failure_isolation.ex
+new file mode 100644
+index 0000000..2870052
+--- /dev/null
++++ b/elixir/lib/symphony_elixir/failure_isolation.ex
+@@ -0,0 +1,241 @@
++defmodule SymphonyElixir.FailureIsolation do
++  @moduledoc """
++  Versioned failure state stored on the authoritative tracker issue.
++
++  An in-flight record is written and read back before spawning a worker. An
++  orphaned in-flight record after restart requires operator reconciliation.
++  Only an explicit operator progress reference resets a failure streak.
++  """
++
++  @prefix "symphony-failure-v1:"
++
++  @spec read(map() | nil) :: {:ok, map()} | {:error, atom()}
++  def read(nil), do: {:ok, initial()}
++
++  def read(record) do
++    if valid?(record), do: {:ok, record}, else: {:error, :invalid_failure_record}
++  end
++
++  @spec body(map()) :: String.t()
++  def body(record), do: @prefix <> Jason.encode!(record)
++
++  @spec from_comments([map()]) :: {:ok, map()} | {:error, atom()}
++  def from_comments(comments) do
++    Enum.reduce_while(comments, {:ok, []}, fn comment, {:ok, records} ->
++      case Map.get(comment, "body") do
++        @prefix <> json ->
++          case Jason.decode(json) do
++            {:ok, record} ->
++              if valid?(record),
++                do: {:cont, {:ok, [record | records]}},
++                else: {:halt, {:error, :invalid_failure_record}}
++
++            _ ->
++              {:halt, {:error, :invalid_failure_record}}
++          end
++
++        _ ->
++          {:cont, {:ok, records}}
++      end
++    end)
++    |> case do
++      {:ok, records} ->
++        records |> Enum.uniq() |> Enum.sort_by(& &1["sequence"]) |> chain(initial())
++
++      error ->
++        error
++    end
++  end
++
++  defp chain([], record), do: {:ok, record}
++
++  defp chain([next | rest], record) do
++    if next["sequence"] == record["sequence"] + 1 and next["parent"] == record["revision"],
++      do: chain(rest, next),
++      else: {:error, :ambiguous_failure_history}
++  end
++
++  @spec scope(map(), String.t(), String.t()) :: {:ok, map()} | {:error, atom()}
++  def scope(%{"sequence" => 0} = record, issue_id, context) do
++    if is_binary(issue_id) and byte_size(issue_id) in 1..128 and is_binary(context) and
++         byte_size(context) in 1..128,
++       do: {:ok, Map.merge(record, %{"issue_id" => issue_id, "context" => context})},
++       else: {:error, :invalid_failure_context}
++  end
++
++  def scope(%{"issue_id" => issue_id, "context" => context} = record, issue_id, context),
++    do: {:ok, record}
++
++  def scope(_record, _issue_id, _context), do: {:error, :failure_context_changed}
++
++  @spec begin_attempt(map()) :: {:ok, map()} | {:error, atom()}
++  def begin_attempt(%{"status" => "idle"} = record) do
++    {:ok, advance(record, %{"status" => "inflight"})}
++  end
++
++  def begin_attempt(_record), do: {:error, :durable_failure_hold}
++
++  @doc "An operator appends this event only after resolving/fencing the prior attempt."
++  @spec resume(map(), String.t()) :: {:ok, map()} | {:error, atom()}
++  def resume(record, progress_ref) when is_binary(progress_ref) do
++    if byte_size(progress_ref) in 1..128 and progress_ref != record["progress_ref"] do
++      {:ok,
++       advance(record, %{
++         "status" => "idle",
++         "count" => 0,
++         "failure" => nil,
++         "progress_ref" => progress_ref,
++         "failure_progress" => progress_ref
++       })}
++    else
++      {:error, :new_progress_reference_required}
++    end
++  end
++
++  @spec finish(map(), term(), boolean()) :: map() | {:error, atom()}
++  def finish(record, reason, blocked \\ false)
++
++  def finish(%{"status" => "inflight"} = record, reason, blocked) do
++    case identity(reason) do
++      :unconfirmed ->
++        advance(record, %{"status" => "blocked"})
++
++      confirmed ->
++        fingerprint = fingerprint(confirmed)
++
++        same =
++          record["failure"] == fingerprint and
++            record["failure_progress"] == record["progress_ref"]
++
++        count = if same, do: record["count"] + 1, else: 1
++
++        advance(record, %{
++          "failure" => fingerprint,
++          "failure_progress" => record["progress_ref"],
++          "count" => count,
++          "status" =>
++            if(
++              blocked or confirmed == :permission_denied or permission_denied?(reason) or
++                count >= 3,
++              do: "blocked",
++              else: "idle"
++            )
++        })
++    end
++  end
++
++  def finish(_record, _reason, _blocked), do: {:error, :durable_failure_hold}
++
++  @spec continue(map()) :: map() | {:error, atom()}
++  def continue(%{"status" => "inflight"} = record), do: advance(record, %{"status" => "idle"})
++  def continue(_record), do: {:error, :durable_failure_hold}
++
++  @spec permission_denied?(term()) :: boolean()
++  def permission_denied?(reason)
++      when reason in [:permission_denied, :eacces, :eperm, :forbidden, :unauthorized], do: true
++
++  def permission_denied?(reason) when is_tuple(reason),
++    do: reason |> Tuple.to_list() |> Enum.any?(&permission_denied?/1)
++
++  def permission_denied?(reason) when is_list(reason),
++    do: Enum.any?(reason, &permission_denied?/1)
++
++  def permission_denied?(%File.Error{reason: reason}), do: permission_denied?(reason)
++  def permission_denied?(_reason), do: false
++
++  @spec fingerprint(term()) :: String.t()
++  def fingerprint(reason) do
++    # Do not persist/log exception text, paths, tokens, PIDs or timestamps.
++    :crypto.hash(:sha256, :erlang.term_to_binary(reason)) |> Base.encode16(case: :lower)
++  end
++
++  defp identity(%File.Error{reason: reason}), do: [:file_error, reason]
++  defp identity(value) when is_atom(value), do: value
++
++  defp identity({:workspace_hook_failed, hook, status, _output})
++       when hook in ["after_create", "before_run", "after_run", "before_remove"] and
++              is_integer(status),
++       do: [:workspace_hook_failed, hook, status]
++
++  defp identity({:workspace_hook_timeout, hook, _timeout})
++       when hook in ["after_create", "before_run", "after_run", "before_remove"],
++       do: [:workspace_hook_timeout, hook]
++
++  defp identity({:workspace_prepare_failed, host, status, _output}) when is_integer(status),
++    do: [:workspace_prepare_failed, fingerprint(host), status]
++
++  defp identity({:turn_failed, %{"error" => %{"code" => code}}})
++       when code in ["permission_denied", "unauthorized", "forbidden", 401, 403],
++       do: :permission_denied
++
++  defp identity({:port_exit, status}) when is_integer(status), do: [:port_exit, status]
++
++  defp identity({:workspace_path_unreadable, _path, code}) when is_atom(code),
++    do: [:workspace_path_unreadable, code]
++
++  defp identity(value) when is_tuple(value), do: value |> Tuple.to_list() |> identity()
++
++  defp identity(value) when is_list(value) do
++    values = Enum.map(value, &identity/1)
++    if :unconfirmed in values, do: :unconfirmed, else: values
++  end
++
++  defp identity(_value), do: :unconfirmed
++
++  defp initial do
++    %{
++      "version" => 1,
++      "count" => 0,
++      "failure" => nil,
++      "failure_progress" => nil,
++      "progress_ref" => nil,
++      "status" => "idle",
++      "revision" => nil,
++      "parent" => nil,
++      "sequence" => 0,
++      "issue_id" => nil,
++      "context" => nil
++    }
++  end
++
++  defp valid?(
++         %{
++           "version" => 1,
++           "count" => count,
++           "status" => status,
++           "failure" => failure,
++           "failure_progress" => progress,
++           "progress_ref" => reference,
++           "revision" => revision,
++           "parent" => parent,
++           "sequence" => sequence,
++           "issue_id" => issue_id,
++           "context" => context
++         } = record
++       ) do
++    map_size(record) == 11 and is_integer(count) and count >= 0 and
++      status in ["idle", "inflight", "blocked"] and
++      nullable_string?(failure) and nullable_string?(progress) and
++      nullable_string?(reference) and nullable_string?(revision) and nullable_string?(parent) and
++      is_integer(sequence) and sequence >= 0 and nullable_string?(issue_id) and
++      nullable_string?(context)
++  end
++
++  defp valid?(_record), do: false
++
++  defp nullable_string?(value),
++    do: is_nil(value) or (is_binary(value) and byte_size(value) <= 128)
++
++  defp advance(record, changes) do
++    Map.merge(
++      record,
++      Map.merge(changes, %{
++        "parent" => record["revision"],
++        "revision" => nonce(),
++        "sequence" => record["sequence"] + 1
++      })
++    )
++  end
++
++  defp nonce, do: :crypto.strong_rand_bytes(16) |> Base.encode16(case: :lower)
++end
+diff --git a/elixir/test/symphony_elixir/failure_isolation_test.exs b/elixir/test/symphony_elixir/failure_isolation_test.exs
+new file mode 100644
+index 0000000..2cc3bfb
+--- /dev/null
++++ b/elixir/test/symphony_elixir/failure_isolation_test.exs
+@@ -0,0 +1,183 @@
++defmodule SymphonyElixir.FailureIsolationTest do
++  use ExUnit.Case, async: false
++  alias SymphonyElixir.{FailureIsolation, Linear.Client, Tracker.Issue}
++
++  defp initial do
++    {:ok, record} = FailureIsolation.from_comments([])
++    record
++  end
++
++  defp comment(record), do: %{"body" => FailureIsolation.body(record)}
++
++  defp failed(record, reason) do
++    {:ok, started} = FailureIsolation.begin_attempt(record)
++    {started, FailureIsolation.finish(started, reason)}
++  end
++
++  test "initial failure plus two same confirmed setup failures blocks after restart" do
++    {a, b} = failed(initial(), {:workspace_hook_failed, "before_run", 7, "secret-one"})
++    {:ok, reread} = FailureIsolation.from_comments([comment(a), comment(b)])
++    {c, d} = failed(reread, {:workspace_hook_failed, "before_run", 7, "changed-output"})
++    {e, f} = failed(d, {:workspace_hook_failed, "before_run", 7, "other-output"})
++    {:ok, restarted} = FailureIsolation.from_comments(Enum.map([f, e, d, c, b, a], &comment/1))
++    assert restarted["count"] == 3
++    assert restarted["status"] == "blocked"
++    assert {:error, :durable_failure_hold} = FailureIsolation.begin_attempt(restarted)
++    refute String.contains?(FailureIsolation.body(restarted), "secret")
++  end
++
++  test "normal continuation and runtime messages do not reset streak; distinct status does" do
++    {_a, b} = failed(initial(), {:workspace_hook_failed, "before_run", 7, ""})
++    {:ok, started} = FailureIsolation.begin_attempt(b)
++    continued = FailureIsolation.continue(started)
++    assert continued["count"] == 1
++    {_c, d} = failed(continued, {:workspace_hook_failed, "before_run", 8, ""})
++    assert d["count"] == 1
++    assert d["failure"] != b["failure"]
++  end
++
++  test "typed permission denial blocks immediately without path or exception message" do
++    {_a, b} =
++      failed(initial(), %File.Error{reason: :eacces, path: "/secret/path", action: "read"})
++
++    assert b["status"] == "blocked"
++    assert b["count"] == 1
++    refute String.contains?(FailureIsolation.body(b), "/secret")
++  end
++
++  test "restart never dispatches orphaned inflight or an opaque failure" do
++    {:ok, a} = FailureIsolation.begin_attempt(initial())
++    {:ok, restarted} = FailureIsolation.from_comments([comment(a)])
++    assert {:error, :durable_failure_hold} = FailureIsolation.begin_attempt(restarted)
++
++    b =
++      FailureIsolation.finish(
++        a,
++        {%RuntimeError{message: "token"}, [{__MODULE__, :test, 0, [line: 12]}]}
++      )
++
++    assert b["status"] == "blocked"
++    assert b["count"] == 0
++  end
++
++  test "operator resolution requires new reference; resumes without reviving prior streak" do
++    {_a, b} = failed(initial(), :permission_denied)
++    {:ok, resolved} = FailureIsolation.resume(b, "accepted-resolution-1")
++    assert resolved["count"] == 0
++    assert resolved["status"] == "idle"
++
++    assert {:error, :new_progress_reference_required} =
++             FailureIsolation.resume(resolved, "accepted-resolution-1")
++
++    {_c, d} = failed(resolved, :permission_denied)
++    assert d["count"] == 1
++  end
++
++  test "duplicate event is idempotent; fork, missing parent and malformed state hold" do
++    {:ok, a} = FailureIsolation.begin_attempt(initial())
++    assert {:ok, ^a} = FailureIsolation.from_comments([comment(a), comment(a)])
++    {:ok, other} = FailureIsolation.begin_attempt(initial())
++
++    assert {:error, :ambiguous_failure_history} =
++             FailureIsolation.from_comments([comment(a), comment(other)])
++
++    b = FailureIsolation.continue(a)
++    assert {:error, :ambiguous_failure_history} = FailureIsolation.from_comments([comment(b)])
++
++    assert {:error, :invalid_failure_record} =
++             FailureIsolation.from_comments([%{"body" => "symphony-failure-v1:{}"}])
++  end
++
++  test "invalid scope cannot produce an append; changed issue/source context holds" do
++    assert {:error, :invalid_failure_context} =
++             FailureIsolation.scope(initial(), "id", String.duplicate("x", 129))
++
++    {:ok, scoped} = FailureIsolation.scope(initial(), "id", "source-sha")
++    {:ok, started} = FailureIsolation.begin_attempt(scoped)
++    {:ok, reread} = FailureIsolation.from_comments([comment(started)])
++    assert {:ok, ^reread} = FailureIsolation.scope(reread, "id", "source-sha")
++
++    assert {:error, :failure_context_changed} =
++             FailureIsolation.scope(reread, "different", "source-sha")
++
++    assert {:error, :failure_context_changed} = FailureIsolation.scope(reread, "id", "new-source")
++    denied = FailureIsolation.finish(started, {:turn_failed, %{"error" => %{"code" => 403}}})
++    assert denied["status"] == "blocked"
++    assert denied["count"] == 1
++  end
++
++  test "Linear unknown append outcome resolves by exact readback, never duplicate write" do
++    {:ok, store} = Agent.start_link(fn -> %{comments: [], writes: 0} end)
++    on_exit(fn -> if Process.alive?(store), do: Agent.stop(store) end)
++
++    request = fn payload, _headers ->
++      if String.contains?(payload["query"], "mutation SymphonyFailureRecord") do
++        body = payload["variables"]["input"]["body"]
++
++        Agent.update(store, fn s ->
++          %{s | comments: s.comments ++ [%{"body" => body}], writes: s.writes + 1}
++        end)
++
++        {:error, :simulated_timeout}
++      else
++        comments = Agent.get(store, & &1.comments)
++
++        {:ok,
++         %{
++           status: 200,
++           body: %{
++             "data" => %{
++               "issue" => %{
++                 "comments" => %{"nodes" => comments, "pageInfo" => %{"hasNextPage" => false}}
++               }
++             }
++           }
++         }}
++      end
++    end
++
++    opts = [
++      tracker_settings: %{api_key: "test-only", endpoint: "https://unused.invalid"},
++      request_fun: request
++    ]
++
++    issue = %Issue{id: "test-issue", description: "human text"}
++    {:ok, next} = FailureIsolation.begin_attempt(initial())
++    assert {:ok, ^next} = Client.persist_failure_record(issue, next, opts)
++    assert issue.description == "human text"
++    assert {:ok, _} = Client.persist_failure_record(issue, next, opts)
++    assert Agent.get(store, & &1.writes) == 1
++  end
++
++  test "paginated read reconstructs durable chain and rejects partial GraphQL errors" do
++    {a, b} = failed(initial(), :setup_failed)
++
++    opts = [
++      tracker_settings: %{api_key: "test-only", endpoint: "https://unused.invalid"},
++      request_fun: fn payload, _ ->
++        {nodes, page} =
++          if payload["variables"]["after"] == nil,
++            do: {[comment(b)], %{"hasNextPage" => true, "endCursor" => "page2"}},
++            else: {[comment(a)], %{"hasNextPage" => false}}
++
++        {:ok,
++         %{
++           status: 200,
++           body: %{
++             "data" => %{"issue" => %{"comments" => %{"nodes" => nodes, "pageInfo" => page}}}
++           }
++         }}
++      end
++    ]
++
++    assert {:ok, ^b} = Client.fetch_failure_record(%Issue{id: "test"}, opts)
++
++    bad =
++      Keyword.put(opts, :request_fun, fn _, _ ->
++        {:ok, %{status: 200, body: %{"errors" => [%{"message" => "unknown"}], "data" => nil}}}
++      end)
++
++    assert {:error, :failure_record_unconfirmed} =
++             Client.fetch_failure_record(%Issue{id: "test"}, bad)
++  end
++end
