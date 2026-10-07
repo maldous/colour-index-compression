@@ -9,3 +9,5 @@ Focused checks used the retained official runtime in a bounded helper inside the
 Authoritative issue comments are trusted work records, not protection against privileged deletion/forgery or competing native parents. One native mutation owner and normal technical custody remain required. An operator resolution uses a new explicit progress reference and exact current chain; ordinary reopen does not bypass a hold.
 
 Tracking: https://linear.app/maldous/issue/CIX-243/eliquinn-persist-native-symphony-failure-isolation-across-restart
+
+The same Quinn review identified and repaired a P1 stalled-worker publication race. The successor patch keeps authoritative in-flight state until exact local worker PID termination is confirmed, then publishes a retryable outcome. A focused real OTP interruption check passed while the independent Task.Supervisor was suspended: replacement parent held before a second spawn with the old worker still alive. This establishes the local OTP boundary; it does not assert a broader OS descendant/AppServer-session cleanup guarantee. Initial frozen patch and earlier results remain retained on the managed host.

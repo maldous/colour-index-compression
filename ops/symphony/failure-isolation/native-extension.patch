@@ -520,7 +520,7 @@ index fb32b60..646dae8 100644
        blockers = extract_blockers(issue)
  
 diff --git a/elixir/lib/symphony_elixir/orchestrator.ex b/elixir/lib/symphony_elixir/orchestrator.ex
-index b52e991..18b2168 100644
+index b52e991..65d449f 100644
 --- a/elixir/lib/symphony_elixir/orchestrator.ex
 +++ b/elixir/lib/symphony_elixir/orchestrator.ex
 @@ -7,7 +7,15 @@ defmodule SymphonyElixir.Orchestrator do
@@ -871,7 +871,7 @@ index b52e991..18b2168 100644
      end
    end
  
-@@ -613,25 +752,40 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -613,31 +752,78 @@ defmodule SymphonyElixir.Orchestrator do
        session_id = running_entry_session_id(running_entry)
  
        if input_required_blocker?(running_entry) do
@@ -905,24 +905,62 @@ index b52e991..18b2168 100644
 -          issue_url: running_entry.issue.url,
 -          error: "stalled for #{elapsed_ms}ms without codex activity"
 -        })
-+        outcome = persist_attempt_outcome(running_entry, :stalled_without_progress, false)
-+        stopped = terminate_running_issue(state, issue_id, false)
++        case confirm_stalled_worker_stop(running_entry, state.task_supervisor) do
++          :ok ->
++            stopped = terminate_running_issue(state, issue_id, false)
 +
-+        case outcome do
-+          {:ok, _} ->
-+            schedule_issue_retry(stopped, issue_id, next_attempt, %{
-+              identifier: identifier,
-+              issue_url: running_entry.issue.url,
-+              error: "stalled without progress"
-+            })
++            case persist_attempt_outcome(running_entry, :stalled_without_progress, false) do
++              {:ok, _} ->
++                schedule_issue_retry(stopped, issue_id, next_attempt, %{
++                  identifier: identifier,
++                  issue_url: running_entry.issue.url,
++                  error: "stalled without progress"
++                })
++
++              {:error, _} ->
++                block_issue_from_entry(stopped, issue_id, running_entry, "durable failure hold")
++            end
 +
 +          {:error, _} ->
-+            block_issue_from_entry(stopped, issue_id, running_entry, "durable failure hold")
++            held =
++              block_issue_from_entry(state, issue_id, running_entry, "worker stop unconfirmed")
++
++            %{held | running: state.running}
 +        end
        end
      else
        state
-@@ -702,9 +856,14 @@ defmodule SymphonyElixir.Orchestrator do
+     end
+   end
+ 
++  defp confirm_stalled_worker_stop(%{pid: pid} = entry, supervisor)
++       when is_pid(pid) and node(pid) == node() do
++    monitor = Process.monitor(pid)
++
++    try do
++      stop_running_task(pid, Map.get(entry, :ref), supervisor)
++
++      receive do
++        {:DOWN, ^monitor, :process, ^pid, _reason} -> :ok
++      after
++        1_000 ->
++          if Process.alive?(pid), do: {:error, :worker_stop_unconfirmed}, else: :ok
++      end
++    catch
++      :exit, _ ->
++        if Process.alive?(pid), do: {:error, :worker_stop_unconfirmed}, else: :ok
++    after
++      Process.demonitor(monitor, [:flush])
++    end
++  end
++
++  defp confirm_stalled_worker_stop(_entry, _supervisor),
++    do: {:error, :worker_stop_unconfirmed}
++
+   defp stall_elapsed_ms(running_entry, now) do
+     running_entry
+     |> last_activity_timestamp()
+@@ -702,9 +888,14 @@ defmodule SymphonyElixir.Orchestrator do
  
    defp completion_blocker_error(completion) do
      case input_required_completion_outcome(completion) do
@@ -940,7 +978,7 @@ index b52e991..18b2168 100644
      end
    end
  
-@@ -745,6 +904,8 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -745,6 +936,8 @@ defmodule SymphonyElixir.Orchestrator do
    end
  
    defp stop_and_block_issue(%State{} = state, issue_id, running_entry, error) do
@@ -949,7 +987,7 @@ index b52e991..18b2168 100644
      stop_running_task(
        Map.get(running_entry, :pid),
        Map.get(running_entry, :ref),
-@@ -796,7 +957,8 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -796,7 +989,8 @@ defmodule SymphonyElixir.Orchestrator do
    defp sort_issues_for_dispatch(issues) when is_list(issues) do
      Enum.sort_by(issues, fn
        %Issue{} = issue ->
@@ -959,7 +997,7 @@ index b52e991..18b2168 100644
  
        _ ->
          {priority_rank(nil), issue_created_at_sort_key(nil), ""}
-@@ -918,21 +1080,33 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -918,21 +1112,33 @@ defmodule SymphonyElixir.Orchestrator do
    end
  
    defp refresh_issue_for_dispatch(issue) do
@@ -997,7 +1035,7 @@ index b52e991..18b2168 100644
          {:error, reason}
      end
    end
-@@ -942,26 +1116,54 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -942,26 +1148,54 @@ defmodule SymphonyElixir.Orchestrator do
  
      case select_worker_host(state, preferred_worker_host) do
        :no_worker_capacity ->
@@ -1057,7 +1095,7 @@ index b52e991..18b2168 100644
              ref: ref,
              identifier: issue.identifier,
              issue: issue,
-@@ -991,15 +1193,34 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -991,15 +1225,34 @@ defmodule SymphonyElixir.Orchestrator do
          }
  
        {:error, reason} ->
@@ -1099,7 +1137,7 @@ index b52e991..18b2168 100644
      end
    end
  
-@@ -1053,7 +1274,9 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -1053,7 +1306,9 @@ defmodule SymphonyElixir.Orchestrator do
  
      error_suffix = if is_binary(error), do: " error=#{error}", else: ""
  
@@ -1110,7 +1148,7 @@ index b52e991..18b2168 100644
  
      %{
        state
-@@ -1072,7 +1295,8 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -1072,7 +1327,8 @@ defmodule SymphonyElixir.Orchestrator do
      }
    end
  
@@ -1120,7 +1158,7 @@ index b52e991..18b2168 100644
      case Map.get(state.retry_attempts, issue_id) do
        %{attempt: attempt, retry_token: ^retry_token} = retry_entry ->
          metadata = %{
-@@ -1083,7 +1307,8 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -1083,7 +1339,8 @@ defmodule SymphonyElixir.Orchestrator do
            workspace_path: Map.get(retry_entry, :workspace_path)
          }
  
@@ -1130,7 +1168,7 @@ index b52e991..18b2168 100644
  
        _ ->
          :missing
-@@ -1098,7 +1323,9 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -1098,7 +1355,9 @@ defmodule SymphonyElixir.Orchestrator do
          |> handle_retry_issue_lookup(state, issue_id, attempt, metadata)
  
        {:error, reason} ->
@@ -1141,7 +1179,7 @@ index b52e991..18b2168 100644
  
          {:noreply,
           schedule_issue_retry(
-@@ -1115,7 +1342,9 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -1115,7 +1374,9 @@ defmodule SymphonyElixir.Orchestrator do
  
      cond do
        terminal_issue_state?(issue.state, terminal_states) ->
@@ -1152,7 +1190,7 @@ index b52e991..18b2168 100644
  
          cleanup_issue_workspace(issue, metadata)
          {:noreply, release_issue_claim(state, issue_id)}
-@@ -1124,7 +1353,9 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -1124,7 +1385,9 @@ defmodule SymphonyElixir.Orchestrator do
          handle_active_retry(state, issue, attempt, metadata)
  
        true ->
@@ -1163,7 +1201,7 @@ index b52e991..18b2168 100644
  
          {:noreply, release_issue_claim(state, issue_id)}
      end
-@@ -1170,7 +1401,9 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -1170,7 +1433,9 @@ defmodule SymphonyElixir.Orchestrator do
          end)
  
        {:error, reason} ->
@@ -1174,7 +1212,7 @@ index b52e991..18b2168 100644
      end
    end
  
-@@ -1229,7 +1462,8 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -1229,7 +1494,8 @@ defmodule SymphonyElixir.Orchestrator do
      }
    end
  
@@ -1184,7 +1222,7 @@ index b52e991..18b2168 100644
      if metadata[:delay_type] == :continuation and attempt == 1 do
        @continuation_retry_delay_ms
      else
-@@ -1239,7 +1473,11 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -1239,7 +1505,11 @@ defmodule SymphonyElixir.Orchestrator do
  
    defp failure_retry_delay(attempt) do
      max_delay_power = min(attempt - 1, 10)
@@ -1197,7 +1235,7 @@ index b52e991..18b2168 100644
    end
  
    defp normalize_retry_attempt(attempt) when is_integer(attempt) and attempt > 0, do: attempt
-@@ -1315,7 +1553,8 @@ defmodule SymphonyElixir.Orchestrator do
+@@ -1315,7 +1585,8 @@ defmodule SymphonyElixir.Orchestrator do
      |> elem(0)
    end
  
