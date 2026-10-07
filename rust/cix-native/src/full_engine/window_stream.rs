@@ -276,7 +276,7 @@ where
             || plain == 0
             || plain > cap
             || packed > limits.intermediate_bytes
-            || packed > limits.memory_bytes
+            || packed >= limits.memory_bytes
             || total
                 .checked_add(plain as u64)
                 .is_none_or(|next| next > limits.output_bytes as u64)
@@ -287,6 +287,15 @@ where
         payload
             .try_reserve_exact(packed)
             .map_err(|_| "CIXW1 payload allocation")?;
+        // The payload stays live during decoding; charge its actual capacity
+        // before initializing or reading a body that cannot be decoded.
+        let decoder_memory = limits
+            .memory_bytes
+            .checked_sub(payload.capacity())
+            .ok_or("CIXW1 payload memory limit")?;
+        if decoder_memory == 0 {
+            return Err("CIXW1 payload leaves no decoder memory".into());
+        }
         payload.resize(packed, 0);
         exact(&mut source, &mut payload)?;
         archive = archive
@@ -297,18 +306,12 @@ where
         }
         let nested_limits = OperationLimits {
             // The payload buffer remains live while its archive decoder runs.
-            memory_bytes: limits
-                .memory_bytes
-                .checked_sub(payload.capacity())
-                .ok_or("CIXW1 payload memory limit")?,
+            memory_bytes: decoder_memory,
             output_bytes: plain,
             intermediate_bytes: limits.intermediate_bytes,
             deadline: limits.deadline,
             cancellation: limits.cancellation.clone(),
         };
-        if nested_limits.memory_bytes == 0 {
-            return Err("CIXW1 payload leaves no decoder memory".into());
-        }
         let mut writer = RecordWriter {
             destination,
             expected: plain,
@@ -358,5 +361,98 @@ mod tests {
             *archive.last().unwrap(),
             Sha256::digest(b"abcdef").as_slice()[31]
         );
+    }
+
+    #[test]
+    fn decoder_rejects_exhausted_payload_budget_before_body_read() {
+        struct HeaderOnlyReader {
+            headers: Cursor<Vec<u8>>,
+            body_reads: usize,
+        }
+        impl Read for HeaderOnlyReader {
+            fn read(&mut self, bytes: &mut [u8]) -> std::io::Result<usize> {
+                if self.headers.position() == self.headers.get_ref().len() as u64 {
+                    self.body_reads += 1;
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        "payload body must not be read",
+                    ));
+                }
+                self.headers.read(bytes)
+            }
+        }
+        let limits = OperationLimits {
+            memory_bytes: 64,
+            output_bytes: 1,
+            intermediate_bytes: 65,
+            deadline: None,
+            cancellation: None,
+        };
+        for packed in [64u32, 65] {
+            let mut headers = Vec::new();
+            headers.extend_from_slice(MAGIC);
+            headers.push(VERSION);
+            headers.extend_from_slice(&1u32.to_le_bytes());
+            headers.push(RECORD);
+            headers.extend_from_slice(&0u64.to_le_bytes());
+            headers.extend_from_slice(&1u32.to_le_bytes());
+            headers.extend_from_slice(&packed.to_le_bytes());
+            headers.extend_from_slice(&Sha256::digest(b"x"));
+            assert_eq!(headers.len(), HEADER + RECORD_HEADER);
+            let mut reader = HeaderOnlyReader {
+                headers: Cursor::new(headers),
+                body_reads: 0,
+            };
+            let mut destination = b"unchanged".to_vec();
+            let mut callbacks = 0;
+            let error = decode(&mut reader, &mut destination, &limits, |_, _, _| {
+                callbacks += 1;
+                Ok(())
+            })
+            .unwrap_err();
+            assert_eq!(error, "CIXW1 record limits");
+            assert_eq!(reader.headers.position(), (HEADER + RECORD_HEADER) as u64);
+            assert_eq!(reader.body_reads, 0);
+            assert_eq!(callbacks, 0);
+            assert_eq!(destination, b"unchanged");
+        }
+    }
+
+    #[test]
+    fn decoder_roundtrips_payload_with_remaining_memory() {
+        let input = b"abcdefg";
+        let encode_limits = EncodeLimits {
+            window_bytes: 3,
+            memory_bytes: 64,
+            output_bytes: 512,
+            deadline: None,
+            cancellation: None,
+        };
+        let mut archive = Vec::new();
+        let encoded = encode(Cursor::new(input), &mut archive, &encode_limits, |window, _| {
+            Ok(window.to_vec())
+        })
+        .unwrap();
+        let decode_limits = OperationLimits {
+            memory_bytes: 64,
+            output_bytes: input.len(),
+            intermediate_bytes: 3,
+            deadline: None,
+            cancellation: None,
+        };
+        let mut restored = Vec::new();
+        let mut callbacks = 0;
+        let decoded = decode(Cursor::new(&archive), &mut restored, &decode_limits, |payload, out, nested| {
+            callbacks += 1;
+            assert!(payload.len() < decode_limits.memory_bytes);
+            assert!(nested.memory_bytes > 0);
+            assert!(nested.memory_bytes <= decode_limits.memory_bytes - payload.len());
+            assert_eq!(nested.output_bytes, payload.len());
+            out.write_all(payload).map_err(|e| e.to_string())
+        })
+        .unwrap();
+        assert_eq!(callbacks, 3);
+        assert_eq!(restored, input);
+        assert_eq!(decoded, encoded);
     }
 }
