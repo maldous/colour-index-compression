@@ -1,0 +1,271 @@
+--- a/lib/symphony_elixir/codex/app_server.ex
++++ b/lib/symphony_elixir/codex/app_server.ex
+@@ -91,7 +91,15 @@
+         DynamicTool.execute(tool, arguments, dynamic_tool_binding, issue: issue)
+       end)
+ 
+-    case start_turn(port, thread_id, prompt, issue, workspace, approval_policy, turn_sandbox_policy) do
++    case start_turn(
++           port,
++           thread_id,
++           prompt,
++           issue,
++           workspace,
++           approval_policy,
++           turn_sandbox_policy
++         ) do
+       {:ok, turn_id} ->
+         session_id = "#{thread_id}-#{turn_id}"
+         Logger.info("Codex session started for #{issue_context(issue)} session_id=#{session_id}")
+@@ -109,7 +117,9 @@
+ 
+         case await_turn_completion(port, on_message, tool_executor, auto_approve_requests) do
+           {:ok, result} ->
+-            Logger.info("Codex session completed for #{issue_context(issue)} session_id=#{session_id}")
++            Logger.info(
++              "Codex session completed for #{issue_context(issue)} session_id=#{session_id}"
++            )
+ 
+             {:ok,
+              %{
+@@ -120,7 +130,9 @@
+              }}
+ 
+           {:error, reason} ->
+-            Logger.warning("Codex session ended with error for #{issue_context(issue)} session_id=#{session_id}: #{inspect(reason)}")
++            Logger.warning(
++              "Codex session ended with error for #{issue_context(issue)} session_id=#{session_id}: #{inspect(reason)}"
++            )
+ 
+             emit_message(
+               on_message,
+@@ -167,7 +179,8 @@
+           {:error, {:invalid_workspace_cwd, :symlink_escape, expanded_workspace, canonical_root}}
+ 
+         true ->
+-          {:error, {:invalid_workspace_cwd, :outside_workspace_root, canonical_workspace, canonical_root}}
++          {:error,
++           {:invalid_workspace_cwd, :outside_workspace_root, canonical_workspace, canonical_root}}
+       end
+     else
+       {:error, {:path_canonicalize_failed, path, reason}} ->
+@@ -306,8 +319,14 @@
+ 
+   defp do_start_session(port, workspace, session_policies, dynamic_tool_binding) do
+     case send_initialize(port) do
+-      :ok -> start_thread(port, workspace, session_policies, dynamic_tool_binding)
+-      {:error, reason} -> {:error, reason}
++      :ok ->
++        case start_thread(port, workspace, session_policies, dynamic_tool_binding) do
++          {:error, reason} -> {:error, {:startup_stage, :thread_start, reason}}
++          result -> result
++        end
++
++      {:error, reason} ->
++        {:error, {:startup_stage, :initialize, reason}}
+     end
+   end
+ 
+@@ -376,11 +395,26 @@
+     )
+   end
+ 
+-  defp receive_loop(port, on_message, timeout_ms, pending_line, tool_executor, auto_approve_requests) do
++  defp receive_loop(
++         port,
++         on_message,
++         timeout_ms,
++         pending_line,
++         tool_executor,
++         auto_approve_requests
++       ) do
+     receive do
+       {^port, {:data, {:eol, chunk}}} ->
+         complete_line = pending_line <> to_string(chunk)
+-        handle_incoming(port, on_message, complete_line, timeout_ms, tool_executor, auto_approve_requests)
++
++        handle_incoming(
++          port,
++          on_message,
++          complete_line,
++          timeout_ms,
++          tool_executor,
++          auto_approve_requests
++        )
+ 
+       {^port, {:data, {:noeol, chunk}}} ->
+         receive_loop(
+@@ -746,7 +780,9 @@
+     }
+   end
+ 
+-  defp dynamic_tool_output(%{"contentItems" => [%{"text" => text} | _]}) when is_binary(text), do: text
++  defp dynamic_tool_output(%{"contentItems" => [%{"text" => text} | _]}) when is_binary(text),
++    do: text
++
+   defp dynamic_tool_output(result), do: Jason.encode!(result, pretty: true)
+ 
+   defp dynamic_tool_content_items(output) when is_binary(output) do
+@@ -833,7 +869,8 @@
+        ),
+        do: :input_required
+ 
+-  defp tool_request_user_input_approval_answers(%{"questions" => questions}) when is_list(questions) do
++  defp tool_request_user_input_approval_answers(%{"questions" => questions})
++       when is_list(questions) do
+     answers =
+       Enum.reduce_while(questions, %{}, fn question, acc ->
+         case tool_request_user_input_approval_answer(question) do
+@@ -889,7 +926,8 @@
+       |> String.trim()
+       |> String.downcase()
+ 
+-    String.starts_with?(normalized_label, "approve") or String.starts_with?(normalized_label, "allow")
++    String.starts_with?(normalized_label, "approve") or
++      String.starts_with?(normalized_label, "allow")
+   end
+ 
+   defp await_response(port, request_id) do
+@@ -980,7 +1018,12 @@
+   end
+ 
+   defp emit_message(on_message, event, details, metadata) when is_function(on_message, 1) do
+-    message = metadata |> Map.merge(details) |> Map.put(:event, event) |> Map.put(:timestamp, DateTime.utc_now())
++    message =
++      metadata
++      |> Map.merge(details)
++      |> Map.put(:event, event)
++      |> Map.put(:timestamp, DateTime.utc_now())
++
+     on_message.(message)
+   end
+ 
+@@ -1007,7 +1050,8 @@
+   defp default_on_message(_message), do: :ok
+ 
+   defp tool_call_name(params) when is_map(params) do
+-    case Map.get(params, "tool") || Map.get(params, :tool) || Map.get(params, "name") || Map.get(params, :name) do
++    case Map.get(params, "tool") || Map.get(params, :tool) || Map.get(params, "name") ||
++           Map.get(params, :name) do
+       name when is_binary(name) ->
+         case String.trim(name) do
+           "" -> nil
+--- a/lib/symphony_elixir/config/schema.ex
++++ b/lib/symphony_elixir/config/schema.ex
+@@ -191,10 +191,12 @@
+ 
+       field(:approval_policy, StringOrMap,
+         default: %{
+-          "reject" => %{
+-            "sandbox_approval" => true,
+-            "rules" => true,
+-            "mcp_elicitations" => true
++          "granular" => %{
++            "sandbox_approval" => false,
++            "rules" => false,
++            "mcp_elicitations" => false,
++            "request_permissions" => false,
++            "skill_approval" => false
+           }
+         }
+       )
+--- a/lib/symphony_elixir/failure_isolation.ex
++++ b/lib/symphony_elixir/failure_isolation.ex
+@@ -96,6 +96,8 @@
+   def finish(record, reason, blocked \\ false)
+ 
+   def finish(%{"status" => "inflight"} = record, reason, blocked) do
++    record = Map.put(record, "observation", observation(reason))
++
+     case identity(reason) do
+       :unconfirmed ->
+         advance(record, %{"status" => "blocked"})
+@@ -149,6 +151,8 @@
+     :crypto.hash(:sha256, :erlang.term_to_binary(reason)) |> Base.encode16(case: :lower)
+   end
+ 
++  defp identity({:startup_stage, _stage, reason}), do: identity(reason)
++
+   defp identity(%File.Error{reason: reason}), do: [:file_error, reason]
+   defp identity(value) when is_atom(value), do: value
+ 
+@@ -181,6 +185,38 @@
+   end
+ 
+   defp identity(_value), do: :unconfirmed
++
++  @doc "Safe discriminator only; does not classify failures or authorize retry."
++  @spec observation(term()) :: map()
++  def observation({:startup_stage, stage, reason}) when stage in [:initialize, :thread_start] do
++    Map.put(observation(reason), "stage", Atom.to_string(stage))
++  end
++
++  def observation({:response_error, payload}) do
++    code = if is_map(payload), do: Map.get(payload, "code"), else: nil
++    %{"stage" => "unknown", "tag" => "response_error", "code" => safe_code(code)}
++  end
++
++  def observation({:port_exit, code}),
++    do: %{"stage" => "unknown", "tag" => "port_exit", "code" => safe_code(code)}
++
++  def observation(reason) when reason in [:response_timeout, :bash_not_found],
++    do: %{"stage" => "unknown", "tag" => Atom.to_string(reason), "code" => nil}
++
++  def observation(_reason), do: %{"stage" => "unknown", "tag" => "unclassified", "code" => nil}
++
++  defp safe_code(code) when is_integer(code) and code >= -2_147_483_648 and code <= 2_147_483_647,
++    do: code
++
++  defp safe_code(_code), do: nil
++
++  defp valid_observation?(%{"stage" => stage, "tag" => tag, "code" => code} = value) do
++    map_size(value) == 3 and stage in ["unknown", "initialize", "thread_start"] and
++      tag in ["response_error", "port_exit", "response_timeout", "bash_not_found", "unclassified"] and
++      (is_nil(code) or (is_integer(code) and code >= -2_147_483_648 and code <= 2_147_483_647))
++  end
++
++  defp valid_observation?(_value), do: false
+ 
+   defp initial do
+     %{
+@@ -213,7 +249,9 @@
+            "context" => context
+          } = record
+        ) do
+-    map_size(record) == 11 and is_integer(count) and count >= 0 and
++    (map_size(record) == 11 or
++       (map_size(record) == 12 and valid_observation?(record["observation"]))) and
++      is_integer(count) and count >= 0 and
+       status in ["idle", "inflight", "blocked"] and
+       nullable_string?(failure) and nullable_string?(progress) and
+       nullable_string?(reference) and nullable_string?(revision) and nullable_string?(parent) and
+--- a/lib/symphony_elixir/linear/agent_tool.ex
++++ b/lib/symphony_elixir/linear/agent_tool.ex
+@@ -46,6 +46,7 @@
+   def tool_specs do
+     [
+       %{
++        "type" => "function",
+         "name" => @linear_graphql_tool,
+         "description" => @linear_graphql_description,
+         "inputSchema" => @linear_graphql_input_schema
+@@ -156,7 +157,8 @@
+   defp tool_error_payload(:invalid_arguments) do
+     %{
+       "error" => %{
+-        "message" => "`linear_graphql` expects either a GraphQL query string or an object with `query` and optional `variables`."
++        "message" =>
++          "`linear_graphql` expects either a GraphQL query string or an object with `query` and optional `variables`."
+       }
+     }
+   end
+@@ -172,7 +174,8 @@
+   defp tool_error_payload(:missing_linear_api_token) do
+     %{
+       "error" => %{
+-        "message" => "Symphony is missing Linear auth. Set `tracker.provider.api_key` in `WORKFLOW.md` or export `LINEAR_API_KEY`."
++        "message" =>
++          "Symphony is missing Linear auth. Set `tracker.provider.api_key` in `WORKFLOW.md` or export `LINEAR_API_KEY`."
+       }
+     }
+   end
