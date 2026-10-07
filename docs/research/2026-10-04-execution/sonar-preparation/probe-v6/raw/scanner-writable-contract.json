@@ -1,0 +1,22 @@
+{
+  "container_root_filesystem": "read-only (--read-only)",
+  "docker_log_driver": "none; scanner stdout/stderr is retained only in the bounded tmpfs log",
+  "jre": "image Java 21; scanner JRE provisioning disabled with -Dsonar.scanner.skipJreProvisioning=true",
+  "report_mount": "/out:ro; host evidence is written only after container exit",
+  "scanner_log": {
+    "bytes": 8388608,
+    "copied into the charged evidence reserve after exit": true,
+    "path": "/tmp/scanner.log"
+  },
+  "source_mount": "/usr/src:ro",
+  "writable_tmpfs": {
+    "bytes": 67108864,
+    "includes": [
+      "HOME",
+      "XDG_CONFIG_HOME",
+      "SONAR_USER_HOME",
+      "SCANNER_WORKDIR_PATH"
+    ],
+    "path": "/tmp"
+  }
+}

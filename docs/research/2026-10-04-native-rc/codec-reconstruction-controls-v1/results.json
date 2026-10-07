@@ -1,0 +1,323 @@
+{
+  "experiment": "codec-reconstruction-controls-v1",
+  "rows": [
+    {
+      "id": "bzip2-manual",
+      "receipt": {
+        "archive_bytes": 17005,
+        "archive_sha256": "dd6b7a2fb3cfa28f3571f8d552e41b134bdc5315791dac88e140eb4e30790df4",
+        "artifacts": {
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/candidate.bin",
+          "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/restored.bin"
+        },
+        "budget": {
+          "cpu": 8,
+          "max_rss_bytes": 1500000000,
+          "max_temp_bytes": 128000000,
+          "wall_seconds": 45
+        },
+        "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+        "completed_at": "2026-10-04T09:51:36.811842+00:00",
+        "experiment_id": "d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a",
+        "hypothesis": "Available PAQ v216 DEFLATE reconstruction may equal or exceed the material research gzip wins; complete its missing specialist control before final RC disposition. Bzip2 archive is included as an opaque established-backend control, not a claim of a bzip2-specific PAQ reconstructor.",
+        "identity": {
+          "build_sha256": {
+            "benchmark-work/references/paq8px-v216/build-local/paq8px": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+          },
+          "configuration": {
+            "binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+            "experiment": "codec-reconstruction-controls-v1",
+            "option": "-4B",
+            "pretraining": false,
+            "reference": "paq8px-v216",
+            "simd": "AVX2"
+          },
+          "initial_state": "empty; no saved dictionary/pretraining; one process per phase",
+          "input": {
+            "length": 26928,
+            "offset": 0,
+            "path": "/usr/share/doc/bzip2/manual.texi.gz",
+            "sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861"
+          },
+          "manifest_sha256": "d515a6c411d514307ca61e1d0cfd8a7b435d26c8eb99e747b842bf99551098d4"
+        },
+        "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+        "matched_control": "Frozen exact-reconstruction closure candidate on identical existing independent asset, original and ordinary zlib/XZ controls.",
+        "mechanism": "Unmodified existing PAQ archive, documented brute-force DEFLATE detection enabled; source inspection confirms zlib reconstruction filter and DISABLE_ZLIB=OFF.",
+        "phases": [
+          {
+            "command": [
+              "/usr/bin/time",
+              "-v",
+              "-o",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/encode.time.txt",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/build/benchmark-work/references/paq8px-v216/build-local/paq8px",
+              "-4B",
+              "-simd",
+              "AVX2",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/source.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/candidate.bin"
+            ],
+            "cpu_usage_seconds": 6.757144,
+            "elapsed_seconds": 7.563343711997732,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 45265,
+            "phase": "cix-bounded-d7e1c8a3257a-encode",
+            "sampled_cgroup_memory_high_water_bytes": 802746368,
+            "stop_reason": null
+          },
+          {
+            "command": [
+              "/usr/bin/time",
+              "-v",
+              "-o",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/decode.time.txt",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/build/benchmark-work/references/paq8px-v216/build-local/paq8px",
+              "-d",
+              "-simd",
+              "AVX2",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/candidate.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/restored.bin"
+            ],
+            "cpu_usage_seconds": 6.643365,
+            "elapsed_seconds": 7.418859116005478,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 73525,
+            "phase": "cix-bounded-d7e1c8a3257a-decode",
+            "sampled_cgroup_memory_high_water_bytes": 790065152,
+            "stop_reason": null
+          }
+        ],
+        "promotion_criteria": "Complete physical PAQ archive and separately measured source-inaccessible exact decode; preserve timeout/failure unranked; no setting search/retry and no production change.",
+        "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+        "status": "VERIFIED_SCREENING",
+        "verification": {
+          "matched": true,
+          "restored_sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861",
+          "source_sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861"
+        }
+      },
+      "receipt_path": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/receipt.json",
+      "gnu_time": {
+        "encode": "\tCommand being timed: \"/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/build/benchmark-work/references/paq8px-v216/build-local/paq8px -4B -simd AVX2 /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/source.bin /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/candidate.bin\"\n\tUser time (seconds): 6.54\n\tSystem time (seconds): 0.20\n\tPercent of CPU this job got: 90%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:07.47\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 786184\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 225990\n\tVoluntary context switches: 62\n\tInvoluntary context switches: 937\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 64\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+        "decode": "\tCommand being timed: \"/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/build/benchmark-work/references/paq8px-v216/build-local/paq8px -d -simd AVX2 /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/candidate.bin /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/restored.bin\"\n\tUser time (seconds): 6.45\n\tSystem time (seconds): 0.17\n\tPercent of CPU this job got: 90%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:07.33\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 773632\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 222221\n\tVoluntary context switches: 1\n\tInvoluntary context switches: 948\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 80\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n"
+      },
+      "encode_stdout": "paq8px v216 (c) 2026, Matt Mahoney et al.\n\nCreating archive /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/candidate.bin in single file mode...\n\nFilename: /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/source.bin (26928 bytes)\nBlock segmentation:\n 0           | default          |        10 bytes [0 - 9]\n 1           | zlib             |     26910 bytes [10 - 26919]\n 1-0         | text             |     87524 bytes [0 - 87523]\n 2           | default          |         8 bytes [26920 - 26927]\n-----------------------\nTotal input size     : 26928\nTotal archive size   : 17005\n\nTime 7.46 sec, used 775 MB (812670426 bytes) of memory\n",
+      "decode_stdout": "paq8px v216 (c) 2026, Matt Mahoney et al.\n\nExtracting /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/bzip2-manual/d7e1c8a3257ad510b5ca1b9e0996fa58c02ab1d51c21215d2ea25cd8af497b4a/work/restored.bin 26928 bytes -> done   \nTime 7.31 sec, used 775 MB (812713878 bytes) of memory\n"
+    },
+    {
+      "id": "xz-news",
+      "receipt": {
+        "archive_bytes": 13141,
+        "archive_sha256": "8c2fd5e61771e5e4154d27be790f744f7395e8b37905dbad3326df7ff9243a4c",
+        "artifacts": {
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/candidate.bin",
+          "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/restored.bin"
+        },
+        "budget": {
+          "cpu": 8,
+          "max_rss_bytes": 1500000000,
+          "max_temp_bytes": 128000000,
+          "wall_seconds": 45
+        },
+        "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+        "completed_at": "2026-10-04T09:51:49.017941+00:00",
+        "experiment_id": "e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300",
+        "hypothesis": "Available PAQ v216 DEFLATE reconstruction may equal or exceed the material research gzip wins; complete its missing specialist control before final RC disposition. Bzip2 archive is included as an opaque established-backend control, not a claim of a bzip2-specific PAQ reconstructor.",
+        "identity": {
+          "build_sha256": {
+            "benchmark-work/references/paq8px-v216/build-local/paq8px": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+          },
+          "configuration": {
+            "binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+            "experiment": "codec-reconstruction-controls-v1",
+            "option": "-4B",
+            "pretraining": false,
+            "reference": "paq8px-v216",
+            "simd": "AVX2"
+          },
+          "initial_state": "empty; no saved dictionary/pretraining; one process per phase",
+          "input": {
+            "length": 20796,
+            "offset": 0,
+            "path": "/usr/share/doc/liblzma5/NEWS.gz",
+            "sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b"
+          },
+          "manifest_sha256": "db709c9315938fe11296ad354c81365789cfa6468ec66f74c03170f56071560c"
+        },
+        "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+        "matched_control": "Frozen exact-reconstruction closure candidate on identical existing independent asset, original and ordinary zlib/XZ controls.",
+        "mechanism": "Unmodified existing PAQ archive, documented brute-force DEFLATE detection enabled; source inspection confirms zlib reconstruction filter and DISABLE_ZLIB=OFF.",
+        "phases": [
+          {
+            "command": [
+              "/usr/bin/time",
+              "-v",
+              "-o",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/encode.time.txt",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/build/benchmark-work/references/paq8px-v216/build-local/paq8px",
+              "-4B",
+              "-simd",
+              "AVX2",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/source.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/candidate.bin"
+            ],
+            "cpu_usage_seconds": 5.513383,
+            "elapsed_seconds": 6.144015284007764,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 35253,
+            "phase": "cix-bounded-e3905914e7f4-encode",
+            "sampled_cgroup_memory_high_water_bytes": 800735232,
+            "stop_reason": null
+          },
+          {
+            "command": [
+              "/usr/bin/time",
+              "-v",
+              "-o",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/decode.time.txt",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/build/benchmark-work/references/paq8px-v216/build-local/paq8px",
+              "-d",
+              "-simd",
+              "AVX2",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/candidate.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/restored.bin"
+            ],
+            "cpu_usage_seconds": 5.32733,
+            "elapsed_seconds": 5.934202139003901,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 57366,
+            "phase": "cix-bounded-e3905914e7f4-decode",
+            "sampled_cgroup_memory_high_water_bytes": 788213760,
+            "stop_reason": null
+          }
+        ],
+        "promotion_criteria": "Complete physical PAQ archive and separately measured source-inaccessible exact decode; preserve timeout/failure unranked; no setting search/retry and no production change.",
+        "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+        "status": "VERIFIED_SCREENING",
+        "verification": {
+          "matched": true,
+          "restored_sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b",
+          "source_sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b"
+        }
+      },
+      "receipt_path": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/receipt.json",
+      "gnu_time": {
+        "encode": "\tCommand being timed: \"/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/build/benchmark-work/references/paq8px-v216/build-local/paq8px -4B -simd AVX2 /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/source.bin /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/candidate.bin\"\n\tUser time (seconds): 5.31\n\tSystem time (seconds): 0.18\n\tPercent of CPU this job got: 90%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:06.08\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 784552\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 225187\n\tVoluntary context switches: 1\n\tInvoluntary context switches: 772\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 56\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+        "decode": "\tCommand being timed: \"/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/build/benchmark-work/references/paq8px-v216/build-local/paq8px -d -simd AVX2 /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/candidate.bin /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/restored.bin\"\n\tUser time (seconds): 5.12\n\tSystem time (seconds): 0.18\n\tPercent of CPU this job got: 90%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:05.87\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 772096\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 221517\n\tVoluntary context switches: 1\n\tInvoluntary context switches: 731\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 72\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n"
+      },
+      "encode_stdout": "paq8px v216 (c) 2026, Matt Mahoney et al.\n\nCreating archive /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/candidate.bin in single file mode...\n\nFilename: /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/source.bin (20796 bytes)\nBlock segmentation:\n 0           | default          |        10 bytes [0 - 9]\n 1           | zlib             |     20778 bytes [10 - 20787]\n 1-0         | text             |     72101 bytes [0 - 72100]\n 2           | default          |         8 bytes [20788 - 20795]\n-----------------------\nTotal input size     : 20796\nTotal archive size   : 13141\n\nTime 6.06 sec, used 775 MB (812654968 bytes) of memory\n",
+      "decode_stdout": "paq8px v216 (c) 2026, Matt Mahoney et al.\n\nExtracting /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/xz-news/e3905914e7f4303ae2100bf9f098895ee0c694b2a403d70e5dd6cd603a332300/work/restored.bin 20796 bytes -> done   \nTime 5.85 sec, used 775 MB (812713843 bytes) of memory\n"
+    },
+    {
+      "id": "nvidia-init",
+      "receipt": {
+        "archive_bytes": 7184,
+        "archive_sha256": "dc82227f7eca5bc93b0c82827b0ac80c2ae62bddb6bcf7812e93b3c518571fa9",
+        "artifacts": {
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/candidate.bin",
+          "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/restored.bin"
+        },
+        "budget": {
+          "cpu": 8,
+          "max_rss_bytes": 1500000000,
+          "max_temp_bytes": 128000000,
+          "wall_seconds": 45
+        },
+        "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+        "completed_at": "2026-10-04T09:51:51.675902+00:00",
+        "experiment_id": "b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289",
+        "hypothesis": "Available PAQ v216 DEFLATE reconstruction may equal or exceed the material research gzip wins; complete its missing specialist control before final RC disposition. Bzip2 archive is included as an opaque established-backend control, not a claim of a bzip2-specific PAQ reconstructor.",
+        "identity": {
+          "build_sha256": {
+            "benchmark-work/references/paq8px-v216/build-local/paq8px": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+          },
+          "configuration": {
+            "binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+            "experiment": "codec-reconstruction-controls-v1",
+            "option": "-4B",
+            "pretraining": false,
+            "reference": "paq8px-v216",
+            "simd": "AVX2"
+          },
+          "initial_state": "empty; no saved dictionary/pretraining; one process per phase",
+          "input": {
+            "length": 7189,
+            "offset": 0,
+            "path": "/usr/share/doc/nvidia-compute-utils-580/nvidia-persistenced-init.tar.bz2",
+            "sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b"
+          },
+          "manifest_sha256": "2b45a01aa8ef685b3dad1ced1248440b1729c470a1bd8db7c7c3d58de6f588cd"
+        },
+        "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+        "matched_control": "Frozen exact-reconstruction closure candidate on identical existing independent asset, original and ordinary zlib/XZ controls.",
+        "mechanism": "Unmodified existing PAQ archive, documented brute-force DEFLATE detection enabled; source inspection confirms zlib reconstruction filter and DISABLE_ZLIB=OFF.",
+        "phases": [
+          {
+            "command": [
+              "/usr/bin/time",
+              "-v",
+              "-o",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/encode.time.txt",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/build/benchmark-work/references/paq8px-v216/build-local/paq8px",
+              "-4B",
+              "-simd",
+              "AVX2",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/source.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/candidate.bin"
+            ],
+            "cpu_usage_seconds": 1.09743,
+            "elapsed_seconds": 1.289926908997586,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 15701,
+            "phase": "cix-bounded-b7b6ce759a83-encode",
+            "sampled_cgroup_memory_high_water_bytes": 655568896,
+            "stop_reason": null
+          },
+          {
+            "command": [
+              "/usr/bin/time",
+              "-v",
+              "-o",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/decode.time.txt",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/build/benchmark-work/references/paq8px-v216/build-local/paq8px",
+              "-d",
+              "-simd",
+              "AVX2",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/candidate.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/restored.bin"
+            ],
+            "cpu_usage_seconds": 1.109851,
+            "elapsed_seconds": 1.2583256200014148,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 24219,
+            "phase": "cix-bounded-b7b6ce759a83-decode",
+            "sampled_cgroup_memory_high_water_bytes": 655425536,
+            "stop_reason": null
+          }
+        ],
+        "promotion_criteria": "Complete physical PAQ archive and separately measured source-inaccessible exact decode; preserve timeout/failure unranked; no setting search/retry and no production change.",
+        "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+        "status": "VERIFIED_SCREENING",
+        "verification": {
+          "matched": true,
+          "restored_sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b",
+          "source_sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b"
+        }
+      },
+      "receipt_path": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/receipt.json",
+      "gnu_time": {
+        "encode": "\tCommand being timed: \"/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/build/benchmark-work/references/paq8px-v216/build-local/paq8px -4B -simd AVX2 /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/source.bin /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/candidate.bin\"\n\tUser time (seconds): 0.93\n\tSystem time (seconds): 0.14\n\tPercent of CPU this job got: 90%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:01.20\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 642560\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 186903\n\tVoluntary context switches: 1\n\tInvoluntary context switches: 146\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 32\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n",
+        "decode": "\tCommand being timed: \"/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/build/benchmark-work/references/paq8px-v216/build-local/paq8px -d -simd AVX2 /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/candidate.bin /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/restored.bin\"\n\tUser time (seconds): 0.93\n\tSystem time (seconds): 0.15\n\tPercent of CPU this job got: 90%\n\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:01.20\n\tAverage shared text size (kbytes): 0\n\tAverage unshared data size (kbytes): 0\n\tAverage stack size (kbytes): 0\n\tAverage total size (kbytes): 0\n\tMaximum resident set size (kbytes): 642304\n\tAverage resident set size (kbytes): 0\n\tMajor (requiring I/O) page faults: 0\n\tMinor (reclaiming a frame) page faults: 186873\n\tVoluntary context switches: 1\n\tInvoluntary context switches: 153\n\tSwaps: 0\n\tFile system inputs: 0\n\tFile system outputs: 32\n\tSocket messages sent: 0\n\tSocket messages received: 0\n\tSignals delivered: 0\n\tPage size (bytes): 4096\n\tExit status: 0\n"
+      },
+      "encode_stdout": "paq8px v216 (c) 2026, Matt Mahoney et al.\n\nCreating archive /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/candidate.bin in single file mode...\n\nFilename: /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/source.bin (7189 bytes)\nBlock segmentation:\n 0           | default          |      7189 bytes [0 - 7188]\n-----------------------\nTotal input size     : 7189\nTotal archive size   : 7184\n\nTime 1.17 sec, used 660 MB (692432071 bytes) of memory\n",
+      "decode_stdout": "paq8px v216 (c) 2026, Matt Mahoney et al.\n\nExtracting /home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-controls-v1/nvidia-init/b7b6ce759a837730d949d008939771daf84fbdbe181488278761d526de9d9289/work/restored.bin 7189 bytes -> done   \nTime 1.18 sec, used 660 MB (692432028 bytes) of memory\n"
+    }
+  ]
+}

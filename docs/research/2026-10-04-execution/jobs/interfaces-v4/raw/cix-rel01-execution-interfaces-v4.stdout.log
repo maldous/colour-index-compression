@@ -1,0 +1,107 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v4/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v4/Cargo.toml', '--lib', 'full_engine::selection::', '--', '--test-threads=2']
+
+running 5 tests
+test full_engine::selection::cancellation_regressions::cancellation_after_raw_never_returns_archive ... ok
+test full_engine::selection::cancellation_regressions::pre_cancel_is_terminal ... ok
+test full_engine::selection::cancellation_regressions::panicking_worker_is_recorded_without_scheduler_hang ... ok
+test full_engine::selection::tests::default_marks_paq_specialists_as_profile_omitted ... FAILED
+test full_engine::selection::tests::first_priority_wins_equal_complete_frames_and_generic_trials_overlap ... ok
+
+failures:
+
+---- full_engine::selection::tests::default_marks_paq_specialists_as_profile_omitted stdout ----
+
+thread 'full_engine::selection::tests::default_marks_paq_specialists_as_profile_omitted' (2535122) panicked at src/full_engine/selection.rs:685:9:
+assertion failed: result.report.trials.iter().any(|trial|
+        trial.status == TrialStatus::ProfileOmitted)
+
+
+failures:
+    full_engine::selection::tests::default_marks_paq_specialists_as_profile_omitted
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 217 filtered out; finished in 0.01s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v4/Cargo.toml', '--lib', 'full_engine::mixed_selection::', '--', '--test-threads=2']
+
+running 4 tests
+test full_engine::mixed_selection::tests::generic_competition_retains_stored_on_equal_cost_and_records_failures ... FAILED
+test full_engine::mixed_selection::tests::late_and_interleaved_regions_remain_complete_partitions ... ok
+test full_engine::mixed_selection::tests::round_robin_alternates_catalogue_families ... ok
+test full_engine::mixed_selection::tests::default_profile_round_trips_interleaved_regions_through_native_providers ... ok
+
+failures:
+
+---- full_engine::mixed_selection::tests::generic_competition_retains_stored_on_equal_cost_and_records_failures stdout ----
+
+thread 'full_engine::mixed_selection::tests::generic_competition_retains_stored_on_equal_cost_and_records_failures' (2535136) panicked at src/full_engine/mixed_selection.rs:645:9:
+assertion failed: diagnostics.entries.iter().any(|row| row.status == DiagnosticStatus::Failed)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    full_engine::mixed_selection::tests::generic_competition_retains_stored_on_equal_cost_and_records_failures
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 218 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v4/Cargo.toml', '--lib', 'full_engine::spatial_provider::', '--', '--test-threads=2']
+
+running 3 tests
+test full_engine::spatial_provider::tests::decode_admission_requires_working_estimate_before_output_allocation ... ok
+test full_engine::spatial_provider::tests::conservative_admission_counts_all_cix_owned_encode_copies ... ok
+test full_engine::spatial_provider::tests::packaged_bridge_roundtrips_tiny_lossless_spatial_codecs ... FAILED
+
+failures:
+
+---- full_engine::spatial_provider::tests::packaged_bridge_roundtrips_tiny_lossless_spatial_codecs stdout ----
+
+thread 'full_engine::spatial_provider::tests::packaged_bridge_roundtrips_tiny_lossless_spatial_codecs' (2535147) panicked at src/full_engine/spatial_provider.rs:370:17:
+assertion failed: provider.decode(codec, &trailing, 2, 2, bits, 128 << 20).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    full_engine::spatial_provider::tests::packaged_bridge_roundtrips_tiny_lossless_spatial_codecs
+
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 219 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v4/Cargo.toml', '--lib', 'full_engine::backend_provider::', '--', '--test-threads=2']
+
+running 3 tests
+test full_engine::backend_provider::tests::direct_raw_decoders_reject_unrepresentable_output_caps ... ok
+test full_engine::backend_provider::tests::request_stops_and_memory_limits_precede_provider_work ... ok
+test full_engine::backend_provider::tests::native_payloads_are_exact_and_reject_trailing_truncated_and_capped_output ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 219 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v4/Cargo.toml', '--lib', 'frozen_ecoff_relation_vectors', '--', '--test-threads=2']
+
+running 1 test
+test full_engine::address_relations::tests::frozen_ecoff_relation_vectors_match_native_raw_transforms_and_inverses ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 221 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v4/Cargo.toml', '--test', 'standard_formats_contract', '--test', 'dictionary_contract', '--test', 'standard_formats_cli', '--', '--test-threads=2']
+
+running 2 tests
+test dictionary_contract_rejects_invalid_training_and_trailing ... ok
+test dictionary_contract_roundtrip_wrong_identity_and_cap ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 2 tests
+test raw_deflate_requires_explicit_input_format_and_cix_overrides_are_rejected ... ok
+test explicit_standard_format_roundtrips_without_cix_envelope ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+
+running 4 tests
+test limits_are_checked_before_output_allocation_and_empty_is_valid ... ok
+test each_format_emits_its_native_stream_and_roundtrips ... ok
+test standard_magic_and_cross_decoder_contracts ... ok
+test rejects_truncated_trailing_and_concatenated_streams ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+

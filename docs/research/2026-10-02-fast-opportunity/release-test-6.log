@@ -1,0 +1,365 @@
+warning: struct `CancellationGuard` is never constructed
+  --> src/bin/../limits.rs:28:12
+   |
+28 | pub struct CancellationGuard {
+   |            ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: associated function `new` is never used
+  --> src/bin/../limits.rs:36:12
+   |
+35 | impl CancellationGuard {
+   | ---------------------- associated function in this implementation
+36 |     pub fn new(token: Arc<AtomicBool>) -> Self {
+   |            ^^^
+
+warning: struct `DeadlineGuard` is never constructed
+  --> src/bin/../limits.rs:57:12
+   |
+57 | pub struct DeadlineGuard {
+   |            ^^^^^^^^^^^^^
+
+warning: associated function `new` is never used
+  --> src/bin/../limits.rs:62:12
+   |
+61 | impl DeadlineGuard {
+   | ------------------ associated function in this implementation
+62 |     pub fn new(duration: Duration) -> Self {
+   |            ^^^
+
+warning: function `read_fixed` is never used
+  --> src/bin/../rank.rs:38:4
+   |
+38 | fn read_fixed(data: &[u8], pos: &mut usize, width_bits: usize) -> Result<BigUint, String> {
+   |    ^^^^^^^^^^
+
+warning: function `read_varint` is never used
+  --> src/bin/../rank.rs:64:4
+   |
+64 | fn read_varint(data: &[u8], pos: &mut usize) -> Result<usize, String> {
+   |    ^^^^^^^^^^^
+
+warning: struct `BitReader` is never constructed
+   --> src/bin/../rank.rs:170:8
+    |
+170 | struct BitReader<'a> {
+    |        ^^^^^^^^^
+
+warning: method `read` is never used
+   --> src/bin/../rank.rs:177:8
+    |
+176 | impl<'a> BitReader<'a> {
+    | ---------------------- method in this implementation
+177 |     fn read(&mut self) -> u8 {
+    |        ^^^^
+
+warning: struct `ArithmeticDecoder` is never constructed
+   --> src/bin/../rank.rs:188:12
+    |
+188 | pub struct ArithmeticDecoder<'a> {
+    |            ^^^^^^^^^^^^^^^^^
+
+warning: associated items `new`, `target`, and `update` are never used
+   --> src/bin/../rank.rs:196:12
+    |
+195 | impl<'a> ArithmeticDecoder<'a> {
+    | ------------------------------ associated items in this implementation
+196 |     pub fn new(data: &'a [u8], bit_length: usize) -> Self {
+    |            ^^^
+...
+212 |     pub fn target(&self, total: usize) -> usize {
+    |            ^^^^^^
+...
+216 |     pub fn update(&mut self, low_count: usize, high_count: usize, total: usize) {
+    |            ^^^^^^
+
+warning: function `encode_count_range` is never used
+   --> src/bin/../rank.rs:261:8
+    |
+261 | pub fn encode_count_range(data: &[u8]) -> Result<Vec<u8>, String> {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `decode_sequence_range` is never used
+   --> src/bin/../rank.rs:293:4
+    |
+293 | fn decode_sequence_range(
+    |    ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `colex_unrank` is never used
+   --> src/bin/../rank.rs:327:4
+    |
+327 | fn colex_unrank(mut rank: BigUint, k: usize, universe: usize) -> Result<Vec<usize>, String> {
+    |    ^^^^^^^^^^^^
+
+warning: function `composition_unrank` is never used
+   --> src/bin/../rank.rs:367:4
+    |
+367 | fn composition_unrank(rank: BigUint, total: usize, count: usize) -> Result<Vec<usize>, String> {
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: method `select` is never used
+   --> src/bin/../rank.rs:431:8
+    |
+396 | impl Fenwick {
+    | ------------ method in this implementation
+...
+431 |     fn select(&self, mut order: usize) -> Result<usize, String> {
+    |        ^^^^^^
+
+warning: function `permutation_unrank` is never used
+   --> src/bin/../rank.rs:490:4
+    |
+490 | fn permutation_unrank(mut rank: BigUint, counts: &[usize]) -> Result<Vec<u8>, String> {
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `decode_type_class` is never used
+   --> src/bin/../rank.rs:561:8
+    |
+561 | pub fn decode_type_class(data: &[u8], pos: &mut usize, n: usize) -> Result<Vec<u8>, String> {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `encode_composition_tiles` is never used
+   --> src/bin/../rank.rs:614:8
+    |
+614 | pub fn encode_composition_tiles(data: &[u8]) -> Result<Vec<u8>, String> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `decode_composition_tiles` is never used
+   --> src/bin/../rank.rs:627:8
+    |
+627 | pub fn decode_composition_tiles(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `decode_sparse_blob` is never used
+   --> src/bin/../rank.rs:653:8
+    |
+653 | pub fn decode_sparse_blob(data: &[u8], n: usize) -> Result<Vec<u8>, String> {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `decode_colex_positions` is never used
+   --> src/bin/../rank.rs:678:8
+    |
+678 | pub fn decode_colex_positions(
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `decode_type_class_with_counts` is never used
+   --> src/bin/../rank.rs:689:8
+    |
+689 | pub fn decode_type_class_with_counts(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `decode_context_type_classes` is never used
+   --> src/bin/../rank.rs:724:8
+    |
+724 | pub fn decode_context_type_classes(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `encode_context_type_classes` is never used
+   --> src/bin/../rank.rs:820:8
+    |
+820 | pub fn encode_context_type_classes(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `encode_version` is never used
+    --> src/bwt_legacy.rs:1400:8
+     |
+1400 | pub fn encode_version(data: &[u8], version: u8) -> Result<Option<Vec<u8>>, String> {
+     |        ^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: fields `transform_id`, `inner_mode`, `bytes`, and `description` are never read
+  --> src/chain.rs:42:9
+   |
+41 | pub struct CandidateSize {
+   |            ------------- fields in this struct
+42 |     pub transform_id: u8,
+   |         ^^^^^^^^^^^^
+43 |     pub inner_mode: u8,
+   |         ^^^^^^^^^^
+44 |     pub bytes: usize,
+   |         ^^^^^
+45 |     pub description: String,
+   |         ^^^^^^^^^^^
+   |
+   = note: `CandidateSize` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: fields `description` and `candidates` are never read
+  --> src/chain.rs:52:9
+   |
+50 | pub struct EncodeResult {
+   |            ------------ fields in this struct
+51 |     pub payload: Vec<u8>,
+52 |     pub description: String,
+   |         ^^^^^^^^^^^
+53 |     pub candidates: Vec<CandidateSize>,
+   |         ^^^^^^^^^^
+   |
+   = note: `EncodeResult` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: function `encode_with_history` is never used
+   --> src/expertmix.rs:211:8
+    |
+211 | pub fn encode_with_history(
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `encode` is never used
+   --> src/expertmix.rs:219:8
+    |
+219 | pub fn encode(data: &[u8], orders: &[u8]) -> Result<Vec<u8>, String> {
+    |        ^^^^^^
+
+warning: function `decode_with_history` is never used
+   --> src/expertmix.rs:317:8
+    |
+317 | pub fn decode_with_history(
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `decode` is never used
+   --> src/expertmix.rs:325:8
+    |
+325 | pub fn decode(blob: &[u8], source_length: usize) -> Result<Vec<u8>, String> {
+    |        ^^^^^^
+
+warning: constant `ONE_SHOT_CANCELLATION_LIMITATION` is never used
+  --> src/external.rs:27:11
+   |
+27 | pub const ONE_SHOT_CANCELLATION_LIMITATION: &str =
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `experimental_candidates` is never used
+   --> src/external.rs:335:8
+    |
+335 | pub fn experimental_candidates() -> &'static [CandidateDescriptor] {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `encode_eta_with_recurrence` is never used
+   --> src/fixedmix.rs:504:4
+    |
+504 | fn encode_eta_with_recurrence(
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `encode_with_recurrence_eta` is never used
+   --> src/fixedmix.rs:577:8
+    |
+577 | pub fn encode_with_recurrence_eta(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `encode_with_legacy_recurrence_eta` is never used
+   --> src/fixedmix.rs:605:8
+    |
+605 | pub fn encode_with_legacy_recurrence_eta(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `new` and `recv_next` are never used
+   --> src/parallel.rs:85:12
+    |
+ 82 | impl<T: Send + 'static, R: Send + 'static> OrderedPipeline<T, R> {
+    | ---------------------------------------------------------------- associated items in this implementation
+...
+ 85 |     pub fn new<F>(workers: usize, capacity: usize, encode: F) -> Result<Self, &'static str>
+    |            ^^^
+...
+268 |     pub fn recv_next(&mut self) -> Result<Option<R>, PipelineError> {
+    |            ^^^^^^^^^
+
+warning: methods `try_acquire` and `acquire_uninterruptibly` are never used
+   --> src/resources.rs:115:12
+    |
+ 80 | impl MemoryBudget {
+    | ----------------- methods in this implementation
+...
+115 |     pub fn try_acquire(&self, bytes: usize) -> Result<Option<MemoryPermit>, MemoryError> {
+    |            ^^^^^^^^^^^
+...
+171 |     pub fn acquire_uninterruptibly(&self, bytes: usize) -> Result<MemoryPermit, MemoryError> {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `bytes` is never used
+   --> src/resources.rs:196:12
+    |
+195 | impl MemoryPermit {
+    | ----------------- method in this implementation
+196 |     pub fn bytes(&self) -> usize {
+    |            ^^^^^
+
+warning: method `estimate_bits` is never used
+   --> src/stateful.rs:212:8
+    |
+124 | impl PersistentAdaptiveState {
+    | ---------------------------- method in this implementation
+...
+212 |     fn estimate_bits(
+    |        ^^^^^^^^^^^^^
+
+warning: methods `model_spec` and `estimate_bits` are never used
+   --> src/stateful.rs:353:12
+    |
+342 | impl PersistentAdaptiveStates {
+    | ----------------------------- methods in this implementation
+...
+353 |     pub fn model_spec(&self, model_id: usize) -> Option<(usize, usize)> {
+    |            ^^^^^^^^^^
+...
+359 |     pub fn estimate_bits(
+    |            ^^^^^^^^^^^^^
+
+warning: function `encode_id` is never used
+   --> src/transform.rs:387:8
+    |
+387 | pub fn encode_id(data: &[u8], id: u8) -> Result<Vec<u8>, String> {
+    |        ^^^^^^^^^
+
+warning: methods `to_bytes`, `to_saturated_bytes`, and `to_versioned_bytes` are never used
+  --> src/zpaq_context.rs:38:12
+   |
+23 | impl Config {
+   | ----------- methods in this implementation
+...
+38 |     pub fn to_bytes(self) -> Result<[u8; 7], String> {
+   |            ^^^^^^^^
+...
+45 |     pub fn to_saturated_bytes(self) -> Result<[u8; 7], String> {
+   |            ^^^^^^^^^^^^^^^^^^
+...
+49 |     fn to_versioned_bytes(self, version: u8) -> Result<[u8; 7], String> {
+   |        ^^^^^^^^^^^^^^^^^^
+
+warning: methods `config` and `position` are never used
+   --> src/zpaq_context.rs:129:12
+    |
+108 | impl Predictor {
+    | -------------- methods in this implementation
+...
+129 |     pub fn config(&self) -> Config {
+    |            ^^^^^^
+...
+133 |     pub fn position(&self) -> u64 {
+    |            ^^^^^^^^
+
+warning: function `extract` is never used
+   --> src/zpaq_context.rs:189:8
+    |
+189 | pub fn extract(data: &[u8], config: Config) -> Result<Vec<Feature>, String> {
+    |        ^^^^^^^
+
+warning: `cix-native` (bin "sparse_runs_fixture") generated 24 warnings
+warning: `cix-native` (bin "cixcat") generated 21 warnings
+warning: `cix-native` (bin "uncix") generated 21 warnings (21 duplicates)
+warning: `cix-native` (bin "cix") generated 21 warnings (21 duplicates)
+   Compiling cix-native v0.1.0 (/home/user/src/colour-index-compression/rust/cix-native)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.44s
+     Running tests/streaming_pipe.rs (rust/cix-native/target/debug/deps/streaming_pipe-2a47ae5737ecfa18)
+
+running 7 tests
+test decoder_reconstructs_a_complete_frame_before_archive_eof ... ok
+test empty_truncated_and_corrupt_streams_have_defined_pipe_behaviour ... ok
+test fast_lz_low_memory_stream_emits_before_eof_and_exceeds_budget ... ok
+test idle_input_flushes_a_partial_frame_before_eof ... ok
+test nonseekable_irregular_producer_emits_a_frame_before_eof_and_round_trips ... ok
+test parallel_stream_can_exceed_its_working_memory_budget ... ok
+test slow_downstream_consumer_preserves_bytes_without_deadlock ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.94s
+

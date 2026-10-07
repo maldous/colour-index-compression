@@ -1,0 +1,78 @@
+{
+  "status": "fail",
+  "scope": "Node add-on only; retained native SDK is linked, never rebuilt",
+  "input_sha256": {
+    "docs/research/2026-10-04-execution/reviews/node-unwrap-v1.patch": "9edd25e9ddfb98ed07c38c8a25daee59a9a6d2674404ab2c92c93f3431aa2192",
+    "benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so": "8cfb14fe08a81105eaf6135b4eada992dae6d6c91e9ca17367fd578dec7205d1",
+    "rust/cix-native/bindings/node/CMakeLists.txt": "26fc1b9ad345683335b9696d8f7b37448d8c43e09abcba76fa94a176b19437c2",
+    "rust/cix-native/bindings/node/src/cix_node.c": "2556b1c33b93ce7bc4d15ac95b1449c6e35dfae56158f909172af33d1adff35b",
+    "rust/cix-native/bindings/node/test/contract.js": "8f6a1e8195e270c90c27335bc03e0333b5965ba0fb39b215d42ec6a0ab9d5366",
+    "benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include/cix.h": "7bdf4a46717327eba5c920639a3dd05fa3d74b9716ebc22272df93f21a772545",
+    "benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include/cix_stream.h": "80c5982d27a881d4ebfc4459c446eb35ed27282f2fc39712488b91ae5118d540",
+    "/usr/include/node/node_api.h": "2d4560831e525b47b060ec8a0864ab73993df9e20215ce9f0fe7b24cd31af32a",
+    "/usr/include/node/js_native_api.h": "8808ef8899a1691411928ef5dd7dae0537aedc93d3a34e223b2d89692e79c788",
+    "/usr/bin/cmake": "1c5227af4edd22d8d689def545e18ee458260c0fd579eba2187967f38817e638",
+    "/usr/bin/cc": "1b99826121ae6682a634e5efe09bd3e3df58ce58e0b28f849114ab5b89139c26",
+    "/usr/bin/node": "b2959781cc5a74c357ffa02367efa8a0330cbb1c9cb347732fdfaaaca381cbcd"
+  },
+  "loaded_javascript_entrypoints": [
+    "/home/user/src/colour-index-compression/rust/cix-native/bindings/node/test/contract.js"
+  ],
+  "log_cap_bytes_per_stream": 1048576,
+  "commands": [
+    {
+      "label": "node-runtime-identity",
+      "argv": [
+        "/usr/bin/node",
+        "-p",
+        "JSON.stringify(process.versions)"
+      ],
+      "returncode": 0,
+      "stdout": "docs/research/2026-10-04-execution/jobs/node-unwrap-v2/node-runtime-identity.stdout.log",
+      "stderr": "docs/research/2026-10-04-execution/jobs/node-unwrap-v2/node-runtime-identity.stderr.log"
+    },
+    {
+      "label": "configure",
+      "argv": [
+        "/usr/bin/cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/rust/cix-native/bindings/node",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/node-unwrap-v2/build",
+        "-DCIX_SDK_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+        "-DCIX_SDK_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+        "-DNODE_API_INCLUDE_DIR=/usr/include/node",
+        "-DCMAKE_C_COMPILER=/usr/bin/cc",
+        "-DCMAKE_BUILD_TYPE=Release"
+      ],
+      "returncode": 0,
+      "stdout": "docs/research/2026-10-04-execution/jobs/node-unwrap-v2/configure.stdout.log",
+      "stderr": "docs/research/2026-10-04-execution/jobs/node-unwrap-v2/configure.stderr.log"
+    },
+    {
+      "label": "build-addon-only",
+      "argv": [
+        "/usr/bin/cmake",
+        "--build",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/node-unwrap-v2/build",
+        "--parallel",
+        "2"
+      ],
+      "returncode": 0,
+      "stdout": "docs/research/2026-10-04-execution/jobs/node-unwrap-v2/build-addon-only.stdout.log",
+      "stderr": "docs/research/2026-10-04-execution/jobs/node-unwrap-v2/build-addon-only.stderr.log"
+    },
+    {
+      "label": "node-contract",
+      "argv": [
+        "/usr/bin/node",
+        "/home/user/src/colour-index-compression/rust/cix-native/bindings/node/test/contract.js"
+      ],
+      "returncode": 1,
+      "stdout": "docs/research/2026-10-04-execution/jobs/node-unwrap-v2/node-contract.stdout.log",
+      "stderr": "docs/research/2026-10-04-execution/jobs/node-unwrap-v2/node-contract.stderr.log"
+    }
+  ],
+  "error": "node-contract failed; inspect retained job log",
+  "inputs_unchanged": true
+}

@@ -1,0 +1,122 @@
+{
+  "experiment": "stream-qualification-v2",
+  "status": "FROZEN_PRE_CODEC_EXECUTION",
+  "release_binding": {
+    "source_revision": "6ac05f8e9fd78ff01e2f8d71e6557c5dc66bb8bb",
+    "source_tree": "9b3cd2a8abec9fcdbd64e2f48b5bc9bb49f46133",
+    "binaries": {
+      "cix": {
+        "path": "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/final/cix",
+        "sha256": "f5c0b9f4d3ef250403e03bafebb9cab483bbdff8c5cca996f295ecdaf285db2e",
+        "bytes": 2513360
+      },
+      "uncix": {
+        "path": "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/final/uncix",
+        "sha256": "3ab438a9b80404e3c88468a3ebc5ee40174c657ec8b40115d7d8ff5afea6e2d4",
+        "bytes": 2514888
+      },
+      "cixcat": {
+        "path": "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/final/cixcat",
+        "sha256": "a4fe0325a7e3aacdc33005894c29ffdba44b4a9c11ffd74114f2b49fd8f29b2a",
+        "bytes": 2515664
+      },
+      "libcix_native.so": {
+        "path": "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/final/libcix_native.so",
+        "sha256": "30da86392abf5c5b7eeaa7fd87d627c8d93613800e137840f9da9729cc5aaa2b",
+        "bytes": 1517352
+      }
+    },
+    "scope": "current-hostportableallfeaturerelease-lto, focusedfooter/overridequalification; rankunchangedfrompassedf579test; ClippyzeroClippyrules/unusedvariables but241deadcodewarnings targetinstances; fullsuite/Sonar/large stream pending"
+  },
+  "rows": [
+    {
+      "row_number": 1,
+      "profile": "g1",
+      "flags": [
+        "--format",
+        "cixg1",
+        "--threads",
+        "2",
+        "--parallelism",
+        "blocks",
+        "--fast",
+        "--stream",
+        "--flush-interval",
+        "50ms",
+        "--block-size",
+        "65536B",
+        "--memory",
+        "16MiB"
+      ],
+      "physical_cores": 2
+    },
+    {
+      "row_number": 2,
+      "profile": "m6",
+      "flags": [
+        "--format",
+        "cixm6",
+        "--threads",
+        "1",
+        "--fast",
+        "--stream",
+        "--flush-interval",
+        "50ms",
+        "--block-size",
+        "65536B",
+        "--memory",
+        "3584KiB"
+      ],
+      "physical_cores": 1
+    }
+  ],
+  "generator": {
+    "algorithm": "xorshift64",
+    "seed_hex": "6a09e667f3bcc909",
+    "bytes": 33554432,
+    "writes": [
+      1,
+      7,
+      31,
+      257,
+      4093,
+      16384,
+      65536
+    ],
+    "pause_exact_after_bytes": 1048832,
+    "pause_ms": 250,
+    "source_generator": "rust/cix-native/experiments/stream-qualification-v2/source-generator.c",
+    "source_generator_sha256": "bdb7ac00c327aba5b108dfef3706d30fd87544da1d0e943b2ffec718d8dab0d6",
+    "generated_source_sha256": "a239757831a2d312604464149c66712824576734926f778d6dcec437b17c283a",
+    "prehash_receipt": "prehash/raw/cix-streamq-prehash-v1.result.json"
+  },
+  "old_bd2_decoder": {
+    "path": "benchmark-work/combined-bd2-validation/final/uncix",
+    "sha256": "f9ec393c689c6602a3912ca74a8d83575979dcdf2cb0646ac2760f41cf80db84"
+  },
+  "limits": {
+    "cgroup_memory_bytes": 268435456,
+    "swap_bytes": 0,
+    "temporary_disk_bytes": 134217728,
+    "archive_bytes_max": 50331648,
+    "restoration_bytes_max": 33554432,
+    "wall_seconds": 120,
+    "individual_queue_bytes_max": 65536,
+    "parent_transient_buffer_estimate_bytes": 262144,
+    "total_batch_wall_seconds": 360
+  },
+  "gates": [
+    "live idle-open archive and decoded partial bytes",
+    "fresh current and BD2 exact SHA-256",
+    "empty exact",
+    "truncation rejects",
+    "corruption rejects",
+    "encoder interruption group reaped",
+    "M6 complete-archive held-open decoder group reaped",
+    "result flags and hashes"
+  ],
+  "driver": "rust/cix-native/experiments/stream-qualification-v2/driver.py",
+  "driver_sha256": "248c85869df558c2b2759234bbd03146056c57a4290f957df22074f4ce866d6e",
+  "qualification_limit": "Synthetic highentropy streaming correctness/resource screen, not purecodec throughput comparison or a corpusgate",
+  "decoder_flags_memory": "16MiB"
+}

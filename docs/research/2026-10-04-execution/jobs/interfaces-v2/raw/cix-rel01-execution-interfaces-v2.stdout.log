@@ -1,0 +1,19 @@
+CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v2/codecs/spatial', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-build-v2', '-G', 'Ninja', '-DCIX_SPATIAL_ROOT=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v2']
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-build-v2
+CHECK ['cmake', '--build', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-build-v2', '--parallel', '4']
+[1/2] Building CXX object CMakeFiles/cix_spatial_bridge.dir/cix_spatial_bridge.cpp.o
+[2/2] Linking CXX shared library libcix_spatial_bridge.so
+CHECK ['cmake', '--install', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-build-v2']
+-- Install configuration: ""
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v2/lib/libcix_spatial_bridge.so
+-- Set non-toolchain portion of runtime path of "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v2/lib/libcix_spatial_bridge.so" to "$ORIGIN"
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v2/include/cix/cix_spatial_bridge.h
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-interfaces-v2/Cargo.toml', '--all-targets']

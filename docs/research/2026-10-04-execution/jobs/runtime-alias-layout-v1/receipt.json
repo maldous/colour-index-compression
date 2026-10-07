@@ -1,0 +1,109 @@
+{
+  "status": "pass_scoped_layout_and_alias_logic",
+  "source_sha256": {
+    "/home/user/src/colour-index-compression/rust/cix-native/src/cli.rs": "a632528cd4bc895d96e2a7a2775c822897820f1d6a1cc53497ecff528eff635d",
+    "/home/user/src/colour-index-compression/rust/cix-native/packaging/runtime/CMakeLists.txt": "f9b13913fb680fd13c687d3b35b463add7b4649d764de34a28db04f628f70ade",
+    "/home/user/src/colour-index-compression/rust/cix-native/packaging/runtime/README.md": "fceaa7d0058776a61d38bf11209ca9e44c9c2929cb66da0304bc96f4a5d9fe68"
+  },
+  "commands": [
+    {
+      "label": "compile-extracted-alias-functions",
+      "argv": [
+        "rustc",
+        "--edition=2021",
+        "--test",
+        "-Dwarnings",
+        "-O",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/aliases.rs",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/aliases"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "execute-extracted-alias-checks",
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/aliases"
+      ],
+      "returncode": 0,
+      "stdout": "\nrunning 1 test\ntest aliases ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": ""
+    },
+    {
+      "label": "Linux-configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/source",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Linux-build",
+        "-DCMAKE_SYSTEM_NAME=Linux",
+        "-DCIX_RUNTIME_CAPABILITY=native-only",
+        "-DCIX_RUNTIME_CIX_EXECUTABLE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/selected-cix.exe",
+        "-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Linux-prefix"
+      ],
+      "returncode": 0,
+      "stdout": "-- Configuring done (0.0s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Linux-build\n",
+      "stderr": "CMake Warning (dev) at /usr/share/cmake-3.28/Modules/GNUInstallDirs.cmake:243 (message):\n  Unable to determine default CMAKE_INSTALL_LIBDIR directory because no\n  target architecture is known.  Please enable at least one language before\n  including GNUInstallDirs.\nCall Stack (most recent call first):\n  CMakeLists.txt:4 (include)\nThis warning is for project developers.  Use -Wno-dev to suppress it.\n\n"
+    },
+    {
+      "label": "Linux-install",
+      "argv": [
+        "cmake",
+        "--install",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Linux-build"
+      ],
+      "returncode": 0,
+      "stdout": "-- Install configuration: \"\"\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Linux-prefix/bin/cix\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Linux-prefix/share/doc/CIXRuntime/README.md\n",
+      "stderr": ""
+    },
+    {
+      "label": "Windows-configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/source",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Windows-build",
+        "-DCMAKE_SYSTEM_NAME=Windows",
+        "-DCIX_RUNTIME_CAPABILITY=native-only",
+        "-DCIX_RUNTIME_CIX_EXECUTABLE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/selected-cix.exe",
+        "-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Windows-prefix"
+      ],
+      "returncode": 0,
+      "stdout": "-- Configuring done (0.0s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Windows-build\n",
+      "stderr": "CMake Warning (dev) at /usr/share/cmake-3.28/Modules/GNUInstallDirs.cmake:243 (message):\n  Unable to determine default CMAKE_INSTALL_LIBDIR directory because no\n  target architecture is known.  Please enable at least one language before\n  including GNUInstallDirs.\nCall Stack (most recent call first):\n  CMakeLists.txt:4 (include)\nThis warning is for project developers.  Use -Wno-dev to suppress it.\n\n"
+    },
+    {
+      "label": "Windows-install",
+      "argv": [
+        "cmake",
+        "--install",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Windows-build"
+      ],
+      "returncode": 0,
+      "stdout": "-- Install configuration: \"\"\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Windows-prefix/bin/cix.exe\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Windows-prefix/share/doc/CIXRuntime/README.md\n",
+      "stderr": ""
+    },
+    {
+      "label": "unqualified-full-engine-refused",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/source",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/Windows-full-refusal",
+        "-DCMAKE_SYSTEM_NAME=Windows",
+        "-DCIX_RUNTIME_CAPABILITY=full-engine",
+        "-DCIX_RUNTIME_CIX_EXECUTABLE=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-alias-layout-v1/selected-cix.exe"
+      ],
+      "returncode": 1,
+      "stdout": "-- Configuring incomplete, errors occurred!\n",
+      "stderr": "CMake Warning (dev) at /usr/share/cmake-3.28/Modules/GNUInstallDirs.cmake:243 (message):\n  Unable to determine default CMAKE_INSTALL_LIBDIR directory because no\n  target architecture is known.  Please enable at least one language before\n  including GNUInstallDirs.\nCall Stack (most recent call first):\n  CMakeLists.txt:4 (include)\nThis warning is for project developers.  Use -Wno-dev to suppress it.\n\nCMake Error at CMakeLists.txt:75 (message):\n  full-engine installation requires each explicit bridge path; missing or\n  non-absolute:\n\n\n"
+    }
+  ],
+  "scope": "synthetic CMake Windows/Linux layout and exact extracted Rust alias functions; no Windows executable or whole CLI qualification",
+  "inputs_unchanged": true
+}

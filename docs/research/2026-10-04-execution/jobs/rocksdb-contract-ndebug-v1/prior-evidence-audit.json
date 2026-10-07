@@ -1,0 +1,28 @@
+{
+  "scope": "Audit of the earlier RocksDB adapter contract evidence before the explicit NDEBUG qualification.",
+  "successful_evidence": {
+    "job": "execution-rocksdb-host-v2",
+    "receipt": "../rocksdb-host-v2/receipt.json",
+    "result": "PASS: configure, build, and ctest each returned zero; ctest ran cix_rocksdb_contract once.",
+    "contract_source_sha256": "42d0c40e7189cb81cb13f505862611b19e8fa2b41d03ff59136202984d2dcb0a",
+    "generated_contract_flags": [
+      "-std=gnu++20",
+      "-fno-rtti"
+    ],
+    "ndebug_flag_present": false,
+    "undef_ndebug_flag_present": false,
+    "cmake_build_type": "",
+    "conclusion": "The successful v2 contract compilation did not define NDEBUG. Every runtime assertion in the historical contract therefore evaluated during this successful run. The CMake cache's unused Release default (-O3 -DNDEBUG) was not selected."
+  },
+  "non_qualifying_evidence": {
+    "job": "execution-rocksdb-host-v1",
+    "receipt": "../rocksdb-host-v1/receipt.json",
+    "result": "Not qualifying: adapter link failed before ctest due to missing RTTI typeinfo in the RocksDB library.",
+    "generated_contract_flags": [
+      "-std=gnu++20"
+    ],
+    "ndebug_flag_present": false,
+    "undef_ndebug_flag_present": false
+  },
+  "remaining_limit": "Neither historical job proves behavior when assertions are compiled out. rocksdb-contract-ndebug-v1 is the dedicated qualification for that configuration."
+}

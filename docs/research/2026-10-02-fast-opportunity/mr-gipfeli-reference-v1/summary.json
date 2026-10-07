@@ -1,0 +1,206 @@
+[
+  {
+    "cell_id": "mr-gipfeli-reference-v1-r1",
+    "owner": "/root",
+    "manifest_sha256": "8358d612500137f1982a06287db16d9e2d2b4b4c1aeeb7348a9229e7555f0859",
+    "cpu": [
+      16,
+      17,
+      18,
+      19
+    ],
+    "physical_core": [
+      [
+        0,
+        32
+      ],
+      [
+        0,
+        33
+      ],
+      [
+        0,
+        34
+      ],
+      [
+        0,
+        35
+      ]
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "16,17,18,19",
+      "/bin/python3",
+      "/home/user/src/colour-index-compression/benchmarks/hutter_bounded_runner.py",
+      "--manifest",
+      "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/manifest-r1.json",
+      "--results",
+      "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1",
+      "--root",
+      "/home/user/src/colour-index-compression"
+    ],
+    "stdout_log": "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/scheduler-logs/mr-gipfeli-reference-v1-r1.stdout.log",
+    "progress_log": "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/scheduler-logs/mr-gipfeli-reference-v1-r1.progress.jsonl",
+    "returncode": 1,
+    "runner_status": "FAILED",
+    "runner_result": {
+      "archive_bytes": null,
+      "archive_sha256": null,
+      "artifacts": {
+        "archive": "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/0e960edaa8d8dd604dacf52863a874262e518171be2144bc7ada828208803787/work/archive.cix",
+        "restored": "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/0e960edaa8d8dd604dacf52863a874262e518171be2144bc7ada828208803787/work/restored.bin"
+      },
+      "budget": {
+        "cpu": [
+          16,
+          17,
+          18,
+          19
+        ],
+        "max_rss_bytes": 3000000000,
+        "max_temp_bytes": 512000000,
+        "swap_bytes": 0,
+        "wall_seconds": 300
+      },
+      "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+      "completed_at": "2026-10-01T21:10:49.041164+00:00",
+      "experiment_id": "0e960edaa8d8dd604dacf52863a874262e518171be2144bc7ada828208803787",
+      "hypothesis": "Compact greedy matching and bounded cheap search can improve native FAST throughput; quantify current baseline and same-input codec controls before attribution.",
+      "identity": {
+        "build_sha256": {
+          "benchmark-work/references/gipfeli-squash-v070/gipfeli-reference": "876da6a85fd6aa5207f31b571728d0a8c61ff690fad82e95c775ea4bbe45ae04",
+          "benchmark-work/references/gipfeli-squash-v070/native-release.json": "0cb2e6daf4be2fd366bbc14550acbbfa51460972bf9de71e3a815f80d59a699d",
+          "benchmarks/cix_fast_opportunity.py": "591fcb2b73d76aabda591cdc89bb8aa95c042942af1b7fc7a05e3832a9ea5011",
+          "benchmarks/hutter_bounded_runner.py": "499cc36479c7dab240c9184c28f0c44eda1b816ed517140466ec510708f5c08e",
+          "benchmarks/hutter_experiment_scheduler.py": "13bd99ad63896ec90736cffd0a25ff52f89c50075aca3c115b3214738bf7d7ad"
+        },
+        "configuration": {
+          "codec_metadata": {
+            "artifact": "gipfeli-reference",
+            "binaries": {
+              "gipfeli-reference": {
+                "bytes": 76960,
+                "sha256": "876da6a85fd6aa5207f31b571728d0a8c61ff690fad82e95c775ea4bbe45ae04"
+              }
+            },
+            "build": {
+              "compiler": "g++ 13.3.0",
+              "cpu_affinity": "16",
+              "flags": [
+                "-O3",
+                "-DNDEBUG",
+                "-std=c++11",
+                "-Wall",
+                "-Wextra",
+                "-Wno-sign-compare",
+                "-Wno-strict-aliasing"
+              ],
+              "parallel_jobs": 1,
+              "target": "portable native C++"
+            },
+            "interface": {
+              "api": "NewGipfeliCompressor; CompressStream/UncompressStream",
+              "decode": "gipfeli-reference decode ARCHIVE RESTORED",
+              "encode": "gipfeli-reference encode INPUT OUTPUT",
+              "options": "none; matches Squash v0.7 Gipfeli plugin"
+            },
+            "kind": "native-reference-cli",
+            "local_wrapper": {
+              "path": "gipfeli_reference.cc",
+              "sha256": "c5aeed5434119a951acd637ad8d5952d8b58b42b3025f6f8ff13bdddb9bfd7af"
+            },
+            "qualification": "built only; no compression, decompression, benchmark, or scheduler job was run by this build task",
+            "source_revision": "65b9721308a357f6aa261c11d0af291d10d0b96c",
+            "upstream": {
+              "gipfeli": {
+                "commit": "65b9721308a357f6aa261c11d0af291d10d0b96c",
+                "git_file_listing_sha256": "4b5fc3b097f01c72a01a45021c0eabe4340638dbf568d9f5cf4b12b27adff990",
+                "git_tree": "17a2b5f261c57ebc4cc4be496ac16f05a69d2923",
+                "repository": "https://github.com/google/gipfeli.git"
+              },
+              "squash_wrapper": {
+                "commit": "fa5fd7d496ab2210c0a03e4eb07ebd5f0644cfad",
+                "git_entry_sha256": "db78722ec1157f5a1c7979af4d642d5c2b4b99bb9e1c3d8d8c35306b413633ac",
+                "git_tree": "92e558661a96dd2dd37413741c08f6e2cccfcad3",
+                "path": "plugins/gipfeli/squash-gipfeli.cpp",
+                "repository": "https://github.com/quixdb/squash.git",
+                "sha256": "e352adbe5811591050c414ee2ab700a9e3af8ac46200d506bfac2ed5d03faf8f",
+                "tag": "v0.7.0"
+              }
+            }
+          },
+          "decoder_sha256": "876da6a85fd6aa5207f31b571728d0a8c61ff690fad82e95c775ea4bbe45ae04",
+          "encoder_sha256": "876da6a85fd6aa5207f31b571728d0a8c61ff690fad82e95c775ea4bbe45ae04",
+          "flags": [],
+          "repetition": 1,
+          "source_revision": "65b9721308a357f6aa261c11d0af291d10d0b96c",
+          "variant": "gipfeli"
+        },
+        "initial_state": "Fresh processes; uncontrolled cache and host load; repeated experiments run serially",
+        "input": {
+          "length": 9970564,
+          "offset": 0,
+          "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/mr",
+          "sha256": "68637ed52e3e4860174ed2dc0840ac77d5f1a60abbcb13770d5754e3774d53e6"
+        },
+        "manifest_sha256": "8358d612500137f1982a06287db16d9e2d2b4b4c1aeeb7348a9229e7555f0859"
+      },
+      "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+      "matched_control": "Same original input bytes, host, CPUs16\u201319 and GNU time method. Imported Squash times are descriptive, never the local speed control.",
+      "mechanism": "Complete physical archive, selection/discarded-trial time included for automatic CIX; separate standalone reference when explicitly labelled. No filename/content-identity dispatch.",
+      "phases": [
+        {
+          "command": [
+            "/usr/bin/time",
+            "-v",
+            "-o",
+            "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/0e960edaa8d8dd604dacf52863a874262e518171be2144bc7ada828208803787/work/encode.time.txt",
+            "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/0e960edaa8d8dd604dacf52863a874262e518171be2144bc7ada828208803787/build/benchmark-work/references/gipfeli-squash-v070/gipfeli-reference",
+            "encode",
+            "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/0e960edaa8d8dd604dacf52863a874262e518171be2144bc7ada828208803787/work/source.bin",
+            "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/0e960edaa8d8dd604dacf52863a874262e518171be2144bc7ada828208803787/work/archive.cix"
+          ],
+          "cpu_usage_seconds": 0.07374,
+          "elapsed_seconds": 0.19404826313257217,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 9971963,
+          "phase": "cix-bounded-0e960edaa8d8-encode",
+          "sampled_cgroup_memory_high_water_bytes": 17129472,
+          "stop_reason": null
+        },
+        {
+          "command": [
+            "/usr/bin/time",
+            "-v",
+            "-o",
+            "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/0e960edaa8d8dd604dacf52863a874262e518171be2144bc7ada828208803787/work/decode.time.txt",
+            "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/0e960edaa8d8dd604dacf52863a874262e518171be2144bc7ada828208803787/build/benchmark-work/references/gipfeli-squash-v070/gipfeli-reference",
+            "decode",
+            "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/0e960edaa8d8dd604dacf52863a874262e518171be2144bc7ada828208803787/work/archive.cix",
+            "/home/user/src/colour-index-compression/docs/research/2026-10-02-fast-opportunity/mr-gipfeli-reference-v1/runs/r1/0e960edaa8d8dd604dacf52863a874262e518171be2144bc7ada828208803787/work/restored.bin"
+          ],
+          "cpu_usage_seconds": 0.009975,
+          "elapsed_seconds": 0.12396755209192634,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 9973363,
+          "phase": "cix-bounded-0e960edaa8d8-decode",
+          "sampled_cgroup_memory_high_water_bytes": 823296,
+          "stop_reason": null
+        }
+      ],
+      "promotion_criteria": "Fresh archive-only native restoration exact length and SHA-256, complete archive cost, no loss hidden. Candidate must pass CCA and pipe regressions before Silesia deployment; two repetitions are local screening, not statistical speed qualification.",
+      "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+      "status": "FAILED",
+      "verification": {
+        "matched": false,
+        "restored_sha256": null,
+        "source_sha256": "68637ed52e3e4860174ed2dc0840ac77d5f1a60abbcb13770d5754e3774d53e6"
+      }
+    },
+    "ended_at": "2026-10-01T21:10:49.051637+00:00",
+    "elapsed_seconds": 0.4019621154293418
+  }
+]

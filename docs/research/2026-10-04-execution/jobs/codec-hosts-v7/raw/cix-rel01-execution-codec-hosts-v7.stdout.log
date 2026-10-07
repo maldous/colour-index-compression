@@ -1,0 +1,56 @@
+squash ['sh', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v7/packaging/squash/build-plugin.sh'] 0
+squash ['cc', '-std=c11', '-Wall', '-Wextra', '-Werror', '-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v7/packaging/squash/contract.c', '-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib', '-lsquash0.8', '-o', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v7/squash-contract')] 0
+squash [PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v7/squash-contract'), PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v7/squash-plugins')] 1
+squash FAIL squash CIX contract: host stream emulation round trip
+
+sevenzip ['cmake', '-S', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v7/adapters/sevenzip'), '-B', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v7/sevenzip'), '-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so', '-DCIX_7ZIP_SDK_ROOT=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1', '-DCIX_7ZIP_SDK_ARCHIVE_SHA256=9cbde5099c6deb73691b0579063da5827522ccbbcba3f0020fd04e8c8c16c0d4', '-DCIX_7ZIP_BUILD_CONTRACT=ON'] 0
+sevenzip ['cmake', '--build', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v7/sevenzip'), '-j4'] 2
+sevenzip FAIL heck-v1/sevenzip-source-v1/CPP/7zip/IStream.h:48:5: warning: ‘virtual LONG {anonymous}::CMemoryIn::Read(void*, UInt32, UInt32*) noexcept’ used but never defined
+   48 |   x(Read(void *data, UInt32 size, UInt32 *processedSize))
+      |     ^~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/IDecl.h:50:46: note: in definition of macro ‘Z7_COM7F_IMF’
+   50 | #define Z7_COM7F_IMF(f)       Z7_COM7F_B     f Z7_COM7F_E
+      |                                              ^
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/IStream.h:48:3: note: in expansion of macro ‘Z7_COM7F_IMP’
+   48 |   x(Read(void *data, UInt32 size, UInt32 *processedSize))
+      |   ^
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/IDecl.h:64:43: note: in expansion of macro ‘Z7_IFACEM_ISequentialInStream’
+   64 | #define Z7_IFACE_COM7_IMP(name)           Z7_IFACEM_ ## name(Z7_COM7F_IMP)
+      |                                           ^~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Common/MyCom.h:487:3: note: in expansion of macro ‘Z7_IFACE_COM7_IMP’
+  487 |   Z7_IFACE_COM7_IMP(i1) \
+      |   ^~~~~~~~~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Common/MyCom.h:546:3: note: in expansion of macro ‘Z7_IFACES_IMP_UNK_1’
+  546 |   Z7_IFACES_IMP_UNK_1(i1) \
+      |   ^~~~~~~~~~~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v7/adapters/sevenzip/cix_7zip_contract.cpp:17:1: note: in expansion of macro ‘Z7_CLASS_IMP_COM_1’
+   17 | Z7_CLASS_IMP_COM_1(CMemoryIn, ISequentialInStream)
+      | ^~~~~~~~~~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/IStream.h:69:5: warning: ‘virtual LONG {anonymous}::CMemoryOut::Write(const void*, UInt32, UInt32*) noexcept’ used but never defined
+   69 |   x(Write(const void *data, UInt32 size, UInt32 *processedSize))
+      |     ^~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/IDecl.h:50:46: note: in definition of macro ‘Z7_COM7F_IMF’
+   50 | #define Z7_COM7F_IMF(f)       Z7_COM7F_B     f Z7_COM7F_E
+      |                                              ^
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/IStream.h:69:3: note: in expansion of macro ‘Z7_COM7F_IMP’
+   69 |   x(Write(const void *data, UInt32 size, UInt32 *processedSize))
+      |   ^
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/7zip/IDecl.h:64:43: note: in expansion of macro ‘Z7_IFACEM_ISequentialOutStream’
+   64 | #define Z7_IFACE_COM7_IMP(name)           Z7_IFACEM_ ## name(Z7_COM7F_IMP)
+      |                                           ^~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Common/MyCom.h:487:3: note: in expansion of macro ‘Z7_IFACE_COM7_IMP’
+  487 |   Z7_IFACE_COM7_IMP(i1) \
+      |   ^~~~~~~~~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Common/MyCom.h:546:3: note: in expansion of macro ‘Z7_IFACES_IMP_UNK_1’
+  546 |   Z7_IFACES_IMP_UNK_1(i1) \
+      |   ^~~~~~~~~~~~~~~~~~~
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v7/adapters/sevenzip/cix_7zip_contract.cpp:36:1: note: in expansion of macro ‘Z7_CLASS_IMP_COM_1’
+   36 | Z7_CLASS_IMP_COM_1(CMemoryOut, ISequentialOutStream)
+      | ^~~~~~~~~~~~~~~~~~
+gmake[2]: *** [CMakeFiles/cix_7zip_contract.dir/build.make:76: CMakeFiles/cix_7zip_contract.dir/cix_7zip_contract.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:139: CMakeFiles/cix_7zip_contract.dir/all] Error 2
+gmake: *** [Makefile:91: all] Error 2
+
+wiredtiger ['cmake', '-S', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v7/adapters/wiredtiger'), '-B', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v7/wiredtiger'), '-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so', '-DWIREDTIGER_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-prefix/include', '-DWIREDTIGER_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-prefix/lib/libwiredtiger.so', '-DCIX_WIREDTIGER_BUILD_CONTRACT_TEST=ON'] 0
+wiredtiger ['cmake', '--build', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v7/wiredtiger'), '-j4'] 0
+wiredtiger ['ctest', '--test-dir', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v7/wiredtiger'), '--output-on-failure'] 0

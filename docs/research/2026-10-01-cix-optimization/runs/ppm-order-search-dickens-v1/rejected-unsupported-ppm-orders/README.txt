@@ -1,0 +1,1 @@
+Rejected: frozen Python reference decoder raises ValueError("unbounded PPM order") at cix/pipeline.py when payload header order > 3. The order-4..6 candidate generation was removed; current selector limits PPM to orders 1..3.

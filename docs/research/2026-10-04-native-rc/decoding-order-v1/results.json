@@ -1,0 +1,984 @@
+{
+  "plan_sha256": "0ee74511621334444efc072c91f99c93fbb394aef6efc464b6807b394e131e0b",
+  "script_sha256": "5dd4abcad0207c96a92282d2eb7628cb8005c35939b01682850c5a9b14443f98",
+  "scope": "Ideal predictive bits; literal replay transports are not compressed archives",
+  "synthetic": {
+    "xor_context_normalization_and_causality": true,
+    "xor_target_probability": 0.7388392857142857,
+    "fixture_rows": [
+      {
+        "fixture": "zero",
+        "order": "forward",
+        "ideal_bits": 75.28888988333222
+      },
+      {
+        "fixture": "zero",
+        "order": "reverse",
+        "ideal_bits": 75.28888988333222
+      },
+      {
+        "fixture": "zero",
+        "order": "fixed_anchors",
+        "ideal_bits": 127.92052462745146
+      },
+      {
+        "fixture": "zero",
+        "order": "adaptive_anchors",
+        "ideal_bits": 133.6956534501331
+      },
+      {
+        "fixture": "zero",
+        "order": "center_out",
+        "ideal_bits": 75.28888988333222
+      },
+      {
+        "fixture": "alternating",
+        "order": "forward",
+        "ideal_bits": 147.40506970496915
+      },
+      {
+        "fixture": "alternating",
+        "order": "reverse",
+        "ideal_bits": 147.40506970496915
+      },
+      {
+        "fixture": "alternating",
+        "order": "fixed_anchors",
+        "ideal_bits": 224.2408843190569
+      },
+      {
+        "fixture": "alternating",
+        "order": "adaptive_anchors",
+        "ideal_bits": 229.75710646553082
+      },
+      {
+        "fixture": "alternating",
+        "order": "center_out",
+        "ideal_bits": 147.40593241388888
+      },
+      {
+        "fixture": "pseudorandom",
+        "order": "forward",
+        "ideal_bits": 8469.521784384246
+      },
+      {
+        "fixture": "pseudorandom",
+        "order": "reverse",
+        "ideal_bits": 8475.291002380382
+      },
+      {
+        "fixture": "pseudorandom",
+        "order": "fixed_anchors",
+        "ideal_bits": 8468.42299506014
+      },
+      {
+        "fixture": "pseudorandom",
+        "order": "adaptive_anchors",
+        "ideal_bits": 8470.717757173516
+      },
+      {
+        "fixture": "pseudorandom",
+        "order": "center_out",
+        "ideal_bits": 8470.300442516676
+      }
+    ],
+    "short_lengths_all_orders_roundtrip": true
+  },
+  "samples": [
+    {
+      "source": {
+        "id": "calgary-14--book1",
+        "path": "/home/user/src/colour-index-compression/benchmark-work/calgary/book1",
+        "family": "standard-corpus",
+        "offset": 8192,
+        "bytes": 4096,
+        "sample_sha256": "9495136a911a93a79ad34f0781e26a1b831f849fba2ff417ac7301c8b3940fa0",
+        "split": "heldout"
+      },
+      "orders": [
+        {
+          "order": "forward",
+          "ideal_bits": 15865.945310632662,
+          "bits_per_input_byte": 3.873521804353677,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 222,
+            "0": 1197,
+            "2": 2677
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 1818,
+          "trace_sha256": "fc4b684d807708780a39cf4e2accda72aa1cc3a41bb89a2ef467427f24149bf0",
+          "wall_seconds": 0.05058403799193911,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/calgary-14--book1-forward.orv",
+          "literal_transport_sha256": "643b1d057a6d9b7384db111eb802651c657d30fd30a16eb81ced9d8ba9223945",
+          "fresh_replay": {
+            "sha256": "9495136a911a93a79ad34f0781e26a1b831f849fba2ff417ac7301c8b3940fa0",
+            "bytes": 4096,
+            "trace_sha256": "fc4b684d807708780a39cf4e2accda72aa1cc3a41bb89a2ef467427f24149bf0"
+          }
+        },
+        {
+          "order": "reverse",
+          "ideal_bits": 15913.458424594102,
+          "bits_per_input_byte": 3.8851216856919195,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 221,
+            "1": 1195,
+            "3": 2680
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 1818,
+          "trace_sha256": "6662e3aca90a04929ff87aebae40eb838a127293cf604fc970ec0414758e3b0c",
+          "wall_seconds": 0.049846458990941755,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/calgary-14--book1-reverse.orv",
+          "literal_transport_sha256": "e1c0675d5102cc5846b5b5f670cd9d746cc706448509d180fafd3ffae256ccf4",
+          "fresh_replay": {
+            "sha256": "9495136a911a93a79ad34f0781e26a1b831f849fba2ff417ac7301c8b3940fa0",
+            "bytes": 4096,
+            "trace_sha256": "6662e3aca90a04929ff87aebae40eb838a127293cf604fc970ec0414758e3b0c"
+          }
+        },
+        {
+          "order": "fixed_anchors",
+          "ideal_bits": 15973.66087646252,
+          "bits_per_input_byte": 3.8998195499176074,
+          "anchor_ideal_bits_included": 719.0374800254568,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 337,
+            "0": 1124,
+            "1": 18,
+            "2": 2576,
+            "4": 41
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 1818,
+          "trace_sha256": "13bc59957118c4b87315a8351840d7eca17aab55758cb13eeb1128dcf4a4ed1a",
+          "wall_seconds": 0.04980863300443161,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/calgary-14--book1-fixed_anchors.orv",
+          "literal_transport_sha256": "316fecb8824dc4e3c7d51a4f008129160501cfdc533da6257e0befb7d4a50894",
+          "fresh_replay": {
+            "sha256": "9495136a911a93a79ad34f0781e26a1b831f849fba2ff417ac7301c8b3940fa0",
+            "bytes": 4096,
+            "trace_sha256": "13bc59957118c4b87315a8351840d7eca17aab55758cb13eeb1128dcf4a4ed1a"
+          }
+        },
+        {
+          "order": "adaptive_anchors",
+          "ideal_bits": 15957.327738870445,
+          "bits_per_input_byte": 3.895831967497667,
+          "anchor_ideal_bits_included": 719.0374800254568,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 321,
+            "0": 509,
+            "1": 719,
+            "2": 872,
+            "3": 1652,
+            "4": 23
+          },
+          "prediction_evaluations": 48513,
+          "context_table_count": 1818,
+          "trace_sha256": "a9825e441bb3ef35082c0a1319c1126078d19a098cb60538ab8e44d1d8c27c04",
+          "wall_seconds": 0.26766148299793713,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/calgary-14--book1-adaptive_anchors.orv",
+          "literal_transport_sha256": "3317b5dc0cb34b8abb635e19cd63e9633a93dd7aca9cca12ccfdbc2a4e8cf238",
+          "fresh_replay": {
+            "sha256": "9495136a911a93a79ad34f0781e26a1b831f849fba2ff417ac7301c8b3940fa0",
+            "bytes": 4096,
+            "trace_sha256": "a9825e441bb3ef35082c0a1319c1126078d19a098cb60538ab8e44d1d8c27c04"
+          }
+        },
+        {
+          "order": "center_out",
+          "ideal_bits": 15871.181104512754,
+          "bits_per_input_byte": 3.874800074343934,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 220,
+            "0": 598,
+            "1": 594,
+            "2": 1326,
+            "3": 1358
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 1818,
+          "trace_sha256": "43ac3658e3b107960e8ff2a6d207cd2028675eb865c61f2b3afd716acc68bb82",
+          "wall_seconds": 0.05114217700611334,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/calgary-14--book1-center_out.orv",
+          "literal_transport_sha256": "9e16c5711db9869ec630ba71ba31fe05a05dd5e051382d4590ac7ad6d2195131",
+          "fresh_replay": {
+            "sha256": "9495136a911a93a79ad34f0781e26a1b831f849fba2ff417ac7301c8b3940fa0",
+            "bytes": 4096,
+            "trace_sha256": "43ac3658e3b107960e8ff2a6d207cd2028675eb865c61f2b3afd716acc68bb82"
+          }
+        }
+      ],
+      "ordinary_coder_payload_bytes_separate_from_ideal_loss": {
+        "zlib9": 2095,
+        "xz1": 2260
+      }
+    },
+    {
+      "source": {
+        "id": "calgary-14--progc",
+        "path": "/home/user/src/colour-index-compression/benchmark-work/calgary/progc",
+        "family": "standard-corpus",
+        "offset": 8192,
+        "bytes": 4096,
+        "sample_sha256": "ad7d57d029fef6a0949895b484068013e3e99b2f9887cf2a4915dba6de65d37a",
+        "split": "heldout"
+      },
+      "orders": [
+        {
+          "order": "forward",
+          "ideal_bits": 16129.663183368948,
+          "bits_per_input_byte": 3.9379060506271846,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 350,
+            "0": 1506,
+            "2": 2240
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 2636,
+          "trace_sha256": "973490eef769af0d913539b3a19727239064beeb84fbb909a1944f238255a1a7",
+          "wall_seconds": 0.052317483990918845,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/calgary-14--progc-forward.orv",
+          "literal_transport_sha256": "fbf404edebf1e7ea8c916082e5620aa2ea933afac35dff3b35b0b082705be182",
+          "fresh_replay": {
+            "sha256": "ad7d57d029fef6a0949895b484068013e3e99b2f9887cf2a4915dba6de65d37a",
+            "bytes": 4096,
+            "trace_sha256": "973490eef769af0d913539b3a19727239064beeb84fbb909a1944f238255a1a7"
+          }
+        },
+        {
+          "order": "reverse",
+          "ideal_bits": 16208.807913526754,
+          "bits_per_input_byte": 3.957228494513368,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 349,
+            "1": 1504,
+            "3": 2243
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 2636,
+          "trace_sha256": "c146ddb687ea5707d7aea8b019c82e76e4620f047696d6f5ffd50ccac12e8ff3",
+          "wall_seconds": 0.04887043801136315,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/calgary-14--progc-reverse.orv",
+          "literal_transport_sha256": "d696f6a26058d736de2f49fc849379cd5619fcf7cdb88a41637c77992b2f12bc",
+          "fresh_replay": {
+            "sha256": "ad7d57d029fef6a0949895b484068013e3e99b2f9887cf2a4915dba6de65d37a",
+            "bytes": 4096,
+            "trace_sha256": "c146ddb687ea5707d7aea8b019c82e76e4620f047696d6f5ffd50ccac12e8ff3"
+          }
+        },
+        {
+          "order": "fixed_anchors",
+          "ideal_bits": 16310.889221388563,
+          "bits_per_input_byte": 3.982150688815567,
+          "anchor_ideal_bits_included": 805.8182554187543,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 465,
+            "0": 1435,
+            "1": 17,
+            "2": 2142,
+            "4": 37
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 2636,
+          "trace_sha256": "fcbed6507912e4b128c947374c0e34a81c2c339e6ef78ebdc97bea138e2516c1",
+          "wall_seconds": 0.05112883499532472,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/calgary-14--progc-fixed_anchors.orv",
+          "literal_transport_sha256": "cad9a68c9b779473381b29b3ffcb763529c9cd9ecc376d74286fb8a0ec24d63d",
+          "fresh_replay": {
+            "sha256": "ad7d57d029fef6a0949895b484068013e3e99b2f9887cf2a4915dba6de65d37a",
+            "bytes": 4096,
+            "trace_sha256": "fcbed6507912e4b128c947374c0e34a81c2c339e6ef78ebdc97bea138e2516c1"
+          }
+        },
+        {
+          "order": "adaptive_anchors",
+          "ideal_bits": 16363.90203022697,
+          "bits_per_input_byte": 3.995093269098381,
+          "anchor_ideal_bits_included": 805.8182554187543,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 399,
+            "1": 747,
+            "0": 757,
+            "2": 852,
+            "3": 1320,
+            "4": 21
+          },
+          "prediction_evaluations": 48583,
+          "context_table_count": 2636,
+          "trace_sha256": "8345b1d9dadbf9be2284b1aa514d6a49ba65c4686a6ee8f8c3d079f5d33b38cf",
+          "wall_seconds": 0.26272928999969736,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/calgary-14--progc-adaptive_anchors.orv",
+          "literal_transport_sha256": "df8432febfe008adbad2b06471b86c5dcaaae3f95247bc559e227f2126f8a7e1",
+          "fresh_replay": {
+            "sha256": "ad7d57d029fef6a0949895b484068013e3e99b2f9887cf2a4915dba6de65d37a",
+            "bytes": 4096,
+            "trace_sha256": "8345b1d9dadbf9be2284b1aa514d6a49ba65c4686a6ee8f8c3d079f5d33b38cf"
+          }
+        },
+        {
+          "order": "center_out",
+          "ideal_bits": 16133.785966420508,
+          "bits_per_input_byte": 3.938912589458132,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 349,
+            "0": 751,
+            "1": 752,
+            "2": 1128,
+            "3": 1116
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 2636,
+          "trace_sha256": "6e18a06d2ae371149b7ea51eecc94225ae64c81d936333f0447f3c59c182cdfb",
+          "wall_seconds": 0.05060902900004294,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/calgary-14--progc-center_out.orv",
+          "literal_transport_sha256": "194d27357213e03e99e7872ad66991c31cea2677413af013193098e93d1f85cb",
+          "fresh_replay": {
+            "sha256": "ad7d57d029fef6a0949895b484068013e3e99b2f9887cf2a4915dba6de65d37a",
+            "bytes": 4096,
+            "trace_sha256": "6e18a06d2ae371149b7ea51eecc94225ae64c81d936333f0447f3c59c182cdfb"
+          }
+        }
+      ],
+      "ordinary_coder_payload_bytes_separate_from_ideal_loss": {
+        "zlib9": 1758,
+        "xz1": 1852
+      }
+    },
+    {
+      "source": {
+        "id": "canterbury-11--alice29.txt",
+        "path": "/home/user/src/colour-index-compression/benchmark-work/canterbury/alice29.txt",
+        "family": "standard-corpus",
+        "offset": 8192,
+        "bytes": 4096,
+        "sample_sha256": "802aae323941ecf0b398fed4b866fd0b70f5b4757e2146f874a760631d4c6e00",
+        "split": "heldout"
+      },
+      "orders": [
+        {
+          "order": "forward",
+          "ideal_bits": 14437.134353342939,
+          "bits_per_input_byte": 3.524691004234116,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 216,
+            "0": 1065,
+            "2": 2815
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 1710,
+          "trace_sha256": "9a71930947d8158ab75c0a190b3bb081a3440711673fd908325635f1153d043f",
+          "wall_seconds": 0.050286372992559336,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-11--alice29.txt-forward.orv",
+          "literal_transport_sha256": "92ba9c0ac4e6487fa83287ebce8d95aafad53bea1f2d2e70c361cd1e77b62a3e",
+          "fresh_replay": {
+            "sha256": "802aae323941ecf0b398fed4b866fd0b70f5b4757e2146f874a760631d4c6e00",
+            "bytes": 4096,
+            "trace_sha256": "9a71930947d8158ab75c0a190b3bb081a3440711673fd908325635f1153d043f"
+          }
+        },
+        {
+          "order": "reverse",
+          "ideal_bits": 14323.537599425288,
+          "bits_per_input_byte": 3.4969574217346895,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 216,
+            "1": 1064,
+            "3": 2816
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 1710,
+          "trace_sha256": "bfe55312afdebcc7d3a034ad9b5d4bb87d5fb408dddab8243c537b6f8c3c0f07",
+          "wall_seconds": 0.04954223200911656,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-11--alice29.txt-reverse.orv",
+          "literal_transport_sha256": "f3d7d954d60d4c3ad7252bbfaab672dabbd108a3525eaf4168c8b04bb0e49ce4",
+          "fresh_replay": {
+            "sha256": "802aae323941ecf0b398fed4b866fd0b70f5b4757e2146f874a760631d4c6e00",
+            "bytes": 4096,
+            "trace_sha256": "bfe55312afdebcc7d3a034ad9b5d4bb87d5fb408dddab8243c537b6f8c3c0f07"
+          }
+        },
+        {
+          "order": "fixed_anchors",
+          "ideal_bits": 14556.341861144816,
+          "bits_per_input_byte": 3.5537943996935586,
+          "anchor_ideal_bits_included": 701.9211393532122,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 332,
+            "0": 1009,
+            "1": 16,
+            "2": 2699,
+            "4": 40
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 1710,
+          "trace_sha256": "8fe77fd095bf44f38750b18093c43fd7b8fce26146053571ce7abe055668ddc6",
+          "wall_seconds": 0.05015057900163811,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-11--alice29.txt-fixed_anchors.orv",
+          "literal_transport_sha256": "c9797d3ae1c07dbd01d7239962d28b6c543f9279d2073d93a796739ccac0fa4a",
+          "fresh_replay": {
+            "sha256": "802aae323941ecf0b398fed4b866fd0b70f5b4757e2146f874a760631d4c6e00",
+            "bytes": 4096,
+            "trace_sha256": "8fe77fd095bf44f38750b18093c43fd7b8fce26146053571ce7abe055668ddc6"
+          }
+        },
+        {
+          "order": "adaptive_anchors",
+          "ideal_bits": 14548.256009830167,
+          "bits_per_input_byte": 3.551820314899943,
+          "anchor_ideal_bits_included": 701.9211393532122,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 322,
+            "1": 530,
+            "0": 589,
+            "2": 1167,
+            "3": 1445,
+            "4": 43
+          },
+          "prediction_evaluations": 48920,
+          "context_table_count": 1710,
+          "trace_sha256": "b930fba49534c9795112b242c6b1417cab2deed942c3f99a56e3eb24ac8e0e87",
+          "wall_seconds": 0.2709885810036212,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-11--alice29.txt-adaptive_anchors.orv",
+          "literal_transport_sha256": "cb8cae11cd1295c10b45718c1c6e3dbbb7e43d9c4286339bbb0911fb8959c11f",
+          "fresh_replay": {
+            "sha256": "802aae323941ecf0b398fed4b866fd0b70f5b4757e2146f874a760631d4c6e00",
+            "bytes": 4096,
+            "trace_sha256": "b930fba49534c9795112b242c6b1417cab2deed942c3f99a56e3eb24ac8e0e87"
+          }
+        },
+        {
+          "order": "center_out",
+          "ideal_bits": 14352.941458645919,
+          "bits_per_input_byte": 3.5041360983022263,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 216,
+            "1": 474,
+            "0": 589,
+            "2": 1346,
+            "3": 1471
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 1710,
+          "trace_sha256": "f1aa4fc87bdd70ba5ebf110100ba7cfd48821c4aaf52cf0bdc8a1ef5d83a168d",
+          "wall_seconds": 0.049994132001302205,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-11--alice29.txt-center_out.orv",
+          "literal_transport_sha256": "1b11c94eeddbf52a270ed57986fa2f6302de0dcc779f78b2e676f25bcccbf5b6",
+          "fresh_replay": {
+            "sha256": "802aae323941ecf0b398fed4b866fd0b70f5b4757e2146f874a760631d4c6e00",
+            "bytes": 4096,
+            "trace_sha256": "f1aa4fc87bdd70ba5ebf110100ba7cfd48821c4aaf52cf0bdc8a1ef5d83a168d"
+          }
+        }
+      ],
+      "ordinary_coder_payload_bytes_separate_from_ideal_loss": {
+        "zlib9": 1836,
+        "xz1": 1980
+      }
+    },
+    {
+      "source": {
+        "id": "canterbury-11--kennedy.xls",
+        "path": "/home/user/src/colour-index-compression/benchmark-work/canterbury/kennedy.xls",
+        "family": "standard-corpus",
+        "offset": 8192,
+        "bytes": 4096,
+        "sample_sha256": "fc55bf4a295e6dd2b88c90ce516afbdc4143abf13aae7c30d05e2e6cbb6c58aa",
+        "split": "heldout"
+      },
+      "orders": [
+        {
+          "order": "forward",
+          "ideal_bits": 8752.89751767035,
+          "bits_per_input_byte": 2.1369378705249877,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 373,
+            "0": 393,
+            "2": 3330
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 2018,
+          "trace_sha256": "ae082b0b9035fc93fe5cd581a8a5b1b425b7eeaf920ab53c77d52be07baa5916",
+          "wall_seconds": 0.049610888003371656,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-11--kennedy.xls-forward.orv",
+          "literal_transport_sha256": "f151203587f891c6739d14faa3b19e0ad91ebc3a88d7ceb69cee7eda8a05e0ff",
+          "fresh_replay": {
+            "sha256": "fc55bf4a295e6dd2b88c90ce516afbdc4143abf13aae7c30d05e2e6cbb6c58aa",
+            "bytes": 4096,
+            "trace_sha256": "ae082b0b9035fc93fe5cd581a8a5b1b425b7eeaf920ab53c77d52be07baa5916"
+          }
+        },
+        {
+          "order": "reverse",
+          "ideal_bits": 8130.861849003175,
+          "bits_per_input_byte": 1.9850736936042908,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 371,
+            "1": 392,
+            "3": 3333
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 2018,
+          "trace_sha256": "30b90845dac30c2962ec5f7977e9ebae9e718f58f8f3ecb9b272afc1ac193091",
+          "wall_seconds": 0.05039468299946748,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-11--kennedy.xls-reverse.orv",
+          "literal_transport_sha256": "8a8e064443a69444aae3cac731df762f8cbe1a9b481b406a959395268b5287b7",
+          "fresh_replay": {
+            "sha256": "fc55bf4a295e6dd2b88c90ce516afbdc4143abf13aae7c30d05e2e6cbb6c58aa",
+            "bytes": 4096,
+            "trace_sha256": "30b90845dac30c2962ec5f7977e9ebae9e718f58f8f3ecb9b272afc1ac193091"
+          }
+        },
+        {
+          "order": "fixed_anchors",
+          "ideal_bits": 8936.86602473233,
+          "bits_per_input_byte": 2.1818520568194164,
+          "anchor_ideal_bits_included": 480.711579132527,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 477,
+            "0": 366,
+            "2": 3173,
+            "1": 13,
+            "4": 67
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 2018,
+          "trace_sha256": "217304a27fb0606b394a9af91f0cbec01089d4a83acd46b6bea2231b507c4db9",
+          "wall_seconds": 0.05267689200991299,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-11--kennedy.xls-fixed_anchors.orv",
+          "literal_transport_sha256": "8ac0c47a8274bf60e1d8470ed913daeb6f5cb6dd20dd53196a7d91aa2546c661",
+          "fresh_replay": {
+            "sha256": "fc55bf4a295e6dd2b88c90ce516afbdc4143abf13aae7c30d05e2e6cbb6c58aa",
+            "bytes": 4096,
+            "trace_sha256": "217304a27fb0606b394a9af91f0cbec01089d4a83acd46b6bea2231b507c4db9"
+          }
+        },
+        {
+          "order": "adaptive_anchors",
+          "ideal_bits": 8672.76392725035,
+          "bits_per_input_byte": 2.117374005676355,
+          "anchor_ideal_bits_included": 480.711579132527,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 386,
+            "1": 138,
+            "0": 277,
+            "3": 713,
+            "2": 2459,
+            "4": 123
+          },
+          "prediction_evaluations": 47011,
+          "context_table_count": 2018,
+          "trace_sha256": "e748b6fc1eeaaadc3df46f1850e59d240205b22cc36acf0d12eff4e4c213619f",
+          "wall_seconds": 0.7320727280020947,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-11--kennedy.xls-adaptive_anchors.orv",
+          "literal_transport_sha256": "138088a24d97860cd01a3ce22d575191c74ae07b6216642a6874d3fb8399f273",
+          "fresh_replay": {
+            "sha256": "fc55bf4a295e6dd2b88c90ce516afbdc4143abf13aae7c30d05e2e6cbb6c58aa",
+            "bytes": 4096,
+            "trace_sha256": "e748b6fc1eeaaadc3df46f1850e59d240205b22cc36acf0d12eff4e4c213619f"
+          }
+        },
+        {
+          "order": "center_out",
+          "ideal_bits": 8453.295210275188,
+          "bits_per_input_byte": 2.063792775946091,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 373,
+            "0": 200,
+            "1": 192,
+            "3": 1664,
+            "2": 1667
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 2018,
+          "trace_sha256": "38e3df1f1bfce6f38f8ac6982c2f444b815504c550942349ebd561871c40e908",
+          "wall_seconds": 0.04936103800719138,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-11--kennedy.xls-center_out.orv",
+          "literal_transport_sha256": "3a0ce29ff2c228244ff2c643916ce4d215a66dd775fd72c151b1e2876db7bda2",
+          "fresh_replay": {
+            "sha256": "fc55bf4a295e6dd2b88c90ce516afbdc4143abf13aae7c30d05e2e6cbb6c58aa",
+            "bytes": 4096,
+            "trace_sha256": "38e3df1f1bfce6f38f8ac6982c2f444b815504c550942349ebd561871c40e908"
+          }
+        }
+      ],
+      "ordinary_coder_payload_bytes_separate_from_ideal_loss": {
+        "zlib9": 889,
+        "xz1": 716
+      }
+    },
+    {
+      "source": {
+        "id": "canterbury-artificial-4--alphabet.txt",
+        "path": "/home/user/src/colour-index-compression/benchmark-work/artificial/alphabet.txt",
+        "family": "pathology-corpus",
+        "offset": 8192,
+        "bytes": 4096,
+        "sample_sha256": "458d6398bf401a28746238b00553a813b5e6d7567a984cbae69d311a61ce1692",
+        "split": "heldout"
+      },
+      "orders": [
+        {
+          "order": "forward",
+          "ideal_bits": 1728.0912794422932,
+          "bits_per_input_byte": 0.4218972850200911,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 120,
+            "0": 16,
+            "2": 3960
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 130,
+          "trace_sha256": "1a53b228a12f18f27234edd9330b81e26df8f073a22bef32181b1df82f8cd7f3",
+          "wall_seconds": 0.04832360599539243,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-artificial-4--alphabet.txt-forward.orv",
+          "literal_transport_sha256": "89605af19c74e1736df7b436e173d7bf1d4ad45042099a9649f4a63489183d85",
+          "fresh_replay": {
+            "sha256": "458d6398bf401a28746238b00553a813b5e6d7567a984cbae69d311a61ce1692",
+            "bytes": 4096,
+            "trace_sha256": "1a53b228a12f18f27234edd9330b81e26df8f073a22bef32181b1df82f8cd7f3"
+          }
+        },
+        {
+          "order": "reverse",
+          "ideal_bits": 1727.557744996363,
+          "bits_per_input_byte": 0.4217670275870027,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 120,
+            "1": 16,
+            "3": 3960
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 130,
+          "trace_sha256": "d4922d1bdfb6bbf7239f316cf173697e7aeba30809299f0aec52513722169f2b",
+          "wall_seconds": 0.04787169399787672,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-artificial-4--alphabet.txt-reverse.orv",
+          "literal_transport_sha256": "4b605e656293eb39df3cf1324a43b5162c7f5f5d3b885ae0bb0b44634ad0f2fc",
+          "fresh_replay": {
+            "sha256": "458d6398bf401a28746238b00553a813b5e6d7567a984cbae69d311a61ce1692",
+            "bytes": 4096,
+            "trace_sha256": "d4922d1bdfb6bbf7239f316cf173697e7aeba30809299f0aec52513722169f2b"
+          }
+        },
+        {
+          "order": "fixed_anchors",
+          "ideal_bits": 2323.066449446336,
+          "bits_per_input_byte": 0.5671548948843593,
+          "anchor_ideal_bits_included": 738.9130001789147,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 245,
+            "0": 16,
+            "2": 3808,
+            "4": 27
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 130,
+          "trace_sha256": "166bfdb3be452be079de0ec588f8f9f5e727aea66e61950aa6ccacaa691c22b2",
+          "wall_seconds": 0.04965949400502723,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-artificial-4--alphabet.txt-fixed_anchors.orv",
+          "literal_transport_sha256": "8c10bb590c2072f67d9e109a801c451009d58316411bfb6dcf97ffa9026942d6",
+          "fresh_replay": {
+            "sha256": "458d6398bf401a28746238b00553a813b5e6d7567a984cbae69d311a61ce1692",
+            "bytes": 4096,
+            "trace_sha256": "166bfdb3be452be079de0ec588f8f9f5e727aea66e61950aa6ccacaa691c22b2"
+          }
+        },
+        {
+          "order": "adaptive_anchors",
+          "ideal_bits": 2321.578849657529,
+          "bits_per_input_byte": 0.5667917113421702,
+          "anchor_ideal_bits_included": 738.9130001789147,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 244,
+            "1": 53,
+            "3": 1360,
+            "2": 2346,
+            "0": 87,
+            "4": 6
+          },
+          "prediction_evaluations": 51127,
+          "context_table_count": 130,
+          "trace_sha256": "92781449bf9fc0dbed3a440718333bf8fb119dfd369f32f8832c282a75ff2cca",
+          "wall_seconds": 0.20457039499888197,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-artificial-4--alphabet.txt-adaptive_anchors.orv",
+          "literal_transport_sha256": "acdf290d4407d20d72e2bc1346352d9e7aed2200ee5042b971de219b8ad050fc",
+          "fresh_replay": {
+            "sha256": "458d6398bf401a28746238b00553a813b5e6d7567a984cbae69d311a61ce1692",
+            "bytes": 4096,
+            "trace_sha256": "92781449bf9fc0dbed3a440718333bf8fb119dfd369f32f8832c282a75ff2cca"
+          }
+        },
+        {
+          "order": "center_out",
+          "ideal_bits": 1727.5540117519697,
+          "bits_per_input_byte": 0.42176611615038323,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 120,
+            "0": 16,
+            "3": 1980,
+            "2": 1980
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 130,
+          "trace_sha256": "56b96049a91310baa60a49cd35688aa5337e7d2f2a05fa85b4b02ba4144b4068",
+          "wall_seconds": 0.04892837000079453,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-artificial-4--alphabet.txt-center_out.orv",
+          "literal_transport_sha256": "17504c34cba196bef05948463e5b461a5af96e88e86975b2c0368c0cc7d6473f",
+          "fresh_replay": {
+            "sha256": "458d6398bf401a28746238b00553a813b5e6d7567a984cbae69d311a61ce1692",
+            "bytes": 4096,
+            "trace_sha256": "56b96049a91310baa60a49cd35688aa5337e7d2f2a05fa85b4b02ba4144b4068"
+          }
+        }
+      ],
+      "ordinary_coder_payload_bytes_separate_from_ideal_loss": {
+        "zlib9": 60,
+        "xz1": 116
+      }
+    },
+    {
+      "source": {
+        "id": "canterbury-artificial-4--random.txt",
+        "path": "/home/user/src/colour-index-compression/benchmark-work/artificial/random.txt",
+        "family": "pathology-corpus",
+        "offset": 8192,
+        "bytes": 4096,
+        "sample_sha256": "f3a9fb34450af0e11f9a9dacdf6f1679ac34143001d3eaa989828963ba2cf616",
+        "split": "development"
+      },
+      "orders": [
+        {
+          "order": "forward",
+          "ideal_bits": 28830.437468552835,
+          "bits_per_input_byte": 7.038681022595907,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 272,
+            "0": 3809,
+            "2": 15
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 7830,
+          "trace_sha256": "f5268c89581d9b78787b75e70479281a49994cc83986e60060c0741caeaf7bc0",
+          "wall_seconds": 0.051944738006568514,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-artificial-4--random.txt-forward.orv",
+          "literal_transport_sha256": "5ffbefd2abf20db974f37a9e30f12c718fb08f371263d56aeefb36c614399570",
+          "fresh_replay": {
+            "sha256": "f3a9fb34450af0e11f9a9dacdf6f1679ac34143001d3eaa989828963ba2cf616",
+            "bytes": 4096,
+            "trace_sha256": "f5268c89581d9b78787b75e70479281a49994cc83986e60060c0741caeaf7bc0"
+          }
+        },
+        {
+          "order": "reverse",
+          "ideal_bits": 28823.52526298155,
+          "bits_per_input_byte": 7.036993472407605,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 272,
+            "1": 3809,
+            "3": 15
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 7830,
+          "trace_sha256": "b09852fdc9d19d23c42239d833d26df25c073bd7315bf1dfa5ebcfa5543c2495",
+          "wall_seconds": 0.052550624997820705,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-artificial-4--random.txt-reverse.orv",
+          "literal_transport_sha256": "4642a3dd59aa0efb97365918400f93d23280ecc6ac1b429d8e1850805d4363c6",
+          "fresh_replay": {
+            "sha256": "f3a9fb34450af0e11f9a9dacdf6f1679ac34143001d3eaa989828963ba2cf616",
+            "bytes": 4096,
+            "trace_sha256": "b09852fdc9d19d23c42239d833d26df25c073bd7315bf1dfa5ebcfa5543c2495"
+          }
+        },
+        {
+          "order": "fixed_anchors",
+          "ideal_bits": 28730.481874738096,
+          "bits_per_input_byte": 7.0142778014497305,
+          "anchor_ideal_bits_included": 915.5617751497091,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 388,
+            "0": 3628,
+            "1": 65,
+            "2": 14,
+            "4": 1
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 7830,
+          "trace_sha256": "5b5ba3a9419db80cdd9c66f9cc65f39fdefd2c3adec6e4385492f13465626671",
+          "wall_seconds": 0.052614164000260644,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-artificial-4--random.txt-fixed_anchors.orv",
+          "literal_transport_sha256": "fbea7f800041a9cf8a56cdb4eccc3fee54c3d254eee6adfdc08ef20e61b49357",
+          "fresh_replay": {
+            "sha256": "f3a9fb34450af0e11f9a9dacdf6f1679ac34143001d3eaa989828963ba2cf616",
+            "bytes": 4096,
+            "trace_sha256": "5b5ba3a9419db80cdd9c66f9cc65f39fdefd2c3adec6e4385492f13465626671"
+          }
+        },
+        {
+          "order": "adaptive_anchors",
+          "ideal_bits": 28714.483029230625,
+          "bits_per_input_byte": 7.010371833308258,
+          "anchor_ideal_bits_included": 915.5617751497091,
+          "anchor_symbols": 144,
+          "context_usage": {
+            "-1": 374,
+            "0": 1828,
+            "1": 1878,
+            "3": 8,
+            "4": 1,
+            "2": 7
+          },
+          "prediction_evaluations": 48366,
+          "context_table_count": 7830,
+          "trace_sha256": "fe7be2cb79028fcf060e53bae07288cd1e3510871ba532c4f0c90943fe256319",
+          "wall_seconds": 0.3351833240012638,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-artificial-4--random.txt-adaptive_anchors.orv",
+          "literal_transport_sha256": "c3b042cfe9e5c24f56cc4750e7c3d28d7b80cab7b0513e33da6e65ac588e9453",
+          "fresh_replay": {
+            "sha256": "f3a9fb34450af0e11f9a9dacdf6f1679ac34143001d3eaa989828963ba2cf616",
+            "bytes": 4096,
+            "trace_sha256": "fe7be2cb79028fcf060e53bae07288cd1e3510871ba532c4f0c90943fe256319"
+          }
+        },
+        {
+          "order": "center_out",
+          "ideal_bits": 28828.0151736605,
+          "bits_per_input_byte": 7.038089642006958,
+          "anchor_ideal_bits_included": 0.0,
+          "anchor_symbols": 0,
+          "context_usage": {
+            "-1": 272,
+            "0": 1912,
+            "1": 1897,
+            "2": 9,
+            "3": 6
+          },
+          "prediction_evaluations": 4096,
+          "context_table_count": 7830,
+          "trace_sha256": "ea04654c2592c66f378c4dbfad728de6bdb8e0165ce9d05db98ae3cbf899def9",
+          "wall_seconds": 0.05329383199568838,
+          "literal_transport_bytes_NOT_compressed": 4105,
+          "literal_transport_path": "/home/user/src/colour-index-compression/benchmark-work/decoding-order-v1/canterbury-artificial-4--random.txt-center_out.orv",
+          "literal_transport_sha256": "86e3581f0e3e5743831699e68cfc83a8447b7fb6465e915212a9f40da40e7958",
+          "fresh_replay": {
+            "sha256": "f3a9fb34450af0e11f9a9dacdf6f1679ac34143001d3eaa989828963ba2cf616",
+            "bytes": 4096,
+            "trace_sha256": "ea04654c2592c66f378c4dbfad728de6bdb8e0165ce9d05db98ae3cbf899def9"
+          }
+        }
+      ],
+      "ordinary_coder_payload_bytes_separate_from_ideal_loss": {
+        "zlib9": 3118,
+        "xz1": 3408
+      }
+    }
+  ],
+  "standard_sample_totals_ideal_bits": {
+    "forward": 55185.6403650149,
+    "reverse": 54576.66578654932,
+    "fixed_anchors": 55777.757983728225,
+    "adaptive_anchors": 55542.24970617793,
+    "center_out": 54811.20373985437
+  },
+  "standard_bytes": 16384,
+  "gates": {
+    "adaptive_anchors": {
+      "baseline_ideal_bits": 54576.66578654932,
+      "gain_ideal_bits": -965.5839196286106,
+      "gain_percent": -1.7692248247722444,
+      "individual_wins": 0,
+      "pass": false
+    },
+    "fixed_anchors": {
+      "baseline_ideal_bits": 54576.66578654932,
+      "gain_ideal_bits": -1201.0921971789066,
+      "gain_percent": -2.200743082907277,
+      "individual_wins": 0,
+      "pass": false
+    },
+    "center_out": {
+      "baseline_ideal_bits": 54576.66578654932,
+      "gain_ideal_bits": -234.5379533050509,
+      "gain_percent": -0.42974034768326563,
+      "individual_wins": 0,
+      "pass": false
+    }
+  },
+  "fresh_real_replay_count": 30,
+  "elapsed_seconds": 7.7759372319997055
+}

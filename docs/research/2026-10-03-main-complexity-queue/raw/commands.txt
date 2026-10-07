@@ -1,0 +1,14 @@
+Candidate worktree: /tmp/cix-main-complexity-0c at 0c6028e39fedb3f659bf5985ea0b16cb4ed1b58d
+Pristine worktree: /tmp/cix-main-complexity-pristine at the same commit.
+
+Candidate build:
+cargo build --release --bin cix
+exit=0
+cargo build --release --bin uncix
+exit=0
+
+Pristine build:
+cargo build --release --bin cix --bin uncix
+exit=0
+
+Parity used pre-existing tracked inputs tests/cli_archive_oracle.rs and tests/streaming_pipe.rs. Each input used 512-byte blocks. CIXG1 and CIXG2 used threads 1 and 2; CIXM6 used its existing supported thread count of 1. Each candidate archive was decoded by candidate and pristine uncix binaries. Exact commands, per-case source/archive/output hashes, and sizes are recorded in parity-results.tsv and parity-hashes.txt.

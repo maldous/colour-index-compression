@@ -1,0 +1,241 @@
+error[E0308]: mismatched types
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:33:335
+   |
+33 | ...sult<(),String>{for s in (0..n).rev(){self.put((v>>s)&1)?}Ok(())}fn finish(mut self)->(Vec<u8>,u64){if self.n>0{self.d.push(self....
+   |                                               --- ^^^^^^^^ expected `u8`, found `u64`
+   |                                               |
+   |                                               arguments to this method are incorrect
+   |
+note: method defined here
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:33:53
+   |
+33 | struct BW{d:Vec<u8>,c:u8,n:u8,bits:u64} impl BW {fn put(&mut self,b:u8)->Result<(),String>{if self.bits==MAX_BITS{return Err("ISC1 b...
+   |                                                     ^^^           ----
+help: you can convert a `u64` to a `u8` and panic if the converted value doesn't fit
+   |
+33 | struct BW{d:Vec<u8>,c:u8,n:u8,bits:u64} impl BW {fn put(&mut self,b:u8)->Result<(),String>{if self.bits==MAX_BITS{return Err("ISC1 bit cap".into())}self.c=(self.c<<1)|(b&1);self.n+=1;self.bits+=1;if self.n==8{self.d.push(self.c);self.c=0;self.n=0}Ok(())}fn bits(&mut self,v:u64,n:u8)->Result<(),String>{for s in (0..n).rev(){self.put(((v>>s)&1).try_into().unwrap())?}Ok(())}fn finish(mut self)->(Vec<u8>,u64){if self.n>0{self.d.push(self.c<<(8-self.n))}(self.d,self.bits)}}
+   |                                                                                                                                                                                                                                                                                                                                               +        +++++++++++++++++++++
+
+error[E0308]: mismatched types
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:35:65
+   |
+35 | fn gamma(w:&mut BW,n:u64)->Result<(),String>{if n==0{return Err("gamma zero")};let z=(63-n.leading_zeros())as u8;for _ in 0..z{w.put...
+   |                                                             --- ^^^^^^^^^^^^ expected `String`, found `&str`
+   |                                                             |
+   |                                                             arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `&'static str` due to the type of the argument passed
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:35:61
+   |
+35 | fn gamma(w:&mut BW,n:u64)->Result<(),String>{if n==0{return Err("gamma zero")};let z=(63-n.leading_zeros())as u8;for _ in 0..z{w.put...
+   |                                                             ^^^^------------^
+   |                                                                 |
+   |                                                                 this argument influences the type of `Err`
+note: tuple variant defined here
+  --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/result.rs:566:4
+help: try using a conversion method
+   |
+35 | fn gamma(w:&mut BW,n:u64)->Result<(),String>{if n==0{return Err("gamma zero".to_string())};let z=(63-n.leading_zeros())as u8;for _ in 0..z{w.put(0)?}w.bits(n,z+1)}
+   |                                                                             ++++++++++++
+
+error[E0308]: mismatched types
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:37:65
+   |
+37 | fn delta(w:&mut BW,n:u64)->Result<(),String>{if n==0{return Err("delta zero")};let z=64-n.leading_zeros() as u8;gamma(w,z as u64)?;w...
+   |                                                             --- ^^^^^^^^^^^^ expected `String`, found `&str`
+   |                                                             |
+   |                                                             arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `&'static str` due to the type of the argument passed
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:37:61
+   |
+37 | fn delta(w:&mut BW,n:u64)->Result<(),String>{if n==0{return Err("delta zero")};let z=64-n.leading_zeros() as u8;gamma(w,z as u64)?;w...
+   |                                                             ^^^^------------^
+   |                                                                 |
+   |                                                                 this argument influences the type of `Err`
+note: tuple variant defined here
+  --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/result.rs:566:4
+help: try using a conversion method
+   |
+37 | fn delta(w:&mut BW,n:u64)->Result<(),String>{if n==0{return Err("delta zero".to_string())};let z=64-n.leading_zeros() as u8;gamma(w,z as u64)?;w.bits(n^(1u64<<(z-1)),z-1)}
+   |                                                                             ++++++++++++
+
+error[E0308]: mismatched types
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:44:201
+   |
+44 | ...::MAX)}else{ungamma(r)?.checked_sub(1).ok_or("gamma value")},Coder::Delta=>if r.bit()?==0{Ok(u64::MAX)}else{undelta(r)?.checked_s...
+   |                                           ----- ^^^^^^^^^^^^^ expected `String`, found `&str`
+   |                                           |
+   |                                           arguments to this method are incorrect
+   |
+help: the return type of this call is `&'static str` due to the type of the argument passed
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:44:168
+   |
+44 | ...u64::MAX)}else{ungamma(r)?.checked_sub(1).ok_or("gamma value")},Coder::Delta=>if r.bit()?==0{Ok(u64::MAX)}else{undelta(r)?.checke...
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-------------^
+   |                                                    |
+   |                                                    this argument influences the return type of `ok_or`
+note: method defined here
+  --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/option.rs:1333:17
+help: try using a conversion method
+   |
+44 | fn decode_int(c:Coder,raw:&[u8],rp:&mut usize,r:&mut BR)->Result<u64,String>{match c{Coder::Varint=>take_varint(raw,rp),Coder::Gamma=>if r.bit()?==0{Ok(u64::MAX)}else{ungamma(r)?.checked_sub(1).ok_or("gamma value".to_string())},Coder::Delta=>if r.bit()?==0{Ok(u64::MAX)}else{undelta(r)?.checked_sub(1).ok_or("delta value")},Coder::Rice(k)=>if r.bit()?==0{let v=r.bits(64)?;if v>>k<=rice_regular_limit(k){return Err("noncanonical Rice raw escape".into())}Ok(v)}else{let mut q=0;while r.bit()?==0{q=q.checked_add(1).ok_or("rice quotient overflow")?;if q>MAX_RICE_QUOTIENT{return Err("rice quotient cap".into())}if q>rice_regular_limit(k){return Err("noncanonical Rice unary quotient".into())}};Ok((q<<k)|r.bits(k)?)}}}
+   |                                                                                                                                                                                                                      ++++++++++++
+
+error[E0308]: mismatched types
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:44:297
+   |
+44 | ...::MAX)}else{undelta(r)?.checked_sub(1).ok_or("delta value")},Coder::Rice(k)=>if r.bit()?==0{let v=r.bits(64)?;if v>>k<=rice_regul...
+   |                                           ----- ^^^^^^^^^^^^^ expected `String`, found `&str`
+   |                                           |
+   |                                           arguments to this method are incorrect
+   |
+help: the return type of this call is `&'static str` due to the type of the argument passed
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:44:264
+   |
+44 | ...u64::MAX)}else{undelta(r)?.checked_sub(1).ok_or("delta value")},Coder::Rice(k)=>if r.bit()?==0{let v=r.bits(64)?;if v>>k<=rice_re...
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-------------^
+   |                                                    |
+   |                                                    this argument influences the return type of `ok_or`
+note: method defined here
+  --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/option.rs:1333:17
+help: try using a conversion method
+   |
+44 | fn decode_int(c:Coder,raw:&[u8],rp:&mut usize,r:&mut BR)->Result<u64,String>{match c{Coder::Varint=>take_varint(raw,rp),Coder::Gamma=>if r.bit()?==0{Ok(u64::MAX)}else{ungamma(r)?.checked_sub(1).ok_or("gamma value")},Coder::Delta=>if r.bit()?==0{Ok(u64::MAX)}else{undelta(r)?.checked_sub(1).ok_or("delta value".to_string())},Coder::Rice(k)=>if r.bit()?==0{let v=r.bits(64)?;if v>>k<=rice_regular_limit(k){return Err("noncanonical Rice raw escape".into())}Ok(v)}else{let mut q=0;while r.bit()?==0{q=q.checked_add(1).ok_or("rice quotient overflow")?;if q>MAX_RICE_QUOTIENT{return Err("rice quotient cap".into())}if q>rice_regular_limit(k){return Err("noncanonical Rice unary quotient".into())}};Ok((q<<k)|r.bits(k)?)}}}
+   |                                                                                                                                                                                                                                                                                                                      ++++++++++++
+
+error[E0689]: can't call method `checked_add` on ambiguous numeric type `{integer}`
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:44:488
+   |
+44 | ...cape".into())}Ok(v)}else{let mut q=0;while r.bit()?==0{q=q.checked_add(1).ok_or("rice quotient overflow")?;if q>MAX_RICE_QUOTIENT...
+   |                                                               ^^^^^^^^^^^
+   |
+help: you must specify a type for this binding, like `i32`
+   |
+44 | fn decode_int(c:Coder,raw:&[u8],rp:&mut usize,r:&mut BR)->Result<u64,String>{match c{Coder::Varint=>take_varint(raw,rp),Coder::Gamma=>if r.bit()?==0{Ok(u64::MAX)}else{ungamma(r)?.checked_sub(1).ok_or("gamma value")},Coder::Delta=>if r.bit()?==0{Ok(u64::MAX)}else{undelta(r)?.checked_sub(1).ok_or("delta value")},Coder::Rice(k)=>if r.bit()?==0{let v=r.bits(64)?;if v>>k<=rice_regular_limit(k){return Err("noncanonical Rice raw escape".into())}Ok(v)}else{let mut q: i32=0;while r.bit()?==0{q=q.checked_add(1).ok_or("rice quotient overflow")?;if q>MAX_RICE_QUOTIENT{return Err("rice quotient cap".into())}if q>rice_regular_limit(k){return Err("noncanonical Rice unary quotient".into())}};Ok((q<<k)|r.bits(k)?)}}}
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                               +++++
+
+error[E0308]: mismatched types
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:51:928
+   |
+51 | ...oder::Varint)&&ilen!=packed){return Err("ISC integer length")};let end=p.checked_add(tn).and_then(|x|x.checked_add(ilen)).and_the...
+   |                                        --- ^^^^^^^^^^^^^^^^^^^^ expected `String`, found `&str`
+   |                                        |
+   |                                        arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `&'static str` due to the type of the argument passed
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:51:924
+   |
+51 | ...:Varint)&&ilen!=packed){return Err("ISC integer length")};let end=p.checked_add(tn).and_then(|x|x.checked_add(ilen)).and_then(|x|...
+   |                                   ^^^^--------------------^
+   |                                       |
+   |                                       this argument influences the type of `Err`
+note: tuple variant defined here
+  --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/result.rs:566:4
+help: try using a conversion method
+   |
+51 | fn unframe(d:&[u8])->Result<Vec<u8>,String>{if d.len()>MAX_ARCHIVE{return Err("ISC archive cap".into())}if d.get(..4)!=Some(MAGIC)||d.get(4)!=Some(&VERSION){return Err("not ISC1".into())}let c=Coder::from(*d.get(5).ok_or("short coder")?,*d.get(6).ok_or("short rice k")?)?;if d.get(7)!=Some(&SCHEMA){return Err("unknown ISC schema".into())}let mut p=8;let n=usize_len(take_u64(d,&mut p)?,"count")?;let tn=usize_len(take_u64(d,&mut p)?,"tag length")?;let tailn=usize_len(take_u64(d,&mut p)?,"tail length")?;let bitlen=take_u64(d,&mut p)?;let ilen=usize_len(take_u64(d,&mut p)?,"integer length")?;if n>MAX_VALUES||tn!=n||tailn>MAX_TAIL||bitlen>MAX_BITS||ilen>((MAX_BITS+7)/8)as usize{return Err("ISC bounds".into())}let packed=usize_len(bitlen.checked_add(7).ok_or("ISC bit length overflow")?/8,"packed integer length")?;if (matches!(c,Coder::Varint)&&bitlen!=ilen as u64*8)||(!matches!(c,Coder::Varint)&&ilen!=packed){return Err("ISC integer length".to_string())};let end=p.checked_add(tn).and_then(|x|x.checked_add(ilen)).and_then(|x|x.checked_add(tailn)).ok_or("ISC length overflow")?;if end.checked_add(4)!=Some(d.len()){return Err("ISC frame length")};let stored=u32::from_le_bytes(d[end..].try_into().map_err(|_|"short CRC")?);if crc32(&d[4..end])!=stored{return Err("ISC CRC")};let tags=&d[p..p+tn];if tags.iter().any(|&t|t>3){return Err("ISC tag")};p+=tn;let ints=&d[p..p+ilen];p+=ilen;let tail=&d[p..end];if !matches!(c,Coder::Varint)&&bitlen%8!=0{let padding=(8-bitlen%8)as u8;let mask=(1u8<<padding)-1;if ints.last().ok_or("missing ISC integer payload")?&mask!=0{return Err("noncanonical ISC padding".into())}}let mut rp=0;let mut r=BR{d:ints,bits:bitlen,p:0};let mut v=Vec::with_capacity(n);for _ in 0..n{v.push(decode_int(c,ints,&mut rp,&mut r)?)}let trailing=if matches!(c,Coder::Varint){rp!=ints.len()}else{r.p!=bitlen};if trailing{return Err("ISC integer trailing")};Ok(input(&tags.iter().copied().zip(v).collect::<Vec<_>>(),tail))}
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ++++++++++++
+
+error[E0308]: mismatched types
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:51:1122
+   |
+51 | ...checked_add(4)!=Some(d.len()){return Err("ISC frame length")};let stored=u32::from_le_bytes(d[end..].try_into().map_err(|_|"short...
+   |                                         --- ^^^^^^^^^^^^^^^^^^ expected `String`, found `&str`
+   |                                         |
+   |                                         arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `&'static str` due to the type of the argument passed
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:51:1118
+   |
+51 | ...ed_add(4)!=Some(d.len()){return Err("ISC frame length")};let stored=u32::from_le_bytes(d[end..].try_into().map_err(|_|"short CRC"...
+   |                                    ^^^^------------------^
+   |                                        |
+   |                                        this argument influences the type of `Err`
+note: tuple variant defined here
+  --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/result.rs:566:4
+help: try using a conversion method
+   |
+51 | fn unframe(d:&[u8])->Result<Vec<u8>,String>{if d.len()>MAX_ARCHIVE{return Err("ISC archive cap".into())}if d.get(..4)!=Some(MAGIC)||d.get(4)!=Some(&VERSION){return Err("not ISC1".into())}let c=Coder::from(*d.get(5).ok_or("short coder")?,*d.get(6).ok_or("short rice k")?)?;if d.get(7)!=Some(&SCHEMA){return Err("unknown ISC schema".into())}let mut p=8;let n=usize_len(take_u64(d,&mut p)?,"count")?;let tn=usize_len(take_u64(d,&mut p)?,"tag length")?;let tailn=usize_len(take_u64(d,&mut p)?,"tail length")?;let bitlen=take_u64(d,&mut p)?;let ilen=usize_len(take_u64(d,&mut p)?,"integer length")?;if n>MAX_VALUES||tn!=n||tailn>MAX_TAIL||bitlen>MAX_BITS||ilen>((MAX_BITS+7)/8)as usize{return Err("ISC bounds".into())}let packed=usize_len(bitlen.checked_add(7).ok_or("ISC bit length overflow")?/8,"packed integer length")?;if (matches!(c,Coder::Varint)&&bitlen!=ilen as u64*8)||(!matches!(c,Coder::Varint)&&ilen!=packed){return Err("ISC integer length")};let end=p.checked_add(tn).and_then(|x|x.checked_add(ilen)).and_then(|x|x.checked_add(tailn)).ok_or("ISC length overflow")?;if end.checked_add(4)!=Some(d.len()){return Err("ISC frame length".to_string())};let stored=u32::from_le_bytes(d[end..].try_into().map_err(|_|"short CRC")?);if crc32(&d[4..end])!=stored{return Err("ISC CRC")};let tags=&d[p..p+tn];if tags.iter().any(|&t|t>3){return Err("ISC tag")};p+=tn;let ints=&d[p..p+ilen];p+=ilen;let tail=&d[p..end];if !matches!(c,Coder::Varint)&&bitlen%8!=0{let padding=(8-bitlen%8)as u8;let mask=(1u8<<padding)-1;if ints.last().ok_or("missing ISC integer payload")?&mask!=0{return Err("noncanonical ISC padding".into())}}let mut rp=0;let mut r=BR{d:ints,bits:bitlen,p:0};let mut v=Vec::with_capacity(n);for _ in 0..n{v.push(decode_int(c,ints,&mut rp,&mut r)?)}let trailing=if matches!(c,Coder::Varint){rp!=ints.len()}else{r.p!=bitlen};if trailing{return Err("ISC integer trailing")};Ok(input(&tags.iter().copied().zip(v).collect::<Vec<_>>(),tail))}
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ++++++++++++
+
+error[E0308]: mismatched types
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:51:1259
+   |
+51 | ...)?);if crc32(&d[4..end])!=stored{return Err("ISC CRC")};let tags=&d[p..p+tn];if tags.iter().any(|&t|t>3){return Err("ISC tag")};p...
+   |                                            --- ^^^^^^^^^ expected `String`, found `&str`
+   |                                            |
+   |                                            arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `&'static str` due to the type of the argument passed
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:51:1255
+   |
+51 | ...if crc32(&d[4..end])!=stored{return Err("ISC CRC")};let tags=&d[p..p+tn];if tags.iter().any(|&t|t>3){return Err("ISC tag")};p+=tn...
+   |                                        ^^^^---------^
+   |                                            |
+   |                                            this argument influences the type of `Err`
+note: tuple variant defined here
+  --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/result.rs:566:4
+help: try using a conversion method
+   |
+51 | fn unframe(d:&[u8])->Result<Vec<u8>,String>{if d.len()>MAX_ARCHIVE{return Err("ISC archive cap".into())}if d.get(..4)!=Some(MAGIC)||d.get(4)!=Some(&VERSION){return Err("not ISC1".into())}let c=Coder::from(*d.get(5).ok_or("short coder")?,*d.get(6).ok_or("short rice k")?)?;if d.get(7)!=Some(&SCHEMA){return Err("unknown ISC schema".into())}let mut p=8;let n=usize_len(take_u64(d,&mut p)?,"count")?;let tn=usize_len(take_u64(d,&mut p)?,"tag length")?;let tailn=usize_len(take_u64(d,&mut p)?,"tail length")?;let bitlen=take_u64(d,&mut p)?;let ilen=usize_len(take_u64(d,&mut p)?,"integer length")?;if n>MAX_VALUES||tn!=n||tailn>MAX_TAIL||bitlen>MAX_BITS||ilen>((MAX_BITS+7)/8)as usize{return Err("ISC bounds".into())}let packed=usize_len(bitlen.checked_add(7).ok_or("ISC bit length overflow")?/8,"packed integer length")?;if (matches!(c,Coder::Varint)&&bitlen!=ilen as u64*8)||(!matches!(c,Coder::Varint)&&ilen!=packed){return Err("ISC integer length")};let end=p.checked_add(tn).and_then(|x|x.checked_add(ilen)).and_then(|x|x.checked_add(tailn)).ok_or("ISC length overflow")?;if end.checked_add(4)!=Some(d.len()){return Err("ISC frame length")};let stored=u32::from_le_bytes(d[end..].try_into().map_err(|_|"short CRC")?);if crc32(&d[4..end])!=stored{return Err("ISC CRC".to_string())};let tags=&d[p..p+tn];if tags.iter().any(|&t|t>3){return Err("ISC tag")};p+=tn;let ints=&d[p..p+ilen];p+=ilen;let tail=&d[p..end];if !matches!(c,Coder::Varint)&&bitlen%8!=0{let padding=(8-bitlen%8)as u8;let mask=(1u8<<padding)-1;if ints.last().ok_or("missing ISC integer payload")?&mask!=0{return Err("noncanonical ISC padding".into())}}let mut rp=0;let mut r=BR{d:ints,bits:bitlen,p:0};let mut v=Vec::with_capacity(n);for _ in 0..n{v.push(decode_int(c,ints,&mut rp,&mut r)?)}let trailing=if matches!(c,Coder::Varint){rp!=ints.len()}else{r.p!=bitlen};if trailing{return Err("ISC integer trailing")};Ok(input(&tags.iter().copied().zip(v).collect::<Vec<_>>(),tail))}
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ++++++++++++
+
+error[E0308]: mismatched types
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:51:1331
+   |
+51 | ...+tn];if tags.iter().any(|&t|t>3){return Err("ISC tag")};p+=tn;let ints=&d[p..p+ilen];p+=ilen;let tail=&d[p..end];if !matches!(c,C...
+   |                                            --- ^^^^^^^^^ expected `String`, found `&str`
+   |                                            |
+   |                                            arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `&'static str` due to the type of the argument passed
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:51:1327
+   |
+51 | ...;if tags.iter().any(|&t|t>3){return Err("ISC tag")};p+=tn;let ints=&d[p..p+ilen];p+=ilen;let tail=&d[p..end];if !matches!(c,Coder...
+   |                                        ^^^^---------^
+   |                                            |
+   |                                            this argument influences the type of `Err`
+note: tuple variant defined here
+  --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/result.rs:566:4
+help: try using a conversion method
+   |
+51 | fn unframe(d:&[u8])->Result<Vec<u8>,String>{if d.len()>MAX_ARCHIVE{return Err("ISC archive cap".into())}if d.get(..4)!=Some(MAGIC)||d.get(4)!=Some(&VERSION){return Err("not ISC1".into())}let c=Coder::from(*d.get(5).ok_or("short coder")?,*d.get(6).ok_or("short rice k")?)?;if d.get(7)!=Some(&SCHEMA){return Err("unknown ISC schema".into())}let mut p=8;let n=usize_len(take_u64(d,&mut p)?,"count")?;let tn=usize_len(take_u64(d,&mut p)?,"tag length")?;let tailn=usize_len(take_u64(d,&mut p)?,"tail length")?;let bitlen=take_u64(d,&mut p)?;let ilen=usize_len(take_u64(d,&mut p)?,"integer length")?;if n>MAX_VALUES||tn!=n||tailn>MAX_TAIL||bitlen>MAX_BITS||ilen>((MAX_BITS+7)/8)as usize{return Err("ISC bounds".into())}let packed=usize_len(bitlen.checked_add(7).ok_or("ISC bit length overflow")?/8,"packed integer length")?;if (matches!(c,Coder::Varint)&&bitlen!=ilen as u64*8)||(!matches!(c,Coder::Varint)&&ilen!=packed){return Err("ISC integer length")};let end=p.checked_add(tn).and_then(|x|x.checked_add(ilen)).and_then(|x|x.checked_add(tailn)).ok_or("ISC length overflow")?;if end.checked_add(4)!=Some(d.len()){return Err("ISC frame length")};let stored=u32::from_le_bytes(d[end..].try_into().map_err(|_|"short CRC")?);if crc32(&d[4..end])!=stored{return Err("ISC CRC")};let tags=&d[p..p+tn];if tags.iter().any(|&t|t>3){return Err("ISC tag".to_string())};p+=tn;let ints=&d[p..p+ilen];p+=ilen;let tail=&d[p..end];if !matches!(c,Coder::Varint)&&bitlen%8!=0{let padding=(8-bitlen%8)as u8;let mask=(1u8<<padding)-1;if ints.last().ok_or("missing ISC integer payload")?&mask!=0{return Err("noncanonical ISC padding".into())}}let mut rp=0;let mut r=BR{d:ints,bits:bitlen,p:0};let mut v=Vec::with_capacity(n);for _ in 0..n{v.push(decode_int(c,ints,&mut rp,&mut r)?)}let trailing=if matches!(c,Coder::Varint){rp!=ints.len()}else{r.p!=bitlen};if trailing{return Err("ISC integer trailing")};Ok(input(&tags.iter().copied().zip(v).collect::<Vec<_>>(),tail))}
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ++++++++++++
+
+error[E0308]: mismatched types
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:51:1844
+   |
+51 | ...se{r.p!=bitlen};if trailing{return Err("ISC integer trailing")};Ok(input(&tags.iter().copied().zip(v).collect::<Vec<_>>(),tail))}
+   |                                       --- ^^^^^^^^^^^^^^^^^^^^^^ expected `String`, found `&str`
+   |                                       |
+   |                                       arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `&'static str` due to the type of the argument passed
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:51:1840
+   |
+51 | ...p!=bitlen};if trailing{return Err("ISC integer trailing")};Ok(input(&tags.iter().copied().zip(v).collect::<Vec<_>>(),tail))}
+   |                                  ^^^^----------------------^
+   |                                      |
+   |                                      this argument influences the type of `Err`
+note: tuple variant defined here
+  --> /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/result.rs:566:4
+help: try using a conversion method
+   |
+51 | fn unframe(d:&[u8])->Result<Vec<u8>,String>{if d.len()>MAX_ARCHIVE{return Err("ISC archive cap".into())}if d.get(..4)!=Some(MAGIC)||d.get(4)!=Some(&VERSION){return Err("not ISC1".into())}let c=Coder::from(*d.get(5).ok_or("short coder")?,*d.get(6).ok_or("short rice k")?)?;if d.get(7)!=Some(&SCHEMA){return Err("unknown ISC schema".into())}let mut p=8;let n=usize_len(take_u64(d,&mut p)?,"count")?;let tn=usize_len(take_u64(d,&mut p)?,"tag length")?;let tailn=usize_len(take_u64(d,&mut p)?,"tail length")?;let bitlen=take_u64(d,&mut p)?;let ilen=usize_len(take_u64(d,&mut p)?,"integer length")?;if n>MAX_VALUES||tn!=n||tailn>MAX_TAIL||bitlen>MAX_BITS||ilen>((MAX_BITS+7)/8)as usize{return Err("ISC bounds".into())}let packed=usize_len(bitlen.checked_add(7).ok_or("ISC bit length overflow")?/8,"packed integer length")?;if (matches!(c,Coder::Varint)&&bitlen!=ilen as u64*8)||(!matches!(c,Coder::Varint)&&ilen!=packed){return Err("ISC integer length")};let end=p.checked_add(tn).and_then(|x|x.checked_add(ilen)).and_then(|x|x.checked_add(tailn)).ok_or("ISC length overflow")?;if end.checked_add(4)!=Some(d.len()){return Err("ISC frame length")};let stored=u32::from_le_bytes(d[end..].try_into().map_err(|_|"short CRC")?);if crc32(&d[4..end])!=stored{return Err("ISC CRC")};let tags=&d[p..p+tn];if tags.iter().any(|&t|t>3){return Err("ISC tag")};p+=tn;let ints=&d[p..p+ilen];p+=ilen;let tail=&d[p..end];if !matches!(c,Coder::Varint)&&bitlen%8!=0{let padding=(8-bitlen%8)as u8;let mask=(1u8<<padding)-1;if ints.last().ok_or("missing ISC integer payload")?&mask!=0{return Err("noncanonical ISC padding".into())}}let mut rp=0;let mut r=BR{d:ints,bits:bitlen,p:0};let mut v=Vec::with_capacity(n);for _ in 0..n{v.push(decode_int(c,ints,&mut rp,&mut r)?)}let trailing=if matches!(c,Coder::Varint){rp!=ints.len()}else{r.p!=bitlen};if trailing{return Err("ISC integer trailing".to_string())};Ok(input(&tags.iter().copied().zip(v).collect::<Vec<_>>(),tail))}
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ++++++++++++
+
+warning: variable does not need to be mutable
+  --> /home/user/src/colour-index-compression/rust/cix-native/experiments/integer-substream-closure/main.rs:29:346
+   |
+29 | ...!("{} exceeds ISC input cap",path.display()))}let mut file=File::open(path).map_err(|e|format!("{}: {e}",path.display()))?;let mu...
+   |                                                      ----^^^^
+   |                                                      |
+   |                                                      help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+error: aborting due to 11 previous errors; 1 warning emitted
+
+Some errors have detailed explanations: E0308, E0689.
+For more information about an error, try `rustc --explain E0308`.

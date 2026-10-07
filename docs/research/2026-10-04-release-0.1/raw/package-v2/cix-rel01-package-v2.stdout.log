@@ -1,0 +1,12 @@
+CIX private packaging plan
+  source: /home/user/src/cix-0.1-release
+  binaries: /home/user/src/cix-0.1-artifacts/bin
+  output: /home/user/src/cix-0.1-artifacts/packages-v2
+  work: /home/user/src/colour-index-compression/benchmark-work/release-package-validation-v2
+  version: 0.1.0
+  targets: binary-tar, deb, dsc, rpm, source
+  source tar: excludes private evidence/raw research and retains tests/
+  binary tar: includes selected binaries, manuals, legal files, and dependency receipt
+  dsc: generated from a temporary conventional debian/ layout
+  deb: staged and built with dpkg-deb; never installed
+  rpm: stages selected binaries with rpmbuild; target-runtime compatibility remains unqualified

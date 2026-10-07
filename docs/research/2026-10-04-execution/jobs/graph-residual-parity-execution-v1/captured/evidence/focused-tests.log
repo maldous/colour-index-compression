@@ -1,0 +1,23 @@
+   Compiling autocfg v1.5.1
+   Compiling num-traits v0.2.19
+   Compiling num-integer v0.1.47
+   Compiling num-bigint v0.4.8
+   Compiling cix-graph-residual-parity v0.1.0 (/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/graph-residual-parity-v1/harness)
+error[E0433]: cannot find module or crate `crc32fast` in this scope
+   --> src/full_engine/arithmetic.rs:649:16
+    |
+649 |     out.extend(crc32fast::hash(data).to_be_bytes());
+    |                ^^^^^^^^^ use of unresolved module or unlinked crate `crc32fast`
+    |
+    = help: if you wanted to use a crate named `crc32fast`, use `cargo add crc32fast` to add it to your `Cargo.toml`
+
+error[E0433]: cannot find module or crate `crc32fast` in this scope
+   --> src/full_engine/arithmetic.rs:681:30
+    |
+681 |     if data.len() != size || crc32fast::hash(data) != checksum {
+    |                              ^^^^^^^^^ use of unresolved module or unlinked crate `crc32fast`
+    |
+    = help: if you wanted to use a crate named `crc32fast`, use `cargo add crc32fast` to add it to your `Cargo.toml`
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `cix-graph-residual-parity` (lib) due to 2 previous errors

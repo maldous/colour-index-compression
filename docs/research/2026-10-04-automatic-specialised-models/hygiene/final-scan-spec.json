@@ -1,0 +1,50 @@
+{
+  "status": "prepared-not-executed",
+  "freeze_contract": {
+    "native_source": "/home/user/src/cix-0.1-distribution",
+    "runtime_source": "/home/user/src/colour-index-compression/runtime/cix_runtime",
+    "must_record": ["source_tree_sha256", "file_manifest", "tool_versions", "raw_output_sha256"],
+    "invalidate_on_change": true
+  },
+  "pinned_available_images": {
+    "sonarqube": "sonarqube@sha256:4905574ab8584dcac1a06c01cdc43a4ce9e369723ac4a7ab1d029c1bf71e6fe9",
+    "scanner": "sonarsource/sonar-scanner-cli@sha256:a3f4215076706c95a17a68c19322ee916e40a3acd081a8c1a1e839e0194afa57"
+  },
+  "sonar_projects": [
+    {
+      "key": "cix-0.1-native-rust-final",
+      "root": "/home/user/src/cix-0.1-distribution",
+      "sources": "src",
+      "tests": "tests",
+      "inclusions": "src/**/*.rs",
+      "test_inclusions": "tests/**/*.rs",
+      "exclusions": "vendor/**,target/**,packaging/**,docs/**",
+      "rust_clippy_json": "<root-scheduled-fresh-clippy-jsonl>",
+      "required": true
+    },
+    {
+      "key": "cix-0.1-runtime-python-final",
+      "root": "/home/user/src/colour-index-compression/runtime",
+      "sources": "cix_runtime,tools",
+      "tests": "tests",
+      "inclusions": "cix_runtime/**/*.py,tools/**/*.py",
+      "test_inclusions": "tests/**/*.py",
+      "exclusions": "**/__pycache__/**,**/*.pyc",
+      "python_version": "3.12",
+      "required": true
+    },
+    {
+      "key": "cix-0.1-native-cpp-first-party-final",
+      "root": "/home/user/src/cix-0.1-distribution",
+      "sources": "src/zpaq_ffi.cpp",
+      "exclusions": "vendor/**,target/**,packaging/**,docs/**",
+      "compile_commands": "<root-scheduled-fresh-compile-commands.json>",
+      "required": "conditional-on-CFamily-availability",
+      "vendor_zero_issue_claim": false
+    }
+  ],
+  "formatter_linter": {
+    "python": "no ruff/black/flake8/pylint/pyright executable or wheel was found locally; do not claim a standalone Python formatter/linter result",
+    "rust": "root scheduler must record cargo fmt --check and fresh cargo clippy --all-targets -- -D warnings"
+  }
+}

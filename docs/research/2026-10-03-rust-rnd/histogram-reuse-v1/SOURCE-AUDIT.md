@@ -1,0 +1,7 @@
+# Histogram-reuse-v1 source audit
+
+`conditional-cost-v1` creates a CIXCCV1 outer archive containing native `rank::encode_composition_tiles` payload bytes. The original controls have 16 active symbols and therefore 26-byte headers, but this prototype does not assume that width. For every tile it reads `m` and uses exact `BigUint` widths from `rank.rs`: `varint(m)`, then `fixed_width(C(256,m)-1)` when `m<256`, and `fixed_width(C(tile_n-1,m-1)-1)` when `m>1`. Sequence mode and sequence bytes follow that computed prefix.
+
+The prototype treats each computed serialized prefix as opaque. It does not alter rank mode, range mode, bit lengths, arithmetic termination, tile-length varints, or sequence bytes. It uses only byte equality of serialized prefixes; all reconstruction information is carried inside CIXHRV1.
+
+CIXHRV1 stores the original CIXCCV1 header, original archive length, native-archive CRC32, canonical tile count, and each tile as either a literal prefix or a reference to an earlier literal prefix. A trailing envelope CRC32 covers all CIXHRV1 instruction bytes. A pack with no reusable prefix still pays one tag byte per tile and the CIXHRV1 wrapper, so the absent control must lose bytes. Unpack rejects bad magic/version, noncanonical varints, bounded-length violations, invalid tags, forward/out-of-range references, truncation, trailing bytes, envelope/native CRC failures, and reconstructed growth beyond the declared native length. It then calls `rank::decode_composition_tiles` on the reconstructed CIXCCV1 archive.

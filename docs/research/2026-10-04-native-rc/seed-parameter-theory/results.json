@@ -1,0 +1,102 @@
+{
+  "scope": "Exact finite algebra and closed-form counting only",
+  "plan_sha256": "ee0b2d7151339a37aba037199bc1f69e94031f44312ecef6c6dff61c699352a5",
+  "script_sha256": "d02f1d69a90de13c616d982ca5ad80cc05fe9cc5dde2cea48df202586c8490c9",
+  "prefix_code_uniform_source_saving_bounds": [
+    {
+      "saving_bits": 8,
+      "probability_upper_bound": "1/256"
+    },
+    {
+      "saving_bits": 16,
+      "probability_upper_bound": "1/65536"
+    },
+    {
+      "saving_bits": 32,
+      "probability_upper_bound": "1/4294967296"
+    },
+    {
+      "saving_bits": 64,
+      "probability_upper_bound": "1/18446744073709551616"
+    }
+  ],
+  "linear_recurrence": {
+    "state_bits": 4,
+    "output_bits": 64,
+    "period_by_seed_and_tap": {
+      "1": [
+        1,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      "3": [
+        1,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ]
+    },
+    "single_family_unique_outputs": 16,
+    "seed_phase_descriptions": 240,
+    "seed_phase_unique_outputs": 16,
+    "same_family_seed_pair_descriptions": 256,
+    "same_family_pair_unique_outputs": 16,
+    "different_family_seed_pair_descriptions": 256,
+    "different_family_pair_unique_outputs": 256,
+    "same_family_xor_equals_xored_seed_for_all_pairs": true,
+    "limitation": "Toy linear recurrences, not high-quality random generators; no real-data or strong-compressor comparison."
+  },
+  "two_list_xor_search_models": [
+    {
+      "target_bits": 128,
+      "seed_bits_each": 32,
+      "two_seed_bits_without_framing": 64,
+      "entries_per_list": 4294967296,
+      "nominal_pair_candidates": 18446744073709551616,
+      "ideal_expected_exact_matches": "1/18446744073709551616",
+      "ideal_probability_upper_bound": "1/18446744073709551616",
+      "one_list_vectors_only_bytes": 68719476736,
+      "excluded_memory": "Seed labels, hash table, allocation overhead and second-list buffering",
+      "assumption": "Two independent lists of uniformly random target-width vectors; fixed target. Not a measurement or claim of independence for actual PRNG windows."
+    },
+    {
+      "target_bits": 128,
+      "seed_bits_each": 64,
+      "two_seed_bits_without_framing": 128,
+      "entries_per_list": 18446744073709551616,
+      "nominal_pair_candidates": 340282366920938463463374607431768211456,
+      "ideal_expected_exact_matches": "1",
+      "ideal_probability_upper_bound": "1",
+      "one_list_vectors_only_bytes": 295147905179352825856,
+      "excluded_memory": "Seed labels, hash table, allocation overhead and second-list buffering",
+      "assumption": "Two independent lists of uniformly random target-width vectors; fixed target. Not a measurement or claim of independence for actual PRNG windows."
+    }
+  ],
+  "production_changes": false,
+  "corpus_access": false
+}

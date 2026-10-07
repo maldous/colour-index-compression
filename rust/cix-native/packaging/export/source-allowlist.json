@@ -1,0 +1,255 @@
+{
+  "schema": "cix-native-source-export-allowlist-v2",
+  "status": "prepared_allowlisted_source_export_not_a_release",
+  "source_root": "rust/cix-native",
+  "export_prefix": "cix-{version}",
+  "layout": {
+    "bin": [
+      "cix",
+      "uncix",
+      "cixcat"
+    ],
+    "include": [
+      "include/cix.h",
+      "include/cix_stream.h",
+      "include/cix.hpp"
+    ],
+    "man": [
+      "man/cix.1",
+      "man/uncix.1",
+      "man/cixcat.1"
+    ],
+    "legal": [
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.txt",
+      "THIRD_PARTY_NOTICES_RUST.md"
+    ],
+    "source_build": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "build.rs",
+      "src/**",
+      "codecs/**",
+      "vendor/**",
+      "include/**",
+      "man/**",
+      "packaging/**",
+      "tests/*.rs",
+      "tests/c_api_consumer.c",
+      "tests/c_api_installed_consumer.sh",
+      "tests/fixtures/native_ports/**",
+      "tests/fixtures/record_stride/**",
+      "examples/native_buffer.rs",
+      "tests/fixtures/regions/**",
+      "tests/fixtures/address_relations/**",
+      "tests/fixtures/conditional_values/README.md",
+      "tests/fixtures/conditional_values/manifest.json",
+      "tests/fixtures/conditional_values/input.bin",
+      "tests/fixtures/conditional_values/context3-coding0.raw",
+      "tests/fixtures/bounded_values/README.md",
+      "tests/fixtures/bounded_values/manifest.json",
+      "tests/fixtures/bounded_values/input.bin",
+      "tests/fixtures/bounded_values/mode1.raw",
+      "tests/fixtures/bounded_values/mode2.raw",
+      "tests/fixtures/bounded_values/mode3.raw",
+      "tests/fixtures/bounded_values/mode4.raw"
+    ],
+    "sdk": [
+      "include/cix.h",
+      "include/cix.hpp",
+      "include/cix_stream.h",
+      "include/cix_formats.h",
+      "include/cix_dictionary.h",
+      "packaging/sdk/**"
+    ],
+    "adapters": "adapters/** and bindings/** are optional source integrations; they are not installed by the base package."
+  },
+  "required_exact_files": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
+    "THIRD_PARTY_NOTICES.txt",
+    "THIRD_PARTY_NOTICES_RUST.md",
+    "include/cix.h",
+    "man/cix.1",
+    "man/uncix.1",
+    "man/cixcat.1",
+    "packaging/debian/control",
+    "packaging/rpm/cix.spec",
+    "Makefile",
+    "examples/native_buffer.rs",
+    "tests/c_api_consumer.c",
+    "tests/c_api_installed_consumer.sh",
+    "tests/native_port_vectors.rs",
+    "tests/fixtures/native_ports/README.md",
+    "tests/fixtures/record_stride/manifest.json",
+    "include/cix.hpp",
+    "packaging/sdk/CMakeLists.txt",
+    "packaging/sdk/CIXConfig.cmake.in",
+    "packaging/sdk/cix.pc.in",
+    "packaging/sdk/README.md",
+    "packaging/sdk/tests/CMakeLists.txt",
+    "packaging/sdk/tests/cpp_installed_consumer.cpp",
+    "include/cix_stream.h",
+    "tests/c_stream_contract.rs",
+    "tests/fixtures/conditional_values/manifest.json",
+    "tests/fixtures/bounded_values/manifest.json",
+    "packaging/sdk/tests/c_stream_installed_consumer.c",
+    ".gitignore",
+    "packaging/runtime/CMakeLists.txt",
+    "packaging/runtime/README.md",
+    "docs/formats/COMPATIBILITY.md",
+    "docs/release/RELEASING.md",
+    "adapters/sevenzip/CMakeLists.txt"
+  ],
+  "allowed_globs": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
+    ".gitignore",
+    "THIRD_PARTY_NOTICES.txt",
+    "THIRD_PARTY_NOTICES_RUST.md",
+    "FORMAT-*.md",
+    "build.rs",
+    "Makefile",
+    "src/**",
+    "include/**",
+    "man/**",
+    "codecs/**",
+    "vendor/**",
+    "packaging/**",
+    "adapters/**",
+    "bindings/**",
+    "docs/formats/**",
+    "docs/release/**",
+    "docs/bridges/**",
+    "examples/**",
+    "tests/**"
+  ],
+  "excluded_path_prefixes": [
+    ".git",
+    ".github",
+    "target",
+    "benches",
+    "experiments",
+    "docs/research",
+    "src/bin",
+    "tests/fixtures/bounded_values/make_fixtures.py",
+    "tests/fixtures/conditional_values/make_fixtures.py",
+    "tests/fixtures/grid_counts/make_fixtures.py",
+    "tests/fixtures/grid_feedback/make_fixtures.py",
+    "tests/fixtures/grid_interval/make_fixtures.py",
+    "tests/fixtures/regions/make_fixtures.py",
+    "tests/fixtures/spatial_frames/make_fixtures.py",
+    "packaging/export"
+  ],
+  "excluded_suffixes": [
+    ".restored",
+    ".tmp",
+    ".pyc"
+  ],
+  "outside_source_root_exclusions": [
+    "benchmark-work",
+    "benchmarks",
+    "docs/research",
+    "results",
+    "raw",
+    "dist",
+    "runtime",
+    "cix",
+    "tests",
+    "figures",
+    ".private"
+  ],
+  "codec_dependency_contracts": [
+    {
+      "name": "PAQ v215/v216/joint_discount/store_state",
+      "source_need": "Package the unchanged, versioned source roots and notices selected by the final dependency freeze, or omit the bridge from that build. Do not rely on a workstation-only CIX_PAQ_SOURCE_ROOT.",
+      "evidence": "codecs/paq/v215/CMakeLists.txt:6-8; codecs/paq/v216/CMakeLists.txt:6-8; codecs/paq/joint_discount/CMakeLists.txt:6-8; codecs/paq/store_state/CMakeLists.txt:6-8"
+    },
+    {
+      "name": "libjxl bridge",
+      "source_need": "Package or declare the exact provisioned libjxl 0.12 dependency selected by the final freeze, or omit the bridge. The source bridge is not an installed SDK.",
+      "evidence": "codecs/jxl/CMakeLists.txt:4-18,43-44"
+    },
+    {
+      "name": "system codecs",
+      "source_need": "The final package must derive and verify target dependencies for zlib, bzip2, lzma, zstd and Brotli; this skeleton does not claim installed host compatibility.",
+      "evidence": "packaging/debian/control; packaging/rpm/cix.spec; Cargo.toml; build.rs"
+    },
+    {
+      "name": "vendored source notices",
+      "source_need": "Preserve unchanged vendor source and its upstream/license records whenever it is selected for the build.",
+      "evidence": "vendor/libbsc/LICENSE; vendor/libbsc/UPSTREAM.md; vendor/libzpaq715/UPSTREAM.md"
+    }
+  ],
+  "non_claims": [
+    "This allowlist prepares a source-tree export; it does not sign, publish, install or qualify an artifact.",
+    "The Python reference/runtime, research evidence, corpora, benchmark outputs and private job material are excluded from the native shipping source tree.",
+    "A full-engine RC export remains blocked until the selected PAQ, JXL, system-codec and retained-route closure is accepted. Omitting a bridge is not an RC escape hatch.",
+    "Optional adapters and bindings ship as source only. Each requires its declared host SDK and its own compatibility qualification; their presence makes no stock-registry or platform-support claim.",
+    "No host adapter, plugin, external registry identifier or platform support is fabricated by this layout."
+  ],
+  "export_profiles": {
+    "full-engine-rc": {
+      "disposition": "blocked_until_dependency_closure",
+      "source_members": "the validated allowlist member set materialised below cix-{version}",
+      "required_dependency_closure": "packaging/export/final-dependency-closure.json",
+      "required_capabilities": [
+        "PAQ v215/v216/joint_discount/store_state source and notices selected by the final freeze",
+        "provisioned libjxl 0.12 source/binary dependency selected by the final freeze",
+        "target system-codec dependency receipt",
+        "all retained route/decoder closure required by RC05"
+      ],
+      "rule": "The exporter must fail until final-dependency-closure.json declares accepted_full_engine_rc. Omitting PAQ, JXL, retained native bridges, or required decoder dependencies does not make this profile valid."
+    },
+    "native-core-optional": {
+      "disposition": "optional_subset_not_full_engine_rc",
+      "source_members": "the allowlist member set after an explicitly recorded feature subset is selected",
+      "rule": "It may be materialised only under a separately named capability declaration. It cannot satisfy RC05, RC18, RC22, RC44, RC45 or RC51 and must not be labelled a full-engine RC."
+    },
+    "engineering-validation": {
+      "disposition": "engineering_validation_not_release",
+      "source_members": "the same validated allowlist member set materialised below cix-{version}",
+      "required_provider_manifest": "packaging/export/engineering-provider-closure.example.json",
+      "rule": "This profile permits a scheduled local build/install exercise with an explicit selected-provider manifest. It must write engineering_validation_not_release and must not create, modify, or stand in for final-dependency-closure.json or accepted_full_engine_rc."
+    }
+  },
+  "version": "0.1.0",
+  "workspace_layout": {
+    "root_workspace": "Cargo.toml generated by the exporter",
+    "native_crate": "rust/cix-native",
+    "portable_crate": "rust/cix-portable",
+    "root_build": "Makefile generated by the exporter delegates to rust/cix-native",
+    "debian_projection": "debian/ is copied from rust/cix-native/packaging/debian"
+  },
+  "portable_crate": {
+    "source_relative_to_native": "../cix-portable",
+    "required_exact_files": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "src/lib.rs",
+      "src/cixg1.rs",
+      "src/limits.rs",
+      "src/wasm.rs"
+    ],
+    "allowed_globs": [
+      "Cargo.toml",
+      "Cargo.lock",
+      "src/**"
+    ],
+    "excluded_path_prefixes": [
+      ".git",
+      "target"
+    ],
+    "excluded_suffixes": [
+      ".pyc",
+      ".tmp",
+      ".restored"
+    ]
+  }
+}

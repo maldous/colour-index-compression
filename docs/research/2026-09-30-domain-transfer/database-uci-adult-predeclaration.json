@@ -1,0 +1,48 @@
+{
+  "schema": "cix-domain-database-predeclaration-v1",
+  "status": "prepared_for_direct-frame_profile_only",
+  "purpose": "A stronger relational-table opportunity check after the weak seven-record World Bank sample; no compression-size-based selection was used.",
+  "source": {
+    "publisher": "UCI Machine Learning Repository",
+    "dataset": "Adult (dataset id 2; Census Income)",
+    "dataset_url": "https://archive.ics.uci.edu/dataset/2/adult",
+    "download_url": "https://archive.ics.uci.edu/static/public/2/adult.zip",
+    "doi": "10.24432/C5XW20",
+    "source_characteristics": "48,842 instances; 14 categorical/integer features according to the UCI dataset page"
+  },
+  "source_artifacts": {
+    "zip": {
+      "path": "database-data/uci-adult.zip",
+      "bytes": 620237,
+      "sha256": "7537312dd56c2b98035880805ce99e68183a30ee468aa5329d6df0fbb3cc21bb"
+    },
+    "member": {
+      "name": "adult.data",
+      "bytes": 3974305,
+      "sha256": "5b00264637dbfec36bdeaab5676b0b309ff9eb788d63554ca0a249491c86603d"
+    }
+  },
+  "input_preparation": {
+    "script": "benchmarks/domain_database_prepare.py:first_nonblank_records",
+    "rule": "Extract adult.data; retain the first 2048 complete nonblank physical records in source order, concatenated without changing any selected record bytes.",
+    "sample_path": "database-data/uci-adult-first2048-nonblank.data",
+    "sample_bytes": 249655,
+    "sample_sha256": "316d82801c2325d83a54b1858d69c278214cdad6ad9225098cb576f342221cf5",
+    "record_count": 2048,
+    "selection_basis": "fixed ordinal prefix, defined before structural frame measurement; not selected by compression outcome"
+  },
+  "frozen_variants": ["literal", "dictionary_remaining"],
+  "prohibited_for_this_check": [
+    "MyISAM parser assumptions",
+    "numeric normalization",
+    "CSV syntax canonicalization",
+    "rank coding",
+    "PAQ execution by this preparation/profile task"
+  ],
+  "future_matched_comparison": {
+    "control": "original prepared bytes -> same pinned PAQ v216 -4 AVX2",
+    "candidate": "complete self-contained dictionary_remaining frame -> same pinned PAQ v216 -4 AVX2",
+    "all frame bytes charged": true,
+    "scheduler_owner": "root"
+  }
+}

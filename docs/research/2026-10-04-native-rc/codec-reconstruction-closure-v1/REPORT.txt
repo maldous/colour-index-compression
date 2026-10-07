@@ -1,0 +1,205 @@
+Final finite closure: gzip/DEFLATE and bzip2 exact reconstruction
+2026-10-04
+
+Release decision
+
+Do not add a new reconstruction codec to CIX 0.1 from these prototypes. Preserve
+the existing PAQ DEFLATE reconstruction capability within the already-required
+native/route parity work. This is a requirement to retain a demonstrated existing
+capability, NOT acceptance of the integrated release candidate. The RC benchmark
+remains on HOLD; native/SDK/adapter/hygiene and source-freeze work remains required.
+
+The demonstrated PAQ implementation is the existing standalone reference binary,
+not a newly verified CIX-native implementation. Retaining it in the capability/
+control inventory supports the user's existing useful-specialist parity scope;
+it does not silently enable a new production flag or accept native integration.
+
+The research leads are now closed at this checkpoint with terminal dispositions:
+
+  Existing PAQ DEFLATE capability: INCLUDE / RETAIN EXISTING RC SCOPE.
+    The local unmodified PAQ v216 control actually identifies and reconstructs
+    DEFLATE on both tested gzip winners and substantially beats their sizes.
+    Preserve that behavior in native integration and focused parity checks.
+
+  Original fixed zlib6 + innerXZ1 gzip prototype: EXCLUDE as a new general route.
+    All four new independent gzip inputs expand with this exact fixed recipe.
+    Its previous Canterbury/Calgary gains remain valid within their old scope.
+
+  New paid gzip level1/6/9 + innerXZ1/6 portfolio: RESEARCH_ONLY; no new RC route.
+    Three of four independent gzip inputs shrink; two gains are material. PAQ
+    is much smaller on those two, while this prototype shows a lower measured
+    CPU/memory trade-off. The prototype is host-runtime-pinned and has no durable
+    native format or current-CIX effort-profile qualification. This is not a
+    size/speed dominance claim, and its lower cost is not erased by the size loss.
+
+  bzip2 exact reconstruction: RESEARCH_ONLY; no new RC route.
+    The sole unique independent .bz2 asset saves 20 bytes against original and 15 bytes
+    against PAQ. Exactness is proved, but one tiny marginal win does not justify
+    a new format/reference implementation for 0.1. Earlier small known-encoder
+    gains remain preserved without being upgraded to broad qualification.
+
+  Fixed per-member ZIP DCP transfer: EXCLUDE as a new RC route.
+    Preserve the prior whole-container 86.894% expansion. No retuning or rerun
+    of that negative was necessary for this final disposition.
+
+No further codec experiment or open-ended next-action is prescribed by this
+closure. These verdicts close the admitted research candidates; they do not
+prove a universal compression limit or erase the measured trade-offs.
+
+Why this validation was needed
+
+The initial gzip gains used three historical corpus archives, and the subsequent
+cross-codec trial reproduced streams made by earlier local codec-profile runs.
+This closure uses independently supplied package documentation already installed
+on this machine. Reference recipes were fixed from previous research/common
+settings BEFORE inspecting the new files' compressor settings. No downloaded
+asset, new corpus collection, production edit or broad RC benchmark was used.
+
+Four unique gzip files were chosen by package/path availability and size:
+  /usr/share/doc/gzip/NEWS.gz
+  /usr/share/doc/bzip2/manual.texi.gz
+  /usr/share/doc/xz-utils/NEWS.gz
+  /usr/share/doc/zstd/CONTRIBUTING.md.gz
+They are all GZIP inputs, regardless of the package name.
+
+The bzip2 input is:
+  /usr/share/doc/nvidia-compute-utils-580/nvidia-persistenced-init.tar.bz2
+The driver package contains an identical7,189-byte copy with the sameSHA256;
+that duplicate is excluded. Within the checked dataset/reference/benchmark and
+system-documentation roots, this was the only distinct qualifying .bz2 asset.
+This is one independent bzip2 observation, not two.
+
+All paths, sizes, source SHA256s, code hashes, recipes and resource bounds were
+frozen in plan.json and per-cell manifests before execution. The existing
+WaveScheduler and bounded runner performed six serial cells on physical core8:
+one correctness-only fixture cell, then five real compressed-file cells. Each
+gets 45s wall,1.5GB memory,128MB temporary,MemorySwapMax=0. All six verified in
+5.71s total scheduler elapsed. The coordinator's separate theory experiment
+used a different explicitly returned global scheduler window.
+
+Representation and accounting
+
+GCR1 is four magic bytes, one paid gzip-level selector, one paid inner-XZ preset,
+and outerXZ1 coding of the complete retained DCP1 representation. DCP1 contains
+compressed plaintext, original gzip header/trailer, DEFLATE block/tree/padding
+syntax, token corrections and the zlib reference-version field. The decoder
+first recovers the paid plaintext, regenerates the selected raw-DEFLATE
+reference, applies syntax corrections and rebuilds the original gzip bytes.
+Every byte counts; shared decoder software is not counted as a self-extractor.
+
+The bzip2 trial reuses the frozen CTR1 plaintext/reference/XOR-residual format,
+with fixed source levels1/9 and innerXZ1/6. It preserves original/reference
+length differences and pays its recipe/runtime/length fields. Every reference
+is validated to encode the same plaintext. A version fingerprint guards the
+prototype, but is not a portable bit-exact specification across implementations.
+
+Finite best-of-recipe selection is legitimate because the recipe is transmitted.
+It is not an unpaid hindsight symbol oracle. All six gzip recipe/inner-coder
+combinations and all four bzip2 combinations were inverse-checked and retained
+numerically, including losses. Every selected archive was serialized even if
+larger than original, so negative outcomes were still independently decoded.
+
+Complete compressed-byte results
+
+Input label          Format Original Research  Saving %  Generic*  PAQ4B
+gzip-news            gzip      9,450    9,570   -1.270%     9,450   not run
+bzip2-manual         gzip     26,928   25,138   +6.647%    26,928    17,005
+xz-news              gzip     20,796   19,762   +4.972%    20,796    13,141
+zstd-contributing    gzip     11,819   11,778   +0.347%    11,819   not run
+nvidia-init          bzip2     7,189    7,169   +0.278%     7,189     7,184
+
+*Generic minimum includes unchanged original plus complete CTR1 raw/zlib9/XZ1/
+ XZ6 second-pass wrappers. It equals original on these five cases. PAQ4B was
+ measured only on the two material gzip winners and the unique bzip2 file.
+ A missing PAQ cell is NOT zero and is not inferred from another file.
+
+The selected gzip reference is level 9 with innerXZ6 on all four inputs, and
+100% of non-end literal/match tokens match that reference. Trees/blocks/headers/
+padding still have paid representation costs. The bzip2 reference is level 9 and
+regenerates the original compressed stream exactly. This independent provenance
+strengthens the earlier calibration evidence, but all inputs may still share
+closely related producer algorithms; universal unknown-encoder transfer is not
+established.
+
+The original fixed level 6/innerXZ1 recipe in the charged GCR1 wrapper produced
+10,142 /28,442 /23,838 /12,666 bytes respectively on the four gzip inputs: all
+expand. The new GCR1 wrapper adds two selector bytes relative to originalDCP2;
+those two bytes cannot explain any of these losses. The later wins depend on
+the explicitly paid setting/coder alternatives, not automatic generalization
+of the earlier fixed recipe.
+
+Available specialist-control completion
+
+The initial executable/reference inventory found no runnable standalone
+Preflate, precomp or Lepton in the checked paths. That is a scoped statement
+about those named tools, not absence of all relevant local specialist controls.
+A final code inspection identified a real DEFLATE reconstruction filter in the
+already-present PAQ v216 source (src/filter/zlib.hpp), with DISABLE_ZLIB=OFF in
+the pinned build. Its documented B option enables raw DEFLATE detection.
+
+The separate frozen codec-reconstruction-controls-v1 experiment therefore ran
+exactly three controls using the existing unchanged PAQ binary, -4B -simdAVX2,
+no external pretraining, one core 8, 45s per cell and 1.5GB memory. BinarySHA256:
+4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc
+All three controls completed and passed source-inaccessible exact restoration
+in 29.97s aggregate scheduler elapsed. No parameter search or repeat was done.
+
+Runtime logs confirm that PAQ identified the gzip DEFLATE payload as zlib and
+its recovered plaintext as text on BOTH material gzip inputs. Thus it actually
+used format-aware reconstruction, not merely an opaque-byte model. Its bzip2
+input was classified default, so that row is an opaque established-compressor
+control, not evidence of a bzip2-specific PAQ reconstruction implementation.
+
+PAQ compressed the gzip manual to 17,005 bytes versus GCR1's 25,138 bytes, and gzip NEWS to
+13,141B versus 19,762 bytes. It already exploits the useful DEFLATE reconstruction
+mechanism and a stronger content model in the local portfolio. On bzip2, PAQ's
+7,184B loses to CTR1's7,169B by 15 bytes, a very small difference.
+
+Separate timing and memory
+
+The following wall/CPU columns are complete bounded-runner encode and decode
+phases in seconds. Research encode includes its finite candidate search,
+in-process inverse checks and ordinary controls; PAQ encode is one fixed run.
+RSS columns are actual process high-water KiB: Python ru_maxrss for research,
+GNUtime for PAQ. The separately recorded sampled cgroup memory fields remain
+explicit lower bounds and are NOT substituted for true process RSS.
+
+Input                Route   EncWall DecWall  EncCPU  DecCPU EncRSSKiB DecRSSKiB
+gzip-news            GCR/CTR   0.510   0.173   0.435   0.079    42,428    22,472
+bzip2-manual         GCR/CTR   1.309   0.221   1.126   0.121    47,560    24,788
+bzip2-manual         PAQ4B     7.563   7.419   6.757   6.643   786,184   773,632
+xz-news              GCR/CTR   1.023   0.156   0.899   0.113    45,864    24,320
+xz-news              PAQ4B     6.144   5.934   5.513   5.327   784,552   772,096
+zstd-contributing    GCR/CTR   0.657   0.191   0.550   0.095    42,872    22,784
+nvidia-init          GCR/CTR   0.163   0.168   0.102   0.058    40,808    21,504
+nvidia-init          PAQ4B     1.290   1.258   1.097   1.110   642,560   642,304
+
+The research portfolio is substantially cheaper in these single small runs,
+while PAQ is much smaller on the two gzip controls. This is a measured trade-off,
+not a statistical throughput claim or a matched-current-CIX mode result.
+Candidate-specific inner timings are retained in results.json. No source/
+decoder hardening, distribution portability or optimized native timing is
+implied by the Python prototype measurements.
+
+Verification and evidence
+
+All nine scheduled cells (six research, three PAQ) have VERIFIED_SCREENING
+receipts. Every selected compressed archive restores the original SHA256 and
+length in a separate decoder process with both the original source and the
+materialized source.bin inaccessible through the runner's systemd namespace.
+Receipts preserve the exact encode/decode commands, source/build identities,
+complete archive hashes and budgets. The fixed fixture cell verifies all six
+gzip combinations plus the retained mixed stored/fixed offset case, and counts
+only as correctness validation. The original literals/corpus data and binary
+archives stay outside Git in benchmark-work.
+
+Independent read-only review confirmed reconstruction/accounting and the
+source-inaccessible receipt boundary. The new controls refine the earlier
+specialist-availability statement and the final release decision. Read:
+  plan.json, manifests/, scheduler-results.json, results.json
+  ../codec-reconstruction-controls-v1/plan.json and results.json
+  dispositions.json, preservation-manifest.json
+
+There is no automatic integration, production-route change, public publication,
+benchmark resumption or new backlog loop in this report. The coordinator owns
+cross-session acceptance; this evidence does not mark any RC item accepted.

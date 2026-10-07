@@ -1,0 +1,55 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-portfolio-grid-v1/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-portfolio-grid-v1/Cargo.toml', '--lib', 'full_engine::native_portfolio', '--', '--test-threads=1']
+
+running 6 tests
+test full_engine::native_portfolio::tests::best_admission_includes_a_raw_fallback ... ok
+test full_engine::native_portfolio::tests::best_tiny_input_keeps_every_whole_archive_family_observable ... ok
+test full_engine::native_portfolio::tests::capped_writer_keeps_an_equal_candidate_materializable ... ok
+test full_engine::native_portfolio::tests::direct_profile_allows_a_smaller_legal_output_cap ... ok
+test full_engine::native_portfolio::tests::family_budget_is_split_without_losing_total_time ... ok
+test full_engine::native_portfolio::tests::output_reservation_failure_is_fallible ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 229 filtered out; finished in 2.52s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-portfolio-grid-v1/Cargo.toml', '--lib', 'full_engine::selection', '--', '--test-threads=1']
+
+running 6 tests
+test full_engine::selection::cancellation_regressions::cancellation_after_raw_never_returns_archive ... ok
+test full_engine::selection::cancellation_regressions::panicking_worker_is_recorded_without_scheduler_hang ... ok
+test full_engine::selection::cancellation_regressions::pre_cancel_is_terminal ... ok
+test full_engine::selection::tests::default_marks_paq_specialists_as_profile_omitted ... ok
+test full_engine::selection::tests::first_priority_wins_equal_complete_frames_and_generic_trials_overlap ... ok
+test full_engine::selection::tests::nested_diagnostics_survive_outer_selection ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 229 filtered out; finished in 0.01s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-portfolio-grid-v1/Cargo.toml', '--lib', 'full_engine::interval_context', '--', '--test-threads=1']
+
+running 2 tests
+test full_engine::interval_context::tests::interval_context_all_policy_raw_fixture_identity_and_inverse ... FAILED
+test full_engine::interval_context::tests::interval_context_frame_identity_crc_bounds_and_malformed_raw ... FAILED
+
+failures:
+
+---- full_engine::interval_context::tests::interval_context_all_policy_raw_fixture_identity_and_inverse stdout ----
+
+thread 'full_engine::interval_context::tests::interval_context_all_policy_raw_fixture_identity_and_inverse' (2581644) panicked at src/full_engine/interval_context.rs:167:13:
+assertion `left == right` failed
+  left: [83, 71, 66, 73, 49, 1, 1, 83, 65, 71, 82, 49, 1, 3, 0, 17, 0, 0, 0, 247, 255, 255, 255, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 255, 255, 255, 255, 28, 0, 0, 0, 91, 103, 115, 128, 140, 152, 165, 177, 189, 202, 214, 226, 142, 209, 9, 223, 107, 133, 115, 62, 7, 128, 2, 4, 0, 0, 0, 0, 1, 3, 152, 176, 224, 192, 129, 131, 134, 140, 22, 152, 176, 224, 192, 129, 131, 134, 140, 24, 150, 192, 169, 165, 239, 167, 226, 233, 29, 3, 2, 1, 0, 18, 194, 183, 126, 58, 7, 106, 62, 7, 128, 2, 4, 0, 0, 0, 0, 1, 3, 152, 176, 224, 192, 129, 131, 134, 139, 24, 152, 176, 224, 192, 129, 131, 134, 140, 24, 230, 224, 234, 167, 244, 177, 246, 145, 108, 3, 2, 1, 0, 225, 232, 66, 203, 223, 59, 63, 62, 7, 128, 2, 4, 0, 0, 0, 0, 1, 3, 152, 172, 224, 192, 1, 152, 176, 224, 192, 1, 222, 211, 200, 227, 11, 3, 2, 1, 0, 64, 155, 44, 50, 149, 210, 52, 62, 7, 128, 2, 4, 0, 0, 0, 0, 1, 2, 152, 176, 224, 192, 1, 249, 221, 146, 211, 1, 3, 1, 0, 0]
+ right: [83, 71, 66, 73, 49, 1, 1, 83, 65, 71, 82, 49, 1, 3, 0, 17, 0, 0, 0, 247, 255, 255, 255, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 255, 255, 255, 255, 28, 0, 0, 0, 91, 103, 115, 128, 140, 152, 165, 177, 189, 202, 214, 226, 142, 209, 9, 223, 107, 133, 115, 62, 6, 128, 2, 3, 1, 0, 1, 1, 3, 152, 176, 224, 192, 129, 131, 134, 140, 22, 152, 176, 224, 192, 129, 131, 134, 140, 24, 150, 192, 169, 165, 239, 167, 226, 233, 29, 3, 2, 1, 0, 18, 194, 183, 126, 58, 7, 106, 62, 6, 128, 2, 3, 1, 0, 1, 1, 3, 152, 176, 224, 192, 129, 131, 134, 139, 24, 152, 176, 224, 192, 129, 131, 134, 140, 24, 230, 224, 234, 167, 244, 177, 246, 145, 108, 3, 2, 1, 0, 225, 232, 66, 203, 223, 59, 63, 62, 6, 128, 2, 3, 1, 0, 1, 1, 3, 152, 172, 224, 192, 1, 152, 176, 224, 192, 1, 222, 211, 200, 227, 11, 3, 2, 1, 0, 64, 155, 44, 50, 149, 210, 52, 62, 6, 128, 2, 3, 1, 0, 1, 1, 2, 152, 176, 224, 192, 1, 249, 221, 146, 211, 1, 3, 1, 0, 0]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- full_engine::interval_context::tests::interval_context_frame_identity_crc_bounds_and_malformed_raw stdout ----
+
+thread 'full_engine::interval_context::tests::interval_context_frame_identity_crc_bounds_and_malformed_raw' (2581645) panicked at src/full_engine/interval_context.rs:180:13:
+assertion `left == right` failed
+  left: [67, 73, 88, 90, 1, 112, 217, 110, 230, 192, 83, 71, 66, 73, 49, 1, 1, 83, 65, 71, 82, 49, 1, 3, 0, 17, 0, 0, 0, 247, 255, 255, 255, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 255, 255, 255, 255, 28, 0, 0, 0, 91, 103, 115, 128, 140, 152, 165, 177, 189, 202, 214, 226, 142, 209, 9, 223, 107, 133, 115, 62, 7, 128, 2, 4, 0, 0, 0, 0, 1, 3, 152, 176, 224, 192, 129, 131, 134, 140, 22, 152, 176, 224, 192, 129, 131, 134, 140, 24, 150, 192, 169, 165, 239, 167, 226, 233, 29, 3, 2, 1, 0, 18, 194, 183, 126, 58, 7, 106, 62, 7, 128, 2, 4, 0, 0, 0, 0, 1, 3, 152, 176, 224, 192, 129, 131, 134, 139, 24, 152, 176, 224, 192, 129, 131, 134, 140, 24, 230, 224, 234, 167, 244, 177, 246, 145, 108, 3, 2, 1, 0, 225, 232, 66, 203, 223, 59, 63, 62, 7, 128, 2, 4, 0, 0, 0, 0, 1, 3, 152, 172, 224, 192, 1, 152, 176, 224, 192, 1, 222, 211, 200, 227, 11, 3, 2, 1, 0, 64, 155, 44, 50, 149, 210, 52, 62, 7, 128, 2, 4, 0, 0, 0, 0, 1, 2, 152, 176, 224, 192, 1, 249, 221, 146, 211, 1, 3, 1, 0, 0]
+ right: [67, 73, 88, 90, 1, 112, 217, 110, 230, 192, 83, 71, 66, 73, 49, 1, 1, 83, 65, 71, 82, 49, 1, 3, 0, 17, 0, 0, 0, 247, 255, 255, 255, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 255, 255, 255, 255, 28, 0, 0, 0, 91, 103, 115, 128, 140, 152, 165, 177, 189, 202, 214, 226, 142, 209, 9, 223, 107, 133, 115, 62, 6, 128, 2, 3, 1, 0, 1, 1, 3, 152, 176, 224, 192, 129, 131, 134, 140, 22, 152, 176, 224, 192, 129, 131, 134, 140, 24, 150, 192, 169, 165, 239, 167, 226, 233, 29, 3, 2, 1, 0, 18, 194, 183, 126, 58, 7, 106, 62, 6, 128, 2, 3, 1, 0, 1, 1, 3, 152, 176, 224, 192, 129, 131, 134, 139, 24, 152, 176, 224, 192, 129, 131, 134, 140, 24, 230, 224, 234, 167, 244, 177, 246, 145, 108, 3, 2, 1, 0, 225, 232, 66, 203, 223, 59, 63, 62, 6, 128, 2, 3, 1, 0, 1, 1, 3, 152, 172, 224, 192, 1, 152, 176, 224, 192, 1, 222, 211, 200, 227, 11, 3, 2, 1, 0, 64, 155, 44, 50, 149, 210, 52, 62, 6, 128, 2, 3, 1, 0, 1, 1, 2, 152, 176, 224, 192, 1, 249, 221, 146, 211, 1, 3, 1, 0, 0]
+
+
+failures:
+    full_engine::interval_context::tests::interval_context_all_policy_raw_fixture_identity_and_inverse
+    full_engine::interval_context::tests::interval_context_frame_identity_crc_bounds_and_malformed_raw
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 233 filtered out; finished in 0.00s
+

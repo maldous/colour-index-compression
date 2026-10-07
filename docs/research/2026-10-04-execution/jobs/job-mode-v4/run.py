@@ -1,0 +1,6 @@
+import subprocess
+commands = [['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-job-mode-v4/Cargo.toml', '--all-targets'], ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-job-mode-v4/Cargo.toml', '--lib', 'job_protocol', '--', '--test-threads=1'], ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-job-mode-v4/Cargo.toml', '--lib', 'job_cli', '--', '--test-threads=1'], ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-job-mode-v4/Cargo.toml', '--test', 'full_engine_jobs_cli', '--', '--test-threads=1']]
+for command in commands:
+ print('CHECK', command, flush=True)
+ result = subprocess.run(command, check=False)
+ if result.returncode: raise SystemExit(result.returncode)

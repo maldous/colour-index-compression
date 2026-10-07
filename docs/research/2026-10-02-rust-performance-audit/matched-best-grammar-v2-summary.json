@@ -1,0 +1,120 @@
+{
+  "schema": "cix-focused-best-probe-summary-v2",
+  "status": "PRELIMINARY_NOT_CORPUS_QUALIFICATION",
+  "input_sha256": "1b0805dfc0ae706b35aac2bb4e15f02485efd24dda5dbd29de7b2f84d1a88c15",
+  "input_bytes": 3721,
+  "flags": [
+    "--best",
+    "--threads",
+    "1"
+  ],
+  "cpu": [
+    8
+  ],
+  "repetitions": 3,
+  "complete_archive_bytes": 1096,
+  "complete_archive_sha256": "136b20d02ba2d578ac770e9b64c6c084d3e9c382231cf471dc3cd4a15e98c679",
+  "fresh_decodes": 12,
+  "releases": {
+    "pre_refactor": {
+      "source_revision": "99f4f731991aeaf495fe3346a553afdcd107926b",
+      "binaries": {
+        "cix": {
+          "sha256": "0a2731722d197083558d13210ca828316fe1bcd1f9a1d372d1d92d8502f55a7e",
+          "bytes": 2519696
+        },
+        "uncix": {
+          "sha256": "6b90c821d615e4516932ba0549b51c5366ff03126e169bfce130bc3e28892a0d",
+          "bytes": 2521176
+        },
+        "cixcat": {
+          "sha256": "c74e6449324b66bb3480b9b0cbd3977692fb0a7f293336ab86ef413a3a105984",
+          "bytes": 2521920
+        },
+        "libcix_native.so": {
+          "sha256": "7f36693a7e425ee038c2ca0b6666f800a1482b66545198508a6c6d9f60c3ce63",
+          "bytes": 1418968
+        }
+      },
+      "wall_seconds": [
+        42.134263352,
+        46.2185659,
+        46.579378073
+      ],
+      "wall_mean": 44.97740244166667,
+      "wall_sample_sd": 2.468830951774383,
+      "cpu_seconds": [
+        42.1,
+        46.18,
+        46.53
+      ],
+      "cpu_mean": 44.93666666666667,
+      "peak_rss_bytes": [
+        103002112,
+        102768640,
+        102739968
+      ],
+      "peak_rss_mean": 102836906.66666667
+    },
+    "post_refactor_optimized": {
+      "source_revision": "8865bfbccba354b02920da86c7088c17e5f96aab",
+      "binaries": {
+        "cix": {
+          "sha256": "7ead367731b7a97035392473e54c59f55a937de7abc32b871c3028cec126a535",
+          "bytes": 2544096
+        },
+        "uncix": {
+          "sha256": "1a166665722c8f896e73ea0770b8ebd8a06d910f1501cad0474771debdd5e1f7",
+          "bytes": 2545592
+        },
+        "cixcat": {
+          "sha256": "bfbabd5608d1ac9eb93572033c72ba76c99218145e945ab8b80ad287a7932918",
+          "bytes": 2546352
+        },
+        "libcix_native.so": {
+          "sha256": "ef6100672812b2886e13caca5776b24183cc8e425275b07824c7a8b6d1f99f6f",
+          "bytes": 1455656
+        }
+      },
+      "wall_seconds": [
+        36.918912057,
+        36.838456191,
+        41.960092556
+      ],
+      "wall_mean": 38.572486934666664,
+      "wall_sample_sd": 2.9340283180058697,
+      "cpu_seconds": [
+        36.89,
+        36.809999999999995,
+        41.050000000000004
+      ],
+      "cpu_mean": 38.25,
+      "peak_rss_bytes": [
+        102592512,
+        102514688,
+        102346752
+      ],
+      "peak_rss_mean": 102484650.66666667
+    }
+  },
+  "limitations": [
+    "Three pairs on one tiny fixed CCA input; no general throughput claim.",
+    "GNU decoder wall resolution and process startup dominate; no decoder speed claim.",
+    "Copied artifact metadata contains inherited build_source_state; separate provenance erratum supersedes that field, frozen originals retained.",
+    "Binary pre/post guards, not full frozen-runner DSO/effective-cgroup qualification.",
+    "Other disjoint-core research active; not isolated host."
+  ],
+  "paired_saved_seconds": {
+    "samples": [
+      5.215351294999998,
+      9.380109709000003,
+      4.619285517000002
+    ],
+    "mean": 6.404915507000001,
+    "t95_interval": [
+      -0.0383741209398023,
+      12.848205134939803
+    ],
+    "assumption": "paired samples, Student t df=2; exploratory small-sample interval"
+  }
+}

@@ -1,0 +1,31 @@
+Frozen parent: 40d3520db
+Candidate source worktree: /tmp/cix-chain-bwt-40d (commit recorded after this receipt)
+Direct toolchain:
+  cargo=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo
+  rustc=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc
+  rustdoc=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustdoc
+Resource guard: systemd-run --user --wait --pipe -p MemoryMax=1G -p MemorySwapMax=0 -p CPUAffinity=14.
+Focused-suite cgroup: CPU affinity 14; memory.max=1073741824; memory.swap.max=0;
+  chain::tests: 2 passed; bwt_legacy::tests: 6 passed; peak=395100160; swap peak=0.
+Rice boundary command: cargo test rice_uints_reject_high_bit_overflow --lib
+Rice boundary result: 2 passed, 0 failed. Valid q=1,width=usize::BITS-1 is accepted; q=2 is rejected before shifting.
+Parent executable SHA-256:
+  cix b9910bc7e3b793ccb92240d23b3378371221e95f34e054070bb8e9c7b31cf6e9
+  uncix b36a6c8aed446dd2c392bb9f5ba6a601d135423c5b58a7d2c9f277ee92cc1fd2
+Candidate executable SHA-256:
+  cix 5d47e662d5ccaaf96160eb220cd443f03f164c736632e247c2d3c277ebd1c71c
+  uncix 13b639c353c456c5945de4d8d65440e1310d840f2c1061df2beb75857c6c246e
+Input command: yes 'ABRACADABRA-CHAIN-BWT-0123456789' | head -c 2048 > input
+Input SHA-256: 7f1fc38337410e4c142dcb24884fb55623deff6bedbf30ab2dd39d9fcd8c41d4
+Archive command (each binary): cix --format cixg1 --route bwt --threads 1 --explain -o ARCHIVE input
+Candidate stderr:
+  cix: region=1 source_bytes=2048 candidates=[bwt:hybrid=86B/0.009s,bwt:cix=90B/0.009s,bwt:deflate=89B/0.009s] selected_route=bwt backend=hybrid payload_bytes=86 (route explicitly constrained)
+  cix: effort=default format=CIXG1 route=bwt blocks=1 candidates=3 memory_skips=0 budget_skips=0 analyse_seconds=0.000 candidate_seconds=0.026 search_seconds=0.026 archive_bytes=181 selected_source_bytes=[bwt:2048]
+Parent archive: 181 bytes; SHA-256 26e6fa00b78fffd0c9483ea4d7eb4486188a8df97d31e6f3bf1500756080e9cd
+Candidate archive: 181 bytes; SHA-256 26e6fa00b78fffd0c9483ea4d7eb4486188a8df97d31e6f3bf1500756080e9cd
+Archive bytes equal: yes.
+Cross decode: parent uncix candidate archive exit=0; candidate uncix parent archive exit=0.
+Both restored SHA-256: 7f1fc38337410e4c142dcb24884fb55623deff6bedbf30ab2dd39d9fcd8c41d4
+Malformed archive: truncate candidate archive by one byte; candidate uncix exit=2; stderr="cix: truncated archive".
+Direct chain harness (CIXM6 mode-7 API): existing `encoder_fixtures_cross_decode_in_rust`, run with CIX_CHAIN_FIXTURE_DIR for frozen parent and candidate. It calls chain::encode with beam=9, effort=9, writes direct payload/source/candidates TSV, and calls chain::decode on each payload. Parent exit=0, 1 passed, runtime 300.412s, peak 760.0M, swap peak 0. Candidate exit=0, 1 passed, runtime 282.11s, peak 79.8M, swap peak 0. Fixture trees compare equal (`diff -rq` exit 0); hashes are retained in /tmp/chainhash during audit.
+CIXM6 legacy-BWT actual archive: mode byte=4, parent/candidate 56 bytes, SHA-256 b1047dba182152ade4a038eeaba6a5a44c5a142e1fc7c5bbb6982c7a439ab3cc.

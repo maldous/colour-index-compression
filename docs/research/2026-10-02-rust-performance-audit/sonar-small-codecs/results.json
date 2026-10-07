@@ -1,0 +1,32 @@
+{
+  "status": "VERIFIED",
+  "base_revision": "9214e2f8b80a16009986af56dd3de242fd26651e",
+  "scope": ["combinatorics.rs", "histogram.rs", "huffman.rs", "rank.rs"],
+  "resources": {"cpu": 16, "jobs": 1, "memory_bytes": 1073741824, "swap_bytes": 0, "temporary_bytes": 536870912},
+  "toolchain": "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo (RUSTC/RUSTDOC from the same toolchain)",
+  "checks": {
+    "cargo_check": "passed",
+    "focused_tests": "combinatorics::tests: 5 passed; histogram::tests: 2 passed; huffman::tests: 2 passed; rank::tests: 10 passed (including count range, two context layouts, malformed prefix, and trailing bytes); cixg_huffman_tests: 2 passed",
+    "cixg2_huffman": "forced composition+huffman selected composition for 8192 source bytes in two frames; frozen and candidate archive SHA-256 138fd582360a3bcb4e9622e1495fded2954e81aaaec5e2404648f539e0f315c1; reciprocal frozen/candidate decode exact",
+    "cixg2_context_range": "forced composition+context-range-o2-b8 selected composition for all 13312 source bytes in four frames; frozen/candidate archive SHA-256 ababaf0fcb1b027b000686292ccab0eb0bbbca2a01523266afb5762f4749cede; reciprocal frozen/candidate decode exact",
+    "cixm6_selected_modes": "period-17 selected mode 2 context type classes (archive SHA-256 03888bc0cc16028adb0fe70b4d41d2e19701e92a7e8c1084ac68826610f90a0c); hist-skew selected mode 20 histogram (archive SHA-256 66bbfbccbd73414b654004cb3f37b8ae6e5cc2e5f81909dbf17255128c63dfcc); each frozen/candidate archive byte-identical and reciprocally decoded exactly",
+    "malformed_boundaries": "candidate uncix rejected a one-byte-truncated mode-20 archive as 'truncated archive' and a byte appended after a mode-2 archive as 'trailing bytes after CIXM6 stream'"
+  },
+  "inputs": {
+    "cixg2_sha256": "0cd7cffd342ea8475e51fcd337b30829dc7a6b5d9b51541295fc14945273c181",
+    "cixm6_mode2_sha256": "24982223c7851090ae20c9e4627d54a08c56bbf91462a8d8b4032f938a449416",
+    "cixm6_mode20_sha256": "f8f7e97c55c46d14bc7fe6e7af47f5974cb7dc6444dfbe7f6d3a4273daae51d2"
+  },
+  "binaries": {
+    "candidate_cix_sha256": "603a9d304fe3c158b2ecc89d67a2873f0836aad9c582fd219cf86a7a60ff6214",
+    "candidate_uncix_sha256": "899bb902f561a4ae073c0769f193ff4293c2dff060d8441815741a3d35f70dc4",
+    "frozen_cix_sha256": "7ead367731b7a97035392473e54c59f55a937de7abc32b871c3028cec126a535",
+    "frozen_uncix_sha256": "1a166665722c8f896e73ea0770b8ebd8a06d910f1501cad0474771debdd5e1f7"
+  },
+  "configurations": [
+    "--format cixg2 --route composition --backend huffman --block-size 4KiB --memory 128MiB --threads 1 --explain",
+    "--format cixg2 --route composition --backend context-range-o2-b8 --block-size 4KiB --memory 128MiB --threads 1 --explain",
+    "--format cixm6 --fast --block-size 4KiB --memory 128MiB --threads 1"
+  ],
+  "allocation_change": "None: the production helpers keep the prior vectors, streams, and temporary ownership; test-only allocations do not ship."
+}

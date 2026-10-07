@@ -1,0 +1,25 @@
+{
+  "schema": "cix.image-grid-extraction.v1",
+  "status": "implementation_extracted_pending_coordinator_integration",
+  "owned_modules": [
+    "runtime/cix_runtime/legacy/spatial_image_codec.py",
+    "runtime/cix_runtime/legacy/volume_image_codec.py",
+    "runtime/cix_runtime/legacy/multiscale_volume.py",
+    "runtime/cix_runtime/legacy/record_float_grid.py",
+    "runtime/cix_runtime/legacy/grid_feedback.py",
+    "runtime/cix_runtime/legacy/grid_interval.py",
+    "runtime/cix_runtime/legacy/grid_context.py",
+    "runtime/cix_runtime/legacy/grid_conditional.py",
+    "runtime/cix_runtime/legacy/grid_backend.py",
+    "runtime/cix_runtime/legacy/grid_grouped.py",
+    "runtime/cix_runtime/image_grid.py",
+    "runtime/cix_runtime/legacy/image_grid.py",
+    "runtime/tests/test_image_grid.py"
+  ],
+  "exact_historical_mode": {"family":"volume","mode":3,"effort":10,"format":"CIXV1"},
+  "mr_envelope_candidate": {"formats":["CIXV1","CIXI2"],"parameters":{"mode":3,"axes":0,"levels":0,"predictor":0,"effort":10},"rule":"encode current data once with planar mode 3; construct the CIXI2 identity envelope only from that current payload, report both logical sizes and selected format; never reuse a historical archive"},
+  "recognition": {"supported":"bounded implicit-VR little-endian DICOM pixel-data region","declined":"240-byte raster: no current paid-layout consistency proof"},
+  "decoder_magics": ["CIXI\\u0001","CIXV\\u0001","CIXI\\u0002","CIXS\\u0001","CIXY\\u0001","CIXZ\\u0001","CIXB\\u001e","CIXB\\u001f","CIXB\\u0020","CIXB\\u0021"],
+  "dependencies": ["numpy","imagecodecs","runtime.cix_runtime.legacy.multinomial"],
+  "gaps": ["The PAQ backend binary/packaging closure is supplied by runtime.cix_runtime.backends and must be present for grouped/grid PAQ candidates.","imagecodecs and Brotli bindings do not expose a native workspace limit; decoders use declared frame/cap checks and incremental retained-output limits, while callers require RLIMIT_AS/cgroup limits for native workspace.","CIXI1 does not store image dimensions, so it cannot preallocate a shape-correct JXL output; it remains process-limit guarded after validating the paid pixel-byte count.","No encoder, decoder, compressor, or full test job was run by this extraction task."]
+}

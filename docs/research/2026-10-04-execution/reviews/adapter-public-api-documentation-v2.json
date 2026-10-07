@@ -1,0 +1,25 @@
+{
+  "kind": "DOCUMENTATION_ONLY_SOURCE_IDENTITY",
+  "scope": "seven CIX-owned adapter public headers; no vendor headers",
+  "basis": "adapter-sonar-context-probe-v4 cxx:UndocumentedApi findings and reviewed source contracts",
+  "validation": {
+    "preapply_git_apply_check": "passed",
+    "postapply_git_diff_check": "passed",
+    "build_or_runtime_execution": "not run by design"
+  },
+  "files": [
+    {"path":"rust/cix-native/adapters/blosc2/include/cix_blosc2_adapter.h","before_sha256":"585e2c850a28b20e851282632320f18a49665306e1dfb3791a982a3317624926","after_sha256":"a57369602bbd16ed4198642a8d53f11bc429644688cdaa3cfe443f2d99c7d233","noncomment_tokens_equal":true},
+    {"path":"rust/cix-native/adapters/gio/cix-gconverter.h","before_sha256":"6b51d6b0aa0268dcd1fee35a38583b00ef1df5f3bc69cdaa51ed09c8431ec3d8","after_sha256":"d5774016ad0e56c6b59d665d79fe1fef1f81d15001eaf113d14e934b50dc8e0d","noncomment_tokens_equal":true},
+    {"path":"rust/cix-native/adapters/rocksdb/cix_compression_manager.h","before_sha256":"17856bcd05e18cd2bf75683c2b634b66b9a1f8181126ca6aeaa6a2d306655b80","after_sha256":"08613aad3b4de5a6f70501e5b03d72c2df74c58bc847dce08b38a30546db8368","noncomment_tokens_equal":false,"noncomment_change":"The previously unnamed `GetCixCompressionManagerStatsV1` shared_ptr parameter is named `manager` so Doxygen can bind `@param manager`; parameter names do not affect the C++ ABI."},
+    {"path":"rust/cix-native/adapters/squashfs/profile/include/cix_squashfs_profile.h","before_sha256":"b86584f6ac66cd6a958f90688b3ed1ae40b294ad7a6cd0e2111bec59114653d9","after_sha256":"d3b933af4b3b5dc40dd9f9c0708b55012fae050e4f0b7f4e773354479dfda211","noncomment_tokens_equal":true},
+    {"path":"rust/cix-native/adapters/squashfs/userspace/include/cix_sqfs_userspace.h","before_sha256":"c1c16889ba0987d3f1ee1579558c3fdef40318458b8a1a4552113ebde618a37e","after_sha256":"0d334a40ac85e74f3f857c6cbf5e2e55a729e314187eccccd7cbc6b34366db10","noncomment_tokens_equal":true},
+    {"path":"rust/cix-native/adapters/squashfs/kernel/include/cix_squashfs_kernel.h","before_sha256":"f5d190de83131f186df92ebea7ab2bf35262f54da5c558eb55cb836b201104c5","after_sha256":"83b6644535db5b1c2559f97bc9f0265abd0b5da74fdd55977a8b33db4366c38e","noncomment_tokens_equal":true},
+    {"path":"rust/cix-native/adapters/squashfs/kernel/include/cix_squashfs_register.h","before_sha256":"b8f4995b001aa3f6c3fcaecb789d27c517496f399b5c90a22ecd20390b8f1278","after_sha256":"5680296a729900202b2f764750e2cc02acd65072cc7fc75b5d4ef920c205c583","noncomment_tokens_equal":true}
+  ],
+  "contract_recheck": {
+    "profile_written": "Encode and both decode entry points require a non-null written pointer; when supplied it is zeroed before validation. The applied Doxygen says this explicitly.",
+    "profile_workspace": "decode_workspace_size returns the required model byte count; decode_with_workspace also requires uint32_t alignment, a sufficient non-overlapping caller-owned range, and retains none of it.",
+    "rocksdb": "Factory admits only 1..128 MiB and returns nullptr on invalid cap/allocation failure. Statistics are atomic individual loads, not a coherent aggregate.",
+    "gio": "Constructor owns one native stream through GObject finalization; cancel is an atomic request fence only and does not preempt a call."
+  }
+}

@@ -1,0 +1,19 @@
+sevenzip ['cmake', '-S', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-source-v1/sevenzip'), '-B', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/sevenzip'), '-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so', '-DCIX_7ZIP_SDK_ROOT=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sevenzip-source-v1', '-DCIX_7ZIP_SDK_ARCHIVE_SHA256=9cbde5099c6deb73691b0579063da5827522ccbbcba3f0020fd04e8c8c16c0d4', '-DCIX_7ZIP_BUILD_CONTRACT=ON'] 1
+sevenzip FAIL CMake Error at CMakeLists.txt:39 (message):
+  Record the exact official SDK archive SHA-256 in
+  CIX_7ZIP_SDK_ARCHIVE_SHA256
+
+
+
+wiredtiger ['cmake', '-S', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/wiredtiger-source-v1'), '-B', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-sdk-build'), '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-prefix', '-DENABLE_SHARED=ON', '-DENABLE_STATIC=OFF', '-DENABLE_PYTHON=OFF', '-DHAVE_UNITTEST=OFF', '-DHAVE_UNITTEST_ASSERTS=OFF', '-DENABLE_CPPSUITE=OFF', '-DENABLE_MODEL=OFF', '-DENABLE_STRICT=OFF', '-DENABLE_LZ4=OFF', '-DENABLE_SNAPPY=OFF', '-DENABLE_ZLIB=OFF', '-DENABLE_ZSTD=OFF', '-DENABLE_SODIUM=OFF', '-DENABLE_IAA=OFF', '-DENABLE_S3=OFF', '-DENABLE_GCP=OFF', '-DENABLE_AZURE=OFF'] 0
+wiredtiger ['cmake', '--build', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-sdk-build'), '--target', 'wiredtiger_shared', '-j4'] 0
+wiredtiger ['cmake', '--install', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-sdk-build')] 1
+wiredtiger FAIL CMake Error at wiredtiger-sdk-build/src/utilities/cmake_install.cmake:52 (file):
+  file INSTALL cannot find
+  "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-sdk-build/wt":
+  No such file or directory.
+Call Stack (most recent call first):
+  wiredtiger-sdk-build/cmake_install.cmake:83 (include)
+
+
+

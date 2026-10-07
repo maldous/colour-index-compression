@@ -1,0 +1,236 @@
+{
+  "sources": {
+    "adapters/blosc2/CMakeLists.txt": "2d0e30789c385861ebe6968a22cf433bdf5275021611db271d5a0c3ddf84be42",
+    "adapters/blosc2/README.md": "a8baafc4d7a64c96faa0655705cc4b06ea98d5886e69e12e8163667ec4740fd5",
+    "adapters/blosc2/include/cix_blosc2_adapter.h": "2796219cf4004f00764d4628efc95f1b8883c4d8f04de0b8e313438ea1cbf9a4",
+    "adapters/blosc2/src/cix_blosc2_adapter.c": "fa473a47f65a8630a99c66936d9b2c304eb672aacf445bd3f1eda75942eec5fd",
+    "adapters/blosc2/tests/blosc2_cix_contract.c": "65ccc82439ab67d44701db04f284cc48bf2269f073279803e53b70c9b8b19c02",
+    "packaging/squash/README.md": "d186dda08ed4ae682ed0c51f11842c33cc22fb5d1aea92293696986be18473bd",
+    "packaging/squash/build-plugin.sh": "ec3041468d2c9d9ce82277ca2733a4c0593b8e7502d5a2a75e9e171f4efc8130",
+    "packaging/squash/contract.c": "37c1ac9a0f169932a4381365b306541d697cd5845b0017b61bd4a6f43355f3e2",
+    "packaging/squash/squash-cix.c": "5fb1d6ce6724551248eca90e0bbdaa8824c62fbe1a0d32795a7d5d84e99ebbc3",
+    "packaging/squash/squash.ini": "b1aca133eaac1bfcc1029ace690f4e05b0afc591ce77329681c20b0f99b06177"
+  },
+  "native_library_sha256": "8cfb14fe08a81105eaf6135b4eada992dae6d6c91e9ca17367fd578dec7205d1",
+  "archives": [
+    {
+      "path": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-host-archives-v1/blosc2-3.3.2.tar.gz",
+      "sha256": "925088d8bbe9be5a2d010fa4ea6adeeb843566ec300a59533098e1d8da8a497f",
+      "destination": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-source"
+    },
+    {
+      "path": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-host-archives-v1/squash-pinned.tar.gz",
+      "sha256": "0ce6819a07d2ffe26aad7dff7f3e26709ec57a32cf7771d6b6969a58353fc697",
+      "destination": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-source"
+    },
+    {
+      "path": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-host-archives-v1/tinycthread-6957fc8383d6c7db25b60b8c849b29caab1caaee.tar.gz",
+      "sha256": "7068d21ddffaab68eea6d41a39ea8b6597984ef2436eee3d4bcf664ec67528f9",
+      "destination": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-source/squash/tinycthread"
+    },
+    {
+      "path": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-host-archives-v1/hedley-5ea407f445de331cbf7e4636857078fc3cd15994.tar.gz",
+      "sha256": "81099f75970d5f9b6e2d15ee63a46f533267a21e7c72a8fee023bf4203cbbaa4",
+      "destination": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-source/squash/hedley"
+    },
+    {
+      "path": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-host-archives-v1/munit-389aef009e8773a030939bd4fc3cc0af6f865ea1.tar.gz",
+      "sha256": "7a3041baf9b039b54b8117de8ac05b98cca6e2b3ad845a34938f4e1e650ccd3b",
+      "destination": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-source/tests/munit"
+    },
+    {
+      "path": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-host-archives-v1/parg-97f3a075109ebace4f660fb341c6b99b2a4b092a.tar.gz",
+      "sha256": "65475c5d917626a69d3d186786493db69ebcceb20ae68c8f85f67281aaf18c03",
+      "destination": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-source/utils/parg"
+    }
+  ],
+  "components": {
+    "blosc2": {
+      "commands": [
+        {
+          "argv": [
+            "cmake",
+            "-S",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-source",
+            "-B",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-build",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix",
+            "-DBUILD_SHARED=ON",
+            "-DBUILD_STATIC=OFF",
+            "-DBUILD_TESTS=OFF",
+            "-DBUILD_FUZZERS=OFF",
+            "-DBUILD_BENCHMARKS=OFF",
+            "-DBUILD_EXAMPLES=OFF",
+            "-DBUILD_PLUGINS=OFF",
+            "-DBLOSC_ENABLE_ZFP=OFF",
+            "-DDEACTIVATE_ZLIB=ON",
+            "-DDEACTIVATE_ZSTD=ON",
+            "-DBLOSC_DEPENDENCY_MODE=EXTERNAL",
+            "-DBLOSC_INSTALL=ON",
+            "-DLZ4_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/include",
+            "-DLZ4_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/lib/x86_64-linux-gnu/liblz4.so"
+          ],
+          "env_extra": {},
+          "returncode": 0,
+          "stdout": "-- The C compiler identification is GNU 13.3.0\n-- The ASM compiler identification is GNU\n-- Found assembler: /usr/bin/cc\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n-- Found Threads: TRUE  \n-- Could NOT find LZ4 (missing: LZ4_DIR)\n-- Found LZ4: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/lib/x86_64-linux-gnu/liblz4.so  \n-- Building for system processor x86_64\n-- Building for compiler ID GNU\n-- Adding run-time support for SSE2\n-- Adding run-time support for AVX2\n-- Adding run-time support for AVX512\n-- Performing Test COMPILER_HAS_mssse3\n-- Performing Test COMPILER_HAS_mssse3 - Success\n-- Performing Test COMPILER_HAS_arch_SSSE3\n-- Performing Test COMPILER_HAS_arch_SSSE3 - Failed\n-- Configuring done (0.2s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-build\n",
+          "stderr": "Configuring for Blosc version: 3.3.2\nCMake Warning at CMakeLists.txt:725 (message):\n  BUILD_SHARED_LIBS is OFF, but BUILD_SHARED is ON and BUILD_STATIC is OFF,\n  which takes precedence, so Blosc2::blosc2 is a shared library\n\n\n"
+        },
+        {
+          "argv": [
+            "cmake",
+            "--build",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-build",
+            "-j4"
+          ],
+          "env_extra": {},
+          "returncode": 0,
+          "stdout": "[  4%] Building C object blosc/CMakeFiles/blosc2_shared.dir/blosclz.c.o\n[  8%] Building C object blosc/CMakeFiles/blosc2_shared.dir/blosc2.c.o\n[ 13%] Building C object blosc/CMakeFiles/blosc2_shared.dir/schunk.c.o\n[ 17%] Building C object blosc/CMakeFiles/blosc2_shared.dir/fastcopy.c.o\n[ 21%] Building C object blosc/CMakeFiles/blosc2_shared.dir/frame.c.o\n[ 26%] Building C object blosc/CMakeFiles/blosc2_shared.dir/stune.c.o\n[ 30%] Building C object blosc/CMakeFiles/blosc2_shared.dir/delta.c.o\n[ 34%] Building C object blosc/CMakeFiles/blosc2_shared.dir/shuffle-generic.c.o\n[ 39%] Building C object blosc/CMakeFiles/blosc2_shared.dir/bitshuffle-generic.c.o\n[ 43%] Building C object blosc/CMakeFiles/blosc2_shared.dir/trunc-prec.c.o\n[ 47%] Building C object blosc/CMakeFiles/blosc2_shared.dir/timestamp.c.o\n[ 52%] Building C object blosc/CMakeFiles/blosc2_shared.dir/sframe.c.o\n[ 56%] Building C object blosc/CMakeFiles/blosc2_shared.dir/directories.c.o\n[ 60%] Building C object blosc/CMakeFiles/blosc2_shared.dir/blosc2-stdio.c.o\n[ 65%] Building C object blosc/CMakeFiles/blosc2_shared.dir/b2nd.c.o\n[ 69%] Building C object blosc/CMakeFiles/blosc2_shared.dir/b2nd_utils.c.o\n[ 73%] Building C object blosc/CMakeFiles/blosc2_shared.dir/shuffle-sse2.c.o\n[ 78%] Building C object blosc/CMakeFiles/blosc2_shared.dir/bitshuffle-sse2.c.o\n[ 82%] Building C object blosc/CMakeFiles/blosc2_shared.dir/shuffle-avx2.c.o\n[ 86%] Building C object blosc/CMakeFiles/blosc2_shared.dir/bitshuffle-avx2.c.o\n[ 91%] Building C object blosc/CMakeFiles/blosc2_shared.dir/bitshuffle-avx512.c.o\n[ 95%] Building C object blosc/CMakeFiles/blosc2_shared.dir/shuffle.c.o\n[100%] Linking C shared library libblosc2.so\n[100%] Built target blosc2_shared\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "cmake",
+            "--install",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-build"
+          ],
+          "env_extra": {},
+          "returncode": 0,
+          "stdout": "-- Install configuration: \"Release\"\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/include/blosc2.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/include/b2nd.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/include/blosc2/blosc2-export.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/include/blosc2/blosc2-common.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/include/blosc2/blosc2-stdio.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/libblosc2.so.3.3.2\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/libblosc2.so.9\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/libblosc2.so\n-- Up-to-date: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/libblosc2.so.3.3.2\n-- Up-to-date: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/libblosc2.so.9\n-- Up-to-date: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/libblosc2.so\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Blosc2Targets.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Blosc2Targets-release.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Blosc2Config.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Blosc2ConfigVersion.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Modules\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Modules/FindZSTD.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Modules/toolchain-aarch64.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Modules/toolchain-armhf.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Modules/FindZFP.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Modules/merge_static_libs.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Modules/FindSIMD.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Modules/toolchain-armsf.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Modules/FindLZ4.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/cmake/Blosc2/Modules/FindZLIB_NG.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/pkgconfig/blosc2.pc\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "cmake",
+            "-S",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v1/adapters/blosc2",
+            "-B",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-adapter",
+            "-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+            "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+            "-DBLOSC2_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/include",
+            "-DBLOSC2_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/lib/libblosc2.so",
+            "-DCIX_BLOSC2_EXPERIMENTAL_CODEC_ID=240",
+            "-DCIX_BLOSC2_BUILD_CONTRACT_TEST=ON"
+          ],
+          "env_extra": {},
+          "returncode": 0,
+          "stdout": "-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-adapter\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "cmake",
+            "--build",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-adapter",
+            "-j4"
+          ],
+          "env_extra": {},
+          "returncode": 2,
+          "stdout": "[ 25%] Building C object CMakeFiles/cix_blosc2_adapter.dir/src/cix_blosc2_adapter.c.o\n[ 50%] Linking C shared library libcix_blosc2_adapter.so\n[ 50%] Built target cix_blosc2_adapter\n[ 75%] Building C object CMakeFiles/cix_blosc2_contract.dir/tests/blosc2_cix_contract.c.o\n[100%] Linking C executable cix_blosc2_contract\n",
+          "stderr": "/usr/bin/ld: CMakeFiles/cix_blosc2_contract.dir/tests/blosc2_cix_contract.c.o: in function `main':\nblosc2_cix_contract.c:(.text+0x1f4): undefined reference to `cix_blosc2_register'\ncollect2: error: ld returned 1 exit status\ngmake[2]: *** [CMakeFiles/cix_blosc2_contract.dir/build.make:99: cix_blosc2_contract] Error 1\ngmake[1]: *** [CMakeFiles/Makefile2:111: CMakeFiles/cix_blosc2_contract.dir/all] Error 2\ngmake: *** [Makefile:146: all] Error 2\n"
+        }
+      ],
+      "status": "fail",
+      "error": "/usr/bin/ld: CMakeFiles/cix_blosc2_contract.dir/tests/blosc2_cix_contract.c.o: in function `main':\nblosc2_cix_contract.c:(.text+0x1f4): undefined reference to `cix_blosc2_register'\ncollect2: error: ld returned 1 exit status\ngmake[2]: *** [CMakeFiles/cix_blosc2_contract.dir/build.make:99: cix_blosc2_contract] Error 1\ngmake[1]: *** [CMakeFiles/Makefile2:111: CMakeFiles/cix_blosc2_contract.dir/all] Error 2\ngmake: *** [Makefile:146: all] Error 2\n"
+    },
+    "squash": {
+      "commands": [
+        {
+          "argv": [
+            "cmake",
+            "-S",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-source",
+            "-B",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-build",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix",
+            "-DENABLE_BRIEFLZ=no",
+            "-DENABLE_BROTLI=no",
+            "-DENABLE_BSC=no",
+            "-DENABLE_BZIP2=no",
+            "-DENABLE_COPY=no",
+            "-DENABLE_CRUSH=no",
+            "-DENABLE_CSC=no",
+            "-DENABLE_DENSITY=no",
+            "-DENABLE_DOBOZ=no",
+            "-DENABLE_FARI=no",
+            "-DENABLE_FASTLZ=no",
+            "-DENABLE_GIPFELI=no",
+            "-DENABLE_HEATSHRINK=no",
+            "-DENABLE_LIBDEFLATE=no",
+            "-DENABLE_LZ4=no",
+            "-DENABLE_LZF=no",
+            "-DENABLE_LZFSE=no",
+            "-DENABLE_LZG=no",
+            "-DENABLE_LZHAM=no",
+            "-DENABLE_LZJB=no",
+            "-DENABLE_LZMA=no",
+            "-DENABLE_LZO=no",
+            "-DENABLE_MINIZ=no",
+            "-DENABLE_MS_COMPRESS=no",
+            "-DENABLE_NCOMPRESS=no",
+            "-DENABLE_QUICKLZ=no",
+            "-DENABLE_SNAPPY=no",
+            "-DENABLE_WFLZ=no",
+            "-DENABLE_YALZ77=no",
+            "-DENABLE_ZLIB=no",
+            "-DENABLE_ZLIB_NG=no",
+            "-DENABLE_ZLING=no",
+            "-DENABLE_ZPAQ=no",
+            "-DENABLE_ZSTD=no"
+          ],
+          "env_extra": {},
+          "returncode": 0,
+          "stdout": "-- The C compiler identification is GNU 13.3.0\n-- The CXX compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n-- Found Threads: TRUE  \n-- Could NOT find CppCheck (missing: CppCheck_EXECUTABLE) \n-- Performing Test CFLAG_fno_builtin\n-- Performing Test CFLAG_fno_builtin - Success\n-- Could NOT find RAGEL (missing: RAGEL_EXECUTABLE) (Required is at least version \"6.6\")\n-- Performing Test CFLAG_Wall\n-- Performing Test CFLAG_Wall - Success\n-- Performing Test CFLAG_Waggregate_return\n-- Performing Test CFLAG_Waggregate_return - Success\n-- Performing Test CFLAG_Wcast_align\n-- Performing Test CFLAG_Wcast_align - Success\n-- Performing Test CFLAG_Wclobbered\n-- Performing Test CFLAG_Wclobbered - Success\n-- Performing Test CFLAG_Wempty_body\n-- Performing Test CFLAG_Wempty_body - Success\n-- Performing Test CFLAG_Werror_format_2\n-- Performing Test CFLAG_Werror_format_2 - Success\n-- Performing Test CFLAG_Werror_format_security\n-- Performing Test CFLAG_Werror_format_security - Success\n-- Performing Test CFLAG_Werror_implicit_function_declaration\n-- Performing Test CFLAG_Werror_implicit_function_declaration - Success\n-- Performing Test CFLAG_Werror_init_self\n-- Performing Test CFLAG_Werror_init_self - Success\n-- Performing Test CFLAG_Werror_missing_include_dirs\n-- Performing Test CFLAG_Werror_missing_include_dirs - Success\n-- Performing Test CFLAG_Werror_missing_prototypes\n-- Performing Test CFLAG_Werror_missing_prototypes - Success\n-- Performing Test CFLAG_Werror_pointer_arith\n-- Performing Test CFLAG_Werror_pointer_arith - Success\n-- Performing Test CFLAG_Wextra\n-- Performing Test CFLAG_Wextra - Success\n-- Performing Test CFLAG_Wformat_nonliteral\n-- Performing Test CFLAG_Wformat_nonliteral - Success\n-- Performing Test CFLAG_Wformat_security\n-- Performing Test CFLAG_Wformat_security - Success\n-- Performing Test CFLAG_Wignored_qualifiers\n-- Performing Test CFLAG_Wignored_qualifiers - Success\n-- Performing Test CFLAG_Winit_self\n-- Performing Test CFLAG_Winit_self - Success\n-- Performing Test CFLAG_Winvalid_pch\n-- Performing Test CFLAG_Winvalid_pch - Success\n-- Performing Test CFLAG_Wlogical_op\n-- Performing Test CFLAG_Wlogical_op - Success\n-- Performing Test CFLAG_Wmissing_declarations\n-- Performing Test CFLAG_Wmissing_declarations - Success\n-- Performing Test CFLAG_Wmissing_format_attribute\n-- Performing Test CFLAG_Wmissing_format_attribute - Success\n-- Performing Test CFLAG_Wmissing_include_dirs\n-- Performing Test CFLAG_Wmissing_include_dirs - Success\n-- Performing Test CFLAG_Wmissing_noreturn\n-- Performing Test CFLAG_Wmissing_noreturn - Success\n-- Performing Test CFLAG_Wmissing_parameter_type\n-- Performing Test CFLAG_Wmissing_parameter_type - Success\n-- Performing Test CFLAG_Wmissing_prototypes\n-- Performing Test CFLAG_Wmissing_prototypes - Success\n-- Performing Test CFLAG_Wnested_externs\n-- Performing Test CFLAG_Wnested_externs - Success\n-- Performing Test CFLAG_Wmissing_field_initializers\n-- Performing Test CFLAG_Wmissing_field_initializers - Success\n-- Performing Test CFLAG_Wstrict_aliasing\n-- Performing Test CFLAG_Wstrict_aliasing - Success\n-- Performing Test CFLAG_Wuninitialized\n-- Performing Test CFLAG_Wuninitialized - Success\n-- Performing Test CFLAG_Wunused_parameter\n-- Performing Test CFLAG_Wunused_parameter - Success\n-- Performing Test CFLAG_Wold_style_definition\n-- Performing Test CFLAG_Wold_style_definition - Success\n-- Performing Test CFLAG_Woverride_init\n-- Performing Test CFLAG_Woverride_init - Success\n-- Performing Test CFLAG_Wpacked\n-- Performing Test CFLAG_Wpacked - Success\n-- Performing Test CFLAG_Wpointer_arith\n-- Performing Test CFLAG_Wpointer_arith - Success\n-- Performing Test CFLAG_Wredundant_decls\n-- Performing Test CFLAG_Wredundant_decls - Success\n-- Performing Test CFLAG_Wreturn_type\n-- Performing Test CFLAG_Wreturn_type - Success\n-- Performing Test CFLAG_Wshadow\n-- Performing Test CFLAG_Wshadow - Success\n-- Performing Test CFLAG_Wsign_compare\n-- Performing Test CFLAG_Wsign_compare - Success\n-- Performing Test CFLAG_Wstrict_prototypes\n-- Performing Test CFLAG_Wstrict_prototypes - Success\n-- Performing Test CFLAG_Wswitch_enum\n-- Performing Test CFLAG_Wswitch_enum - Success\n-- Performing Test CFLAG_Wsync_nand\n-- Performing Test CFLAG_Wsync_nand - Success\n-- Performing Test CFLAG_Wtype_limits\n-- Performing Test CFLAG_Wtype_limits - Success\n-- Performing Test CFLAG_Wundef\n-- Performing Test CFLAG_Wundef - Success\n-- Performing Test CFLAG_WUnsafe_loop_optimizations\n-- Performing Test CFLAG_WUnsafe_loop_optimizations - Failed\n-- Performing Test CFLAG_Wwrite_strings\n-- Performing Test CFLAG_Wwrite_strings - Success\n-- Performing Test CFLAG_Wsuggest_attribute_format\n-- Performing Test CFLAG_Wsuggest_attribute_format - Success\n-- Performing Test CFLAG__fvisibility_hidden\n-- Performing Test CFLAG__fvisibility_hidden - Success\n-- Performing Test CXXFLAG__fvisibility_hidden\n-- Performing Test CXXFLAG__fvisibility_hidden - Success\n-- Performing Test CFLAG_fvisibility_hidden\n-- Performing Test CFLAG_fvisibility_hidden - Success\n-- Performing Test CFLAG_Wsign_conversion\n-- Performing Test CFLAG_Wsign_conversion - Success\n-- Performing Test CFLAG_Wconversion\n-- Performing Test CFLAG_Wconversion - Success\n-- Performing Test CFLAG_Wunused_variable\n-- Performing Test CFLAG_Wunused_variable - Success\n-- Performing Test CFLAG_Wunused_const_variable\n-- Performing Test CFLAG_Wunused_const_variable - Success\n-- Looking for clock_gettime\n-- Looking for clock_gettime - found\n-- Performing Test HAVE_FREAD_UNLOCKED\n-- Performing Test HAVE_FREAD_UNLOCKED - Success\n-- Performing Test HAVE_FWRITE_UNLOCKED\n-- Performing Test HAVE_FWRITE_UNLOCKED - Success\n-- Performing Test HAVE_FFLUSH_UNLOCKED\n-- Performing Test HAVE_FFLUSH_UNLOCKED - Success\n-- Performing Test HAVE_FLOCKFILE\n-- Performing Test HAVE_FLOCKFILE - Success\n-- Performing Test HAVE_ALIGNED_ALLOC\n-- Performing Test HAVE_ALIGNED_ALLOC - Success\n-- Performing Test HAVE_POSIX_MEMALIGN\n-- Performing Test HAVE_POSIX_MEMALIGN - Success\n-- Performing Test HAVE__ALIGNED_MALLOC\n-- Performing Test HAVE__ALIGNED_MALLOC - Failed\n-- Performing Test HAVE___MINGW_ALIGNED_MALLOC\n-- Performing Test HAVE___MINGW_ALIGNED_MALLOC - Failed\n-- Performing Test HAVE_SECURE_GETENV\n-- Performing Test HAVE_SECURE_GETENV - Success\n-- Performing Test HAVE__VSCWPRINTF\n-- Performing Test HAVE__VSCWPRINTF - Failed\n-- Performing Test ICONV_SECOND_ARGUMENT_IS_CONST\n-- Performing Test ICONV_SECOND_ARGUMENT_IS_CONST - Failed\n-- Found Iconv: /usr/lib/x86_64-linux-gnu/libc.so\n-- ms-compress plugin: disabled\n-- Looking for unistd.h\n-- Looking for unistd.h - found\n-- zlib-ng plugin: disabled\n-- Could NOT find Doxygen (missing: DOXYGEN_EXECUTABLE) \n-- Could NOT find Vala (missing: VALA_EXECUTABLE) \n-- Found PkgConfig: /usr/bin/pkg-config (found version \"1.8.1\") \n-- Checking for modules 'glib-2.0;gobject-2.0'\n--   Found glib-2.0, version 2.80.0\n--   Found gobject-2.0, version 2.80.0\n-- Configuring done (2.9s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-build\n",
+          "stderr": "CMake Deprecation Warning at CMakeLists.txt:46 (cmake_minimum_required):\n  Compatibility with CMake < 3.5 will be removed from a future version of\n  CMake.\n\n  Update the VERSION argument <min> value or use a ...<max> suffix to tell\n  CMake that the project does not need compatibility with older versions.\n\n\nCMake Deprecation Warning at cmake/FindCppCheck.cmake:1 (cmake_minimum_required):\n  Compatibility with CMake < 3.5 will be removed from a future version of\n  CMake.\n\n  Update the VERSION argument <min> value or use a ...<max> suffix to tell\n  CMake that the project does not need compatibility with older versions.\nCall Stack (most recent call first):\n  CMakeLists.txt:68 (find_package)\n\n\nCMake Deprecation Warning at cmake/FindRAGEL.cmake:45 (cmake_minimum_required):\n  Compatibility with CMake < 3.5 will be removed from a future version of\n  CMake.\n\n  Update the VERSION argument <min> value or use a ...<max> suffix to tell\n  CMake that the project does not need compatibility with older versions.\nCall Stack (most recent call first):\n  squash/CMakeLists.txt:5 (find_package)\n\n\n"
+        },
+        {
+          "argv": [
+            "cmake",
+            "--build",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-build",
+            "--target",
+            "squash0.8",
+            "squash",
+            "-j4"
+          ],
+          "env_extra": {},
+          "returncode": 0,
+          "stdout": "[  5%] Building C object squash/CMakeFiles/squash0.8.dir/squash-ini.c.o\n[ 10%] Building C object squash/CMakeFiles/squash0.8.dir/squash-codec.c.o\n[ 15%] Building C object squash/CMakeFiles/squash0.8.dir/squash-charset.c.o\n[ 20%] Building C object squash/CMakeFiles/squash0.8.dir/squash-buffer.c.o\n[ 25%] Building C object squash/CMakeFiles/squash0.8.dir/squash-file.c.o\n[ 30%] Building C object squash/CMakeFiles/squash0.8.dir/squash-license.c.o\n[ 35%] Building C object squash/CMakeFiles/squash0.8.dir/squash-memory.c.o\n[ 40%] Building C object squash/CMakeFiles/squash0.8.dir/squash-options.c.o\n[ 45%] Building C object squash/CMakeFiles/squash0.8.dir/squash-status.c.o\n[ 50%] Building C object squash/CMakeFiles/squash0.8.dir/squash-buffer-stream.c.o\n[ 55%] Building C object squash/CMakeFiles/squash0.8.dir/squash-context.c.o\n[ 60%] Building C object squash/CMakeFiles/squash0.8.dir/squash-object.c.o\n[ 65%] Building C object squash/CMakeFiles/squash0.8.dir/squash-plugin.c.o\n[ 70%] Building C object squash/CMakeFiles/squash0.8.dir/squash-splice.c.o\n[ 75%] Building C object squash/CMakeFiles/squash0.8.dir/squash-stream.c.o\n[ 80%] Building C object squash/CMakeFiles/squash0.8.dir/squash-util.c.o\n[ 85%] Building C object squash/CMakeFiles/squash0.8.dir/squash-version.c.o\n[ 90%] Building C object squash/CMakeFiles/squash0.8.dir/tinycthread/source/tinycthread.c.o\n[ 95%] Building C object squash/CMakeFiles/squash0.8.dir/squash-mapped-file.c.o\n[100%] Linking C shared library libsquash0.8.so\n[100%] Built target squash0.8\n[ 86%] Built target squash0.8\n[ 91%] Building C object utils/CMakeFiles/squash.dir/squash.c.o\n[ 95%] Building C object utils/CMakeFiles/squash.dir/parg/parg.c.o\n[100%] Linking C executable squash\n[100%] Built target squash\n",
+          "stderr": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-source/squash/squash-stream.c: In function \u2018squash_stream_process_internal\u2019:\n/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-source/squash/squash-stream.c:666:22: warning: storing the address of local variable \u2018output_sbb\u2019 in \u2018*stream.next_out\u2019 [-Wdangling-pointer=]\n  666 |     stream->next_out = &output_sbb;\n      |     ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~\n/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-source/squash/squash-stream.c:662:11: note: \u2018output_sbb\u2019 declared here\n  662 |   uint8_t output_sbb = 0;\n      |           ^~~~~~~~~~\n/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-source/squash/squash-stream.c:572:47: note: \u2018stream\u2019 declared here\n  572 | squash_stream_process_internal (SquashStream* stream, SquashOperation operation) {\n      |                                 ~~~~~~~~~~~~~~^~~~~~\n"
+        },
+        {
+          "argv": [
+            "cmake",
+            "--install",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-build"
+          ],
+          "env_extra": {},
+          "returncode": 0,
+          "stdout": "-- Install configuration: \"Release\"\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/pkgconfig/squash-0.8.pc\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/libsquash0.8.so.0.8\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/libsquash0.8.so.0.8.0\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/libsquash0.8.so\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-context.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-codec.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-file.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-license.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-memory.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-object.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-options.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-plugin.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-splice.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-status.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-stream.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-types.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-version.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/hedley/hedley.h\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/cmake/Squash-0.8.0/SquashConfig.cmake\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/bin/squash\n-- Set non-toolchain portion of runtime path of \"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/bin/squash\" to \"\"\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/share/man/man1/squash.1\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/share/vala/vapi/squash-0.8.vapi\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "sh",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v1/packaging/squash/build-plugin.sh"
+          ],
+          "env_extra": {
+            "PKG_CONFIG_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/pkgconfig",
+            "LD_LIBRARY_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib",
+            "SQUASH_SOURCE_REVISION": "713eeca85cccadde39bf57f8b59ea663a085a347",
+            "CIX_NATIVE_LIBRARY": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+            "CIX_INCLUDE_DIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+            "SQUASH_PLUGIN_ROOT": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-plugins"
+          },
+          "returncode": 1,
+          "stdout": "",
+          "stderr": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v1/packaging/squash/squash-cix.c:9:10: fatal error: squash/squash.h: No such file or directory\n    9 | #include <squash/squash.h>\n      |          ^~~~~~~~~~~~~~~~~\ncompilation terminated.\n"
+        }
+      ],
+      "status": "fail",
+      "error": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v1/packaging/squash/squash-cix.c:9:10: fatal error: squash/squash.h: No such file or directory\n    9 | #include <squash/squash.h>\n      |          ^~~~~~~~~~~~~~~~~\ncompilation terminated.\n"
+    }
+  }
+}

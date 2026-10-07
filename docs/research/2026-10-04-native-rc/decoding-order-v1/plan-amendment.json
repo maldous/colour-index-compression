@@ -1,0 +1,104 @@
+{
+  "identity": "DECODING-ORDER-1A",
+  "authorization": "Latest user: Try the ideas. Isolated new schedule experiment only; no existing closed mixer or structural-composition branch is reopened and the broad RC benchmark stays stopped.",
+  "inputs": [
+    {
+      "id": "calgary-14--book1",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/calgary/book1",
+      "family": "standard-corpus",
+      "offset": 8192,
+      "bytes": 4096,
+      "sample_sha256": "9495136a911a93a79ad34f0781e26a1b831f849fba2ff417ac7301c8b3940fa0",
+      "split": "heldout"
+    },
+    {
+      "id": "calgary-14--progc",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/calgary/progc",
+      "family": "standard-corpus",
+      "offset": 8192,
+      "bytes": 4096,
+      "sample_sha256": "ad7d57d029fef6a0949895b484068013e3e99b2f9887cf2a4915dba6de65d37a",
+      "split": "heldout"
+    },
+    {
+      "id": "canterbury-11--alice29.txt",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/canterbury/alice29.txt",
+      "family": "standard-corpus",
+      "offset": 8192,
+      "bytes": 4096,
+      "sample_sha256": "802aae323941ecf0b398fed4b866fd0b70f5b4757e2146f874a760631d4c6e00",
+      "split": "heldout"
+    },
+    {
+      "id": "canterbury-11--kennedy.xls",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/canterbury/kennedy.xls",
+      "family": "standard-corpus",
+      "offset": 8192,
+      "bytes": 4096,
+      "sample_sha256": "fc55bf4a295e6dd2b88c90ce516afbdc4143abf13aae7c30d05e2e6cbb6c58aa",
+      "split": "heldout"
+    },
+    {
+      "id": "canterbury-artificial-4--alphabet.txt",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/artificial/alphabet.txt",
+      "family": "pathology-corpus",
+      "offset": 8192,
+      "bytes": 4096,
+      "sample_sha256": "458d6398bf401a28746238b00553a813b5e6d7567a984cbae69d311a61ce1692",
+      "split": "heldout"
+    },
+    {
+      "id": "canterbury-artificial-4--random.txt",
+      "path": "/home/user/src/colour-index-compression/benchmark-work/artificial/random.txt",
+      "family": "pathology-corpus",
+      "offset": 8192,
+      "bytes": 4096,
+      "sample_sha256": "f3a9fb34450af0e11f9a9dacdf6f1679ac34143001d3eaa989828963ba2cf616",
+      "split": "development"
+    }
+  ],
+  "source_scope": "Previously exposed fixed ranges; not pristine heldout. Four standard samples assessed together; two artificial pathologies reported separately. No hyperparameter fitting.",
+  "block_bytes": 256,
+  "anchor_spacing": 32,
+  "orders": [
+    "forward",
+    "reverse",
+    "anchors_then_left_to_right",
+    "anchors_then_max_predicted_probability_frontier",
+    "center_out_alternating_left_right"
+  ],
+  "anchors": "Fixed positions 0,32,...,224,255 within each block, decoded in ascending order. All their prediction losses count.",
+  "adaptive_schedule": "After anchors, consider first/last unknown byte in each gap. Score each position by the maximum probability of its normalized current distribution; exact integer cross multiplication for comparisons; smallest absolute position tie. Schedule depends only on already-observed bytes/model state.",
+  "model": "Same online sparse count model for all orders. Global Laplace prior p0(x)=(C0(x)+1)/(T+256). Context patterns left1,right1,left2,right2,left1+right1. Only actually decoded neighboring bytes in the same block may be consulted. Use contexts with at least4 complete training occurrences. Prefer more context bytes, then more observations, then declared pattern order. Selected conditional distribution is (Cctx(x)+8*p0(x))/(Nctx+8); global prior if no eligible context. Tables persist across blocks within a sample and reset per sample/order. After observing a symbol, update global counts and each newly complete local context/target tuple once; never inspect an unknown byte.",
+  "scope_limits": "Small probe model, not incumbent FixedMix/PPM, no trained neural model, no model portfolio/gate optimization. Only prediction order/information availability changes.",
+  "synthetic_validation": [
+    "all-zero1024",
+    "alternating01 byte values1024",
+    "SHAKE256(b\"CIX-order-null-v1\")1024",
+    "unit conditional XOR triplets: observed anchors permit strong two-sided forecast after causal training; verify distribution normalization and side-effect-free predict"
+  ],
+  "metrics": [
+    "ideal bits including anchor losses",
+    "bits per original input byte",
+    "time",
+    "context usage",
+    "scheduler prediction evaluations",
+    "schedule and probability trace digest",
+    "raw-order transport exact replay"
+  ],
+  "replay": "Serialize ORV1 + source-length:u32be + mode:u8 + actual symbols in chosen order as literal transport (NOT a compressed archive). Fresh process receives only that frame and fixed model; independently regenerates schedule/probability trace, restores original source bytes, matches both original SHA and trace digest. Position indices are not stored.",
+  "gate": "On four standard samples, adaptive must beat strongest aggregate of forward/reverse/fixed-anchor/center-out by >=1% and win at least3/4 individual cases before physical entropy coding is considered. Additionally report whether fixed-anchor or center-out beats strongest directional (forward/reverse) control by >=1% and3/4 cases. Any pass only justifies subsequent physical test; artificial controls excluded.",
+  "resources": {
+    "cpu_affinity": [
+      8
+    ],
+    "real_and_synthetic_run_wall_seconds": 60,
+    "cpu_seconds": 60,
+    "address_space_bytes": 600000000,
+    "temporary_bytes": 32000000,
+    "evidence_bytes": 1000000
+  },
+  "failures": "Preserve run/errors. No parameter changes or outcome-driven retries.",
+  "amends": "plan.json retained unchanged; latest user requests center-out, added before any execution",
+  "center_out": "Within each256byte block start left-central index (length-1)//2, then right-central, then one further left, one further right, until complete. No anchors for this order. All symbol losses count."
+}

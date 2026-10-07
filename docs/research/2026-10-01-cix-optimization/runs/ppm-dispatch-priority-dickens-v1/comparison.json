@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "hypothesis": "Dispatching high-cost route candidates first improves worker utilization versus FIFO queue order.",
+  "input_sha256": "b24c37886142e11d0ee687db6ab06f936207aa7f2ea1fd1d9a36763c7a507e6a",
+  "archive_bytes": 3506980,
+  "archive_sha256": "4e02d23f43c48ef2812138a945d650bf9093b42e80cabfd8151258cbe23741d8",
+  "settings": "CIXG1 BEST, 65,536-byte blocks, 5,616 candidates, four leased physical CPUs, 2 GiB process memory cap, no swap; only dispatch order changed from preceding PPM-order search.",
+  "fifo_control": {"encode_wall_seconds": 327.95, "encode_cpu_seconds": 548.22, "cpu_percent": 167},
+  "priority_run_1": {"encode_wall_seconds": 317.13, "encode_cpu_seconds": 531.88, "cpu_percent": 167, "rust_decode_seconds": 5.46, "exact_restore": true},
+  "priority_run_2": {"encode_wall_seconds": 334.21, "encode_cpu_seconds": 551.91, "cpu_percent": 165, "rust_decode_seconds": 5.31, "exact_restore": true},
+  "interpretation": "The first prioritized run was faster, the replicate was slower. Two prioritized measurements average 325.67 seconds, only 0.7% below the single FIFO control; this does not establish a speedup. Both produced byte-identical archives. Frozen Python cross-decoding was already verified on this exact archive SHA in the preceding PPM-order trial.",
+  "decision": "Do not promote cost-priority scheduling. Restore FIFO candidate dispatch; retain four-worker dynamic candidate execution."
+}

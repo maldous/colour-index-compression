@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-04",
+  "families": [
+    {
+      "id": 1,
+      "name": "Literal, run-length and sparse coding",
+      "definition": "Store bytes, runs or exception positions when that is cheapest.",
+      "cix_status": "Existing native/reference mechanisms; fallback is essential.",
+      "local_evidence": "rust/cix-native/src/core.rs; cix/runs.py"
+    },
+    {
+      "id": 2,
+      "name": "Enumerative/combinatorial coding",
+      "definition": "Transmit a count/model and an index among its valid objects; rank/unrank must be exact.",
+      "cix_status": "Existing native rank, multinomial/count and histogram machinery. This is established enumerative coding, not a new universal generator theorem.",
+      "local_evidence": "rust/cix-native/src/rank.rs; combinatorics.rs; histogram.rs"
+    },
+    {
+      "id": 3,
+      "name": "Huffman, arithmetic/range and ANS/FSE",
+      "definition": "Turn a probability/count model into a uniquely decodable bitstream.",
+      "cix_status": "Native Huffman/range mechanisms; FSE through retained libzstd. A standalone native rANS expert stream is a separate unqualified route; earlier N3 disposition remains closed.",
+      "local_evidence": "rust/cix-native/src/huffman.rs; adaptive.rs; external.rs; last-chance review"
+    },
+    {
+      "id": 4,
+      "name": "LZ and dictionaries",
+      "definition": "Replace recurring strings with earlier references or dictionary symbols.",
+      "cix_status": "Native bounded LZ and retained DEFLATE/LZMA/Brotli/Zstd backends. Trained reusable dictionaries are a separate required RC26 item, not proved by a phrase dictionary.",
+      "local_evidence": "rust/cix-native/src/fast_lz.rs; legacy_lz.rs; requirements.json"
+    },
+    {
+      "id": 5,
+      "name": "LZP, ROLZ and context symbol ranking",
+      "definition": "Predict a match or rank using context, reducing the reference/symbol description.",
+      "cix_status": "libbsc supplies LZP. General ROLZ and original-order symbol-ranking coverage not established. BWT MTF ranks and combinadic ranks are different.",
+      "local_evidence": "docs/research/2026-10-04-last-chance-methodology-review/REPORT.txt"
+    },
+    {
+      "id": 6,
+      "name": "BWT, move-to-front and sorting transforms",
+      "definition": "Reorder contexts before coding clustered symbols/ranks.",
+      "cix_status": "Native/reference BWT plus bzip2/libbsc backends; GPU acceleration unqualified.",
+      "local_evidence": "rust/cix-native/src/bwt_legacy.rs; bsc_ffi.rs"
+    },
+    {
+      "id": 7,
+      "name": "PPM, CTW and DMC",
+      "definition": "Assign probabilities from context trees or dynamically adapted/cloned states.",
+      "cix_status": "Native PPM; binary CTW reference-only; DMC state cloning present in retained PAQ. They are not interchangeable algorithms.",
+      "local_evidence": "rust/cix-native/src/ppm.rs; cix/ctw.py; last-chance review"
+    },
+    {
+      "id": 8,
+      "name": "Context mixing and calibration",
+      "definition": "Combine predictors and refine their output probabilities.",
+      "cix_status": "FixedMix and retained PAQ/ZPAQ. ZPAQ SSE/ISSE is distinct from FixedMix and PPM escape estimation. Frozen predictive trials did not qualify a new mixer.",
+      "local_evidence": "rust/cix-native/src/fixedmix.rs; expertmix.rs; zpaq_context.rs"
+    },
+    {
+      "id": 9,
+      "name": "Neural probability prediction",
+      "definition": "Use a learned recurrent/transformer model to predict symbols before entropy coding.",
+      "cix_status": "The automatic BEST portfolio retains paq-v215-9L (level 9, LSTM enabled) as its bounded LSTM-bearing PAQ trial. It is not a separate transform or decoder. The distinct -12L configuration remains over the accepted budget; NNCP/LibNC and larger learned models are research references, not accepted native routes.",
+      "local_evidence": "rust/cix-native/src/full_engine/selection.rs; runtime-inventory.md; GPU methodologies; last-chance review"
+    },
+    {
+      "id": 10,
+      "name": "Numeric and bit-layout transforms",
+      "definition": "Expose regularity using deltas, XOR, strides, planes, residuals and exact packing.",
+      "cix_status": "Existing numeric/chain/bitplane foundations; Pco/ALP/Elf-style implementations need separate comparison.",
+      "local_evidence": "rust/cix-native/src/numeric.rs; chain.rs; bitplane.rs"
+    },
+    {
+      "id": 11,
+      "name": "Spatial prediction, lifting and image coding",
+      "definition": "Represent correlated neighbours/axes with reversible transforms and coded residuals.",
+      "cix_status": "Existing/reference wavelet and volume work; retained JXL/JLS/J2K specialists require full native parity. JXL bridge inspected is gray2d pixel coding.",
+      "local_evidence": "rust/cix-native/src/wavelet.rs; full_engine/volume_lifting.rs; codecs/jxl/cix_jxl_bridge.cpp"
+    },
+    {
+      "id": 12,
+      "name": "Structured records, graphs and executable relationships",
+      "definition": "Separate fields and encode valid relations with exact exceptions and original envelopes.",
+      "cix_status": "Retained format-aware successes and partial native ports. Recognition must use supplied bytes and validated structure, never corpus identity.",
+      "local_evidence": "rust/cix-native/src/full_engine/{structured_frames,record_ordering,address_relations,graph_residuals,strided_values}.rs"
+    },
+    {
+      "id": 13,
+      "name": "Grammar and reusable abstractions",
+      "definition": "Describe recurring phrases recursively and encode a grammar that generates the input.",
+      "cix_status": "Phrase mechanisms exist; no complete Re-Pair/GCIS/GLZA implementation established in the inspected source. Program-library synthesis was considered as research.",
+      "local_evidence": "cix/transforms.py; earlier methodology timeline"
+    },
+    {
+      "id": 14,
+      "name": "Segmentation, typed graphs and paid selection",
+      "definition": "Choose complete representations for input-derived regions, paying boundaries, resets and model IDs.",
+      "cix_status": "Required heterogeneous architecture and partial orchestration; complete automatic native engine still unqualified. OpenZL/CAST and segmentation research were already considered.",
+      "local_evidence": "automatic-specialised-models/runtime-inventory.md; native-rc/PROGRESS.md"
+    },
+    {
+      "id": 15,
+      "name": "Exact recompression and encoder residuals",
+      "definition": "Rebuild an original compressed stream from its content plus the encoder decisions needed for exact reproduction.",
+      "cix_status": "Retain demonstrated PAQ DEFLATE capability; finite gzip/bzip2/ZIP prototypes retain closed dispositions. JPEG and audio reconstruction are separate capabilities.",
+      "local_evidence": "native-rc/codec-reconstruction-closure-v1/REPORT.txt"
+    },
+    {
+      "id": 16,
+      "name": "Constraints, latent variables and model-set indexes",
+      "definition": "Describe a tractable restricted set/model, then code the input or its residual within it.",
+      "cix_status": "BDD/DAG/counting, bits-back, SDL, seeded maps, conditional modelling and synthesis have known antecedents. Most CIX variants are bounded research with scoped negative results.",
+      "local_evidence": "constraint-lifting-review/REPORT.txt; rc-reconciliation/RESEARCH-CLOSURE.txt"
+    },
+    {
+      "id": 17,
+      "name": "Parallelism and implementation efficiency",
+      "definition": "Reduce computation, allocation, memory movement and sequential dependence while preserving the coded contract.",
+      "cix_status": "CPU optimisation and bounded concurrency remain required; GPU work is conditional. Faster coding does not itself discover more statistical redundancy.",
+      "local_evidence": "automatic-specialised-models/performance-carry-forward.md; gpu-cuda/METHODOLOGIES.md"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+[
+    {
+        "Id": "sha256:040fa7248c0504dc6815541dffa7135eca00052bf72fa1b5b569d55e0b39dbd7",
+        "RepoTags": [
+            "sonarsource/sonar-scanner-cli:latest"
+        ],
+        "RepoDigests": [
+            "sonarsource/sonar-scanner-cli@sha256:a3f4215076706c95a17a68c19322ee916e40a3acd081a8c1a1e839e0194afa57"
+        ],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-09-17T09:32:27.592293081Z",
+        "Config": {
+            "User": "1000:1000",
+            "Env": [
+                "PATH=/opt/sonar-scanner/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto",
+                "HOME=/tmp",
+                "XDG_CONFIG_HOME=/tmp",
+                "SONAR_SCANNER_HOME=/opt/sonar-scanner",
+                "SONAR_USER_HOME=/opt/sonar-scanner/.sonar",
+                "SRC_PATH=/usr/src",
+                "SCANNER_WORKDIR_PATH=/tmp/.scannerwork",
+                "POETRY_CACHE_DIR=/opt/poetry/cache",
+                "POETRY_VIRTUALENVS_PATH=/opt/poetry/virtualenvs",
+                "LC_ALL=C.UTF-8"
+            ],
+            "Entrypoint": [
+                "/usr/bin/entrypoint.sh"
+            ],
+            "Cmd": [
+                "sonar-scanner"
+            ],
+            "WorkingDir": "/usr/src",
+            "ArgsEscaped": true
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 992289081,
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/6b083ca32fe63c6fb57db4be27e6797ae524fdf121f4eb00e4dbb8ebe6dc0dd0/diff:/var/lib/docker/overlay2/4c15b9ba40bb7329bad3017251c2a4b405bbd8fcbfba79d34132084f6a0b0cbd/diff:/var/lib/docker/overlay2/979e6817e3121def02eb73d31dba887b7d6d777a7829c9a7b15e462be8d67bd4/diff:/var/lib/docker/overlay2/edb642e3f1d12bbc38c45d81679aea188437273e5083fa07553e2c5051fafe6f/diff:/var/lib/docker/overlay2/f72ffe74adf3cc368bc36454721314392ed0c0f784d13224b8a41a0d5291910c/diff",
+                "MergedDir": "/var/lib/docker/overlay2/10a42ef1be0e1d6c51ec6f6fcab3c43fac16e50cc3555ea840b4605c2dabbb97/merged",
+                "UpperDir": "/var/lib/docker/overlay2/10a42ef1be0e1d6c51ec6f6fcab3c43fac16e50cc3555ea840b4605c2dabbb97/diff",
+                "WorkDir": "/var/lib/docker/overlay2/10a42ef1be0e1d6c51ec6f6fcab3c43fac16e50cc3555ea840b4605c2dabbb97/work"
+            },
+            "Name": "overlay2"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:f418d27cfefd10338ef4d16042de5a666f23f719661e6b335fdac4623b547938",
+                "sha256:1332a4f1b9ea600c193d7d548afebd1ddba17fea9db76704b069a0dee2bd2f78",
+                "sha256:6b72f87885dde59eea0f79a5ffb48f5d07ba8d75d04eeb105f5fe2902c077086",
+                "sha256:33cd5fc56a350277fe827db896a0f69667c76e9c286bd3419a12abc1867f0e51",
+                "sha256:9dfaca964b4fcf1c800aa3eb92e46e2d92f6f7c2441c9934404e61499d64ea2e",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "0001-01-01T00:00:00Z"
+        }
+    }
+]

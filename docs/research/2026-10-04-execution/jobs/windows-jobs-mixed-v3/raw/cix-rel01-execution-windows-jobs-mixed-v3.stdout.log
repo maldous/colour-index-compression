@@ -1,0 +1,42 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-windows-jobs-mixed-v3/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-windows-jobs-mixed-v3/Cargo.toml', '--lib', 'full_engine::job_protocol', '--', '--test-threads=2']
+
+running 9 tests
+test full_engine::job_protocol::tests::capabilities_describe_bounded_whole_selection_and_cixw1_decode ... ok
+test full_engine::job_protocol::tests::control_round_trip ... ok
+test full_engine::job_protocol::tests::decode_entry_counts_actual_native_output_and_finishes_stage ... ok
+test full_engine::job_protocol::tests::direct_selection_entry_applies_limits_cancel_and_reports_actual_output ... ok
+test full_engine::job_protocol::tests::rejects_unknown_version_oversize_truncated_and_utf8 ... ok
+test full_engine::job_protocol::tests::v1_whole_request_remains_a_valid_one_shot_request ... ok
+test full_engine::job_protocol::tests::window_selection_enforces_cumulative_cap_and_cancel_before_writing ... ok
+test full_engine::job_protocol::tests::window_selection_handles_empty_and_multiple_independent_records ... ok
+test full_engine::job_protocol::tests::decode_entry_reports_incremental_window_path ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 275 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-windows-jobs-mixed-v3/Cargo.toml', '--lib', 'full_engine::mixed_selection', '--', '--test-threads=2']
+
+running 8 tests
+test full_engine::mixed_selection::tests::generic_competition_preserves_stored_bytes_when_backends_fail ... ok
+test full_engine::mixed_selection::tests::generic_parallel_backend_failure_requires_serial_retry ... ok
+test full_engine::mixed_selection::tests::generic_parallel_runner_overlaps_two_trials_and_returns_index_order ... ok
+test full_engine::mixed_selection::tests::late_and_interleaved_regions_remain_complete_partitions ... ok
+test full_engine::mixed_selection::tests::parallel_generic_trials_fall_back_when_two_full_candidates_do_not_fit ... ok
+test full_engine::mixed_selection::tests::default_profile_round_trips_interleaved_regions_through_native_providers ... ok
+test full_engine::mixed_selection::tests::round_robin_alternates_catalogue_families ... ok
+test full_engine::mixed_selection::tests::parallel_generic_trials_match_canonical_serial_choice_when_admitted ... FAILED
+
+failures:
+
+---- full_engine::mixed_selection::tests::parallel_generic_trials_match_canonical_serial_choice_when_admitted stdout ----
+
+thread 'full_engine::mixed_selection::tests::parallel_generic_trials_match_canonical_serial_choice_when_admitted' (2951930) panicked at src/full_engine/mixed_selection.rs:1046:10:
+parallel workspace admission
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    full_engine::mixed_selection::tests::parallel_generic_trials_match_canonical_serial_choice_when_admitted
+
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 276 filtered out; finished in 0.00s
+

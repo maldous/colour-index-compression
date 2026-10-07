@@ -1,0 +1,45 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v9/Cargo.toml', '--lib', 'jxl_bridge::', '--', '--test-threads=2']
+
+running 3 tests
+test jxl_bridge::tests::bounded_mock_round_trip_releases_bridge_buffer ... ok
+test jxl_bridge::tests::invalid_geometry_or_size_never_reaches_codec ... ok
+test jxl_bridge::tests::wrong_version_rejects_before_codec_invocation ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 175 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v9/Cargo.toml', '--lib', 'paq_supervisor::', '--', '--test-threads=2']
+
+running 6 tests
+test paq_supervisor::tests::level_and_variant_arguments_are_closed_sets ... ok
+test paq_supervisor::tests::diagnostic_capture_drains_beyond_the_retained_cap ... ok
+test paq_supervisor::tests::opt_in_parent_lifecycle_exercises_all_packaged_variants ... FAILED
+test paq_supervisor::tests::private_root_rejects_a_symlink_and_keeps_shared_temp_out_of_scope ... FAILED
+test paq_supervisor::tests::result_read_never_allocates_past_parent_reservation ... ok
+test paq_supervisor::tests::temporary_output_cleanup_removes_private_directory ... FAILED
+
+failures:
+
+---- paq_supervisor::tests::opt_in_parent_lifecycle_exercises_all_packaged_variants stdout ----
+
+thread 'paq_supervisor::tests::opt_in_parent_lifecycle_exercises_all_packaged_variants' (2298241) panicked at src/paq_supervisor.rs:681:18:
+test PAQ work root must be owned private mode 0700: InvalidRequest("PAQ temporary root has a group/other-writable ancestor")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- paq_supervisor::tests::private_root_rejects_a_symlink_and_keeps_shared_temp_out_of_scope stdout ----
+
+thread 'paq_supervisor::tests::private_root_rejects_a_symlink_and_keeps_shared_temp_out_of_scope' (2298242) panicked at src/paq_supervisor.rs:784:48:
+called `Result::unwrap()` on an `Err` value: InvalidRequest("PAQ temporary root has a group/other-writable ancestor")
+
+---- paq_supervisor::tests::temporary_output_cleanup_removes_private_directory stdout ----
+
+thread 'paq_supervisor::tests::temporary_output_cleanup_removes_private_directory' (2298244) panicked at src/paq_supervisor.rs:784:48:
+called `Result::unwrap()` on an `Err` value: InvalidRequest("PAQ temporary root has a group/other-writable ancestor")
+
+
+failures:
+    paq_supervisor::tests::opt_in_parent_lifecycle_exercises_all_packaged_variants
+    paq_supervisor::tests::private_root_rejects_a_symlink_and_keeps_shared_temp_out_of_scope
+    paq_supervisor::tests::temporary_output_cleanup_removes_private_directory
+
+test result: FAILED. 3 passed; 3 failed; 0 ignored; 0 measured; 172 filtered out; finished in 0.00s
+

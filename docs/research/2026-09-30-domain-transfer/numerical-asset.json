@@ -1,0 +1,39 @@
+{
+  "schema": "cix-domain-numerical-asset-v1",
+  "asset": "NOAA CO-OPS verified water level CSV",
+  "authority": "NOAA National Ocean Service, Center for Operational Oceanographic Products and Services",
+  "source_url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=20240101&end_date=20240131&station=9414290&product=water_level&datum=MLLW&time_zone=gmt&units=metric&format=csv",
+  "query_parameters": {
+    "station": "9414290",
+    "station_name": "San Francisco, CA",
+    "product": "water_level",
+    "datum": "MLLW",
+    "time_zone": "gmt",
+    "units": "metric",
+    "format": "csv",
+    "begin_date": "20240101",
+    "end_date": "20240131"
+  },
+  "retrieved_at": "2026-09-30T19:54:36+10:00",
+  "source_bytes": 288885,
+  "source_sha256": "bd61d79fa90e4fe0817c9d702a7138c640c7e6ded5a0515e10a9fac13e4f1e97",
+  "declared_screening_subset": {
+    "offset": 0,
+    "bytes": 65536,
+    "sha256": "5036558bce5f9c0f324139a3c6cea7718710fb1c419254828507182683e93a2c",
+    "boundary_note": "A byte-prefix control only; it may end inside a CSV record and is not eligible for the strict numerical adapter. The complete asset is the adapter input."
+  },
+  "format_coverage": {
+    "exact_header": "Date Time, Water Level, Sigma, O or I (for verified), F, R, L, Quality ",
+    "records": 7440,
+    "timestamp_interval_minutes": 6,
+    "typed_columns": ["Date Time", "Water Level", "Sigma", "O or I", "F", "R", "L", "Quality"],
+    "adapter_scope": "strict complete CSV only; malformed rows, alternative products, and other schemas are rejected"
+  },
+  "archive": {
+    "path": "docs/research/2026-09-30-domain-transfer/assets/noaa-water-level-202401.csv",
+    "bytes": 288885,
+    "sha256": "bd61d79fa90e4fe0817c9d702a7138c640c7e6ded5a0515e10a9fac13e4f1e97",
+    "status": "durably archived as a read-only, hash-pinned source copy"
+  }
+}

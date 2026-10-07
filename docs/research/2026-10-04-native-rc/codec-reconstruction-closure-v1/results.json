@@ -1,0 +1,1685 @@
+{
+  "experiment": "codec-reconstruction-closure-v1",
+  "rows": [
+    {
+      "id": "validate",
+      "receipt_path": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/receipt.json",
+      "receipt": {
+        "archive_bytes": 25,
+        "archive_sha256": "4362d57684525160fad1d3e30e3fb2e0fb181213d73a4ceff04d8416557ca219",
+        "artifacts": {
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/candidate.bin",
+          "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/restored.bin"
+        },
+        "budget": {
+          "cpu": 8,
+          "max_rss_bytes": 1500000000,
+          "max_temp_bytes": 128000000,
+          "wall_seconds": 45
+        },
+        "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+        "completed_at": "2026-10-04T09:46:01.760003+00:00",
+        "experiment_id": "9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57",
+        "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+        "identity": {
+          "build_sha256": {
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+            "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+            "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+            "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+          },
+          "configuration": {
+            "bzip2_levels": [
+              1,
+              9
+            ],
+            "experiment": "codec-reconstruction-closure-v1",
+            "family": "validate",
+            "gzip_levels": [
+              1,
+              6,
+              9
+            ],
+            "inner_xz": [
+              1,
+              6
+            ],
+            "outer_xz": 1
+          },
+          "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+          "input": {
+            "length": 20,
+            "offset": 0,
+            "path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/fixture.txt",
+            "sha256": "80bf7853d5b1b1f7030d2d9d41267907c68213bc0ccdba5b83c8573bf87ff8de"
+          },
+          "manifest_sha256": "7036628e0d10ef68774be78acc2173a4a2b3702603753be9b421cb2093e70ed8"
+        },
+        "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+        "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+        "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+        "phases": [
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "validate",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/source.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/candidate.bin"
+            ],
+            "cpu_usage_seconds": 0.085521,
+            "elapsed_seconds": 0.1638070500048343,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 432,
+            "phase": "cix-bounded-9b6b440ce931-encode",
+            "sampled_cgroup_memory_high_water_bytes": 30679040,
+            "stop_reason": null
+          },
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "decode",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/candidate.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/restored.bin"
+            ],
+            "cpu_usage_seconds": 0.050904,
+            "elapsed_seconds": 0.09745913599908818,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 452,
+            "phase": "cix-bounded-9b6b440ce931-decode",
+            "sampled_cgroup_memory_high_water_bytes": 659456,
+            "stop_reason": null
+          }
+        ],
+        "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+        "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+        "status": "VERIFIED_SCREENING",
+        "verification": {
+          "matched": true,
+          "restored_sha256": "80bf7853d5b1b1f7030d2d9d41267907c68213bc0ccdba5b83c8573bf87ff8de",
+          "source_sha256": "80bf7853d5b1b1f7030d2d9d41267907c68213bc0ccdba5b83c8573bf87ff8de"
+        }
+      },
+      "instrument": {
+        "gzip": [
+          {
+            "source_level": 0,
+            "exact": true
+          },
+          {
+            "source_level": 1,
+            "exact": true
+          },
+          {
+            "source_level": 9,
+            "exact": true
+          }
+        ],
+        "mixed_stored_fixed": {
+          "block_types": [
+            0,
+            1
+          ],
+          "gzip_bytes": 56,
+          "dcp1_bytes": 184,
+          "exact": true
+        },
+        "fixture_results_excluded_from_real_evidence": true
+      }
+    },
+    {
+      "id": "gzip-news",
+      "receipt_path": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/receipt.json",
+      "receipt": {
+        "archive_bytes": 9570,
+        "archive_sha256": "6516d12145c1716da354e3bca29d07181741e9200ed6278a9123dbd78a6b7e72",
+        "artifacts": {
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/candidate.bin",
+          "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/restored.bin"
+        },
+        "budget": {
+          "cpu": 8,
+          "max_rss_bytes": 1500000000,
+          "max_temp_bytes": 128000000,
+          "wall_seconds": 45
+        },
+        "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+        "completed_at": "2026-10-04T09:46:02.545280+00:00",
+        "experiment_id": "55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0",
+        "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+        "identity": {
+          "build_sha256": {
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+            "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+            "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+            "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+          },
+          "configuration": {
+            "bzip2_levels": [
+              1,
+              9
+            ],
+            "experiment": "codec-reconstruction-closure-v1",
+            "family": "gzip",
+            "gzip_levels": [
+              1,
+              6,
+              9
+            ],
+            "inner_xz": [
+              1,
+              6
+            ],
+            "outer_xz": 1
+          },
+          "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+          "input": {
+            "length": 9450,
+            "offset": 0,
+            "path": "/usr/share/doc/gzip/NEWS.gz",
+            "sha256": "a66ccd314a2f7cabb92ebded35fe5555e1e05fdc107e82309df5b1616d2934c1"
+          },
+          "manifest_sha256": "45dd44513d61c5f92424ffe2f0f27b274074d8490a625b5344c19f5c0e8d75bc"
+        },
+        "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+        "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+        "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+        "phases": [
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "gzip",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/source.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/candidate.bin"
+            ],
+            "cpu_usage_seconds": 0.434624,
+            "elapsed_seconds": 0.5097852180042537,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 23948,
+            "phase": "cix-bounded-55f705d6eca8-encode",
+            "sampled_cgroup_memory_high_water_bytes": 32366592,
+            "stop_reason": null
+          },
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "decode",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/candidate.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/restored.bin"
+            ],
+            "cpu_usage_seconds": 0.078519,
+            "elapsed_seconds": 0.1725299219979206,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 33398,
+            "phase": "cix-bounded-55f705d6eca8-decode",
+            "sampled_cgroup_memory_high_water_bytes": 12144640,
+            "stop_reason": null
+          }
+        ],
+        "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+        "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+        "status": "VERIFIED_SCREENING",
+        "verification": {
+          "matched": true,
+          "restored_sha256": "a66ccd314a2f7cabb92ebded35fe5555e1e05fdc107e82309df5b1616d2934c1",
+          "source_sha256": "a66ccd314a2f7cabb92ebded35fe5555e1e05fdc107e82309df5b1616d2934c1"
+        }
+      },
+      "instrument": {
+        "family": "gzip",
+        "source_bytes": 9450,
+        "source_sha256": "a66ccd314a2f7cabb92ebded35fe5555e1e05fdc107e82309df5b1616d2934c1",
+        "plaintext_bytes": 24523,
+        "candidates": [
+          {
+            "level": 1,
+            "inner_xz": 1,
+            "bytes": 17810,
+            "encode": {
+              "wall_s": 0.043650121995597146,
+              "cpu_s": 0.03861478199999999
+            },
+            "decode_in_process": {
+              "wall_s": 0.03182584400929045,
+              "cpu_s": 0.027913886
+            },
+            "tokens": {
+              "0": 3303,
+              "1": 796,
+              "2": 1949,
+              "3": 2
+            },
+            "predicted_token_percent": 54.61309523809524
+          },
+          {
+            "level": 1,
+            "inner_xz": 6,
+            "bytes": 17314,
+            "encode": {
+              "wall_s": 0.044928467003046535,
+              "cpu_s": 0.04391095099999999
+            },
+            "decode_in_process": {
+              "wall_s": 0.03248522199282888,
+              "cpu_s": 0.027513560999999992
+            },
+            "tokens": {
+              "0": 3303,
+              "1": 796,
+              "2": 1949,
+              "3": 2
+            },
+            "predicted_token_percent": 54.61309523809524
+          },
+          {
+            "level": 6,
+            "inner_xz": 1,
+            "bytes": 10142,
+            "encode": {
+              "wall_s": 0.038730658008717,
+              "cpu_s": 0.034058951999999976
+            },
+            "decode_in_process": {
+              "wall_s": 0.02518396999221295,
+              "cpu_s": 0.02502125400000002
+            },
+            "tokens": {
+              "0": 6030,
+              "1": 8,
+              "2": 10,
+              "3": 2
+            },
+            "predicted_token_percent": 99.70238095238095
+          },
+          {
+            "level": 6,
+            "inner_xz": 6,
+            "bytes": 9646,
+            "encode": {
+              "wall_s": 0.044486980987130664,
+              "cpu_s": 0.039814553999999974
+            },
+            "decode_in_process": {
+              "wall_s": 0.026086149999173358,
+              "cpu_s": 0.026064289000000018
+            },
+            "tokens": {
+              "0": 6030,
+              "1": 8,
+              "2": 10,
+              "3": 2
+            },
+            "predicted_token_percent": 99.70238095238095
+          },
+          {
+            "level": 9,
+            "inner_xz": 1,
+            "bytes": 10066,
+            "encode": {
+              "wall_s": 0.03940042099566199,
+              "cpu_s": 0.03427455600000001
+            },
+            "decode_in_process": {
+              "wall_s": 0.025038699997821823,
+              "cpu_s": 0.025026373000000046
+            },
+            "tokens": {
+              "0": 6048,
+              "1": 0,
+              "2": 0,
+              "3": 2
+            },
+            "predicted_token_percent": 100.0
+          },
+          {
+            "level": 9,
+            "inner_xz": 6,
+            "bytes": 9570,
+            "encode": {
+              "wall_s": 0.04188654600875452,
+              "cpu_s": 0.03696809699999998
+            },
+            "decode_in_process": {
+              "wall_s": 0.02489062398672104,
+              "cpu_s": 0.024890650999999986
+            },
+            "tokens": {
+              "0": 6048,
+              "1": 0,
+              "2": 0,
+              "3": 2
+            },
+            "predicted_token_percent": 100.0
+          }
+        ],
+        "selected_index": 5,
+        "selected": {
+          "level": 9,
+          "inner_xz": 6,
+          "bytes": 9570,
+          "encode": {
+            "wall_s": 0.04188654600875452,
+            "cpu_s": 0.03696809699999998
+          },
+          "decode_in_process": {
+            "wall_s": 0.02489062398672104,
+            "cpu_s": 0.024890650999999986
+          },
+          "tokens": {
+            "0": 6048,
+            "1": 0,
+            "2": 0,
+            "3": 2
+          },
+          "predicted_token_percent": 100.0
+        },
+        "controls": [
+          {
+            "name": "stored",
+            "bytes": 9455,
+            "encode": {
+              "wall_s": 5.180045263841748e-07,
+              "cpu_s": 4.6400000003332664e-07
+            },
+            "decode": {
+              "wall_s": 1.9120052456855774e-06,
+              "cpu_s": 1.9390000000063523e-06
+            }
+          },
+          {
+            "name": "zlib9",
+            "bytes": 9466,
+            "encode": {
+              "wall_s": 6.916900747455657e-05,
+              "cpu_s": 6.923199999997465e-05
+            },
+            "decode": {
+              "wall_s": 4.556000931188464e-06,
+              "cpu_s": 4.602000000020201e-06
+            }
+          },
+          {
+            "name": "xz1",
+            "bytes": 9517,
+            "encode": {
+              "wall_s": 0.0006836480024503544,
+              "cpu_s": 0.0006838160000000038
+            },
+            "decode": {
+              "wall_s": 7.484995876438916e-06,
+              "cpu_s": 7.523000000009272e-06
+            }
+          },
+          {
+            "name": "xz6",
+            "bytes": 9517,
+            "encode": {
+              "wall_s": 0.001495878997957334,
+              "cpu_s": 0.0014961560000000262
+            },
+            "decode": {
+              "wall_s": 6.8789959186688066e-06,
+              "cpu_s": 6.8930000000078095e-06
+            }
+          }
+        ],
+        "strongest_control_including_original_bytes": 9450,
+        "runtime": {
+          "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+          "machine": "x86_64",
+          "zlib": "1.3",
+          "brotli": "1.1.0",
+          "lzma": "5.4.5",
+          "bzip2": "1.0.8, 13-Jul-2019",
+          "zstd": "1.5.5"
+        },
+        "archive_sha256": "6516d12145c1716da354e3bca29d07181741e9200ed6278a9123dbd78a6b7e72",
+        "process_peak_rss_kib": 42428,
+        "cost_note": "Candidate encode times include its regeneration and framing; gzip includes input decompression, bzip2 shares an initial decompression. Full selection phase costs are measured separately by bounded runner."
+      },
+      "decoder_instrumentation": {
+        "restored_sha256": "a66ccd314a2f7cabb92ebded35fe5555e1e05fdc107e82309df5b1616d2934c1",
+        "bytes": 9450,
+        "decoder_wall_s": 0.031535627000266686,
+        "decoder_cpu_s": 0.025966897999999995,
+        "peak_rss_kib": 22472
+      }
+    },
+    {
+      "id": "bzip2-manual",
+      "receipt_path": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/receipt.json",
+      "receipt": {
+        "archive_bytes": 25138,
+        "archive_sha256": "60b083692e050b9ff3619e1668db00e3802eb596211d606d5044c3c7f775d86e",
+        "artifacts": {
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/candidate.bin",
+          "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/restored.bin"
+        },
+        "budget": {
+          "cpu": 8,
+          "max_rss_bytes": 1500000000,
+          "max_temp_bytes": 128000000,
+          "wall_seconds": 45
+        },
+        "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+        "completed_at": "2026-10-04T09:46:04.209573+00:00",
+        "experiment_id": "f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98",
+        "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+        "identity": {
+          "build_sha256": {
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+            "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+            "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+            "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+          },
+          "configuration": {
+            "bzip2_levels": [
+              1,
+              9
+            ],
+            "experiment": "codec-reconstruction-closure-v1",
+            "family": "gzip",
+            "gzip_levels": [
+              1,
+              6,
+              9
+            ],
+            "inner_xz": [
+              1,
+              6
+            ],
+            "outer_xz": 1
+          },
+          "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+          "input": {
+            "length": 26928,
+            "offset": 0,
+            "path": "/usr/share/doc/bzip2/manual.texi.gz",
+            "sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861"
+          },
+          "manifest_sha256": "08a661db5a3ea72173052a9b1ac1f2bd30d0d6a328e36167aa81a84d5236919c"
+        },
+        "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+        "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+        "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+        "phases": [
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "gzip",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/source.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/candidate.bin"
+            ],
+            "cpu_usage_seconds": 1.125972,
+            "elapsed_seconds": 1.3093603150045965,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 57002,
+            "phase": "cix-bounded-f1f1532eae77-encode",
+            "sampled_cgroup_memory_high_water_bytes": 37707776,
+            "stop_reason": null
+          },
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "decode",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/candidate.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/restored.bin"
+            ],
+            "cpu_usage_seconds": 0.12115,
+            "elapsed_seconds": 0.22080307600845117,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 83930,
+            "phase": "cix-bounded-f1f1532eae77-decode",
+            "sampled_cgroup_memory_high_water_bytes": 14716928,
+            "stop_reason": null
+          }
+        ],
+        "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+        "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+        "status": "VERIFIED_SCREENING",
+        "verification": {
+          "matched": true,
+          "restored_sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861",
+          "source_sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861"
+        }
+      },
+      "instrument": {
+        "family": "gzip",
+        "source_bytes": 26928,
+        "source_sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861",
+        "plaintext_bytes": 87517,
+        "candidates": [
+          {
+            "level": 1,
+            "inner_xz": 1,
+            "bytes": 52598,
+            "encode": {
+              "wall_s": 0.11742497500381432,
+              "cpu_s": 0.10749159500000001
+            },
+            "decode_in_process": {
+              "wall_s": 0.09136714600026608,
+              "cpu_s": 0.081252887
+            },
+            "tokens": {
+              "0": 6211,
+              "1": 2716,
+              "2": 6457,
+              "3": 1
+            },
+            "predicted_token_percent": 40.37311492459698
+          },
+          {
+            "level": 1,
+            "inner_xz": 6,
+            "bytes": 50578,
+            "encode": {
+              "wall_s": 0.12905072099238168,
+              "cpu_s": 0.11874246099999997
+            },
+            "decode_in_process": {
+              "wall_s": 0.08452376000059303,
+              "cpu_s": 0.07951551400000001
+            },
+            "tokens": {
+              "0": 6211,
+              "1": 2716,
+              "2": 6457,
+              "3": 1
+            },
+            "predicted_token_percent": 40.37311492459698
+          },
+          {
+            "level": 6,
+            "inner_xz": 1,
+            "bytes": 28442,
+            "encode": {
+              "wall_s": 0.104328435001662,
+              "cpu_s": 0.09470551100000002
+            },
+            "decode_in_process": {
+              "wall_s": 0.07501055300235748,
+              "cpu_s": 0.07010635200000004
+            },
+            "tokens": {
+              "0": 15079,
+              "1": 89,
+              "2": 216,
+              "3": 1
+            },
+            "predicted_token_percent": 98.01742069682787
+          },
+          {
+            "level": 6,
+            "inner_xz": 6,
+            "bytes": 26418,
+            "encode": {
+              "wall_s": 0.11809330999676604,
+              "cpu_s": 0.10809906299999994
+            },
+            "decode_in_process": {
+              "wall_s": 0.074641971004894,
+              "cpu_s": 0.06955573699999995
+            },
+            "tokens": {
+              "0": 15079,
+              "1": 89,
+              "2": 216,
+              "3": 1
+            },
+            "predicted_token_percent": 98.01742069682787
+          },
+          {
+            "level": 9,
+            "inner_xz": 1,
+            "bytes": 27158,
+            "encode": {
+              "wall_s": 0.10595344800094608,
+              "cpu_s": 0.09559890400000004
+            },
+            "decode_in_process": {
+              "wall_s": 0.07682946100248955,
+              "cpu_s": 0.07149407699999999
+            },
+            "tokens": {
+              "0": 15384,
+              "1": 0,
+              "2": 0,
+              "3": 1
+            },
+            "predicted_token_percent": 100.0
+          },
+          {
+            "level": 9,
+            "inner_xz": 6,
+            "bytes": 25138,
+            "encode": {
+              "wall_s": 0.11465112899895757,
+              "cpu_s": 0.10431819899999994
+            },
+            "decode_in_process": {
+              "wall_s": 0.08051054700626992,
+              "cpu_s": 0.07051600000000002
+            },
+            "tokens": {
+              "0": 15384,
+              "1": 0,
+              "2": 0,
+              "3": 1
+            },
+            "predicted_token_percent": 100.0
+          }
+        ],
+        "selected_index": 5,
+        "selected": {
+          "level": 9,
+          "inner_xz": 6,
+          "bytes": 25138,
+          "encode": {
+            "wall_s": 0.11465112899895757,
+            "cpu_s": 0.10431819899999994
+          },
+          "decode_in_process": {
+            "wall_s": 0.08051054700626992,
+            "cpu_s": 0.07051600000000002
+          },
+          "tokens": {
+            "0": 15384,
+            "1": 0,
+            "2": 0,
+            "3": 1
+          },
+          "predicted_token_percent": 100.0
+        },
+        "controls": [
+          {
+            "name": "stored",
+            "bytes": 26933,
+            "encode": {
+              "wall_s": 5.149922799319029e-07,
+              "cpu_s": 4.780000000259577e-07
+            },
+            "decode": {
+              "wall_s": 3.947003278881311e-06,
+              "cpu_s": 3.924000000044003e-06
+            }
+          },
+          {
+            "name": "zlib9",
+            "bytes": 26949,
+            "encode": {
+              "wall_s": 0.00024505300098098814,
+              "cpu_s": 0.00024509400000005677
+            },
+            "decode": {
+              "wall_s": 1.0137999197468162e-05,
+              "cpu_s": 1.0159999999981295e-05
+            }
+          },
+          {
+            "name": "xz1",
+            "bytes": 26993,
+            "encode": {
+              "wall_s": 0.0027660110063152388,
+              "cpu_s": 0.0022347949999999006
+            },
+            "decode": {
+              "wall_s": 1.3394994311966002e-05,
+              "cpu_s": 1.3362999999877445e-05
+            }
+          },
+          {
+            "name": "xz6",
+            "bytes": 26993,
+            "encode": {
+              "wall_s": 0.003743602996109985,
+              "cpu_s": 0.003703755999999947
+            },
+            "decode": {
+              "wall_s": 1.1850992450490594e-05,
+              "cpu_s": 1.1873000000051093e-05
+            }
+          }
+        ],
+        "strongest_control_including_original_bytes": 26928,
+        "runtime": {
+          "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+          "machine": "x86_64",
+          "zlib": "1.3",
+          "brotli": "1.1.0",
+          "lzma": "5.4.5",
+          "bzip2": "1.0.8, 13-Jul-2019",
+          "zstd": "1.5.5"
+        },
+        "archive_sha256": "60b083692e050b9ff3619e1668db00e3802eb596211d606d5044c3c7f775d86e",
+        "process_peak_rss_kib": 47560,
+        "cost_note": "Candidate encode times include its regeneration and framing; gzip includes input decompression, bzip2 shares an initial decompression. Full selection phase costs are measured separately by bounded runner."
+      },
+      "decoder_instrumentation": {
+        "restored_sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861",
+        "bytes": 26928,
+        "decoder_wall_s": 0.07998341300117318,
+        "decoder_cpu_s": 0.06985282000000001,
+        "peak_rss_kib": 24788
+      }
+    },
+    {
+      "id": "xz-news",
+      "receipt_path": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/receipt.json",
+      "receipt": {
+        "archive_bytes": 19762,
+        "archive_sha256": "9bdd029a717f217fbe756ab21f3b19bd5bdf205b09872f66e8cfa9c01e458cc2",
+        "artifacts": {
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/candidate.bin",
+          "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/restored.bin"
+        },
+        "budget": {
+          "cpu": 8,
+          "max_rss_bytes": 1500000000,
+          "max_temp_bytes": 128000000,
+          "wall_seconds": 45
+        },
+        "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+        "completed_at": "2026-10-04T09:46:05.526290+00:00",
+        "experiment_id": "4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec",
+        "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+        "identity": {
+          "build_sha256": {
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+            "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+            "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+            "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+          },
+          "configuration": {
+            "bzip2_levels": [
+              1,
+              9
+            ],
+            "experiment": "codec-reconstruction-closure-v1",
+            "family": "gzip",
+            "gzip_levels": [
+              1,
+              6,
+              9
+            ],
+            "inner_xz": [
+              1,
+              6
+            ],
+            "outer_xz": 1
+          },
+          "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+          "input": {
+            "length": 20796,
+            "offset": 0,
+            "path": "/usr/share/doc/liblzma5/NEWS.gz",
+            "sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b"
+          },
+          "manifest_sha256": "b8745da662875edd573f931a88ad2f3f4dc2e55b1a79e6bd82756fae5a1c69ef"
+        },
+        "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+        "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+        "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+        "phases": [
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "gzip",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/source.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/candidate.bin"
+            ],
+            "cpu_usage_seconds": 0.899111,
+            "elapsed_seconds": 1.0231847679970087,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 45470,
+            "phase": "cix-bounded-4dd832a723a6-encode",
+            "sampled_cgroup_memory_high_water_bytes": 36147200,
+            "stop_reason": null
+          },
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "decode",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/candidate.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/restored.bin"
+            ],
+            "cpu_usage_seconds": 0.112818,
+            "elapsed_seconds": 0.1561464190017432,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 66266,
+            "phase": "cix-bounded-4dd832a723a6-decode",
+            "sampled_cgroup_memory_high_water_bytes": 11714560,
+            "stop_reason": null
+          }
+        ],
+        "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+        "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+        "status": "VERIFIED_SCREENING",
+        "verification": {
+          "matched": true,
+          "restored_sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b",
+          "source_sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b"
+        }
+      },
+      "instrument": {
+        "family": "gzip",
+        "source_bytes": 20796,
+        "source_sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b",
+        "plaintext_bytes": 72094,
+        "candidates": [
+          {
+            "level": 1,
+            "inner_xz": 1,
+            "bytes": 40962,
+            "encode": {
+              "wall_s": 0.0932297120016301,
+              "cpu_s": 0.083127374
+            },
+            "decode_in_process": {
+              "wall_s": 0.06711394200101495,
+              "cpu_s": 0.06219115
+            },
+            "tokens": {
+              "0": 4989,
+              "1": 1874,
+              "2": 4941,
+              "3": 1
+            },
+            "predicted_token_percent": 42.26533378515757
+          },
+          {
+            "level": 1,
+            "inner_xz": 6,
+            "bytes": 39262,
+            "encode": {
+              "wall_s": 0.10373524100577924,
+              "cpu_s": 0.095228175
+            },
+            "decode_in_process": {
+              "wall_s": 0.06885025200608652,
+              "cpu_s": 0.06184597599999997
+            },
+            "tokens": {
+              "0": 4989,
+              "1": 1874,
+              "2": 4941,
+              "3": 1
+            },
+            "predicted_token_percent": 42.26533378515757
+          },
+          {
+            "level": 6,
+            "inner_xz": 1,
+            "bytes": 23838,
+            "encode": {
+              "wall_s": 0.07780365800135769,
+              "cpu_s": 0.072971071
+            },
+            "decode_in_process": {
+              "wall_s": 0.06087678499170579,
+              "cpu_s": 0.05521173700000004
+            },
+            "tokens": {
+              "0": 11184,
+              "1": 169,
+              "2": 451,
+              "3": 1
+            },
+            "predicted_token_percent": 94.74754320569299
+          },
+          {
+            "level": 6,
+            "inner_xz": 6,
+            "bytes": 22138,
+            "encode": {
+              "wall_s": 0.09116916100902017,
+              "cpu_s": 0.08599957600000008
+            },
+            "decode_in_process": {
+              "wall_s": 0.06026555299467873,
+              "cpu_s": 0.05487491499999997
+            },
+            "tokens": {
+              "0": 11184,
+              "1": 169,
+              "2": 451,
+              "3": 1
+            },
+            "predicted_token_percent": 94.74754320569299
+          },
+          {
+            "level": 9,
+            "inner_xz": 1,
+            "bytes": 21466,
+            "encode": {
+              "wall_s": 0.08592438499908894,
+              "cpu_s": 0.07570839000000007
+            },
+            "decode_in_process": {
+              "wall_s": 0.06083475200284738,
+              "cpu_s": 0.05569550000000001
+            },
+            "tokens": {
+              "0": 11804,
+              "1": 0,
+              "2": 0,
+              "3": 1
+            },
+            "predicted_token_percent": 100.0
+          },
+          {
+            "level": 9,
+            "inner_xz": 6,
+            "bytes": 19762,
+            "encode": {
+              "wall_s": 0.08795573399402201,
+              "cpu_s": 0.08314982300000007
+            },
+            "decode_in_process": {
+              "wall_s": 0.06575461299507879,
+              "cpu_s": 0.05902421899999999
+            },
+            "tokens": {
+              "0": 11804,
+              "1": 0,
+              "2": 0,
+              "3": 1
+            },
+            "predicted_token_percent": 100.0
+          }
+        ],
+        "selected_index": 5,
+        "selected": {
+          "level": 9,
+          "inner_xz": 6,
+          "bytes": 19762,
+          "encode": {
+            "wall_s": 0.08795573399402201,
+            "cpu_s": 0.08314982300000007
+          },
+          "decode_in_process": {
+            "wall_s": 0.06575461299507879,
+            "cpu_s": 0.05902421899999999
+          },
+          "tokens": {
+            "0": 11804,
+            "1": 0,
+            "2": 0,
+            "3": 1
+          },
+          "predicted_token_percent": 100.0
+        },
+        "controls": [
+          {
+            "name": "stored",
+            "bytes": 20801,
+            "encode": {
+              "wall_s": 5.960027920082211e-07,
+              "cpu_s": 5.22000000002798e-07
+            },
+            "decode": {
+              "wall_s": 3.3099931897595525e-06,
+              "cpu_s": 3.35299999998373e-06
+            }
+          },
+          {
+            "name": "zlib9",
+            "bytes": 20817,
+            "encode": {
+              "wall_s": 0.00019027300004381686,
+              "cpu_s": 0.00019033599999995765
+            },
+            "decode": {
+              "wall_s": 9.579001925885677e-06,
+              "cpu_s": 9.623999999930355e-06
+            }
+          },
+          {
+            "name": "xz1",
+            "bytes": 20861,
+            "encode": {
+              "wall_s": 0.0016325330070685595,
+              "cpu_s": 0.001632814000000038
+            },
+            "decode": {
+              "wall_s": 1.3708995538763702e-05,
+              "cpu_s": 1.3721999999938284e-05
+            }
+          },
+          {
+            "name": "xz6",
+            "bytes": 20861,
+            "encode": {
+              "wall_s": 0.003500217993860133,
+              "cpu_s": 0.003500453999999986
+            },
+            "decode": {
+              "wall_s": 1.0682997526600957e-05,
+              "cpu_s": 1.0699000000058412e-05
+            }
+          }
+        ],
+        "strongest_control_including_original_bytes": 20796,
+        "runtime": {
+          "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+          "machine": "x86_64",
+          "zlib": "1.3",
+          "brotli": "1.1.0",
+          "lzma": "5.4.5",
+          "bzip2": "1.0.8, 13-Jul-2019",
+          "zstd": "1.5.5"
+        },
+        "archive_sha256": "9bdd029a717f217fbe756ab21f3b19bd5bdf205b09872f66e8cfa9c01e458cc2",
+        "process_peak_rss_kib": 45864,
+        "cost_note": "Candidate encode times include its regeneration and framing; gzip includes input decompression, bzip2 shares an initial decompression. Full selection phase costs are measured separately by bounded runner."
+      },
+      "decoder_instrumentation": {
+        "restored_sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b",
+        "bytes": 20796,
+        "decoder_wall_s": 0.06258458099910058,
+        "decoder_cpu_s": 0.057345564,
+        "peak_rss_kib": 24320
+      }
+    },
+    {
+      "id": "zstd-contributing",
+      "receipt_path": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/receipt.json",
+      "receipt": {
+        "archive_bytes": 11778,
+        "archive_sha256": "126d0b532bec5467e983ea52becd0d966e976aba465d9f6e71c432e7fa4db356",
+        "artifacts": {
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/candidate.bin",
+          "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/restored.bin"
+        },
+        "budget": {
+          "cpu": 8,
+          "max_rss_bytes": 1500000000,
+          "max_temp_bytes": 128000000,
+          "wall_seconds": 45
+        },
+        "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+        "completed_at": "2026-10-04T09:46:06.515723+00:00",
+        "experiment_id": "1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b",
+        "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+        "identity": {
+          "build_sha256": {
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+            "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+            "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+            "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+          },
+          "configuration": {
+            "bzip2_levels": [
+              1,
+              9
+            ],
+            "experiment": "codec-reconstruction-closure-v1",
+            "family": "gzip",
+            "gzip_levels": [
+              1,
+              6,
+              9
+            ],
+            "inner_xz": [
+              1,
+              6
+            ],
+            "outer_xz": 1
+          },
+          "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+          "input": {
+            "length": 11819,
+            "offset": 0,
+            "path": "/usr/share/doc/zstd/CONTRIBUTING.md.gz",
+            "sha256": "8249de4e461a446bc605fd5b4715389121df293581ac5b2ef6d0a51692daabda"
+          },
+          "manifest_sha256": "beed808cdad8a774661c90870da8da7dded45833878c1e7b563a6dafd657422a"
+        },
+        "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+        "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+        "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+        "phases": [
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "gzip",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/source.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/candidate.bin"
+            ],
+            "cpu_usage_seconds": 0.549866,
+            "elapsed_seconds": 0.6566225139977178,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 28511,
+            "phase": "cix-bounded-1edc06c4b10c-encode",
+            "sampled_cgroup_memory_high_water_bytes": 32972800,
+            "stop_reason": null
+          },
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "decode",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/candidate.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/restored.bin"
+            ],
+            "cpu_usage_seconds": 0.094565,
+            "elapsed_seconds": 0.19075002601312008,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 40330,
+            "phase": "cix-bounded-1edc06c4b10c-decode",
+            "sampled_cgroup_memory_high_water_bytes": 11640832,
+            "stop_reason": null
+          }
+        ],
+        "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+        "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+        "status": "VERIFIED_SCREENING",
+        "verification": {
+          "matched": true,
+          "restored_sha256": "8249de4e461a446bc605fd5b4715389121df293581ac5b2ef6d0a51692daabda",
+          "source_sha256": "8249de4e461a446bc605fd5b4715389121df293581ac5b2ef6d0a51692daabda"
+        }
+      },
+      "instrument": {
+        "family": "gzip",
+        "source_bytes": 11819,
+        "source_sha256": "8249de4e461a446bc605fd5b4715389121df293581ac5b2ef6d0a51692daabda",
+        "plaintext_bytes": 30786,
+        "candidates": [
+          {
+            "level": 1,
+            "inner_xz": 1,
+            "bytes": 22298,
+            "encode": {
+              "wall_s": 0.06023035600082949,
+              "cpu_s": 0.054122047
+            },
+            "decode_in_process": {
+              "wall_s": 0.0412220469879685,
+              "cpu_s": 0.03586974299999998
+            },
+            "tokens": {
+              "0": 3632,
+              "1": 1193,
+              "2": 2519,
+              "3": 1
+            },
+            "predicted_token_percent": 49.45533769063181
+          },
+          {
+            "level": 1,
+            "inner_xz": 6,
+            "bytes": 21678,
+            "encode": {
+              "wall_s": 0.060628173989243805,
+              "cpu_s": 0.055499618
+            },
+            "decode_in_process": {
+              "wall_s": 0.040263365997816436,
+              "cpu_s": 0.035369982999999994
+            },
+            "tokens": {
+              "0": 3632,
+              "1": 1193,
+              "2": 2519,
+              "3": 1
+            },
+            "predicted_token_percent": 49.45533769063181
+          },
+          {
+            "level": 6,
+            "inner_xz": 1,
+            "bytes": 12666,
+            "encode": {
+              "wall_s": 0.044189021005877294,
+              "cpu_s": 0.043514255
+            },
+            "decode_in_process": {
+              "wall_s": 0.03848366400052328,
+              "cpu_s": 0.033075308000000025
+            },
+            "tokens": {
+              "0": 7282,
+              "1": 20,
+              "2": 42,
+              "3": 1
+            },
+            "predicted_token_percent": 99.1557734204793
+          },
+          {
+            "level": 6,
+            "inner_xz": 6,
+            "bytes": 12050,
+            "encode": {
+              "wall_s": 0.0561562729999423,
+              "cpu_s": 0.05090781099999997
+            },
+            "decode_in_process": {
+              "wall_s": 0.03164062899304554,
+              "cpu_s": 0.03164079400000003
+            },
+            "tokens": {
+              "0": 7282,
+              "1": 20,
+              "2": 42,
+              "3": 1
+            },
+            "predicted_token_percent": 99.1557734204793
+          },
+          {
+            "level": 9,
+            "inner_xz": 1,
+            "bytes": 12390,
+            "encode": {
+              "wall_s": 0.049717068002792075,
+              "cpu_s": 0.04422007100000003
+            },
+            "decode_in_process": {
+              "wall_s": 0.03724589700868819,
+              "cpu_s": 0.032157835000000023
+            },
+            "tokens": {
+              "0": 7344,
+              "1": 0,
+              "2": 0,
+              "3": 1
+            },
+            "predicted_token_percent": 100.0
+          },
+          {
+            "level": 9,
+            "inner_xz": 6,
+            "bytes": 11778,
+            "encode": {
+              "wall_s": 0.053583196000545286,
+              "cpu_s": 0.048210805999999995
+            },
+            "decode_in_process": {
+              "wall_s": 0.03195701299409848,
+              "cpu_s": 0.03191505900000002
+            },
+            "tokens": {
+              "0": 7344,
+              "1": 0,
+              "2": 0,
+              "3": 1
+            },
+            "predicted_token_percent": 100.0
+          }
+        ],
+        "selected_index": 5,
+        "selected": {
+          "level": 9,
+          "inner_xz": 6,
+          "bytes": 11778,
+          "encode": {
+            "wall_s": 0.053583196000545286,
+            "cpu_s": 0.048210805999999995
+          },
+          "decode_in_process": {
+            "wall_s": 0.03195701299409848,
+            "cpu_s": 0.03191505900000002
+          },
+          "tokens": {
+            "0": 7344,
+            "1": 0,
+            "2": 0,
+            "3": 1
+          },
+          "predicted_token_percent": 100.0
+        },
+        "controls": [
+          {
+            "name": "stored",
+            "bytes": 11824,
+            "encode": {
+              "wall_s": 6.539921741932631e-07,
+              "cpu_s": 6.04000000015148e-07
+            },
+            "decode": {
+              "wall_s": 2.829998265951872e-06,
+              "cpu_s": 2.8539999999965815e-06
+            }
+          },
+          {
+            "name": "zlib9",
+            "bytes": 11835,
+            "encode": {
+              "wall_s": 8.813600288704038e-05,
+              "cpu_s": 8.817100000002576e-05
+            },
+            "decode": {
+              "wall_s": 5.6569988373667e-06,
+              "cpu_s": 5.70300000002355e-06
+            }
+          },
+          {
+            "name": "xz1",
+            "bytes": 11885,
+            "encode": {
+              "wall_s": 0.0009107489895541221,
+              "cpu_s": 0.0009110289999999521
+            },
+            "decode": {
+              "wall_s": 9.217998012900352e-06,
+              "cpu_s": 9.245999999962784e-06
+            }
+          },
+          {
+            "name": "xz6",
+            "bytes": 11885,
+            "encode": {
+              "wall_s": 0.0019777819979935884,
+              "cpu_s": 0.0019781260000000245
+            },
+            "decode": {
+              "wall_s": 9.401002898812294e-06,
+              "cpu_s": 9.41300000001366e-06
+            }
+          }
+        ],
+        "strongest_control_including_original_bytes": 11819,
+        "runtime": {
+          "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+          "machine": "x86_64",
+          "zlib": "1.3",
+          "brotli": "1.1.0",
+          "lzma": "5.4.5",
+          "bzip2": "1.0.8, 13-Jul-2019",
+          "zstd": "1.5.5"
+        },
+        "archive_sha256": "126d0b532bec5467e983ea52becd0d966e976aba465d9f6e71c432e7fa4db356",
+        "process_peak_rss_kib": 42872,
+        "cost_note": "Candidate encode times include its regeneration and framing; gzip includes input decompression, bzip2 shares an initial decompression. Full selection phase costs are measured separately by bounded runner."
+      },
+      "decoder_instrumentation": {
+        "restored_sha256": "8249de4e461a446bc605fd5b4715389121df293581ac5b2ef6d0a51692daabda",
+        "bytes": 11819,
+        "decoder_wall_s": 0.04043983100564219,
+        "decoder_cpu_s": 0.033835215999999994,
+        "peak_rss_kib": 22784
+      }
+    },
+    {
+      "id": "nvidia-init",
+      "receipt_path": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/receipt.json",
+      "receipt": {
+        "archive_bytes": 7169,
+        "archive_sha256": "e812e641a0a3f5db07de2b32170f71eba14030ab0d0dc459ced121f68fcc0d8d",
+        "artifacts": {
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/candidate.bin",
+          "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/restored.bin"
+        },
+        "budget": {
+          "cpu": 8,
+          "max_rss_bytes": 1500000000,
+          "max_temp_bytes": 128000000,
+          "wall_seconds": 45
+        },
+        "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+        "completed_at": "2026-10-04T09:46:06.977422+00:00",
+        "experiment_id": "5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397",
+        "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+        "identity": {
+          "build_sha256": {
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+            "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+            "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+            "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+            "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+          },
+          "configuration": {
+            "bzip2_levels": [
+              1,
+              9
+            ],
+            "experiment": "codec-reconstruction-closure-v1",
+            "family": "bzip2",
+            "gzip_levels": [
+              1,
+              6,
+              9
+            ],
+            "inner_xz": [
+              1,
+              6
+            ],
+            "outer_xz": 1
+          },
+          "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+          "input": {
+            "length": 7189,
+            "offset": 0,
+            "path": "/usr/share/doc/nvidia-compute-utils-580/nvidia-persistenced-init.tar.bz2",
+            "sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b"
+          },
+          "manifest_sha256": "112588bcfa9da8f86b82c156703e52093caefa22f984a622cd5aca35ce9c3eef"
+        },
+        "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+        "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+        "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+        "phases": [
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "bzip2",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/source.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/candidate.bin"
+            ],
+            "cpu_usage_seconds": 0.101763,
+            "elapsed_seconds": 0.16301161599403713,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 18078,
+            "phase": "cix-bounded-5f20c3fb31e2-encode",
+            "sampled_cgroup_memory_high_water_bytes": 13832192,
+            "stop_reason": null
+          },
+          {
+            "command": [
+              "/bin/python3",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+              "decode",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/candidate.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/restored.bin"
+            ],
+            "cpu_usage_seconds": 0.05835,
+            "elapsed_seconds": 0.16818084799160715,
+            "exit_code": 0,
+            "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+            "peak_temp_bytes": 25267,
+            "phase": "cix-bounded-5f20c3fb31e2-decode",
+            "sampled_cgroup_memory_high_water_bytes": 720896,
+            "stop_reason": null
+          }
+        ],
+        "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+        "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+        "status": "VERIFIED_SCREENING",
+        "verification": {
+          "matched": true,
+          "restored_sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b",
+          "source_sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b"
+        }
+      },
+      "instrument": {
+        "family": "bzip2",
+        "source_bytes": 7189,
+        "source_sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b",
+        "plaintext_bytes": 40960,
+        "candidates": [
+          {
+            "level": 1,
+            "inner_xz": 1,
+            "bytes": 7637,
+            "encode": {
+              "wall_s": 0.00764375900325831,
+              "cpu_s": 0.0043652360000000015
+            },
+            "decode_in_process": {
+              "wall_s": 0.0037464900087798014,
+              "cpu_s": 0.0024017979999999967
+            },
+            "reference_exact": false,
+            "residual_nonzero_bytes": 1
+          },
+          {
+            "level": 1,
+            "inner_xz": 6,
+            "bytes": 7173,
+            "encode": {
+              "wall_s": 0.01387714600423351,
+              "cpu_s": 0.012635005999999997
+            },
+            "decode_in_process": {
+              "wall_s": 0.0024108639918267727,
+              "cpu_s": 0.0024109620000000026
+            },
+            "reference_exact": false,
+            "residual_nonzero_bytes": 1
+          },
+          {
+            "level": 9,
+            "inner_xz": 1,
+            "bytes": 7633,
+            "encode": {
+              "wall_s": 0.003817372999037616,
+              "cpu_s": 0.0038175979999999915
+            },
+            "decode_in_process": {
+              "wall_s": 0.002384120991337113,
+              "cpu_s": 0.002384230000000001
+            },
+            "reference_exact": true,
+            "residual_nonzero_bytes": 0
+          },
+          {
+            "level": 9,
+            "inner_xz": 6,
+            "bytes": 7169,
+            "encode": {
+              "wall_s": 0.011403985001379624,
+              "cpu_s": 0.011384243000000002
+            },
+            "decode_in_process": {
+              "wall_s": 0.0024518700083717704,
+              "cpu_s": 0.002451942999999998
+            },
+            "reference_exact": true,
+            "residual_nonzero_bytes": 0
+          }
+        ],
+        "selected_index": 3,
+        "selected": {
+          "level": 9,
+          "inner_xz": 6,
+          "bytes": 7169,
+          "encode": {
+            "wall_s": 0.011403985001379624,
+            "cpu_s": 0.011384243000000002
+          },
+          "decode_in_process": {
+            "wall_s": 0.0024518700083717704,
+            "cpu_s": 0.002451942999999998
+          },
+          "reference_exact": true,
+          "residual_nonzero_bytes": 0
+        },
+        "controls": [
+          {
+            "name": "stored",
+            "bytes": 7194,
+            "encode": {
+              "wall_s": 5.250039976090193e-07,
+              "cpu_s": 4.86000000007869e-07
+            },
+            "decode": {
+              "wall_s": 1.3800017768517137e-06,
+              "cpu_s": 1.3839999999931685e-06
+            }
+          },
+          {
+            "name": "zlib9",
+            "bytes": 7205,
+            "encode": {
+              "wall_s": 7.543399988207966e-05,
+              "cpu_s": 7.547800000000382e-05
+            },
+            "decode": {
+              "wall_s": 6.911010132171214e-06,
+              "cpu_s": 6.979000000004176e-06
+            }
+          },
+          {
+            "name": "xz1",
+            "bytes": 7257,
+            "encode": {
+              "wall_s": 0.0005817880009999499,
+              "cpu_s": 0.0005820789999999992
+            },
+            "decode": {
+              "wall_s": 6.696005584672093e-06,
+              "cpu_s": 6.722000000000672e-06
+            }
+          },
+          {
+            "name": "xz6",
+            "bytes": 7257,
+            "encode": {
+              "wall_s": 0.0011386350088287145,
+              "cpu_s": 0.0011389410000000044
+            },
+            "decode": {
+              "wall_s": 6.976013537496328e-06,
+              "cpu_s": 6.9679999999960884e-06
+            }
+          }
+        ],
+        "strongest_control_including_original_bytes": 7189,
+        "runtime": {
+          "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+          "machine": "x86_64",
+          "zlib": "1.3",
+          "brotli": "1.1.0",
+          "lzma": "5.4.5",
+          "bzip2": "1.0.8, 13-Jul-2019",
+          "zstd": "1.5.5"
+        },
+        "archive_sha256": "e812e641a0a3f5db07de2b32170f71eba14030ab0d0dc459ced121f68fcc0d8d",
+        "process_peak_rss_kib": 40808,
+        "cost_note": "Candidate encode times include its regeneration and framing; gzip includes input decompression, bzip2 shares an initial decompression. Full selection phase costs are measured separately by bounded runner."
+      },
+      "decoder_instrumentation": {
+        "restored_sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b",
+        "bytes": 7189,
+        "decoder_wall_s": 0.002428763997158967,
+        "decoder_cpu_s": 0.0024284619999999993,
+        "peak_rss_kib": 21504
+      }
+    }
+  ]
+}

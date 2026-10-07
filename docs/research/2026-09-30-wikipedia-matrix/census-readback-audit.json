@@ -1,0 +1,101 @@
+{
+  "schema": "cix-wikipedia-census-readback-audit-v1",
+  "scope": "Read-only independent audit of the completed, frozen raw-PAQ and paragraph-16384 cells on one structurally selected 4 MiB Wikipedia region. No codec run or decode was repeated.",
+  "conclusion": "VERIFIED_NEGATIVE_TARGETED_REAL_RESULT",
+  "input": {
+    "dataset": "enwik9",
+    "offset": 520093696,
+    "length": 4194304,
+    "sha256": "4654a742afe2e96d7963851983d6c023ed8f9aa4a4a037f3d32cbe4f2197b083",
+    "classification": "targeted_real / structurally_selected / repeated_body_families",
+    "interpretation_limit": "This fixed profile-selected region is not probabilistically representative and is not an untouched holdout. Its result does not establish a full-enwik9 gain."
+  },
+  "matched_policy": {
+    "same_input": true,
+    "same_initial_state": true,
+    "configuration_differences": {"mode": ["original", "paragraph-16384"]},
+    "same_paq_binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+    "same_paq_options": "-4 -simd AVX2",
+    "same_paq_filename": "candidate.source.bin",
+    "same_framing": "29-byte CIXWUNT1 header plus 35-byte fixed metadata",
+    "initial_state": "empty predictor per contiguous input, state preserved within input; no warm-up/training/external data; identical policy across ablations"
+  },
+  "physical_results": {
+    "formula": "total archive bytes = 29-byte outer header + 35-byte fixed metadata + PAQ payload; all paragraph rules/dictionary/descriptors/holes/literals are inside the PAQ payload",
+    "raw_original": {
+      "cell": "units-b2c44e27547dae66f8a879f7",
+      "receipt": "docs/research/2026-09-30-wikipedia-matrix/runs/units-b2c44e27547dae66f8a879f7/803ec09cc0c8fc28e3920d352e44effcafa924f49dcf1f04212fdbcfcd99ebf8/receipt.json",
+      "archive_bytes": 158796,
+      "archive_sha256": "528bd18e523128340edb0fc3b27622e7d2ebbd5a2edf5d171f905a99d993c1a9",
+      "outer_header_bytes": 29,
+      "outer_metadata_bytes": 35,
+      "paq_payload_bytes": 158732,
+      "transformed_bytes": 4194304,
+      "verified_archive_only_readback": true
+    },
+    "paragraph_16384": {
+      "cell": "units-fbe31e95ef72db0bc181a57b",
+      "receipt": "docs/research/2026-09-30-wikipedia-matrix/runs/units-fbe31e95ef72db0bc181a57b/5ee5193b34eb980c254bf720fcb5f33b09f94044ab1dff85490f513912e792d7/receipt.json",
+      "archive_bytes": 166476,
+      "archive_sha256": "8df6f466fdb72056ebbe80c7428f653a99935fd42ef8cc06db30da68bd9a9eb9",
+      "outer_header_bytes": 29,
+      "outer_metadata_bytes": 35,
+      "paq_payload_bytes": 166412,
+      "transformed_bytes": 2473631,
+      "verified_archive_only_readback": true,
+      "pre_paq_frame_accounting": {
+        "framing_bytes": 10,
+        "rules_bytes": 120,
+        "dictionary_bytes": 26317,
+        "descriptor_bytes": 2447184,
+        "sum_bytes": 2473631,
+        "selected_family_count": 74,
+        "selected_member_count": 6737,
+        "selected_source_bytes": 2852634,
+        "literal_payload_bytes": 1341670,
+        "hole_payload_bytes": 961795
+      }
+    },
+    "comparison": {
+      "paragraph_minus_raw_bytes": 7680,
+      "paragraph_minus_raw_percent_of_raw": 4.836393864,
+      "outcome": "paragraph representation is larger; retain the verified raw PAQ control for this target and do not promote paragraph-16384 from this result"
+    }
+  },
+  "resources": {
+    "label": "wall time and sampled cgroup high-water are measured under separate physical-core lanes; cgroup high-water is a lower bound, not process peak RSS. Timing is evidence for these executions, not a hardware-independent speed ranking.",
+    "raw_original": {
+      "encode_wall_seconds": 377.397640614,
+      "encode_cpu_seconds": 335.608936,
+      "encode_sampled_cgroup_high_water_bytes": 511393792,
+      "encode_peak_temp_bytes": 8544256,
+      "decode_wall_seconds": 376.778464434,
+      "decode_cpu_seconds": 335.189191,
+      "decode_sampled_cgroup_high_water_bytes": 504983552,
+      "decode_peak_temp_bytes": 8706136
+    },
+    "paragraph_16384": {
+      "encode_wall_seconds": 364.904405768,
+      "encode_cpu_seconds": 326.477226,
+      "encode_sampled_cgroup_high_water_bytes": 850337792,
+      "encode_peak_temp_bytes": 6831775,
+      "decode_wall_seconds": 366.907379153,
+      "decode_cpu_seconds": 328.02774,
+      "decode_sampled_cgroup_high_water_bytes": 822243328,
+      "decode_peak_temp_bytes": 8555084
+    }
+  },
+  "verification": {
+    "archive_hashes_independently_rehashed": true,
+    "restored_hashes_independently_rehashed": true,
+    "restored_sha256": "4654a742afe2e96d7963851983d6c023ed8f9aa4a4a037f3d32cbe4f2197b083",
+    "native_receipt_decode_boundary": "separate decode command received archive only; source and materialized range inaccessible",
+    "frame_checks": "both archives have CIXWUNT1 magic, expected mode, source length, transformed length, fixed metadata length, PAQ prefix, and exact outer-byte conservation"
+  },
+  "limitations_and_next_decision": [
+    "This is a complete physical negative for the paragraph-16384 configuration on this one targeted region, not a rejection of all body relationship mechanisms.",
+    "No size-rejection shortcut was used: both completed native receipts performed and passed independent archive-only decode.",
+    "The separately frozen line-4096 ablation is a distinct boundary hypothesis and must be reported separately; it cannot be inferred from paragraph's result.",
+    "No portfolio selection, full-file score, package cost, Hutter score, or Prize eligibility claim follows from this audit."
+  ]
+}

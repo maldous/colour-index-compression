@@ -1,0 +1,72 @@
+{
+  "checks": [
+    {
+      "case": "authorized complete file 7200s",
+      "accepted": true,
+      "expected": true,
+      "error": null
+    },
+    {
+      "case": "wrong authorization",
+      "accepted": false,
+      "expected": false,
+      "error": "native catalog authorization mismatch"
+    },
+    {
+      "case": "changed registry hash",
+      "accepted": false,
+      "expected": false,
+      "error": "native catalog qualification requires its frozen input registry"
+    },
+    {
+      "case": "unregistered input",
+      "accepted": false,
+      "expected": false,
+      "error": "native catalog input is not a unique frozen registry entry"
+    },
+    {
+      "case": "beyond declared maximum",
+      "accepted": false,
+      "expected": false,
+      "error": "screening wall_seconds must be 1..300; longer trials require the bounded moderate_contiguous policy or the explicitly authorized whole-file native catalog policy"
+    },
+    {
+      "case": "beyond catalog input cap",
+      "accepted": false,
+      "expected": false,
+      "error": "screening wall_seconds must be 1..300; longer trials require the bounded moderate_contiguous policy or the explicitly authorized whole-file native catalog policy"
+    },
+    {
+      "case": "registry omitted from immutable build",
+      "accepted": false,
+      "expected": false,
+      "error": "native catalog registry must be part of the immutable build identity"
+    },
+    {
+      "case": "partial source prohibited",
+      "accepted": false,
+      "expected": false,
+      "error": "native catalog qualification requires an authorized complete file <=100,000,000 bytes"
+    },
+    {
+      "case": "full enwik9 remains prohibited",
+      "accepted": false,
+      "expected": false,
+      "error": "screening wall_seconds must be 1..300; longer trials require the bounded moderate_contiguous policy or the explicitly authorized whole-file native catalog policy"
+    },
+    {
+      "case": "legacy screening unchanged",
+      "accepted": true,
+      "expected": true,
+      "error": null
+    },
+    {
+      "case": "unscoped long budget prohibited",
+      "accepted": false,
+      "expected": false,
+      "error": "screening wall_seconds must be 1..300; longer trials require the bounded moderate_contiguous policy or the explicitly authorized whole-file native catalog policy"
+    }
+  ],
+  "all_passed": true,
+  "no_compression_executed": true
+}

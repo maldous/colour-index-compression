@@ -1,0 +1,52 @@
+{
+  "experiment": "chain-cache-93d1",
+  "status": "FROZEN_PRE_EXECUTION",
+  "source_revision": "93d1c0fb1",
+  "source_files": {
+    "rust/cix-native/src/chain.rs": "eee8d82503dde64d2778c4c04afd482a5687763c750bcdf45bbb7fe42f2780ca",
+    "rust/cix-native/src/main.rs": "163d01b2022b9b1ddf721b7cf80c414a0fcd06b58a3d1a27503441b6c320d002",
+    "rust/cix-native/Cargo.lock": "e5e7288ebfecea3e754660a13176755499258eb674067d262374054ef1d85d68"
+  },
+  "objective": "Implementation-only local exact chain inner reuse; unchanged transforms/effort/candidate order/format/decoder/model history. No corpus benchmark or baseline rerun.",
+  "qualification": [
+    "locked offline all-feature portable release-lto build once",
+    "exact_inner_cache_preserves_chain_selection_and_fails_open_when_full once: 256B duplicate/distinct, cache0/admitted/entry-rejected, actual hit/no-hit, payload/description/table parity and decode",
+    "cache_capture_rejects_unfunded_payload_before_retaining_it once: direct payload admission failure releases capture and preserves candidate",
+    "new CLI idle-input actual pipe into old frozen BD2 Rust decoder; 256Bzeros then256Bzeros,512Bmaxblock,50msidleflush; require decodedfirst256 before inputclosed, footer verified exit0 and exactSHA afterEOF"
+  ],
+  "budget": {
+    "cpu": [
+      8,
+      10
+    ],
+    "cpu_quota": "200%",
+    "build_test_memory_max": 2147483648,
+    "stream_memory_max": 536870912,
+    "swap_max": 0,
+    "active_temp_max": 1073741824,
+    "build_wall_seconds": 900,
+    "each_test_wall_seconds": 600,
+    "stream_wall_seconds": 60
+  },
+  "toolchain": "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin",
+  "old_decoder": {
+    "path": "benchmark-work/combined-bd2-validation/final/uncix",
+    "sha256": "f9ec393c689c6602a3912ca74a8d83575979dcdf2cb0646ac2760f41cf80db84"
+  },
+  "old_rlib": {
+    "path": "benchmark-work/ptt5-fixed-8439/target/release-lto/libcix_native.rlib",
+    "sha256": "1b0bbcd36adfe9a2bb6573d6a7744746b1cd11bd1ac7f0e3d1ea301aea6ce275"
+  },
+  "runner_hashes": {
+    "schedule.py": "24017d5cdfa86c29a01da0a0bd3109aaf0b5c91832a73b9b6387c3585484d1c2",
+    "stream_check.py": "b09fa88c2da532f123574620f09f10991289f21d762574cbaabba18d296499f7"
+  },
+  "limits": "Only current host verification. No full release suite/current Sonar rescan, corpus/held-out gates, multithread scaling or general throughput claim.",
+  "execution_amendment": {
+    "reason": "Library modules live beneath cli. Original exact filter selected zero tests; no correctness test executed. Correct module filter, retain receipts, skip successful build.",
+    "test_filter": "cli::chain::tests::",
+    "test_units": "parity-v2/admission-v2",
+    "parity_result": "parity-v2 executed exactly one test and passed. Runner mistakenly checked preserved v1 stdout; skip passed parity and run remaining admission/stream once.",
+    "stream": "Original M6 idle attempt rejected CLI combination before reading input: existing unsupported flush interval. Preserve failure. Run two new checks once: two full 512B M6 blocks before EOF; two idle-flushed 256B G1 blocks before EOF. This does not qualify M6 idle flush."
+  }
+}

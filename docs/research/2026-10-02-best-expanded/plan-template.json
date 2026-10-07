@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "identity": "native-best-EXACTREV-v1",
+  "status": "TEMPLATE_NOT_EXECUTABLE",
+  "inputs": {
+    "cca_gate": 33,
+    "catalog_after_gate": 17,
+    "total": 50,
+    "source": "existing frozen CCA registry plus existing 28-dataset catalog, de-duplicated"
+  },
+  "profile": {
+    "effort": "best",
+    "ordinary_flags": ["--best", "--verbose"],
+    "automatic_selection": true,
+    "advanced_overrides": [],
+    "expected_default_memory_bytes": 2147483648
+  },
+  "resources": {
+    "cell": "4 physical CPUs; 3,000,000,000 bytes RSS; 1,000,000,000 bytes temporary; no swap; 7,200 seconds; no GPU",
+    "aggregate": "4 physical CPUs; 12,000,000,000 bytes RAM; 4,000,000,000 bytes temporary; no swap"
+  },
+  "ordering": "CCA gate fully verified before catalog cells; queue waits for Hutter shared reservation",
+  "verification": "fresh native archive-only decode, source SHA-256 equality, complete archive bytes/hash, explicit encoder and decoder child exit-status records",
+  "artifact_freeze": "native-release metadata, every declared binary/native library, artifact source revision, source dirty diff hash and status hash"
+}

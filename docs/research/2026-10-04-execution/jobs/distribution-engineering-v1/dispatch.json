@@ -1,0 +1,28 @@
+{
+  "schema": "cix-prepared-dispatch-v1",
+  "status": "prepared_not_dispatched",
+  "job": "distribution-engineering-v1",
+  "command_document": "RUN.md",
+  "provider_closure": "selected-provider-closure.json",
+  "resource_policy": {
+    "max_cpu_cores": 2,
+    "max_temporary_bytes": 4000000000,
+    "network": "disabled",
+    "cargo_offline": true,
+    "fresh_export_target_required": true
+  },
+  "expected_receipt": "engineering-export-receipt.json in the new work directory",
+  "acceptance": {
+    "release_acceptance": false,
+    "allowed_status": "engineering_validation_not_release",
+    "forbidden_outputs": [
+      "final-dependency-closure.json",
+      "accepted_full_engine_rc"
+    ]
+  },
+  "blockers": [
+    "Fresh LTO target capacity must be admitted under the 4 GB aggregate temporary budget.",
+    "PAQ source/README identities and GPL-2 text are staged; final release notice and legal review remain open.",
+    "Provider functional, package-manager, non-Linux, and release acceptance checks remain separate."
+  ]
+}

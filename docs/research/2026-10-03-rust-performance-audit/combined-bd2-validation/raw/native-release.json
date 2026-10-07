@@ -1,0 +1,54 @@
+{
+  "schema": "cix-native-release-v1",
+  "source": {
+    "revision": "bd2a0d97bb4bc5847b55113341ad8de94c269c7f",
+    "tree": "73f6fefbe22fdeff0a2fe49d9a9251e4e25cc7ae"
+  },
+  "toolchain": {
+    "cargo": "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+    "rustc": "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc",
+    "rustdoc": "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustdoc",
+    "command": "cargo build --locked --all-features --profile release-lto --bin cix --bin uncix --bin cixcat --lib -j2"
+  },
+  "resources": {
+    "cpus": "10,11",
+    "memory_max_bytes": 2147483648,
+    "memory_swap_max_bytes": 0
+  },
+  "binaries": {
+    "cix": {
+      "sha256": "02f2d6a437663341ee62233a2d8911af69249464fddad65855ecfdf27d1569dc"
+    },
+    "uncix": {
+      "sha256": "f9ec393c689c6602a3912ca74a8d83575979dcdf2cb0646ac2760f41cf80db84"
+    },
+    "cixcat": {
+      "sha256": "cea9ba9541f60de3f5b6b62a51d8cdba8d9a820bdaa3739a3f555cd7acf52197"
+    },
+    "libcix_native.so": {
+      "sha256": "e916f492567ba0e44061be04f770a445af7a4494b553100e9f50d887e3990b68"
+    }
+  },
+  "lock_sha256": "e5e7288ebfecea3e754660a13176755499258eb674067d262374054ef1d85d68",
+  "rustc_vv": "cargo 1.98.1 (797e8a9bc 2026-08-05);rustc 1.98.1 (48a229cea 2026-09-01);binary: rustc;commit-hash: 48a229ceaefd4985c50990b14116b6d856af0985;commit-date: 2026-09-01;host: x86_64-unknown-linux-gnu;release: 1.98.1;LLVM version: 22.1.8;rustdoc 1.98.1 (48a229cea 2026-09-01);",
+  "environment": {
+    "RUSTFLAGS": "",
+    "CFLAGS": "",
+    "CXXFLAGS": ""
+  },
+  "portability": "host-resolved checkpoint",
+  "runtime_dso_hash_file": "runtime-dsos.sha256",
+  "runtime_dso_manifest_sha256": "9fe330d13f35b2c765f41f7a5bb540cd058f150d48bc87b133cf41fd76ff385c",
+  "validation_status": "qualified local native release validation",
+  "suite": {
+    "exit": 0,
+    "cargo_result_groups": 44,
+    "repeated_test_executions": 713,
+    "count_basis": "sum of successful Cargo test result passed counts; repeated executions, not unique names"
+  },
+  "criterion": {
+    "exit": 0,
+    "bench": "ppm_borrow_kernel",
+    "mode": "--test"
+  }
+}

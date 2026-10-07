@@ -1,0 +1,218 @@
+{
+  "schema": "cix.gpu-cuda-host.v1",
+  "observed_at_utc": "2026-10-04T03:24:32.014086+00:00",
+  "scope": "read-only metadata; no GPU kernel, codec, benchmark, installation or host tuning",
+  "nvcc_on_path": null,
+  "queries": [
+    {
+      "argv": [
+        "nvidia-smi",
+        "--query-gpu=name,driver_version,memory.total,memory.used,pci.bus_id,compute_cap,utilization.gpu,temperature.gpu,power.limit",
+        "--format=csv"
+      ],
+      "returncode": 0,
+      "stdout": "name, driver_version, memory.total [MiB], memory.used [MiB], pci.bus_id, compute_cap, utilization.gpu [%], temperature.gpu, power.limit [W]\nNVIDIA GeForce GTX 1650, 580.173.02, 4096 MiB, 284 MiB, 00000000:01:00.0, 7.5, 0 %, 34, 75.00 W",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,process_name,used_memory",
+        "--format=csv"
+      ],
+      "returncode": 0,
+      "stdout": "pid, process_name, used_gpu_memory [MiB]",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/usr/local/cuda/bin/nvcc",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2023 NVIDIA Corporation\nBuilt on Mon_Apr__3_17:16:06_PDT_2023\nCuda compilation tools, release 12.1, V12.1.105\nBuild cuda_12.1.r12.1/compiler.32688072_0",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "lspci",
+        "-nn",
+        "-s",
+        "01:00.0"
+      ],
+      "returncode": 0,
+      "stdout": "0000:01:00.0 VGA compatible controller [0300]: NVIDIA Corporation TU117 [GeForce GTX 1650] [10de:1f82] (rev a1)",
+      "stderr": ""
+    }
+  ],
+  "dynamic_library_cache": {
+    "argv": [
+      "ldconfig",
+      "-p"
+    ],
+    "returncode": 0,
+    "stdout": "\tlibnvrtc.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvrtc.so.12\n\tlibnvrtc.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvrtc.so\n\tlibnvrtc-builtins.so.12.1 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvrtc-builtins.so.12.1\n\tlibnvrtc-builtins.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvrtc-builtins.so\n\tlibnvjpeg.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvjpeg.so.12\n\tlibnvjpeg.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvjpeg.so\n\tlibnvblas.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvblas.so.12\n\tlibnvblas.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvblas.so\n\tlibnvToolsExt.so.1 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvToolsExt.so.1\n\tlibnvToolsExt.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvToolsExt.so\n\tlibnvJitLink.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvJitLink.so.12\n\tlibnvJitLink.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnvJitLink.so\n\tlibnpps.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnpps.so.12\n\tlibnpps.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnpps.so\n\tlibnppitc.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppitc.so.12\n\tlibnppitc.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppitc.so\n\tlibnppisu.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppisu.so.12\n\tlibnppisu.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppisu.so\n\tlibnppist.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppist.so.12\n\tlibnppist.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppist.so\n\tlibnppim.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppim.so.12\n\tlibnppim.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppim.so\n\tlibnppig.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppig.so.12\n\tlibnppig.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppig.so\n\tlibnppif.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppif.so.12\n\tlibnppif.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppif.so\n\tlibnppidei.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppidei.so.12\n\tlibnppidei.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppidei.so\n\tlibnppicc.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppicc.so.12\n\tlibnppicc.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppicc.so\n\tlibnppial.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppial.so.12\n\tlibnppial.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppial.so\n\tlibnppc.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppc.so.12\n\tlibnppc.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libnppc.so\n\tlibicudata.so.74 (libc6,x86-64) => /lib/x86_64-linux-gnu/libicudata.so.74\n\tlibicudata.so.74 (libc6) => /lib/i386-linux-gnu/libicudata.so.74\n\tlibicudata.so (libc6,x86-64) => /lib/x86_64-linux-gnu/libicudata.so\n\tlibgstcuda-1.0.so.0 (libc6,x86-64) => /lib/x86_64-linux-gnu/libgstcuda-1.0.so.0\n\tlibcusparse.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcusparse.so.12\n\tlibcusparse.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcusparse.so\n\tlibcusolverMg.so.11 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcusolverMg.so.11\n\tlibcusolverMg.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcusolverMg.so\n\tlibcusolver.so.11 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcusolver.so.11\n\tlibcusolver.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcusolver.so\n\tlibcurand.so.10 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcurand.so.10\n\tlibcurand.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcurand.so\n\tlibcuinj64.so.12.1 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcuinj64.so.12.1\n\tlibcuinj64.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcuinj64.so\n\tlibcufile_rdma.so.1 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcufile_rdma.so.1\n\tlibcufile_rdma.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcufile_rdma.so\n\tlibcufile.so.0 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcufile.so.0\n\tlibcufile.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcufile.so\n\tlibcufftw.so.11 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcufftw.so.11\n\tlibcufftw.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcufftw.so\n\tlibcufft.so.11 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcufft.so.11\n\tlibcufft.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcufft.so\n\tlibcudart.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcudart.so.12\n\tlibcudart.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcudart.so\n\tlibcudadebugger.so.1 (libc6,x86-64) => /lib/x86_64-linux-gnu/libcudadebugger.so.1\n\tlibcuda.so.1 (libc6,x86-64) => /lib/x86_64-linux-gnu/libcuda.so.1\n\tlibcuda.so.1 (libc6) => /lib/i386-linux-gnu/libcuda.so.1\n\tlibcuda.so (libc6,x86-64) => /lib/x86_64-linux-gnu/libcuda.so\n\tlibcuda.so (libc6) => /lib/i386-linux-gnu/libcuda.so\n\tlibcublasLt.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcublasLt.so.12\n\tlibcublasLt.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcublasLt.so\n\tlibcublas.so.12 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcublas.so.12\n\tlibcublas.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libcublas.so\n\tlibaccinj64.so.12.1 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libaccinj64.so.12.1\n\tlibaccinj64.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libaccinj64.so\n\tlibOpenCL.so.1 (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libOpenCL.so.1\n\tlibOpenCL.so (libc6,x86-64) => /usr/local/cuda-12.1/targets/x86_64-linux/lib/libOpenCL.so",
+    "stderr": ""
+  },
+  "cuda_version_manifest": {
+    "cuda": {
+      "name": "CUDA SDK",
+      "version": "12.1.20230417"
+    },
+    "cuda_cccl": {
+      "name": "CUDA C++ Core Compute Libraries",
+      "version": "12.1.109"
+    },
+    "cuda_cudart": {
+      "name": "CUDA Runtime (cudart)",
+      "version": "12.1.105"
+    },
+    "cuda_cuobjdump": {
+      "name": "cuobjdump",
+      "version": "12.1.111"
+    },
+    "cuda_cupti": {
+      "name": "CUPTI",
+      "version": "12.1.105"
+    },
+    "cuda_cuxxfilt": {
+      "name": "CUDA cu++ filt",
+      "version": "12.1.105"
+    },
+    "cuda_demo_suite": {
+      "name": "CUDA Demo Suite",
+      "version": "12.1.105"
+    },
+    "cuda_gdb": {
+      "name": "CUDA GDB",
+      "version": "12.1.105"
+    },
+    "cuda_nsight": {
+      "name": "Nsight Eclipse Plugins",
+      "version": "12.1.105"
+    },
+    "cuda_nvcc": {
+      "name": "CUDA NVCC",
+      "version": "12.1.105"
+    },
+    "cuda_nvdisasm": {
+      "name": "CUDA nvdisasm",
+      "version": "12.1.105"
+    },
+    "cuda_nvml_dev": {
+      "name": "CUDA NVML Headers",
+      "version": "12.1.105"
+    },
+    "cuda_nvprof": {
+      "name": "CUDA nvprof",
+      "version": "12.1.105"
+    },
+    "cuda_nvprune": {
+      "name": "CUDA nvprune",
+      "version": "12.1.105"
+    },
+    "cuda_nvrtc": {
+      "name": "CUDA NVRTC",
+      "version": "12.1.105"
+    },
+    "cuda_nvtx": {
+      "name": "CUDA NVTX",
+      "version": "12.1.105"
+    },
+    "cuda_nvvp": {
+      "name": "CUDA NVVP",
+      "version": "12.1.105"
+    },
+    "cuda_opencl": {
+      "name": "CUDA OpenCL",
+      "version": "12.1.105"
+    },
+    "cuda_sanitizer_api": {
+      "name": "CUDA Compute Sanitizer API",
+      "version": "12.1.105"
+    },
+    "libcublas": {
+      "name": "CUDA cuBLAS",
+      "version": "12.1.3.1"
+    },
+    "libcufft": {
+      "name": "CUDA cuFFT",
+      "version": "11.0.2.54"
+    },
+    "libcufile": {
+      "name": "GPUDirect Storage (cufile)",
+      "version": "1.6.1.9"
+    },
+    "libcurand": {
+      "name": "CUDA cuRAND",
+      "version": "10.3.2.106"
+    },
+    "libcusolver": {
+      "name": "CUDA cuSOLVER",
+      "version": "11.4.5.107"
+    },
+    "libcusparse": {
+      "name": "CUDA cuSPARSE",
+      "version": "12.1.0.106"
+    },
+    "libnpp": {
+      "name": "CUDA NPP",
+      "version": "12.1.0.40"
+    },
+    "libnvjitlink": {
+      "name": "JIT Linker Library",
+      "version": "12.1.105"
+    },
+    "libnvjpeg": {
+      "name": "CUDA nvJPEG",
+      "version": "12.2.0.2"
+    },
+    "libnvvm_samples": {
+      "name": "NVVM Samples",
+      "version": "12.1.105"
+    },
+    "nsight_compute": {
+      "name": "Nsight Compute",
+      "version": "2023.1.1.4"
+    },
+    "nsight_systems": {
+      "name": "Nsight Systems",
+      "version": "2023.1.2.43"
+    },
+    "nvidia_driver": {
+      "name": "NVIDIA Linux Driver",
+      "version": "530.30.02"
+    },
+    "nvidia_fs": {
+      "name": "NVIDIA file-system",
+      "version": "2.15.3"
+    }
+  },
+  "source_identity": [
+    {
+      "path": "rust/cix-native/build.rs",
+      "sha256": "d8398b71c67a68fa37b2836bb75b03a146abd956450e353aca359527c41f9aeb"
+    },
+    {
+      "path": "rust/cix-native/src/bsc_ffi.rs",
+      "sha256": "8e2302ddff2f5b1bc47bacecb6051ab57943eee6ff45beb79b9d02c63916ea6d"
+    },
+    {
+      "path": "rust/cix-native/vendor/libbsc/UPSTREAM.md",
+      "sha256": "b2680cbdd17aea21cc952a8dcfb104a35718a1cab1415271ef03da00a627e3f5"
+    },
+    {
+      "path": "rust/cix-native/vendor/libbsc/libbsc/bwt/bwt.cpp",
+      "sha256": "10da4e57acc8e2e6e95839155ecc202ea87e174ee4115f803f064e51fba8a7f5"
+    },
+    {
+      "path": "rust/cix-native/vendor/libbsc/libbsc/bwt/libcubwt/libcubwt.cuh",
+      "sha256": "28b7622cc801f73c408c6b06765c07e7dba3ffb8524c02170410d182542547a4"
+    }
+  ],
+  "limitations": [
+    "Instantaneous device availability is not a resource reservation.",
+    "Metadata/toolchain presence does not prove compilation or kernel compatibility.",
+    "Library cache absence does not prove no private installation exists."
+  ]
+}

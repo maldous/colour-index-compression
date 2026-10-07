@@ -1,0 +1,91 @@
+{
+  "error": "PAQ v215 decode failed: paq8px data compressor v215 (c) 2026, Matt Mahoney et al.\n",
+  "hashes": {
+    "cix": "fde4c550f0702be4c8d1e81330bd8b6ad902ece07ba583350bbf4607c6020d15",
+    "jxl_bridge": "06557f893f26ce312b97e5e5755d6365046c1616f66a45b3de140fcf04e19b4b",
+    "jxl_bridge_header": "9798a4bf689b30301a86c852ea855e33334d9184c698cf0f0a4e5fede119b8c3",
+    "provider_libraries": {
+      "libcix_jxl_bridge.so": "06557f893f26ce312b97e5e5755d6365046c1616f66a45b3de140fcf04e19b4b",
+      "libcix_paq_joint_discount_bridge.so": "8e8b74a7037654bf26d3a2d1c587ab3ff0d2028db68f4a48c387e8a2b925a597",
+      "libcix_paq_store_state_bridge.so": "57bba97ddbe7d1cde36625a88060f7b2ee06a095d8e0966658b38d05bcb598b2",
+      "libcix_paq_v215_bridge.so": "645f2f80dbe219465640d4489a219a90ae0787c9c8900d165045fe69b0e43757",
+      "libcix_paq_v216_bridge.so": "fc511f145184396f4cea39ac8281d12c7ac913914a9e2d6da770cf58f4098fb2",
+      "libcix_spatial_bridge.so": "51636cb3cbd9830d3f869142915d9e86345909a98cc57f38c86f6bf0f15c31cf"
+    },
+    "script": "65d73f7e87ad0420c6f9ab66f14bb787e249445048e07141bc394bb194f00208"
+  },
+  "jxl": [
+    {
+      "codestream_bytes": 37,
+      "codestream_sha256": "01e6e7ead7a2dda8d771a738c680208879cfa1a6c271258a8fd6c96477d66ca7",
+      "exact": true,
+      "input_sha256": "97b4af583dbc8199a534122a55cc10d1a6c01de7138ee62cf5e5e71e6cddff23",
+      "kind": "gray",
+      "shape": [
+        7,
+        5
+      ]
+    },
+    {
+      "codestream_bytes": 59,
+      "codestream_sha256": "abd0b32f79688846a0f5aa55ce3f41ca107c167de0ce329bd018556d59e7ecc8",
+      "exact": true,
+      "input_sha256": "65e1fad5dfad1317687802588259a99d5870625e598000daa0b7eb65298a75a9",
+      "kind": "planar",
+      "shape": [
+        3,
+        5,
+        4
+      ]
+    }
+  ],
+  "paq": [
+    {
+      "commands": [
+        {
+          "argv": [
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-closure-v1/relocated/usr/bin/cix",
+            "--internal-paq-worker-v1",
+            "v215",
+            "encode",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-closure-v1/relocated/usr/lib/cix",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-providers-v1/paq-input.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-providers-v1/v215.encoded",
+            "536870912",
+            "1048576",
+            "-0",
+            "1",
+            "none"
+          ],
+          "returncode": 0,
+          "stderr": "paq8px data compressor v215 (c) 2026, Matt Mahoney et al.\nOutput is redirected - only minimal feedback is on screen\n\nFilename: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-providers-v1/paq-input.bin (4096 bytes)\nCompressing...   0.00%\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bCIX_PAQ_WORKER_V1 status=ok\n",
+          "stdout": "paq8px v215 (c) 2026, Matt Mahoney et al.\n\nCreating archive /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-providers-v1/v215.encoded in single file mode...\n\nFilename: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-providers-v1/paq-input.bin (4096 bytes)\nBlock segmentation:\n 0           | default          |      4096 bytes [0 - 4095]\n-----------------------\nTotal input size     : 4096\nTotal archive size   : 4113\n\nTime 0.00 sec, used 0 MB (595604 bytes) of memory\n"
+        },
+        {
+          "argv": [
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-closure-v1/relocated/usr/bin/cix",
+            "--internal-paq-worker-v1",
+            "v215",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-closure-v1/relocated/usr/lib/cix",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-providers-v1/v215.encoded",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-providers-v1/v215.restored",
+            "536870912",
+            "1048576",
+            "-0",
+            "1",
+            "none"
+          ],
+          "returncode": -11,
+          "stderr": "paq8px data compressor v215 (c) 2026, Matt Mahoney et al.\n",
+          "stdout": ""
+        }
+      ],
+      "input_sha256": "253df18d9a043497ce8f8d01f4b22b76f3e99c48ae448e573249caa38c896bcc",
+      "variant": "v215"
+    }
+  ],
+  "runtime": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/runtime-closure-v1/relocated/usr",
+  "status": "error",
+  "workspace": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/relocated-providers-v1"
+}

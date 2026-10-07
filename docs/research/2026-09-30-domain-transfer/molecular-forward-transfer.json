@@ -1,0 +1,84 @@
+{
+  "adapter": {
+    "accounting": {
+      "choice_length_varint_bytes": 1,
+      "choice_payload_bytes": 0,
+      "component_sum_bytes": 3627,
+      "header_bytes": 7,
+      "literal_records": 1,
+      "model": 2,
+      "packing_slack": {
+        "choice_rank_padding_bits": 0,
+        "note": "representation 0 writes one byte per nontrivial choice; no rank-byte padding is claimed",
+        "record_flag_padding_bits": 6
+      },
+      "paq_sharing_boundary": "PAQ may discover repeated skeleton/residual text only after this complete frame; this adapter adds no separate dictionary sharing",
+      "parsed_records": 1,
+      "physical_bytes": 3627,
+      "radius": 6200,
+      "radius_varint_bytes": 2,
+      "record_count": 2,
+      "record_count_varint_bytes": 1,
+      "record_flag_bytes": 1,
+      "record_flag_padding_bits": 6,
+      "representation": 0,
+      "residual_payload_bytes": 359,
+      "skeleton_bytes": 3254,
+      "skeleton_length_varint_bytes": 2,
+      "termination_policy": "record separators and trailing empty records are retained inside the paid skeleton"
+    },
+    "atoms": 24,
+    "candidate_independent_bits": 0.0,
+    "candidate_order_choices": 0,
+    "candidate_order_combinatorial_bits": 0.0,
+    "choice_arithmetic_prediction_bits": null,
+    "model": 2,
+    "order_payload_bytes": 0,
+    "original_bytes": 3950,
+    "parsed_records": 1,
+    "policy": {
+      "backend": "NOT_RUN",
+      "model": 2,
+      "radius": 6200,
+      "representation": 0,
+      "state": "empty per supplied input"
+    },
+    "predicted_atoms": 0,
+    "radius": 6200,
+    "records": 2,
+    "representation": 0,
+    "transformed_bytes": 3627,
+    "variant": "hydrogen_slots_v1",
+    "within_two_units": 0
+  },
+  "asset": {
+    "bytes": 3950,
+    "cid": 2519,
+    "downloaded_at": "2026-09-30",
+    "name": "caffeine",
+    "path": "docs/research/2026-09-30-domain-transfer/assets/pubchem-cid-2519-caffeine-3d.sdf",
+    "provider": "PubChem PUG-REST",
+    "record_type": "3d",
+    "sha256": "ce51a07a9d3197bb7e1a82b38a5ff4b598eb2b6f21bcbfc3a0e89d17f932dc92",
+    "url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2519/record/SDF/?record_type=3d"
+  },
+  "frame_bytes": 3627,
+  "frame_sha256": "79dd8a05d5a9b84c08223d42cc1dbf4421caec5fc51fefbcdc8b3db6e7919f9b",
+  "interpretation": "The existing strict parser accepted one V2000 molecule and retained one trailing empty record literally. No hydrogen candidate choice occurred for this atom order, so a packing ablation would be uninformative and was not added.",
+  "matched_paq": {
+    "required_candidate": "complete hydrogen_slots_v1 frame through that identical backend",
+    "required_control": "original PubChem response bytes through the same pinned PAQv216 -4 AVX2 backend",
+    "status": "NOT_RUN"
+  },
+  "schema": "cix-molecular-forward-transfer-v1",
+  "source_exclusions": {
+    "records_not_matching_strict_coordinate_format": "literal record bytes retained",
+    "trailing_record_termination": "paid; parser retains the trailing empty record from the terminal separator",
+    "unsupported_v2000_records": "literal record bytes retained under paid flags/skeleton"
+  },
+  "status": "STRUCTURAL_ADAPTER_ONLY_NO_PAQ",
+  "verification": {
+    "archive_only_decode_sha256": "ce51a07a9d3197bb7e1a82b38a5ff4b598eb2b6f21bcbfc3a0e89d17f932dc92",
+    "matched": true
+  }
+}

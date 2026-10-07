@@ -1,0 +1,27 @@
+[
+  {
+    "label": "node-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-language-consumers-v1/bindings/node",
+      "-B",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/node-binding-language-consumers-v1",
+      "-DCIX_SDK_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+      "-DCIX_SDK_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+      "-DNODE_API_INCLUDE_DIR=/usr/include/node"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "node-build",
+    "command": [
+      "cmake",
+      "--build",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/node-binding-language-consumers-v1",
+      "--parallel",
+      "4"
+    ],
+    "exit_code": 2
+  }
+]

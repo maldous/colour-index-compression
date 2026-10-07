@@ -1,0 +1,144 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'build', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/Cargo.toml', '--lib', '--bin', 'cix']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/Cargo.toml', '--lib', 'full_engine::grid_counts', '--', '--test-threads=1']
+
+running 3 tests
+test full_engine::grid_counts::tests::frames_are_bounded_and_reject_trailing_payloads ... ok
+test full_engine::grid_counts::tests::sgcc1_frozen_modes_restore_exactly ... ok
+test full_engine::grid_counts::tests::sgcc2_frozen_contexts_codings_restore_exactly ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 248 filtered out; finished in 0.73s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/Cargo.toml', '--lib', 'c_dictionary_api', '--', '--test-threads=1']
+
+running 2 tests
+test c_dictionary_api::tests::lifecycle_identity_and_caller_buffer_contract ... ok
+test c_dictionary_api::tests::rejects_wrong_identity_small_output_and_malformed_training ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 249 filtered out; finished in 0.01s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/Cargo.toml', '--lib', 'full_engine::installed', '--', '--test-threads=1']
+
+running 2 tests
+test full_engine::installed::tests::names_are_platform_specific_without_searching ... ok
+test full_engine::installed::tests::relative_inputs_are_rejected_before_filesystem_discovery ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 249 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/Cargo.toml', '--test', 'dictionary_contract', '--', '--test-threads=1']
+
+running 3 tests
+test dictionary_contract_charges_trained_retained_capacity ... ok
+test dictionary_contract_rejects_invalid_training_and_trailing ... ok
+test dictionary_contract_roundtrip_wrong_identity_and_cap ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+CHECK ['python3', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/dictionary-grid-v3/check_sdk_install.py', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1', 'dictionary-grid-v3']
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/packaging/sdk', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-dictionary-grid-v3', '-G', 'Ninja', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/libcix_native.so', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3']
+-- The C compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-dictionary-grid-v3
+SDK_CHECK ['cmake', '--install', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-dictionary-grid-v3']
+-- Install configuration: ""
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3/include/cix.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3/include/cix.hpp
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3/include/cix_stream.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3/include/cix_formats.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3/include/cix_dictionary.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3/lib/libcix_native.so
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3/lib/cmake/CIX/CIXConfig.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3/lib/cmake/CIX/CIXConfigVersion.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3/lib/pkgconfig/cix-native.pc
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3/share/doc/CIXSDK/README.md
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-dictionary-grid-v3/share/doc/CIXSDK/examples/dictionary.c
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/packaging/sdk/tests', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-dictionary-grid-v3', '-G', 'Ninja', '-DCMAKE_PREFIX_PATH=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-dictionary-grid-v3']
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-dictionary-grid-v3
+SDK_CHECK ['cmake', '--build', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-dictionary-grid-v3', '--target', 'cix_installed_dictionary_consumer', '--parallel', '2']
+[1/2] Building C object CMakeFiles/cix_installed_dictionary_consumer.dir/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/examples/dictionary.c.o
+[2/2] Linking C executable cix_installed_dictionary_consumer
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-dictionary-grid-v3/cix_installed_dictionary_consumer']
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/packaging/sdk', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-dictionary-grid-v3', '-G', 'Ninja', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/libcix_native.a', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3']
+-- The C compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-dictionary-grid-v3
+SDK_CHECK ['cmake', '--install', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-dictionary-grid-v3']
+-- Install configuration: ""
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3/include/cix.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3/include/cix.hpp
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3/include/cix_stream.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3/include/cix_formats.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3/include/cix_dictionary.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3/lib/libcix_native.a
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3/lib/cmake/CIX/CIXConfig.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3/lib/cmake/CIX/CIXConfigVersion.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3/lib/pkgconfig/cix-native.pc
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3/share/doc/CIXSDK/README.md
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-dictionary-grid-v3/share/doc/CIXSDK/examples/dictionary.c
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/packaging/sdk/tests', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-dictionary-grid-v3', '-G', 'Ninja', '-DCMAKE_PREFIX_PATH=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-relocated-dictionary-grid-v3']
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.3")  
+-- Found BZip2: /usr/lib/x86_64-linux-gnu/libbz2.so (found version "1.0.8") 
+-- Looking for BZ2_bzCompressInit
+-- Looking for BZ2_bzCompressInit - found
+-- Looking for lzma_auto_decoder in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_auto_decoder in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Looking for lzma_easy_encoder in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_easy_encoder in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Looking for lzma_lzma_preset in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_lzma_preset in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Found LibLZMA: /usr/lib/x86_64-linux-gnu/liblzma.so (found version "5.4.5") 
+-- Found PkgConfig: /usr/bin/pkg-config (found version "1.8.1") 
+-- Checking for module 'libzstd'
+--   Found libzstd, version 1.5.5
+-- Checking for module 'libbrotlienc'
+--   Found libbrotlienc, version 1.1.0
+-- Checking for module 'libbrotlidec'
+--   Found libbrotlidec, version 1.1.0
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Configuring done (0.4s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-dictionary-grid-v3
+SDK_CHECK ['cmake', '--build', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-dictionary-grid-v3', '--target', 'cix_installed_dictionary_consumer', '--parallel', '2']
+[1/2] Building C object CMakeFiles/cix_installed_dictionary_consumer.dir/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-dictionary-grid-v3/examples/dictionary.c.o
+[2/2] Linking C executable cix_installed_dictionary_consumer
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-dictionary-grid-v3/cix_installed_dictionary_consumer']

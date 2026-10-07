@@ -1,0 +1,73 @@
+"""Pure fixture checks for the preservation selection guards; not a job dispatch."""
+import importlib.util
+from pathlib import Path
+import os
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+
+SPEC = importlib.util.spec_from_file_location("preserve_debug_cache", Path(__file__).with_name("run.py"))
+preserve = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = preserve
+SPEC.loader.exec_module(preserve)
+
+
+class PreserveDebugCacheGuardTests(unittest.TestCase):
+    def test_job_script_derives_the_exact_repository_root(self):
+        self.assertEqual(
+            preserve.ROOT,
+            Path("/home/user/src/colour-index-compression"),
+        )
+
+    def fixture(self):
+        temporary = tempfile.TemporaryDirectory()
+        work = Path(temporary.name) / "work"
+        target = work / "target/debug"
+        target.mkdir(parents=True)
+        return temporary, work, target
+
+    def test_accepts_internal_hardlinks_only(self):
+        temporary, work, target = self.fixture()
+        self.addCleanup(temporary.cleanup)
+        (target / "first").write_bytes(b"same")
+        os.link(target / "first", target / "second")
+        with patch.object(preserve, "WORK", work), patch.object(preserve, "TARGET", target):
+            manifest, _ = preserve.collect_manifest()
+        regular = [row for row in manifest["entries"] if row["type"] == "file"]
+        self.assertEqual(len(regular), 2)
+        self.assertEqual({row["link_count"] for row in regular}, {2})
+
+    def test_rejects_hardlink_elsewhere_in_work(self):
+        temporary, work, target = self.fixture()
+        self.addCleanup(temporary.cleanup)
+        (target / "selected").write_bytes(b"selected")
+        outside = work / "installed/provider-copy"
+        outside.parent.mkdir(parents=True)
+        os.link(target / "selected", outside)
+        with patch.object(preserve, "WORK", work), patch.object(preserve, "TARGET", target):
+            with self.assertRaisesRegex(RuntimeError, "linked elsewhere in work"):
+                preserve.collect_manifest()
+
+    def test_rejects_hardlink_outside_work_by_target_link_count(self):
+        temporary, work, target = self.fixture()
+        self.addCleanup(temporary.cleanup)
+        selected = target / "selected"
+        selected.write_bytes(b"selected")
+        os.link(selected, Path(temporary.name) / "outside-work-copy")
+        with patch.object(preserve, "WORK", work), patch.object(preserve, "TARGET", target):
+            with self.assertRaisesRegex(RuntimeError, "external hardlink"):
+                preserve.collect_manifest()
+
+    def test_rejects_symlink_escape(self):
+        temporary, work, target = self.fixture()
+        self.addCleanup(temporary.cleanup)
+        (target / "outside").symlink_to("../../outside")
+        with patch.object(preserve, "WORK", work), patch.object(preserve, "TARGET", target):
+            with self.assertRaisesRegex(RuntimeError, "symlink escapes"):
+                preserve.collect_manifest()
+
+
+if __name__ == "__main__":
+    unittest.main()

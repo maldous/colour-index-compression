@@ -1,0 +1,125 @@
+    Checking generic-array v0.14.7
+    Checking num-traits v0.2.19
+    Checking nix v0.31.3
+    Checking libz-sys v1.1.29
+   Compiling cix-native v0.1.0 (/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/selection-override-contract-v1/source)
+    Checking ctrlc v3.5.2
+    Checking num-integer v0.1.47
+    Checking flate2 v1.1.10
+    Checking num-bigint v0.4.8
+    Checking block-buffer v0.10.4
+    Checking crypto-common v0.1.7
+    Checking digest v0.10.7
+    Checking sha2 v0.10.9
+warning: cix-native@0.1.0: In file included from vendor/libzpaq715/libzpaq.cpp:25:
+warning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.h: In constructor 'libzpaq::Encoder::Encoder(libzpaq::ZPAQL&, int)':
+warning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.h:1275:25: warning: unused parameter 'size' [-Wunused-parameter]
+warning: cix-native@0.1.0:  1275 |   Encoder(ZPAQL& z, int size=0):
+warning: cix-native@0.1.0:       |                     ~~~~^~~~~~
+warning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.cpp: In function 'void libzpaq::allocx(U8*&, int&, int)':
+warning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.cpp:73:33: warning: unused parameter 'newsize' [-Wunused-parameter]
+warning: cix-native@0.1.0:    73 | void allocx(U8* &p, int &n, int newsize) {
+warning: cix-native@0.1.0:       |                             ~~~~^~~~~~~
+warning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.cpp: In function 'void libzpaq::pbkdf2(const char*, int, const char*, int, int, char*, int)':
+warning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.cpp:585:24: warning: unused parameter 'c' [-Wunused-parameter]
+warning: cix-native@0.1.0:   585 |                    int c, char* buf, int dkLen) {
+warning: cix-native@0.1.0:       |                    ~~~~^
+warning: cix-native@0.1.0: during RTL pass: cprop
+warning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.cpp: In function 'std::string libzpaq::makeConfig(const char*, int*)':
+warning: cix-native@0.1.0: vendor/libzpaq715/libzpaq.cpp:7547:1: internal compiler error: Segmentation fault
+warning: cix-native@0.1.0:  7547 | }
+warning: cix-native@0.1.0:       | ^
+warning: cix-native@0.1.0: 0x7e8292a4532f ???
+warning: cix-native@0.1.0: 	./signal/../sysdeps/unix/sysv/linux/x86_64/libc_sigaction.c:0
+warning: cix-native@0.1.0: 0x7e8292a2a1c9 __libc_start_call_main
+warning: cix-native@0.1.0: 	../sysdeps/nptl/libc_start_call_main.h:58
+warning: cix-native@0.1.0: 0x7e8292a2a28a __libc_start_main_impl
+warning: cix-native@0.1.0: 	../csu/libc-start.c:360
+warning: cix-native@0.1.0: Please submit a full bug report, with preprocessed source (by using -freport-bug).
+warning: cix-native@0.1.0: Please include the complete backtrace with any bug report.
+warning: cix-native@0.1.0: See <file:///usr/share/doc/gcc-13/README.Bugs> for instructions.
+error: failed to run custom build command for `cix-native v0.1.0 (/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/selection-override-contract-v1/source)`
+
+Caused by:
+  process didn't exit successfully: `/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/build/cix-native-a0e31164ac8206cb/build-script-build` (exit status: 1)
+  --- stdout
+  cargo:rerun-if-env-changed=CIX_NATIVE_LIBRARY_DIR
+  cargo:rustc-link-search=native=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/lib/x86_64-linux-gnu
+  cargo:rerun-if-changed=src/zpaq_ffi.cpp
+  cargo:rerun-if-changed=vendor/libzpaq715/libzpaq.cpp
+  cargo:rerun-if-changed=vendor/libzpaq715/libzpaq.h
+  cargo:rerun-if-env-changed=CC_FORCE_DISABLE
+  CC_FORCE_DISABLE = None
+  cargo:rerun-if-env-changed=CXX_x86_64-unknown-linux-gnu
+  CXX_x86_64-unknown-linux-gnu = None
+  cargo:rerun-if-env-changed=CXX_x86_64_unknown_linux_gnu
+  CXX_x86_64_unknown_linux_gnu = None
+  cargo:rerun-if-env-changed=HOST_CXX
+  HOST_CXX = None
+  cargo:rerun-if-env-changed=CXX
+  CXX = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  cargo:rerun-if-env-changed=CXXFLAGS
+  CXXFLAGS = None
+  cargo:rerun-if-env-changed=HOST_CXXFLAGS
+  HOST_CXXFLAGS = None
+  cargo:rerun-if-env-changed=CXXFLAGS_x86_64_unknown_linux_gnu
+  CXXFLAGS_x86_64_unknown_linux_gnu = None
+  cargo:rerun-if-env-changed=CXXFLAGS_x86_64-unknown-linux-gnu
+  CXXFLAGS_x86_64-unknown-linux-gnu = None
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  cargo:rerun-if-env-changed=CXXFLAGS
+  CXXFLAGS = None
+  cargo:rerun-if-env-changed=HOST_CXXFLAGS
+  HOST_CXXFLAGS = None
+  cargo:rerun-if-env-changed=CXXFLAGS_x86_64_unknown_linux_gnu
+  CXXFLAGS_x86_64_unknown_linux_gnu = None
+  cargo:rerun-if-env-changed=CXXFLAGS_x86_64-unknown-linux-gnu
+  CXXFLAGS_x86_64-unknown-linux-gnu = None
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  cargo:rerun-if-env-changed=CXXFLAGS
+  CXXFLAGS = None
+  cargo:rerun-if-env-changed=HOST_CXXFLAGS
+  HOST_CXXFLAGS = None
+  cargo:rerun-if-env-changed=CXXFLAGS_x86_64_unknown_linux_gnu
+  CXXFLAGS_x86_64_unknown_linux_gnu = None
+  cargo:rerun-if-env-changed=CXXFLAGS_x86_64-unknown-linux-gnu
+  CXXFLAGS_x86_64-unknown-linux-gnu = None
+  cargo:warning=In file included from vendor/libzpaq715/libzpaq.cpp:25:
+  cargo:warning=vendor/libzpaq715/libzpaq.h: In constructor 'libzpaq::Encoder::Encoder(libzpaq::ZPAQL&, int)':
+  cargo:warning=vendor/libzpaq715/libzpaq.h:1275:25: warning: unused parameter 'size' [-Wunused-parameter]
+  cargo:warning= 1275 |   Encoder(ZPAQL& z, int size=0):
+  cargo:warning=      |                     ~~~~^~~~~~
+  cargo:warning=vendor/libzpaq715/libzpaq.cpp: In function 'void libzpaq::allocx(U8*&, int&, int)':
+  cargo:warning=vendor/libzpaq715/libzpaq.cpp:73:33: warning: unused parameter 'newsize' [-Wunused-parameter]
+  cargo:warning=   73 | void allocx(U8* &p, int &n, int newsize) {
+  cargo:warning=      |                             ~~~~^~~~~~~
+  cargo:warning=vendor/libzpaq715/libzpaq.cpp: In function 'void libzpaq::pbkdf2(const char*, int, const char*, int, int, char*, int)':
+  cargo:warning=vendor/libzpaq715/libzpaq.cpp:585:24: warning: unused parameter 'c' [-Wunused-parameter]
+  cargo:warning=  585 |                    int c, char* buf, int dkLen) {
+  cargo:warning=      |                    ~~~~^
+  cargo:warning=during RTL pass: cprop
+  cargo:warning=vendor/libzpaq715/libzpaq.cpp: In function 'std::string libzpaq::makeConfig(const char*, int*)':
+  cargo:warning=vendor/libzpaq715/libzpaq.cpp:7547:1: internal compiler error: Segmentation fault
+  cargo:warning= 7547 | }
+  cargo:warning=      | ^
+  cargo:warning=0x7e8292a4532f ???
+  cargo:warning=	./signal/../sysdeps/unix/sysv/linux/x86_64/libc_sigaction.c:0
+  cargo:warning=0x7e8292a2a1c9 __libc_start_call_main
+  cargo:warning=	../sysdeps/nptl/libc_start_call_main.h:58
+  cargo:warning=0x7e8292a2a28a __libc_start_main_impl
+  cargo:warning=	../csu/libc-start.c:360
+  cargo:warning=Please submit a full bug report, with preprocessed source (by using -freport-bug).
+  cargo:warning=Please include the complete backtrace with any bug report.
+  cargo:warning=See <file:///usr/share/doc/gcc-13/README.Bugs> for instructions.
+
+  --- stderr
+
+
+  error occurred in cc-rs: command did not execute successfully (status code exit status: 1): LC_ALL="C" "c++" "-O0" "-ffunction-sections" "-fdata-sections" "-fPIC" "-m64" "-std=c++17" "-I" "vendor/libzpaq715" "-Wall" "-Wextra" "-O3" "-fno-strict-aliasing" "-DNOJIT" "-Dunix" "-o" "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/build/cix-native-98c3a920ace473ea/out/9f4e71124615a308-libzpaq.o" "-c" "vendor/libzpaq715/libzpaq.cpp"
+
+

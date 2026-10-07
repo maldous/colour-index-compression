@@ -1,0 +1,84 @@
+[
+  {
+    "argv": [
+      "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+      "generate-lockfile",
+      "--offline",
+      "--manifest-path",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/portable-source-v1/cix-portable/Cargo.toml"
+    ],
+    "env_extra": {},
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "     Locking 14 packages to latest compatible versions\n"
+  },
+  {
+    "argv": [
+      "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+      "test",
+      "--offline",
+      "--locked",
+      "--manifest-path",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/portable-source-v1/cix-portable/Cargo.toml",
+      "--lib",
+      "--",
+      "--test-threads=1"
+    ],
+    "env_extra": {},
+    "returncode": 0,
+    "stdout": "\nrunning 16 tests\ntest adaptive::integer_overflow_tests::varint_accepts_max_rejects_high_bits ... ok\ntest cixg1::tests::compressed_subset_round_trips_in_small_output_steps ... ok\ntest cixg1::tests::decoder_rejects_native_routes_outside_subset ... ok\ntest combinatorics::tests::exact_for_every_small_combination ... ok\ntest combinatorics::tests::observes_candidate_deadline_in_long_rank_work ... ok\ntest combinatorics::tests::observes_deadline_while_validating_position_order ... ok\ntest combinatorics::tests::sparse_large_gaps_use_the_exact_short_binomial_path ... ok\ntest combinatorics::tests::wide_and_noncanonical_inputs_retain_definition ... ok\ntest rank::tests::context_layout_rejects_malformed_prefix ... ok\ntest rank::tests::context_layouts_round_trip_and_reject_trailing_bytes ... ok\ntest rank::tests::count_range_keeps_pre_refactor_bytes_and_round_trips ... ok\ntest rank::tests::count_range_preserves_large_exact_rank_type_classes ... ok\ntest rank::tests::count_range_rejects_truncated_tile ... ok\ntest rank::tests::default_arithmetic_encoder_preserves_constructor_bytes ... ok\ntest rank::tests::lowest_bit_preserves_fenwick_step ... ok\ntest rank::tests::type_class_shortcut_preserves_prechange_exact_bytes_and_malformed_rejection ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.67s\n\n",
+    "stderr": "   Compiling cix-portable v0.1.0 (/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/portable-source-v1/cix-portable)\nwarning: constant `ABI_ERROR` is never used\n  --> src/wasm.rs:13:7\n   |\n13 | const ABI_ERROR: i32 = -1;\n   |       ^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: constant `ABI_ARGUMENT` is never used\n  --> src/wasm.rs:14:7\n   |\n14 | const ABI_ARGUMENT: i32 = -2;\n   |       ^^^^^^^^^^^^\n\nwarning: constant `ABI_PANIC` is never used\n  --> src/wasm.rs:15:7\n   |\n15 | const ABI_PANIC: i32 = -3;\n   |       ^^^^^^^^^\n\nwarning: struct `WasmEncoder` is never constructed\n  --> src/wasm.rs:18:12\n   |\n18 | pub struct WasmEncoder {\n   |            ^^^^^^^^^^^\n\nwarning: struct `WasmDecoder` is never constructed\n  --> src/wasm.rs:22:12\n   |\n22 | pub struct WasmDecoder {\n   |            ^^^^^^^^^^^\n\nwarning: struct `ByteRange` is never constructed\n  --> src/wasm.rs:27:8\n   |\n27 | struct ByteRange {\n   |        ^^^^^^^^^\n\nwarning: function `checked_range` is never used\n  --> src/wasm.rs:31:4\n   |\n31 | fn checked_range(ptr: *const u8, len: usize, alignment: usize) -> Result<Option<ByteRange>, i32> {\n   |    ^^^^^^^^^^^^^\n\nwarning: function `overlap` is never used\n  --> src/wasm.rs:42:4\n   |\n42 | fn overlap(a: Option<ByteRange>, b: Option<ByteRange>) -> bool {\n   |    ^^^^^^^\n\nwarning: function `checked_buffers` is never used\n  --> src/wasm.rs:45:4\n   |\n45 | fn checked_buffers(\n   |    ^^^^^^^^^^^^^^^\n\nwarning: function `checked_handle` is never used\n  --> src/wasm.rs:82:4\n   |\n82 | fn checked_handle<T>(ptr: *mut T) -> Result<ByteRange, i32> {\n   |    ^^^^^^^^^^^^^^\n\nwarning: function `input` is never used\n  --> src/wasm.rs:90:11\n   |\n90 | unsafe fn input<'a>(ptr: *const u8, len: usize) -> &'a [u8] {\n   |           ^^^^^\n\nwarning: function `output` is never used\n  --> src/wasm.rs:97:11\n   |\n97 | unsafe fn output<'a>(ptr: *mut u8, len: usize) -> &'a mut [u8] {\n   |           ^^^^^^\n\nwarning: function `handle` is never used\n   --> src/wasm.rs:104:11\n    |\n104 | unsafe fn handle<T>(ptr: *mut T) -> Result<&'static mut T, i32> {\n    |           ^^^^^^\n\nwarning: function `put_counts` is never used\n   --> src/wasm.rs:111:11\n    |\n111 | unsafe fn put_counts(\n    |           ^^^^^^^^^^\n\nwarning: function `state_code` is never used\n   --> src/wasm.rs:123:4\n    |\n123 | fn state_code(state: StreamState) -> i32 {\n    |    ^^^^^^^^^^\n\nwarning: function `ffi` is never used\n   --> src/wasm.rs:126:4\n    |\n126 | fn ffi(call: impl FnOnce() -> Result<i32, i32>) -> i32 {\n    |    ^^^\n\nwarning: function `cix_portable_alloc` is never used\n   --> src/wasm.rs:135:19\n    |\n135 | pub extern \"C\" fn cix_portable_alloc(len: u32) -> *mut u8 {\n    |                   ^^^^^^^^^^^^^^^^^^\n\nwarning: function `cix_portable_free` is never used\n   --> src/wasm.rs:147:26\n    |\n147 | pub unsafe extern \"C\" fn cix_portable_free(ptr: *mut u8, len: u32) {\n    |                          ^^^^^^^^^^^^^^^^^\n\nwarning: function `cix_portable_encode` is never used\n   --> src/wasm.rs:162:26\n    |\n162 | pub unsafe extern \"C\" fn cix_portable_encode(\n    |                          ^^^^^^^^^^^^^^^^^^^\n\nwarning: function `cix_portable_decode` is never used\n   --> src/wasm.rs:195:26\n    |\n195 | pub unsafe extern \"C\" fn cix_portable_decode(\n    |                          ^^^^^^^^^^^^^^^^^^^\n\nwarning: function `cix_portable_encoder_new` is never used\n   --> src/wasm.rs:230:19\n    |\n230 | pub extern \"C\" fn cix_portable_encoder_new(output_limit: u32) -> *mut WasmEncoder {\n    |                   ^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `cix_portable_encoder_free` is never used\n   --> src/wasm.rs:243:26\n    |\n243 | pub unsafe extern \"C\" fn cix_portable_encoder_free(handle: *mut WasmEncoder) {\n    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `cix_portable_encoder_process` is never used\n   --> src/wasm.rs:251:26\n    |\n251 | pub unsafe extern \"C\" fn cix_portable_encoder_process(\n    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `cix_portable_decoder_new` is never used\n   --> src/wasm.rs:288:19\n    |\n288 | pub extern \"C\" fn cix_portable_decoder_new(\n    |                   ^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `cix_portable_decoder_free` is never used\n   --> src/wasm.rs:305:26\n    |\n305 | pub unsafe extern \"C\" fn cix_portable_decoder_free(handle: *mut WasmDecoder) {\n    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `cix_portable_decoder_process` is never used\n   --> src/wasm.rs:313:26\n    |\n313 | pub unsafe extern \"C\" fn cix_portable_decoder_process(\n    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `cix-portable` (lib test) generated 26 warnings\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.31s\n     Running unittests src/lib.rs (/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/deps/cix_portable-9182fec52668e278)\n"
+  },
+  {
+    "argv": [
+      "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+      "build",
+      "--release",
+      "--offline",
+      "--locked",
+      "--manifest-path",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/portable-source-v1/cix-portable/Cargo.toml",
+      "--target",
+      "wasm32-unknown-unknown"
+    ],
+    "env_extra": {
+      "RUSTFLAGS": "--sysroot=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/portable-wasm-v1/rust-std-1.98.1-wasm32-unknown-unknown/rust-std-wasm32-unknown-unknown"
+    },
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "   Compiling version_check v0.9.5\n   Compiling typenum v1.20.1\n   Compiling autocfg v1.5.1\n   Compiling cfg-if v1.0.5\n   Compiling generic-array v0.14.7\n   Compiling num-traits v0.2.19\n   Compiling num-integer v0.1.47\n   Compiling block-buffer v0.10.4\n   Compiling crypto-common v0.1.7\n   Compiling digest v0.10.7\n   Compiling num-bigint v0.4.8\n   Compiling sha2 v0.10.9\n   Compiling cix-portable v0.1.0 (/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/portable-source-v1/cix-portable)\nwarning: struct `DeadlineGuard` is never constructed\n  --> src/limits.rs:24:12\n   |\n24 | pub struct DeadlineGuard {\n   |            ^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: associated function `new` is never used\n  --> src/limits.rs:29:12\n   |\n28 | impl DeadlineGuard {\n   | ------------------ associated function in this implementation\n29 |     pub fn new(duration: Duration) -> Self {\n   |            ^^^\n\nwarning: `cix-portable` (lib) generated 2 warnings\n    Finished `release` profile [optimized] target(s) in 2.11s\n"
+  },
+  {
+    "argv": [
+      "/usr/bin/node",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/portable-source-v1/cix-native/adapters/wasm/portable_streaming.mjs",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/wasm32-unknown-unknown/release/cix_portable.wasm"
+    ],
+    "env_extra": {},
+    "returncode": 0,
+    "stdout": "{\"input\":66449,\"archive\":45870,\"exact\":true,\"streaming\":true}\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "python3",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/portable-source-v1/cix-native/adapters/wasm/differential.py",
+      "--wasm",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/wasm32-unknown-unknown/release/cix_portable.wasm",
+      "--node",
+      "/usr/bin/node",
+      "--cix",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/cix",
+      "--cixcat",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/cixcat",
+      "--input",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/portable-wasm-v1/input.bin"
+    ],
+    "env_extra": {
+      "TMPDIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/portable-wasm-v1"
+    },
+    "returncode": 0,
+    "stdout": "portable encoder <-> forced-native CIXG1 subset: exact\n",
+    "stderr": ""
+  }
+]

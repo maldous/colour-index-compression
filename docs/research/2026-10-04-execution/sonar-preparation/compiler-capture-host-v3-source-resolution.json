@@ -1,0 +1,62 @@
+{
+  "schema": "cix.compiler-capture-host-v3.source-resolution.v1",
+  "purpose": "Resolve the four compiler argv source operands omitted by compiler-capture-host-v3's literal-string selector. This is post-capture metadata only; no compiler command is rerun.",
+  "capture_receipt": {
+    "path": "benchmark-work/native-rc-check-v1/compiler-capture-host-v3/receipt.json",
+    "sha256": "e3ee9a9234faa5822d1cf39426f4973471c4b79852d61ea5cbf6939ec9f75908"
+  },
+  "resolution_rule": "Each recorded source operand is absolute. Collapse repeated path separators, then resolve the existing path. No source symlink is traversed by these four records.",
+  "required_successful_commands": [
+    {
+      "label": "sqfsng-replacement-objects",
+      "receipt_returncode": 0
+    },
+    {
+      "label": "squashfuse-contract-objects",
+      "receipt_returncode": 0
+    }
+  ],
+  "records": [
+    {
+      "translation_unit": "rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_compressor.c",
+      "compiler_invocation_index": 112,
+      "working_directory": "benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "recorded_source_operand": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_compressor.c",
+      "resolved_source": "rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_compressor.c",
+      "sha256": "773a119922e11b83692a8eec5ee8180c1c7d6df181e85f56b6a6a54ba267d4d6",
+      "passed_snapshot": "benchmark-work/native-rc-check-v1/squashfs-readers-source-v5/userspace/libsquashfs/cix_sqfsng_compressor.c",
+      "passed_snapshot_sha256": "773a119922e11b83692a8eec5ee8180c1c7d6df181e85f56b6a6a54ba267d4d6"
+    },
+    {
+      "translation_unit": "rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_read_super.c",
+      "compiler_invocation_index": 113,
+      "working_directory": "benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "recorded_source_operand": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_read_super.c",
+      "resolved_source": "rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_read_super.c",
+      "sha256": "6a6bc154f017fcad48ad7cc06924d5f19cab0b9063ea32a1e94545dacd89bdbe",
+      "passed_snapshot": "benchmark-work/native-rc-check-v1/squashfs-readers-source-v5/userspace/libsquashfs/cix_sqfsng_read_super.c",
+      "passed_snapshot_sha256": "6a6bc154f017fcad48ad7cc06924d5f19cab0b9063ea32a1e94545dacd89bdbe"
+    },
+    {
+      "translation_unit": "rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_library_fixture_contract.c",
+      "compiler_invocation_index": 232,
+      "working_directory": "benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "recorded_source_operand": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//tests/squashfuse_library_fixture_contract.c",
+      "resolved_source": "rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_library_fixture_contract.c",
+      "sha256": "4e87e3f94a82b6c058cf0ea4d7807eec2c6bb5703f7bc3c01f575556f37203b2",
+      "passed_snapshot": "benchmark-work/native-rc-check-v1/squashfs-readers-source-v5/userspace/tests/squashfuse_library_fixture_contract.c",
+      "passed_snapshot_sha256": "4e87e3f94a82b6c058cf0ea4d7807eec2c6bb5703f7bc3c01f575556f37203b2"
+    },
+    {
+      "translation_unit": "rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_xattr_contract.c",
+      "compiler_invocation_index": 233,
+      "working_directory": "benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "recorded_source_operand": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//tests/squashfuse_xattr_contract.c",
+      "resolved_source": "rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_xattr_contract.c",
+      "sha256": "6ac8af394f54338fb58f66b8772b9533c6e4834df526bc1b79486472ec72bf5a",
+      "passed_snapshot": "benchmark-work/native-rc-check-v1/squashfs-readers-source-v5/userspace/tests/squashfuse_xattr_contract.c",
+      "passed_snapshot_sha256": "6ac8af394f54338fb58f66b8772b9533c6e4834df526bc1b79486472ec72bf5a"
+    }
+  ],
+  "conclusion": "All four missing literal matches are successful captured compiler invocations over current files whose bytes equal their qualified v5 snapshots. A v4 compilation is unnecessary."
+}

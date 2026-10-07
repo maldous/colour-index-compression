@@ -1,0 +1,28 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-windows-jobs-mixed-v2/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-windows-jobs-mixed-v2/Cargo.toml', '--lib', 'full_engine::job_protocol', '--', '--test-threads=2']
+
+running 9 tests
+test full_engine::job_protocol::tests::capabilities_describe_bounded_whole_selection_and_cixw1_decode ... ok
+test full_engine::job_protocol::tests::control_round_trip ... ok
+test full_engine::job_protocol::tests::decode_entry_counts_actual_native_output_and_finishes_stage ... ok
+test full_engine::job_protocol::tests::direct_selection_entry_applies_limits_cancel_and_reports_actual_output ... ok
+test full_engine::job_protocol::tests::rejects_unknown_version_oversize_truncated_and_utf8 ... FAILED
+test full_engine::job_protocol::tests::v1_whole_request_remains_a_valid_one_shot_request ... ok
+test full_engine::job_protocol::tests::window_selection_enforces_cumulative_cap_and_cancel_before_writing ... ok
+test full_engine::job_protocol::tests::window_selection_handles_empty_and_multiple_independent_records ... ok
+test full_engine::job_protocol::tests::decode_entry_reports_incremental_window_path ... ok
+
+failures:
+
+---- full_engine::job_protocol::tests::rejects_unknown_version_oversize_truncated_and_utf8 stdout ----
+
+thread 'full_engine::job_protocol::tests::rejects_unknown_version_oversize_truncated_and_utf8' (2946754) panicked at src/full_engine/job_protocol.rs:1388:9:
+assertion failed: read_control(&mut Cursor::new(b)).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    full_engine::job_protocol::tests::rejects_unknown_version_oversize_truncated_and_utf8
+
+test result: FAILED. 8 passed; 1 failed; 0 ignored; 0 measured; 275 filtered out; finished in 0.00s
+

@@ -1,0 +1,52 @@
+{
+  "argv": "set -o pipefail; sonar-scanner -Dsonar.scanner.skipJreProvisioning=true -Dsonar.projectBaseDir=/usr/src -Dproject.settings=/out/properties -Dsonar.scanner.metadataFilePath=/tmp/report-task.txt 2>&1 | (ulimit -f 8192; cat > /scanner-log); statuses=(${PIPESTATUS[@]}); metadata_bytes=0; metadata_over_limit=0; if test -f /tmp/report-task.txt; then metadata_bytes=$(head -c 65537 /tmp/report-task.txt | wc -c); test \"$metadata_bytes\" -le 65536 || metadata_over_limit=1; fi; printf '\\n--CIX-SCANNER-STATUS--\\nscanner=%s\\nsink=%s\\nmetadata_bytes=%s\\nmetadata_over_limit=%s\\n--CIX-SCANNER-REPORT-TASK--\\n' \"${statuses[0]}\" \"${statuses[1]}\" \"$metadata_bytes\" \"$metadata_over_limit\" >> /scanner-log; test \"$metadata_bytes\" -eq 0 || head -c 65537 /tmp/report-task.txt >> /scanner-log; exit \"${statuses[0]}\"",
+  "contract": {
+    "container_root_filesystem": "read-only (--read-only)",
+    "docker_log_driver": "none; scanner stdout/stderr flows through the bounded log-sink",
+    "jre": "image Java 21; scanner JRE provisioning disabled with -Dsonar.scanner.skipJreProvisioning=true",
+    "report_mount": "/out:ro; the only writable evidence paths are two pre-created, size-bounded file binds",
+    "scanner_evidence": {
+      "bytes": 8458240,
+      "container_path": "/scanner-log",
+      "host_path": "<attempt>/scanner.log",
+      "precreated_file_bind": true,
+      "writer": "8 MiB RLIMIT log-sink, then shell metadata copy after a 65537-byte check"
+    },
+    "scanner_report_task": {
+      "bytes": 65536,
+      "container_only_until_bounded_copy": true,
+      "path": "/tmp/report-task.txt"
+    },
+    "source_mount": "/usr/src:ro",
+    "writable_tmpfs": {
+      "bytes": 134217728,
+      "includes": [
+        "HOME",
+        "XDG_CONFIG_HOME",
+        "SONAR_USER_HOME",
+        "SCANNER_WORKDIR_PATH"
+      ],
+      "path": "/tmp"
+    }
+  },
+  "docker_cp": {
+    "reason": "stopped-container tmpfs was unrecoverable in probe-v6; bounded file binds retain both artifacts before exit",
+    "status": "not_attempted",
+    "used": false
+  },
+  "docker_wait": {
+    "exit": 0,
+    "stderr": "",
+    "stdout": "0\n"
+  },
+  "exit": "0",
+  "log_bytes": 4587,
+  "log_path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/sonar-preparation/header-context-v1/header/scanner.log",
+  "pipeline_status": {
+    "metadata_bytes": "303",
+    "metadata_over_limit": "0",
+    "scanner": "0",
+    "sink": "0"
+  },
+  "report_task_path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/sonar-preparation/header-context-v1/header/report-task.txt"
+}

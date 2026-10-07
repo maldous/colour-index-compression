@@ -1,0 +1,145 @@
+{
+  "schema": "cix-gpu-methodologies-v1",
+  "reviewed": "2026-10-04",
+  "scope": "prior-art and source review only; no GPU workload, package acquisition, build, benchmark, or vendor modification",
+  "current_cix": {
+    "cuda_runtime": false,
+    "gpu_codec_provider": false,
+    "libbsc_cuda_sources": "excluded"
+  },
+  "disposition": "no CUDA dependency or GPU-required route for current RC; maintain conditional shortlist for later evidence",
+  "methods": [
+    {
+      "name": "nvCOMP conventional codecs",
+      "formats": [
+        "lz4",
+        "snappy",
+        "deflate",
+        "gzip",
+        "zstd"
+      ],
+      "byte_exact": "format-dependent; requires compatibility proof",
+      "license": "NVIDIA SDK agreement",
+      "status": "consider-later-optional",
+      "url": "https://docs.nvidia.com/cuda/nvcomp/"
+    },
+    {
+      "name": "GDeflate",
+      "format": "custom bit-swizzled DEFLATE-like stream",
+      "byte_exact": true,
+      "status": "defer",
+      "url": "https://docs.nvidia.com/cuda/nvcomp/gdeflate.html"
+    },
+    {
+      "name": "Cascaded/Bitcomp/ANS",
+      "format": "nvCOMP native formats",
+      "byte_exact": "Bitcomp mode-dependent; lossy modes excluded",
+      "status": "research-or-defer",
+      "url": "https://docs.nvidia.com/cuda/nvcomp/"
+    },
+    {
+      "name": "dietGPU rANS",
+      "format": "custom CUDA entropy/float streams",
+      "byte_exact": "not established for CIX payloads",
+      "license": "MIT; archived 2026-06-14",
+      "status": "research-only",
+      "url": "https://github.com/facebookresearch/dietgpu"
+    },
+    {
+      "name": "ndzip",
+      "format": "scientific IEEE grid stream",
+      "byte_exact": "claims bit-identical CPU/GPU stream; CIX edge cases unqualified",
+      "license": "MIT",
+      "status": "conditional-shortlist",
+      "url": "https://github.com/celerity/ndzip"
+    },
+    {
+      "name": "FPC",
+      "format": "float64 predictor stream",
+      "byte_exact": "requires raw IEEE bit-pattern proof",
+      "license": "MIT implementation available; original terms must be checked",
+      "status": "cpu-baseline-research",
+      "url": "https://github.com/spenczar/fpc"
+    },
+    {
+      "name": "GFC",
+      "format": "CUDA IEEE float64 stream",
+      "byte_exact": "original source targets binary IEEE double; raw-bit fixture required",
+      "license": "embedded source license requires review",
+      "status": "conditional-shortlist",
+      "url": "https://userweb.cs.txstate.edu/~burtscher/research/GFC/"
+    },
+    {
+      "name": "MPC",
+      "format": "CUDA binary IEEE float32/float64 streams, little-endian input divisible by 4/8",
+      "byte_exact": "upstream lossless claim; raw-bit CIX fixtures unqualified",
+      "license": "embedded source license must be reviewed before integration",
+      "status": "research-only",
+      "url": "https://userweb.cs.txstate.edu/~burtscher/research/MPC/"
+    },
+    {
+      "name": "FZ-GPU/cuSZ",
+      "format": "error-bounded scientific compression",
+      "byte_exact": false,
+      "status": "reject-lossy",
+      "url": "https://github.com/szcompressor/FZ-GPU"
+    },
+    {
+      "name": "GPU BWT/bzip2",
+      "format": "transform/research implementations",
+      "byte_exact": "only with exact bzip2 or existing CIX wire format",
+      "status": "conditional-shortlist",
+      "url": "https://github.com/IlyaGrebnov/libcubwt"
+    },
+    {
+      "name": "NNCP v3.3 + LibNC",
+      "format": "C neural compressor with CUDA support and model payload",
+      "byte_exact": "requires CPU/CUDA reproducibility and model-byte proof",
+      "license": "NNCP MIT sources; LibNC binary redistribution terms and source-only-package implications separate",
+      "status": "research-only; local documented GPU architecture/memory unsupported",
+      "url": "https://bellard.org/nncp/"
+    },
+    {
+      "name": "other neural sequential",
+      "format": "custom model streams",
+      "byte_exact": "unqualified",
+      "status": "defer-individually",
+      "url": "docs/research/2026-10-04-predictive-information/REPORT.md"
+    }
+  ],
+  "required_future_evidence": [
+    "transfer-inclusive measurements",
+    "device and host peak-memory receipts",
+    "pinned provider/license/driver ABI",
+    "deterministic framing",
+    "CPU fallback or explicit GPU-only backend identity",
+    "complete archive byte comparison",
+    "exact restoration including arbitrary IEEE bit patterns, NaNs, signed zero and subnormals"
+  ],
+  "additional_candidates": [
+    {
+      "name": "LC framework",
+      "source": "https://github.com/burtscher/LC-framework",
+      "status": "bounded component/CPU-CUDA-HIP interoperability research",
+      "license": "BSD-3-Clause upstream",
+      "constraints": "lossless components only;16KiB chunk cost;little-endian;post-March2025 format change;no broad search resumed"
+    },
+    {
+      "name": "GPULZ",
+      "source": "https://github.com/hpdps-group/ICS23-GPULZ",
+      "status": "multibyte LZSS research;CPU decode/license/format/exact original bytes unqualified"
+    },
+    {
+      "name": "ALP",
+      "source": "https://github.com/cwida/ALP",
+      "status": "exact float CPU/control reference;GPU implementation not established by this review"
+    },
+    {
+      "name": "hipCOMP-core v2.3.0",
+      "source": "https://github.com/ROCm/hipCOMP-core",
+      "status": "early-access cross-vendor research; no AMD runner local",
+      "constraints": "per-codec support differs from nvCOMP; CUDA backend testing-only; no format, performance or deployment equivalence assumed"
+    }
+  ],
+  "nncp_host_disposition": "Current documented CUDA targets Ampere/Ada/Hopper and6.6GBexample exceed GTX1650/4GiB;LibNC cross-platform reproducibility promise CPU-only;binary dependency source-only distro issue remains"
+}

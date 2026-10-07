@@ -1,0 +1,14 @@
+run-u119186.service
+  command suffix: cargo +stable clippy --locked --lib -- -D warnings
+  cargo exit: 101
+  result: failed on 32 whole-crate diagnostics, including duplicate module-load and unrelated source findings.
+
+run-u119229.service
+  command suffix: cargo +stable clippy --locked --lib -- -A warnings -D clippy::manual_contains -D clippy::type_complexity -D clippy::if_same_then_else -D clippy::too_many_arguments
+  cargo exit: 101
+  result: failed on 9 remaining whole-crate diagnostics. It is not a clean scoped-lint pass.
+
+run-u119241.service
+  command suffix: same as run-u119229, piped to rg -C 5 'legacy_lz.rs'; shell explicitly exited 0 after inspection.
+  cargo exit: not propagated by this inspection wrapper; wrapper exit: 0.
+  result: no legacy_lz.rs diagnostic was printed by rg. This is inspection evidence only, not a successful Clippy execution.

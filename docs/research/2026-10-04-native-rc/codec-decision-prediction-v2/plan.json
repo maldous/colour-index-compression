@@ -1,0 +1,16 @@
+{
+  "experiment": "codec-decision-prediction-v2",
+  "frozen_before_execution": true,
+  "purpose": "Complete the fixed predictor experiment by entropy-coding the entire self-contained DCP1 correction archive, whose raw one-byte P tags were materially redundant.",
+  "inputs": [
+    {"asset": "artificial", "dcp1_path": "benchmark-work/codec-decision-prediction-v1/artificial.decision_predictor_dcp1.bin", "dcp1_sha256": "b3f3bfd6dc006c97fd695b1a59f0c2b4606b2f32c529579b60ecbb65cd4c0c23", "original_gzip_sha256": "cc1818a084d61fe693fe2a9db7312da25fdb4b54313502a6920abf692b7a47ab"},
+    {"asset": "canterbury", "dcp1_path": "benchmark-work/codec-decision-prediction-v1/canterbury.decision_predictor_dcp1.bin", "dcp1_sha256": "02522da7db7487fce7e9d7682da895dbd7580b2fcbd74690df31c3ea8395f5de", "original_gzip_sha256": "f140e8a5b73d3f53198555a63bfb827889394a42f20825df33c810c3d5e3f8fb"},
+    {"asset": "calgary", "dcp1_path": "benchmark-work/codec-decision-prediction-v1/calgary.decision_predictor_dcp1.bin", "dcp1_sha256": "42e3f33e345e1cebe0735e178b159a0b6fbea50be1dc561cd4ccc61eadf5d9c1", "original_gzip_sha256": "e109eebdc19c5cee533c58bd6a49a4be3a77cc52f84ba234a089148a4f2093b7"}
+  ],
+  "candidate": "DCP2 = ASCII magic DCP2 followed by xz preset-1 compression of the complete DCP1 byte stream. No parameters are searched or selected from outcomes.",
+  "decoder": "Reject non-DCP2 magic, xz-decompress to DCP1, then apply a new local DCP1 inverse that advances plaintext offset through stored blocks. It pins the existing DCP1 zlib runtime requirement. A fresh process receives only DCP2 payload and expected original-gzip SHA-256.",
+  "controls": ["original gzip", "charged GZB1 zlib-9 whole-gzip wrapper", "charged GXB1 xz-1 whole-gzip wrapper", "raw DCP1"],
+  "validation": "Validate mixed nonempty stored then fixed-compressed DEFLATE reconstruction with the corrected new inverse before three real DCP1 inputs. Existing real inputs are also inspected for non-stored blocks before relying on their original DCP1 encoding.",
+  "resources": {"cpu": "one core 10", "wall_seconds": 30, "address_space_bytes": 600000000, "output_bytes": 128000000, "swap": false},
+  "stop": "One xz preset-1 wrapper screen only; no predictor, corpus, parameter, or production changes."
+}

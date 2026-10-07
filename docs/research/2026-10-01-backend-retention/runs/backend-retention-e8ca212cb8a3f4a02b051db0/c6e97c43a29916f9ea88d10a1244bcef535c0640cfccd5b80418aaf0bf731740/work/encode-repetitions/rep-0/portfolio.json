@@ -1,0 +1,1877 @@
+{
+  "format": "CIX backend portfolio audit v1",
+  "profile": "size",
+  "source_bytes": 16384,
+  "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+  "search_budget_seconds": 60.0,
+  "search_budget_scope": "candidate encoding and discarded trials only; exact-restoration validation is separately capped and reported",
+  "default_forced_candidate_cap_seconds": 4.0,
+  "adaptive_candidate_cap_seconds": 12.0,
+  "default_validation_cap_seconds": 4.0,
+  "recommended_outer_audit_cap_seconds": 180.0,
+  "outer_memory_bytes": 2000000000,
+  "selected": "cix-adaptive",
+  "compressed_bytes": 11544,
+  "archive_sha256": "bf8a0675ff8e80c2d0fba988bf321921d6e1828e4880f94a3f67c9a6dd524d48",
+  "attempts": [
+    {
+      "plan_index": 0,
+      "name": "cix-route:raw",
+      "kind": "cix-route",
+      "route": "raw",
+      "archive_name": "00-cix-route-raw.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.0003097113221883774,
+      "archive_bytes": 16479,
+      "archive_sha256": "5fbb4b86d5276439ab560e28f92534f9a0d9e2cfd2a88461ae0bb9775693c18d",
+      "detail": {
+        "format": "CIXG1",
+        "effort": "maximum",
+        "force": "raw",
+        "source_bytes": 16384,
+        "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "compressed_bytes": 16479,
+        "block_count": 1,
+        "encode_seconds": 0.00021718209609389305,
+        "selection_total_seconds": 0.0,
+        "search_and_launch_overhead_seconds": 0.0,
+        "standalone_payload_bytes": 16479,
+        "wrapper_bytes": 0,
+        "source_verified": true
+      },
+      "peak_rss_kib": 21800,
+      "wall_seconds": 0.002484144177287817,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.000337876845151186,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXG1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.00012695277109742165
+        },
+        "peak_rss_kib": 21800,
+        "wall_seconds": 0.001734485849738121
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/00-cix-route-raw.cix",
+        "bytes": 16479,
+        "sha256": "5fbb4b86d5276439ab560e28f92534f9a0d9e2cfd2a88461ae0bb9775693c18d"
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/00-cix-route-raw.cix",
+        "bytes": 16479,
+        "sha256": "5fbb4b86d5276439ab560e28f92534f9a0d9e2cfd2a88461ae0bb9775693c18d",
+        "framed_bytes": 16479,
+        "wrapper_bytes": 0
+      }
+    },
+    {
+      "plan_index": 1,
+      "name": "gzip:direct",
+      "kind": "external",
+      "backend": "gzip",
+      "archive_name": "01-gzip-direct.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.00113953510299325,
+      "archive_bytes": 14401,
+      "archive_sha256": "1fc50d5f97ff08f2c47a2254dc8568766439f3da1aee8a7b8a53dd933cd87792",
+      "detail": {
+        "backend": "gzip",
+        "preset": {
+          "level": 9
+        },
+        "standalone_payload_bytes": 14354,
+        "wrapper_bytes": 47,
+        "runtime_identity_verified": true,
+        "source_verified": false,
+        "source_verification_note": "standard format and exact Python runtime recorded; linked codec library binary not source-attested"
+      },
+      "peak_rss_kib": 22056,
+      "wall_seconds": 0.002616042271256447,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.00042949477210640907,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXB1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.00031159864738583565
+        },
+        "peak_rss_kib": 21800,
+        "wall_seconds": 0.0018223612569272518
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/01-gzip-direct.cix",
+        "bytes": 14401,
+        "sha256": "1fc50d5f97ff08f2c47a2254dc8568766439f3da1aee8a7b8a53dd933cd87792"
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/standalone-payloads/01-gzip.payload",
+        "bytes": 14354,
+        "sha256": "5cf6e10efd52e8889d73abe3391ae7617c6dd37f8a82f0c548a063f48d2e3ba9",
+        "framed_bytes": 14401,
+        "wrapper_bytes": 47
+      }
+    },
+    {
+      "plan_index": 2,
+      "name": "bzip2:direct",
+      "kind": "external",
+      "backend": "bzip2",
+      "archive_name": "02-bzip2-direct.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.002964003011584282,
+      "archive_bytes": 15472,
+      "archive_sha256": "7ac6766328ca6217178e7fe3948e806897de6c12a70e40ef206c96d879f520c9",
+      "detail": {
+        "backend": "bzip2",
+        "preset": {
+          "level": 9
+        },
+        "standalone_payload_bytes": 15425,
+        "wrapper_bytes": 47,
+        "runtime_identity_verified": true,
+        "source_verified": false,
+        "source_verification_note": "standard format and exact Python runtime recorded; linked codec library binary not source-attested"
+      },
+      "peak_rss_kib": 22056,
+      "wall_seconds": 0.009927638806402683,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.001331849955022335,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXB1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.001209082081913948
+        },
+        "peak_rss_kib": 21800,
+        "wall_seconds": 0.004522049333900213
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/02-bzip2-direct.cix",
+        "bytes": 15472,
+        "sha256": "7ac6766328ca6217178e7fe3948e806897de6c12a70e40ef206c96d879f520c9"
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/standalone-payloads/02-bzip2.payload",
+        "bytes": 15425,
+        "sha256": "d070bdd38c6b90c908db00864cde1a9070ecc41e78ddcee08c1148507cbf3b7c",
+        "framed_bytes": 15472,
+        "wrapper_bytes": 47
+      }
+    },
+    {
+      "plan_index": 3,
+      "name": "xz:direct",
+      "kind": "external",
+      "backend": "xz",
+      "archive_name": "03-xz-direct.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.03384200483560562,
+      "archive_bytes": 13023,
+      "archive_sha256": "663850181a1f214adafa2e886be56c0157a963c35dd01f826ba30ab471e9f2ef",
+      "detail": {
+        "backend": "xz",
+        "preset": {
+          "level": 9,
+          "extreme": true
+        },
+        "standalone_payload_bytes": 12976,
+        "wrapper_bytes": 47,
+        "runtime_identity_verified": true,
+        "source_verified": false,
+        "source_verification_note": "standard format and exact Python runtime recorded; linked codec library binary not source-attested"
+      },
+      "peak_rss_kib": 87336,
+      "wall_seconds": 0.03576495312154293,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.0012412890791893005,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXB1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.0010919971391558647
+        },
+        "peak_rss_kib": 21800,
+        "wall_seconds": 0.0030656270682811737
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/03-xz-direct.cix",
+        "bytes": 13023,
+        "sha256": "663850181a1f214adafa2e886be56c0157a963c35dd01f826ba30ab471e9f2ef"
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/standalone-payloads/03-xz.payload",
+        "bytes": 12976,
+        "sha256": "c8b33d2806c10215069ec34d73971e3f75cd526a6ae0071547f0873c208c6e00",
+        "framed_bytes": 13023,
+        "wrapper_bytes": 47
+      }
+    },
+    {
+      "plan_index": 4,
+      "name": "zstd:direct",
+      "kind": "external",
+      "backend": "zstd",
+      "archive_name": "04-zstd-direct.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.009240028914064169,
+      "archive_bytes": 14391,
+      "archive_sha256": "6e1d612615e4dce2ff97cbd9145a9eb59d0bee452f14bbd3f8ea6fa6863afdc6",
+      "detail": {
+        "backend": "zstd",
+        "preset": {
+          "level": 22
+        },
+        "standalone_payload_bytes": 14344,
+        "wrapper_bytes": 47,
+        "runtime_identity_verified": true,
+        "source_verified": true,
+        "decoder_requirement": {
+          "format": "Zstandard frame",
+          "binary_sha256": "7c5468b370f7c47eda07281e3437fafc568f95d10420051e3aa522709f9342c5",
+          "version": "*** Zstandard CLI (64-bit) v1.5.5, by Yann Collet ***",
+          "runtime_path_required": false,
+          "runtime_binary": "zstd"
+        }
+      },
+      "peak_rss_kib": 25112,
+      "wall_seconds": 0.010863312054425478,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.0028461539186537266,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXB1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.0027500796131789684
+        },
+        "peak_rss_kib": 22824,
+        "wall_seconds": 0.004387554246932268
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/04-zstd-direct.cix",
+        "bytes": 14391,
+        "sha256": "6e1d612615e4dce2ff97cbd9145a9eb59d0bee452f14bbd3f8ea6fa6863afdc6"
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/standalone-payloads/04-zstd.payload",
+        "bytes": 14344,
+        "sha256": "30a55013970e37bd2713888724fe21cb272074e3c7cd0ba4346f3c13fe5c6110",
+        "framed_bytes": 14391,
+        "wrapper_bytes": 47
+      }
+    },
+    {
+      "plan_index": 5,
+      "name": "cix-adaptive",
+      "kind": "cix-adaptive",
+      "archive_name": "05-cix-adaptive.cix",
+      "encode_cap_seconds": 12.0,
+      "status": "VERIFIED",
+      "encode_seconds": 5.281032580882311,
+      "archive_bytes": 11544,
+      "archive_sha256": "bf8a0675ff8e80c2d0fba988bf321921d6e1828e4880f94a3f67c9a6dd524d48",
+      "detail": {
+        "format": "CIXG1",
+        "effort": "maximum",
+        "backend": "hybrid",
+        "history_bytes": 0,
+        "block_bytes": 65536,
+        "disable": [],
+        "force": null,
+        "offline": false,
+        "source_bytes": 16384,
+        "compressed_bytes": 11544,
+        "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "encode_seconds": 5.280908105894923,
+        "blocks": [
+          {
+            "offset": 0,
+            "source_bytes": 16384,
+            "route": "stride",
+            "complete_block_bytes": 11490,
+            "features": {
+              "sample_bytes": 8192,
+              "entropy": 6.929348507121891,
+              "symbols": 256,
+              "run_fraction": 0.004885197850512946,
+              "repeat_fraction": 0.0,
+              "lag_entropy": {
+                "1": 7.968572808026581,
+                "2": 7.97010570718009,
+                "4": 6.6318127042378645,
+                "8": 6.779429134393449,
+                "16": 6.869571288084357,
+                "32": 6.9138971208259425,
+                "64": 6.608936255068228
+              },
+              "predictability": 0.012912912912912912,
+              "regional_entropy_range": 0.34304440607293696
+            },
+            "accounting": {
+              "framing_bytes": 41,
+              "structural_bytes": 1,
+              "stream_descriptor_bytes": 45,
+              "count_table_bytes": 49,
+              "coded_payload_bytes": 11354,
+              "coders": [
+                "raw",
+                "raw",
+                "deflate",
+                "cix-exact-1024"
+              ]
+            },
+            "profiling_seconds": 0.015164639800786972,
+            "selection_seconds": 5.280608627013862,
+            "selected_trial_compute_seconds": 0.02969464473426342,
+            "trials": [
+              {
+                "route": "runs",
+                "bytes": 32483,
+                "payload_bytes": 32442,
+                "compute_seconds": 0.005035472102463245,
+                "wall_seconds": 0.007097982801496983,
+                "peak_rss_kib": 20940,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 0,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 32442,
+                  "coders": []
+                }
+              },
+              {
+                "route": "deflate",
+                "bytes": 14388,
+                "payload_bytes": 14347,
+                "compute_seconds": 0.005378752946853638,
+                "wall_seconds": 0.006785520352423191,
+                "peak_rss_kib": 21964,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 10,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 14337,
+                  "coders": [
+                    "deflate"
+                  ]
+                }
+              },
+              {
+                "route": "stride",
+                "bytes": 11490,
+                "payload_bytes": 11449,
+                "compute_seconds": 0.02969464473426342,
+                "wall_seconds": 0.03502896288409829,
+                "peak_rss_kib": 23756,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 1,
+                  "stream_descriptor_bytes": 45,
+                  "count_table_bytes": 49,
+                  "coded_payload_bytes": 11354,
+                  "coders": [
+                    "raw",
+                    "raw",
+                    "deflate",
+                    "cix-exact-1024"
+                  ]
+                }
+              },
+              {
+                "route": "lz",
+                "bytes": 14438,
+                "payload_bytes": 14397,
+                "compute_seconds": 0.1213673041202128,
+                "wall_seconds": 0.12353212386369705,
+                "peak_rss_kib": 26572,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 37,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 14360,
+                  "coders": [
+                    "runs",
+                    "deflate",
+                    "raw",
+                    "raw"
+                  ]
+                }
+              },
+              {
+                "route": "bwt",
+                "bytes": 15386,
+                "payload_bytes": 15345,
+                "compute_seconds": 0.11941953469067812,
+                "wall_seconds": 0.12189165595918894,
+                "peak_rss_kib": 25804,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 4,
+                  "stream_descriptor_bytes": 63,
+                  "count_table_bytes": 101,
+                  "coded_payload_bytes": 15177,
+                  "coders": [
+                    "cix-exact-1024",
+                    "deflate",
+                    "cix-exact-1024"
+                  ]
+                }
+              },
+              {
+                "route": "predictor",
+                "bytes": 13718,
+                "payload_bytes": 13677,
+                "compute_seconds": 0.09758560126647353,
+                "wall_seconds": 0.09973502485081553,
+                "peak_rss_kib": 22476,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 10,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 13667,
+                  "coders": [
+                    "deflate"
+                  ]
+                }
+              },
+              {
+                "route": "phrases",
+                "bytes": 14503,
+                "payload_bytes": 14462,
+                "compute_seconds": 0.09378204960376024,
+                "wall_seconds": 0.09564111102372408,
+                "peak_rss_kib": 22476,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 65,
+                  "stream_descriptor_bytes": 28,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 14369,
+                  "coders": [
+                    "deflate",
+                    "deflate",
+                    "deflate"
+                  ]
+                }
+              },
+              {
+                "route": "composition",
+                "bytes": 14456,
+                "payload_bytes": 14415,
+                "compute_seconds": 0.07435014005750418,
+                "wall_seconds": 0.07605393696576357,
+                "peak_rss_kib": 21452,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 58,
+                  "count_table_bytes": 1812,
+                  "coded_payload_bytes": 12545,
+                  "coders": [
+                    "cix-exact-1024"
+                  ]
+                }
+              },
+              {
+                "route": "ppm",
+                "bytes": 20041,
+                "payload_bytes": 20000,
+                "compute_seconds": 0.6823443016037345,
+                "wall_seconds": 0.6844975957646966,
+                "peak_rss_kib": 30412,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 0,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 20000,
+                  "coders": []
+                }
+              },
+              {
+                "route": "mixture",
+                "bytes": null,
+                "payload_bytes": null,
+                "compute_seconds": 0,
+                "wall_seconds": 4.01377639407292,
+                "peak_rss_kib": 0,
+                "status": "TIME_BUDGET",
+                "accounting": null
+              }
+            ]
+          }
+        ],
+        "block_count": 1,
+        "route_usage_source_bytes": {
+          "stride": 16384
+        },
+        "selection_total_seconds": 5.280608627013862,
+        "search_and_launch_overhead_seconds": 5.250913982279599,
+        "blocks_truncated": false,
+        "all_block_trace": null,
+        "standalone_payload_bytes": 11544,
+        "wrapper_bytes": 0,
+        "source_verified": true
+      },
+      "peak_rss_kib": 191644,
+      "wall_seconds": 5.285933842882514,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.011935095768421888,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXG1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.011631127912551165
+        },
+        "peak_rss_kib": 23336,
+        "wall_seconds": 0.014082481153309345
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/05-cix-adaptive.cix",
+        "bytes": 11544,
+        "sha256": "bf8a0675ff8e80c2d0fba988bf321921d6e1828e4880f94a3f67c9a6dd524d48"
+      },
+      "trace": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/05-cix-adaptive.blocks.jsonl",
+        "sha256": "67f9c4d0b44202793022b1d26afe2c4a5e4906de67fb996fe74a4a9c5918d080",
+        "blocks": 1
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/05-cix-adaptive.cix",
+        "bytes": 11544,
+        "sha256": "bf8a0675ff8e80c2d0fba988bf321921d6e1828e4880f94a3f67c9a6dd524d48",
+        "framed_bytes": 11544,
+        "wrapper_bytes": 0
+      }
+    },
+    {
+      "plan_index": 6,
+      "name": "cix-route:runs",
+      "kind": "cix-route",
+      "route": "runs",
+      "archive_name": "06-cix-route-runs.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.021402610931545496,
+      "archive_bytes": 32537,
+      "archive_sha256": "8b822df04a1bc6d34d649c5e4c40f5455cbbc188e4b1f5ee146fcd419ebd1171",
+      "detail": {
+        "format": "CIXG1",
+        "effort": "maximum",
+        "backend": "hybrid",
+        "history_bytes": 0,
+        "block_bytes": 65536,
+        "disable": [],
+        "force": "runs",
+        "offline": false,
+        "source_bytes": 16384,
+        "compressed_bytes": 32537,
+        "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "encode_seconds": 0.02128410106524825,
+        "blocks": [
+          {
+            "offset": 0,
+            "source_bytes": 16384,
+            "route": "runs",
+            "complete_block_bytes": 32483,
+            "features": {
+              "sample_bytes": 8192,
+              "entropy": 6.929348507121891,
+              "symbols": 256,
+              "run_fraction": 0.004885197850512946,
+              "repeat_fraction": 0.0,
+              "lag_entropy": {
+                "1": 7.968572808026581,
+                "2": 7.97010570718009,
+                "4": 6.6318127042378645,
+                "8": 6.779429134393449,
+                "16": 6.869571288084357,
+                "32": 6.9138971208259425,
+                "64": 6.608936255068228
+              },
+              "predictability": 0.012912912912912912,
+              "regional_entropy_range": 0.34304440607293696
+            },
+            "accounting": {
+              "framing_bytes": 41,
+              "structural_bytes": 0,
+              "stream_descriptor_bytes": 0,
+              "count_table_bytes": 0,
+              "coded_payload_bytes": 32442,
+              "coders": []
+            },
+            "profiling_seconds": 0.013781293760985136,
+            "selection_seconds": 0.021073353942483664,
+            "selected_trial_compute_seconds": 0.005068551748991013,
+            "trials": [
+              {
+                "route": "runs",
+                "bytes": 32483,
+                "payload_bytes": 32442,
+                "compute_seconds": 0.005068551748991013,
+                "wall_seconds": 0.007083945907652378,
+                "peak_rss_kib": 20940,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 0,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 32442,
+                  "coders": []
+                }
+              }
+            ]
+          }
+        ],
+        "block_count": 1,
+        "route_usage_source_bytes": {
+          "runs": 16384
+        },
+        "selection_total_seconds": 0.021073353942483664,
+        "search_and_launch_overhead_seconds": 0.01600480219349265,
+        "blocks_truncated": false,
+        "all_block_trace": null,
+        "standalone_payload_bytes": 32537,
+        "wrapper_bytes": 0,
+        "source_verified": true
+      },
+      "peak_rss_kib": 23336,
+      "wall_seconds": 0.023298526648432016,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.007049511186778545,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXG1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.006796467117965221
+        },
+        "peak_rss_kib": 21800,
+        "wall_seconds": 0.011623970232903957
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/06-cix-route-runs.cix",
+        "bytes": 32537,
+        "sha256": "8b822df04a1bc6d34d649c5e4c40f5455cbbc188e4b1f5ee146fcd419ebd1171"
+      },
+      "trace": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/06-cix-route-runs.blocks.jsonl",
+        "sha256": "440bb7f735bc4aaac925bb99ae9e406173c305dd80fc855263cda06431cfa27c",
+        "blocks": 1
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/06-cix-route-runs.cix",
+        "bytes": 32537,
+        "sha256": "8b822df04a1bc6d34d649c5e4c40f5455cbbc188e4b1f5ee146fcd419ebd1171",
+        "framed_bytes": 32537,
+        "wrapper_bytes": 0
+      }
+    },
+    {
+      "plan_index": 7,
+      "name": "cix-route:composition",
+      "kind": "cix-route",
+      "route": "composition",
+      "archive_name": "07-cix-route-composition.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.09266044432297349,
+      "archive_bytes": 14510,
+      "archive_sha256": "9c4ab5543acf3c47e150993aae00fa0611ac3e136ed29849a7e62c4ea2f26977",
+      "detail": {
+        "format": "CIXG1",
+        "effort": "maximum",
+        "backend": "hybrid",
+        "history_bytes": 0,
+        "block_bytes": 65536,
+        "disable": [],
+        "force": "composition",
+        "offline": false,
+        "source_bytes": 16384,
+        "compressed_bytes": 14510,
+        "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "encode_seconds": 0.09254574496299028,
+        "blocks": [
+          {
+            "offset": 0,
+            "source_bytes": 16384,
+            "route": "composition",
+            "complete_block_bytes": 14456,
+            "features": {
+              "sample_bytes": 8192,
+              "entropy": 6.929348507121891,
+              "symbols": 256,
+              "run_fraction": 0.004885197850512946,
+              "repeat_fraction": 0.0,
+              "lag_entropy": {
+                "1": 7.968572808026581,
+                "2": 7.97010570718009,
+                "4": 6.6318127042378645,
+                "8": 6.779429134393449,
+                "16": 6.869571288084357,
+                "32": 6.9138971208259425,
+                "64": 6.608936255068228
+              },
+              "predictability": 0.012912912912912912,
+              "regional_entropy_range": 0.34304440607293696
+            },
+            "accounting": {
+              "framing_bytes": 41,
+              "structural_bytes": 0,
+              "stream_descriptor_bytes": 58,
+              "count_table_bytes": 1812,
+              "coded_payload_bytes": 12545,
+              "coders": [
+                "cix-exact-1024"
+              ]
+            },
+            "profiling_seconds": 0.012595998588949442,
+            "selection_seconds": 0.0921082878485322,
+            "selected_trial_compute_seconds": 0.07619022903963923,
+            "trials": [
+              {
+                "route": "composition",
+                "bytes": 14456,
+                "payload_bytes": 14415,
+                "compute_seconds": 0.07619022903963923,
+                "wall_seconds": 0.07906596409156919,
+                "peak_rss_kib": 21456,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 58,
+                  "count_table_bytes": 1812,
+                  "coded_payload_bytes": 12545,
+                  "coders": [
+                    "cix-exact-1024"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "block_count": 1,
+        "route_usage_source_bytes": {
+          "composition": 16384
+        },
+        "selection_total_seconds": 0.0921082878485322,
+        "search_and_launch_overhead_seconds": 0.015918058808892965,
+        "blocks_truncated": false,
+        "all_block_trace": null,
+        "standalone_payload_bytes": 14510,
+        "wrapper_bytes": 0,
+        "source_verified": true
+      },
+      "peak_rss_kib": 23592,
+      "wall_seconds": 0.09449204802513123,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.15223924396559596,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXG1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.15193870570510626
+        },
+        "peak_rss_kib": 22056,
+        "wall_seconds": 0.1550381570123136
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/07-cix-route-composition.cix",
+        "bytes": 14510,
+        "sha256": "9c4ab5543acf3c47e150993aae00fa0611ac3e136ed29849a7e62c4ea2f26977"
+      },
+      "trace": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/07-cix-route-composition.blocks.jsonl",
+        "sha256": "9985113109c8d96c5b282f32ea54b3af0a352c1d5a49fa40e701e668d866d27c",
+        "blocks": 1
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/07-cix-route-composition.cix",
+        "bytes": 14510,
+        "sha256": "9c4ab5543acf3c47e150993aae00fa0611ac3e136ed29849a7e62c4ea2f26977",
+        "framed_bytes": 14510,
+        "wrapper_bytes": 0
+      }
+    },
+    {
+      "plan_index": 8,
+      "name": "cix-route:lz",
+      "kind": "cix-route",
+      "route": "lz",
+      "archive_name": "08-cix-route-lz.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.12944087805226445,
+      "archive_bytes": 14492,
+      "archive_sha256": "7414b85f1e913004aa172c0bf64a1a7157251930414677da627d96c27c847cec",
+      "detail": {
+        "format": "CIXG1",
+        "effort": "maximum",
+        "backend": "hybrid",
+        "history_bytes": 0,
+        "block_bytes": 65536,
+        "disable": [],
+        "force": "lz",
+        "offline": false,
+        "source_bytes": 16384,
+        "compressed_bytes": 14492,
+        "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "encode_seconds": 0.12931439699605107,
+        "blocks": [
+          {
+            "offset": 0,
+            "source_bytes": 16384,
+            "route": "lz",
+            "complete_block_bytes": 14438,
+            "features": {
+              "sample_bytes": 8192,
+              "entropy": 6.929348507121891,
+              "symbols": 256,
+              "run_fraction": 0.004885197850512946,
+              "repeat_fraction": 0.0,
+              "lag_entropy": {
+                "1": 7.968572808026581,
+                "2": 7.97010570718009,
+                "4": 6.6318127042378645,
+                "8": 6.779429134393449,
+                "16": 6.869571288084357,
+                "32": 6.9138971208259425,
+                "64": 6.608936255068228
+              },
+              "predictability": 0.012912912912912912,
+              "regional_entropy_range": 0.34304440607293696
+            },
+            "accounting": {
+              "framing_bytes": 41,
+              "structural_bytes": 0,
+              "stream_descriptor_bytes": 37,
+              "count_table_bytes": 0,
+              "coded_payload_bytes": 14360,
+              "coders": [
+                "runs",
+                "deflate",
+                "raw",
+                "raw"
+              ]
+            },
+            "profiling_seconds": 0.01043161703273654,
+            "selection_seconds": 0.12907772790640593,
+            "selected_trial_compute_seconds": 0.11626084987074137,
+            "trials": [
+              {
+                "route": "lz",
+                "bytes": 14438,
+                "payload_bytes": 14397,
+                "compute_seconds": 0.11626084987074137,
+                "wall_seconds": 0.11842147493734956,
+                "peak_rss_kib": 25824,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 37,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 14360,
+                  "coders": [
+                    "runs",
+                    "deflate",
+                    "raw",
+                    "raw"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "block_count": 1,
+        "route_usage_source_bytes": {
+          "lz": 16384
+        },
+        "selection_total_seconds": 0.12907772790640593,
+        "search_and_launch_overhead_seconds": 0.012816878035664558,
+        "blocks_truncated": false,
+        "all_block_trace": null,
+        "standalone_payload_bytes": 14492,
+        "wrapper_bytes": 0,
+        "source_verified": true
+      },
+      "peak_rss_kib": 26080,
+      "wall_seconds": 0.13151467684656382,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.0025706449523568153,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXG1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.0023008757270872593
+        },
+        "peak_rss_kib": 22056,
+        "wall_seconds": 0.004404227249324322
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/08-cix-route-lz.cix",
+        "bytes": 14492,
+        "sha256": "7414b85f1e913004aa172c0bf64a1a7157251930414677da627d96c27c847cec"
+      },
+      "trace": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/08-cix-route-lz.blocks.jsonl",
+        "sha256": "ec40a1a5131f2b2f6c4ec64aa647eed89f59409ce5bc36b056179613cd95b273",
+        "blocks": 1
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/08-cix-route-lz.cix",
+        "bytes": 14492,
+        "sha256": "7414b85f1e913004aa172c0bf64a1a7157251930414677da627d96c27c847cec",
+        "framed_bytes": 14492,
+        "wrapper_bytes": 0
+      }
+    },
+    {
+      "plan_index": 9,
+      "name": "cix-route:predictor",
+      "kind": "cix-route",
+      "route": "predictor",
+      "archive_name": "09-cix-route-predictor.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.10576973296701908,
+      "archive_bytes": 13772,
+      "archive_sha256": "ca6d427f93fc92369a8cc02131912ecdd489bac062116db4d618a8d148026a2b",
+      "detail": {
+        "format": "CIXG1",
+        "effort": "maximum",
+        "backend": "hybrid",
+        "history_bytes": 0,
+        "block_bytes": 65536,
+        "disable": [],
+        "force": "predictor",
+        "offline": false,
+        "source_bytes": 16384,
+        "compressed_bytes": 13772,
+        "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "encode_seconds": 0.10566401714459062,
+        "blocks": [
+          {
+            "offset": 0,
+            "source_bytes": 16384,
+            "route": "predictor",
+            "complete_block_bytes": 13718,
+            "features": {
+              "sample_bytes": 8192,
+              "entropy": 6.929348507121891,
+              "symbols": 256,
+              "run_fraction": 0.004885197850512946,
+              "repeat_fraction": 0.0,
+              "lag_entropy": {
+                "1": 7.968572808026581,
+                "2": 7.97010570718009,
+                "4": 6.6318127042378645,
+                "8": 6.779429134393449,
+                "16": 6.869571288084357,
+                "32": 6.9138971208259425,
+                "64": 6.608936255068228
+              },
+              "predictability": 0.012912912912912912,
+              "regional_entropy_range": 0.34304440607293696
+            },
+            "accounting": {
+              "framing_bytes": 41,
+              "structural_bytes": 0,
+              "stream_descriptor_bytes": 10,
+              "count_table_bytes": 0,
+              "coded_payload_bytes": 13667,
+              "coders": [
+                "deflate"
+              ]
+            },
+            "profiling_seconds": 0.010258316993713379,
+            "selection_seconds": 0.10546023212373257,
+            "selected_trial_compute_seconds": 0.09313209215179086,
+            "trials": [
+              {
+                "route": "predictor",
+                "bytes": 13718,
+                "payload_bytes": 13677,
+                "compute_seconds": 0.09313209215179086,
+                "wall_seconds": 0.09500397183001041,
+                "peak_rss_kib": 22500,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 10,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 13667,
+                  "coders": [
+                    "deflate"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "block_count": 1,
+        "route_usage_source_bytes": {
+          "predictor": 16384
+        },
+        "selection_total_seconds": 0.10546023212373257,
+        "search_and_launch_overhead_seconds": 0.01232813997194171,
+        "blocks_truncated": false,
+        "all_block_trace": null,
+        "standalone_payload_bytes": 13772,
+        "wrapper_bytes": 0,
+        "source_verified": true
+      },
+      "peak_rss_kib": 23336,
+      "wall_seconds": 0.10740248393267393,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.024881855584681034,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXG1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.024609229993075132
+        },
+        "peak_rss_kib": 22056,
+        "wall_seconds": 0.030231782235205173
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/09-cix-route-predictor.cix",
+        "bytes": 13772,
+        "sha256": "ca6d427f93fc92369a8cc02131912ecdd489bac062116db4d618a8d148026a2b"
+      },
+      "trace": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/09-cix-route-predictor.blocks.jsonl",
+        "sha256": "875526e38dc05dd0f5f0ad4c56055eebf85b3d69c48c4f4355a7ced9a9bae898",
+        "blocks": 1
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/09-cix-route-predictor.cix",
+        "bytes": 13772,
+        "sha256": "ca6d427f93fc92369a8cc02131912ecdd489bac062116db4d618a8d148026a2b",
+        "framed_bytes": 13772,
+        "wrapper_bytes": 0
+      }
+    },
+    {
+      "plan_index": 10,
+      "name": "cix-route:bwt",
+      "kind": "cix-route",
+      "route": "bwt",
+      "archive_name": "10-cix-route-bwt.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.1333065121434629,
+      "archive_bytes": 15440,
+      "archive_sha256": "03458fa080ef66712b0ecd658260976d9de7adf5b56a0d28cda798d47c8ef382",
+      "detail": {
+        "format": "CIXG1",
+        "effort": "maximum",
+        "backend": "hybrid",
+        "history_bytes": 0,
+        "block_bytes": 65536,
+        "disable": [],
+        "force": "bwt",
+        "offline": false,
+        "source_bytes": 16384,
+        "compressed_bytes": 15440,
+        "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "encode_seconds": 0.13319801073521376,
+        "blocks": [
+          {
+            "offset": 0,
+            "source_bytes": 16384,
+            "route": "bwt",
+            "complete_block_bytes": 15386,
+            "features": {
+              "sample_bytes": 8192,
+              "entropy": 6.929348507121891,
+              "symbols": 256,
+              "run_fraction": 0.004885197850512946,
+              "repeat_fraction": 0.0,
+              "lag_entropy": {
+                "1": 7.968572808026581,
+                "2": 7.97010570718009,
+                "4": 6.6318127042378645,
+                "8": 6.779429134393449,
+                "16": 6.869571288084357,
+                "32": 6.9138971208259425,
+                "64": 6.608936255068228
+              },
+              "predictability": 0.012912912912912912,
+              "regional_entropy_range": 0.34304440607293696
+            },
+            "accounting": {
+              "framing_bytes": 41,
+              "structural_bytes": 4,
+              "stream_descriptor_bytes": 63,
+              "count_table_bytes": 101,
+              "coded_payload_bytes": 15177,
+              "coders": [
+                "cix-exact-1024",
+                "deflate",
+                "cix-exact-1024"
+              ]
+            },
+            "profiling_seconds": 0.010211498942226171,
+            "selection_seconds": 0.13298215297982097,
+            "selected_trial_compute_seconds": 0.11802606517449021,
+            "trials": [
+              {
+                "route": "bwt",
+                "bytes": 15386,
+                "payload_bytes": 15345,
+                "compute_seconds": 0.11802606517449021,
+                "wall_seconds": 0.1225512670353055,
+                "peak_rss_kib": 24816,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 4,
+                  "stream_descriptor_bytes": 63,
+                  "count_table_bytes": 101,
+                  "coded_payload_bytes": 15177,
+                  "coders": [
+                    "cix-exact-1024",
+                    "deflate",
+                    "cix-exact-1024"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "block_count": 1,
+        "route_usage_source_bytes": {
+          "bwt": 16384
+        },
+        "selection_total_seconds": 0.13298215297982097,
+        "search_and_launch_overhead_seconds": 0.014956087805330753,
+        "blocks_truncated": false,
+        "all_block_trace": null,
+        "standalone_payload_bytes": 15440,
+        "wrapper_bytes": 0,
+        "source_verified": true
+      },
+      "peak_rss_kib": 24816,
+      "wall_seconds": 0.1351606589742005,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.04520921967923641,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXG1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.04492736281827092
+        },
+        "peak_rss_kib": 24616,
+        "wall_seconds": 0.049680719152092934
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/10-cix-route-bwt.cix",
+        "bytes": 15440,
+        "sha256": "03458fa080ef66712b0ecd658260976d9de7adf5b56a0d28cda798d47c8ef382"
+      },
+      "trace": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/10-cix-route-bwt.blocks.jsonl",
+        "sha256": "e69c7c0b491e60d50e4845e83952df1ce17e2948c55854e5f488ea39ccd7092c",
+        "blocks": 1
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/10-cix-route-bwt.cix",
+        "bytes": 15440,
+        "sha256": "03458fa080ef66712b0ecd658260976d9de7adf5b56a0d28cda798d47c8ef382",
+        "framed_bytes": 15440,
+        "wrapper_bytes": 0
+      }
+    },
+    {
+      "plan_index": 11,
+      "name": "cix-route:stride",
+      "kind": "cix-route",
+      "route": "stride",
+      "archive_name": "11-cix-route-stride.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.04118859302252531,
+      "archive_bytes": 11544,
+      "archive_sha256": "bf8a0675ff8e80c2d0fba988bf321921d6e1828e4880f94a3f67c9a6dd524d48",
+      "detail": {
+        "format": "CIXG1",
+        "effort": "maximum",
+        "backend": "hybrid",
+        "history_bytes": 0,
+        "block_bytes": 65536,
+        "disable": [],
+        "force": "stride",
+        "offline": false,
+        "source_bytes": 16384,
+        "compressed_bytes": 11544,
+        "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "encode_seconds": 0.041072112042456865,
+        "blocks": [
+          {
+            "offset": 0,
+            "source_bytes": 16384,
+            "route": "stride",
+            "complete_block_bytes": 11490,
+            "features": {
+              "sample_bytes": 8192,
+              "entropy": 6.929348507121891,
+              "symbols": 256,
+              "run_fraction": 0.004885197850512946,
+              "repeat_fraction": 0.0,
+              "lag_entropy": {
+                "1": 7.968572808026581,
+                "2": 7.97010570718009,
+                "4": 6.6318127042378645,
+                "8": 6.779429134393449,
+                "16": 6.869571288084357,
+                "32": 6.9138971208259425,
+                "64": 6.608936255068228
+              },
+              "predictability": 0.012912912912912912,
+              "regional_entropy_range": 0.34304440607293696
+            },
+            "accounting": {
+              "framing_bytes": 41,
+              "structural_bytes": 1,
+              "stream_descriptor_bytes": 45,
+              "count_table_bytes": 49,
+              "coded_payload_bytes": 11354,
+              "coders": [
+                "raw",
+                "raw",
+                "deflate",
+                "cix-exact-1024"
+              ]
+            },
+            "profiling_seconds": 0.013705501332879066,
+            "selection_seconds": 0.0408543823286891,
+            "selected_trial_compute_seconds": 0.025248617865145206,
+            "trials": [
+              {
+                "route": "stride",
+                "bytes": 11490,
+                "payload_bytes": 11449,
+                "compute_seconds": 0.025248617865145206,
+                "wall_seconds": 0.026946926023811102,
+                "peak_rss_kib": 23040,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 1,
+                  "stream_descriptor_bytes": 45,
+                  "count_table_bytes": 49,
+                  "coded_payload_bytes": 11354,
+                  "coders": [
+                    "raw",
+                    "raw",
+                    "deflate",
+                    "cix-exact-1024"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "block_count": 1,
+        "route_usage_source_bytes": {
+          "stride": 16384
+        },
+        "selection_total_seconds": 0.0408543823286891,
+        "search_and_launch_overhead_seconds": 0.015605764463543892,
+        "blocks_truncated": false,
+        "all_block_trace": null,
+        "standalone_payload_bytes": 11544,
+        "wrapper_bytes": 0,
+        "source_verified": true
+      },
+      "peak_rss_kib": 23592,
+      "wall_seconds": 0.04550537280738354,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.011331151705235243,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXG1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.011063202284276485
+        },
+        "peak_rss_kib": 23336,
+        "wall_seconds": 0.013106918893754482
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/11-cix-route-stride.cix",
+        "bytes": 11544,
+        "sha256": "bf8a0675ff8e80c2d0fba988bf321921d6e1828e4880f94a3f67c9a6dd524d48"
+      },
+      "trace": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/11-cix-route-stride.blocks.jsonl",
+        "sha256": "b46503a21f7c67a586ab2db68c8851f9338f119d4cf96468fad87e224e4e0ab2",
+        "blocks": 1
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/11-cix-route-stride.cix",
+        "bytes": 11544,
+        "sha256": "bf8a0675ff8e80c2d0fba988bf321921d6e1828e4880f94a3f67c9a6dd524d48",
+        "framed_bytes": 11544,
+        "wrapper_bytes": 0
+      }
+    },
+    {
+      "plan_index": 12,
+      "name": "cix-route:phrases",
+      "kind": "cix-route",
+      "route": "phrases",
+      "archive_name": "12-cix-route-phrases.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.11335599236190319,
+      "archive_bytes": 14557,
+      "archive_sha256": "ab6c6d81c9e29e0c0668e34e1936c979c0ef372774dcfabbdaf769892bb4aab6",
+      "detail": {
+        "format": "CIXG1",
+        "effort": "maximum",
+        "backend": "hybrid",
+        "history_bytes": 0,
+        "block_bytes": 65536,
+        "disable": [],
+        "force": "phrases",
+        "offline": false,
+        "source_bytes": 16384,
+        "compressed_bytes": 14557,
+        "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "encode_seconds": 0.11324526509270072,
+        "blocks": [
+          {
+            "offset": 0,
+            "source_bytes": 16384,
+            "route": "phrases",
+            "complete_block_bytes": 14503,
+            "features": {
+              "sample_bytes": 8192,
+              "entropy": 6.929348507121891,
+              "symbols": 256,
+              "run_fraction": 0.004885197850512946,
+              "repeat_fraction": 0.0,
+              "lag_entropy": {
+                "1": 7.968572808026581,
+                "2": 7.97010570718009,
+                "4": 6.6318127042378645,
+                "8": 6.779429134393449,
+                "16": 6.869571288084357,
+                "32": 6.9138971208259425,
+                "64": 6.608936255068228
+              },
+              "predictability": 0.012912912912912912,
+              "regional_entropy_range": 0.34304440607293696
+            },
+            "accounting": {
+              "framing_bytes": 41,
+              "structural_bytes": 65,
+              "stream_descriptor_bytes": 28,
+              "count_table_bytes": 0,
+              "coded_payload_bytes": 14369,
+              "coders": [
+                "deflate",
+                "deflate",
+                "deflate"
+              ]
+            },
+            "profiling_seconds": 0.017838348168879747,
+            "selection_seconds": 0.11301206797361374,
+            "selected_trial_compute_seconds": 0.0930452598258853,
+            "trials": [
+              {
+                "route": "phrases",
+                "bytes": 14503,
+                "payload_bytes": 14462,
+                "compute_seconds": 0.0930452598258853,
+                "wall_seconds": 0.09497957723215222,
+                "peak_rss_kib": 22532,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 65,
+                  "stream_descriptor_bytes": 28,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 14369,
+                  "coders": [
+                    "deflate",
+                    "deflate",
+                    "deflate"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "block_count": 1,
+        "route_usage_source_bytes": {
+          "phrases": 16384
+        },
+        "selection_total_seconds": 0.11301206797361374,
+        "search_and_launch_overhead_seconds": 0.019966808147728443,
+        "blocks_truncated": false,
+        "all_block_trace": null,
+        "standalone_payload_bytes": 14557,
+        "wrapper_bytes": 0,
+        "source_verified": true
+      },
+      "peak_rss_kib": 23592,
+      "wall_seconds": 0.11886268993839622,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.0021083299070596695,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXG1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.0018531996756792068
+        },
+        "peak_rss_kib": 22056,
+        "wall_seconds": 0.003851179964840412
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/12-cix-route-phrases.cix",
+        "bytes": 14557,
+        "sha256": "ab6c6d81c9e29e0c0668e34e1936c979c0ef372774dcfabbdaf769892bb4aab6"
+      },
+      "trace": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/12-cix-route-phrases.blocks.jsonl",
+        "sha256": "322ee4c54f9677bc2a362c6b3fbd82655bf4dc2bb3ca7d5ce723aea68625b138",
+        "blocks": 1
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/12-cix-route-phrases.cix",
+        "bytes": 14557,
+        "sha256": "ab6c6d81c9e29e0c0668e34e1936c979c0ef372774dcfabbdaf769892bb4aab6",
+        "framed_bytes": 14557,
+        "wrapper_bytes": 0
+      }
+    },
+    {
+      "plan_index": 13,
+      "name": "cix-route:ppm",
+      "kind": "cix-route",
+      "route": "ppm",
+      "archive_name": "13-cix-route-ppm.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.7003666330128908,
+      "archive_bytes": 20095,
+      "archive_sha256": "acec0a1974873272f989071a280a00bfff517dee72239edc0a1a07856c674694",
+      "detail": {
+        "format": "CIXG1",
+        "effort": "maximum",
+        "backend": "hybrid",
+        "history_bytes": 0,
+        "block_bytes": 65536,
+        "disable": [],
+        "force": "ppm",
+        "offline": false,
+        "source_bytes": 16384,
+        "compressed_bytes": 20095,
+        "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "encode_seconds": 0.7002587178722024,
+        "blocks": [
+          {
+            "offset": 0,
+            "source_bytes": 16384,
+            "route": "ppm",
+            "complete_block_bytes": 20041,
+            "features": {
+              "sample_bytes": 8192,
+              "entropy": 6.929348507121891,
+              "symbols": 256,
+              "run_fraction": 0.004885197850512946,
+              "repeat_fraction": 0.0,
+              "lag_entropy": {
+                "1": 7.968572808026581,
+                "2": 7.97010570718009,
+                "4": 6.6318127042378645,
+                "8": 6.779429134393449,
+                "16": 6.869571288084357,
+                "32": 6.9138971208259425,
+                "64": 6.608936255068228
+              },
+              "predictability": 0.012912912912912912,
+              "regional_entropy_range": 0.34304440607293696
+            },
+            "accounting": {
+              "framing_bytes": 41,
+              "structural_bytes": 0,
+              "stream_descriptor_bytes": 0,
+              "count_table_bytes": 0,
+              "coded_payload_bytes": 20000,
+              "coders": []
+            },
+            "profiling_seconds": 0.011720883194357157,
+            "selection_seconds": 0.7000613929703832,
+            "selected_trial_compute_seconds": 0.6850140420719981,
+            "trials": [
+              {
+                "route": "ppm",
+                "bytes": 20041,
+                "payload_bytes": 20000,
+                "compute_seconds": 0.6850140420719981,
+                "wall_seconds": 0.6881629186682403,
+                "peak_rss_kib": 29188,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 0,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 20000,
+                  "coders": []
+                }
+              }
+            ]
+          }
+        ],
+        "block_count": 1,
+        "route_usage_source_bytes": {
+          "ppm": 16384
+        },
+        "selection_total_seconds": 0.7000613929703832,
+        "search_and_launch_overhead_seconds": 0.015047350898385048,
+        "blocks_truncated": false,
+        "all_block_trace": null,
+        "standalone_payload_bytes": 20095,
+        "wrapper_bytes": 0,
+        "source_verified": true
+      },
+      "peak_rss_kib": 29188,
+      "wall_seconds": 0.7021066341549158,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.6971943979151547,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXG1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.6950262491591275
+        },
+        "peak_rss_kib": 29992,
+        "wall_seconds": 0.6998269958421588
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/13-cix-route-ppm.cix",
+        "bytes": 20095,
+        "sha256": "acec0a1974873272f989071a280a00bfff517dee72239edc0a1a07856c674694"
+      },
+      "trace": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/13-cix-route-ppm.blocks.jsonl",
+        "sha256": "1cb97f99eabf521421a6a8b8b549d72f33dd546c2b0c0a19afaf409dc45acb05",
+        "blocks": 1
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/13-cix-route-ppm.cix",
+        "bytes": 20095,
+        "sha256": "acec0a1974873272f989071a280a00bfff517dee72239edc0a1a07856c674694",
+        "framed_bytes": 20095,
+        "wrapper_bytes": 0
+      }
+    },
+    {
+      "plan_index": 14,
+      "name": "cix-route:mixture",
+      "kind": "cix-route",
+      "route": "mixture",
+      "archive_name": "14-cix-route-mixture.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "TIME_BUDGET",
+      "wall_seconds": 4.0047543831169605,
+      "archive_bytes": null
+    },
+    {
+      "plan_index": 15,
+      "name": "cix-route:deflate",
+      "kind": "cix-route",
+      "route": "deflate",
+      "archive_name": "15-cix-route-deflate.cix",
+      "encode_cap_seconds": 4.0,
+      "status": "VERIFIED",
+      "encode_seconds": 0.021619686856865883,
+      "archive_bytes": 14442,
+      "archive_sha256": "dd0b02b814369068721df702e3644b816f593ce2a70876b511a81441baa35b79",
+      "detail": {
+        "format": "CIXG1",
+        "effort": "maximum",
+        "backend": "hybrid",
+        "history_bytes": 0,
+        "block_bytes": 65536,
+        "disable": [],
+        "force": "deflate",
+        "offline": false,
+        "source_bytes": 16384,
+        "compressed_bytes": 14442,
+        "source_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "encode_seconds": 0.021503150928765535,
+        "blocks": [
+          {
+            "offset": 0,
+            "source_bytes": 16384,
+            "route": "deflate",
+            "complete_block_bytes": 14388,
+            "features": {
+              "sample_bytes": 8192,
+              "entropy": 6.929348507121891,
+              "symbols": 256,
+              "run_fraction": 0.004885197850512946,
+              "repeat_fraction": 0.0,
+              "lag_entropy": {
+                "1": 7.968572808026581,
+                "2": 7.97010570718009,
+                "4": 6.6318127042378645,
+                "8": 6.779429134393449,
+                "16": 6.869571288084357,
+                "32": 6.9138971208259425,
+                "64": 6.608936255068228
+              },
+              "predictability": 0.012912912912912912,
+              "regional_entropy_range": 0.34304440607293696
+            },
+            "accounting": {
+              "framing_bytes": 41,
+              "structural_bytes": 0,
+              "stream_descriptor_bytes": 10,
+              "count_table_bytes": 0,
+              "coded_payload_bytes": 14337,
+              "coders": [
+                "deflate"
+              ]
+            },
+            "profiling_seconds": 0.014002444222569466,
+            "selection_seconds": 0.02129641594365239,
+            "selected_trial_compute_seconds": 0.005466294940561056,
+            "trials": [
+              {
+                "route": "deflate",
+                "bytes": 14388,
+                "payload_bytes": 14347,
+                "compute_seconds": 0.005466294940561056,
+                "wall_seconds": 0.007127346005290747,
+                "peak_rss_kib": 22020,
+                "status": "COMPLETE",
+                "accounting": {
+                  "framing_bytes": 41,
+                  "structural_bytes": 0,
+                  "stream_descriptor_bytes": 10,
+                  "count_table_bytes": 0,
+                  "coded_payload_bytes": 14337,
+                  "coders": [
+                    "deflate"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "block_count": 1,
+        "route_usage_source_bytes": {
+          "deflate": 16384
+        },
+        "selection_total_seconds": 0.02129641594365239,
+        "search_and_launch_overhead_seconds": 0.015830121003091335,
+        "blocks_truncated": false,
+        "all_block_trace": null,
+        "standalone_payload_bytes": 14442,
+        "wrapper_bytes": 0,
+        "source_verified": true
+      },
+      "peak_rss_kib": 23592,
+      "wall_seconds": 0.02913215709850192,
+      "validation_cap_seconds": 4.0,
+      "validation": {
+        "status": "VERIFIED",
+        "decode_seconds": 0.0005345898680388927,
+        "restored_bytes": 16384,
+        "restored_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+        "decoder_report": {
+          "format": "CIXG1",
+          "decoded_bytes": 16384,
+          "decoded_sha256": "6e3bb7d64b2e281b737947e38c05432ee852e9b9000bde7ae7885be5b89e4b32",
+          "decode_seconds": 0.00028969626873731613
+        },
+        "peak_rss_kib": 21800,
+        "wall_seconds": 0.0021707238629460335
+      },
+      "artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/15-cix-route-deflate.cix",
+        "bytes": 14442,
+        "sha256": "dd0b02b814369068721df702e3644b816f593ce2a70876b511a81441baa35b79"
+      },
+      "trace": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/15-cix-route-deflate.blocks.jsonl",
+        "sha256": "72ba3685b80c555ffc959eaa949564aec9682d389532df90bc9f8882563226d1",
+        "blocks": 1
+      },
+      "standalone_artifact": {
+        "path": "/home/user/src/colour-index-compression/docs/research/2026-10-01-backend-retention/runs/backend-retention-e8ca212cb8a3f4a02b051db0/c6e97c43a29916f9ea88d10a1244bcef535c0640cfccd5b80418aaf0bf731740/work/encode-repetitions/rep-0/attempts/15-cix-route-deflate.cix",
+        "bytes": 14442,
+        "sha256": "dd0b02b814369068721df702e3644b816f593ce2a70876b511a81441baa35b79",
+        "framed_bytes": 14442,
+        "wrapper_bytes": 0
+      }
+    }
+  ],
+  "selection_encode_wall_seconds": 10.739819564856589,
+  "candidate_validation_wall_seconds": 0.9995492333546281,
+  "selection_plus_validation_wall_seconds": 11.739368798211217,
+  "full_encode_and_validation_wall_seconds": 11.739368798211217,
+  "total_audit_wall_seconds": 11.761034383904189,
+  "guarantee": "smallest complete exact-verified archive among attempted eligible candidates",
+  "candidate_plan": [
+    "cix-route:raw",
+    "gzip:direct",
+    "bzip2:direct",
+    "xz:direct",
+    "zstd:direct",
+    "cix-adaptive",
+    "cix-route:runs",
+    "cix-route:composition",
+    "cix-route:lz",
+    "cix-route:predictor",
+    "cix-route:bwt",
+    "cix-route:stride",
+    "cix-route:phrases",
+    "cix-route:ppm",
+    "cix-route:mixture",
+    "cix-route:deflate"
+  ],
+  "direct_attempt_reserve_seconds": 20.0,
+  "direct_attempts": [
+    {
+      "name": "cix-route:raw",
+      "status": "VERIFIED",
+      "archive_bytes": 16479
+    },
+    {
+      "name": "gzip:direct",
+      "status": "VERIFIED",
+      "archive_bytes": 14401
+    },
+    {
+      "name": "bzip2:direct",
+      "status": "VERIFIED",
+      "archive_bytes": 15472
+    },
+    {
+      "name": "xz:direct",
+      "status": "VERIFIED",
+      "archive_bytes": 13023
+    },
+    {
+      "name": "zstd:direct",
+      "status": "VERIFIED",
+      "archive_bytes": 14391
+    }
+  ],
+  "maximum_direct_attempt_coverage": "ALL_ATTEMPTED",
+  "policy_excluded": {
+    "brotli-quality-6-11": "Brotli qualities 6 and 11 can use RFC 7932's built-in static word dictionary and are outside the generic-input policy.  Quality 0 is separately eligible because upstream v1.2.0 routes it through the dictionary-free BrotliCompressFragmentFast path.",
+    "paq8px": "The ranked PAQ presets use content-specific models, which are outside the generic backend policy.  Their pinned AVX2 setting is an implementation choice and is not, by itself, the exclusion reason."
+  },
+  "brotli_quality_0_source_basis": {
+    "version": "1.2.0",
+    "python_wrapper_sha256": "813610bf0d74a6998d7b47d912e8892c3896e6eac19cb7b22575e04fc294b63f",
+    "extension_sha256": "ba62b6a5823ee9832364171021d27f5f93cb423d38ae090ce84a7b696f688169",
+    "source_evidence": [
+      "https://raw.githubusercontent.com/google/brotli/v1.2.0/c/enc/quality.h",
+      "https://raw.githubusercontent.com/google/brotli/v1.2.0/c/enc/encode.c",
+      "https://raw.githubusercontent.com/google/brotli/v1.2.0/c/enc/compress_fragment.c"
+    ]
+  },
+  "implementation_sha256": {
+    "backend_portfolio": "62e4f571769805ac400edba3f90f1ccde7e8fe7a94b67a74c717a15cee4ba17a",
+    "frozen_pipeline": "4ee5b59cafddb285223f0a5c6ddac88e2404295ef7238a1568a703c210def2b5"
+  },
+  "minimum_selection_assertion": {
+    "passed": true,
+    "selected": "cix-adaptive",
+    "minimum_verified": "cix-adaptive",
+    "minimum_verified_bytes": 11544
+  },
+  "standalone_best": {
+    "name": "cix-adaptive",
+    "bytes": 11544
+  },
+  "framed_best": {
+    "name": "cix-adaptive",
+    "bytes": 11544
+  }
+}

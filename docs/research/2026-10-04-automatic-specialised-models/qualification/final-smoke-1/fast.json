@@ -1,0 +1,76 @@
+{
+  "archive_bytes": 154,
+  "archive_sha256": "646a00c6932d2059facea08b5efeda25bb7fca4e59cc467ae9b1a2db91d5ba2e",
+  "full_search_wall_seconds": 0.04004642400104785,
+  "input_bytes": 544,
+  "input_sha256": "8a4b2c1ce6e5891bfbf4a342d04d46bc947059a59ead46dc49a8fb1d642736db",
+  "memory_admission_bytes": 11000000000,
+  "profile": "fast",
+  "recognition": [
+    {
+      "family": "specialized",
+      "reason": "FAST uses the native low-latency profile and raw fallback",
+      "status": "profile-omitted"
+    }
+  ],
+  "schema": "cix-runtime-selection-v1",
+  "selected": "native-fast",
+  "selection": "smallest complete archive; original ordered priority on ties",
+  "status": "completed",
+  "strategy": {
+    "constraints": {
+      "declared_peak_memory_bytes": 11000000000,
+      "estimated_temporary_bytes": 4000000000,
+      "outer_aggregate_cgroup": "required for resident-memory and aggregate-temp enforcement",
+      "threads": 4
+    },
+    "kind": "canonical-first-fit-resource-admission-v1",
+    "maximum_inflight": 1,
+    "raw": "dispatched alone before parallel work"
+  },
+  "threads": 4,
+  "trials": [
+    {
+      "archive_bytes": 589,
+      "archive_sha256": "5e6d65dc115bb2c6bdac1d9240b89ad9b2a4259218246a93d1d99564acd7b909",
+      "cpu_seconds": 0.000732,
+      "decode_memory_bytes": 33556064,
+      "descendant_peak_rss_kib": 0,
+      "family": "raw",
+      "id": "raw",
+      "memory_bytes": 33556064,
+      "parameters": {},
+      "priority": 0,
+      "rss_scope": "separate process maxima; aggregate peak is measured by the outer cgroup",
+      "selected": false,
+      "status": "completed",
+      "threads": 1,
+      "timeout_seconds": 43200,
+      "wall_seconds": 0.0002323890003026463,
+      "worker_peak_rss_kib": 17148
+    },
+    {
+      "archive_bytes": 154,
+      "archive_sha256": "646a00c6932d2059facea08b5efeda25bb7fca4e59cc467ae9b1a2db91d5ba2e",
+      "backend_diagnostics": "cix: region=1 source_bytes=544 candidates=[raw:raw=544B,runs:runs=1088B/0.000s,deflate:deflate=321B/0.000s,lz:deflate=340B/0.000s,stride:deflate=59B/0.000s] selected_route=stride backend=deflate payload_bytes=59 block_bytes=544\ncix: effort=fast format=cixg1 parallelism=blocks workers=4 queue_capacity=4 peak_outstanding=1 reserved_buffers=17629184 peak_scratch_reserved=1118208 source_bytes=544 blocks=1 candidates=4 memory_skips=0 budget_skips=0 analyse_seconds=0.000 candidate_seconds=0.000 search_seconds=0.000 archive_bytes=154 selected_source_bytes=[stride:544]\n/tmp/cix-native-l1s_zh9e/archive.cix\n",
+      "cpu_seconds": 0.0033420000000000004,
+      "decode_memory_bytes": 8000003264,
+      "descendant_peak_rss_kib": 16940,
+      "family": "native",
+      "id": "native-fast",
+      "memory_bytes": 8134224256,
+      "parameters": {
+        "backend_memory_bytes": 8000000000,
+        "profile": "fast"
+      },
+      "priority": 1,
+      "rss_scope": "separate process maxima; aggregate peak is measured by the outer cgroup",
+      "selected": true,
+      "status": "completed",
+      "threads": 4,
+      "timeout_seconds": 43200,
+      "wall_seconds": 0.013700071001949254,
+      "worker_peak_rss_kib": 17964
+    }
+  ]
+}

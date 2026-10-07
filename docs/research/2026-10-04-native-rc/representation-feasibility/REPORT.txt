@@ -1,0 +1,326 @@
+Mathematical representation and generator parameters: feasibility decision
+2026-10-04
+
+Decision
+
+There is a valid, limited opportunity worth retaining: a particular asset can
+have a short exact mathematical or generated description that an existing coder
+does not discover. Random-looking output does not prove that no such description
+exists. The present investigation demonstrates that possibility with fully
+decoded finite examples. It does not establish a useful frequency of such cases
+in real compressed assets, a CIX improvement, or a general recursive compressor.
+
+The promising objective is the shortest complete reconstruction recipe found
+within a fixed, affordable search. Infinite digit production is optional; a short
+formula, recurrence or generator description is what supplies a possible saving.
+Roots, reciprocals and other projections are candidates only when their exact
+representation and inverse cost less than the original representation.
+
+Scope
+
+This consolidates and tests the feasibility implications of the sibling reports
+seed-parameter-theory/REPORT.txt and representation-theory/REPORT.txt. The frozen
+plan preceded execution. No CIX source, third-party source, dataset, production
+route, benchmark, dependency, automation or publication was changed. The RC
+source/readiness gate remains in force. The previously closed numeric-composition
+and predictive-mixture results remain closed.
+
+1. A finite, exact check
+
+evaluate.py implements five prefix-separated mathematical description families:
+literal bits; reduced rational binary prefixes; powers plus signed residuals;
+SHAKE256 seed/bit-offset/mask references; and directly described simple masks.
+Each selected frame contains an Elias-gamma input-length field and is padded to
+whole bytes. Its decoder receives only the frame and the fixed grammar, restores
+leading zeros through the length, and rejects surplus or nonzero padding.
+
+These are actual serialized experimental frames, but NOT CIX archives. They have
+no public container magic, version field, integrity field or distribution-format
+commitment. Fixed decoder algorithms are shared, not repeated per example.
+
+Search is deliberately finite: powers 2 through 5, rational denominator at most
+1023, four generator seeds, sixteen bit offsets and four masks. Rational choices
+are pruned only when their mandatory size exceeds the literal alternative. Power
+search evaluates neighboring integer powers, sufficient for minimum bit cost
+under this fixed-width-base and signed-Elias-gamma-residual grammar. Larger or
+recursive descriptions were not searched.
+
+2. Complete results and limits
+
+Every one of 65,551 selected frames reconstructed exactly: all 65,536 sixteen-bit
+inputs, eleven deliberately constructed 256-bit inputs, and four deterministic
+SHA-256 control values. Available family candidates for the fifteen longer cases
+also reconstructed exactly; 45 malformed/truncated-frame checks were rejected.
+
+All rows below represent a 32-byte input. The raw frame is 274 meaningful bits,
+35 padded bytes. Meaningful bits include the length and family fields; padded
+bytes include the final zero padding.
+
+Constructed input                      Selected family     Bits    Bytes
+all zero                               rational              22        3
+all one / alternating 01 / 10           direct mask           23        3
+(2^127 + 37)^2                          power                151       19
+(2^127 + 37)^2 + 3                      power                155       20
+(2^85 + 27)^3                           power                109       14
+(2^85 + 27)^3 - 5                       power                115       15
+floor(2^256 * 257/509)                   rational              44        6
+seed 2, offset 7 reference              generated             29        4
+same reference XOR alternating 01       generated             29        4
+each of four SHA-256 control values     raw                  274       35
+
+The generated XOR example flips exactly half the bits. Its short reconstruction
+confirms that Hamming distance alone does not determine correction complexity.
+It is intentionally generated from the admitted model, not an independently
+discovered relation in a compressed asset. The power examples use literal 128-
+and 86-bit bases; the evaluator does not exploit their short symbolic forms.
+
+Uniform exhaustive sixteen-bit domain:
+  literal input:                       131,072 bytes total
+  common-format raw frames:            262,144 bytes total
+  selected frames:                     261,316 bytes total
+  mean selected meaningful bits:       25.938507080078125
+  mean bits excluding length header:   16.938507080078125
+  mean padded bytes:                   3.98736572265625
+  selected padded sizes:               4 cases at 2 bytes,
+                                       820 at 3 bytes, 64,712 at 4 bytes
+
+The search saves 828 bytes versus this format's raw frames across the exhaustive
+population. It still expands the original two-byte values on average, including
+when the common length header is excluded. This is a complete finite population
+result, not an estimate from a selected random sample. It does not assert the
+same numerical result for other input distributions or description grammars.
+
+Conditional on sixteen-bit input length, the sum of 2^(-selected suffix length)
+is 93,854 / 131,072, below one. This prefix-code accounting and exact restoration
+are consistent with the result; individual short descriptions are balanced by
+the cost of representing the remaining inputs.
+
+Marginal contribution within the frozen sixteen-bit grammar, measured by removal
+and reselection (these overlapping marginal values must NOT be summed):
+  family removed       additional meaningful bits       additional padded bytes
+  power                            2,505                              495
+  generated                        1,273                              254
+  rational                           186                               65
+  direct mask                         17                                4
+
+The generated dictionary has exactly 256 distinct outputs at each tested length,
+from 256 descriptions. Its ideal conditional rank information is eight bits,
+equal to the two seed plus four offset plus two mask bits. The family tag and
+length/padding remain additional. This is an analytical shared-dictionary
+control, not a second physical archive implementation. Materializing a private
+dictionary would require accounting for its distribution/storage costs; the
+fixed generator instead defines the support procedurally.
+
+Direct masks expose the simple whole-input patterns without a generated stream.
+They are not a complete direct residual-code control for arbitrary G XOR E. No
+claim of superiority over direct structured models or established compressors
+follows from this screen. Four hash controls cannot estimate rare-event rates.
+
+3. Which opportunities survive consideration?
+
+Candidate                       Feasibility and disposition
+
+Short rational descriptions     Exact, finite and demonstrated. Retain as a
+                                narrow description family, not a general route.
+                                Continued fractions can search useful rational
+                                approximants; this run enumerated a bounded set.
+
+Power/algebraic + residual       Exact and demonstrated for near powers. Retain
+                                the conditional idea. Low-degree relations or
+                                compact bases might improve descriptions, but
+                                would require separately declared grammars.
+
+Generator + offset + correction  Exact and demonstrated on known generated
+                                inputs, including a half-bit-flip correction.
+                                Retain conditionally on a short complete recipe.
+                                No prevalence or real-archive gain established.
+
+Existing checksum as seed       Actual decoder-visible metadata exists in some
+                                CIX formats. A feasible way to avoid an extra
+                                seed field; no demonstrated predictive benefit.
+
+Logs, exponentials, trig maps,  Mathematically possible on specified domains with
+special functions, series       exact/certified inverse handling. No evidence
+                                here to prioritize expensive digit-expansion
+                                searches. Function choice alone is not a gain.
+
+Large random/constant search     Individual luck is possible. Offset, seed and
+                                model costs and exponential search requirements
+                                make blind large searches low priority.
+
+Recursive expression search     A bounded search organizer, not an independent
+                                information source. Retain only with finite
+                                grammar/depth/cost and full final accounting.
+
+GPU/counter-based generation     Plausible throughput engineering for a search
+                                already shown useful. It does not improve the
+                                description-length accounting. No GPU kernel or
+                                local GPU performance was tested in this work.
+
+4. Why useful special cases do not establish generic recompression
+
+For an n-bit integer X, the rational-prefix code succeeds exactly when
+    q*X <= 2^n*p < q*(X+1).
+This is integer arithmetic, with no floating-point ambiguity. Small p and q can
+give a short code. Searching rationals up to denominator Q supplies on the order
+of Q^2 possibilities; reaching typical n-bit resolution therefore generally
+needs about n bits of combined numerator/denominator choice. This counting
+heuristic is not a universal claim about every X or every rational code.
+
+For X = a^k + d, short a and very small d are genuinely favorable. Generic
+residuals between successive powers can require about (1-1/k)*n bits, alongside
+about n/k bits for the root. The present signed gamma residual is deliberately
+simple and can take roughly twice the residual's binary magnitude length.
+Its control losses do not prove that all optimized power-based codes lose.
+An interval/rank coder could remove waste; it cannot evade the finite-source
+counting constraint merely by moving bits between a and d.
+
+With an ideal independent uniform reference, an n-bit exact match at any one
+candidate occurs with probability 2^-n. Trying M candidates gives probability
+at most M*2^-n by the union bound; overlapping candidates need not be independent.
+Offsets normally need about log2(M) bits when identifying one of M unconstrained
+choices. Highly compressible addresses are valid exceptions and belong in the
+description grammar. A lucky short-address match is therefore not forbidden.
+
+A checksum derived from X violates a casual assumption of independence between
+the seed and X; do not use the independent-reference calculation as a proof
+against that case. Nor does a cryptographic hash supply an established favorable
+relation. Its actual benefit must be measured against the same stored-checksum
+baseline and count all derivation, function-choice and correction costs.
+
+A fixed invertible transform preserves the joint entropy of a finite source,
+although it can change marginal digit statistics and make a practical coder
+perform better. Arbitrary precision permits requesting more digits; it does not
+make infinitely many identifying digits free to store. A certified interval
+must identify one input, or the ambiguity must be explicitly resolved. A hash
+match alone is not a proof that reconstruction is unique.
+
+5. What actual CIX code permits
+
+Read-only inspection at source revision
+b0cf82f32c20348c26cbe9dd4b107e9abcf13c4a confirms:
+
+CIXG1/CIXG2: original-block SHA-256 is written in the 41-byte frame header before
+payload (rust/cix-native/src/cli.rs:2514, 2670). The reader obtains that hash
+before the payload (cli.rs:4721) and checks it after route reconstruction
+(cli.rs:5084). A newly specified experimental route could receive it as a seed;
+the current decode_cixg_route API does not yet receive the checksum argument.
+The whole-stream checksum is terminal and unavailable to earlier streaming
+decode (cli.rs:2698). Availability is not implementation of a generator route.
+
+CIXB1: the original-input SHA-256 occupies header bytes 15..47 before the payload
+(rust/cix-native/src/external.rs:1276, 1285, 1344). Current payloads belong to
+existing backends; using that field for a new representation still needs a
+defined route and decoder. It is not an already-supported codec feature.
+
+CIXZ1: the per-frame original-data hash is read in FrameHeader before payload
+(rust/cix-native/src/streaming_backend.rs:812). The terminal whole-stream hash
+does not supply an earlier streaming seed.
+
+CIXM6: stream CRC32 is written in the terminal footer (cli.rs:3140). It is not a
+pre-payload seed in the current streaming dependency order. A seekable redesign
+or duplicate field would have different compatibility/cost considerations.
+
+These are original-data integrity values, not checksums of the compressed stream
+being hypothetically recompressed. An outer recompression wrapper must preserve
+decoder availability of the chosen metadata, rather than hiding it inside its
+own unknown target. Count the existing integrity bytes once in both candidate
+and baseline; a zero incremental seed field is not a zero-cost full archive.
+
+Related canonical numeric code contains frame-of-reference, first/second-order
+delta and patched-frame-of-reference residual mechanisms (numeric.rs:627-730).
+No checksum-seeded generator, rational-prefix or perfect-power codec was found
+in canonical Rust source. This is a scoped code audit, not a new route inventory.
+
+6. Parameter and recursion rules worth retaining
+
+Use short joint parameter descriptions when justified; independent fixed-width
+fields are not compulsory. Reproducible rules derived from decoded history or
+already-readable metadata need not retransmit their values. Samples of unknown
+target bytes and input-specific constants still need a decodable dependency.
+
+Canonicalize equivalent candidates where possible. Prior exact checks in the
+generator report found that phases and same-family linear XOR stages can be
+redundant. Different recurrences can add distinct candidates, but a larger family
+must earn its selector and search costs. A transformed residual should compete
+with the same direct correction language and a conventional recompression pass.
+
+For recursive search, charge the final expression tree, constants, stage order,
+length and any non-reconstructible precision/residual data. Regenerated
+intermediate values are not separately transmitted. Intermediate expansion can
+lead to a smaller final description, so prune only using valid bounds on final
+cost. Memoization, exact equivalence checks and bounded beam/exhaustive search
+can reduce cost without pretending to find a universal optimum.
+
+Offline encoder selection may inspect the whole target: transmitting the winning
+recipe makes that legitimate. This differs from the earlier HINDSIGHT ORACLE —
+NON-CAUSAL DIAGNOSTIC ONLY, which selected experts after seeing each outcome
+without paying a decoder-readable selection mechanism. Here all frame tags and
+parameters are paid. No free per-input model choice is used in the totals.
+
+7. Prior-art boundary
+
+The model-plus-residual objective is established description-length/model
+selection territory. This is not a claim to invent it:
+Vitanyi and Li, Minimum Description Length Induction, Bayesianism, and
+Kolmogorov Complexity: https://arxiv.org/abs/cs/9901014
+
+Exact invertible numeric preprocessing is a legitimate research direction;
+Taurone et al. study conditions and experiments for floating-point data:
+https://arxiv.org/abs/2308.03623
+Their results concern their models/data, not replication on CIX archives here.
+
+Rigorous arbitrary-precision intervals are an established implementation tool,
+not evidence that precision creates compression. Johansson's Arb describes
+ball arithmetic and special-function support:
+https://arxiv.org/abs/1611.02831
+
+Counter-based random generation has established CPU/GPU parallel designs:
+Salmon et al., Random123:
+https://www.thesalmons.org/john/random123/papers/random123sc11.pdf
+That work supports random-access generation, not a compression gain for this
+proposal or a current local hardware performance claim.
+
+The shortest arbitrary reconstruction program cannot generally be computed;
+bounded best-in-grammar search is the defensible scope:
+Vitanyi, How Incomputable Is Kolmogorov Complexity?:
+https://homepages.cwi.nl/~paulv/papers/incomp.pdf
+
+The earlier seed reports also preserve close generated-reference/offset/
+correction prior descriptions. Neither novelty nor patent clearance is asserted.
+
+8. Verification and qualifications
+
+One run, one CPU pinned to core 8: 1.20 seconds wall, 1.20 seconds user CPU,
+17,920 KiB maximum resident memory, no swap, exit 0. These are whole tiny-screen
+resources, not scalable encoder/decoder throughput or per-family performance.
+Setup timings are in results.json; no isolated per-family cost claims are made.
+Resource ceilings were 30 seconds, 200,000,000 bytes address space and
+1,000,000 bytes per output file; the complete evidence directory is also below
+the declared 1,000,000-byte aggregate output budget. No heavy work was launched.
+
+The independent read-only review found one protocol qualification: neighboring
+powers guarantee the minimum code length, but not the globally lexicographically
+smallest equal-length power code among ALL valid bases. The implementation breaks
+ties among the evaluated neighbors. The frozen plan's broader tie wording is
+therefore not fully implemented. This does not change minimum bit/byte costs or
+restoration correctness. It is recorded, not silently repaired or rerun after
+seeing results. See review.json for the control and symbolic-base caveats too.
+
+This is a reference instrument, not a hardened decoder. There was no independent
+second implementation, real-data qualification, strongest-compressor comparison,
+transcendental digit-expansion experiment, optimal-rational proof, recursive
+search or GPU evaluation. The source, plan and selected-frame digests in
+results.json make the calculations reproducible. All negatives are retained.
+
+Exactly one evidence-selected next action
+
+Retain this as a research-only candidate for ONE predeclared small finished-
+archive recompression screen after the RC source/readiness gate is accepted:
+freeze a finite description/residual grammar and disjoint existing local samples,
+compare complete bytes and search/decode cost against the unchanged archives,
+matched direct residual models and conventional second-pass compression. This
+is a recommendation, not a launched or scheduled benchmark. Require an actual
+complete-byte win before considering a production route. Until that gate, the
+evidence supports mathematical feasibility only, not a release requirement or
+an assertion that the attainable compression limit has been reached.

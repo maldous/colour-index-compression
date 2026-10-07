@@ -1,0 +1,72 @@
+{
+  "schema": "cix.catalogue-evidence.v1",
+  "release_ready": false,
+  "benchmark_hold": true,
+  "jobs": [
+    {
+      "id": "catalogue-v1",
+      "source_manifest": "docs/research/2026-10-04-execution/jobs/catalogue-v1/source.json",
+      "source_manifest_sha256": "ff5d3547c783333f49c7b7d539f40ab8f0f46238878a044c3be657d7dd951e59",
+      "exit_code": 101,
+      "elapsed_seconds": 2.4530219890002627,
+      "sampled_memory_high_water_lower_bound": 662454272,
+      "tracked_temporary_high_water_bytes": 2117542829
+    },
+    {
+      "id": "catalogue-v2",
+      "source_manifest": "docs/research/2026-10-04-execution/jobs/catalogue-v2/source.json",
+      "source_manifest_sha256": "ce91f44820844024969a7cc5a68c5718116e3a6f7e53e1e28323a550018bcc06",
+      "exit_code": 101,
+      "elapsed_seconds": 2.362560362002114,
+      "sampled_memory_high_water_lower_bound": 662020096,
+      "tracked_temporary_high_water_bytes": 2122033766
+    },
+    {
+      "id": "catalogue-v3",
+      "source_manifest": "docs/research/2026-10-04-execution/jobs/catalogue-v3/source.json",
+      "source_manifest_sha256": "c36e7ddd65f65450d3f7fad9879dcbb89d6890c541223d1f74a76a4b0a8fc7ad",
+      "exit_code": 101,
+      "elapsed_seconds": 12.706713780993596,
+      "sampled_memory_high_water_lower_bound": 1241960448,
+      "tracked_temporary_high_water_bytes": 2606893977
+    },
+    {
+      "id": "catalogue-v4",
+      "source_manifest": "docs/research/2026-10-04-execution/jobs/catalogue-v4/source.json",
+      "source_manifest_sha256": "92f3bc55ce014584015e4b5f6bbfe4ed07c1c5cb497d6fe180190f8bc040e52f",
+      "exit_code": 0,
+      "elapsed_seconds": 20.605500418998417,
+      "sampled_memory_high_water_lower_bound": 1709096960,
+      "tracked_temporary_high_water_bytes": 3147262131
+    },
+    {
+      "id": "catalogue-v5",
+      "source_manifest": "docs/research/2026-10-04-execution/jobs/catalogue-v5/source.json",
+      "source_manifest_sha256": "a51313b69e5231093c91d6e3b46a683384d0b8a1cf4537d0f27426e6438bfae5",
+      "exit_code": 0,
+      "elapsed_seconds": 24.589454380009556,
+      "sampled_memory_high_water_lower_bound": 1732915200,
+      "tracked_temporary_high_water_bytes": 3380734751
+    }
+  ],
+  "qualifications": {
+    "catalogue-v4": [
+      "offline check/build",
+      "73 full_engine unit tests with installed providers enabled",
+      "7 C stream tests"
+    ],
+    "catalogue-v5": [
+      "offline check/build",
+      "3 dispatch tests; 16 specialist and 2 JXL generated archive recipes",
+      "7 C stream tests",
+      "relocated shared and static C buffer/C stream/C++ consumers"
+    ]
+  },
+  "limitations": [
+    "library-only dispatch; ordinary CLI not wired",
+    "remaining historical grid/image capabilities open",
+    "no in-process hard RSS claim",
+    "native cancellation between calls",
+    "no benchmark or public record claim"
+  ]
+}

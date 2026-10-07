@@ -1,0 +1,39 @@
+Initial warning inventory (workdir /tmp/cix-main-warning-queue/rust/cix-native):
+cargo clippy --message-format=json -- -W clippy::all
+exit=0
+
+Final source warning check (same workdir):
+cargo clippy --bin cix --message-format=json -- -W clippy::all
+exit=0
+
+Candidate release builds (same workdir):
+cargo build --release --bin cix
+exit=0
+cargo build --release --bin uncix
+exit=0
+
+Pristine release builds (workdir /tmp/cix-main-warning-pristine/rust/cix-native):
+cargo build --release --bin cix
+exit=0
+cargo build --release --bin uncix
+exit=0
+
+Focused unit/integration test (candidate workdir):
+cargo test --test cli_archive_oracle -- --nocapture
+exit=0
+
+Parity procedure used pre-existing tracked input bytes. For each input, format, and supported thread count, execute the following in the candidate workdir, substituting the values recorded in parity-results.tsv:
+BASE=/tmp/cix-main-warning-pristine/rust/cix-native/target/release
+CAND=/tmp/cix-main-warning-queue/rust/cix-native/target/release
+$BASE/cix --format FORMAT --block-size 512 --threads THREADS -o BASE_ARCHIVE INPUT
+$CAND/cix --format FORMAT --block-size 512 --threads THREADS -o CANDIDATE_ARCHIVE INPUT
+$CAND/uncix -o CANDIDATE_OUTPUT CANDIDATE_ARCHIVE
+$BASE/uncix -o PRISTINE_OUTPUT CANDIDATE_ARCHIVE
+sha256sum BASE_ARCHIVE CANDIDATE_ARCHIVE CANDIDATE_OUTPUT PRISTINE_OUTPUT INPUT
+
+Executed combinations: CIXG1 and CIXG2 with threads 1 and 2, and CIXM6 with thread 1, for both inputs. The exact results and every archive/output hash are retained in parity-results.tsv and parity-hashes.txt.
+
+Intentional unsupported-option check:
+$CAND/cix --format cixm6 --block-size 512 --threads 2 -o m6-thread2-expected.cix tests/cli_archive_oracle.rs
+exit=2
+stderr is retained verbatim in m6-thread2.stderr.

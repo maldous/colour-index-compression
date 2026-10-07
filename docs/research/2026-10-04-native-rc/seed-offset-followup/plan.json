@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-04",
+  "scope": "User-requested further research into seed + substring offset + structured residual. Literature review, mathematical analysis and one finite exhaustive counting demonstration only.",
+  "hypothesis": "A selected generated substring can expose a compressible residual, including a structured residual with half its bits set. Complete selection and correction costs determine whether it saves bits.",
+  "fixed_demo": {
+    "input_bits": 12,
+    "targets": "Every one of the 4096 possible inputs; no sampling or corpus access",
+    "generator": "SHA-256(b'CIX-seed-offset-toy-v1:' + one-byte seed), bits most significant first",
+    "seed_values": [0, 1, 2, 3],
+    "substring_start_offsets": "0 through 15, in bits",
+    "residual_masks": ["000000000000", "111111111111", "010101010101", "101010101010"],
+    "generated_code": "1-bit generated tag + 2-bit seed + 4-bit offset + 2-bit residual-mask index = 9 bits",
+    "fallback_code": "1-bit raw tag + 12 original bits = 13 bits",
+    "selection": "First matching seed/offset/mask in ascending lexicographic order, otherwise raw",
+    "control": "Original 12 bits, plus separate counts for matching and nonmatching inputs",
+    "validation": "Decode every chosen representation from its bits using the shared fixed specification; confirm unique codewords and prefix-code Kraft sum",
+    "excluded_costs": "Input length, format identifier, byte alignment and archive framing are fixed or omitted; these favorable toy assumptions are explicit, not a physical CIX archive claim"
+  },
+  "resources": {"threads": 1, "wall_limit_seconds": 30, "memory_limit_bytes": 100000000, "new_disk_limit_bytes": 1000000},
+  "interpretation": "A constructed source win validates possibility only. Whole-universe accounting exposes selection advantage. Neither result qualifies a CIX feature or establishes that real archives are incompressible.",
+  "release_gate": "Unchanged; no corpus reads, benchmark restart, production source changes, dependency acquisition or publication."
+}

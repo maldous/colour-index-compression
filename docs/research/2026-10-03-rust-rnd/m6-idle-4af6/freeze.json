@@ -1,0 +1,33 @@
+{
+  "experiment": "m6-idle-4af6",
+  "status": "FROZEN_PRE_EXECUTION",
+  "source_revision": "4af606b54ff076c401547ffff5f13a7ea16c4994",
+  "source_main_sha256": "152c5a350dae922d9a0b8e2d781e562be74021becca6069fcf811086a38164e6",
+  "hypothesis": "Reuse existing bounded poll reader, distinguish idle partial block from EOF, preserve history/footer and old decoder compatibility. No format change.",
+  "checks": [
+    "one locked offline all-feature release-lto build",
+    "one actual idle partial M6 pipe: two256B writes with50ms flush, first reconstructed before producer closes, exact oldBD2decode/footer",
+    "empty timed encode/olddecode",
+    "one1024B no-flush encode byte identical to existing93 archive",
+    "newdecoder restores existing93 archive",
+    "olddecoder rejects truncated and corrupt footer"
+  ],
+  "budget": {
+    "cpus": [
+      8,
+      10
+    ],
+    "quota": "200%",
+    "build_memory": 2147483648,
+    "checks_memory": 536870912,
+    "swap": 0,
+    "temp": 1073741824,
+    "build_wall": 900,
+    "checks_wall": 60
+  },
+  "runner_hashes": {
+    "schedule.py": "eeadad8bdf2bf6d857e739a9b7a884d077d8bea02d63d9e4a93bcb7dc1452f18",
+    "stream_check.py": "5de8d9a6031abaa88ee10ad9fec63fbca87da77e80dd37fc1410419131e33cd0"
+  },
+  "limits": "one synthetic observation each; no corpus/suite/Sonar/current arbitrary-length scaling claim; diagnostic tests may emit reconstructed bytes before final footer failure"
+}

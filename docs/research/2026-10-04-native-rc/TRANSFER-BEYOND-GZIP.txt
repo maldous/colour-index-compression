@@ -1,0 +1,103 @@
+Transfer beyond gzip: experiment summary
+2026-10-04
+
+Yes: exact reconstruction can produce smaller complete archives beyond gzip
+within this known-encoder calibration screen.
+The strongest result in this bounded screen is bzip2, with improvements on both
+tested real source ranges. Gains on fast Brotli and fast XZ occurred on one
+range each. Size-focused Brotli/XZ/Zstandard did not improve. The fixed gzip
+predictor transferred poorly to the tested real ZIP container.
+
+Primary cross-codec evidence
+
+Sixteen PREEXISTING compressed streams represent TWO real, previously exposed
+16 KiB ranges (golf JSON and fcbench-mhd numerical data), four codec families,
+and historical fast/size settings. Each row below summarizes those same two
+underlying ranges; rows and settings are repeated measures, not independent
+corpus observations. All sizes include the complete research archive.
+
+  Input codec/settings   Result against original AND strongest generic control
+  bzip2 level9           649 -> 613 B (-5.547%); 2,834 -> 2,749 B (-2.999%)
+  bzip2 level1           Same sizes/savings on the same two underlying ranges
+  Brotli quality0        613 -> 613 B (tie); 3,230 -> 2,753 B (-14.768%)
+  Brotli quality11       Both expand
+  XZ preset0             476 -> 609 B (loss); 2,820 -> 2,749 B (-2.518%)
+  XZ preset9-extreme     Both expand
+  Zstandard level22      Both expand
+  Zstandard fast131072   Both shrink versus original, but both lose to ordinary
+                         second-pass compression; no reconstruction-method win
+
+For fast Zstandard, originals were 16,398 bytes. Reconstructed forms were 653
+and 2,781 bytes, while ordinary controls were 479 and 2,593 bytes. Omitting those
+controls would create a misleading impression of a new predictive opportunity.
+
+The complete ZIP test used one existing 731,518-byte upstream source archive:
+89 entries, including 78 DEFLATE members. Retained DCP token prediction matched
+only 24.324% of non-end tokens. The complete reconstructed archive was 1,367,164
+bytes (+86.894%); ordinary xz1 recompression was 714,344 bytes. All ZIP headers,
+stored members, central directory and member reconstruction costs were paid.
+This negative result applies to that fixed predictor/per-member representation,
+not all possible ZIP or DEFLATE-aware methods.
+
+What the positive result means
+
+The cross-codec representation stores XZ compression of the underlying contents,
+a reproducible reference encoder recipe, and a fully paid residual that restores
+the original compressed bytes. Its inverse first recovers the stored contents,
+then regenerates a reference compressed stream and applies corrections. It never
+needs the unavailable original compressed input as a decoder dependency.
+
+The finite recipe dictionary includes source settings from historical manifests.
+All selected references reproduce their original streams exactly, so their
+residuals are all zero. This is a known-encoder calibration/reproduction result,
+not proof of predictive transfer to unknown encoder implementations. The stronger
+XZ coding of the underlying contents supplies the savings. These are generic
+compressed-byte residuals, not newly implemented token models for every codec.
+
+A POST-HOC sensitivity analysis excludes every byte-exact reference candidate
+from the already-recorded matrix. Bzip2 still saves 32 and 81 bytes, with a
+one-byte header correction. Fast XZ on golf still saves 35 bytes with 36 changed
+compressed bytes. Fast Brotli's gain disappears. This describes sensitivity
+within the existing experiment, not fresh held-out evidence or a changed primary
+selection rule. One-byte header changes do not model arbitrary foreign encoders.
+
+Validation and scope
+
+All 168 cross-codec candidates restored their original compressed bytes in
+process. All 32 retained best-candidate/control archives passed fresh-process
+SHA-256 restoration. Unequal residual/reference lengths and all21 fixed recipes
+passed separate tiny checks. The complete ZIP passed its fresh-process hash
+check and extraction validation for all89 entries.
+
+The cross-codec run took 1.97 seconds wall and 113,444 KiB peak RSS on core8;
+the ZIP run took 12.66 seconds and 206,016 KiB on core10. Both recorded zero
+swap. These include instrument validation and are not production throughput
+measurements. No source assets were acquired, no production behavior changed,
+and the stopped release benchmark was not resumed.
+
+This experiment does not test JPEG, PAQ or CIX-specific reconstruction, unknown
+encoders, all dictionaries/filters, or a general recursive compression theorem.
+It establishes neither a new theory nor a public compression record. Runtime-
+pinned encoder recipes require a durable implementation specification before
+they could become a distributable CIX format.
+
+Exactly one evidence-selected next action
+
+Qualify the bzip2 reconstruction candidate on additional existing independently
+produced archives with source encoder settings withheld from recipe design,
+before considering production integration. Preserve all other measured limits.
+
+Evidence locations (relative to this report)
+
+  codec-transfer-v1/REPORT.txt        Full method, both effort tables and costs
+  codec-transfer-v1/plan.json         Frozen inputs, recipes, source/runtime IDs
+  codec-transfer-v1/results.json      Every candidate and fresh decode receipt
+  codec-transfer-v1/sensitivity.json  Explicitly post-hoc descriptive analysis
+  deflate-container-transfer-v1/      Whole-container ZIP method and evidence
+  TRANSFER-MANIFEST.json              Post-run evidence preservation hashes
+
+Prior-art boundary: format-aware exact recompression is established, including
+DEFLATE prediction/corrections (https://github.com/microsoft/preflate-rs) and
+JPEG-specific recoding (https://github.com/microsoft/lepton_jpeg_rust). Those
+implementations were not run as controls in these new experiments. The measured
+controls are retaining the original and ordinary zlib/xz second passes.

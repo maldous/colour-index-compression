@@ -1,0 +1,794 @@
+[
+  {
+    "cell_id": "codec-reconstruction-closure-v1-validate",
+    "owner": "root-codec-final-closure",
+    "manifest_sha256": "7036628e0d10ef68774be78acc2173a4a2b3702603753be9b421cb2093e70ed8",
+    "cpu": 8,
+    "physical_core": [
+      [
+        0,
+        16
+      ]
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "8",
+      "/bin/python3",
+      "/home/user/src/colour-index-compression/benchmarks/hutter_bounded_runner.py",
+      "--manifest",
+      "/home/user/src/colour-index-compression/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/manifests/validate.json",
+      "--results",
+      "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate",
+      "--root",
+      "/home/user/src/colour-index-compression"
+    ],
+    "stdout_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/scheduler-logs/codec-reconstruction-closure-v1-validate.stdout.log",
+    "progress_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/scheduler-logs/codec-reconstruction-closure-v1-validate.progress.jsonl",
+    "returncode": 0,
+    "runner_status": "VERIFIED_SCREENING",
+    "runner_result": {
+      "archive_bytes": 25,
+      "archive_sha256": "4362d57684525160fad1d3e30e3fb2e0fb181213d73a4ceff04d8416557ca219",
+      "artifacts": {
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/candidate.bin",
+        "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/restored.bin"
+      },
+      "budget": {
+        "cpu": 8,
+        "max_rss_bytes": 1500000000,
+        "max_temp_bytes": 128000000,
+        "wall_seconds": 45
+      },
+      "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+      "completed_at": "2026-10-04T09:46:01.760003+00:00",
+      "experiment_id": "9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57",
+      "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+      "identity": {
+        "build_sha256": {
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+          "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+          "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+          "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+        },
+        "configuration": {
+          "bzip2_levels": [
+            1,
+            9
+          ],
+          "experiment": "codec-reconstruction-closure-v1",
+          "family": "validate",
+          "gzip_levels": [
+            1,
+            6,
+            9
+          ],
+          "inner_xz": [
+            1,
+            6
+          ],
+          "outer_xz": 1
+        },
+        "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+        "input": {
+          "length": 20,
+          "offset": 0,
+          "path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/fixture.txt",
+          "sha256": "80bf7853d5b1b1f7030d2d9d41267907c68213bc0ccdba5b83c8573bf87ff8de"
+        },
+        "manifest_sha256": "7036628e0d10ef68774be78acc2173a4a2b3702603753be9b421cb2093e70ed8"
+      },
+      "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+      "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+      "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+      "phases": [
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "validate",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/source.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/candidate.bin"
+          ],
+          "cpu_usage_seconds": 0.085521,
+          "elapsed_seconds": 0.1638070500048343,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 432,
+          "phase": "cix-bounded-9b6b440ce931-encode",
+          "sampled_cgroup_memory_high_water_bytes": 30679040,
+          "stop_reason": null
+        },
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/candidate.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/work/restored.bin"
+          ],
+          "cpu_usage_seconds": 0.050904,
+          "elapsed_seconds": 0.09745913599908818,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 452,
+          "phase": "cix-bounded-9b6b440ce931-decode",
+          "sampled_cgroup_memory_high_water_bytes": 659456,
+          "stop_reason": null
+        }
+      ],
+      "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+      "receipt": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/validate/9b6b440ce9315114ce3be3777d51b0f8041f87191b5757e57aca10293ae49a57/receipt.json",
+      "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+      "status": "VERIFIED_SCREENING",
+      "verification": {
+        "matched": true,
+        "restored_sha256": "80bf7853d5b1b1f7030d2d9d41267907c68213bc0ccdba5b83c8573bf87ff8de",
+        "source_sha256": "80bf7853d5b1b1f7030d2d9d41267907c68213bc0ccdba5b83c8573bf87ff8de"
+      }
+    },
+    "ended_at": "2026-10-04T09:46:01.776774+00:00",
+    "elapsed_seconds": 0.30225842200161424
+  },
+  {
+    "cell_id": "codec-reconstruction-closure-v1-gzip-news",
+    "owner": "root-codec-final-closure",
+    "manifest_sha256": "45dd44513d61c5f92424ffe2f0f27b274074d8490a625b5344c19f5c0e8d75bc",
+    "cpu": 8,
+    "physical_core": [
+      [
+        0,
+        16
+      ]
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "8",
+      "/bin/python3",
+      "/home/user/src/colour-index-compression/benchmarks/hutter_bounded_runner.py",
+      "--manifest",
+      "/home/user/src/colour-index-compression/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/manifests/gzip-news.json",
+      "--results",
+      "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news",
+      "--root",
+      "/home/user/src/colour-index-compression"
+    ],
+    "stdout_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/scheduler-logs/codec-reconstruction-closure-v1-gzip-news.stdout.log",
+    "progress_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/scheduler-logs/codec-reconstruction-closure-v1-gzip-news.progress.jsonl",
+    "returncode": 0,
+    "runner_status": "VERIFIED_SCREENING",
+    "runner_result": {
+      "archive_bytes": 9570,
+      "archive_sha256": "6516d12145c1716da354e3bca29d07181741e9200ed6278a9123dbd78a6b7e72",
+      "artifacts": {
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/candidate.bin",
+        "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/restored.bin"
+      },
+      "budget": {
+        "cpu": 8,
+        "max_rss_bytes": 1500000000,
+        "max_temp_bytes": 128000000,
+        "wall_seconds": 45
+      },
+      "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+      "completed_at": "2026-10-04T09:46:02.545280+00:00",
+      "experiment_id": "55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0",
+      "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+      "identity": {
+        "build_sha256": {
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+          "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+          "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+          "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+        },
+        "configuration": {
+          "bzip2_levels": [
+            1,
+            9
+          ],
+          "experiment": "codec-reconstruction-closure-v1",
+          "family": "gzip",
+          "gzip_levels": [
+            1,
+            6,
+            9
+          ],
+          "inner_xz": [
+            1,
+            6
+          ],
+          "outer_xz": 1
+        },
+        "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+        "input": {
+          "length": 9450,
+          "offset": 0,
+          "path": "/usr/share/doc/gzip/NEWS.gz",
+          "sha256": "a66ccd314a2f7cabb92ebded35fe5555e1e05fdc107e82309df5b1616d2934c1"
+        },
+        "manifest_sha256": "45dd44513d61c5f92424ffe2f0f27b274074d8490a625b5344c19f5c0e8d75bc"
+      },
+      "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+      "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+      "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+      "phases": [
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "gzip",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/source.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/candidate.bin"
+          ],
+          "cpu_usage_seconds": 0.434624,
+          "elapsed_seconds": 0.5097852180042537,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 23948,
+          "phase": "cix-bounded-55f705d6eca8-encode",
+          "sampled_cgroup_memory_high_water_bytes": 32366592,
+          "stop_reason": null
+        },
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/candidate.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/work/restored.bin"
+          ],
+          "cpu_usage_seconds": 0.078519,
+          "elapsed_seconds": 0.1725299219979206,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 33398,
+          "phase": "cix-bounded-55f705d6eca8-decode",
+          "sampled_cgroup_memory_high_water_bytes": 12144640,
+          "stop_reason": null
+        }
+      ],
+      "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+      "receipt": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/gzip-news/55f705d6eca89669855ad944be8c0b3590f508f76e49f13a4e10d41b6a159ed0/receipt.json",
+      "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+      "status": "VERIFIED_SCREENING",
+      "verification": {
+        "matched": true,
+        "restored_sha256": "a66ccd314a2f7cabb92ebded35fe5555e1e05fdc107e82309df5b1616d2934c1",
+        "source_sha256": "a66ccd314a2f7cabb92ebded35fe5555e1e05fdc107e82309df5b1616d2934c1"
+      }
+    },
+    "ended_at": "2026-10-04T09:46:02.593025+00:00",
+    "elapsed_seconds": 0.7537899750022916
+  },
+  {
+    "cell_id": "codec-reconstruction-closure-v1-bzip2-manual",
+    "owner": "root-codec-final-closure",
+    "manifest_sha256": "08a661db5a3ea72173052a9b1ac1f2bd30d0d6a328e36167aa81a84d5236919c",
+    "cpu": 8,
+    "physical_core": [
+      [
+        0,
+        16
+      ]
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "8",
+      "/bin/python3",
+      "/home/user/src/colour-index-compression/benchmarks/hutter_bounded_runner.py",
+      "--manifest",
+      "/home/user/src/colour-index-compression/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/manifests/bzip2-manual.json",
+      "--results",
+      "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual",
+      "--root",
+      "/home/user/src/colour-index-compression"
+    ],
+    "stdout_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/scheduler-logs/codec-reconstruction-closure-v1-bzip2-manual.stdout.log",
+    "progress_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/scheduler-logs/codec-reconstruction-closure-v1-bzip2-manual.progress.jsonl",
+    "returncode": 0,
+    "runner_status": "VERIFIED_SCREENING",
+    "runner_result": {
+      "archive_bytes": 25138,
+      "archive_sha256": "60b083692e050b9ff3619e1668db00e3802eb596211d606d5044c3c7f775d86e",
+      "artifacts": {
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/candidate.bin",
+        "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/restored.bin"
+      },
+      "budget": {
+        "cpu": 8,
+        "max_rss_bytes": 1500000000,
+        "max_temp_bytes": 128000000,
+        "wall_seconds": 45
+      },
+      "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+      "completed_at": "2026-10-04T09:46:04.209573+00:00",
+      "experiment_id": "f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98",
+      "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+      "identity": {
+        "build_sha256": {
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+          "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+          "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+          "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+        },
+        "configuration": {
+          "bzip2_levels": [
+            1,
+            9
+          ],
+          "experiment": "codec-reconstruction-closure-v1",
+          "family": "gzip",
+          "gzip_levels": [
+            1,
+            6,
+            9
+          ],
+          "inner_xz": [
+            1,
+            6
+          ],
+          "outer_xz": 1
+        },
+        "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+        "input": {
+          "length": 26928,
+          "offset": 0,
+          "path": "/usr/share/doc/bzip2/manual.texi.gz",
+          "sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861"
+        },
+        "manifest_sha256": "08a661db5a3ea72173052a9b1ac1f2bd30d0d6a328e36167aa81a84d5236919c"
+      },
+      "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+      "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+      "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+      "phases": [
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "gzip",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/source.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/candidate.bin"
+          ],
+          "cpu_usage_seconds": 1.125972,
+          "elapsed_seconds": 1.3093603150045965,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 57002,
+          "phase": "cix-bounded-f1f1532eae77-encode",
+          "sampled_cgroup_memory_high_water_bytes": 37707776,
+          "stop_reason": null
+        },
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/candidate.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/work/restored.bin"
+          ],
+          "cpu_usage_seconds": 0.12115,
+          "elapsed_seconds": 0.22080307600845117,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 83930,
+          "phase": "cix-bounded-f1f1532eae77-decode",
+          "sampled_cgroup_memory_high_water_bytes": 14716928,
+          "stop_reason": null
+        }
+      ],
+      "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+      "receipt": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/bzip2-manual/f1f1532eae77c592c82dce97f1ba6680a8f4b0b2e683a64a85015e8a0318ad98/receipt.json",
+      "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+      "status": "VERIFIED_SCREENING",
+      "verification": {
+        "matched": true,
+        "restored_sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861",
+        "source_sha256": "226aace6094429b3c1707c515373b50664ba5898cd3d0a32e48ef5ceeac45861"
+      }
+    },
+    "ended_at": "2026-10-04T09:46:04.261646+00:00",
+    "elapsed_seconds": 1.6064567060093395
+  },
+  {
+    "cell_id": "codec-reconstruction-closure-v1-xz-news",
+    "owner": "root-codec-final-closure",
+    "manifest_sha256": "b8745da662875edd573f931a88ad2f3f4dc2e55b1a79e6bd82756fae5a1c69ef",
+    "cpu": 8,
+    "physical_core": [
+      [
+        0,
+        16
+      ]
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "8",
+      "/bin/python3",
+      "/home/user/src/colour-index-compression/benchmarks/hutter_bounded_runner.py",
+      "--manifest",
+      "/home/user/src/colour-index-compression/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/manifests/xz-news.json",
+      "--results",
+      "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news",
+      "--root",
+      "/home/user/src/colour-index-compression"
+    ],
+    "stdout_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/scheduler-logs/codec-reconstruction-closure-v1-xz-news.stdout.log",
+    "progress_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/scheduler-logs/codec-reconstruction-closure-v1-xz-news.progress.jsonl",
+    "returncode": 0,
+    "runner_status": "VERIFIED_SCREENING",
+    "runner_result": {
+      "archive_bytes": 19762,
+      "archive_sha256": "9bdd029a717f217fbe756ab21f3b19bd5bdf205b09872f66e8cfa9c01e458cc2",
+      "artifacts": {
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/candidate.bin",
+        "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/restored.bin"
+      },
+      "budget": {
+        "cpu": 8,
+        "max_rss_bytes": 1500000000,
+        "max_temp_bytes": 128000000,
+        "wall_seconds": 45
+      },
+      "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+      "completed_at": "2026-10-04T09:46:05.526290+00:00",
+      "experiment_id": "4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec",
+      "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+      "identity": {
+        "build_sha256": {
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+          "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+          "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+          "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+        },
+        "configuration": {
+          "bzip2_levels": [
+            1,
+            9
+          ],
+          "experiment": "codec-reconstruction-closure-v1",
+          "family": "gzip",
+          "gzip_levels": [
+            1,
+            6,
+            9
+          ],
+          "inner_xz": [
+            1,
+            6
+          ],
+          "outer_xz": 1
+        },
+        "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+        "input": {
+          "length": 20796,
+          "offset": 0,
+          "path": "/usr/share/doc/liblzma5/NEWS.gz",
+          "sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b"
+        },
+        "manifest_sha256": "b8745da662875edd573f931a88ad2f3f4dc2e55b1a79e6bd82756fae5a1c69ef"
+      },
+      "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+      "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+      "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+      "phases": [
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "gzip",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/source.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/candidate.bin"
+          ],
+          "cpu_usage_seconds": 0.899111,
+          "elapsed_seconds": 1.0231847679970087,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 45470,
+          "phase": "cix-bounded-4dd832a723a6-encode",
+          "sampled_cgroup_memory_high_water_bytes": 36147200,
+          "stop_reason": null
+        },
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/candidate.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/work/restored.bin"
+          ],
+          "cpu_usage_seconds": 0.112818,
+          "elapsed_seconds": 0.1561464190017432,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 66266,
+          "phase": "cix-bounded-4dd832a723a6-decode",
+          "sampled_cgroup_memory_high_water_bytes": 11714560,
+          "stop_reason": null
+        }
+      ],
+      "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+      "receipt": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/xz-news/4dd832a723a6a0ef14e73c639c74859e5d8b6ee891d69c88ae45c56a54f362ec/receipt.json",
+      "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+      "status": "VERIFIED_SCREENING",
+      "verification": {
+        "matched": true,
+        "restored_sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b",
+        "source_sha256": "3f35ab3c40eb0a63922be04be26473314719ef61522040bfc39ada32a98f3a7b"
+      }
+    },
+    "ended_at": "2026-10-04T09:46:05.578493+00:00",
+    "elapsed_seconds": 1.2554766350076534
+  },
+  {
+    "cell_id": "codec-reconstruction-closure-v1-zstd-contributing",
+    "owner": "root-codec-final-closure",
+    "manifest_sha256": "beed808cdad8a774661c90870da8da7dded45833878c1e7b563a6dafd657422a",
+    "cpu": 8,
+    "physical_core": [
+      [
+        0,
+        16
+      ]
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "8",
+      "/bin/python3",
+      "/home/user/src/colour-index-compression/benchmarks/hutter_bounded_runner.py",
+      "--manifest",
+      "/home/user/src/colour-index-compression/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/manifests/zstd-contributing.json",
+      "--results",
+      "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing",
+      "--root",
+      "/home/user/src/colour-index-compression"
+    ],
+    "stdout_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/scheduler-logs/codec-reconstruction-closure-v1-zstd-contributing.stdout.log",
+    "progress_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/scheduler-logs/codec-reconstruction-closure-v1-zstd-contributing.progress.jsonl",
+    "returncode": 0,
+    "runner_status": "VERIFIED_SCREENING",
+    "runner_result": {
+      "archive_bytes": 11778,
+      "archive_sha256": "126d0b532bec5467e983ea52becd0d966e976aba465d9f6e71c432e7fa4db356",
+      "artifacts": {
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/candidate.bin",
+        "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/restored.bin"
+      },
+      "budget": {
+        "cpu": 8,
+        "max_rss_bytes": 1500000000,
+        "max_temp_bytes": 128000000,
+        "wall_seconds": 45
+      },
+      "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+      "completed_at": "2026-10-04T09:46:06.515723+00:00",
+      "experiment_id": "1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b",
+      "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+      "identity": {
+        "build_sha256": {
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+          "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+          "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+          "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+        },
+        "configuration": {
+          "bzip2_levels": [
+            1,
+            9
+          ],
+          "experiment": "codec-reconstruction-closure-v1",
+          "family": "gzip",
+          "gzip_levels": [
+            1,
+            6,
+            9
+          ],
+          "inner_xz": [
+            1,
+            6
+          ],
+          "outer_xz": 1
+        },
+        "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+        "input": {
+          "length": 11819,
+          "offset": 0,
+          "path": "/usr/share/doc/zstd/CONTRIBUTING.md.gz",
+          "sha256": "8249de4e461a446bc605fd5b4715389121df293581ac5b2ef6d0a51692daabda"
+        },
+        "manifest_sha256": "beed808cdad8a774661c90870da8da7dded45833878c1e7b563a6dafd657422a"
+      },
+      "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+      "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+      "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+      "phases": [
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "gzip",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/source.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/candidate.bin"
+          ],
+          "cpu_usage_seconds": 0.549866,
+          "elapsed_seconds": 0.6566225139977178,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 28511,
+          "phase": "cix-bounded-1edc06c4b10c-encode",
+          "sampled_cgroup_memory_high_water_bytes": 32972800,
+          "stop_reason": null
+        },
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/candidate.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/work/restored.bin"
+          ],
+          "cpu_usage_seconds": 0.094565,
+          "elapsed_seconds": 0.19075002601312008,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 40330,
+          "phase": "cix-bounded-1edc06c4b10c-decode",
+          "sampled_cgroup_memory_high_water_bytes": 11640832,
+          "stop_reason": null
+        }
+      ],
+      "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+      "receipt": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/zstd-contributing/1edc06c4b10c970852002ac93f894e10b3418e51551f41be312d767b03cd3f1b/receipt.json",
+      "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+      "status": "VERIFIED_SCREENING",
+      "verification": {
+        "matched": true,
+        "restored_sha256": "8249de4e461a446bc605fd5b4715389121df293581ac5b2ef6d0a51692daabda",
+        "source_sha256": "8249de4e461a446bc605fd5b4715389121df293581ac5b2ef6d0a51692daabda"
+      }
+    },
+    "ended_at": "2026-10-04T09:46:06.545840+00:00",
+    "elapsed_seconds": 0.9022422080015531
+  },
+  {
+    "cell_id": "codec-reconstruction-closure-v1-nvidia-init",
+    "owner": "root-codec-final-closure",
+    "manifest_sha256": "112588bcfa9da8f86b82c156703e52093caefa22f984a622cd5aca35ce9c3eef",
+    "cpu": 8,
+    "physical_core": [
+      [
+        0,
+        16
+      ]
+    ],
+    "command": [
+      "taskset",
+      "-c",
+      "8",
+      "/bin/python3",
+      "/home/user/src/colour-index-compression/benchmarks/hutter_bounded_runner.py",
+      "--manifest",
+      "/home/user/src/colour-index-compression/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/manifests/nvidia-init.json",
+      "--results",
+      "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init",
+      "--root",
+      "/home/user/src/colour-index-compression"
+    ],
+    "stdout_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/scheduler-logs/codec-reconstruction-closure-v1-nvidia-init.stdout.log",
+    "progress_log": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/scheduler-logs/codec-reconstruction-closure-v1-nvidia-init.progress.jsonl",
+    "returncode": 0,
+    "runner_status": "VERIFIED_SCREENING",
+    "runner_result": {
+      "archive_bytes": 7169,
+      "archive_sha256": "e812e641a0a3f5db07de2b32170f71eba14030ab0d0dc459ced121f68fcc0d8d",
+      "artifacts": {
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/candidate.bin",
+        "restored": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/restored.bin"
+      },
+      "budget": {
+        "cpu": 8,
+        "max_rss_bytes": 1500000000,
+        "max_temp_bytes": 128000000,
+        "wall_seconds": 45
+      },
+      "cgroup_memory_note": "sampled cgroup high-water is a lower bound, not true process peak RSS",
+      "completed_at": "2026-10-04T09:46:06.977422+00:00",
+      "experiment_id": "5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397",
+      "hypothesis": "Finite closure: independently supplied existing gzip/bzip2 files may admit complete exact reconstruction savings using a fixed recipe dictionary not selected from their source settings.",
+      "identity": {
+        "build_sha256": {
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v1/decision_prediction.py": "bf6b692149a85be9aa067bcc15e900505e6cb0c3afade48f42ee77ad69762d7e",
+          "docs/research/2026-10-04-native-rc/codec-decision-prediction-v2/dcp2_completion.py": "e032f9e853fe0fa3c482116ffa564d208f04b13f5445ed8405c85b2438c1d86e",
+          "docs/research/2026-10-04-native-rc/codec-decisions-v1/codec_decisions.py": "86ba89db798c6ef3c616d24ea4e5f733a678a3742cd2c56ea8390c2c3d8c84f1",
+          "docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py": "c7fba0317fad57f2e0f4349e1656d54bac15f0576c35131c753156ba7c8bc90d",
+          "docs/research/2026-10-04-native-rc/codec-transfer-v1/transfer.py": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917"
+        },
+        "configuration": {
+          "bzip2_levels": [
+            1,
+            9
+          ],
+          "experiment": "codec-reconstruction-closure-v1",
+          "family": "bzip2",
+          "gzip_levels": [
+            1,
+            6,
+            9
+          ],
+          "inner_xz": [
+            1,
+            6
+          ],
+          "outer_xz": 1
+        },
+        "initial_state": "empty per process; ordinary cached runtime dependencies recorded",
+        "input": {
+          "length": 7189,
+          "offset": 0,
+          "path": "/usr/share/doc/nvidia-compute-utils-580/nvidia-persistenced-init.tar.bz2",
+          "sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b"
+        },
+        "manifest_sha256": "112588bcfa9da8f86b82c156703e52093caefa22f984a622cd5aca35ce9c3eef"
+      },
+      "independent_decode": "separate decode command received archive only; source and materialized range inaccessible",
+      "matched_control": "Original unchanged and CTR1-framed zlib9, XZ1, XZ6; no available local Preflate/precomp specialist control found.",
+      "mechanism": "gzip uses retained DCP token reconstruction with paid selected level and plaintext coder; bzip2 uses inherited CTR1 plaintext/reference/byte-residual scheme. All candidates inverse-checked; selected research candidate serialized even when it expands.",
+      "phases": [
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "bzip2",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/source.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/candidate.bin"
+          ],
+          "cpu_usage_seconds": 0.101763,
+          "elapsed_seconds": 0.16301161599403713,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 18078,
+          "phase": "cix-bounded-5f20c3fb31e2-encode",
+          "sampled_cgroup_memory_high_water_bytes": 13832192,
+          "stop_reason": null
+        },
+        {
+          "command": [
+            "/bin/python3",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/build/docs/research/2026-10-04-native-rc/codec-reconstruction-closure-v1/closure_codec.py",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/candidate.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/work/restored.bin"
+          ],
+          "cpu_usage_seconds": 0.05835,
+          "elapsed_seconds": 0.16818084799160715,
+          "exit_code": 0,
+          "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+          "peak_temp_bytes": 25267,
+          "phase": "cix-bounded-5f20c3fb31e2-decode",
+          "sampled_cgroup_memory_high_water_bytes": 720896,
+          "stop_reason": null
+        }
+      ],
+      "promotion_criteria": "Exact archive-only independent decode plus meaningful bytes versus strongest controls. No RC inclusion without portable deterministic native reference and appropriate specialist qualification; absent requirements receive a final unqualified research-only verdict.",
+      "receipt": "/home/user/src/colour-index-compression/benchmark-work/codec-reconstruction-closure-v1/nvidia-init/5f20c3fb31e2142bce7206723964dddd5268344d6f180faed3e3b5f0ccd0b397/receipt.json",
+      "resource_enforcement": "systemd cgroup MemoryMax + MemorySwapMax=0 + KillMode=control-group + CPU affinity",
+      "status": "VERIFIED_SCREENING",
+      "verification": {
+        "matched": true,
+        "restored_sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b",
+        "source_sha256": "7a6068d4c8e195655383b7548f65893fdff476f053434f4882f49ce6bdd3312b"
+      }
+    },
+    "ended_at": "2026-10-04T09:46:07.021823+00:00",
+    "elapsed_seconds": 0.40245887500350364
+  }
+]

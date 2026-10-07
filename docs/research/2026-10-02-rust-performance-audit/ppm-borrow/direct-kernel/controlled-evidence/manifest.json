@@ -1,0 +1,35 @@
+{
+  "experiment": "ppm-borrow-controlled-direct-kernel-v1",
+  "status": "completed",
+  "baseline_commit": "e88cde24f0428b049101fe9263f9bbfe1be11133",
+  "candidate_commit": "674a9caca7ddcdc729615aa155baf20a020ae83a",
+  "resource_contract": {
+    "cpus": [10, 11],
+    "memory_max_bytes": 1073741824,
+    "memory_swap_max_bytes": 0,
+    "temporary_cap_bytes": 536870912,
+    "readback": "raw/*/cgroup.json"
+  },
+  "matrix": {
+    "ppm_order": 3,
+    "input_bytes": 4096,
+    "cases": ["random", "strong", "weak", "absent"],
+    "pairs_per_case": 5,
+    "counterbalance": "odd pair baseline CPU10 then candidate CPU11; even pair candidate CPU10 then baseline CPU11",
+    "criterion": {"sample_size": 10, "warm_up_seconds": 0.05, "measurement_seconds": 0.2}
+  },
+  "commands": {
+    "build": "systemd-run --user --scope --collect -p MemoryMax=1073741824 -p MemorySwapMax=0 -- taskset -c 10,11 bash -c 'ulimit -v 1073741824; CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=<outside-git-target> cargo build --manifest-path <outside-git-measurement-manifest> --release --offline'",
+    "measure": "controlled-evidence/run-one.sh CASE CPU BINARY RUN_DIR"
+  },
+  "toolchain": {"rustc": "rustc 1.98.1 (48a229cea 2026-09-01)", "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)", "profile": "release"},
+  "source_sha256": {"baseline_ppm": "ae1b9744aede079a31e3caf51873fcea3d771b8979040dbfbcfea4aa4798440d", "candidate_ppm": "2910950802488f0fae7c12fc5d9d2a06bf37eb5ee0b5d4bc8e89d96b93a1bbbe", "audit_bench": "7fd4e1355bddb4ba1cf6251f24dc3017d2bbd60037c83033e7f4af9f6c38b0bc"},
+  "binary_sha256_outside_git": {"baseline": "e012aff0082dc56b101581027ef34b0eef550d761ceda3827214097f74b11736", "candidate": "843be8e793a035655517bcbe8331f6ae3ddb6d608434e78676a4a676914c73f2"},
+  "cases": {
+    "random": {"generator": "xorshift32 plus periodic channel", "input_sha256": "316a7ad0a5fff40fd4adc6d4bb6a11d6cc4f77fdc6e966b6cbd1ea6933248fe8", "payload_sha256": "f45a927d31b130fe6863571338bbb0399b1b24551483326ebb5d7bb41e2f1d98", "payload_bytes": 5622},
+    "strong": {"generator": "ABCD repeating", "input_sha256": "d0e0da8a862406373f116f68abe4c82266b0b374d9f6999f56c8de9c5ac26205", "payload_sha256": "db0e2dd4c74cad873979b058695b9251decbfe3fcab7e8748e063a1c4c013064", "payload_bytes": 15},
+    "weak": {"generator": "(17*i + floor(i/23)) mod 256", "input_sha256": "01b74f6cc30da9a8881e94deb67d24d4afec2f96f41521bddb165a53892193af", "payload_sha256": "dbd5957adcb6d6f4ea465c3157996b0411e327f26e24cc242a82b8599cfd2bd2", "payload_bytes": 702},
+    "absent": {"generator": "order-3 de Bruijn sequence over 16 symbols", "input_sha256": "795a0cb622f1cee56acc04ead9e2dad06e9b0788f6564a0e92e2c6373aae3adf", "payload_sha256": "0a019d1b8d69dfc6da16976cab70a66b3df6a67dcbcb505e36713374d925f606", "payload_bytes": 2494}
+  },
+  "cross_decode": "For every case the baseline and candidate wrote byte-identical payloads; candidate decoded baseline payload and baseline decoded candidate payload in fresh processes. Payloads are deliberately retained outside Git."
+}

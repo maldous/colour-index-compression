@@ -1,0 +1,111 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v13/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'build', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v13/Cargo.toml', '--lib', '--bin', 'cix']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v13/Cargo.toml', '--lib', 'full_engine::address_relations::', '--', '--test-threads=2']
+
+running 11 tests
+test full_engine::address_relations::tests::finite_word_delta_preserves_sign_boundary ... ok
+test full_engine::address_relations::tests::got_choice_encodings_round_trip_all_modes ... ok
+test full_engine::address_relations::tests::got_choices_match_frozen_reference_bytes ... ok
+test full_engine::address_relations::tests::got_empty_admission_keeps_complete_paid_transform ... ok
+test full_engine::address_relations::tests::got_wire_mode_zero_restores_the_fields_parent ... ok
+test full_engine::address_relations::tests::malformed_got_choice_lengths_are_rejected ... ok
+test full_engine::address_relations::tests::pdata_symbols_mode_one_keeps_nested_empty_admission_reversible ... ok
+test full_engine::address_relations::tests::pointer_delta_empty_admission_round_trips_all_modes ... ok
+test full_engine::address_relations::tests::pointer_delta_rejects_malformed_residual_metadata ... ok
+test full_engine::address_relations::tests::section_pointer_mode_four_keeps_paid_empty_admission_reversible ... ok
+test full_engine::address_relations::tests::frozen_ecoff_relation_vectors_match_native_raw_transforms_and_inverses ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 179 filtered out; finished in 0.00s
+
+CHECK ['python3', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/foundation-v13/check_sdk_install.py', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v13', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1', 'foundation-v13']
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v13/packaging/sdk', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-foundation-v13', '-G', 'Ninja', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/libcix_native.so', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v13']
+-- The C compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-foundation-v13
+SDK_CHECK ['cmake', '--install', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-foundation-v13']
+-- Install configuration: ""
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v13/include/cix.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v13/include/cix.hpp
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v13/lib/libcix_native.so
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v13/lib/cmake/CIX/CIXConfig.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v13/lib/cmake/CIX/CIXConfigVersion.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v13/lib/pkgconfig/cix-native.pc
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v13/share/doc/CIXSDK/README.md
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v13/packaging/sdk/tests', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v13', '-G', 'Ninja', '-DCMAKE_PREFIX_PATH=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-foundation-v13']
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v13
+SDK_CHECK ['cmake', '--build', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v13', '--parallel', '2']
+[1/2] Building CXX object CMakeFiles/cix_installed_cpp_consumer.dir/cpp_installed_consumer.cpp.o
+[2/2] Linking CXX executable cix_installed_cpp_consumer
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v13/cix_installed_cpp_consumer']
+SDK_CHECK ['cc', '-std=c11', '-Wall', '-Wextra', '-Werror', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v13/tests/c_api_consumer.c', '-o', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v13/c_installed_consumer', '-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-foundation-v13/lib/pkgconfig/../../include', '-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-foundation-v13/lib/pkgconfig/../../lib', '-lcix_native', '-Wl,-rpath,/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-foundation-v13/lib']
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v13/c_installed_consumer']
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v13/packaging/sdk', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-foundation-v13', '-G', 'Ninja', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/libcix_native.a', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v13']
+-- The C compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-foundation-v13
+SDK_CHECK ['cmake', '--install', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-foundation-v13']
+-- Install configuration: ""
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v13/include/cix.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v13/include/cix.hpp
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v13/lib/libcix_native.a
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v13/lib/cmake/CIX/CIXConfig.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v13/lib/cmake/CIX/CIXConfigVersion.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v13/lib/pkgconfig/cix-native.pc
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v13/share/doc/CIXSDK/README.md
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v13/packaging/sdk/tests', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-foundation-v13', '-G', 'Ninja', '-DCMAKE_PREFIX_PATH=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-relocated-foundation-v13']
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.3")  
+-- Found BZip2: /usr/lib/x86_64-linux-gnu/libbz2.so (found version "1.0.8") 
+-- Looking for BZ2_bzCompressInit
+-- Looking for BZ2_bzCompressInit - found
+-- Looking for lzma_auto_decoder in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_auto_decoder in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Looking for lzma_easy_encoder in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_easy_encoder in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Looking for lzma_lzma_preset in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_lzma_preset in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Found LibLZMA: /usr/lib/x86_64-linux-gnu/liblzma.so (found version "5.4.5") 
+-- Found PkgConfig: /usr/bin/pkg-config (found version "1.8.1") 
+-- Checking for module 'libzstd'
+--   Found libzstd, version 1.5.5
+-- Checking for module 'libbrotlienc'
+--   Found libbrotlienc, version 1.1.0
+-- Checking for module 'libbrotlidec'
+--   Found libbrotlidec, version 1.1.0
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-foundation-v13
+SDK_CHECK ['cmake', '--build', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-foundation-v13', '--parallel', '2']
+[1/2] Building CXX object CMakeFiles/cix_installed_cpp_consumer.dir/cpp_installed_consumer.cpp.o
+[2/2] Linking CXX executable cix_installed_cpp_consumer
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-foundation-v13/cix_installed_cpp_consumer']
+SDK_CHECK ['cc', '-std=c11', '-Wall', '-Wextra', '-Werror', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v13/tests/c_api_consumer.c', '-o', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-foundation-v13/c_installed_consumer', '-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-relocated-foundation-v13/lib/pkgconfig/../../include', '-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-relocated-foundation-v13/lib/pkgconfig/../../lib', '-lcix_native', '-lbz2', '-llzma', '-lstdc++', '-lm', '-ldl', '-lpthread', '-lrt', '-lutil', '-lz', '-lzstd', '-pthread', '-lbrotlienc', '-lbrotlicommon', '-lbrotlidec', '-lbrotlicommon', '-Wl,-rpath,/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-relocated-foundation-v13/lib']
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-foundation-v13/c_installed_consumer']

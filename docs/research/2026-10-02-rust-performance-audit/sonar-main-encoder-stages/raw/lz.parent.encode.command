@@ -1,0 +1,1 @@
+/home/user/src/cix-current-validation-d52/rust/cix-native/target/release/cix --format cixg1 --route lz --explain -o /tmp/cix-main-encoder-stages.rb587P/lz.parent.cix /tmp/cix-main-encoder-stages.rb587P/input.bin 

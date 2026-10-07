@@ -1,0 +1,17 @@
+{
+  "source_base": "52cd25716",
+  "scope": "Example fixture only; production encoder/decoder unchanged",
+  "fix": "Replace example decoder stubs with real adaptive/histogram/wavelet modules so included numeric roundtrip tests exercise genuine reconstruction.",
+  "test_command": "DIRECT_CARGO test --locked --profile release-lto --all-features --example numeric_encode_fixture -j1 -- --test-threads=1",
+  "test_result": "18 passed, 0 failed; native example suite",
+  "known_failure_before": "Frozen9214 optimizedallfeatures exited101;13of14 numeric-example tests passed and every_numeric_candidate_round_trips_exactly failed on explicit stub error.",
+  "profile": "release-lto",
+  "configured_scope": {
+    "CPU": 8,
+    "memory_max": "2G",
+    "memory_swap_max": 0
+  },
+  "resource_limitation": "No in-scope child cgroup/peak readback retained for this focused correctness run; no memory/throughput qualification claim.",
+  "example_source_sha256": "786c582da4ae53674bb0fbdfc40949b69b1423d033d848837d2cf4815e14b147",
+  "test_log_sha256": "383fb4cf2da6000aeca66e77b3e1f9ecc25a59fa7a5cd28e2fb77cadc4c2c984"
+}

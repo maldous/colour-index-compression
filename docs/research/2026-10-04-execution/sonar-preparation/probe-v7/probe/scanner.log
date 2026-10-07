@@ -1,0 +1,43 @@
+19:28:08.043 INFO  Scanner configuration file: /opt/sonar-scanner/conf/sonar-scanner.properties
+19:28:08.045 INFO  Project root configuration file: /out/properties
+19:28:08.050 INFO  SonarScanner CLI 8.1.0.6389
+19:28:08.052 INFO  Linux 6.8.0-142-generic amd64
+19:28:08.443 INFO  Communicating with SonarQube Community Build 26.9.0.129388
+19:28:08.444 INFO  JRE provisioning is disabled
+19:28:08.444 INFO  Using the java executable '/usr/lib/jvm/java-21-amazon-corretto/bin/java' from JAVA_HOME
+19:28:08.581 INFO  EXECUTION FAILURE
+19:28:08.581 INFO  Total time: 0.539s
+19:28:08.582 ERROR Error during SonarScanner CLI execution
+java.lang.IllegalStateException: Call to URL [http://127.0.0.1:9017/api/v2/analysis/engine] failed: File too large
+	at org.sonarsource.scanner.lib.internal.http.ScannerHttpClient.callUrlWithRedirectsAndProxyAuth(ScannerHttpClient.java:186)
+	at org.sonarsource.scanner.lib.internal.http.ScannerHttpClient.callUrlWithRedirects(ScannerHttpClient.java:145)
+	at org.sonarsource.scanner.lib.internal.http.ScannerHttpClient.callUrl(ScannerHttpClient.java:141)
+	at org.sonarsource.scanner.lib.internal.http.ScannerHttpClient.downloadFile(ScannerHttpClient.java:92)
+	at org.sonarsource.scanner.lib.internal.http.ScannerHttpClient.downloadFromRestApi(ScannerHttpClient.java:66)
+	at org.sonarsource.scanner.lib.internal.facade.forked.ScannerEngineLauncherFactory$ScannerEngineDownloader.download(ScannerEngineLauncherFactory.java:128)
+	at org.sonarsource.scanner.downloadcache.DownloadCache.download(DownloadCache.java:92)
+	at org.sonarsource.scanner.downloadcache.DownloadCache.getOrDownload(DownloadCache.java:80)
+	at org.sonarsource.scanner.lib.internal.facade.forked.ScannerEngineLauncherFactory.provisionScannerEngine(ScannerEngineLauncherFactory.java:87)
+	at org.sonarsource.scanner.lib.internal.facade.forked.ScannerEngineLauncherFactory.getScannerEngine(ScannerEngineLauncherFactory.java:81)
+	at org.sonarsource.scanner.lib.internal.facade.forked.ScannerEngineLauncherFactory.createLauncher(ScannerEngineLauncherFactory.java:63)
+	at org.sonarsource.scanner.lib.ScannerEngineBootstrapper.buildNewFacade(ScannerEngineBootstrapper.java:196)
+	at org.sonarsource.scanner.lib.ScannerEngineBootstrapper.bootstrapServer(ScannerEngineBootstrapper.java:176)
+	at org.sonarsource.scanner.lib.ScannerEngineBootstrapper.bootstrap(ScannerEngineBootstrapper.java:151)
+	at org.sonarsource.scanner.cli.Main.analyze(Main.java:76)
+	at org.sonarsource.scanner.cli.Main.main(Main.java:64)
+Caused by: java.io.IOException: File too large
+	at java.base/sun.nio.ch.UnixFileDispatcherImpl.write0(Native Method)
+	at java.base/sun.nio.ch.UnixFileDispatcherImpl.write(UnixFileDispatcherImpl.java:65)
+	at java.base/sun.nio.ch.IOUtil.writeFromNativeBuffer(IOUtil.java:137)
+	at java.base/sun.nio.ch.IOUtil.write(IOUtil.java:102)
+	at java.base/sun.nio.ch.IOUtil.write(IOUtil.java:72)
+	at java.base/sun.nio.ch.FileChannelImpl.write(FileChannelImpl.java:300)
+	at java.base/sun.nio.ch.ChannelOutputStream.writeFully(ChannelOutputStream.java:68)
+	at java.base/sun.nio.ch.ChannelOutputStream.write(ChannelOutputStream.java:105)
+	at java.base/java.io.InputStream.transferTo(InputStream.java:797)
+	at java.base/java.nio.file.Files.copy(Files.java:3164)
+	at org.sonarsource.scanner.lib.internal.http.ScannerHttpClient.lambda$downloadFile$0(ScannerHttpClient.java:94)
+	at org.sonarsource.scanner.lib.internal.http.ScannerHttpClient.callUrlWithRedirectsAndProxyAuth(ScannerHttpClient.java:179)
+	... 15 common frames omitted
+19:28:08.582 ERROR 
+19:28:08.582 ERROR Re-run SonarScanner CLI using the -X switch to enable full debug logging.

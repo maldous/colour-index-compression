@@ -1,0 +1,73 @@
+{
+  "schema": "cix-automatic-specialised-runtime-dependencies-v1",
+  "audit_mode": "read-only",
+  "portfolio26_fresh_path": {
+    "entry": "benchmarks/competitive_joint_discount_v26.py:additions(data, cache=None)",
+    "cache_branch": "research-only; reads results/leaderboard and is excluded",
+    "joint_discount": {
+      "frame": "CIXB 0x1d mode 2",
+      "binary": "benchmark-work/references/paq8px-cix-joint-discount/build-local/paq8px",
+      "sha256": "7f8a4605eca962cd6015839922afb2f2f7dd669d597921c216919aaf620e8b5a",
+      "environment": {
+        "CIX_JOINT_DISCOUNT": "2"
+      },
+      "source_status": "local fork source exists; extraction required"
+    },
+    "state_only_decoder": {
+      "parent_chain": "competitive_filtered -> ecoff_filtered",
+      "modes": [
+        0,
+        1,
+        2
+      ],
+      "decoder_modes_requiring_fork": [
+        1,
+        2
+      ],
+      "fork": "benchmark-work/references/paq8px-cix-store-state/build-local/paq8px"
+    }
+  },
+  "backends": [
+    {
+      "name": "paq-v215",
+      "binary_sha256": "b982f1e8307d6c38e8febc6415901fafcc2e84a14d51e0af7c5cbbe6322778e7",
+      "source": "local CMake tree",
+      "status": "buildable pending frozen recipe"
+    },
+    {
+      "name": "paq-v216",
+      "binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+      "source": "local CMake tree",
+      "status": "buildable pending frozen recipe"
+    },
+    {
+      "name": "paq-joint-discount",
+      "source": "local fork CMake tree",
+      "status": "buildable pending extracted transform/header closure"
+    },
+    {
+      "name": "imagecodecs-jxl",
+      "version": "2026.8.16",
+      "status": "required available-host runtime for retained volume candidate; portable source closure missing for later distribution work",
+      "requirements": [
+        "CPython >=3.12",
+        "numpy >=2.1",
+        "imagecodecs JPEG XL extension and bundled libjxl family"
+      ]
+    },
+    {
+      "name": "paq-state-only",
+      "status": "required portfolio26 parent-chain filtered mode 1/2 decoder closure; extract with Brotli, CIXB 0x13 dispatch and structural inverse"
+    }
+  ],
+  "extraction_destination": "cix_runtime_specialized/ outside benchmarks/results/benchmark-work",
+  "runtime_selection_prohibitions": [
+    "corpus name",
+    "path",
+    "file extension",
+    "known hash",
+    "saved stream",
+    "results/certificate lookup"
+  ],
+  "next_implementation_gate": "freeze extracted source manifests, detectors, decoder dispatch and dependency licences before focused correctness checks"
+}

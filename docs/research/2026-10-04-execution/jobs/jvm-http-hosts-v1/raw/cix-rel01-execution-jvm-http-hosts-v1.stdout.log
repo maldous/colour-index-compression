@@ -1,0 +1,21 @@
+['/usr/lib/jvm/java-21-openjdk-amd64/bin/javac', '--release', '17', '-cp', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/commons-collections-3.2.2.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/commons-logging-1.2.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/hadoop-annotations-3.4.1.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/hadoop-common-3.4.1.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/hadoop-shaded-guava-1.3.0.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/slf4j-api-1.7.36.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/stax2-api-4.2.1.jar:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-jars-v1/woodstox-core-5.4.0.jar', '-d', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-hosts-v1/classes'), PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-source-v1/bindings/java/src/main/java/dev/cix/binding/NativeCix.java'), PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-source-v1/adapters/hadoop/src/test/java/dev/cix/hadoop/HadoopContract.java'), PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-source-v1/adapters/hadoop/src/main/java/dev/cix/hadoop/CixCodec.java')] 1
+hadoop FAIL /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-source-v1/adapters/hadoop/src/main/java/dev/cix/hadoop/CixCodec.java:109: error: CixCompressor is not abstract and does not override abstract method reinit(Configuration) in Compressor
+    public static final class CixCompressor extends CixStreamBase implements Compressor {
+                        ^
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-source-v1/adapters/hadoop/src/main/java/dev/cix/hadoop/CixCodec.java:229: error: method does not override or implement a method from a supertype
+        @Override public synchronized void reinit(Configuration ignored) { reset(); }
+        ^
+2 errors
+
+['/usr/bin/go', '-C', PosixPath('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jvm-http-source-v1/adapters/network'), 'test', './...', '-count=1'] 1
+http FAIL ?   	example.invalid/cix/network	[no test files]
+--- FAIL: TestControlledPeerHTTPContract (0.00s)
+    http_contract_test.go:36: encode status=422 encoding=""
+FAIL
+FAIL	example.invalid/cix/network/contracts	0.002s
+--- FAIL: TestContextOptionsUsesPublicOutputCap (0.00s)
+    handler_test.go:23: plain options = cix.Options{Profile:0x0, Workers:0x0, OutputLimit:0x14, MemoryLimit:0x46}
+FAIL
+FAIL	example.invalid/cix/network/httpapi	0.002s
+FAIL
+

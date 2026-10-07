@@ -1,0 +1,73 @@
+{
+  "experiment": "qualification-6ac0",
+  "status": "FROZEN_PRE_EXECUTION",
+  "release": {
+    "source_revision": "6ac05f8e9fd78ff01e2f8d71e6557c5dc66bb8bb",
+    "source_tree": "9b3cd2a8abec9fcdbd64e2f48b5bc9bb49f46133",
+    "binaries": {
+      "cix": {
+        "path": "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/final/cix",
+        "sha256": "f5c0b9f4d3ef250403e03bafebb9cab483bbdff8c5cca996f295ecdaf285db2e",
+        "bytes": 2513360
+      },
+      "uncix": {
+        "path": "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/final/uncix",
+        "sha256": "3ab438a9b80404e3c88468a3ebc5ee40174c657ec8b40115d7d8ff5afea6e2d4",
+        "bytes": 2514888
+      },
+      "cixcat": {
+        "path": "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/final/cixcat",
+        "sha256": "a4fe0325a7e3aacdc33005894c29ffdba44b4a9c11ffd74114f2b49fd8f29b2a",
+        "bytes": 2515664
+      },
+      "libcix_native.so": {
+        "path": "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/final/libcix_native.so",
+        "sha256": "30da86392abf5c5b7eeaa7fd87d627c8d93613800e137840f9da9729cc5aaa2b",
+        "bytes": 1517352
+      }
+    },
+    "scope": "current-hostportableallfeaturerelease-lto, focusedfooter/overridequalification; rankunchangedfrompassedf579test; ClippyzeroClippyrules/unusedvariables but241deadcodewarnings targetinstances; fullsuite/Sonar/large stream pending"
+  },
+  "source_sha256": "a239757831a2d312604464149c66712824576734926f778d6dcec437b17c283a",
+  "driver_sha256": "03f17f951f8415d9dfdd07cf314d6befb659d40792085902ac572d4690b9de8e",
+  "scanner_sha256": "a5487ad1ba158b7eb5f70649048ca9d9bb0070fd223a2105a769d5f64bccffca",
+  "schedule_sha256": "1e9ce797e21c31f74b076a69bbbe5e69a243c96dfac6dbd22599eade83e2f7c6",
+  "stream_freeze_sha256": "5a1a8226a1b21e677c7bcb5eade88e8f707b6a5df14bca57cb5782ad85bf9e25",
+  "aggregate_budget": {
+    "cpus": [
+      8,
+      10,
+      24,
+      25
+    ],
+    "memory_reserved": 8589934592,
+    "temporary_max": 4000000000,
+    "swap": 0
+  },
+  "stream_row_budget": {
+    "cpus": [
+      8,
+      10
+    ],
+    "memory": 268435456,
+    "temp": 134217728,
+    "wall": 180,
+    "rows": 2
+  },
+  "sonar_budget": {
+    "cpus": [
+      24,
+      25
+    ],
+    "server_memory": 4294967296,
+    "scanner_memory": 1073741824,
+    "quota_each": "200%",
+    "swap": 0,
+    "storage": "boundedtmpfsdata1GiB/logs128MiB/temp256MiB, scanner/tmp512MiB",
+    "wall": 900
+  },
+  "timing_limit": "Concurrent scan work uses separatecores but sharedhardware; pipeline includes sourcegeneration, produceridle, deliberatelyslowconsumer and freshdecode controls. No purecodec throughput/Pareto claim.",
+  "execution_amendment": {
+    "reason": "Original G1 harness failed in idle checkpoint due missing select exceptional-list argument; native children interrupted/reaped, no completed row. Preserve original receipt. Fix harness only; sequential fresh decoder temp files avoid aggregate128MiB overlap. Retry declared G1 row and then first M6 row once under newunit names. Sonaroriginal launch canceled before serverstartup, newrun-v2 keeps originalemptyrun."
+  }
+}

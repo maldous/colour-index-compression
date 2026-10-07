@@ -1,0 +1,68 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-job-mode-v3/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-job-mode-v3/Cargo.toml', '--lib', 'job_protocol', '--', '--test-threads=1']
+
+running 4 tests
+test full_engine::job_protocol::tests::control_round_trip ... ok
+test full_engine::job_protocol::tests::decode_entry_counts_actual_native_output_and_finishes_stage ... ok
+test full_engine::job_protocol::tests::direct_selection_entry_applies_limits_cancel_and_reports_actual_output ... ok
+test full_engine::job_protocol::tests::rejects_unknown_version_oversize_truncated_and_utf8 ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 260 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-job-mode-v3/Cargo.toml', '--lib', 'job_cli', '--', '--test-threads=1']
+
+running 1 test
+test job_cli::tests::cancel_is_deterministically_rejected_after_commit_cutoff ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 263 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-job-mode-v3/Cargo.toml', '--test', 'full_engine_jobs_cli', '--test', 'cli_multiple_files', '--test', 'cli_full_engine', '--test', 'cli_smoke', '--test', 'implicit_stdin_cli', '--', '--test-threads=1']
+
+running 7 tests
+test damaged_full_frame_does_not_publish_atomic_output_or_remove_input ... ok
+test mixed_raw_member_needs_no_image_provider ... ok
+test named_default_reaches_selector_and_independent_cli_decode ... ok
+test native_and_raw_decoding_ignore_invalid_home ... ok
+test native_stream_remains_available_and_ignores_unused_bad_image_libraries ... ok
+test raw_frame_decodes_and_lists_without_optional_providers_or_home ... ok
+test small_memory_falls_back_to_bounded_native_streaming ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 5 tests
+test ambiguous_or_unsafe_multi_file_plans_fail_before_writes ... ok
+test multiple_file_errors_are_reported_after_other_inputs_run ... ok
+test multiple_files_preserve_existing_outputs_without_force ... ok
+test named_files_compress_and_decompress_independently ... ok
+test option_terminator_accepts_multiple_dash_prefixed_names ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 4 tests
+test dash_prefixed_filename_requires_and_accepts_option_terminator ... ok
+test implicit_stdin_decoder_rejects_a_missing_footer ... ok
+test implicit_stdin_stream_round_trips_and_matches_explicit_dash ... ok
+test stdout_and_named_output_conflict_before_processing_input ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 4 tests
+test capabilities_are_a_single_bounded_control_record ... ok
+test decode_job_restores_a_raw_archive_to_the_private_output_file ... ok
+test existing_output_is_never_overwritten_or_staged ... ok
+test malformed_initial_control_never_creates_output_or_temporary ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 4 tests
+test dash_prefixed_filename_requires_and_accepts_option_terminator ... ok
+test implicit_stdin_decoder_rejects_a_missing_footer ... ok
+test implicit_stdin_stream_round_trips_and_matches_explicit_dash ... ok
+test stdout_and_named_output_conflict_before_processing_input ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

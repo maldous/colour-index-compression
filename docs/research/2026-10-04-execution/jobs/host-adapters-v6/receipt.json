@@ -1,0 +1,97 @@
+{
+  "sources": {
+    "hdf5/CMakeLists.txt": "d2eaad2a976a91583c8fed93d494a5eb21888d04700a7eb068164b60085e2483",
+    "hdf5/README.md": "d59830a711b26351b06520b4fc10cf57227550bf1813a2a0f9dc03e312464ef2",
+    "hdf5/examples/h5py_filter.py": "4eff29b07f28674c6dcc760eb8843be59a20ca9a2290961d772e14393fa8a13b",
+    "hdf5/examples/netcdf_filter.c": "88c225911665c78f630a5bc4d438b3cbabe50220ba45bc0075b6b6f5140f92d0",
+    "hdf5/src/cix_hdf5_filter.c": "e2322517830c15fef723c06e560a61835aaba837cd52e8bf5576bb6f208eeba3",
+    "hdf5/tests/filter_contract.c": "51b866529d3ce15a1fcf0f6416fa5292f47707cbe3b8fdbe4132aedd4e91c5fd"
+  },
+  "cix_sha256": "fde4c550f0702be4c8d1e81330bd8b6ad902ece07ba583350bbf4607c6020d15",
+  "native_library_sha256": "8cfb14fe08a81105eaf6135b4eada992dae6d6c91e9ca17367fd578dec7205d1",
+  "components": {
+    "hdf5": {
+      "commands": [
+        {
+          "argv": [
+            "cmake",
+            "-S",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v6/hdf5",
+            "-B",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6/hdf5",
+            "-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+            "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+            "-DCIX_HDF5_FILTER_ID=65001",
+            "-DCIX_HDF5_BUILD_CONTRACT_TEST=ON",
+            "-DHDF5_C_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1/usr/include/hdf5/serial",
+            "-DHDF5_hdf5_LIBRARY_RELEASE=/usr/lib/x86_64-linux-gnu/libhdf5_serial.so.103"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6",
+          "returncode": 0,
+          "stdout": "-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Found HDF5: /usr/lib/x86_64-linux-gnu/libhdf5_serial.so.103 (found suitable version \"1.10.10\", minimum required is \"1.10\") found components: C \n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6/hdf5\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "cmake",
+            "--build",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6/hdf5",
+            "-j4"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6",
+          "returncode": 0,
+          "stdout": "[ 25%] Building C object CMakeFiles/H5Zcix.dir/src/cix_hdf5_filter.c.o\n[ 50%] Building C object CMakeFiles/cix_hdf5_filter_contract.dir/tests/filter_contract.c.o\n[ 75%] Linking C shared module libH5Zcix.so\n[100%] Linking C executable cix_hdf5_filter_contract\n[100%] Built target H5Zcix\n[100%] Built target cix_hdf5_filter_contract\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "ctest",
+            "--test-dir",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6/hdf5",
+            "--output-on-failure"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6",
+          "returncode": 0,
+          "stdout": "Internal ctest changing into directory: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6/hdf5\nTest project /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6/hdf5\n    Start 1: cix_hdf5_filter_contract\n1/1 Test #1: cix_hdf5_filter_contract .........   Passed   21.89 sec\n\n100% tests passed, 0 tests failed out of 1\n\nTotal Test time (real) =  21.89 sec\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "cc",
+            "-std=c99",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1/usr/include",
+            "-DCIX_HDF5_FILTER_ID=65001",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v6/hdf5/examples/netcdf_filter.c",
+            "/usr/lib/x86_64-linux-gnu/libnetcdf.so.19",
+            "-o",
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6/netcdf-contract"
+          ],
+          "env_extra": {},
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6",
+          "returncode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6/netcdf-contract"
+          ],
+          "env_extra": {
+            "HDF5_PLUGIN_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6/hdf5"
+          },
+          "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6",
+          "returncode": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      ],
+      "status": "pass"
+    }
+  }
+}

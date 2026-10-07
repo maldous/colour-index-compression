@@ -1,0 +1,15 @@
+{
+  "schema": "cix-molecular-forward-transfer-plan-v1",
+  "hypothesis": "A byte-exact SDF adapter can retain the existing geometry/hydrogen constraint mechanism on an independent authoritative molecule while charging record flags, skeleton, candidate choices and coordinate residuals.",
+  "control": "Original supplied SDF bytes with the future pinned PAQ backend; no PAQ job is authorized by this plan.",
+  "asset": {
+    "provider": "PubChem PUG-REST",
+    "cid": 2519,
+    "name": "caffeine",
+    "url": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2519/record/SDF/?record_type=3d",
+    "representation": "official 3-D SDF response bytes without reformatting"
+  },
+  "budget": {"download_bytes_max": 1048576, "cpu": "shared scheduler only for future PAQ", "memory_bytes_max": 3000000000, "temporary_bytes_max": 1000000000},
+  "acceptance": ["download response hash and provenance recorded", "adapter frame decodes from its bytes alone", "unsupported records remain literal", "all framing and structural metadata accounted", "separate matched PAQ execution is declared later"],
+  "not_authorized": ["NCI or Silesia reuse", "unbounded download", "PAQ execution", "corpus benchmark"]
+}

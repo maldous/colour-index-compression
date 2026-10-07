@@ -1,0 +1,647 @@
+diff --git a/rust/cix-native/src/main.rs b/rust/cix-native/src/main.rs
+index cfdafabf0..c1c16a88f 100644
+--- a/rust/cix-native/src/main.rs
++++ b/rust/cix-native/src/main.rs
+@@ -3434,6 +3434,119 @@ fn m6_decode_runs(blob: &[u8], source_len: usize, model_limit: usize) -> Result<
+     Ok(out)
+ }
+ 
++#[derive(Clone, Copy)]
++struct M6DecodeAdmission {
++    memory: usize,
++    history_limit: usize,
++    reference_budget: usize,
++}
++
++fn m6_admit_decode_block(
++    mode: u8,
++    source_len: usize,
++    payload_len: usize,
++    history: &[u8],
++    admission: M6DecodeAdmission,
++) -> Result<usize, String> {
++    let available_model_budget = admission
++        .memory
++        .saturating_sub(source_len)
++        .saturating_sub(payload_len)
++        .saturating_sub(admission.history_limit)
++        .saturating_sub(admission.reference_budget)
++        .saturating_sub(stateful::RETAINED_MEMORY_BOUND);
++    let model_budget = m6_model_budget(mode, source_len, history, available_model_budget);
++    if source_len == 0
++        || source_len > 1024 * 1024
++        || payload_len > 8 * source_len + 4096
++        || source_len
++            .saturating_add(payload_len)
++            .saturating_add(admission.history_limit)
++            .saturating_add(admission.reference_budget)
++            .saturating_add(stateful::RETAINED_MEMORY_BOUND)
++            .saturating_add(model_budget)
++            > admission.memory
++    {
++        return Err("CIXM6 block exceeds memory or format limit".into());
++    }
++    Ok(model_budget)
++}
++
++struct M6DecodeContext<'a> {
++    history: &'a [u8],
++    recent: &'a std::collections::VecDeque<Vec<u8>>,
++    memory: usize,
++    model_budget: usize,
++    persistent_states: &'a mut stateful::PersistentAdaptiveStates,
++}
++
++fn decode_m6_block(
++    mode: u8,
++    source_len: usize,
++    payload: Vec<u8>,
++    context: M6DecodeContext<'_>,
++) -> Result<Vec<u8>, String> {
++    Ok(match mode {
++        0 => {
++            if payload.len() != source_len {
++                return Err("CIXM6 raw block length mismatch".into());
++            }
++            payload
++        }
++        1 => {
++            let mut pos = 0;
++            let out = rank::decode_type_class(&payload, &mut pos, source_len)?;
++            if pos != payload.len() {
++                return Err("unused CIXM6 multinomial bytes".into());
++            }
++            out
++        }
++        2 => rank::decode_context_type_classes(&payload, source_len, context.history)?,
++        3 => legacy_lz::decode(&payload, source_len, context.history, context.memory / 4096)?,
++        4 => bwt_legacy::decode(&payload, source_len, context.memory / 4096)?,
++        6 => bitplane::decode(&payload, source_len)?,
++        7 => chain::decode(&payload, source_len, context.memory / 4096)?,
++        10 => {
++            adaptive::decode_general(&payload, source_len, context.history, context.memory / 4096)?
++        }
++        13 => context.persistent_states.decode(
++            &payload,
++            source_len,
++            context.history,
++            stateful::WORKING_MEMORY_BOUND,
++        )?,
++        11 => rank::decode_sparse_blob(&payload, source_len)?,
++        12 => m6_decode_runs(&payload, source_len, context.memory / 4096)?,
++        14 => m6_decode_record(&payload, source_len, context.memory / 4096)?,
++        5 => transform::decode(&payload, source_len)?,
++        15 => m6_decode_periodic(&payload, source_len, context.memory / 4096)?,
++        8 => numeric::decode(&payload, source_len)?,
++        16 => ppm::decode_with_history(&payload, source_len, context.history)?,
++        17 => expertmix::decode_bounded(
++            &payload,
++            source_len,
++            context.history,
++            context.model_budget / EXPERT_CONTEXT_MEMORY_ESTIMATE,
++        )?,
++        18 => wavelet::decode(&payload, source_len)?,
++        20 => histogram::decode_type_class(&payload, source_len)?,
++        19 => fixedmix::decode_with_history(&payload, source_len, context.history)?,
++        9 => {
++            let mut pos = 0;
++            let distance = unvar(&payload, &mut pos)?;
++            if pos != payload.len() || distance == 0 || distance > context.recent.len() {
++                return Err("invalid CIXM6 block reference".into());
++            }
++            let out = context.recent[context.recent.len() - distance].clone();
++            if out.len() != source_len {
++                return Err("CIXM6 reference length mismatch".into());
++            }
++            out
++        }
++        other => return Err(format!("unsupported CIXM6 block mode {other}")),
++    })
++}
++
+ fn decode_m6<R: Read, W: Write>(
+     mut src: R,
+     mut dst: W,
+@@ -3463,6 +3576,7 @@ fn decode_m6<R: Read, W: Write>(
+     {
+         return Err("CIXM6 history, references, and persistent models exceed --memory".into());
+     }
++    let admission = M6DecodeAdmission { memory, history_limit, reference_budget };
+     loop {
+         let mut mode = [0u8; 1];
+         read_exact_poll(&mut src, &mut mode, fd)?;
+@@ -3472,85 +3586,13 @@ fn decode_m6<R: Read, W: Write>(
+         }
+         let source_len = read_stream_varint(&mut src, fd)?;
+         let payload_len = read_stream_varint(&mut src, fd)?;
+-        let available_model_budget = memory
+-            .saturating_sub(source_len)
+-            .saturating_sub(payload_len)
+-            .saturating_sub(history_limit)
+-            .saturating_sub(reference_budget)
+-            .saturating_sub(stateful::RETAINED_MEMORY_BOUND);
+-        let model_budget = m6_model_budget(mode[0], source_len, &history, available_model_budget);
+-        if source_len == 0
+-            || source_len > 1024 * 1024
+-            || payload_len > 8 * source_len + 4096
+-            || source_len
+-                .saturating_add(payload_len)
+-                .saturating_add(history_limit)
+-                .saturating_add(reference_budget)
+-                .saturating_add(stateful::RETAINED_MEMORY_BOUND)
+-                .saturating_add(model_budget)
+-                > memory
+-        {
+-            return Err("CIXM6 block exceeds memory or format limit".into());
+-        }
++        let model_budget = m6_admit_decode_block(mode[0], source_len, payload_len, &history, admission)?;
+         let mut payload = vec![0u8; payload_len];
+         read_exact_poll(&mut src, &mut payload, fd)?;
+-        let block = match mode[0] {
+-            0 => {
+-                if payload.len() != source_len {
+-                    return Err("CIXM6 raw block length mismatch".into());
+-                }
+-                payload
+-            }
+-            1 => {
+-                let mut pos = 0;
+-                let out = rank::decode_type_class(&payload, &mut pos, source_len)?;
+-                if pos != payload.len() {
+-                    return Err("unused CIXM6 multinomial bytes".into());
+-                }
+-                out
+-            }
+-            2 => rank::decode_context_type_classes(&payload, source_len, &history)?,
+-            3 => legacy_lz::decode(&payload, source_len, &history, memory / 4096)?,
+-            4 => bwt_legacy::decode(&payload, source_len, memory / 4096)?,
+-            6 => bitplane::decode(&payload, source_len)?,
+-            7 => chain::decode(&payload, source_len, memory / 4096)?,
+-            10 => adaptive::decode_general(&payload, source_len, &history, memory / 4096)?,
+-            13 => persistent_states.decode(
+-                &payload,
+-                source_len,
+-                &history,
+-                stateful::WORKING_MEMORY_BOUND,
+-            )?,
+-            11 => rank::decode_sparse_blob(&payload, source_len)?,
+-            12 => m6_decode_runs(&payload, source_len, memory / 4096)?,
+-            14 => m6_decode_record(&payload, source_len, memory / 4096)?,
+-            5 => transform::decode(&payload, source_len)?,
+-            15 => m6_decode_periodic(&payload, source_len, memory / 4096)?,
+-            8 => numeric::decode(&payload, source_len)?,
+-            16 => ppm::decode_with_history(&payload, source_len, &history)?,
+-            17 => expertmix::decode_bounded(
+-                &payload,
+-                source_len,
+-                &history,
+-                model_budget / EXPERT_CONTEXT_MEMORY_ESTIMATE,
+-            )?,
+-            18 => wavelet::decode(&payload, source_len)?,
+-            20 => histogram::decode_type_class(&payload, source_len)?,
+-            19 => fixedmix::decode_with_history(&payload, source_len, &history)?,
+-            9 => {
+-                let mut pos = 0;
+-                let distance = unvar(&payload, &mut pos)?;
+-                if pos != payload.len() || distance == 0 || distance > recent.len() {
+-                    return Err("invalid CIXM6 block reference".into());
+-                }
+-                let out = recent[recent.len() - distance].clone();
+-                if out.len() != source_len {
+-                    return Err("CIXM6 reference length mismatch".into());
+-                }
+-                out
+-            }
+-            other => return Err(format!("unsupported CIXM6 block mode {other}")),
+-        };
++        let block = decode_m6_block(mode[0], source_len, payload, M6DecodeContext {
++            history: &history, recent: &recent, memory, model_budget,
++            persistent_states: &mut persistent_states,
++        })?;
+         if block.len() != source_len {
+             return Err("CIXM6 decoded block length mismatch".into());
+         }
+@@ -3573,14 +3615,19 @@ fn decode_m6<R: Read, W: Write>(
+     Ok(())
+ }
+ 
+-struct CixgHeader { magic: [u8; 5], block: u32, history: u32 }
++struct CixgHeader { magic: [u8; 5], block: u32 }
+ 
+ fn read_cixg_header<R: Read>(src: &mut R, magic: [u8; 5], fd: i32) -> Result<CixgHeader, String> {
+     let mut header = [0; HEADER];
+     header[..5].copy_from_slice(&magic);
+     read_exact_poll(src, &mut header[5..], fd)?;
+     if &header[..5] != MAGIC && &header[..5] != MAGIC_V2 { return Err("unsupported archive (expected CIXG1 or CIXG2)".into()); }
+-    Ok(CixgHeader { magic, block: u32::from_le_bytes(header[5..9].try_into().unwrap()), history: u32::from_le_bytes(header[9..13].try_into().unwrap()) })
++    let block = u32::from_le_bytes(header[5..9].try_into().unwrap());
++    let history = u32::from_le_bytes(header[9..13].try_into().unwrap());
++    if block == 0 || block > MAX_BLOCK || history != 0 && history != 65536 {
++        return Err("invalid CIXG header".into());
++    }
++    Ok(CixgHeader { magic, block })
+ }
+ 
+ fn decode_cixb1<R: Read, W: Write>(mut src: R, mut dst: W, magic: [u8; 5], verify_only: bool, list: bool, fd: i32, memory: usize) -> Result<(), String> {
+@@ -3636,6 +3683,209 @@ fn check_cixg_live_memory(fixed: usize, route: usize, nested: usize, memory: usi
+     Ok(())
+ }
+ 
++fn cixg_substream_workspace(
++    coder: u8,
++    decoded: usize,
++    payload: &[u8],
++    allow_extended_coders: bool,
++) -> Result<usize, String> {
++    Ok(match coder {
++        0 | 1 => 0,
++        // Rank, adaptive order-0, DEFLATE and canonical Huffman
++        // all have bounded temporary tables under this reserve.
++        2 | 3 | 4 | 5 | 7 => 64 * 1024,
++        6 => {
++            if !allow_extended_coders {
++                return Err("CIXG1 cannot contain versioned context-range substreams".into());
++            }
++            if payload.len() < 4 || payload[0] != 1 {
++                return Err("invalid context-range substream header".into());
++            }
++            let order = payload[1] as usize;
++            let bits = payload[2] as usize;
++            if !(1..=16).contains(&order) || !(1..=8).contains(&bits) {
++                return Err("context-range parameters exceed version-1 bounds".into());
++            }
++            let models = decoded.min(1usize << bits);
++            models
++                .checked_mul(4096)
++                .and_then(|bytes| bytes.checked_add(64 * 1024))
++                .ok_or("context-range model memory estimate overflow")?
++        }
++        _ => return Err(format!("unsupported CIX substream coder {coder}")),
++    })
++}
++
++fn cixg_nested_stream_scratch(
++    payload: &[u8],
++    offset: usize,
++    limit: usize,
++    allow_extended_coders: bool,
++) -> Result<usize, String> {
++    let stream = payload.get(offset..).ok_or("truncated CIX stream prefix")?;
++    if stream.is_empty() || stream[0] == 0 || stream[0] > 8 {
++        return Err("invalid CIX substream count".into());
++    }
++    let mut pos = 1usize;
++    let mut total = 0usize;
++    let mut maximum = 0usize;
++    for _ in 0..stream[0] {
++        let descriptor_end = pos
++            .checked_add(9)
++            .ok_or("CIX substream descriptor overflow")?;
++        if descriptor_end > stream.len() {
++            return Err("truncated CIX substream descriptor".into());
++        }
++        let coder = stream[pos];
++        let decoded = u32::from_le_bytes(stream[pos + 1..pos + 5].try_into().unwrap()) as usize;
++        let encoded = u32::from_le_bytes(stream[pos + 5..pos + 9].try_into().unwrap()) as usize;
++        pos = descriptor_end;
++        total = total
++            .checked_add(decoded)
++            .ok_or("CIX substream length overflow")?;
++        let end = pos
++            .checked_add(encoded)
++            .ok_or("CIX substream payload overflow")?;
++        if total > limit || end > stream.len() {
++            return Err("CIX substream resource/truncation limit".into());
++        }
++        let payload = &stream[pos..end];
++        let workspace = cixg_substream_workspace(coder, decoded, payload, allow_extended_coders)?;
++        maximum = maximum.max(workspace);
++        pos = end;
++    }
++    if pos != stream.len() {
++        return Err("trailing CIX substream bytes".into());
++    }
++    Ok(maximum)
++}
++
++fn cixg_route_scratch(
++    route: u8,
++    source_bytes: usize,
++    payload: &[u8],
++    allow_extended_coders: bool,
++) -> Result<usize, String> {
++    let source_scratch = |multiple: usize, reserve: usize, route: &str| {
++        source_bytes
++            .checked_mul(multiple)
++            .and_then(|bytes| bytes.checked_add(reserve))
++            .ok_or_else(|| format!("{route} decode memory estimate overflow"))
++    };
++    Ok(match route {
++        // Stream decoding may hold decoded substreams while it validates
++        // descriptors and returns the final part.  Keep one source-sized
++        // temporary beyond the fixed payload/output frame buffers.
++        2 | 10 => source_scratch(1, 0, "CIX substream")?,
++        // LZ holds up to four decoded side streams and reconstructed
++        // output while parsing match descriptors.
++        3 => source_scratch(5, 0, "LZ")?,
++        // Predictor reconstruction retains its residual until the output
++        // is complete, plus two fixed 64 KiB context tables.
++        4 => source_scratch(1, 128 * 1024, "predictor")?,
++        // BWT materializes decoded streams and transformed bytes, then
++        // allocates `last` and `first` (u8, usize) tables and an inverse
++        // usize table.  48n + 64 KiB is deliberately conservative on
++        // supported 64-bit hosts, and is an admission estimate rather
++        // than an RSS claim.
++        5 => source_scratch(48, 64 * 1024, "BWT")?,
++        // Lane and phrase routes retain side streams and a reconstructed
++        // intermediate while producing the final bytes.
++        6 | 7 => source_scratch(3, 0, "structured stream")?,
++        8 => {
++            // Validate this fixed header before `ppm::decode` creates its
++            // context table.  The model estimate reserves 2 KiB/source
++            // byte plus 8 MiB for variable-size map/table allocation;
++            // order 8 needs 9 context-key/counter lanes and is charged
++            // at 9 * 256 bytes/source instead.  The reserve also covers
++            // the v5 SEE side table.
++            let (&version, &order) = match payload {
++                [version, order, ..] => (version, order),
++                _ => return Err("truncated PPM payload header".into()),
++            };
++            if !matches!(version, 2..=5) {
++                return Err("unsupported PPM payload version".into());
++            }
++            if order > 8 {
++                return Err("unsupported PPM order".into());
++            }
++            if !allow_extended_coders && order > 3 {
++                return Err("CIXG1 cannot contain extended PPM orders".into());
++            }
++            let bytes_per_source = 2048usize.max(
++                usize::from(order)
++                    .checked_add(1)
++                    .and_then(|contexts| contexts.checked_mul(256))
++                    .ok_or("PPM order memory estimate overflow")?,
++            );
++            source_bytes
++                .checked_mul(bytes_per_source)
++                .and_then(|bytes| bytes.checked_add(8 * 1024 * 1024))
++                .ok_or("PPM model memory estimate overflow")?
++        }
++        9 => {
++            if !allow_extended_coders && payload.first() != Some(&1) {
++                return Err("CIXG1 cannot contain extended mixture payloads".into());
++            }
++            // Fixed-mix has several adaptive maps; use the same dynamic
++            // reservation as the encoder, in addition to frame buffers.
++            source_bytes
++                .checked_mul(4096)
++                .and_then(|bytes| bytes.checked_add(8 * 1024 * 1024))
++                .ok_or("mixture model memory estimate overflow")?
++        }
++        // Raw and RLE route output is already included in
++        // `fixed_frame_bytes`; they need no second route buffer.
++        0 | 1 => 0,
++        _ => return Err(format!("unsupported CIXG1 route ID {}", route)),
++    })
++}
++
++fn cixg_route_nested_scratch(
++    route: u8,
++    payload: &[u8],
++    source_bytes: usize,
++    allow_extended_coders: bool,
++) -> Result<usize, String> {
++    Ok(match route {
++        2 | 4 | 10 => cixg_nested_stream_scratch(payload, 0, source_bytes, allow_extended_coders)?,
++        3 => cixg_nested_stream_scratch(
++            payload,
++            0,
++            source_bytes.saturating_mul(4),
++            allow_extended_coders,
++        )?,
++        5 => cixg_nested_stream_scratch(
++            payload,
++            4,
++            source_bytes.saturating_mul(4),
++            allow_extended_coders,
++        )?,
++        6 => cixg_nested_stream_scratch(payload, 1, source_bytes, allow_extended_coders)?,
++        7 => {
++            let dictionary_entries =
++                *payload.first().ok_or("truncated phrase dictionary")? as usize;
++            if dictionary_entries > 32 {
++                return Err("invalid phrase dictionary size".into());
++            }
++            let offset = 1usize
++                .checked_add(
++                    dictionary_entries
++                        .checked_mul(2)
++                        .ok_or("phrase dictionary size overflow")?,
++                )
++                .ok_or("phrase dictionary size overflow")?;
++            cixg_nested_stream_scratch(
++                payload,
++                offset,
++                source_bytes.saturating_mul(2),
++                allow_extended_coders,
++            )?
++        }
++        _ => 0,
++    })
++}
++
+ fn decode<R: Read, W: Write>(
+     mut src: R,
+     mut dst: W,
+@@ -3657,188 +3907,26 @@ fn decode<R: Read, W: Write>(
+     }
+     let header = read_cixg_header(&mut src, archive_magic, input_fd)?;
+     let block = header.block;
+-    let hist = header.history;
+     let allow_extended_coders = &header.magic == MAGIC_V2;
+-    if block == 0 || block > MAX_BLOCK || hist != 0 && hist != 65536 {
+-        return Err("invalid CIXG header".into());
+-    }
+     let mut whole = Sha256::new();
+     let mut total_bytes = 0u64;
+     loop {
+         let (route, n, s, sum) = read_cixg_frame(&mut src, input_fd)?;
+         if route == END { finish_cixg(&mut src, &mut dst, input_fd, verify_only, list, &archive_magic, total_bytes, n, s, sum, &whole)?; return Ok(()); }
+-        let mut b = read_cixg_payload(&mut src, input_fd, block, n, s, memory)?;
++        let b = read_cixg_payload(&mut src, input_fd, block, n, s, memory)?;
+         let fixed_frame_bytes = n as usize + s as usize;
+         // The payload remains live while route decoders build their output.
+         // Charge both buffers before allocating the attacker-controlled
+         // payload.  Per-route state is added below before a route can create
+         // an unbounded context table.
+         let source_bytes = n as usize;
+-        let source_scratch = |multiple: usize, reserve: usize, route: &str| {
+-            source_bytes
+-                .checked_mul(multiple)
+-                .and_then(|bytes| bytes.checked_add(reserve))
+-                .ok_or_else(|| format!("{route} decode memory estimate overflow"))
+-        };
+         // Inspect only self-describing CIX stream descriptors.  This happens
+         // before `streams_decode` allocates any substream output or coder
+         // model.  A stream processes coders serially, so reserve the largest
+         // single coder workspace; route scratch above separately covers the
+         // retained decoded parts.
+-        let nested_stream_scratch = |offset: usize, limit: usize| -> Result<usize, String> {
+-            let stream = b.get(offset..).ok_or("truncated CIX stream prefix")?;
+-            if stream.is_empty() || stream[0] == 0 || stream[0] > 8 {
+-                return Err("invalid CIX substream count".into());
+-            }
+-            let mut pos = 1usize;
+-            let mut total = 0usize;
+-            let mut maximum = 0usize;
+-            for _ in 0..stream[0] {
+-                let descriptor_end = pos
+-                    .checked_add(9)
+-                    .ok_or("CIX substream descriptor overflow")?;
+-                if descriptor_end > stream.len() {
+-                    return Err("truncated CIX substream descriptor".into());
+-                }
+-                let coder = stream[pos];
+-                let decoded =
+-                    u32::from_le_bytes(stream[pos + 1..pos + 5].try_into().unwrap()) as usize;
+-                let encoded =
+-                    u32::from_le_bytes(stream[pos + 5..pos + 9].try_into().unwrap()) as usize;
+-                pos = descriptor_end;
+-                total = total
+-                    .checked_add(decoded)
+-                    .ok_or("CIX substream length overflow")?;
+-                let end = pos
+-                    .checked_add(encoded)
+-                    .ok_or("CIX substream payload overflow")?;
+-                if total > limit || end > stream.len() {
+-                    return Err("CIX substream resource/truncation limit".into());
+-                }
+-                let payload = &stream[pos..end];
+-                let workspace = match coder {
+-                    0 | 1 => 0,
+-                    // Rank, adaptive order-0, DEFLATE and canonical Huffman
+-                    // all have bounded temporary tables under this reserve.
+-                    2 | 3 | 4 | 5 | 7 => 64 * 1024,
+-                    6 => {
+-                        if !allow_extended_coders {
+-                            return Err(
+-                                "CIXG1 cannot contain versioned context-range substreams".into()
+-                            );
+-                        }
+-                        if payload.len() < 4 || payload[0] != 1 {
+-                            return Err("invalid context-range substream header".into());
+-                        }
+-                        let order = payload[1] as usize;
+-                        let bits = payload[2] as usize;
+-                        if !(1..=16).contains(&order) || !(1..=8).contains(&bits) {
+-                            return Err("context-range parameters exceed version-1 bounds".into());
+-                        }
+-                        let models = decoded.min(1usize << bits);
+-                        models
+-                            .checked_mul(4096)
+-                            .and_then(|bytes| bytes.checked_add(64 * 1024))
+-                            .ok_or("context-range model memory estimate overflow")?
+-                    }
+-                    _ => return Err(format!("unsupported CIX substream coder {coder}")),
+-                };
+-                maximum = maximum.max(workspace);
+-                pos = end;
+-            }
+-            if pos != stream.len() {
+-                return Err("trailing CIX substream bytes".into());
+-            }
+-            Ok(maximum)
+-        };
+-        let route_scratch = match route {
+-            // Stream decoding may hold decoded substreams while it validates
+-            // descriptors and returns the final part.  Keep one source-sized
+-            // temporary beyond the fixed payload/output frame buffers.
+-            2 | 10 => source_scratch(1, 0, "CIX substream")?,
+-            // LZ holds up to four decoded side streams and reconstructed
+-            // output while parsing match descriptors.
+-            3 => source_scratch(5, 0, "LZ")?,
+-            // Predictor reconstruction retains its residual until the output
+-            // is complete, plus two fixed 64 KiB context tables.
+-            4 => source_scratch(1, 128 * 1024, "predictor")?,
+-            // BWT materializes decoded streams and transformed bytes, then
+-            // allocates `last` and `first` (u8, usize) tables and an inverse
+-            // usize table.  48n + 64 KiB is deliberately conservative on
+-            // supported 64-bit hosts, and is an admission estimate rather
+-            // than an RSS claim.
+-            5 => source_scratch(48, 64 * 1024, "BWT")?,
+-            // Lane and phrase routes retain side streams and a reconstructed
+-            // intermediate while producing the final bytes.
+-            6 | 7 => source_scratch(3, 0, "structured stream")?,
+-            8 => {
+-                // Validate this fixed header before `ppm::decode` creates its
+-                // context table.  The model estimate reserves 2 KiB/source
+-                // byte plus 8 MiB for variable-size map/table allocation;
+-                // order 8 needs 9 context-key/counter lanes and is charged
+-                // at 9 * 256 bytes/source instead.  The reserve also covers
+-                // the v5 SEE side table.
+-                let (&version, &order) = match b.as_slice() {
+-                    [version, order, ..] => (version, order),
+-                    _ => return Err("truncated PPM payload header".into()),
+-                };
+-                if !matches!(version, 2..=5) {
+-                    return Err("unsupported PPM payload version".into());
+-                }
+-                if order > 8 {
+-                    return Err("unsupported PPM order".into());
+-                }
+-                if !allow_extended_coders && order > 3 {
+-                    return Err("CIXG1 cannot contain extended PPM orders".into());
+-                }
+-                let bytes_per_source = 2048usize.max(
+-                    usize::from(order)
+-                        .checked_add(1)
+-                        .and_then(|contexts| contexts.checked_mul(256))
+-                        .ok_or("PPM order memory estimate overflow")?,
+-                );
+-                source_bytes
+-                    .checked_mul(bytes_per_source)
+-                    .and_then(|bytes| bytes.checked_add(8 * 1024 * 1024))
+-                    .ok_or("PPM model memory estimate overflow")?
+-            }
+-            9 => {
+-                if !allow_extended_coders && b.first() != Some(&1) {
+-                    return Err("CIXG1 cannot contain extended mixture payloads".into());
+-                }
+-                // Fixed-mix has several adaptive maps; use the same dynamic
+-                // reservation as the encoder, in addition to frame buffers.
+-                source_bytes
+-                    .checked_mul(4096)
+-                    .and_then(|bytes| bytes.checked_add(8 * 1024 * 1024))
+-                    .ok_or("mixture model memory estimate overflow")?
+-            }
+-            // Raw and RLE route output is already included in
+-            // `fixed_frame_bytes`; they need no second route buffer.
+-            0 | 1 => 0,
+-            _ => return Err(format!("unsupported CIXG1 route ID {}", route)),
+-        };
+-        let nested_coder_scratch = match route {
+-            2 | 4 | 10 => nested_stream_scratch(0, source_bytes)?,
+-            3 => nested_stream_scratch(0, source_bytes.saturating_mul(4))?,
+-            5 => nested_stream_scratch(4, source_bytes.saturating_mul(4))?,
+-            6 => nested_stream_scratch(1, source_bytes)?,
+-            7 => {
+-                let dictionary_entries = *b.first().ok_or("truncated phrase dictionary")? as usize;
+-                if dictionary_entries > 32 {
+-                    return Err("invalid phrase dictionary size".into());
+-                }
+-                let offset = 1usize
+-                    .checked_add(
+-                        dictionary_entries
+-                            .checked_mul(2)
+-                            .ok_or("phrase dictionary size overflow")?,
+-                    )
+-                    .ok_or("phrase dictionary size overflow")?;
+-                nested_stream_scratch(offset, source_bytes.saturating_mul(2))?
+-            }
+-            _ => 0,
+-        };
++        let route_scratch = cixg_route_scratch(route, source_bytes, &b, allow_extended_coders)?;
++        let nested_coder_scratch = cixg_route_nested_scratch(route, &b, source_bytes, allow_extended_coders)?;
+         check_cixg_live_memory(fixed_frame_bytes, route_scratch, nested_coder_scratch, memory, route)?;
+         let data = decode_cixg_route(route, b, n as usize, allow_extended_coders)?;
+         if <[u8; 32]>::from(Sha256::digest(&data)) != sum {

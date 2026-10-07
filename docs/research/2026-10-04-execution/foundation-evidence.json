@@ -1,0 +1,286 @@
+{
+  "schema": "cix.native-foundation.evidence.v1",
+  "scope": "component implementation and focused local Linux x86-64 correctness; not full engine or release acceptance",
+  "source_manifest": "jobs/foundation-v13/source.json",
+  "source_manifest_sha256": "052f60d15fa6fa9857bcbacb7d04c8eb1fedf314d43293924b262db7d3813fe4",
+  "release_ready": false,
+  "benchmark": "held",
+  "source_matches_working_tree": true,
+  "qualified_components": [
+    {
+      "scope": "native core algorithms, 110 tests",
+      "job": "foundation-v8",
+      "qualification": "passing core command only; enclosing job failed later specialist command"
+    },
+    {
+      "scope": "specialists, real JXL/PAQ, buffer ABI, five incremental cases and existing integration suites",
+      "job": "foundation-v12",
+      "qualification": "all except one malformed-input test and static package metadata; both corrected in v13"
+    },
+    {
+      "scope": "address module including corrected malformed-input test; shared/static relocated C and C++ consumers",
+      "job": "foundation-v13",
+      "qualification": "all commands passed"
+    },
+    {
+      "scope": "CLI portfolio, PAQ bridge and worker unit tests",
+      "job": "foundation-remaining-v1",
+      "qualification": "all commands passed on identical v13 snapshot"
+    },
+    {
+      "scope": "six 2D and eighteen planar generated crossdecode controls",
+      "job": "jxl-bridge-v3",
+      "qualification": "both directions exactly restore; not universal bitstream parity"
+    },
+    {
+      "scope": "active and ambiguous address-relation reference fixture generation",
+      "job": "address-fixture-v4",
+      "qualification": "raw reference transforms and all reference inverses passed"
+    }
+  ],
+  "jobs": {
+    "address-fixture-v1": {
+      "exit_code": 1,
+      "stop_reason": null,
+      "elapsed_seconds": 0.24851461499929428,
+      "cpu_usage_seconds": 0.006055,
+      "sampled_cgroup_memory_high_water_bytes": 712704,
+      "peak_temp_bytes": 1876552817,
+      "cgroup_verified": true,
+      "receipt_sha256": "ab9ce25f668a72ab224ff75e5f0630d9e91eef982447234a945459980e7528aa"
+    },
+    "address-fixture-v2": {
+      "exit_code": 1,
+      "stop_reason": null,
+      "elapsed_seconds": 0.25485719701100606,
+      "cpu_usage_seconds": 0.006971,
+      "sampled_cgroup_memory_high_water_bytes": 528384,
+      "peak_temp_bytes": 1876985630,
+      "cgroup_verified": true,
+      "receipt_sha256": "a06e2547f04e75d711c64f67d9c7e17017045e9513962a999aabccb94663362d"
+    },
+    "address-fixture-v3": {
+      "exit_code": 1,
+      "stop_reason": null,
+      "elapsed_seconds": 0.26509548400645144,
+      "cpu_usage_seconds": 0.007432,
+      "sampled_cgroup_memory_high_water_bytes": 528384,
+      "peak_temp_bytes": 1880175271,
+      "cgroup_verified": true,
+      "receipt_sha256": "b92a554a9ee193f396c8b803935820062ed3063a0dcf22c25364c2dca64ceaa9"
+    },
+    "address-fixture-v4": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 0.29801910699461587,
+      "cpu_usage_seconds": 0.055268,
+      "sampled_cgroup_memory_high_water_bytes": 528384,
+      "peak_temp_bytes": 1880609124,
+      "cgroup_verified": true,
+      "receipt_sha256": "04f920a8ae5d942be0fea1d1f4335896f2e688660b354d00e944cc726e4d0e85"
+    },
+    "foundation-components-v1": {
+      "exit_code": 101,
+      "stop_reason": null,
+      "elapsed_seconds": 0.2417483879980864,
+      "cpu_usage_seconds": 0.00695,
+      "sampled_cgroup_memory_high_water_bytes": 528384,
+      "peak_temp_bytes": 1828089178,
+      "cgroup_verified": true,
+      "receipt_sha256": "7aab63a25c6d97b2d3287bd17d59aa692a7c9063bea8e1c117f73d7fb9bf7dae"
+    },
+    "foundation-remaining-v1": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 5.451710098001058,
+      "cpu_usage_seconds": 6.759514,
+      "sampled_cgroup_memory_high_water_bytes": 23482368,
+      "peak_temp_bytes": 3717715686,
+      "cgroup_verified": true,
+      "receipt_sha256": "340597af3b72ab62c8f4f26cc38e9a4539d6f76e4ad7bd734e897e378ae057f9"
+    },
+    "foundation-v1": {
+      "exit_code": 101,
+      "stop_reason": null,
+      "elapsed_seconds": 0.6516988869989291,
+      "cpu_usage_seconds": 0.690185,
+      "sampled_cgroup_memory_high_water_bytes": 245157888,
+      "peak_temp_bytes": 1473979828,
+      "cgroup_verified": true,
+      "receipt_sha256": "b28f6168f0d717b002e9dcc56d2965664446437c77904391ba1ae16e658a304f"
+    },
+    "foundation-v10": {
+      "exit_code": 1,
+      "stop_reason": null,
+      "elapsed_seconds": 2.4828746499988483,
+      "cpu_usage_seconds": 3.965112,
+      "sampled_cgroup_memory_high_water_bytes": 603557888,
+      "peak_temp_bytes": 1876120005,
+      "cgroup_verified": true,
+      "receipt_sha256": "e7e3c002a16104007ebd154b2268ba5c37b9cac22601635ed8f8df4d5f9a00d1"
+    },
+    "foundation-v11": {
+      "exit_code": 1,
+      "stop_reason": null,
+      "elapsed_seconds": 2.1405083590070717,
+      "cpu_usage_seconds": 3.395955,
+      "sampled_cgroup_memory_high_water_bytes": 598491136,
+      "peak_temp_bytes": 1881313633,
+      "cgroup_verified": true,
+      "receipt_sha256": "f8f4834d5c788bbe6bdc2fc092c893cc6bd8e04bced9f0d84d5bbbaaa94ff723"
+    },
+    "foundation-v12": {
+      "exit_code": 1,
+      "stop_reason": null,
+      "elapsed_seconds": 19.713776233998942,
+      "cpu_usage_seconds": 30.111442,
+      "sampled_cgroup_memory_high_water_bytes": 1374109696,
+      "peak_temp_bytes": 3054788003,
+      "cgroup_verified": true,
+      "receipt_sha256": "e1547426671b114717aa8259cde17538b64ad3df46faeff106cbfb448096df53"
+    },
+    "foundation-v13": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 13.19878479700128,
+      "cpu_usage_seconds": 21.524373,
+      "sampled_cgroup_memory_high_water_bytes": 1296470016,
+      "peak_temp_bytes": 3717715686,
+      "cgroup_verified": true,
+      "receipt_sha256": "00bb54f497545484620e2775b840b6d23f06ed58d5bf3c1f6c3acf6ee4b4ef07"
+    },
+    "foundation-v2": {
+      "exit_code": 101,
+      "stop_reason": null,
+      "elapsed_seconds": 2.3304073809995316,
+      "cpu_usage_seconds": 3.850949,
+      "sampled_cgroup_memory_high_water_bytes": 594685952,
+      "peak_temp_bytes": 1510090108,
+      "cgroup_verified": true,
+      "receipt_sha256": "0076f8e6e3aff6fd8f4bfc82b64e4792f7df1844e6851e49695e8527d98312c6"
+    },
+    "foundation-v3": {
+      "status": "prepared or snapshot-refused; no execution success inferred"
+    },
+    "foundation-v4": {
+      "exit_code": 101,
+      "stop_reason": null,
+      "elapsed_seconds": 2.0778645539976424,
+      "cpu_usage_seconds": 3.287356,
+      "sampled_cgroup_memory_high_water_bytes": 564649984,
+      "peak_temp_bytes": 1528240391,
+      "cgroup_verified": true,
+      "receipt_sha256": "20a1f7a894bd39a517becb12b23c333009a443665e62019485db9625b268da40"
+    },
+    "foundation-v5": {
+      "exit_code": 101,
+      "stop_reason": null,
+      "elapsed_seconds": 2.00865308700304,
+      "cpu_usage_seconds": 3.663747,
+      "sampled_cgroup_memory_high_water_bytes": 591392768,
+      "peak_temp_bytes": 1545964114,
+      "cgroup_verified": true,
+      "receipt_sha256": "de872c3261f0509aa97f5a050532f0ba0c15b53f9b6f81a490daee6b6a6511e1"
+    },
+    "foundation-v6": {
+      "exit_code": 101,
+      "stop_reason": null,
+      "elapsed_seconds": 0.740158986998722,
+      "cpu_usage_seconds": 1.662601,
+      "sampled_cgroup_memory_high_water_bytes": 177844224,
+      "peak_temp_bytes": 1573372224,
+      "cgroup_verified": true,
+      "receipt_sha256": "f31690bd1dffdc7c82dd56683cf2a1ce5e3ed31ee01d738feaa91bea898cdaad"
+    },
+    "foundation-v7": {
+      "exit_code": 101,
+      "stop_reason": null,
+      "elapsed_seconds": 2.086526817001868,
+      "cpu_usage_seconds": 3.310064,
+      "sampled_cgroup_memory_high_water_bytes": 582488064,
+      "peak_temp_bytes": 1577575665,
+      "cgroup_verified": true,
+      "receipt_sha256": "bc09a4e938e68db343cffea52b54428a1ce2e0cbb956474fa86f9d72be41da41"
+    },
+    "foundation-v8": {
+      "exit_code": 101,
+      "stop_reason": null,
+      "elapsed_seconds": 249.06642740299867,
+      "cpu_usage_seconds": 272.639361,
+      "sampled_cgroup_memory_high_water_bytes": 2042826752,
+      "peak_temp_bytes": 1773003596,
+      "cgroup_verified": true,
+      "receipt_sha256": "b31349de3ad81966fa94fe579e83a4d86251baf843217ea81b25e1fdb820d949"
+    },
+    "foundation-v9": {
+      "exit_code": 101,
+      "stop_reason": null,
+      "elapsed_seconds": 10.5460722620046,
+      "cpu_usage_seconds": 18.324827,
+      "sampled_cgroup_memory_high_water_bytes": 1123434496,
+      "peak_temp_bytes": 1846637001,
+      "cgroup_verified": true,
+      "receipt_sha256": "6f6ab8c3106d15acd8b367ab9a8cef684387c424551159f01afc4f9acbaf7af8"
+    },
+    "jxl-bridge-v2": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 0.5915485700097634,
+      "cpu_usage_seconds": 0.398083,
+      "sampled_cgroup_memory_high_water_bytes": 58638336,
+      "peak_temp_bytes": 1519888829,
+      "cgroup_verified": true,
+      "receipt_sha256": "c258f8eaa2a0bb938a6507da0577996cce815b815d01f6c28ed6441e250d26b6"
+    },
+    "jxl-bridge-v3": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 0.7474554599903058,
+      "cpu_usage_seconds": 0.524938,
+      "sampled_cgroup_memory_high_water_bytes": 61259776,
+      "peak_temp_bytes": 1782837315,
+      "cgroup_verified": true,
+      "receipt_sha256": "951285abd50cdc098ece6ba68a5e4fd667378be06a7df9cee471b8fbc4b12493"
+    },
+    "jxl-build-v1": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 45.17477545500151,
+      "cpu_usage_seconds": 162.50283,
+      "sampled_cgroup_memory_high_water_bytes": 1551589376,
+      "peak_temp_bytes": 1476927121,
+      "cgroup_verified": true,
+      "receipt_sha256": "491569b82c2ef0c456ca1b4e4b0e52a96ada43460e672e12bbdda4f6a44d1ea5"
+    },
+    "jxl-check-v1": {
+      "exit_code": 1,
+      "stop_reason": null,
+      "elapsed_seconds": 0.20219384200754575,
+      "cpu_usage_seconds": 0.008328,
+      "sampled_cgroup_memory_high_water_bytes": 528384,
+      "peak_temp_bytes": 1476927121,
+      "cgroup_verified": true,
+      "receipt_sha256": "ec03c515be5f396329c0618aed7ad9a5edd71b926917f4907b31c36be50e0b57"
+    },
+    "jxl-provision-v1": {
+      "exit_code": 1,
+      "stop_reason": null,
+      "elapsed_seconds": 0.22707706299843267,
+      "cpu_usage_seconds": 0.007839,
+      "sampled_cgroup_memory_high_water_bytes": 712704,
+      "peak_temp_bytes": 1469889609,
+      "cgroup_verified": true,
+      "receipt_sha256": "7135929d09a9f2b96b6f51902e44cad2bbcf89cc97280d3635b310694fd5325e"
+    },
+    "jxl-provision-v2": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 37.12924434199522,
+      "cpu_usage_seconds": 4.003061,
+      "sampled_cgroup_memory_high_water_bytes": 475086848,
+      "peak_temp_bytes": 1469889609,
+      "cgroup_verified": true,
+      "receipt_sha256": "d2a3b925f309fde5a364127f9d12b7a7cd773a69abe2fe445e9eec67c899f554"
+    }
+  }
+}

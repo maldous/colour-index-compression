@@ -1,0 +1,48 @@
+[
+  {
+    "argv": [
+      "go",
+      "install",
+      "-mod=mod",
+      "google.golang.org/protobuf/cmd/protoc-gen-go",
+      "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
+    ],
+    "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/grpc-source-v2/adapters/network/grpc/tools",
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "generate"
+    ],
+    "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/grpc-source-v2/adapters/network/grpc",
+    "returncode": 0,
+    "stdout": "libprotoc 27.3\nprotoc-gen-go v1.34.2\nprotoc-gen-go-grpc 1.5.1\nprotoc -I proto --go_out=gen --go_opt=paths=source_relative --go-grpc_out=gen --go-grpc_opt=paths=source_relative proto/cix/network/v1/cix_network.proto\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "go",
+      "mod",
+      "tidy"
+    ],
+    "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/grpc-source-v2/adapters/network/grpc",
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "go",
+      "test",
+      "./...",
+      "-count=1"
+    ],
+    "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/grpc-source-v2/adapters/network/grpc",
+    "returncode": 0,
+    "stdout": "?   \texample.invalid/cix/network/grpc/gen/cix/network/v1\t[no test files]\n?   \texample.invalid/cix/network/grpc/server\t[no test files]\nok  \texample.invalid/cix/network/grpc/contracts\t0.463s\n",
+    "stderr": ""
+  }
+]

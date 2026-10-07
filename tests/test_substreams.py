@@ -7,6 +7,7 @@ from cix.substreams import (
     encode_distances_best,
     encode_uints,
 )
+from cix.multinomial import vdecode
 
 
 def test_local_byte_substream_round_trip_nonstationary():
@@ -43,3 +44,14 @@ def test_distance_cache_and_local_classes_round_trip():
     )
     encoded = encode_distances_best(distances)
     assert decode_distances_best(encoded, len(distances)) == distances
+
+
+def test_integer_local_logclasses_store_low_bit_padding_only_once():
+    values = [0] * 65 + [128, 129, 130] * 65 + [0] * 65 + [32768, 32769] * 65
+    encoded = encode_uints(values)
+    assert encoded[0] == 3  # local logclass mode
+    class_size, pos = vdecode(encoded, 1)
+    low_bits = sum((v + 1).bit_length() - 1 for v in values)
+    assert low_bits % 8 != 0
+    assert len(encoded) == pos + class_size + (low_bits + 7) // 8
+    assert decode_uints(encoded, len(values)) == values

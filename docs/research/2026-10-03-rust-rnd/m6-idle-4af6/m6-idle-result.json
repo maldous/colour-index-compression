@@ -1,0 +1,151 @@
+{
+  "status": "VERIFIED_STREAM_CROSS_DECODE",
+  "encoder_source": "4af606b54",
+  "decoder_source": "bd2a0d97",
+  "input_bytes": 512,
+  "input_sha256": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+  "restored_sha256": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+  "archive_bytes": 27,
+  "archive_sha256": "c5833a543c0aa205117ba02d460f518a047027d51b8a6be5a9beb29a07837e4b",
+  "encoder_sha256": "441133e5be65d8bab2b6a505db55810af92707ac59270ccc85f5abecacc4927c",
+  "decoder_sha256": "f9ec393c689c6602a3912ca74a8d83575979dcdf2cb0646ac2760f41cf80db84",
+  "latency": {
+    "first_encoded_bytes_seconds": 0.0025155330076813698,
+    "first_decoded_block_seconds": 0.05384320905432105,
+    "before_final_write_seconds": 0.05386852193623781
+  },
+  "whole_integrity": "confirmed only after decoder exit0 following EOF/footer",
+  "first_block_before_EOF": true,
+  "idle_flush": true,
+  "model_history": "two idle-flushed M6 blocks; history retained",
+  "cgroup_before": {
+    "cpu.max": "200000 100000",
+    "cpuset.cpus.effective": "8,10",
+    "memory.max": "536870912",
+    "memory.peak": "14532608",
+    "memory.swap.max": "0",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0"
+  },
+  "cgroup_after": {
+    "cpu.max": "200000 100000",
+    "cpuset.cpus.effective": "8,10",
+    "memory.max": "536870912",
+    "memory.peak": "15888384",
+    "memory.swap.max": "0",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0"
+  },
+  "additional_checks": [
+    {
+      "case": "empty-encode",
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/m6-idle-4af6/target/release-lto/cix",
+        "--best",
+        "--format",
+        "cixm6",
+        "--threads",
+        "1",
+        "--memory",
+        "512MiB",
+        "--stream",
+        "--block-size",
+        "512B",
+        "--flush-interval",
+        "50ms",
+        "-c",
+        "-"
+      ],
+      "exit": 0,
+      "seconds": 0.002518412657082081,
+      "input_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_sha256": "1649b21e131ef984ec4c9345f31b898112868d5e726c7cd4f425600317bd7a8c",
+      "output_bytes": 14
+    },
+    {
+      "case": "empty-old-decode",
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/combined-bd2-validation/final/uncix",
+        "--stream",
+        "-c",
+        "-"
+      ],
+      "exit": 0,
+      "seconds": 0.0022273589856922626,
+      "input_sha256": "1649b21e131ef984ec4c9345f31b898112868d5e726c7cd4f425600317bd7a8c",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0
+    },
+    {
+      "case": "unchanged-no-flush",
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/m6-idle-4af6/target/release-lto/cix",
+        "--best",
+        "--format",
+        "cixm6",
+        "--threads",
+        "1",
+        "--memory",
+        "512MiB",
+        "--stream",
+        "--block-size",
+        "512B",
+        "-c",
+        "-"
+      ],
+      "exit": 0,
+      "seconds": 0.01379984337836504,
+      "input_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "output_sha256": "cc9160a57de3755abc38b46daff53510857c109a8e2cf5ee85b5bb8c4c4556ab",
+      "output_bytes": 27
+    },
+    {
+      "case": "new-decode-old-archive",
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/m6-idle-4af6/target/release-lto/uncix",
+        "--stream",
+        "-c",
+        "-"
+      ],
+      "exit": 0,
+      "seconds": 0.0025269570760428905,
+      "input_sha256": "cc9160a57de3755abc38b46daff53510857c109a8e2cf5ee85b5bb8c4c4556ab",
+      "output_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "output_bytes": 1024
+    },
+    {
+      "case": "truncated-footer",
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/combined-bd2-validation/final/uncix",
+        "--stream",
+        "-c",
+        "-"
+      ],
+      "exit": 2,
+      "seconds": 0.0023337979800999165,
+      "input_sha256": "7af3388f3a5a28c17a10f9712f4ab07cada28d1201e47c4e98c33f1177df7d03",
+      "output_sha256": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+      "output_bytes": 512
+    },
+    {
+      "case": "corrupt-footer",
+      "command": [
+        "/home/user/src/colour-index-compression/benchmark-work/combined-bd2-validation/final/uncix",
+        "--stream",
+        "-c",
+        "-"
+      ],
+      "exit": 2,
+      "seconds": 0.0021549779921770096,
+      "input_sha256": "a7ea755509de33cc7a4c8f7044f4299e643f486f9f0bae085f8055060763c7d6",
+      "output_sha256": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+      "output_bytes": 512
+    }
+  ],
+  "cgroup_after_checks": {
+    "cpu.max": "200000 100000",
+    "cpuset.cpus.effective": "8,10",
+    "memory.max": "536870912",
+    "memory.peak": "17793024",
+    "memory.swap.max": "0",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0"
+  }
+}

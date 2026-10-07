@@ -1,0 +1,16 @@
+usage: cix_rust_hotspot_audit.py [-h] {prepare,run} ...
+
+Prepare and, only after an explicit qualified-release freeze, run CIX hotspot
+profiles. ``prepare`` is deliberately non-executing. It binds one existing CCA
+plan row, an immutable native release and CPU 8 (P) / CPU 16 (E) command
+vectors. ``run`` requires both ``--execute`` and a reviewed qualified-release
+freeze plus a scheduler lease receipt; it never creates an independent worker
+pool.
+
+positional arguments:
+  {prepare,run}
+    prepare      bind immutable release/input and write commands only
+    run          guarded future execution
+
+options:
+  -h, --help     show this help message and exit

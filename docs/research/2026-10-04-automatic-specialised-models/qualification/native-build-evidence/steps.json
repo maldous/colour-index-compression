@@ -1,0 +1,66 @@
+[
+  {
+    "step": "format",
+    "command": [
+      "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+      "fmt",
+      "--manifest-path",
+      "/home/user/src/cix-0.1-distribution/Cargo.toml",
+      "--",
+      "--check"
+    ],
+    "exit_code": 0
+  },
+  {
+    "step": "clippy",
+    "command": [
+      "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+      "clippy",
+      "--manifest-path",
+      "/home/user/src/cix-0.1-distribution/Cargo.toml",
+      "--locked",
+      "--offline",
+      "--all-targets",
+      "--message-format=json",
+      "-j",
+      "4",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0
+  },
+  {
+    "step": "optimized-tests",
+    "command": [
+      "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+      "test",
+      "--manifest-path",
+      "/home/user/src/cix-0.1-distribution/Cargo.toml",
+      "--locked",
+      "--offline",
+      "--release",
+      "--all-targets",
+      "-j",
+      "4"
+    ],
+    "exit_code": 0
+  },
+  {
+    "step": "optimized-build",
+    "command": [
+      "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+      "build",
+      "--manifest-path",
+      "/home/user/src/cix-0.1-distribution/Cargo.toml",
+      "--locked",
+      "--offline",
+      "--release",
+      "--bins",
+      "--lib",
+      "-j",
+      "4"
+    ],
+    "exit_code": 0
+  }
+]

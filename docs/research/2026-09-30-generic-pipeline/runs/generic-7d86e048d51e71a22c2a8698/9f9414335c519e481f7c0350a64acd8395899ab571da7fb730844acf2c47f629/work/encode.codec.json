@@ -1,0 +1,182 @@
+{
+  "format": "CIXG1",
+  "effort": "balanced",
+  "backend": "hybrid",
+  "history_bytes": 0,
+  "block_bytes": 32768,
+  "disable": [
+    "stride"
+  ],
+  "force": null,
+  "offline": false,
+  "source_bytes": 16384,
+  "compressed_bytes": 2853,
+  "source_sha256": "8fc3ecba635e9552acd6d422ffab3f9b7eb08dd7138e292433fb7bf6c0b7f912",
+  "encode_seconds": 0.28783325385302305,
+  "blocks": [
+    {
+      "offset": 0,
+      "source_bytes": 16384,
+      "route": "deflate",
+      "complete_block_bytes": 2799,
+      "features": {
+        "sample_bytes": 4096,
+        "entropy": 5.1468275588977015,
+        "symbols": 62,
+        "run_fraction": 0.030303030303030304,
+        "repeat_fraction": 0.7492654260528894,
+        "lag_entropy": {
+          "1": 5.80624634970458,
+          "2": 5.8715008865287395,
+          "4": 6.007893038813092,
+          "8": 6.080690330513479,
+          "16": 6.164847340082065,
+          "32": 6.229427702286893,
+          "64": 6.297911487730495
+        },
+        "predictability": 0.693248124479022,
+        "regional_entropy_range": 0.013293529331006582
+      },
+      "accounting": {
+        "framing_bytes": 41,
+        "structural_bytes": 0,
+        "stream_descriptor_bytes": 10,
+        "count_table_bytes": 0,
+        "coded_payload_bytes": 2748,
+        "coders": [
+          "deflate"
+        ]
+      },
+      "profiling_seconds": 0.00500140804797411,
+      "selection_seconds": 0.2874504718929529,
+      "selected_trial_compute_seconds": 0.01064773416146636,
+      "trials": [
+        {
+          "route": "runs",
+          "bytes": 31701,
+          "payload_bytes": 31660,
+          "compute_seconds": 0.004929983057081699,
+          "wall_seconds": 0.007188067305833101,
+          "peak_rss_kib": 16228,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 0,
+            "stream_descriptor_bytes": 0,
+            "count_table_bytes": 0,
+            "coded_payload_bytes": 31660,
+            "coders": []
+          }
+        },
+        {
+          "route": "deflate",
+          "bytes": 2799,
+          "payload_bytes": 2758,
+          "compute_seconds": 0.01064773416146636,
+          "wall_seconds": 0.014199580997228622,
+          "peak_rss_kib": 16748,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 0,
+            "stream_descriptor_bytes": 10,
+            "count_table_bytes": 0,
+            "coded_payload_bytes": 2748,
+            "coders": [
+              "deflate"
+            ]
+          }
+        },
+        {
+          "route": "lz",
+          "bytes": 2961,
+          "payload_bytes": 2920,
+          "compute_seconds": 0.038163136690855026,
+          "wall_seconds": 0.04016603110358119,
+          "peak_rss_kib": 19308,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 0,
+            "stream_descriptor_bytes": 49,
+            "count_table_bytes": 184,
+            "coded_payload_bytes": 2687,
+            "coders": [
+              "cix-exact-1024",
+              "deflate",
+              "cix-exact-1024",
+              "cix-exact-1024"
+            ]
+          }
+        },
+        {
+          "route": "predictor",
+          "bytes": 5475,
+          "payload_bytes": 5434,
+          "compute_seconds": 0.06192091200500727,
+          "wall_seconds": 0.06379823805764318,
+          "peak_rss_kib": 17004,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 0,
+            "stream_descriptor_bytes": 10,
+            "count_table_bytes": 0,
+            "coded_payload_bytes": 5424,
+            "coders": [
+              "deflate"
+            ]
+          }
+        },
+        {
+          "route": "composition",
+          "bytes": 11254,
+          "payload_bytes": 11213,
+          "compute_seconds": 0.05598117131739855,
+          "wall_seconds": 0.0578572410158813,
+          "peak_rss_kib": 16748,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 0,
+            "stream_descriptor_bytes": 58,
+            "count_table_bytes": 995,
+            "coded_payload_bytes": 10160,
+            "coders": [
+              "cix-exact-1024"
+            ]
+          }
+        },
+        {
+          "route": "bwt",
+          "bytes": 2935,
+          "payload_bytes": 2894,
+          "compute_seconds": 0.09378719097003341,
+          "wall_seconds": 0.09589713905006647,
+          "peak_rss_kib": 20844,
+          "status": "COMPLETE",
+          "accounting": {
+            "framing_bytes": 41,
+            "structural_bytes": 4,
+            "stream_descriptor_bytes": 43,
+            "count_table_bytes": 303,
+            "coded_payload_bytes": 2544,
+            "coders": [
+              "deflate",
+              "cix-exact-1024",
+              "cix-exact-1024"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "block_count": 1,
+  "route_usage_source_bytes": {
+    "deflate": 16384
+  },
+  "selection_total_seconds": 0.2874504718929529,
+  "search_and_launch_overhead_seconds": 0.27680273773148656,
+  "blocks_truncated": false,
+  "all_block_trace": "/home/user/src/colour-index-compression/docs/research/2026-09-30-generic-pipeline/runs/generic-7d86e048d51e71a22c2a8698/9f9414335c519e481f7c0350a64acd8395899ab571da7fb730844acf2c47f629/work/blocks.jsonl"
+}

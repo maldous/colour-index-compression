@@ -1,0 +1,8 @@
+import subprocess,json,hashlib
+from pathlib import Path
+commands=[['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-jxl-bridge-v2', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-bridge-build-v2', '-G', 'Ninja', '-DCIX_JXL_ROOT=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v2', '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v2'], ['cmake', '--build', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-bridge-build-v2', '--parallel', '4'], ['cmake', '--install', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-bridge-build-v2'], ['/home/user/src/colour-index-compression/.venv/bin/python', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/jxl-bridge-v2/check_jxl_bridge.py', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v2/lib/libcix_jxl_bridge.so', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/jxl-bridge-v2/fixtures']]
+for command in commands:
+ print("CHECK",command,flush=True)
+ subprocess.run(command,check=True)
+prefix=Path('/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v2')
+Path(__file__).with_name("installed.json").write_text(json.dumps({"prefix":str(prefix),"sha256":{str(p.relative_to(prefix)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(prefix.rglob("*")) if p.is_file()}},indent=2)+"\n")

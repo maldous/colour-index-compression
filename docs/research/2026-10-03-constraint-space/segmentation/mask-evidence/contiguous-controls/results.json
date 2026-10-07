@@ -1,0 +1,2657 @@
+[
+  {
+    "fixture": {
+      "name": "fresh-held-mask-width3",
+      "split": "new-held-out",
+      "input": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin",
+      "input_bytes": 1462,
+      "input_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+      "generator": {
+        "width": 3,
+        "count": 487,
+        "seed": 1401,
+        "noise_period": 23,
+        "partial_row_bytes": 1
+      },
+      "diagnostic": "not passed to encoder"
+    },
+    "candidates": {
+      "adaptive": {
+        "status": "verified",
+        "bytes": 1064,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-adaptive.arc",
+        "archive_sha256": "3b17eed65e8ae219aada9d434581b36e9d003695aa877acaaef9a97d4bb21524",
+        "restored_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--adaptive",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-adaptive.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.5669782031327486
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-adaptive.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-adaptive.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.003548364620655775
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "adaptive",
+          "source_bytes": 1462,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 1064,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "bounded-content-window-score",
+          "boundary_points": [
+            0,
+            101,
+            129,
+            718,
+            738,
+            747,
+            854,
+            876,
+            1040,
+            1052,
+            1062,
+            1112,
+            1121,
+            1134,
+            1173,
+            1182,
+            1462
+          ],
+          "candidate_boundary_count": 17,
+          "candidate_edge_count": 136,
+          "candidate_route_trials": 544,
+          "candidate_partition_count": 32768,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 527756823,
+          "complete_encode_and_validation_elapsed_ns": 528807805,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 1462,
+              "route": "legacy-lz",
+              "coder": "legacy_lz::encode([],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 1038,
+              "total_bytes": 1047
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 1462,
+              "route_id": 3,
+              "metadata_bytes": 9,
+              "payload_bytes": 1038,
+              "complete_bytes": 1047
+            }
+          ],
+          "complete_bytes": 1064,
+          "CRC_verified": true
+        }
+      },
+      "fixed64": {
+        "status": "verified",
+        "bytes": 1620,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed64.arc",
+        "archive_sha256": "44a5a6b5265e986b79f7eeb20d8b61a629b910120010adfb54d425d30eaa989b",
+        "restored_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--fixed",
+            "64",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed64.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.007558300159871578
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed64.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed64.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.003803097177296877
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "fixed",
+          "source_bytes": 1462,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 1620,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "declared-adjacent-blocks",
+          "boundary_points": [
+            0,
+            64,
+            128,
+            192,
+            256,
+            320,
+            384,
+            448,
+            512,
+            576,
+            640,
+            704,
+            768,
+            832,
+            896,
+            960,
+            1024,
+            1088,
+            1152,
+            1216,
+            1280,
+            1344,
+            1408,
+            1462
+          ],
+          "candidate_boundary_count": 24,
+          "candidate_edge_count": 23,
+          "candidate_route_trials": 92,
+          "candidate_partition_count": 1,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 5960970,
+          "complete_encode_and_validation_elapsed_ns": 6283602,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "total_bytes": 71
+            },
+            {
+              "start": 64,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "total_bytes": 70
+            },
+            {
+              "start": 128,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "total_bytes": 70
+            },
+            {
+              "start": 192,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "total_bytes": 70
+            },
+            {
+              "start": 256,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "total_bytes": 71
+            },
+            {
+              "start": 320,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "total_bytes": 70
+            },
+            {
+              "start": 384,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "total_bytes": 71
+            },
+            {
+              "start": 448,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "total_bytes": 71
+            },
+            {
+              "start": 512,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "total_bytes": 70
+            },
+            {
+              "start": 576,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "total_bytes": 70
+            },
+            {
+              "start": 640,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "total_bytes": 70
+            },
+            {
+              "start": 704,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "total_bytes": 69
+            },
+            {
+              "start": 768,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "total_bytes": 70
+            },
+            {
+              "start": 832,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "total_bytes": 69
+            },
+            {
+              "start": 896,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "total_bytes": 70
+            },
+            {
+              "start": 960,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "total_bytes": 70
+            },
+            {
+              "start": 1024,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "total_bytes": 70
+            },
+            {
+              "start": 1088,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "total_bytes": 69
+            },
+            {
+              "start": 1152,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "total_bytes": 69
+            },
+            {
+              "start": 1216,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "total_bytes": 71
+            },
+            {
+              "start": 1280,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "total_bytes": 69
+            },
+            {
+              "start": 1344,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "total_bytes": 71
+            },
+            {
+              "start": 1408,
+              "len": 54,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 53,
+              "total_bytes": 62
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "complete_bytes": 71
+            },
+            {
+              "start": 64,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "complete_bytes": 70
+            },
+            {
+              "start": 128,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "complete_bytes": 70
+            },
+            {
+              "start": 192,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "complete_bytes": 70
+            },
+            {
+              "start": 256,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "complete_bytes": 71
+            },
+            {
+              "start": 320,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "complete_bytes": 70
+            },
+            {
+              "start": 384,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "complete_bytes": 71
+            },
+            {
+              "start": 448,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "complete_bytes": 71
+            },
+            {
+              "start": 512,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "complete_bytes": 70
+            },
+            {
+              "start": 576,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "complete_bytes": 70
+            },
+            {
+              "start": 640,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "complete_bytes": 70
+            },
+            {
+              "start": 704,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "complete_bytes": 69
+            },
+            {
+              "start": 768,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "complete_bytes": 70
+            },
+            {
+              "start": 832,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "complete_bytes": 69
+            },
+            {
+              "start": 896,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "complete_bytes": 70
+            },
+            {
+              "start": 960,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "complete_bytes": 70
+            },
+            {
+              "start": 1024,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 61,
+              "complete_bytes": 70
+            },
+            {
+              "start": 1088,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "complete_bytes": 69
+            },
+            {
+              "start": 1152,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "complete_bytes": 69
+            },
+            {
+              "start": 1216,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "complete_bytes": 71
+            },
+            {
+              "start": 1280,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "complete_bytes": 69
+            },
+            {
+              "start": 1344,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "complete_bytes": 71
+            },
+            {
+              "start": 1408,
+              "length": 54,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 53,
+              "complete_bytes": 62
+            }
+          ],
+          "complete_bytes": 1620,
+          "CRC_verified": true
+        }
+      },
+      "fixed256": {
+        "status": "verified",
+        "bytes": 1329,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed256.arc",
+        "archive_sha256": "789e1ec5c2423a12d9c2344999940491cf9cadba76c2b66cc4661dd0f5f97de4",
+        "restored_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--fixed",
+            "256",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed256.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.015720577910542488
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed256.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed256.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.0016102548688650131
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "fixed",
+          "source_bytes": 1462,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 1329,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "declared-adjacent-blocks",
+          "boundary_points": [
+            0,
+            256,
+            512,
+            768,
+            1024,
+            1280,
+            1462
+          ],
+          "candidate_boundary_count": 7,
+          "candidate_edge_count": 6,
+          "candidate_route_trials": 24,
+          "candidate_partition_count": 1,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 12493177,
+          "complete_encode_and_validation_elapsed_ns": 12715511,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 220,
+              "total_bytes": 229
+            },
+            {
+              "start": 256,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 223,
+              "total_bytes": 232
+            },
+            {
+              "start": 512,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 220,
+              "total_bytes": 229
+            },
+            {
+              "start": 768,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 218,
+              "total_bytes": 227
+            },
+            {
+              "start": 1024,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 218,
+              "total_bytes": 227
+            },
+            {
+              "start": 1280,
+              "len": 182,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 159,
+              "total_bytes": 168
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 220,
+              "complete_bytes": 229
+            },
+            {
+              "start": 256,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 223,
+              "complete_bytes": 232
+            },
+            {
+              "start": 512,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 220,
+              "complete_bytes": 229
+            },
+            {
+              "start": 768,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 218,
+              "complete_bytes": 227
+            },
+            {
+              "start": 1024,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 218,
+              "complete_bytes": 227
+            },
+            {
+              "start": 1280,
+              "length": 182,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 159,
+              "complete_bytes": 168
+            }
+          ],
+          "complete_bytes": 1329,
+          "CRC_verified": true
+        }
+      },
+      "fixed1024": {
+        "status": "verified",
+        "bytes": 1171,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed1024.arc",
+        "archive_sha256": "e0766360b15bb50e367875fd535f133392913249433ddb387e58e1da0e83ccf6",
+        "restored_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--fixed",
+            "1024",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed1024.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.015651927795261145
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed1024.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width3-fixed1024.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.003611539024859667
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "fixed",
+          "source_bytes": 1462,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 1171,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "declared-adjacent-blocks",
+          "boundary_points": [
+            0,
+            1024,
+            1462
+          ],
+          "candidate_boundary_count": 3,
+          "candidate_edge_count": 2,
+          "candidate_route_trials": 8,
+          "candidate_partition_count": 1,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 12196260,
+          "complete_encode_and_validation_elapsed_ns": 13075187,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 1024,
+              "route": "legacy-lz",
+              "coder": "legacy_lz::encode([],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 768,
+              "total_bytes": 777
+            },
+            {
+              "start": 1024,
+              "len": 438,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 368,
+              "total_bytes": 377
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 1024,
+              "route_id": 3,
+              "metadata_bytes": 9,
+              "payload_bytes": 768,
+              "complete_bytes": 777
+            },
+            {
+              "start": 1024,
+              "length": 438,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 368,
+              "complete_bytes": 377
+            }
+          ],
+          "complete_bytes": 1171,
+          "CRC_verified": true
+        }
+      }
+    }
+  },
+  {
+    "fixture": {
+      "name": "fresh-held-mask-width4",
+      "split": "new-held-out",
+      "input": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin",
+      "input_bytes": 1470,
+      "input_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+      "generator": {
+        "width": 4,
+        "count": 367,
+        "seed": 1403,
+        "noise_period": 23,
+        "partial_row_bytes": 2
+      },
+      "diagnostic": "not passed to encoder"
+    },
+    "candidates": {
+      "adaptive": {
+        "status": "verified",
+        "bytes": 986,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-adaptive.arc",
+        "archive_sha256": "e35ef7272b88403436f441bda37818aee4f1345c058ed1497703824fbea35b93",
+        "restored_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--adaptive",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-adaptive.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.4159510158933699
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-adaptive.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-adaptive.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.003750883974134922
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "adaptive",
+          "source_bytes": 1470,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 986,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "bounded-content-window-score",
+          "boundary_points": [
+            0,
+            11,
+            525,
+            535,
+            545,
+            553,
+            596,
+            605,
+            614,
+            623,
+            632,
+            642,
+            729,
+            742,
+            750,
+            758,
+            1470
+          ],
+          "candidate_boundary_count": 17,
+          "candidate_edge_count": 136,
+          "candidate_route_trials": 544,
+          "candidate_partition_count": 32768,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 376519489,
+          "complete_encode_and_validation_elapsed_ns": 377405663,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 1470,
+              "route": "legacy-lz",
+              "coder": "legacy_lz::encode([],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 960,
+              "total_bytes": 969
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 1470,
+              "route_id": 3,
+              "metadata_bytes": 9,
+              "payload_bytes": 960,
+              "complete_bytes": 969
+            }
+          ],
+          "complete_bytes": 986,
+          "CRC_verified": true
+        }
+      },
+      "fixed64": {
+        "status": "verified",
+        "bytes": 1693,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed64.arc",
+        "archive_sha256": "beaba35ddcdb0d6d098f8886604a572df3f1082507437e48c74ef4ab6876b360",
+        "restored_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--fixed",
+            "64",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed64.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.01564368000254035
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed64.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed64.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.0014242767356336117
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "fixed",
+          "source_bytes": 1470,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 1693,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "declared-adjacent-blocks",
+          "boundary_points": [
+            0,
+            64,
+            128,
+            192,
+            256,
+            320,
+            384,
+            448,
+            512,
+            576,
+            640,
+            704,
+            768,
+            832,
+            896,
+            960,
+            1024,
+            1088,
+            1152,
+            1216,
+            1280,
+            1344,
+            1408,
+            1470
+          ],
+          "candidate_boundary_count": 24,
+          "candidate_edge_count": 23,
+          "candidate_route_trials": 92,
+          "candidate_partition_count": 1,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 8254332,
+          "complete_encode_and_validation_elapsed_ns": 8292267,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 64,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 128,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 192,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 256,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 320,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 384,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 448,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 512,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 576,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 640,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 704,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 768,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 832,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 896,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 960,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1024,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1088,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1152,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1216,
+              "len": 64,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 63,
+              "total_bytes": 72
+            },
+            {
+              "start": 1280,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1344,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1408,
+              "len": 62,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "total_bytes": 71
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 64,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 128,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 192,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 256,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 320,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 384,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 448,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 512,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 576,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 640,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 704,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 768,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 832,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 896,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 960,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1024,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1088,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1152,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1216,
+              "length": 64,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 63,
+              "complete_bytes": 72
+            },
+            {
+              "start": 1280,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1344,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1408,
+              "length": 62,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 62,
+              "complete_bytes": 71
+            }
+          ],
+          "complete_bytes": 1693,
+          "CRC_verified": true
+        }
+      },
+      "fixed256": {
+        "status": "verified",
+        "bytes": 1429,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed256.arc",
+        "archive_sha256": "6eb0dea504e4a4ac4ecec002552bb606e9947cf27248593d1eb10120b77f37e9",
+        "restored_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--fixed",
+            "256",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed256.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.015595956239849329
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed256.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed256.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.0014543361030519009
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "fixed",
+          "source_bytes": 1470,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 1429,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "declared-adjacent-blocks",
+          "boundary_points": [
+            0,
+            256,
+            512,
+            768,
+            1024,
+            1280,
+            1470
+          ],
+          "candidate_boundary_count": 7,
+          "candidate_edge_count": 6,
+          "candidate_route_trials": 24,
+          "candidate_partition_count": 1,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 12360284,
+          "complete_encode_and_validation_elapsed_ns": 12569294,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 237,
+              "total_bytes": 246
+            },
+            {
+              "start": 256,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 237,
+              "total_bytes": 246
+            },
+            {
+              "start": 512,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 234,
+              "total_bytes": 243
+            },
+            {
+              "start": 768,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 237,
+              "total_bytes": 246
+            },
+            {
+              "start": 1024,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 234,
+              "total_bytes": 243
+            },
+            {
+              "start": 1280,
+              "len": 190,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 179,
+              "total_bytes": 188
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 237,
+              "complete_bytes": 246
+            },
+            {
+              "start": 256,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 237,
+              "complete_bytes": 246
+            },
+            {
+              "start": 512,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 234,
+              "complete_bytes": 243
+            },
+            {
+              "start": 768,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 237,
+              "complete_bytes": 246
+            },
+            {
+              "start": 1024,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 234,
+              "complete_bytes": 243
+            },
+            {
+              "start": 1280,
+              "length": 190,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 179,
+              "complete_bytes": 188
+            }
+          ],
+          "complete_bytes": 1429,
+          "CRC_verified": true
+        }
+      },
+      "fixed1024": {
+        "status": "verified",
+        "bytes": 1145,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed1024.arc",
+        "archive_sha256": "e99e8d568d1f17c946dea064f5aae7a40446e064f520fe93ac3de8663a29fef3",
+        "restored_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--fixed",
+            "1024",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed1024.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.015591309405863285
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed1024.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width4-fixed1024.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.003534893970936537
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "fixed",
+          "source_bytes": 1470,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 1145,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "declared-adjacent-blocks",
+          "boundary_points": [
+            0,
+            1024,
+            1470
+          ],
+          "candidate_boundary_count": 3,
+          "candidate_edge_count": 2,
+          "candidate_route_trials": 8,
+          "candidate_partition_count": 1,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 13125705,
+          "complete_encode_and_validation_elapsed_ns": 14401794,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 1024,
+              "route": "legacy-lz",
+              "coder": "legacy_lz::encode([],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 730,
+              "total_bytes": 739
+            },
+            {
+              "start": 1024,
+              "len": 446,
+              "route": "legacy-lz",
+              "coder": "legacy_lz::encode([],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 380,
+              "total_bytes": 389
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 1024,
+              "route_id": 3,
+              "metadata_bytes": 9,
+              "payload_bytes": 730,
+              "complete_bytes": 739
+            },
+            {
+              "start": 1024,
+              "length": 446,
+              "route_id": 3,
+              "metadata_bytes": 9,
+              "payload_bytes": 380,
+              "complete_bytes": 389
+            }
+          ],
+          "complete_bytes": 1145,
+          "CRC_verified": true
+        }
+      }
+    }
+  },
+  {
+    "fixture": {
+      "name": "fresh-held-mask-width5",
+      "split": "new-held-out",
+      "input": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin",
+      "input_bytes": 1468,
+      "input_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+      "generator": {
+        "width": 5,
+        "count": 293,
+        "seed": 1405,
+        "noise_period": 23,
+        "partial_row_bytes": 3
+      },
+      "diagnostic": "not passed to encoder"
+    },
+    "candidates": {
+      "adaptive": {
+        "status": "verified",
+        "bytes": 908,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-adaptive.arc",
+        "archive_sha256": "f8275c07829ce41902a4f476ca2b43afb6df540196fa40a4af7952c659adacbc",
+        "restored_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--adaptive",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-adaptive.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.6676982291974127
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-adaptive.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-adaptive.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.003751533105969429
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "adaptive",
+          "source_bytes": 1468,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 908,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "bounded-content-window-score",
+          "boundary_points": [
+            0,
+            105,
+            117,
+            127,
+            424,
+            434,
+            442,
+            450,
+            795,
+            805,
+            813,
+            823,
+            894,
+            902,
+            910,
+            919,
+            1468
+          ],
+          "candidate_boundary_count": 17,
+          "candidate_edge_count": 136,
+          "candidate_route_trials": 544,
+          "candidate_partition_count": 32768,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 623277161,
+          "complete_encode_and_validation_elapsed_ns": 624421327,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 1468,
+              "route": "legacy-lz",
+              "coder": "legacy_lz::encode([],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 882,
+              "total_bytes": 891
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 1468,
+              "route_id": 3,
+              "metadata_bytes": 9,
+              "payload_bytes": 882,
+              "complete_bytes": 891
+            }
+          ],
+          "complete_bytes": 908,
+          "CRC_verified": true
+        }
+      },
+      "fixed64": {
+        "status": "verified",
+        "bytes": 1692,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed64.arc",
+        "archive_sha256": "cd734e511d8d48cef68bb59f5a16d388be269997672328790014f5e21bb0fadd",
+        "restored_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--fixed",
+            "64",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed64.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.015602599363774061
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed64.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed64.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.0014573796652257442
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "fixed",
+          "source_bytes": 1468,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 1692,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "declared-adjacent-blocks",
+          "boundary_points": [
+            0,
+            64,
+            128,
+            192,
+            256,
+            320,
+            384,
+            448,
+            512,
+            576,
+            640,
+            704,
+            768,
+            832,
+            896,
+            960,
+            1024,
+            1088,
+            1152,
+            1216,
+            1280,
+            1344,
+            1408,
+            1468
+          ],
+          "candidate_boundary_count": 24,
+          "candidate_edge_count": 23,
+          "candidate_route_trials": 92,
+          "candidate_partition_count": 1,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 10524210,
+          "complete_encode_and_validation_elapsed_ns": 10555778,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 64,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 128,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 192,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 256,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 320,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 384,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 448,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 512,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 576,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 640,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 704,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 768,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 832,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 896,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 960,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1024,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1088,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1152,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1216,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1280,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1344,
+              "len": 64,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "total_bytes": 73
+            },
+            {
+              "start": 1408,
+              "len": 60,
+              "route": "raw",
+              "coder": "identity",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "total_bytes": 69
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 64,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 128,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 192,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 256,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 320,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 384,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 448,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 512,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 576,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 640,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 704,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 768,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 832,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 896,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 960,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1024,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1088,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1152,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1216,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1280,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1344,
+              "length": 64,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 64,
+              "complete_bytes": 73
+            },
+            {
+              "start": 1408,
+              "length": 60,
+              "route_id": 0,
+              "metadata_bytes": 9,
+              "payload_bytes": 60,
+              "complete_bytes": 69
+            }
+          ],
+          "complete_bytes": 1692,
+          "CRC_verified": true
+        }
+      },
+      "fixed256": {
+        "status": "verified",
+        "bytes": 1483,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed256.arc",
+        "archive_sha256": "6d19a6d3cbdd74100e940b3eeb2ad46a658ad4d3425855d87fdba44df74c0e9d",
+        "restored_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--fixed",
+            "256",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed256.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.015627929009497166
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed256.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed256.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.0014983350411057472
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "fixed",
+          "source_bytes": 1468,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 1483,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "declared-adjacent-blocks",
+          "boundary_points": [
+            0,
+            256,
+            512,
+            768,
+            1024,
+            1280,
+            1468
+          ],
+          "candidate_boundary_count": 7,
+          "candidate_edge_count": 6,
+          "candidate_route_trials": 24,
+          "candidate_partition_count": 1,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 12911357,
+          "complete_encode_and_validation_elapsed_ns": 13129339,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 245,
+              "total_bytes": 254
+            },
+            {
+              "start": 256,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 246,
+              "total_bytes": 255
+            },
+            {
+              "start": 512,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 247,
+              "total_bytes": 256
+            },
+            {
+              "start": 768,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 245,
+              "total_bytes": 254
+            },
+            {
+              "start": 1024,
+              "len": 256,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 245,
+              "total_bytes": 254
+            },
+            {
+              "start": 1280,
+              "len": 188,
+              "route": "adaptive",
+              "coder": "adaptive::encode_general(0,8,[],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 184,
+              "total_bytes": 193
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 245,
+              "complete_bytes": 254
+            },
+            {
+              "start": 256,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 246,
+              "complete_bytes": 255
+            },
+            {
+              "start": 512,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 247,
+              "complete_bytes": 256
+            },
+            {
+              "start": 768,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 245,
+              "complete_bytes": 254
+            },
+            {
+              "start": 1024,
+              "length": 256,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 245,
+              "complete_bytes": 254
+            },
+            {
+              "start": 1280,
+              "length": 188,
+              "route_id": 2,
+              "metadata_bytes": 9,
+              "payload_bytes": 184,
+              "complete_bytes": 193
+            }
+          ],
+          "complete_bytes": 1483,
+          "CRC_verified": true
+        }
+      },
+      "fixed1024": {
+        "status": "verified",
+        "bytes": 1094,
+        "archive": "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed1024.arc",
+        "archive_sha256": "b79d6b472e5a303f57492b92b92370f051b3a602c704cf3da2de460a7cc3cda9",
+        "restored_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+        "encode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "--fixed",
+            "1024",
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed1024.arc"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.03175674518570304
+        },
+        "decode": {
+          "args": [
+            "/home/user/src/colour-index-compression/benchmark-work/segmentation-reference/build/segments",
+            "decode",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed1024.arc",
+            "/home/user/src/colour-index-compression/benchmark-work/mask-contiguous-controls/archives/fresh-held-mask-width5-fixed1024.restored"
+          ],
+          "exit": 0,
+          "wall_seconds": 0.003795930650085211
+        },
+        "trace": {
+          "experiment": "segmentation-reference-stage2",
+          "operation": "encode",
+          "mode": "fixed",
+          "source_bytes": 1468,
+          "source_cap_bytes": 4096,
+          "archive_bytes": 1094,
+          "archive_cap_bytes": 32768,
+          "header_bytes": 17,
+          "boundary_generation": "declared-adjacent-blocks",
+          "boundary_points": [
+            0,
+            1024,
+            1468
+          ],
+          "candidate_boundary_count": 3,
+          "candidate_edge_count": 2,
+          "candidate_route_trials": 8,
+          "candidate_partition_count": 1,
+          "edge_cost_matrix": null,
+          "selection_elapsed_ns": 14574037,
+          "complete_encode_and_validation_elapsed_ns": 15987536,
+          "exhaustive_partition_gap_bytes": null,
+          "decoder_search": false,
+          "streaming_lookahead_claim": false,
+          "selected_segments": [
+            {
+              "start": 0,
+              "len": 1024,
+              "route": "legacy-lz",
+              "coder": "legacy_lz::encode([],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 684,
+              "total_bytes": 693
+            },
+            {
+              "start": 1024,
+              "len": 444,
+              "route": "legacy-lz",
+              "coder": "legacy_lz::encode([],1)",
+              "shared_model": "none",
+              "metadata_bytes": 9,
+              "payload_bytes": 375,
+              "total_bytes": 384
+            }
+          ]
+        },
+        "accounting": {
+          "header_bytes": 17,
+          "timeline": [
+            {
+              "start": 0,
+              "length": 1024,
+              "route_id": 3,
+              "metadata_bytes": 9,
+              "payload_bytes": 684,
+              "complete_bytes": 693
+            },
+            {
+              "start": 1024,
+              "length": 444,
+              "route_id": 3,
+              "metadata_bytes": 9,
+              "payload_bytes": 375,
+              "complete_bytes": 384
+            }
+          ],
+          "complete_bytes": 1094,
+          "CRC_verified": true
+        }
+      }
+    }
+  }
+]

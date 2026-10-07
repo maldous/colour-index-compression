@@ -1,0 +1,37 @@
+{
+  "files": {
+    "pipe-probe.json": {
+      "bytes": 14408,
+      "sha256": "7ce67a5fd4244699b58061713804f7dd57c3cd8d45958218d882f4d06c6a5c20"
+    },
+    "probe-guard.py": {
+      "bytes": 616,
+      "sha256": "b47868a2d492deeb333065276c49c94b8e45958fbbf3f3f41310c3f0a64a6f53"
+    },
+    "probe-script.py": {
+      "bytes": 15422,
+      "sha256": "bef404d11cc43845c8c115d3601a6a91f79f088235091d87860529342ce07688"
+    },
+    "root-pipe-guard.log": {
+      "bytes": 269,
+      "sha256": "95a58f3e475f28da8597fee44bfc7707dae5107bb746d7f4d1298eab1e41f5c2"
+    },
+    "root-pipe-probe.json": {
+      "bytes": 21198,
+      "sha256": "70927be258378d75632803bc93d99a1582c1a0dc1cccd64517ac5dc9e67005d9"
+    },
+    "root-signal.json": {
+      "bytes": 928,
+      "sha256": "1f5a8aa3409892266070b4f9a337281d6df6bb804caf565404824a1c12349320"
+    },
+    "signal-proof.py": {
+      "bytes": 1916,
+      "sha256": "9d536f30a383e81c88338b1dda75eaf1b4c3a8f5c05298d1729afd478ff54f0e"
+    }
+  },
+  "modification": "Only CPU16 and candidate cix/uncix absolute binary paths differ in copied probe.",
+  "original_probe_sha256": "2ca67a8994747bf4881a9c5bc974a909021e74be2997fe6aaed6ce6943b70a9a",
+  "original_probe_source_commit": "52cd25716f577dc46c0f7cd6dfa9854dd2d80361",
+  "root_pipe_command": "systemd-run --user --wait --collect --unit=cix-encode-options-root-pipe --property=MemoryMax=1G --property=MemorySwapMax=0 --property=CPUAffinity=16 /usr/bin/python3 /tmp/cix-encode-probe-guard.py /tmp/cix-encode-probe.py --receipt /tmp/cix-encode-qual/root-probe.json",
+  "scope": "Native correctness/pipe/cancellation checks; no corpus timing or throughput claim. Parent guard readback supplements probe intrinsic perchildRLIMIT; native binaries directly inherit this cgroup."
+}

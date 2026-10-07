@@ -1,0 +1,2 @@
+import subprocess
+subprocess.run(['python3', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/cli-bindings-v8/check_optional_bindings.py', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v8', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/cli-bindings-v8', 'cli-bindings-v8'],check=True)

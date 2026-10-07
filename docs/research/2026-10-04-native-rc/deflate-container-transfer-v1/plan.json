@@ -1,0 +1,11 @@
+{
+  "experiment": "deflate-container-transfer-v1",
+  "frozen_before_execution": true,
+  "asset_inventory": "Existing local ZIP/PNG inspection found benchmark-work/references/cmix-v21/upstream.zip (731518 bytes, 2231947 inflated bytes) and benchmark-work/silesia.zip (67633896 bytes). The former alone meets the predeclared <=1 MiB compressed and <=4 MiB inflated preference, so it is the sole real primary input.",
+  "input": {"path": "benchmark-work/references/cmix-v21/upstream.zip", "bytes": 731518, "sha256": "8fd46731ed0125707021c2db4feb24179617b3993b735c335f2e0b3c00e5a0dc", "entries": 89, "deflate_entries": 78, "stored_entries": 11, "deflate_compressed_bytes": 716820, "inflated_bytes": 2231947, "data_descriptors": false},
+  "algorithm": "For every method-8 local ZIP member, preserve its exact raw-DEFLATE syntax using the retained DCP1 predictor/correction representation and the corrected stored-block offset generator. Preserve every other original ZIP byte verbatim. ZTI1 stores verbatim inter-segment bytes and DCP1 member records. ZTP1 is ASCII magic plus xz preset-1 compression of complete ZTI1. ZIP local offsets are never reused as a decoding shortcut; reconstruction concatenates the stored untouched ranges and regenerated raw streams.",
+  "controls": ["original ZIP", "ZBZ1 plus zlib level 9 over complete ZIP", "ZBX1 plus xz preset 1 over complete ZIP"],
+  "validation": "Constructed mixed stored/DEFLATE ZIP is validation only. For real upstream.zip, reconstruct the complete original container byte-for-byte, check SHA-256 and open/extract each member with Python zipfile. Retained ZTP1 passes fresh-process ZTP1-only SHA inverse.",
+  "resources": {"cpu": "one core 10", "wall_seconds": 90, "address_space_bytes": 1000000000, "output_bytes": 256000000, "swap": false},
+  "limits": "No downloads, CIX changes, third-party edits, parameter search, Silesia corpus benchmark or production claim. This is format-aware transfer evidence for one existing ZIP only."
+}

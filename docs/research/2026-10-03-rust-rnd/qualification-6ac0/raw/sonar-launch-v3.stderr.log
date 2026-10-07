@@ -1,0 +1,12 @@
+Error response from daemon: No such container: cix-scanner-4af6
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/benchmark-work/sonar-4af6/run_scan.py", line 102, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/user/src/colour-index-compression/benchmark-work/sonar-4af6/run_scan.py", line 64, in main
+    server_before=cg(SERVER_NAME); assert_cg(server_before,4294967296); (out/'raw/server-cgroup-before.txt').write_text(server_before); snapshot(SERVER_NAME,out/'raw/server-before')
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/colour-index-compression/benchmark-work/sonar-4af6/run_scan.py", line 33, in assert_cg
+    if not d.get('hostname') or d['hostname'][:12] not in d.get('cgroup','') or d.get('memory.swap.max')!='0' or d.get('cpuset') not in ('24-25','24,25') or int(d.get('memory.max','0')) != memory or d.get('cpu.max')!='200000 100000' or not d.get('Cpus_allowed_list'): raise RuntimeError('cgroup role limits/identity mismatch')
+                                                                                                                                                                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: cgroup role limits/identity mismatch

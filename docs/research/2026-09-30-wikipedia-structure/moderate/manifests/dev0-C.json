@@ -1,0 +1,70 @@
+{
+  "artifacts": {
+    "archive": "{workdir}/candidate.cixstr",
+    "restored": "{workdir}/restored.bin"
+  },
+  "budget": {
+    "cpu": 4,
+    "max_rss_bytes": 3000000000,
+    "max_temp_bytes": 1000000000,
+    "wall_seconds": 1200
+  },
+  "build_paths": [
+    "benchmarks/hutter_bounded_runner.py",
+    "benchmarks/hutter_structure.py",
+    "benchmarks/hutter_structure_moderate.py",
+    "benchmarks/hutter_structure_order.py",
+    "benchmarks/hutter_structure_probe.py",
+    "benchmarks/markup_columns.py",
+    "cix/__init__.py",
+    "cix/multinomial.py"
+  ],
+  "configuration": {
+    "codec_commit": "6001106e25cc1dcf86b7cbfbe67c185a7daeb04c",
+    "execution_boundary": "parent and child pinned CPU4; one lane per physical core; four jobs maximum",
+    "fx2": "NOT_RUN: global article-order dependency",
+    "mode": "C",
+    "paq_binary_sha256": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+    "paq_options": "-4 -simd AVX2",
+    "paq_version": "v216",
+    "selector": "NOT_RUN: every physical candidate separately reported",
+    "source_filename": "candidate.source.bin"
+  },
+  "decode_command": [
+    "/home/user/src/colour-index-compression/.venv/bin/python",
+    "/home/user/src/colour-index-compression/benchmarks/hutter_structure_probe.py",
+    "decode",
+    "{workdir}/candidate.cixstr",
+    "{workdir}/restored.bin",
+    "--paq-binary",
+    "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+    "--paq-sha256",
+    "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+  ],
+  "encode_command": [
+    "/home/user/src/colour-index-compression/.venv/bin/python",
+    "/home/user/src/colour-index-compression/benchmarks/hutter_structure_probe.py",
+    "encode",
+    "{source}",
+    "{workdir}/candidate.cixstr",
+    "--mode",
+    "C",
+    "--paq-binary",
+    "/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px",
+    "--paq-sha256",
+    "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"
+  ],
+  "hypothesis": "At 4 MiB, reuse of repeated structure and amortization may overcome the measured 32 KiB complete-size losses; test every unchanged candidate, not only selector winners.",
+  "initial_state": "empty per independent contiguous region; no training or warm-up; hashes read before all jobs so source OS cache is warm; no predictor state sharing",
+  "input": {
+    "length": 4194304,
+    "offset": 0,
+    "path": "/home/user/src/cix-baseline-data/inputs/enwik9",
+    "sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77"
+  },
+  "longer_budget_justification": "4 MiB continuous PAQ encode plus independent decode tests reuse beyond tiny screens; 1200s shared maximum, no automatic restart or full-size replacement.",
+  "matched_control": "Same PAQ v216 -4 and CIXSTR1 outer framing for every candidate.",
+  "mechanism": "shared typed streams",
+  "promotion_criteria": "Exact independent restore for every reported candidate. A 16 MiB follow-up requires aggregate complete-size saving and at least 2 of 3 region wins; holdouts additionally require >=0.5% aggregate saving and a frozen candidate. Failed/budget-limited rows remain visible. No full enwik9 authorized.",
+  "stage": "moderate_contiguous"
+}

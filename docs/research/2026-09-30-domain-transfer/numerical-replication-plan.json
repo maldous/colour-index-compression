@@ -1,0 +1,26 @@
+{
+  "schema": "cix-numerical-replication-plan-v1",
+  "purpose": "One predeclared geographic convenience replication of the frozen NOAA numerical result; it is not a population or class-level claim.",
+  "asset": "NOAA CO-OPS verified water-level CSV",
+  "source_url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=20240101&end_date=20240131&station=9447130&product=water_level&datum=MLLW&time_zone=gmt&units=metric&format=csv",
+  "query_parameters": {
+    "station": "9447130",
+    "station_name": "Seattle, WA",
+    "product": "water_level",
+    "datum": "MLLW",
+    "time_zone": "gmt",
+    "units": "metric",
+    "format": "csv",
+    "begin_date": "20240101",
+    "end_date": "20240131"
+  },
+  "selection": "Predeclared distinct station and geography, with the same calendar month and official endpoint fields as the San Francisco convenience sample.",
+  "acquisition_policy": "Retain the literal API response if retrieved. If retrieval fails or the response is unsupported by the frozen strict adapter, record that status with no substitution, reformatting, screening compression, or alternative sample.",
+  "frozen_measurement": {
+    "control": "original response -> frozen PAQ v216 -4 AVX2",
+    "candidate": "numeric-delta-columns-v1 frame -> the identical frozen PAQ v216 -4 AVX2",
+    "excluded_variants": ["numeric-delta-rows-v1", "numeric-delta-columns-packed-meta-v1"],
+    "execution_owner": "root shared scheduler only",
+    "status": "NOT_RUN"
+  }
+}

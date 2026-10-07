@@ -1,0 +1,471 @@
+{
+  "date": "2026-10-04",
+  "scope": "Literature and local-source coverage audit only. Prior scan is bounded, not all history. Priority denotes consideration, never automatic RC admission.",
+  "new_experiments": 0,
+  "production_changes": 0,
+  "measured_cix_gains": 0,
+  "candidates": [
+    {
+      "id": "C01",
+      "name": "Pco / Pcodec",
+      "family": "Typed numerical models and entropy-coded bins",
+      "priority": "High: focused future numeric comparison",
+      "prior": "No Pco/Pcodec entry found in the bounded prior scan; CIX already has numeric deltas and planes.",
+      "upstream": "Released Rust crate and wrapped API; approximate multiple modes, optional delta/lookback, entropy-coded bin plus exact offset.",
+      "publication": "No first paper/release date asserted; current library and format inspected.",
+      "license": "Apache-2.0 shown by upstream; transitive dependencies not audited.",
+      "contract": "Preserve raw type, endianness, tails and every IEEE bit; numeric value equality alone is insufficient.",
+      "value": "Potential ratio/throughput improvement on typed columns without a large neural model; not measured against CIX.",
+      "limits": "Chunk training and metadata amortization matter; small or interleaved heterogeneous chunks may lose.",
+      "sources": [
+        "https://github.com/pcodec/pcodec",
+        "https://github.com/pcodec/pcodec/blob/main/docs/format.md",
+        "https://docs.rs/pco/latest/pco/"
+      ]
+    },
+    {
+      "id": "C02",
+      "name": "ALP",
+      "family": "Decimal structure with exact exceptions",
+      "priority": "Retain existing comparator",
+      "prior": "Already considered in the GPU/scientific inventory; not a new discovery or integrated CIX route.",
+      "upstream": "Published numerical encoding and public reference implementation.",
+      "publication": "SIGMOD 2024 project; paper published in PACMMOD 2023.",
+      "license": "Not independently audited here.",
+      "contract": "Lossless route and exact exception stream; retain raw IEEE payload and original container.",
+      "value": "Important numeric control alongside Pco, existing CIX delta/planes and generic backends.",
+      "limits": "Do not confuse decimal regularity with permission to round original numbers.",
+      "sources": [
+        "https://github.com/cwida/ALP",
+        "https://ir.cwi.nl/pub/33334/33334.pdf"
+      ]
+    },
+    {
+      "id": "C03",
+      "name": "Elf / Elf+ / Elf*, Gorilla and Chimp",
+      "family": "Floating-point erasure/recovery and XOR histories",
+      "priority": "Conditional numeric research",
+      "prior": "No named Elf/Chimp path found in bounded scan; generic XOR/delta overlap does not establish these algorithms.",
+      "upstream": "Chinese-led Elf papers and Java research code; repository includes Gorilla/Chimp controls.",
+      "publication": "Elf VLDB 2023; Elf* preprint 2023.",
+      "license": "No license found on inspected Elf repository landing page; unresolved for integration.",
+      "contract": "Validate NaN payloads, signed zero, subnormals, infinities and exact decimal reconstruction. Harness must include tails: upstream describes dropping incomplete 1000-value test blocks.",
+      "value": "A distinct decimal/XOR coding candidate, not an established CIX improvement.",
+      "limits": "Java research environment and branch-specific paper behavior; native implementation and raw-bit contract unqualified.",
+      "sources": [
+        "https://github.com/Spatio-Temporal-Lab/elf",
+        "https://www.vldb.org/pvldb/vol16/p1763-li.pdf",
+        "https://arxiv.org/abs/2308.11915"
+      ]
+    },
+    {
+      "id": "C04",
+      "name": "zfp reversible mode",
+      "family": "Block transforms and embedded bit-plane coding",
+      "priority": "High: scientific array comparison",
+      "prior": "No zfp entry found in bounded scan. CIX spatial/lifting routes overlap conceptually, not in format or implementation.",
+      "upstream": "Released C/C++ library; reversible mode explicitly supports bit-identical integer/float recovery.",
+      "publication": "Reversible mode documented since v0.5.5; first release date not established here.",
+      "license": "Full dependency/license audit outstanding.",
+      "contract": "Use explicit reversible mode; documentation includes NaNs, infinities, subnormals and signed zeros.",
+      "value": "Candidate for scientific arrays and block access; no CIX gain measured.",
+      "limits": "Current documented reversible execution supports serial/OpenMP, not CUDA. Zero tolerance in another mode is not a substitute.",
+      "sources": [
+        "https://zfp.readthedocs.io/en/latest/modes.html",
+        "https://zfp.readthedocs.io/en/release1.0.1/faq.html"
+      ]
+    },
+    {
+      "id": "C05",
+      "name": "SPDP",
+      "family": "Synthesized floating-point transform pipeline",
+      "priority": "Conditional scientific control",
+      "prior": "FPC/GFC/MPC and LC already considered; SPDP not named in bounded scan.",
+      "upstream": "Author supplies standalone C compressor and HDF5-related implementation.",
+      "publication": "DCC 2018 paper; author records earlier code release in 2016.",
+      "license": "Embedded source license requires inspection before reuse.",
+      "contract": "Binary IEEE32/64 and arbitrary retained tails; exact archive reconstruction must be qualified.",
+      "value": "Lightweight control for composed numerical preprocessing beyond a single delta.",
+      "limits": "Synthesis is established prior art; additional pipeline search is not automatically justified.",
+      "sources": [
+        "https://userweb.cs.txstate.edu/~burtscher/research/SPDPcompressor/",
+        "https://userweb.cs.txstate.edu/~burtscher/publications.html"
+      ]
+    },
+    {
+      "id": "C06",
+      "name": "Sprintz / FIRE forecasting",
+      "family": "Online prediction plus integer residual packing",
+      "priority": "High as control for proposed nonlinear AR work",
+      "prior": "No Sprintz entry found; CIX delta/delta2 and contexts already exist.",
+      "upstream": "Research C++ implementation for multivariate integer time series.",
+      "publication": "2018 preprint and research implementation.",
+      "license": "Apache-2.0 shown by upstream.",
+      "contract": "Only exact original integer inputs qualify. Quantizing float/CSV inputs, discarding timestamps or normalizing text would violate CIX's contract.",
+      "value": "Tests whether adaptive linear prediction explains gains attributed to a new nonlinear model.",
+      "limits": "Published examples use quantized inputs and omit timestamps; their ratios cannot be imported as whole-file CIX results.",
+      "sources": [
+        "https://github.com/dblalock/sprintz",
+        "https://arxiv.org/abs/1808.02515"
+      ]
+    },
+    {
+      "id": "C07",
+      "name": "FSST / FSST12 / OptFSST",
+      "family": "Static substring dictionaries and optimal parsing",
+      "priority": "High: strings, records and SDK access",
+      "prior": "No FSST entry found; CIX phrases/whole-stream dictionaries are related but not equivalent.",
+      "upstream": "FSST released code; OptFSST research extension changes table construction and uses dynamic programming for a fixed table.",
+      "publication": "FSST PVLDB paper; OptFSST preprint 13 July 2026, revised 26 August 2026, with public code.",
+      "license": "FSST MIT; inspect OptFSST fork and dependencies before reuse.",
+      "contract": "Store symbol tables, offsets and escapes. Preserve all bytes; no Unicode normalization.",
+      "value": "Useful for many short strings and independently decoded fields; potential throughput benefit rather than universal best ratio.",
+      "limits": "OptFSST optimizes parsing given a table, not the global compressor. Small tables/data blocks pay overhead.",
+      "sources": [
+        "https://github.com/cwida/fsst",
+        "https://arxiv.org/abs/2607.11271",
+        "https://github.com/Hedi-Chehaidar/optfsst"
+      ]
+    },
+    {
+      "id": "C08",
+      "name": "BtrBlocks / FastLanes / Corra",
+      "family": "Adaptive typed encodings, SIMD layouts and cross-column dependencies",
+      "priority": "High: structured-model and throughput reference",
+      "prior": "No names found in bounded scan; CIX fixed columns, record ordering and constraints already cover part of the idea.",
+      "upstream": "BtrBlocks C++ library; FastLanes portable C++ format and bindings; Corra paper-level cross-column prototype.",
+      "publication": "BtrBlocks and FastLanes layout 2023; Corra 2024; FastLanes file-format paper 2025.",
+      "license": "BtrBlocks and FastLanes MIT shown by repositories; Corra implementation licensing not established.",
+      "contract": "Typed-table round trips do not prove original CSV/JSON byte recovery. Preserve whitespace, numeric spellings, order, null representation, schema and permutation costs.",
+      "value": "Candidate improvements to discovery, cross-field residuals and decode layout; not a reason to import three whole frameworks.",
+      "limits": "Published analytical workloads differ from CIX archives. BtrBlocks README has conflicting platform statements; actual targets need qualification.",
+      "sources": [
+        "https://github.com/maxi-k/btrblocks",
+        "https://www.cs.cit.tum.de/fileadmin/w00cfj/dis/papers/btrblocks.pdf",
+        "https://github.com/cwida/FastLanes",
+        "https://arxiv.org/abs/2403.17229"
+      ]
+    },
+    {
+      "id": "C09",
+      "name": "OpenZL",
+      "family": "Typed compression graphs and a common decoder",
+      "priority": "Retain architectural/comparison reference",
+      "prior": "Already reviewed; no pinned qualified CIX adapter.",
+      "upstream": "Public C/C++ library and author-reported production use, with tagged-release compatibility commitments.",
+      "publication": "Paper and public release 2025; exact milestones in earlier timeline ledger.",
+      "license": "BSD per upstream.",
+      "contract": "A stored graph must restore original bytes; supplying format descriptions is not automatic discovery of arbitrary unknown structure.",
+      "value": "Direct prior art for the architecture CIX needs; potential future graph/backend comparator.",
+      "limits": "Development branch has no compatibility guarantees; not a drop-in replacement for CIX's generic recognizer.",
+      "sources": [
+        "https://github.com/facebook/openzl",
+        "https://arxiv.org/abs/2510.03203"
+      ]
+    },
+    {
+      "id": "C10",
+      "name": "CLP / Logzip",
+      "family": "Template extraction, variables and structured log streams",
+      "priority": "Conditional: stronger structural-text reference",
+      "prior": "CAST/latent layout was reviewed; no CLP/Logzip entry found in bounded scan.",
+      "upstream": "CLP released compression/search system for unstructured and JSON logs; Logzip clustering paper and research approach.",
+      "publication": "Logzip ASE 2019; CLP OSDI 2021 and JSON work 2024.",
+      "license": "CLP Apache-2.0 shown by upstream; other implementation licenses not audited.",
+      "contract": "Prove original text bytes, escaping, timestamp spelling, key order and unknown-line recovery; semantic JSON equivalence is insufficient.",
+      "value": "Relevant to automatic mixed structured/unstructured recognition; can supply realistic controls for template discovery.",
+      "limits": "Searchable log-management systems have different goals and substantial machinery; compare representation alone before considering integration.",
+      "sources": [
+        "https://github.com/y-scope/clp",
+        "https://www.usenix.org/system/files/osdi21-rodrigues.pdf",
+        "https://arxiv.org/abs/1910.00409"
+      ]
+    },
+    {
+      "id": "C11",
+      "name": "Re-Pair / MR-RePair / FOLCA / SOLCA / GCIS / GLZA",
+      "family": "Recursive grammar compression and long-range repetition",
+      "priority": "Medium-high: one representative future control",
+      "prior": "CIX phrase coding exists; no substantive named entries found in bounded scan after rejecting lexical false matches.",
+      "upstream": "Japanese MR-RePair/SOLCA research code, GCIS author code and GLZA author paper/release posts.",
+      "publication": "MR-RePair preprint 2018 / DCC 2019; GCIS DCC 2018; GLZA public work by 2016. First release dates otherwise unverified.",
+      "license": "GLZA author release source carries Apache-2.0; each grammar implementation has a separate unresolved reuse audit.",
+      "contract": "Pay grammar/rule coding, dictionary, order and envelope; disable any newline-removal option.",
+      "value": "May capture long repeated structures beyond a bounded LZ window; compressed access and decode cost are separate benefits.",
+      "limits": "Grammar node count alone is not archive size. Large working memory and slow construction can outweigh savings; do not run a tournament of all variants.",
+      "sources": [
+        "https://github.com/tkida/MR-Repair",
+        "https://arxiv.org/abs/1811.04596",
+        "https://github.com/tkbtkysms/solca",
+        "https://github.com/danielsaad/GCIS",
+        "https://encode.su/attachment.php?attachmentid=4240&d=1459295189",
+        "https://encode.su/threads/2427-GLZA"
+      ]
+    },
+    {
+      "id": "C12",
+      "name": "Kanzi",
+      "family": "Modular transforms and entropy coders",
+      "priority": "Medium: released portfolio comparator",
+      "prior": "Newly identified by parallel last-chance review; many ingredient families already present in CIX.",
+      "upstream": "Released Java/C++/Go implementations, configurable transform/coder composition and block concurrency.",
+      "publication": "Release history exists; first publication/release not dated in this audit.",
+      "license": "Apache-2.0 shown by upstream.",
+      "contract": "Kanzi format is distinct; exact decode and block/reset costs need normal framing.",
+      "value": "Useful ratio/decode-speed alternative and engineering reference; no new foundational compression principle.",
+      "limits": "Do not compare its Silesia tar chart directly with CIX's separately framed member total.",
+      "sources": [
+        "https://github.com/flanglet/kanzi",
+        "https://github.com/flanglet/kanzi-cpp"
+      ]
+    },
+    {
+      "id": "C13",
+      "name": "FreeArc, Tornado, PPMd/PPMII, PPMonstr and Durilca",
+      "family": "Specialist chains, LZ/PPM and context preprocessing",
+      "priority": "Historical prior art; selected controls only",
+      "prior": "LZ/PPM/LZP and specialist composition already covered; named implementations remain distinct.",
+      "upstream": "Russian author documentation describes PPM libraries, heterogeneous-file segmentation and filter chains; FreeArc includes automatic extension-based method selection.",
+      "publication": "Inspected FreeArc 0.4-era docs and Shkarin's historical release table; not current benchmark evidence.",
+      "license": "Per-component licensing and present maintenance/support must be checked; not blanket integration-ready.",
+      "contract": "CIX needs content validation, not copying extension-based eligibility; preserve known/unknown bytes.",
+      "value": "Confirms specialist routing/segmentation and text transforms are established. PPMd can be a targeted control, not an automatic upgrade over native PPM or PAQ.",
+      "limits": "Do not treat old rankings as modern records or assume fast decode from a high-ratio PPM implementation.",
+      "sources": [
+        "https://freearc.sourceforge.net/rus/FreeArc040-rus.htm",
+        "https://www.compression.ru/ds/"
+      ]
+    },
+    {
+      "id": "C14",
+      "name": "JPEG XL original-JPEG reconstruction; Lepton / Brunsli alternatives",
+      "family": "Exact recoding of already-compressed JPEG",
+      "priority": "High: concrete existing-library capability gap",
+      "prior": "Inspected CIX gray2d bridge calls JxlEncoderAddImageFrame, not JPEG reconstruction APIs. Lepton was mentioned in earlier transfer research, but untested.",
+      "upstream": "libjxl AddJPEGFrame plus StoreJPEGMetadata supports original JPEG codestream reconstruction; Microsoft provides Rust Lepton; Brunsli supplies JPEG repacking.",
+      "publication": "Public libraries/research implementations available; first releases not audited here.",
+      "license": "Lepton Rust Apache-2.0; retained libjxl licensing already subject to RC dependency review; alternatives require their own audit.",
+      "contract": "Restore JPEG bytes, metadata and any surrounding/tail bytes, not merely identical pixels. Unsupported streams must fall back.",
+      "value": "Can exploit an already-retained codec library beyond raw grayscale images; no local savings measured.",
+      "limits": "Capability opportunity is not a current restoration obligation unless previously promised; native bridge, resource bounds and full-file byte parity remain needed.",
+      "sources": [
+        "https://libjxl.github.io/libjxl/api_encoder.html",
+        "https://github.com/microsoft/lepton_jpeg_rust",
+        "https://github.com/google/brunsli"
+      ]
+    },
+    {
+      "id": "C15",
+      "name": "Precomp / preflate / compressed-stream reconstruction",
+      "family": "Rebuild a known encoder and code decision residuals",
+      "priority": "Preserve closed dispositions and existing PAQ route",
+      "prior": "Extensively reviewed and tested in finite gzip/bzip2/ZIP closure; useful existing PAQ DEFLATE capability retained.",
+      "upstream": "Released Precomp supports exact reconstruction of several compressed stream types with reconstruction data.",
+      "publication": "Public C++ releases; inspected repository lists 0.4.7 in 2019.",
+      "license": "Precomp Apache-2.0 with multiple bundled dependency licenses.",
+      "contract": "All original syntax and compressed bytes must be recovered; ordinary decompress/recompress is insufficient.",
+      "value": "Strong prior art for residual-on-generator ideas; broader media coverage remains separate from gzip evidence.",
+      "limits": "Current review does not reopen rejected fixed gzip/ZIP routes or promote paid gzip/bzip2 prototypes.",
+      "sources": [
+        "https://github.com/schnaader/precomp-cpp"
+      ]
+    },
+    {
+      "id": "C16",
+      "name": "WavPack / FLAC",
+      "family": "Audio prediction, channel decorrelation and residual coding",
+      "priority": "Conditional domain expansion",
+      "prior": "Prediction overlaps CIX/PAQ; no dedicated WavPack route found. FLAC is prior art in constraint-lifting review.",
+      "upstream": "Released libraries and applications. WavPack documents default preservation of original headers/metadata; FLAC has RFC specification.",
+      "publication": "Mature releases; FLAC RFC 9639 published 2024.",
+      "license": "Pin library and application licenses separately before integration.",
+      "contract": "Use lossless mode and preserve container bytes; float-to-integer conversion is not lossless. FLAC sample exactness alone is not original WAV byte exactness.",
+      "value": "Plausible specialist for genuine audio regions, potentially with much cheaper decode than generic high-effort modelling.",
+      "limits": "No representative CIX evidence; parsing, tails, channel layout and malformed input must be covered.",
+      "sources": [
+        "https://www.wavpack.com/",
+        "https://www.wavpack.com/wavpack_doc.html",
+        "https://www.rfc-editor.org/rfc/rfc9639.html"
+      ]
+    },
+    {
+      "id": "C17",
+      "name": "SPRING and genomic specialists",
+      "family": "Sequence redundancy plus separately coded qualities/identifiers",
+      "priority": "Low until a relevant input class exists",
+      "prior": "Generic byte/chemical graph models do not establish FASTQ-specific coding.",
+      "upstream": "Research implementation and distributed software with lossless and lossy options.",
+      "publication": "Public paper/code; precise first release not checked.",
+      "license": "Dependency/license review not completed.",
+      "contract": "Retain identifiers, qualities, read order, lexical details and full source envelope. FASTQ.gz input support does not establish original gzip-byte reconstruction.",
+      "value": "Worth considering for genomic workloads; not a reason to acquire a new corpus now.",
+      "limits": "Large memory/temp costs and lossy/reordering flags require explicit exclusion or invertible side data.",
+      "sources": [
+        "https://github.com/shubhamchandak94/SPRING",
+        "https://shubhamchandak94.github.io/reports/Compression%20of%20raw%20genomic%20data-Shubham%20Chandak-28May2021-augmented.pdf"
+      ]
+    },
+    {
+      "id": "C18",
+      "name": "FastCDC / similarity grouping / DwarFS",
+      "family": "Cross-file deduplication and long-range shared content",
+      "priority": "High for archive/filesystem design; conditional for single files",
+      "prior": "No FastCDC/DwarFS entry found in bounded scan; local LZ or record ordering is not the same capability.",
+      "upstream": "FastCDC paper; released DwarFS groups similar content, segments files and uses existing codecs.",
+      "publication": "FastCDC USENIX ATC 2016; DwarFS released application, first date not audited.",
+      "license": "DwarFS and any chosen CDC implementation need separate license/embedding review.",
+      "contract": "Hash is a lookup accelerator, not proof of equality. Confirm bytes; charge reference/chunk/permutation metadata and make every referenced byte available to decoding.",
+      "value": "Potentially large benefit on redundant archives/snapshots even when individual streams are compressed.",
+      "limits": "Different scope from one-file codec records. Random access, bounded indexing and total storage including dictionaries/references matter.",
+      "sources": [
+        "https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia",
+        "https://github.com/mhx/dwarfs",
+        "https://github.com/mhx/dwarfs/blob/main/doc/mkdwarfs.md"
+      ]
+    },
+    {
+      "id": "C19",
+      "name": "G-ALP",
+      "family": "Data-parallel floating-point decode",
+      "priority": "Correct prior GPU inventory; conditional accelerator",
+      "prior": "ALP already considered, but earlier review did not establish GPU implementation. This supplies specific paper/code evidence.",
+      "upstream": "GPU-optimized ALP with parallel exception patching and decoding designed for consuming GPU kernels; linked implementation in FastLanes.",
+      "publication": "DaMoN 2025; CWI records 23 June 2025.",
+      "license": "FastLanes repository MIT; exact selected component/dependencies still need pinning.",
+      "contract": "Lossless numeric payload plus CPU decoder compatibility and exact original-byte envelope must be established locally.",
+      "value": "Potential device-resident decode/processing benefit; not a demonstrated CIX host-to-host speedup.",
+      "limits": "Published GPU hardware differs from local GTX1650. FastLanes still labels its broader CUDA reader coming soon; G-ALP code is not complete reader qualification.",
+      "sources": [
+        "https://ir.cwi.nl/pub/35205",
+        "https://azimafroozeh.org/assets/papers/g-alp.pdf",
+        "https://github.com/cwida/FastLanes"
+      ]
+    },
+    {
+      "id": "C20",
+      "name": "SLEEK lossless",
+      "family": "High-throughput floating-point memory compression",
+      "priority": "Add to optional GPU/CPU shortlist",
+      "prior": "No substantive SLEEK entry found in bounded scan; related LC/FPC/GFC/MPC already considered.",
+      "upstream": "2026 CPU/GPU research code with separate lossless and lossy paths; authors claim identical cross-device compressed and restored outputs.",
+      "publication": "IPDPS May 2026 paper and public source.",
+      "license": "BSD-3-Clause shown in upstream source header; full component audit outstanding.",
+      "contract": "Choose lossless path only; author documentation includes IEEE special values. Verify raw bits locally, including NaN payloads.",
+      "value": "Plausible transfer/memory-throughput candidate; no measured CIX benefit or current-host qualification.",
+      "limits": "Author measurements use CUDA12 and other GPUs; PCI transfers, 4GiB VRAM, alignment, tails and total workspace matter.",
+      "sources": [
+        "https://github.com/burtscher/SLEEK",
+        "https://userweb.cs.txstate.edu/~mb92/papers/ipdps26.pdf",
+        "https://github.com/burtscher/SLEEK/blob/main/clean.sh"
+      ]
+    },
+    {
+      "id": "C21",
+      "name": "Existing GPU and component frameworks: libcubwt, nvCOMP, ndzip, LC, GPULZ, GFC/MPC, dietGPU, hipCOMP",
+      "family": "Parallel implementations and specialized numerical streams",
+      "priority": "Already considered; preserve current dispositions",
+      "prior": "Detailed earlier GPU audit and unexecuted libcubwt probe specification exist.",
+      "upstream": "Multiple public implementations/provider distributions, with differing wire formats, licenses and CPU fallback guarantees.",
+      "publication": "See existing GPU source ledger; not newly dated here.",
+      "license": "Provider-specific; nvCOMP distribution differs from open-source research components.",
+      "contract": "Exact CPU/GPU interoperability and emitted format must be explicit; ANS entropy stage does not make a preceding lossy transform exact.",
+      "value": "Acceleration opportunity remains conditional, not exhausted by negative CPU composition experiments.",
+      "limits": "No CIX GPU speedup or provider acceptance follows from availability; G-ALP/SLEEK supplement rather than erase the existing audit.",
+      "sources": [
+        "https://github.com/burtscher/LC-framework",
+        "https://docs.nvidia.com/cuda/nvcomp/",
+        "https://github.com/celerity/ndzip",
+        "https://github.com/IlyaGrebnov/libcubwt"
+      ]
+    },
+    {
+      "id": "C22",
+      "name": "ZipNN / DFloat11",
+      "family": "Exact compression of model-weight bit fields",
+      "priority": "Conditional tensor specialist",
+      "prior": "No names found in bounded scan; existing planes/histograms are related mechanisms.",
+      "upstream": "Published research and public implementations aimed at model storage/inference; numerical bit fields have nonuniform statistics.",
+      "publication": "ZipNN preprint 2024; DFloat11 preprint / NeurIPS 2025.",
+      "license": "Per-component and model packaging licenses not audited here.",
+      "contract": "Compress existing original weights exactly; quantization to create easier weights is a separate lossy operation.",
+      "value": "A realistic application of type-aware entropy coding for BF16/FP32 tensors.",
+      "limits": "CIX already has related transforms; must show marginal value. Inference-framework and large-GPU speed claims do not transfer to this server.",
+      "sources": [
+        "https://github.com/zipnn/zipnn",
+        "https://arxiv.org/abs/2411.05239",
+        "https://github.com/LeanModels/DFloat11",
+        "https://arxiv.org/abs/2504.11651"
+      ]
+    },
+    {
+      "id": "C23",
+      "name": "ts_zip, LMCompress, LLMZip and Language Modeling is Compression",
+      "family": "Large pretrained probability models plus entropy coding",
+      "priority": "Research frontier, not current RC dependency",
+      "prior": "NNCP/LibNC and PAQ neural variants already considered; these are distinct larger-model approaches.",
+      "upstream": "ts_zip distributes experimental binaries; DeepMind provides research code. LMCompress paper found, but separate complete releasable implementation not verified here.",
+      "publication": "LLMZip 2023; DeepMind ICLR 2024; LMCompress 2024 preprint; ts_zip observed 2024 distribution.",
+      "license": "Each implementation, runtime and model asset needs its own rights/dependency check.",
+      "contract": "Pin tokenizer, weights, deterministic arithmetic and model identity; charge corpus-derived assets and report shared model footprint.",
+      "value": "Stronger prediction can improve selected data classes; no general dominance established by headline paper ratios.",
+      "limits": "Current ts_zip page explicitly claims cross-hardware deterministic inference, correcting older same-GPU caveats. Still experimental, no backward-compatibility promise, and local memory/speed unqualified.",
+      "sources": [
+        "https://bellard.org/ts_zip/",
+        "https://github.com/google-deepmind/language_modeling_is_compression",
+        "https://arxiv.org/abs/2407.07723",
+        "https://arxiv.org/abs/2306.04050"
+      ]
+    },
+    {
+      "id": "C24",
+      "name": "Rice-Marlin / variable-to-fixed coding",
+      "family": "Dictionary-based entropy coding with fast decoding",
+      "priority": "Lower-priority entropy implementation reference",
+      "prior": "Huffman/range/ANS already covered; variable-to-fixed dictionaries are not identical to combinatorial rank.",
+      "upstream": "Research proposes compact dictionary constructions; public release qualification not established in this audit.",
+      "publication": "Rice-Marlin preprint 2018; related Marlin DCC 2017.",
+      "license": "Implementation/license unresolved.",
+      "contract": "Pay dictionary/model selection and final partial codeword; compare same normalized symbol source.",
+      "value": "Possible throughput/overhead trade-off, not new data prediction or a promised ratio win.",
+      "limits": "No profiled CIX entropy bottleneck or decisive advantage demonstrated; do not reopen the closed standalone-coder programme automatically.",
+      "sources": [
+        "https://arxiv.org/abs/1811.05756",
+        "https://ddd.uab.cat/pub/poncom/2017/183579/datcomconf_a2017.pdf"
+      ]
+    },
+    {
+      "id": "C25",
+      "name": "Near-lossless ELF; quantized SZ/cuSZ/SZx; semantic or perceptual compression",
+      "family": "Excluded or carefully separated non-byte-exact modes",
+      "priority": "Do not admit these modes",
+      "prior": "Lossy scientific paths already excluded; this review adds a concrete ELF name collision.",
+      "upstream": "ds2-lab ELF explicitly describes near-lossless model-weight transformation, unlike Spatio-Temporal-Lab Elf.",
+      "publication": "ELF VLDB 2024 project; SZ family ongoing.",
+      "license": "Not material to the exactness rejection.",
+      "contract": "Small numerical error, same model accuracy, identical appearance or semantic equivalence is not original-byte reconstruction.",
+      "value": "Their predictors may inspire exact-residual research, but reported lossy ratios cannot support CIX claims.",
+      "limits": "Do not blanket-exclude a package that has a separate proven exact mode. zfp reversible qualifies for consideration; documented SZ3 lossless passthrough is ordinary Zstd, not a new transform.",
+      "sources": [
+        "https://github.com/ds2-lab/ELF",
+        "https://szcompressor.org/",
+        "https://szcompressor.org/SZ3/modules/ALGO_LOSSLESS.html"
+      ]
+    },
+    {
+      "id": "C26",
+      "name": "Chinese APCF preprint",
+      "family": "Floating-point precision/erasure-style preprocessing lead",
+      "priority": "Evidence incomplete; no promotion",
+      "prior": "Not found in inspected inventory.",
+      "upstream": "Native-language author preprint listing located; full page retrieval failed, so exactness and implementation could not be audited.",
+      "publication": "中国科技论文在线 listing dated 23 April 2025.",
+      "license": "No code/reuse status established.",
+      "contract": "Need original paper/code to verify whether every original IEEE bit is reconstructed.",
+      "value": "A discoverability lead only; numerical improvements in the listing are unverified author claims.",
+      "limits": "Do not rank or recommend implementation from a search snippet.",
+      "sources": [
+        "https://paper.edu.cn/releasepaper/content/202504-194"
+      ]
+    }
+  ]
+}

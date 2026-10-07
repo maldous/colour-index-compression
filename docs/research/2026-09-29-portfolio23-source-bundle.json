@@ -1,0 +1,70 @@
+{
+  "source_revision": "fce3cf87db02532616f3823a72658a546fb79dba",
+  "source_archive": "/home/user/src/colour-index-compression/results/releases/cix-source-portfolio23-20260929.tar.gz",
+  "archive_bytes": 3157035,
+  "archive_sha256": "30d82fb95e952358a28d6695624cf6e014be546f664eeb0ecc69fcbed3a4419d",
+  "source_files": 1491,
+  "matched_previously_rebuilt_source_files": 1076,
+  "reused_qualified_binaries": {
+    "results/leaderboard/native_ppm.so": "d337cde96c94ddc378c5d23c9c9000ab62a3535d60ee6917cbd52688593a6f96",
+    "results/leaderboard/native_mixer_rounding.so": "13ee84e42298c085e1c1955c66f97bc5c698bc52b65ef9f8484181668dee117a",
+    "results/leaderboard/native_ppm_decode.so": "e5b0ce02af1412accdd3d7c7dcf74d4aa9caa26f3328460b40e2cefb8bb713e2",
+    "results/leaderboard/native_legacy_mixer.so": "776d66a303c971f095229965edfbc03586f36cbbc36189029f17fcec10bd7f8a",
+    "benchmark-work/references/paq8px-v215/build-local/paq8px": "b982f1e8307d6c38e8febc6415901fafcc2e84a14d51e0af7c5cbbe6322778e7",
+    "benchmark-work/references/paq8px-v216/build-local/paq8px": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+    "benchmark-work/references/paq8px-cix-store-state/build-local/paq8px": "6b815f63502c515a95654df316deb30b6a050fbee1293897f4e643c54843212b"
+  },
+  "smoke_encode": {
+    "policy": "CIX competitive complete-size PAQ and grid-feedback portfolio 23",
+    "operation": "encode",
+    "source_bytes": 475,
+    "output_bytes": 46,
+    "source_sha256": "a2b6e6686ec776d6bb37007673b59d9a9031aa7c2ab7680cb1e3926ea89a2169",
+    "output_sha256": "6a24a6f65992571aed142795a233d7d6112c1176da6449843fdbbe3489250bf1",
+    "seconds": 0.7694275379180908,
+    "peak_rss_kib": 39008,
+    "child_peak_rss_kib": 742144,
+    "selection": {
+      "selected": "paq-v216-8-under-12MiB-nondatabase",
+      "trials": [
+        {
+          "name": "raw",
+          "size": 486,
+          "encode_seconds": 0
+        },
+        {
+          "name": "joint-ppm-mixer",
+          "size": 83,
+          "encode_seconds": 0.04450377123430371,
+          "cache_used": false
+        },
+        {
+          "name": "paq-v216-8-under-12MiB-nondatabase",
+          "size": 46,
+          "encode_seconds": 0.7246177326887846
+        }
+      ]
+    },
+    "round_trip": true,
+    "verify_seconds": 0.7552456362172961
+  },
+  "smoke_decode": {
+    "policy": "CIX competitive complete-size PAQ and grid-feedback portfolio 23",
+    "operation": "decode",
+    "source_bytes": 46,
+    "output_bytes": 475,
+    "source_sha256": "6a24a6f65992571aed142795a233d7d6112c1176da6449843fdbbe3489250bf1",
+    "output_sha256": "a2b6e6686ec776d6bb37007673b59d9a9031aa7c2ab7680cb1e3926ea89a2169",
+    "seconds": 0.7907841820269823,
+    "peak_rss_kib": 35984,
+    "child_peak_rss_kib": 742144,
+    "source_frame_decoded": true
+  },
+  "round_trip": true,
+  "corpus_or_saved_benchmark_frames_in_package": false,
+  "source_files_unchanged": true,
+  "github_actions_used": false,
+  "completed_at": "2026-09-29T02:58:50.843614+00:00",
+  "scope": "Source-only portfolio23 candidate. Fresh uncached small CLI round trip in isolated directory; seven existing qualified native binaries reused after native source/provenance hashes matched portfolio22. Source archive contains no binaries/corpus/benchmark frames/workflows. Full SAO native restoration recorded separately, not repeated here. Python dependencies reuse the qualified environment.",
+  "publication": "Private local candidate; not publicly released or officially listed."
+}

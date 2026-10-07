@@ -1,0 +1,30 @@
+Running as unit: cix-cxx-hygiene-anchor.service; invocation ID: fd6ebf16815d4864a2ac3cdf0048c98e
+Running as unit: cix-cxx-adapter-context-probe-v4.service; invocation ID: 7d906d15be60491fbc0866805fcd9f03
+6bdb2fa3deb9ecf3fbafd8a60484cbc4e0e56a32b3fbcc8b1b5f4cdd72f532ff
+d36aea199f0259984735c9628254f2c4849789da57dbaf25808fa675b62379dd
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/adapter-sonar-context-probe-v4/run.py", line 317, in <module>
+    if __name__ == "__main__": main()
+                               ^^^^^^
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/adapter-sonar-context-probe-v4/run.py", line 278, in main
+    execute(out, "cix-cxx-hygiene.slice")
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/adapter-sonar-context-probe-v4/run.py", line 248, in execute
+    results["projection_postconditions"] = validate_projection_receipts(out, repair)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/adapter-sonar-context-probe-v4/run.py", line 207, in validate_projection_receipts
+    raise RuntimeError("v4 retains Cppcheck configuration diagnostics: " + repr(fatal))
+RuntimeError: v4 retains Cppcheck configuration diagnostics: {'preprocessorErrorDirective': 0, 'unknownMacro': 1}
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 1min 3.633s
+CPU time consumed: 44.644s
+Memory peak: 324.0K
+Memory swap peak: 0B
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/adapter-sonar-context-probe-v4/run.py", line 317, in <module>
+    if __name__ == "__main__": main()
+                               ^^^^^^
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/adapter-sonar-context-probe-v4/run.py", line 306, in main
+    if result.returncode: raise RuntimeError("adapter context probe failed; retained evidence explains the result")
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: adapter context probe failed; retained evidence explains the result

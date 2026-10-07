@@ -1,0 +1,82 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-window-v2/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-window-v2/Cargo.toml', '--lib', 'full_engine::window_stream', '--', '--test-threads=2']
+
+running 1 test
+test full_engine::window_stream::tests::writer_emits_independent_records_and_terminal ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 271 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-window-v2/Cargo.toml', '--lib', 'full_engine::job_protocol', '--', '--test-threads=2']
+
+running 6 tests
+test full_engine::job_protocol::tests::capabilities_describe_bounded_whole_selection_and_cixw1_decode ... ok
+test full_engine::job_protocol::tests::control_round_trip ... ok
+test full_engine::job_protocol::tests::decode_entry_counts_actual_native_output_and_finishes_stage ... ok
+test full_engine::job_protocol::tests::direct_selection_entry_applies_limits_cancel_and_reports_actual_output ... ok
+test full_engine::job_protocol::tests::rejects_unknown_version_oversize_truncated_and_utf8 ... ok
+test full_engine::job_protocol::tests::decode_entry_reports_incremental_window_path ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-window-v2/Cargo.toml', '--lib', 'full_engine::io', '--', '--test-threads=2']
+
+running 4 tests
+test full_engine::io::tests::cancellation_and_short_prefix_do_not_publish ... ok
+test full_engine::io::tests::cap_and_truncation_fail ... ok
+test full_engine::io::tests::prefixes_are_exact ... ok
+test full_engine::io::tests::generic_and_raw_decode ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 268 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-window-v2/Cargo.toml', '--test', 'window_cli', '--test', 'window_transport', '--test', 'full_engine_constraints', '--test', 'cli_full_engine', '--', '--test-threads=2']
+
+running 7 tests
+test mixed_raw_member_needs_no_image_provider ... ok
+test damaged_full_frame_does_not_publish_atomic_output_or_remove_input ... ok
+test native_and_raw_decoding_ignore_invalid_home ... ok
+test native_stream_remains_available_and_ignores_unused_bad_image_libraries ... ok
+test named_default_reaches_selector_and_independent_cli_decode ... ok
+test raw_frame_decodes_and_lists_without_optional_providers_or_home ... ok
+test small_memory_falls_back_to_bounded_native_streaming ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 2 tests
+test backend_block_and_strategy_constraints_remain_native_and_decodable ... ok
+test forced_native_formats_and_block_remain_decodable ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.94s
+
+
+running 3 tests
+test completed_window_is_published_before_stdin_eof ... ok
+test explicit_legacy_stream_and_explicit_backend_keep_their_contracts ... ok
+test stdin_uses_independent_windows_and_shared_decode_test_list_paths ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.55s
+
+
+running 7 tests
+test cancelled_or_expired_decoders_do_not_write ... ok
+test cumulative_output_is_admitted_before_writing_a_record ... ok
+test encoded_payload_may_exceed_decoded_output_cap ... ok
+test exact_multiple_windows_empty_and_one_byte ... ok
+test huge_payload_and_recursive_carrier_are_rejected_before_dispatch ... ok
+test metadata_sequence_hash_and_terminal_are_checked ... FAILED
+test every_truncation_and_trailing_bytes_are_rejected ... ok
+
+failures:
+
+---- metadata_sequence_hash_and_terminal_are_checked stdout ----
+
+thread 'metadata_sequence_hash_and_terminal_are_checked' (2833885) panicked at tests/window_transport.rs:66:9:
+mutation=6
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    metadata_sequence_hash_and_terminal_are_checked
+
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

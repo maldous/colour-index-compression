@@ -1,0 +1,42 @@
+{
+  "capture_receipt_sha256": "84a816b05d7194748ace733dee15803e0c659f88e21b5b96963b2f262b9500ef",
+  "captured_command": [
+    "/usr/bin/cc",
+    "-DNAPI_VERSION=8",
+    "-Dcix_node_EXPORTS",
+    "-I/mnt",
+    "-I/usr/include/node",
+    "-fPIC",
+    "-fvisibility=hidden",
+    "-c",
+    "/usr/src/rust/cix-native/bindings/node/src/cix_node.c"
+  ],
+  "header_sha256": {
+    "/usr/include/node/js_native_api.h": "8808ef8899a1691411928ef5dd7dae0537aedc93d3a34e223b2d89692e79c788",
+    "/usr/include/node/js_native_api_types.h": "4f19cb90d240765cc0961d92a1ee20f65fdc50db7de1ab0a5cb6bc227224e1a0",
+    "/usr/include/node/node_api.h": "2d4560831e525b47b060ec8a0864ab73993df9e20215ce9f0fe7b24cd31af32a",
+    "/usr/include/node/node_api_types.h": "a25356630d3058f0a0c8937d9f297e9471e037fda58c2696d8a505c2bd99cb00"
+  },
+  "normalization": {
+    "define": "__attribute__(...)",
+    "replacement": "",
+    "scope": "analyzer-only GNU visibility syntax normalization; no source, ABI, or API alteration"
+  },
+  "read_only_include_mounts": [
+    {
+      "container": "/mnt",
+      "host": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include"
+    },
+    {
+      "container": "/usr/include/node",
+      "host": "/usr/include/node"
+    }
+  ],
+  "required_registration_tokens": [
+    "node_api_module_get_api_version_v1",
+    "napi_register_module_v1",
+    "return init(env, exports)"
+  ],
+  "source": "rust/cix-native/bindings/node/src/cix_node.c",
+  "source_sha256": "2556b1c33b93ce7bc4d15ac95b1449c6e35dfae56158f909172af33d1adff35b"
+}

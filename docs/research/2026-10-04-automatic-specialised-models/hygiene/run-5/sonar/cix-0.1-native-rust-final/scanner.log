@@ -1,0 +1,97 @@
+00:24:33.530 INFO  Scanner configuration file: /opt/sonar-scanner/conf/sonar-scanner.properties
+00:24:33.531 INFO  Project root configuration file: /out/properties
+00:24:33.537 INFO  SonarScanner CLI 8.1.0.6389
+00:24:33.539 INFO  Linux 6.8.0-142-generic amd64
+00:24:33.962 INFO  Communicating with SonarQube Community Build 26.9.0.129388
+00:24:33.962 INFO  JRE provisioning: os[linux], arch[x86_64]
+00:24:34.779 INFO  SONAR_SCANNER_JAVA_OPTS=-Xmx512m
+00:24:34.880 INFO  Starting SonarScanner Engine...
+00:24:34.880 INFO  Java 21.0.11 Eclipse Adoptium (64-bit)
+00:24:35.378 INFO  Load global settings
+00:24:35.421 INFO  Load global settings (done) | time=42ms
+00:24:35.423 INFO  Server id: 147B411E-AaEETBcuBjlMZFU1-Ubl
+00:24:35.432 INFO  Loading required plugins
+00:24:35.433 INFO  Load plugins index
+00:24:35.451 INFO  Load plugins index (done) | time=15ms
+00:24:35.455 INFO  Load/download plugins
+00:24:35.596 INFO  Load/download plugins (done) | time=141ms
+00:24:35.721 INFO  Process project properties
+00:24:35.726 INFO  Process project properties (done) | time=5ms
+00:24:35.730 INFO  Project key: cix-0.1-native-rust-final
+00:24:35.730 INFO  Base dir: /usr/src
+00:24:35.730 INFO  Working dir: /tmp/.scannerwork
+00:24:35.732 INFO  Load project settings for component key: 'cix-0.1-native-rust-final'
+00:24:35.748 INFO  Load quality profiles
+00:24:35.789 INFO  Load quality profiles (done) | time=41ms
+00:24:35.804 WARN  SCM provider autodetection failed. Please use "sonar.scm.provider" to define SCM of your project, or disable the SCM Sensor in the project settings.
+00:24:35.808 INFO  Load active rules
+00:24:35.966 INFO  Load active rules (done) | time=159ms
+00:24:35.969 INFO  Load analysis cache
+00:24:35.973 INFO  Load analysis cache (404) | time=5ms
+00:24:36.012 INFO  Preprocessing files...
+00:24:36.025 INFO  1 language detected in 38 preprocessed files (done) | time=12ms
+00:24:36.026 INFO  1 file ignored because of inclusion/exclusion patterns
+00:24:36.026 INFO  Loading plugins for detected languages
+00:24:36.026 INFO  Load/download plugins
+00:24:36.050 INFO  Load/download plugins (done) | time=24ms
+00:24:36.075 INFO  Load project repositories
+00:24:36.078 INFO  Load project repositories (done) | time=4ms
+00:24:36.085 INFO  Indexing files...
+00:24:36.086 INFO  Project configuration:
+00:24:36.086 INFO    Included sources: src/**/*.rs
+00:24:36.086 INFO    Excluded sources: vendor/**, target/**, packaging/**, docs/**, tests/**/*.rs
+00:24:36.086 INFO    Included tests: tests/**/*.rs
+00:24:36.089 INFO  38 files indexed (done) | time=4ms
+00:24:36.090 INFO  Quality profile for rust: Sonar way
+00:24:36.090 INFO  ------------- Run sensors on module cix-0.1-native-rust-final
+00:24:36.103 INFO  Load metrics repository
+00:24:36.122 INFO  Load metrics repository (done) | time=18ms
+00:24:36.251 INFO  Sensor IaC YAML File Type Classification Sensor [iac]
+00:24:36.253 INFO  Sensor IaC YAML File Type Classification Sensor [iac] (done) | time=1ms
+00:24:36.253 INFO  Sensor Clippy Report Import [rust]
+00:24:36.268 INFO  Sensor Clippy Report Import [rust] (done) | time=13ms
+00:24:36.268 INFO  Sensor Rust [rust]
+00:24:36.268 INFO  Detected platform: LINUX_X64_MUSL
+00:24:36.390 WARN  Duplication reported for 'tests/streaming_pipe.rs' will be ignored because it's a test file.
+00:24:36.549 WARN  Duplication reported for 'tests/cli_smoke.rs' will be ignored because it's a test file.
+00:24:37.421 INFO  Sensor Rust [rust] (done) | time=1153ms
+00:24:37.421 INFO  Sensor IaC hadolint report Sensor [iac]
+00:24:37.421 INFO  Sensor IaC hadolint report Sensor [iac] (done) | time=0ms
+00:24:37.421 INFO  Sensor Java Config Sensor [iac]
+00:24:37.421 INFO  There are no files to be analyzed for the Java language
+00:24:37.421 INFO  Sensor Java Config Sensor [iac] (done) | time=0ms
+00:24:37.421 INFO  Sensor IaC Docker Sensor [iac]
+00:24:37.422 INFO  There are no files to be analyzed for the Docker language
+00:24:37.422 INFO  Sensor IaC Docker Sensor [iac] (done) | time=0ms
+00:24:37.422 INFO  Sensor TextAndSecretsSensor [text]
+00:24:37.428 INFO  Available processors: 4
+00:24:37.428 INFO  Using 4 threads for analysis.
+00:24:37.532 INFO  Start fetching files for the text and secrets analysis
+00:24:37.535 INFO  Using Git CLI to retrieve dirty files
+00:24:37.536 WARN  Retrieving only language associated files, make sure to run the analysis inside a git repository to make use of inclusions specified via "sonar.text.inclusions"
+00:24:37.537 INFO  Starting the text and secrets analysis
+00:24:37.537 INFO  38 source files to be analyzed for the text and secrets analysis
+00:24:37.605 INFO  38/38 source files have been analyzed for the text and secrets analysis
+00:24:37.606 INFO  Sensor TextAndSecretsSensor [text] (done) | time=184ms
+00:24:37.608 INFO  ------------- Run sensors on project
+00:24:37.664 INFO  Sensor IaC Project Sensor [iac]
+00:24:37.665 INFO  Sensor IaC Project Sensor [iac] (done) | time=0ms
+00:24:37.666 INFO  Sensor Zero Coverage Sensor
+00:24:37.666 INFO  Sensor Zero Coverage Sensor (done) | time=0ms
+00:24:37.666 INFO  ------------- Gather SCA dependencies on project
+00:24:37.667 INFO  Dependency analysis skipped
+00:24:37.668 INFO  SCM Publisher No SCM system was detected. You can use the 'sonar.scm.provider' property to explicitly specify it.
+00:24:37.682 INFO  CPD Executor 4 files had no CPD blocks
+00:24:37.682 INFO  CPD Executor Calculating CPD for 32 files
+00:24:37.712 INFO  CPD Executor CPD calculation finished (done) | time=30ms
+00:24:37.714 INFO  SCM revision ID 'd6b1517eaa7118108240c2101a08afdc221c3602eb336700636b235bf66462a7'
+00:24:37.789 INFO  Analysis report generated in 74ms, dir size=1.6 MB
+00:24:37.824 INFO  Analysis report compressed in 35ms, zip size=418.3 kB
+00:24:37.952 INFO  Analysis report uploaded in 127ms
+00:24:37.956 INFO  ANALYSIS SUCCESSFUL, you can find the results at: http://127.0.0.1:9016/dashboard?id=cix-0.1-native-rust-final
+00:24:37.956 INFO  Note that you will be able to access the updated dashboard once the server has processed the submitted analysis report
+00:24:37.956 INFO  More about the report processing at http://127.0.0.1:9016/api/ce/task?id=239dfb4f-e9c3-45fb-8cd3-0837b86a435b
+00:24:37.964 INFO  Analysis total time: 2.336 s
+00:24:37.980 INFO  SonarScanner Engine completed successfully
+00:24:37.999 INFO  EXECUTION SUCCESS
+00:24:37.999 INFO  Total time: 4.476s

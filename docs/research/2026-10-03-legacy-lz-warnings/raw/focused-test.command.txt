@@ -1,0 +1,8 @@
+systemd-run --user --wait --pipe --collect \
+  --working-directory=/tmp/cix-legacy-lz-warnings-a628/rust/cix-native \
+  -p AllowedCPUs=26 -p MemoryMax=1G -p MemorySwapMax=0 \
+  taskset -c 26 env RUSTC=rustc RUSTDOC=rustdoc CARGO_BUILD_JOBS=1 \
+  CARGO_TARGET_DIR=/tmp/cix-legacy-lz-candidate-target \
+  cargo +stable test --locked --lib \
+  legacy_lz::tests::legacy_round_trip_after_helper_extraction \
+  -- --exact --test-threads=1

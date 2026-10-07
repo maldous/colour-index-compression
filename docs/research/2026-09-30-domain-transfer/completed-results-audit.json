@@ -1,0 +1,53 @@
+{
+  "schema": "cix-domain-transfer-completed-results-audit-v1",
+  "scope": "Independent read-only audit of every terminal receipt in the 18-cell initial pilot and four predeclared replication cells. No archive was encoded or decoded again.",
+  "frozen_implementation_commit": "39404002c566f75f9b4bc0bcd8be5af4a24ba7dd",
+  "manifest_commit_at_dispatch": "8072b82ec7c5abe31eb71e7b5af6b4e3e3c6b434",
+  "runtime_manifest_sha256": "0823809a8d8a413ff6f2430ad81eef5dcabce5ce94c3847e3e64abf4e34eead1",
+  "coverage": {
+    "initial_pilot_cells": 18,
+    "predeclared_replication_cells": 4,
+    "terminal_receipts": 22,
+    "verified_screening": 22,
+    "failed": 0,
+    "size_rejected_unverified": 0,
+    "cancelled": 0
+  },
+  "independent_checks": {
+    "archive_bytes_and_sha256": "PASS_22_OF_22",
+    "cixdom01_header_and_component_identity": "PASS_22_OF_22: complete_bytes = 30-byte outer header + paid canonical metadata + backend payload; header original length matches immutable input length.",
+    "archive_only_restoration": "PASS_22_OF_22: independently rehashed restored bytes equal both receipt source SHA-256 and immutable input SHA-256.",
+    "snapshot_dependencies": "PASS_22_OF_22: every runtime-reported loaded benchmarks/cix module path and SHA-256 occurs in its receipt's immutable build map. The five-adapter closure preflight also passed before dispatch.",
+    "timing_boundary": "PASS_22_OF_22: encode stdout reports `round_trip=not_verified_by_encoder`; independent decode is the only decoder verification phase. GNU-time command logs supply actual per-command wall time and peak RSS separately from supervisor elapsed time.",
+    "resource_evidence": "PASS_22_OF_22: GNU-time records zero swaps for both phases in every cell. Each recorded command Max RSS stays below the 3,000,000,000-byte cap; cgroup high water is retained only as a sampled lower bound, not substituted for RSS."
+  },
+  "results_arithmetic": {
+    "status": "PASS",
+    "evidence": "results.json has 22 rows. For every complete row, independently recomputed delta_bytes equals complete_bytes minus matched_control_bytes; component sums equal complete archive bytes.",
+    "formula": "delta_bytes = complete_bytes - matched_control_bytes; saving_percent = -delta_bytes / matched_control_bytes * 100"
+  },
+  "source_specific_findings": {
+    "initial_pilot": [
+      {"input": "PubChem fixed 2D batch, 29,088 bytes", "candidate": "hydrogen_slots_v1", "control_bytes": 2219, "candidate_bytes": 2056, "delta_bytes": -163, "saving_percent": 7.34565, "verification": "VERIFIED_SCREENING"},
+      {"input": "PubChem fixed 3D batch, 29,663 bytes", "candidate": "hydrogen_slots_v1", "control_bytes": 3993, "candidate_bytes": 3997, "delta_bytes": 4, "saving_percent": -0.10018, "verification": "VERIFIED_SCREENING"},
+      {"input": "NOAA San Francisco January 2024", "candidate": "numeric-delta-columns-v1", "control_bytes": 11709, "candidate_bytes": 11493, "delta_bytes": -216, "saving_percent": 1.84474, "verification": "VERIFIED_SCREENING"},
+      {"input": "NOAA San Francisco January 2024", "candidate": "numeric-delta-columns-packed-meta-v1", "control_bytes": 11709, "candidate_bytes": 25761, "delta_bytes": 14052, "saving_percent": -120.01025, "verification": "VERIFIED_SCREENING"},
+      {"input": "UCI Adult first 2,048 records", "candidate": "dictionary_remaining", "control_bytes": 12098, "candidate_bytes": 13709, "delta_bytes": 1611, "saving_percent": -13.31625, "verification": "VERIFIED_SCREENING"},
+      {"input": "binutils strip ELF", "candidate": "address", "control_bytes": 41016, "candidate_bytes": 41072, "delta_bytes": 56, "saving_percent": -0.13653, "verification": "VERIFIED_SCREENING"},
+      {"input": "binutils strip ELF", "candidate": "address-packed", "control_bytes": 41016, "candidate_bytes": 41168, "delta_bytes": 152, "saving_percent": -0.37059, "verification": "VERIFIED_SCREENING"},
+      {"input": "nibabel example4d NIfTI", "candidate": "plane-stack", "control_bytes": 223738, "candidate_bytes": 223767, "delta_bytes": 29, "saving_percent": -0.01296, "verification": "VERIFIED_SCREENING"},
+      {"input": "nibabel example4d NIfTI", "candidate": "delta-z", "control_bytes": 223738, "candidate_bytes": 233045, "delta_bytes": 9307, "saving_percent": -4.15978, "verification": "VERIFIED_SCREENING"},
+      {"input": "nibabel example4d NIfTI", "candidate": "native jxl-planar3-e10", "control_bytes": 223738, "candidate_bytes": 226074, "delta_bytes": 2336, "saving_percent": -1.04407, "verification": "VERIFIED_SCREENING", "attribution": "complete CIXDV2 representation plus native lossless JXL backend; not a CIX rank-coding result"}
+    ],
+    "replication": [
+      {"input": "independently predeclared PubChem 2D batch, 20,204 bytes", "candidate": "hydrogen_slots_v1", "control_bytes": 1536, "candidate_bytes": 1462, "delta_bytes": -74, "saving_percent": 4.81771, "verification": "VERIFIED_SCREENING"},
+      {"input": "independently predeclared NOAA Seattle January 2024", "candidate": "numeric-delta-columns-v1", "control_bytes": 9936, "candidate_bytes": 8988, "delta_bytes": -948, "saving_percent": 9.54106, "verification": "VERIFIED_SCREENING"}
+    ]
+  },
+  "interpretation_limits": [
+    "All figures are complete, source-specific archives under one exploratory timing run; no result is a domain-wide, cross-domain, generic-compression, Silesia, Hutter or leaderboard claim.",
+    "The two positive pilot mechanisms each have one predeclared positive repeat, which supports further bounded investigation but does not establish representative-domain prevalence or a portfolio score.",
+    "The packed numerical and packed ELF variants demonstrate that a raw intermediate packing reduction need not survive fixed PAQ compression.",
+    "Runtime inventory is pinned for reproducibility but is not included in archive bytes and is not a package-size claim."
+  ]
+}

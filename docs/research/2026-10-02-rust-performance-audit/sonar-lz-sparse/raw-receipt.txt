@@ -1,0 +1,9 @@
+Base: d52fa7f72. Direct toolchain: /home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/{cargo,rustc}.
+Sparse-runs harness: existing src/bin/sparse_runs_fixture.rs, which includes exact limits/rank/combinatorics/sparse_runs source modules. Input command: yes 'aaaaabbbbbcccccc' | head -c 128.
+Frozen parent fixture commands: cargo build --bin sparse_runs_fixture; sparse_runs_fixture sparse|runs < input.
+Candidate used the identical commands. Byte identity results:
+ sparse: parent=candidate SHA-256 62a6bde44e6cc67e65f3b41cec621f40f9cd0dba7f7c1cee06f8ff6255838a52, 39 bytes.
+ runs: parent=candidate SHA-256 7e494c540c98ea923e98f5edeafa23565f0f659b9205b0eafe248fc22318315e, 34 bytes.
+Legacy-LZ public direct API harness: legacy_lz::encode(input, &[], 6), then legacy_lz::decode(payload, input.len(), &[], 1<<16); input is b"legacy lz direct audit fixture ".repeat(32). Parent and candidate payload SHA-256 both 7be3b675b368eaf1f52fdf7a055e4fd726f5308c956ad39662aed5ccc1f198e5; byte comparison exit=0; each harness independently restored input before emitting payload.
+Source change: pure mode-specific decode helpers in legacy_lz; isolated Rice-candidate construction in sparse_runs. Existing LZ Rice high-bit guard remains before shift. Candidate tie checks remain strict `<` and candidate ordering is unchanged.
+Fresh-run binding: candidate source HEAD before this evidence amendment was d52fa7f72 plus the two-file working diff; fresh decoder binary SHA-256 is recorded in packetraw/binaries.sha256. `packetraw/fresh-results.txt` was produced by `packetraw/run-m6.sh` using that binary and distinct per-mode paths.

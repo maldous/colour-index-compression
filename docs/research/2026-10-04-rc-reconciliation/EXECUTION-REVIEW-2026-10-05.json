@@ -1,0 +1,238 @@
+{
+  "schema": "cix.coordinator-execution-review.v1",
+  "observed_at_utc": "2026-10-04T20:24:14.197265+00:00",
+  "head": "d4422a565d70bbeebf590d5d28d4630d2122e7ab",
+  "scope": "Read-only source and selected receipt review; no RC acceptance or new execution",
+  "benchmark_gate": "HOLD",
+  "ledger_statuses_changed": false,
+  "findings": [
+    {
+      "id": "ER01",
+      "kind": "source_contract_gap",
+      "requirements": [
+        "RC07"
+      ],
+      "summary": "Block/backend constraints cause blanket specialist and mixed exclusion",
+      "status": "scoped_correction_and_focused_validation_verified"
+    },
+    {
+      "id": "ER02",
+      "kind": "coverage_correction",
+      "requirements": [
+        "RC05",
+        "RC18",
+        "RC55"
+      ],
+      "summary": "Historical LSTM branch is PAQ -9L, not a separate missing transform"
+    },
+    {
+      "id": "ER03",
+      "kind": "planning_graph",
+      "summary": "Construction and final acceptance dependencies contain cycles and unreified external obligations"
+    },
+    {
+      "id": "ER04",
+      "kind": "research_disposition_pending",
+      "requirements": [
+        "RC50"
+      ],
+      "summary": "27 candidate consideration rows require terminal dispositions; not 27 mandatory implementations"
+    },
+    {
+      "id": "ER05",
+      "kind": "progress_scope",
+      "summary": "New streaming/host/kernel/quality receipts supersede older coverage labels within their exact scope"
+    },
+    {
+      "id": "ER06",
+      "kind": "acceptance_mapping_pending",
+      "summary": "Final quality, packages, actual platforms, resource/performance and owned external obligations retain their requirements"
+    }
+  ],
+  "regression_v3_current_source_matches": {
+    "src/cli_full_engine.rs": true,
+    "src/full_engine/selection.rs": true,
+    "src/full_engine/dispatch.rs": true,
+    "src/full_engine/job_protocol.rs": true,
+    "src/paq_supervisor.rs": true,
+    "src/paq_worker.rs": true,
+    "src/full_engine/native_portfolio.rs": true,
+    "src/full_engine/window_stream.rs": true,
+    "src/full_engine/mixed_selection.rs": true
+  },
+  "inputs": [
+    {
+      "path": "docs/research/2026-10-04-execution/PLAN.md",
+      "bytes": 3425,
+      "sha256": "3157413ec0c3ad09cff93e28815c1039883da57bc7f4219f6b185feb3d9b49b9"
+    },
+    {
+      "path": "docs/research/2026-10-04-execution/dependency-blockers.json",
+      "bytes": 62376,
+      "sha256": "6ed7c8b4e5e578f9feba73e2f0f389eb9f2f4ed7f5b6c11611742b343b35c57b"
+    },
+    {
+      "path": "docs/research/2026-10-04-execution/candidate-dispositions.json",
+      "bytes": 23138,
+      "sha256": "9730c029e774f3e426b1de470ddf3da114a9e1c89931bdbbf091121a306be9d8"
+    },
+    {
+      "path": "docs/research/2026-10-04-execution/native-coverage.json",
+      "bytes": 41329,
+      "sha256": "0d5096004a6605e0c3fba3d2c28527bdb26a237fc0c42c78fef47beb612e0475"
+    },
+    {
+      "path": "docs/research/2026-10-04-execution/native-coverage.md",
+      "bytes": 8603,
+      "sha256": "a02800d5f31bc0eb44efc417d963f282bdf3e42b1bb8cee4dbf2d0ed47a5115d"
+    },
+    {
+      "path": "docs/research/2026-10-04-execution/native-quality-checkpoint.md",
+      "bytes": 2731,
+      "sha256": "cf6f1e75728724ec4c23fb1ad7b9c0fda022c65b038b880919b3acf6a3ca7b4d"
+    },
+    {
+      "path": "docs/research/2026-10-04-execution/jobs/native-regression-v3/receipt.json",
+      "bytes": 103873,
+      "sha256": "6581b9c21ecd3da71b54f3df843f011ed7ff5ba09875fa389e9374ed3c887ae0"
+    },
+    {
+      "path": "docs/research/2026-10-04-execution/jobs/filesystem-evidence-v1/FILESYSTEM-CHECKPOINT.md",
+      "bytes": 2770,
+      "sha256": "db053acef60d5adc709243434269463fdadabbd80970c54c11d9919a7e549d13"
+    },
+    {
+      "path": "docs/research/2026-10-04-execution/jobs/filesystem-evidence-v1/filesystem-evidence.json",
+      "bytes": 7613,
+      "sha256": "a51cc9a7cf0e749a5add86c21285a564ff3c621f18cf10d12c0bd7366aab000e"
+    },
+    {
+      "path": "docs/research/2026-10-04-rc-reconciliation/requirements.json",
+      "bytes": 73348,
+      "sha256": "a8972cab595331162312defb9af7181c6183455021b1abb77a4d64069c61c7e4"
+    },
+    {
+      "path": "benchmarks/competitive_prediction_v24.py",
+      "bytes": 2651,
+      "sha256": "d44f0d498397f732a8e6c75d08c1d13482cce4a6a82930fdd86f7eebacf7e42b"
+    },
+    {
+      "path": "runtime/cix_runtime/engine.py",
+      "bytes": 19089,
+      "sha256": "399c0438384a7efcb9c2f6f5bd6448e33e1fa299e2a7be85c7503ab03e5cd649"
+    },
+    {
+      "path": "rust/cix-native/src/cli.rs",
+      "bytes": 54072,
+      "sha256": "8b92dcc98b517cadc9cce9faad9fac9751fa0801c59693ae807b535f5ec74a33"
+    },
+    {
+      "path": "rust/cix-native/src/cli_full_engine.rs",
+      "bytes": 25844,
+      "sha256": "7a3c04d32330f7e3b4d9fa9e9f79dc24119192a043c7a0815242969d886aecab"
+    },
+    {
+      "path": "rust/cix-native/src/full_engine/selection.rs",
+      "bytes": 39997,
+      "sha256": "87fb0357c9ff2ac6ff4f8620c2d36e02917075600358a7539c46548203da3f41"
+    },
+    {
+      "path": "rust/cix-native/src/full_engine/native_portfolio.rs",
+      "bytes": 51401,
+      "sha256": "10b59291e5fa1b632b68ce0f385081ae3306e0272682903ef56c09c4d910109c"
+    },
+    {
+      "path": "rust/cix-native/src/full_engine/containers.rs",
+      "bytes": 6429,
+      "sha256": "dbeae0f9197a738ffd1c444cdf51fffad93407be6eb362787fd69c872f6b345b"
+    },
+    {
+      "path": "rust/cix-native/src/full_engine/dispatch.rs",
+      "bytes": 42184,
+      "sha256": "c1d26e706d78d8028f7d88aab08a350015a24769804df65bd91df65ebf93e1bd"
+    },
+    {
+      "path": "rust/cix-native/src/full_engine/job_protocol.rs",
+      "bytes": 59820,
+      "sha256": "feda31312e02e173abfa71dcc65bf3b79cc8ae5fe71351065572a6e782536ad3"
+    },
+    {
+      "path": "rust/cix-native/src/full_engine/window_stream.rs",
+      "bytes": 12275,
+      "sha256": "4a8316a41fad271e66d4265bc6d7b033f13e74a643b35013c94e060b38557550"
+    },
+    {
+      "path": "rust/cix-native/src/full_engine/mixed_selection.rs",
+      "bytes": 42348,
+      "sha256": "69781c8aa110d454022de0731b40c194a99635841b782ba2313f370de2518f85"
+    },
+    {
+      "path": "rust/cix-native/src/paq_supervisor.rs",
+      "bytes": 33539,
+      "sha256": "778490fecbe9644bf0589e90af15ba9791534f267bbeb06166d597a5f3d6810f"
+    },
+    {
+      "path": "rust/cix-native/src/paq_worker.rs",
+      "bytes": 19419,
+      "sha256": "fd03cee149433b9d0ac920c206c2799d68f979b5ec8c805a8f16d45ff217cd7a"
+    },
+    {
+      "path": "rust/cix-native/codecs/paq/v215/paq_v215_bridge.cpp",
+      "bytes": 3571,
+      "sha256": "63f4f85402ede69e1ac08762770ff55120c6a23339c9772ed9cb0835b5c6952b"
+    }
+  ],
+  "report": {
+    "path": "docs/research/2026-10-04-rc-reconciliation/EXECUTION-REVIEW-2026-10-05.txt",
+    "sha256": "91f5aea1de8f77bd93f39bcd7c96bc4f9ef2d67b0b1d0d21fbbcf43699930197"
+  },
+  "follow_up": {
+    "observed_at_utc": "2026-10-04T20:35:26.972397+00:00",
+    "source_readback": "Only formats.is_some() forces_native_container; block/backend no longer return before catalogue discovery",
+    "qualified_by_this_review": false,
+    "source_bindings": [
+      {
+        "path": "rust/cix-native/src/full_engine/native_portfolio.rs",
+        "sha256": "c933124983a886f05b3097ee814b68b4fc369b39df93948763c0feeccc3df93f"
+      },
+      {
+        "path": "rust/cix-native/src/full_engine/selection.rs",
+        "sha256": "6a58431360a828e39ed677bdbb72dc175df70da99781cc3cea6b01c7d1dc04e5"
+      },
+      {
+        "path": "rust/cix-native/tests/cli_full_engine.rs",
+        "sha256": "b2bd2184a896c14777888b80fb7f64f30740c2772f39a165a66d43ea5595202a"
+      }
+    ]
+  },
+  "qualification_follow_up": {
+    "observed_at_utc": "2026-10-04T20:45:27.144781+00:00",
+    "tests_passed": 22,
+    "format_check": 0,
+    "original_clippy": 101,
+    "same_source_clippy_retry": 0,
+    "whole_rc07_accepted": false,
+    "bindings": [
+      {
+        "path": "docs/research/2026-10-04-execution/jobs/selection-override-contract-v1/receipt.json",
+        "sha256": "d9969422f1291b6258291033ddddb61192d4cf979930c7910f79e2fc93969ae3"
+      },
+      {
+        "path": "docs/research/2026-10-04-execution/jobs/selection-override-clippy-v2/receipt.json",
+        "sha256": "132b82a51a7fc3ef45c847a98a2197353c02888ed44326103d30a1dccf2cd5a5"
+      },
+      {
+        "path": "benchmark-work/native-rc-check-v1/selection-override-contract-v1/selection-tests.stdout.log",
+        "sha256": "dec855998be9deef24f6257ef57c4bebc3689b3b15a2169aff0c2a5b4691dbf9"
+      },
+      {
+        "path": "benchmark-work/native-rc-check-v1/selection-override-contract-v1/backend-constraints.stdout.log",
+        "sha256": "f2147c008935597ac40f55bccb076c9a45d0d06a478320fb8d5a6b03f20c7d6f"
+      },
+      {
+        "path": "benchmark-work/native-rc-check-v1/selection-override-contract-v1/cli-overrides.stdout.log",
+        "sha256": "0f2a56c5ff731ea3bc5a830d4b7823e61b0df5d04403e5dd3a0d813a8573fe75"
+      }
+    ]
+  }
+}

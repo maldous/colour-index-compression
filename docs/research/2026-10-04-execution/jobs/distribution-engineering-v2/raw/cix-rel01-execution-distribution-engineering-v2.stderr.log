@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py", line 199, in <module>
+    main()
+  File "/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py", line 109, in main
+    exported = materialise(args.source_root, args.manifest, source_output, ENGINEERING_PROFILE)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/colour-index-compression/rust/cix-native/packaging/export/export_source.py", line 148, in materialise
+    reject_private_references(exported_root)
+  File "/home/user/src/colour-index-compression/rust/cix-native/packaging/export/export_source.py", line 97, in reject_private_references
+    raise ValueError(
+ValueError: export contains private checkout or research references: rust/cix-native/adapters/squashfs/kernel/README.md
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/distribution-engineering-v2/run.py", line 44, in <module>
+    main()
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/distribution-engineering-v2/run.py", line 40, in main
+    subprocess.run(command, cwd=PROJECT, env=environment, check=True)
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/usr/bin/python3', '/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py', '--source-root', '/home/user/src/colour-index-compression/rust/cix-native', '--manifest', '/home/user/src/colour-index-compression/rust/cix-native/packaging/export/source-allowlist.json', '--provider-closure', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/distribution-engineering-v2/selected-provider-closure.json', '--work-directory', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v2', '--cargo', '/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', '--cmake', '/usr/bin/cmake', '--make', '/usr/bin/make', '--jobs', '2']' returned non-zero exit status 1.

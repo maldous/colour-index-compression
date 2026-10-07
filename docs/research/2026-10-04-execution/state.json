@@ -1,0 +1,450 @@
+{
+  "schema": "cix.execution.v1",
+  "approved": true,
+  "baseline_commit": "0912dbd471b8630bacf0f78a0ea10a349e86d5f1",
+  "phase": "filesystem-quality-distribution-qualification",
+  "release_ready": false,
+  "benchmark_status": "held-until-RC51",
+  "publication_status": "held",
+  "final_confirmation": {
+    "dataset": "Silesia",
+    "encode_cells": 36,
+    "independent_decodes": 36
+  },
+  "resources": {
+    "cpus": [
+      8,
+      10,
+      12,
+      14
+    ],
+    "memory_bytes": 12000000000,
+    "temporary_bytes": 4000000000,
+    "swap_bytes": 0
+  },
+  "completed_current_wave_checks": [
+    {
+      "id": "jxl-provision-v2",
+      "status": "passed",
+      "scope": "pinned unchanged libjxl0.12.0 source/submodule closure"
+    },
+    {
+      "id": "jxl-bridge-v2",
+      "status": "passed",
+      "scope": "six generated2Dgray cases; crossdecode exact; 8bit bitstreams equal,16bit equal-size differing bitstreams"
+    },
+    {
+      "id": "jxl-bridge-v3",
+      "status": "passed",
+      "scope": "six generated2Dgray and18planar reference crossdecodes; pinned libjxl0.12 unchanged"
+    },
+    {
+      "id": "foundation-v8-core",
+      "status": "passed",
+      "scope": "110 nativecore tests; same job later failed four specialist tests, not totalpass"
+    },
+    {
+      "id": "foundation-v12/v13/remaining-v1",
+      "status": "passing scoped checks",
+      "scope": "native ports, actualproviders, incrementalRust, bufferCABI, CLIintegration and relocatedC/CPPshared+staticSDK; see source-bound foundation-evidence.json"
+    },
+    {
+      "id": "catalogue-v4/v5",
+      "status": "passed",
+      "scope": "provider-backed library dispatch and installed C streaming SDK; see catalogue-evidence.json"
+    },
+    {
+      "id": "interfaces-v7/v8",
+      "status": "passing scoped checks",
+      "scope": "29 native/interface tests plus relocated shared/static SDK consumers; v7 temp-interrupted after tests, SDK-only v8 passed; see interfaces-evidence.json"
+    },
+    {
+      "id": "portfolio-grid-v1/v2",
+      "status": "passing scoped checks",
+      "scope": "19 focused tests including full retained native BEST family reporting, exact interval raw parity, 21 native-backend grid archives; v1 interval failure retained; see portfolio-grid-evidence.json"
+    },
+    {
+      "id": "spatial-counts-v1/v2,dictionary-grid-v3,installed-discovery-v1",
+      "status": "passing scoped checks",
+      "scope": "39 focused tests; historicalspatial/gridcrossdecode, all17conditionalBrotliarchives, Zstddictionaryexport/importshared/staticSDK, installedpathdiscovery; see spatial-dictionary-evidence.json"
+    },
+    {
+      "id": "cli-bindings-v2/v3/v4/v5/v8",
+      "status": "passing scoped checks",
+      "scope": "59 Rust tests, 8 Python and 3 Go tests; native-only relocated runtime and aliases; failed enclosing jobs retained; see cli-bindings-evidence.json"
+    },
+    {
+      "id": "job-mode-v3/v5,language-consumers-v2/v3/v4,dotnet-consumer-v2,runtime-closure-v1",
+      "status": "passing scoped checks",
+      "scope": "multi-file CLI, job protocol, Java/Node/.NET bindings, Python bounds and Zarr v2/v3, explicit relocated Linux runtime; see jobs-consumers-evidence.json"
+    },
+    {
+      "id": "constraints-v3,host-adapters-v3/v4/v6/v7,runtime-closure-v2,relocated-providers-v4",
+      "status": "passing scoped checks",
+      "scope": "46 Rust tests, tar/libarchive, four GIO tests, HDF5/netCDF/h5py matched ABI, installed JXL+four PAQ variants and level-zero admission; see host-adapters-evidence.json"
+    },
+    {
+      "id": "window-v6,concurrency-v1,portable-wasm-v1,codec-hosts-v3,codec-hosts-v7,codec-hosts-v8,consumer-hosts-v2,consumer-hosts-v3,grpc-host-v2,jvm-http-hosts-v3,rocksdb-host-v2,squashfs-host-v2,squashfs-host-v3,stream-storage-hosts-v1,gstreamer-host-v2",
+      "status": "scoped checks and failures preserved",
+      "scope": "See stream-hosts-evidence.json for source identities, actual host coverage, raw outcomes and exact qualification limits."
+    },
+    {
+      "id": "windows-jobs-mixed-v5",
+      "status": "passed",
+      "scope": "all-target compile +45 focusednative/job/CLI/transportchecks includingv1compatibility andmixedparallelfallback"
+    },
+    {
+      "id": "squashfs-readers-v4-rdsquashfs",
+      "status": "passing scoped checks",
+      "scope": "Pinned libsquashfs/rdsquashfs restored 304 files and extended attributes. The later upstream Squashfuse demo failure on extended inodes remains preserved."
+    },
+    {
+      "id": "squashfs-readers-v5",
+      "status": "passed",
+      "scope": "Pinned Squashfuse public library read 304 files and one directory, verified two xattrs, and rejected unknown method and malformed profile. This job did not mount a filesystem."
+    },
+    {
+      "id": "kernel-module-v1",
+      "status": "passing scoped checks",
+      "scope": "The actual pinned Ubuntu reader plus CIX overlay built as an external module. First-party stack and prototype warnings were identified before VM qualification."
+    },
+    {
+      "id": "squashfs-readers-v7-build",
+      "status": "passing scoped checks",
+      "scope": "The FUSE3 reader built. Mounting was blocked by the runner privilege guard; the mount check moved to a disposable VM without relaxing that guard."
+    },
+    {
+      "id": "squashfs-profile-qual-v2",
+      "status": "passed",
+      "scope": "ASAN/UBSAN C contracts plus 1,545 native differential cases; both stack and workspace decoders restore exact bytes."
+    },
+    {
+      "id": "kernel-module-v3,kernel-module-v4",
+      "status": "passed",
+      "scope": "Pinned experimental module builds; v4 uses bundled public source manifest and verifies unchanged runtime source against VM-qualified v3."
+    },
+    {
+      "id": "kernel-vm-v2",
+      "status": "passed",
+      "scope": "Disposable VM: actual kernel and FUSE readers each restore 305 generated files and two xattrs; three malformed profile cases rejected."
+    },
+    {
+      "id": "large-window-contract-v1",
+      "status": "passed",
+      "scope": "Generated 128 MiB + 1 byte named-file, unknown stdin, and 33 job-window exact round trips; upfront cap rejection is not midstream cleanup evidence."
+    },
+    {
+      "id": "distribution-engineering-v4",
+      "status": "passed",
+      "scope": "Allowlisted offline release-lto build and staged 14 selected Linux providers; engineering layout evidence, not final release or functional provider qualification."
+    },
+    {
+      "id": "portable-loader-policy-v2",
+      "status": "passing scoped check",
+      "scope": "33 focused native/CLI/provider tests; before subsequent lint cleanup"
+    },
+    {
+      "id": "sdk-runtime-contract-v1",
+      "status": "passing scoped check",
+      "scope": "real Linux SDK/runtime install and synthetic Windows DLL/import-library layout; no native Windows qualification"
+    },
+    {
+      "id": "bridge-portability-v1/v2",
+      "status": "passing scoped check",
+      "scope": "six Linux codec bridges rebuilt; v1 spatial configure failure retained and corrected v2"
+    },
+    {
+      "id": "source-export-sanitization-v3",
+      "status": "passing scoped check",
+      "scope": "allowlisted export, PAQ source and provider notices staged; all private path checks passed, no new build"
+    },
+    {
+      "id": "sonar-tool-tests-v1",
+      "status": "passing scoped check",
+      "scope": "six analysis authorization/inventory guard tests passed"
+    },
+    {
+      "id": "sonar-probe-v9",
+      "status": "passing scoped check",
+      "scope": "CXX/Cppcheck intentional-null canary passed; explicitly not product scan"
+    },
+    {
+      "id": "native-quality-v10",
+      "status": "passed",
+      "scope": "frozen native source cargo fmt --check and all-target Clippy -D warnings; vendor C/C++ compiler diagnostics remain separate"
+    },
+    {
+      "id": "native-regression-v2/v3",
+      "status": "passing scoped continuation",
+      "scope": "v2 full library:286passed2failed; v3 fixes revalidated with8focusedlibrary+87integration passes and finalformat/Clippy; failures preserved, no claimofrerunningall288afterfixes"
+    },
+    {
+      "id": "source-export-sanitization-v4",
+      "status": "passed",
+      "scope": "current lean export + provider notices/source provenance passed all four private marker checks; no new binary build"
+    },
+    {
+      "id": "selection-override-contract-v1 + selection-override-clippy-v2",
+      "status": "scoped tests and unchanged-source Clippy retry passed",
+      "scope": "22 tests:8 full-engine selection,1 native backend compatibility,13 CLI/selector integration. Format passed. Initial Clippy failed GCC13 internal compiler segfault in unchanged libzpaq; one identical source/flags retry passed all-target -Dwarnings. Not a benchmark."
+    },
+    {
+      "id": "rocksdb-contract-ndebug-v1",
+      "status": "passed",
+      "scope": "All contract checks execute independently of assert; actual Release -O3 -DNDEBUG command validated, CIX SST writes/reads/raw fallback/identity/malformed/cap checks passed against retained pinned SDK."
+    },
+    {
+      "id": "spatial-stride-contract-v1",
+      "status": "passed",
+      "scope": "CIX CharLS 16bit uint32 stride overflow rejected before tiny-buffer access in encoder/decoder; exact2x2 8bit/16bit roundtrips, fresh bridge build. Not yet selected final distribution provider."
+    },
+    {
+      "id": "go-wrapper-budget-v1",
+      "status": "passed",
+      "scope": "Four Go binding tests including explicit per-allocation limit before1GiB streambuffer; source/retainedSDK hashes verified, confined transient caches measured and removed. Per-allocation budget is not aggregateRSS."
+    },
+    {
+      "id": "sonar-tool-tests-v7/v9",
+      "status": "passed scoped tool checks",
+      "scope": "v7:22 CXX +3 native guard tests and planning DAG validation. v9:25 CXX +3 native tests and planning validation after syntax/macro-gap gate repair. Failed v5/v8 remain preserved; later compiler-refresh work needs its own test identity."
+    },
+    {
+      "id": "cppcheck-integration-v1",
+      "status": "passed scoped analysis check",
+      "scope": "Actual recorded compiler preprocessing and Cppcheck for five GIO/7-Zip translation units; zero syntax/internal/macro/preprocessor errors; prepared-v5 has642 compiler records and no unconfigured translation units."
+    },
+    {
+      "id": "sonar-probe-v12",
+      "status": "passed registration probe",
+      "scope": "Read-only pinned Sonar server with all declared writable volumes bounded; CXX/Cppcheck deliberate-null issue imported. Not a product-quality pass."
+    },
+    {
+      "id": "sonar-scan-v3",
+      "status": "completed with analysis gaps",
+      "scope": "1420/1420 intended files indexed across7projects under3935105024-byte aggregate temporary reservation. Firstparty1378issues,65 parserrecoveries and6 Cppcheck configuration errors. Vendor findings retained unchanged. qualification-review.json supersedes any clean interpretation of producer completion status."
+    },
+    {
+      "id": "jxl-drain-contract-v1",
+      "status": "passed",
+      "scope": "Shared privateboundedencoder drain; optimizedcap/trailing/exactroundtrip contract plus6gray/18planar cross-interface cases. Six nativegray archives byte-identical to retainedbefore-refactor outputs. Newbridge notyet selectedfinaldistribution."
+    },
+    {
+      "id": "sonar-tool-tests-v10",
+      "status": "passed scoped tool checks",
+      "scope": "30 CXX and3 native tool tests plus planning graph validation. Does not qualify product source."
+    },
+    {
+      "id": "compiler-context-capture-v1",
+      "status": "passed bounded compiler context capture",
+      "scope": "Actual qualified JXL C++17 command with empty input and read-only sandbox;462macros and8include roots; source/dependency/receipt identities retained."
+    },
+    {
+      "id": "header-context-v1",
+      "status": "completed negative diagnostic",
+      "scope": "Unchanged JXL public header with actual measured per-file context retains13parser recoveries;75totalfindings. No product source changes or clean qualification."
+    },
+    {
+      "id": "header-context-v2",
+      "status": "passed narrow analyzer configuration",
+      "scope": "OriginalJXLheader13->0parserrecoveries withper-fileGNUvisibilitynormalization;62otherfindingsretained;noABI/sourcecleanclaim."
+    },
+    {
+      "id": "sonar-tool-tests-v12",
+      "status": "passed scoped tool checks",
+      "scope": "44CXX+3nativetests andplanningvalidation. Subsequentdependency-outputfilterverifiedbyadapter-context-v2."
+    },
+    {
+      "id": "cppcheck-adapter-context-v2",
+      "status": "passed scoped analysis configuration",
+      "scope": "6actualcompilerprojections;zero syntax/internal/unknownMacro/preprocessor errors;newkernelanalysisinputfreeze nothistoricalheaderproof;olddepfileoutputabsentfrombothcommands."
+    },
+    {
+      "id": "squash-contract-guard-v1",
+      "status": "passed optimized contract",
+      "scope": "Correctedtestcallbackboundsandtypedvariadicsentinels;buffer/stream/spliceagainstretainedv8plugin;notnewSDK/platformbuild."
+    },
+    {
+      "id": "runtime-alias-layout-v2",
+      "status": "passed scoped layout and extracted alias logic",
+      "scope": "Linuxsymlinks andWindowscopyaliases;Windowscase-insensitive.exenames;Linux-onlyfullenginegate. Syntheticprebuiltinput andexactextractedRustfunctions,notactualWindowsexecutionorwholeCLIqualification."
+    },
+    {
+      "id": "bridge-build-policy-v1",
+      "status": "passed scoped Linux build policy",
+      "scope": "FourPAQconfigurecompilerflagcomparisons exact aftersource/objectpathnormalization (nolinkercomparison/norebuild);current spatialbridge+optimizedstridecontractPASStwoselectedSDKroots;notfinalprovider."
+    },
+    {
+      "id": "sonar-tool-tests-v13",
+      "status": "passed scoped tool checks",
+      "scope": "46 CXX and 3 native tool tests, planning validation, and current CLI formatting passed; source identities unchanged."
+    },
+    {
+      "id": "header-context-v3",
+      "status": "passed narrow six-header parsing check",
+      "scope": "Six independently captured bridge contexts, 39 to zero parser recoveries. All 98 remaining findings retained. Per-file GNU visibility normalization is analyzer-only; no ABI or full product quality claim."
+    },
+    {
+      "id": "sonar-tool-tests-v14",
+      "status": "passed scoped tool checks",
+      "scope": "54 CXX and 3 native tool tests, planning validation and current CLI formatting. Includes per-row path rebasing and normalization-result metadata."
+    },
+    {
+      "id": "include-context-check-v1",
+      "status": "passed scoped mapping check",
+      "scope": "43 retained adapter compiler records;138 directory and9 forced-file mappings resolve through17 mounts. Not an analyzer scan or nested include closure proof."
+    },
+    {
+      "id": "zpaq-watchdog-v2",
+      "status": "passed optimized private wrapper contract",
+      "scope": "Prepatch wrapper fails specifically on repeated exhaustion; corrected wrapper preserves terminal budget, progress reset,4096-instruction cancellation cadence, exact roundtrip and trailing rejection. Upstream files unchanged; first compile failure retained."
+    },
+    {
+      "id": "native-final-source-v3 + native-alias-filter-v1",
+      "status": "named scoped checks passed",
+      "scope": "Immutable v2 snapshot format carried forward; all-target Clippy -Dwarnings, optimized three-binary build and7 integration tests pass. Incorrect alias filter ran0tests; exact same-binary continuation ran1PASS. Not full regression/provider/platform/RC acceptance."
+    },
+    {
+      "id": "include-context-tests-v2",
+      "status": "passed",
+      "scope": "10 forced/include rebasing fixtures, explicit compiler ordering and fail-closed implicit-system fallback; not new product scan."
+    },
+    {
+      "id": "node-unwrap-v3",
+      "status": "passed scoped check",
+      "scope": "Optimized v2 addon reused; corrected lifecycle contract passes; internal null-wrapper branch not explicitly reached; v1 and v2 failures preserved."
+    },
+    {
+      "id": "provider-provenance-check-v1",
+      "status": "passed scoped check",
+      "scope": "Canonical PAQ upstream and retained CIX derivations survive actual export sanitizer; one passing check; no final source-package closure."
+    },
+    {
+      "id": "squashfs-profile-alignment-v2",
+      "status": "passed scoped check",
+      "scope": "Byte-identical optimized objects, path-normalized disassembly, C contract and1545 differential cases; initial raw-directory collision preserved."
+    },
+    {
+      "id": "paq-loader-slice1-v1",
+      "status": "passed scoped check",
+      "scope": "Frozen current workspace format, all-target Clippy,8 worker tests and1 actual installed-provider dispatch pass; freshly built debug CIX; no final LTO or platform qualification."
+    },
+    {
+      "id": "preserve-native-final-v3-target-v1",
+      "status": "passed scoped check",
+      "scope": "Full XZ archive/link/mode/content verified before target reclaim; optimized binary copies retain original hashes."
+    },
+    {
+      "id": "platform-inventory-local-v1",
+      "status": "passed scoped check",
+      "scope": "Linux-local input/overwrite/overflow/timeout checks pass; hosted workflow prepared only; no Powershell or target execution."
+    },
+    {
+      "id": "sonar-tool-tests-v15",
+      "status": "passed scoped check",
+      "scope": "Focused repair tests pass with bound inputs unchanged; next actual adapter scan pending."
+    },
+    {
+      "id": "paq-supervisor-groups-v2",
+      "status": "passed scoped continuation",
+      "scope": "Same frozen v1source: format andalltargetClippy pass;8workertests;v1supervisor9pass1harness-prerequisite failure; v2buildscurrentCLI then10supervisor+1actualproviderfixture pass. POSIXgrouptermination/directleaderreaping andboundeddiagnosticdrain; noWindows/macOS qualification."
+    }
+  ],
+  "active_work": [
+    "ordinary-CLI-full-engine-binding",
+    "full-engine-I/O-and-job-SDK",
+    "SDK-bindings-and-adapters",
+    "streaming-parallelism-resource-contracts",
+    "final-quality-distribution"
+  ],
+  "acceptance_note": "Authoritative requirements are coordinator-owned under rc-reconciliation; no row is accepted from this work-start receipt.",
+  "failures_preserved": [
+    "jxl-provision-v1 offline runner cannot fetch dependency",
+    "jxl-check-v1 real decoder missing FULL_IMAGE event (fixed and rechecked)",
+    "foundation-v1/v2/v4 extraction/port compile failures",
+    "foundation-v3 changing snapshot rejected without test",
+    "foundation-v5/v6 research-only Criterion/dhat targets unintentionally discovered",
+    "foundation-v7 record/grid error conversion compile failure",
+    "foundation-v8 graphcoordinate double residual, gridframe missinglength, spatialtest invalidbudget",
+    "foundation-v9 gridmode3 omitted deterministic arithmetic terminator",
+    "foundation-components-v1 private PAQ test root had group-writable checkout ancestors; product rejection correct",
+    "foundation-v10 region vector type inference compile failure",
+    "foundation-v11 inverse symbol-map type inference compile failure",
+    "address-fixture-v1/v2 ambiguous GOT names and v3 wrong pdata diagnostic key; corrected active+ambiguous reference fixtures passedv4",
+    "foundation-v12 malformed-test mutation was no-op and static CMake searched wrong C++ library directories; focusedv13 passed",
+    "catalogue-v1/v2 compile errors in newly integrated modules",
+    "catalogue-v3 C stream test loop did not stop on finished after flush; fixed v4",
+    "interfaces-v1 CharLS C++ enum constants",
+    "interfaces-v2 selection type inference",
+    "interfaces-v3 mixed module imports/test inference",
+    "interfaces-v4 malformed selector fixture, obsolete mixed test, JPEG-LS trailing-byte acceptance",
+    "interfaces-v5 source changed during snapshot; no valid job",
+    "interfaces-v6 grid transform temporary borrow",
+    "interfaces-v7 temp budget after all tests; SDK-only v8 rerun",
+    "portfolio-grid-v1 singleton interval emitted a spurious zero byte; corrected v2",
+    "grid-counts-fixture-v1 invalid generated header; v2 valid",
+    "spatial-counts-v1 singleton rank extra zero byte in shared helper; JP2 writer lacked bounded seek/backpatch",
+    "spatial-counts-v2 stale 4096byte test limits on larger30828byte source; correctedv3",
+    "cli-bindings-v1 compile errors; fixed before v2",
+    "cli-bindings-v2 undersized job fixture; corrected v3",
+    "cli-bindings-v3 unsupported clustered flags; product corrected v4",
+    "cli-bindings-v4 obsolete CLI magic assertion; exact roundtrip qualified v5",
+    "cli-bindings-v5/v6 standard-format binding fixture admission bounds; consumer-only v8 passed",
+    "cli-bindings-v7 prepared but not dispatched after bound review",
+    "job-mode-v1 prepared not dispatched; v2 CLI reference compile error; v4 reservation error type mismatch",
+    "language-consumers-v1 Node syntax; v2 runner DNS after Node/Java passed; v3 Zarr API fixture mismatch",
+    "dotnet-consumer-v1 contract imports; native library compiled, full corrected contract passed v2",
+    "constraints-v1 stale diagnostic and unsuccessful BEST child; v2 forced M6 used CIXG producer; corrected v3",
+    "relocated-providers-v1/v3 PAQ level-zero SIGSEGV; pinned upstream null predictor; CIX worker rejects unsafe level in v4",
+    "host-adapters-v1/v2/v3/v4 build, dynamic-discovery, child-environment and host-cancellation-contract failures; all scopes passed after fixes",
+    "host-adapters-v6 h5py loader package missing after HDF5/netCDF passed; v7 matched distro loader/ABI passes",
+    "window-v1 compile, window-v2 invalid test mutation, window-v4/v5 unstable source copy; window-v6 passed",
+    "Squash plugin v1..v7 bridge and lifecycle issues; v8 contracts passed",
+    "squashfs-host-v1 differential fixture overflow and v2 upstream status-path failure; actual extraction passed v3",
+    "rocksdb-host-v1 no-RTTI ABI mismatch; v2 passed",
+    "stream-storage-hosts-v1 GStreamer output before segment; gstreamer-host-v2 passed",
+    "windows-jobs-mixed-v1 error string type and v2 stale protocol-version rejection assertion; v3 pending",
+    "kernel-source-v1 streamed SDK extraction failed before tar header; diagnostic retry pending",
+    "windows-jobs-mixed-v3 helper admission assertion, v4 negative fixture ignored preceding progress; independent review caught v1 Capability/Result decode defect, fixed and45 focusedchecks passedv5",
+    "sonar-tool-tests-v5 failed normalization/budget/receipt fixture checks; corrected v6 passed",
+    "sonar-probe-v10 refused 4GB reservation before lease/server; only reproducible compiler caches reclaimed with hashes",
+    "sonar-probe-v11 read-only server startup failed; bounded writable mounts and startup capture qualified by v12",
+    "sonar-tool-tests-v8 failed scanner syntax-count matcher; corrected v9 passed"
+  ],
+  "active_job": null,
+  "next_action": "Reclaim verified PAQ/profile build caches, run current frozen adapter probe, and implement isolated PAQ process ownership. Benchmark HOLD remains.",
+  "preserved_recent_failures": [
+    {
+      "id": "squashfs-readers-v6",
+      "reason": "ConfiguredexplicitFUSEdirsenterupstreamlegacyAPIdetection; v7usesprovidedFUSE3pkg-config API32."
+    },
+    {
+      "id": "sonar-probe-v1",
+      "reason": "64MiBserverdatatmpfsfilledduringbuiltinplugindeployment; noCXXqualificationclaim. Retainedrawlogs."
+    },
+    {
+      "id": "kernel-vm-v1",
+      "reason": "Private compressor ID was narrowed by the unchanged upstream signed-short interface; fixed in the CIX-owned dispatcher and qualified by VM v2."
+    },
+    {
+      "id": "sonar-probe-v5",
+      "reason": "Scanner auto-provisioned JRE exhausted its tmpfs; switched to the pinned image runtime."
+    },
+    {
+      "id": "sonar-probe-v6",
+      "reason": "Scanner log was in tmpfs after container exit and could not be recovered; bounded log persistence correction pending."
+    },
+    {
+      "id": "portable-loader-policy-v1",
+      "reason": "Portable Input wrapper had one remaining File-typed standard-stream helper; fixed before v2."
+    },
+    {
+      "id": "sonar-cxx-scan-v2",
+      "reason": "All7projects indexed, but2adapterCppcheck syntax errors remain. Evidence grew to60.97MB against32MiB reserve; simultaneous tmpfs peak unavailable, so budget qualification not claimed. Next evidence reservation96MiB plus enforced monitoring required."
+    },
+    {
+      "id": "zpaq-watchdog-v1",
+      "reason": "Owned contract -Werror encountered unchanged external libzpaq header unused parameter. v2 marked external header search as system while retaining owned warnings policy; no upstream edit."
+    }
+  ],
+  "quality_analysis_next_action": "Reclaim verified PAQ/profile build caches, run current frozen adapter probe, and implement isolated PAQ process ownership. Benchmark HOLD remains."
+}

@@ -1,0 +1,89 @@
+{
+  "schema": "cix-focused-spatial-stride-contract-v1",
+  "status": "pass",
+  "source_sha256": {
+    "benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/source/CMakeLists.txt": "c06cda65d16a1fd47b9535bdf795b1203786cafad8cbb3166957151f9a50442d",
+    "benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/source/cix_spatial_bridge.cpp": "700ce5c4a53f338ab98535672c6bcb7a368586a44af87fb5be02e4fe69748241",
+    "benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/source/tests/spatial_stride_contract.cpp": "24c9ae3f967432b0a59b3eb3dba3c963a9119b4095e83b79f59539c03b807988",
+    "benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/source/cix_spatial_bridge.h": "049b7ec3e64b162b5a27d3e440ae90658c51696bdea572ad8c71f6899b39d07e"
+  },
+  "sdk_sha256": {
+    "benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/lib/x86_64-linux-gnu/libcharls.so": "6fc5859988357c676d874fa98509445b8a8c8eee4eac533b5ae3eb884e0b858c",
+    "benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/lib/x86_64-linux-gnu/libopenjp2.so": "19906c0334e8db2137912f83cceed5a03d954a9c12d9781901a9a27f92ce1c4d"
+  },
+  "commands": [
+    {
+      "label": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/source",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/build",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "-DCIX_SPATIAL_ROOT=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix",
+        "-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/prefix"
+      ],
+      "returncode": 0,
+      "stdout": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/build\n",
+      "stderr": ""
+    },
+    {
+      "label": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/build",
+        "--parallel",
+        "2"
+      ],
+      "returncode": 0,
+      "stdout": "[ 50%] Building CXX object CMakeFiles/cix_spatial_bridge.dir/cix_spatial_bridge.cpp.o\n[100%] Linking CXX shared library libcix_spatial_bridge.so\n[100%] Built target cix_spatial_bridge\n",
+      "stderr": ""
+    },
+    {
+      "label": "install",
+      "argv": [
+        "cmake",
+        "--install",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/build"
+      ],
+      "returncode": 0,
+      "stdout": "-- Install configuration: \"Release\"\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/prefix/lib/libcix_spatial_bridge.so\n-- Set non-toolchain portion of runtime path of \"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/prefix/lib/libcix_spatial_bridge.so\" to \"$ORIGIN\"\n-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/prefix/include/cix/cix_spatial_bridge.h\n",
+      "stderr": ""
+    },
+    {
+      "label": "compile-contract",
+      "argv": [
+        "c++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/source/tests/spatial_stride_contract.cpp",
+        "-I",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/prefix/include/cix",
+        "-L",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/prefix/lib",
+        "-Wl,-rpath,/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/prefix/lib",
+        "-lcix_spatial_bridge",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/spatial_stride_contract"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "execute-contract",
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-stride-contract-v1/spatial_stride_contract"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "contract_executable_sha256": "e55b3cf2dc1f050d45a2d48a9cfa250e6dc4b99b4dd5c4f31389f6ef137f1d97"
+}

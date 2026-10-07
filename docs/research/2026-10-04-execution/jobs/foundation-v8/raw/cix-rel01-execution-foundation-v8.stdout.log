@@ -1,0 +1,203 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v8/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'build', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v8/Cargo.toml', '--lib', '--bin', 'cix']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v8/Cargo.toml', '--lib', 'core::', '--', '--test-threads=2']
+
+running 110 tests
+test core::engine::adaptive::integer_overflow_tests::varint_accepts_max_rejects_high_bits ... ok
+test core::engine::bitplane::tests::maximal_arithmetic_bit_length_is_rejected_without_overflow ... ok
+test core::engine::bitplane::tests::varint_maximum_round_trips_canonically ... ok
+test core::engine::bitplane::tests::varint_rejects_high_bits_in_final_group ... ok
+test core::engine::bounded_history_tests::default_workers_shrink_to_fit_but_explicit_workers_do_not ... ok
+test core::engine::bounded_history_tests::explicit_twenty_workers_remains_requested_when_memory_is_admitted ... ok
+test core::engine::bounded_history_tests::history_never_grows_past_reserved_capacity ... ok
+test core::engine::bsc_ffi::tests::invalid_lzp_pair_is_rejected_before_ffi ... ok
+test core::engine::bitplane::tests::arithmetic_planes_round_trip_and_reject_truncation ... ok
+test core::engine::bwt_legacy::tests::frozen_python_encoder_fixtures ... ok
+test core::engine::bwt_legacy::tests::frozen_python_fixtures ... ok
+test core::engine::bsc_ffi::tests::native_block_round_trips_and_rejects_truncation ... ok
+test core::engine::bwt_legacy::tests::malformed_nonzero_rank_does_not_overflow ... ok
+test core::engine::bwt_legacy::tests::rejects_bad_version_and_truncation ... ok
+test core::engine::bwt_legacy::tests::rejects_mtf_uint_overflow_before_conversion ... ok
+test core::engine::bwt_legacy::tests::legacy_round_trip_after_helper_extraction ... ok
+test core::engine::bwt_legacy::tests::rice_uints_reject_high_bit_overflow ... ok
+test core::engine::chain::tests::cache_capture_rejects_unfunded_payload_before_retaining_it ... ok
+test core::engine::chain::tests::exact_inner_cache_preserves_chain_selection_and_fails_open_when_full ... ok
+test core::engine::chain::tests::lz_substream_lengths_start_after_varints ... ok
+test core::engine::chain::tests::mode7_multinomial_fixture_restores_fresh_archives ... ok
+test core::engine::chain::tests::restore_words_handles_all_numeric_operations_and_boundaries ... ok
+test core::engine::chain::tests::rice_uints_reject_high_bit_overflow ... ok
+test core::engine::cixg_huffman_tests::cixg2_huffman_substream_round_trips_and_cixg1_rejects_it ... ok
+test core::engine::cixg_huffman_tests::forced_route_raw_fallback_is_tagged_raw ... ok
+test core::engine::combinatorics::tests::exact_for_every_small_combination ... ok
+test core::engine::combinatorics::tests::observes_candidate_deadline_in_long_rank_work ... ok
+test core::engine::combinatorics::tests::observes_deadline_while_validating_position_order ... ok
+test core::engine::combinatorics::tests::sparse_large_gaps_use_the_exact_short_binomial_path ... ok
+test core::engine::combinatorics::tests::wide_and_noncanonical_inputs_retain_definition ... ok
+test core::engine::expertmix::integer_overflow_tests::varint_accepts_max_rejects_high_bits ... ok
+test core::engine::external::tests::bsc_cixb1_round_trips_from_an_unaligned_envelope_payload ... ok
+test core::engine::external::tests::bsc_rejects_a_forged_stored_empty_archive ... ok
+test core::engine::external::tests::pinned_zpaq715_level5_cixb1_round_trips_and_rejects_corruption ... ok
+test core::engine::external::tests::xz_larger_dictionary_archive_round_trips ... ok
+test core::engine::fast_lz::tests::deterministic_random_reconstructs_exactly ... ok
+test core::engine::fast_lz::tests::matching_resumes_after_a_random_prefix ... ok
+test core::engine::fast_lz::tests::repeated_data_reconstructs_exactly ... ok
+test core::engine::fast_lz::tests::runs_reconstruct_exactly ... ok
+test core::engine::fast_lz::tests::tiny_inputs_reconstruct_exactly ... ok
+test core::engine::fast_path_tests::cli_and_squash_share_default_block_and_fast_admission ... ok
+test core::engine::fast_path_tests::fast_lz_uses_production_substreams_and_decoder ... ok
+test core::engine::fixedmix::integer_overflow_tests::varint_accepts_max_rejects_high_bits ... ok
+test core::engine::fixedmix::tests::shared_stretch_table_initializes_once_across_threads ... ok
+test core::engine::fixedmix::tests::shared_stretch_table_keeps_fixedmix_versions_and_history_exact ... ok
+test core::engine::fixedmix::tests::shared_stretch_table_matches_legacy_construction_exactly ... ok
+test core::engine::histogram::tests::count_table_candidates_round_trip ... ok
+test core::engine::histogram::tests::count_table_rejects_malformed_prefix_and_truncation ... ok
+test core::engine::huffman::tests::rejects_truncated_and_trailing_frames ... ok
+test core::engine::legacy_lz::integer_overflow_tests::varint_accepts_max_rejects_high_bits ... ok
+test core::engine::legacy_lz::rice_overflow_tests::rice_accepts_max_rejects_high_bits ... ok
+test core::engine::legacy_lz::tests::legacy_round_trip_after_helper_extraction ... ok
+test core::engine::legacy_lz::tests::rejects_inconsistent_counts_before_stream_allocation ... ok
+test core::engine::legacy_lz::tests::rejects_unknown_version ... ok
+test core::engine::limits::tests::contexts_are_independent_and_nested_scope_restores ... ok
+test core::engine::limits::tests::library_scope_nests_and_restores_without_global_mutation ... ok
+test core::engine::m6_rice_tests::rice_accepts_usize_max_and_rejects_high_quotient ... ok
+test core::engine::numeric::pfor_overflow_tests::pfor_accepts_max_rejects_high_bits ... ok
+test core::engine::numeric::rice_overflow_tests::rice_accepts_max_rejects_high_bits ... ok
+test core::engine::numeric::tests::every_numeric_candidate_round_trips_exactly ... ok
+test core::engine::numeric::tests::numeric_bit_count_overflow_is_rejected ... ok
+test core::engine::numeric::tests::numeric_candidates_restore_ptt5_extrema_pattern ... ok
+test core::engine::numeric::tests::numeric_payload_end_overflow_is_rejected ... ok
+test core::engine::numeric::tests::numeric_u64_varint_maximum_round_trips_canonically ... ok
+test core::engine::numeric::tests::numeric_u64_varint_rejects_high_bits_in_final_group ... ok
+test core::engine::numeric::tests::pfor_maximum_exception_round_trips_both_endiannesses_with_tail ... ok
+test core::engine::numeric::tests::truncated_numeric_candidate_is_rejected ... ok
+test core::engine::numeric::tests::uint_classes_skip_maximum_without_losing_varint_round_trip ... ok
+test core::engine::ppm::tests::fixed_and_see_rescale_payloads_match_prechange_fixtures_and_restore ... ok
+test core::engine::ppm::tests::malformed_payloads_remain_rejected ... ok
+test core::engine::ppm::tests::observe_rescale_follows_the_prechange_count_transition ... ok
+test core::engine::ppm::tests::rescale_ceil_matches_old_formula_for_normal_model_counts ... ok
+test core::engine::ppm::tests::rescale_ceil_near_u32_max_matches_wide_oracle ... ok
+test core::engine::ppm::tests::see_rescale_follows_the_prechange_count_transition ... ok
+test core::engine::ppm::tests::varint_rejects_bits_outside_usize ... ok
+test core::engine::rank::tests::context_layout_rejects_malformed_prefix ... ok
+test core::engine::rank::tests::context_layouts_round_trip_and_reject_trailing_bytes ... ok
+test core::engine::rank::tests::count_range_keeps_pre_refactor_bytes_and_round_trips ... ok
+test core::engine::rank::tests::count_range_preserves_large_exact_rank_type_classes ... ok
+test core::engine::rank::tests::count_range_rejects_truncated_tile ... ok
+test core::engine::rank::tests::default_arithmetic_encoder_preserves_constructor_bytes ... ok
+test core::engine::rank::tests::lowest_bit_preserves_fenwick_step ... ok
+test core::engine::rank::tests::type_class_shortcut_preserves_prechange_exact_bytes_and_malformed_rejection ... ok
+test core::engine::record_periodic::tests::rejects_tiny_and_zero_beam ... ok
+test core::engine::selection::tests::candidate_generation_keeps_dimensions_independent ... ok
+test core::engine::selection::tests::empty_profile_matches_frozen_python ... ok
+test core::engine::selection::tests::high_entropy_repetition_still_admits_lz ... ok
+test core::engine::selection::tests::shortlist_preserves_priority_and_effort_order ... ok
+test core::engine::selection::tests::spread_profile_matches_frozen_python_vector ... ok
+test core::engine::selection::tests::unpredictable_default_fallback_retains_frozen_order ... ok
+test core::engine::stateful::integer_overflow_tests::persistent_models_restore_across_observed_blocks ... ok
+test core::engine::stateful::integer_overflow_tests::varint_accepts_max_rejects_high_bits ... ok
+test core::engine::streaming_backend::tests::fresh_raw_segment_has_no_invalid_zstd_reset ... ok
+test core::engine::streaming_backend::tests::inactive_footer_rejects_unaccounted_zstd_tail ... ok
+test core::engine::streaming_backend::tests::nested_archive_cannot_expand_past_outer_length ... ok
+test core::engine::streaming_backend::tests::nested_cixg_frame_is_bounded_and_round_trips ... ok
+test core::engine::streaming_backend::tests::persistent_backend_rejects_corrupt_frame ... ok
+test core::engine::streaming_backend::tests::persistent_backend_round_trips_strong_weak_and_mixed_regions ... ok
+test core::engine::timed_block_tests::candidate_histogram_only_counts_the_filled_prefix ... ok
+test core::engine::timed_block_tests::timed_fill_reports_eof_after_the_available_bytes ... ok
+test core::engine::timed_block_tests::timed_fill_stops_after_the_first_partial_read_when_idle_flush_expires ... ok
+test core::engine::transform::tests::all_frozen_transforms_round_trip ... ok
+test core::engine::transform::tests::forward_transform_api_covers_frozen_ids ... ok
+test core::engine::wavelet::integer_overflow_tests::canonical_payload_round_trips ... ok
+test core::engine::wavelet::integer_overflow_tests::varint_accepts_max_rejects_high_bits ... ok
+test core::engine::zpaq_context::tests::configuration_round_trips ... ok
+test core::engine::zpaq_context::tests::fixture_is_deterministic_and_causal ... ok
+test core::engine::zpaq_context::tests::rejects_invalid_parameters_and_bytes ... ok
+test core::engine::zpaq_context::tests::state_is_bounded_for_long_input ... ok
+test core::engine::chain::tests::encoder_fixtures_cross_decode_in_rust has been running for over 60 seconds
+test core::engine::chain::tests::encoder_fixtures_cross_decode_in_rust ... ok
+
+test result: ok. 110 passed; 0 failed; 0 ignored; 0 measured; 67 filtered out; finished in 238.35s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v8/Cargo.toml', '--lib', 'full_engine::', '--', '--test-threads=2']
+
+running 42 tests
+test full_engine::address_relations::tests::finite_word_delta_preserves_sign_boundary ... ok
+test full_engine::address_relations::tests::got_choice_encodings_round_trip_all_modes ... ok
+test full_engine::address_relations::tests::got_choices_match_frozen_reference_bytes ... ok
+test full_engine::address_relations::tests::got_wire_mode_zero_restores_the_fields_parent ... ok
+test full_engine::address_relations::tests::malformed_got_choice_lengths_are_rejected ... ok
+test full_engine::address_relations::tests::got_empty_admission_keeps_complete_paid_transform ... ok
+test full_engine::address_relations::tests::pointer_delta_empty_admission_round_trips_all_modes ... ok
+test full_engine::address_relations::tests::pointer_delta_rejects_malformed_residual_metadata ... ok
+test full_engine::arithmetic::tests::arithmetic_and_fenwick_reject_invalid_state ... ok
+test full_engine::arithmetic::tests::ordered_subset_method_one_and_residual_vectors ... ok
+test full_engine::arithmetic::tests::python_reference_varint_and_frame_vectors ... ok
+test full_engine::containers::tests::paq_identifiers_match_historical_wrapping_and_reject_unassigned_ids ... ok
+test full_engine::containers::tests::stored_frame_checks_length_checksum_and_limits_before_allocation ... ok
+test full_engine::containers::tests::stored_historical_empty_frame_has_known_digest ... ok
+test full_engine::graph_residuals::tests::all_modes_preserve_line_endings_and_literal_bytes ... ok
+test full_engine::graph_residuals::tests::frame_rejects_truncation_trailing_and_bounded_expansion ... ok
+test full_engine::graph_residuals::tests::frame_validates_declared_coordinate_count_before_rebuild ... ok
+test full_engine::graph_residuals::tests::historical_frame_zero_is_exact_and_retains_unparsed_records ... ok
+test full_engine::graph_residuals::tests::hydrogen_all_models_and_choice_representations_match_reference_vectors ... FAILED
+test full_engine::graph_residuals::tests::hydrogen_model_zero_preserves_masks_records_and_bounds ... FAILED
+test full_engine::graph_residuals::tests::known_graph_and_sequential_residuals ... ok
+test full_engine::graph_residuals::tests::palette_frames_restore_all_prediction_modes_and_reject_trailing_bytes ... ok
+test full_engine::graph_residuals::tests::palette_uses_first_seen_order_and_escapes_the_sixty_fifth_vector ... ok
+test full_engine::graph_residuals::tests::rejects_noncanonical_fields_modes_and_counts ... ok
+test full_engine::graph_residuals::tests::rejects_reconstruction_overflow_and_missing_vectors ... ok
+test full_engine::graph_residuals::tests::text_frame_is_exact_for_all_prediction_modes ... ok
+test full_engine::graph_residuals::tests::text_payload_uses_bytes_splitlines_rules ... ok
+test full_engine::jxl_provider::tests::packaged_bridge_roundtrips_canonical_frames ... ok
+test full_engine::record_ordering::tests::each_order_code_restores_nontrivial_composition ... ok
+test full_engine::arithmetic::tests::exhaustive_small_combinatorics_and_compositions ... ok
+test full_engine::record_ordering::tests::matches_tiny_legacy_mycs_and_mycc_vectors ... ok
+test full_engine::record_ordering::tests::record_constraint_and_fixed_raw_transforms_restore_paid_literals ... ok
+test full_engine::strided_values::tests::matches_tiny_legacy_sagr_vectors_for_every_mode ... FAILED
+test full_engine::strided_values::tests::paid_grid_transpose_and_frame_restore ... ok
+test full_engine::strided_values::tests::recognizes_exact_wcs_extent ... ok
+test full_engine::strided_values::tests::signed_varint_mapping_round_trips ... ok
+test full_engine::volume_lifting::tests::dicom_recognizer_rejects_truncated_pixel_member ... ok
+test full_engine::volume_lifting::tests::multiscale_lifting_round_trips_every_axis ... ok
+test full_engine::volume_lifting::tests::multiscale_shape_validation_rejects_malformed_inputs_without_panicking ... ok
+test full_engine::volume_lifting::tests::signed_wrap_matches_reference_and_all_volume_modes_restore ... ok
+test full_engine::volume_lifting::tests::spatial_jxl_round_trip_probes_paid_pixels_before_decode ... FAILED
+test full_engine::record_ordering::tests::permutation_crosses_rank_block_boundary ... ok
+
+failures:
+
+---- full_engine::graph_residuals::tests::hydrogen_all_models_and_choice_representations_match_reference_vectors stdout ----
+
+thread 'full_engine::graph_residuals::tests::hydrogen_all_models_and_choice_representations_match_reference_vectors' (2289433) panicked at src/full_engine/graph_residuals.rs:1724:17:
+assertion `left == right` failed: model 0, representation 0
+  left: [104, 121, 100, 114, 111, 103, 101, 110, 32, 102, 105, 120, 116, 117, 114, 101, 10, 110, 97, 116, 105, 118, 101, 32, 112, 97, 114, 105, 116, 121, 10, 103, 101, 110, 101, 114, 97, 116, 101, 100, 32, 115, 111, 117, 114, 99, 101, 10, 32, 32, 53, 32, 32, 52, 32, 32, 48, 32, 32, 48, 32, 32, 48, 32, 32, 48, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 57, 57, 57, 32, 86, 50, 48, 48, 48, 10, 32, 32, 32, 32, 49, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 79, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 32, 45, 49, 46, 48, 48, 48, 48, 32, 32, 32, 32, 49, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 78, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 32, 32, 45, 49, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 67, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 32, 45, 48, 46, 52, 51, 56, 52, 32, 32, 32, 45, 48, 46, 52, 51, 56, 52, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 72, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 32, 45, 48, 46, 52, 51, 56, 52, 32, 32, 32, 45, 48, 46, 52, 51, 56, 52, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 72, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 51, 32, 32, 49, 32, 32, 49, 32, 32, 48, 10, 32, 32, 51, 32, 32, 50, 32, 32, 49, 32, 32, 48, 10, 32, 32, 51, 32, 32, 52, 32, 32, 49, 32, 32, 48, 10, 32, 32, 51, 32, 32, 53, 32, 32, 49, 32, 32, 48, 10, 77, 32, 32, 69, 78, 68, 10]
+ right: [104, 121, 100, 114, 111, 103, 101, 110, 32, 102, 105, 120, 116, 117, 114, 101, 10, 110, 97, 116, 105, 118, 101, 32, 112, 97, 114, 105, 116, 121, 10, 103, 101, 110, 101, 114, 97, 116, 101, 100, 32, 115, 111, 117, 114, 99, 101, 10, 32, 32, 53, 32, 32, 52, 32, 32, 48, 32, 32, 48, 32, 32, 48, 32, 32, 48, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 57, 57, 57, 32, 86, 50, 48, 48, 48, 10, 32, 32, 32, 32, 49, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 79, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 32, 32, 32, 49, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 78, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 67, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 32, 45, 48, 46, 52, 51, 56, 52, 32, 32, 32, 45, 48, 46, 52, 51, 56, 52, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 72, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 32, 45, 48, 46, 52, 51, 56, 52, 32, 32, 32, 45, 48, 46, 52, 51, 56, 52, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 72, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 51, 32, 32, 49, 32, 32, 49, 32, 32, 48, 10, 32, 32, 51, 32, 32, 50, 32, 32, 49, 32, 32, 48, 10, 32, 32, 51, 32, 32, 52, 32, 32, 49, 32, 32, 48, 10, 32, 32, 51, 32, 32, 53, 32, 32, 49, 32, 32, 48, 10, 77, 32, 32, 69, 78, 68, 10]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- full_engine::graph_residuals::tests::hydrogen_model_zero_preserves_masks_records_and_bounds stdout ----
+
+thread 'full_engine::graph_residuals::tests::hydrogen_model_zero_preserves_masks_records_and_bounds' (2289434) panicked at src/full_engine/graph_residuals.rs:1704:9:
+assertion `left == right` failed
+  left: [99, 111, 111, 114, 100, 105, 110, 97, 116, 101, 32, 102, 105, 120, 116, 117, 114, 101, 13, 10, 110, 97, 116, 105, 118, 101, 32, 116, 101, 115, 116, 10, 102, 105, 120, 101, 100, 45, 112, 111, 105, 110, 116, 32, 99, 111, 111, 114, 100, 105, 110, 97, 116, 101, 115, 13, 10, 32, 32, 51, 32, 32, 50, 32, 32, 48, 32, 32, 48, 32, 32, 48, 32, 32, 48, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 57, 57, 57, 32, 86, 50, 48, 48, 48, 32, 9, 10, 32, 32, 32, 32, 49, 46, 48, 48, 48, 48, 32, 32, 32, 45, 50, 46, 48, 48, 48, 48, 32, 32, 32, 45, 48, 46, 48, 48, 48, 48, 32, 67, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 13, 10, 32, 32, 32, 32, 50, 46, 48, 48, 48, 48, 32, 32, 32, 32, 52, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 72, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 32, 32, 51, 46, 48, 48, 48, 48, 32, 32, 32, 32, 49, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 53, 48, 48, 48, 32, 79, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 13, 10, 32, 32, 49, 32, 32, 50, 32, 32, 49, 32, 32, 48, 10, 32, 32, 49, 32, 32, 51, 32, 32, 49, 32, 32, 48, 13, 10, 77, 32, 32, 69, 78, 68, 10, 62, 32, 101, 120, 116, 114, 97, 11, 100, 97, 116, 97, 36, 36, 36, 36, 10, 108, 105, 116, 101, 114, 97, 108, 32, 116, 97, 105, 108]
+ right: [99, 111, 111, 114, 100, 105, 110, 97, 116, 101, 32, 102, 105, 120, 116, 117, 114, 101, 13, 10, 110, 97, 116, 105, 118, 101, 32, 116, 101, 115, 116, 10, 102, 105, 120, 101, 100, 45, 112, 111, 105, 110, 116, 32, 99, 111, 111, 114, 100, 105, 110, 97, 116, 101, 115, 13, 10, 32, 32, 51, 32, 32, 50, 32, 32, 48, 32, 32, 48, 32, 32, 48, 32, 32, 48, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 57, 57, 57, 32, 86, 50, 48, 48, 48, 32, 9, 10, 32, 32, 32, 32, 49, 46, 48, 48, 48, 48, 32, 32, 32, 45, 50, 46, 48, 48, 48, 48, 32, 32, 32, 45, 48, 46, 48, 48, 48, 48, 32, 67, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 13, 10, 32, 32, 32, 32, 51, 46, 48, 48, 48, 48, 32, 32, 32, 32, 50, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 48, 48, 48, 48, 32, 72, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 10, 32, 32, 32, 32, 52, 46, 48, 48, 48, 48, 32, 32, 32, 45, 49, 46, 48, 48, 48, 48, 32, 32, 32, 32, 48, 46, 53, 48, 48, 48, 32, 79, 32, 32, 32, 48, 32, 32, 48, 32, 32, 48, 13, 10, 32, 32, 49, 32, 32, 50, 32, 32, 49, 32, 32, 48, 10, 32, 32, 49, 32, 32, 51, 32, 32, 49, 32, 32, 48, 13, 10, 77, 32, 32, 69, 78, 68, 10, 62, 32, 101, 120, 116, 114, 97, 11, 100, 97, 116, 97, 36, 36, 36, 36, 10, 108, 105, 116, 101, 114, 97, 108, 32, 116, 97, 105, 108]
+
+---- full_engine::strided_values::tests::matches_tiny_legacy_sagr_vectors_for_every_mode stdout ----
+
+thread 'full_engine::strided_values::tests::matches_tiny_legacy_sagr_vectors_for_every_mode' (2289448) panicked at src/full_engine/strided_values.rs:1038:13:
+assertion `left == right` failed
+  left: [83, 65, 71, 82, 49, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 28, 0, 0, 0, 0, 1, 2, 0, 0, 0, 192, 192, 192, 127, 127, 127, 142, 209, 9, 223, 107, 133, 115, 62, 12, 252, 157, 178, 16, 246, 237, 167, 1, 244, 237, 167, 1, 1, 3, 141, 182, 221, 136, 1, 237, 255, 207, 45, 144, 195, 192, 84, 7, 6, 3, 0, 0, 0, 0, 2, 18, 194, 183, 126, 58, 7, 106, 62, 12, 243, 217, 150, 49, 142, 222, 186, 2, 140, 222, 186, 2, 1, 3, 237, 255, 207, 45, 170, 149, 157, 42, 254, 231, 173, 50, 7, 6, 3, 0, 0, 0, 0, 1, 225, 232, 66, 203, 223, 59, 63, 62, 13, 136, 199, 254, 202, 3, 254, 142, 153, 8, 254, 142, 153, 8, 1, 1, 0, 4, 3, 1, 0, 0, 64, 155, 44, 50, 149, 210, 52, 62, 3, 0, 0, 0, 1, 3, 130, 132, 136, 16, 132, 136, 144, 32, 134, 140, 152, 48, 7, 6, 3, 0, 0, 0, 0, 0]
+ right: [83, 65, 71, 82, 49, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 28, 0, 0, 0, 0, 1, 2, 0, 0, 0, 192, 192, 192, 127, 127, 127, 142, 209, 9, 223, 107, 133, 115, 62, 12, 252, 157, 178, 16, 246, 237, 167, 1, 244, 237, 167, 1, 1, 3, 141, 182, 221, 136, 1, 237, 255, 207, 45, 144, 195, 192, 84, 8, 7, 3, 3, 0, 0, 0, 0, 2, 18, 194, 183, 126, 58, 7, 106, 62, 12, 243, 217, 150, 49, 142, 222, 186, 2, 140, 222, 186, 2, 1, 3, 237, 255, 207, 45, 170, 149, 157, 42, 254, 231, 173, 50, 8, 7, 3, 3, 0, 0, 0, 0, 1, 225, 232, 66, 203, 223, 59, 63, 62, 13, 136, 199, 254, 202, 3, 254, 142, 153, 8, 254, 142, 153, 8, 1, 1, 0, 5, 4, 3, 1, 0, 0, 64, 155, 44, 50, 149, 210, 52, 62, 3, 0, 0, 0, 1, 3, 130, 132, 136, 16, 132, 136, 144, 32, 134, 140, 152, 48, 8, 7, 3, 3, 0, 0, 0, 0, 0]
+
+---- full_engine::volume_lifting::tests::spatial_jxl_round_trip_probes_paid_pixels_before_decode stdout ----
+
+thread 'full_engine::volume_lifting::tests::spatial_jxl_round_trip_probes_paid_pixels_before_decode' (2289456) panicked at src/full_engine/volume_lifting.rs:1213:67:
+called `Result::unwrap()` on an `Err` value: "spatial resource estimate exceeds limit"
+
+
+failures:
+    full_engine::graph_residuals::tests::hydrogen_all_models_and_choice_representations_match_reference_vectors
+    full_engine::graph_residuals::tests::hydrogen_model_zero_preserves_masks_records_and_bounds
+    full_engine::strided_values::tests::matches_tiny_legacy_sagr_vectors_for_every_mode
+    full_engine::volume_lifting::tests::spatial_jxl_round_trip_probes_paid_pixels_before_decode
+
+test result: FAILED. 38 passed; 4 failed; 0 ignored; 0 measured; 135 filtered out; finished in 0.01s
+

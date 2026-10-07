@@ -1,0 +1,35 @@
+{
+  "schema": "cix-v0.1-performance-results-v1",
+  "status": "FINITE_SCREEN_COMPLETE_LIMITED_TO_FROZEN_CONFIGURATION",
+  "artifact_root": "/home/user/src/colour-index-compression/benchmark-work/release-performance-01",
+  "input": {"path": "/home/user/src/colour-index-compression/benchmark-work/canterbury/kennedy.xls", "bytes": 1029744, "sha256": "9af47239ca29dfe20e633f80bbbb9a4cc9783d0803d7b2b5626f42e4c3790420"},
+  "selection": {"build": "B0 portable opt3 fat-LTO CGU1 target-cpu=x86-64", "decision": "retain", "reason": "one PGO and alternative-build observation overlap later unchanged-B0 variation; all archives equal"},
+  "archive_parity": {"fast": "a1ac13663ef651874d8f1feb7425dfaa32f568604b95ed7518799e684cd949e4", "default": "3d934dfd0cdc5621516cc0c3edbb0688ff5ec006b140206562e12fd79b609358", "constrained_best": "e52ea8ac0a09020c33f0db45a530341ac3c7702f6e48e2a041065563ea08054d", "b1_to_b5_equal_b0": true, "pgo_heldout_manually_equal_b0": true},
+  "allocator": {"system_user_seconds": 1.81, "jemalloc_user_seconds": 1.81, "system_rss_kib": 7244, "jemalloc_rss_kib": 9216, "decision": "reject"},
+  "accepted_source_optimizations": {
+    "exact_prefix_prune": {
+      "scope": "native whole-archive CIXG/CIXM6 trials only",
+      "proof": "append-only bytes above the incumbent cannot become a smaller complete archive; exact ties continue",
+      "validation": "independent review PASS; tests PASS; Clippy PASS; matched archives/restores equal",
+      "single_observation_timings": {
+        "grammar_lsp_native_best": {"archive_bytes": 1096, "before_user_seconds": 10.14, "before_wall_seconds": 10.17, "after_user_seconds": 10.22, "after_wall_seconds": 10.24},
+        "kennedy_constrained_predictor": {"archive_bytes": 79507, "before_user_seconds": 1.18, "before_wall_seconds": 1.19, "after_user_seconds": 1.07, "after_wall_seconds": 1.08}
+      },
+      "actual_deadline_omissions": false,
+      "general_speed_claim": false
+    },
+    "t1_m6_discarded_histogram_avoidance": "accepted semantics-preserving M6 fill-path correction"
+  },
+  "profiling": {"P1": "UNAVAILABLE_perf_event_paranoid_4", "P2": "UNAVAILABLE_perf_event_paranoid_4", "P3": "VERIFIED", "P4": "UNAVAILABLE_tracepoint_disabled"},
+  "scaling": {"cixg1_all_six_worker_results_equal": true, "cixg1_archive_sha256": "f1ecbcb6ba74f9dd005dfce74c9ea0a7e35e315e9109037ed6cd355395bc227f", "cixg2_auto_16k_256m_archive_sha256": "37b92040535f367a4b1616ddffd86627344bb9e8fd20409fd8d77c264b6e64a9", "cixg2_workers_1_4_equal": true, "cixg2_couples_block_size_and_memory": true},
+  "m6": {"status": "INCOMPLETE_UNRANKED_WALL_BUDGET_EXHAUSTED", "wall_seconds": 300.948778815, "cpu_seconds": 300.019723},
+  "allocation_audit": {"status": "PASS", "total_allocated_bytes": 118793993, "total_allocations": 59593, "peak_live_bytes": 13515278, "peak_live_allocations": 24, "decision": "no release-path rewrite justified"},
+  "g1_one_variable_controls": {
+    "status": "PASS",
+    "observation_limit": "one observation each; no universal speed or memory-policy claim",
+    "baseline_64k_512m": {"archive_bytes": 70536, "user_seconds": 1.86, "wall_seconds": 1.88, "rss_kib": 8176, "restored": true},
+    "block_only_16k_512m": {"archive_bytes": 102668, "user_seconds": 1.84, "wall_seconds": 1.85, "rss_kib": 6912, "restored": true},
+    "memory_only_64k_256m": {"archive_bytes": 70536, "user_seconds": 1.85, "wall_seconds": 1.87, "rss_kib": 7904, "restored": true},
+    "finding": "16KiB costs 32132 complete archive bytes on the frozen input; 256MiB memory-only preserves its archive"
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "archive_bytes": 154,
+  "archive_sha256": "58bfc2a158f137f25be0337b31c05fe942699a2a4378c4a1bd1bd7d2c570a987",
+  "full_search_wall_seconds": 0.04852842700347537,
+  "input_bytes": 544,
+  "input_sha256": "8a4b2c1ce6e5891bfbf4a342d04d46bc947059a59ead46dc49a8fb1d642736db",
+  "memory_admission_bytes": 11000000000,
+  "profile": "default",
+  "recognition": [
+    {
+      "eligible": false,
+      "family": "executable-got",
+      "reason": "no-transformable-layout"
+    },
+    {
+      "eligible": false,
+      "family": "executable-pointer",
+      "reason": "no-transformable-layout"
+    },
+    {
+      "eligible": false,
+      "family": "executable-section",
+      "reason": "no-transformable-layout"
+    },
+    {
+      "eligible": false,
+      "family": "executable-filter",
+      "reason": "no-transformable-layout"
+    },
+    {
+      "eligible": false,
+      "family": "executable-elf",
+      "reason": "ident"
+    },
+    {
+      "eligible": false,
+      "family": "image-grid",
+      "reason": "no validated DICOM region; raster-240 declined pending paid-layout proof"
+    },
+    {
+      "kind": "region",
+      "region_kind": "generic",
+      "source_bytes": 544,
+      "status": "admitted"
+    }
+  ],
+  "schema": "cix-runtime-selection-v1",
+  "selected": "native-default",
+  "selection": "smallest complete archive; original ordered priority on ties",
+  "status": "completed",
+  "strategy": {
+    "constraints": {
+      "declared_peak_memory_bytes": 11000000000,
+      "estimated_temporary_bytes": 4000000000,
+      "outer_aggregate_cgroup": "required for resident-memory and aggregate-temp enforcement",
+      "threads": 4
+    },
+    "kind": "canonical-first-fit-resource-admission-v1",
+    "maximum_inflight": 1,
+    "raw": "dispatched alone before parallel work"
+  },
+  "threads": 4,
+  "trials": [
+    {
+      "archive_bytes": 589,
+      "archive_sha256": "5e6d65dc115bb2c6bdac1d9240b89ad9b2a4259218246a93d1d99564acd7b909",
+      "cpu_seconds": 0.0006929999999999999,
+      "decode_memory_bytes": 33556064,
+      "descendant_peak_rss_kib": 0,
+      "family": "raw",
+      "id": "raw",
+      "memory_bytes": 33556064,
+      "parameters": {},
+      "priority": 0,
+      "rss_scope": "separate process maxima; aggregate peak is measured by the outer cgroup",
+      "selected": false,
+      "status": "completed",
+      "threads": 1,
+      "timeout_seconds": 43200,
+      "wall_seconds": 0.0002280369953950867,
+      "worker_peak_rss_kib": 22984
+    },
+    {
+      "archive_bytes": 154,
+      "archive_sha256": "58bfc2a158f137f25be0337b31c05fe942699a2a4378c4a1bd1bd7d2c570a987",
+      "backend_diagnostics": "cix: region=1 source_bytes=544 candidates=[raw:raw=544B,runs:runs=1088B/0.000s,deflate:deflate=321B/0.000s,lz:hybrid=339B/0.000s,stride:hybrid=59B/0.000s,predictor:hybrid=332B/0.000s,ppm:ppm:order-3=526B/0.000s,bwt:hybrid=363B/0.000s,lz:cix=339B/0.000s,lz:deflate=339B/0.000s,stride:cix=285B/0.000s,stride:deflate=59B/0.000s,predictor:cix=405B/0.000s,predictor:deflate=332B/0.000s,bwt:cix=363B/0.000s,bwt:deflate=376B/0.000s,ppm:ppm:order-1=555B/0.000s,ppm:ppm:order-2=528B/0.000s] selected_route=stride backend=hybrid payload_bytes=59 block_bytes=544\ncix: effort=default format=cixg1 parallelism=blocks workers=4 queue_capacity=4 peak_outstanding=1 reserved_buffers=17334272 peak_scratch_reserved=16846848 source_bytes=544 blocks=1 candidates=17 memory_skips=0 budget_skips=0 analyse_seconds=0.000 candidate_seconds=0.002 search_seconds=0.002 archive_bytes=154 selected_source_bytes=[stride:544]\n/tmp/cix-native-0esjgi_s/archive.cix\n",
+      "cpu_seconds": 0.00458,
+      "decode_memory_bytes": 8000003264,
+      "descendant_peak_rss_kib": 22916,
+      "family": "native",
+      "id": "native-default",
+      "memory_bytes": 8134224256,
+      "parameters": {
+        "backend_memory_bytes": 8000000000,
+        "profile": "default"
+      },
+      "priority": 1,
+      "rss_scope": "separate process maxima; aggregate peak is measured by the outer cgroup",
+      "selected": true,
+      "status": "completed",
+      "threads": 4,
+      "timeout_seconds": 43200,
+      "wall_seconds": 0.013234432000899687,
+      "worker_peak_rss_kib": 23940
+    },
+    {
+      "archive_bytes": 417,
+      "archive_sha256": "27045c4b4977a96c6e77de7ab4fadffc5097aef95bd2769945551a4c6cf7b8a9",
+      "cpu_seconds": 0.003217,
+      "decode_memory_bytes": 5368709120,
+      "descendant_peak_rss_kib": 0,
+      "family": "heterogeneous",
+      "id": "heterogeneous-cixh1-v1",
+      "memory_bytes": 5368709120,
+      "model_details": [
+        {
+          "kind": "specialist",
+          "reason": "unknown generic region",
+          "region": 0,
+          "region_kind": "generic",
+          "status": "not-applicable"
+        },
+        {
+          "backend": 1,
+          "kind": "region",
+          "parameters_bytes": 7,
+          "payload_bytes": 317,
+          "region": 0,
+          "region_kind": "generic",
+          "source_bytes": 544,
+          "status": "selected"
+        }
+      ],
+      "parameters": {
+        "boundary": "input-derived-boundaries+64KiB",
+        "generic_backends": [
+          "raw",
+          "zlib",
+          "lzma"
+        ],
+        "magic": "CIXH1",
+        "nested_policy": {
+          "max_aggregate_memory_bytes": 10737418240,
+          "max_candidates": 8,
+          "max_memory_bytes": 5368709120,
+          "selection": "family-round-robin",
+          "threads": 1
+        },
+        "profile": "default",
+        "total_time_bound_seconds": 43200
+      },
+      "priority": 2,
+      "rss_scope": "separate process maxima; aggregate peak is measured by the outer cgroup",
+      "selected": false,
+      "status": "completed",
+      "threads": 1,
+      "timeout_seconds": 43200,
+      "wall_seconds": 0.0027940180007135496,
+      "worker_peak_rss_kib": 32140
+    }
+  ]
+}

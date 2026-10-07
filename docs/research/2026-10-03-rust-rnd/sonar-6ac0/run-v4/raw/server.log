@@ -1,0 +1,529 @@
+2026.10.03 05:33:22 INFO  app[][o.s.a.AppFileSystem] Cleaning or creating temp directory /opt/sonarqube/temp
+2026.10.03 05:33:22 INFO  app[][o.s.a.es.EsSettings] Elasticsearch listening on [HTTP: 127.0.0.1:9001, TCP: 127.0.0.1:{}]
+2026.10.03 05:33:22 INFO  app[][o.s.a.ProcessLauncherImpl] Launch process[ELASTICSEARCH] from [/opt/sonarqube/elasticsearch]: /opt/java/openjdk/bin/java -Xms4m -Xmx64m -XX:+UseSerialGC -cp /opt/sonarqube/elasticsearch/lib/tools/server-launcher/* org.elasticsearch.server.launcher.ServerLauncher
+2026.10.03 05:33:22 INFO  app[][o.s.a.SchedulerImpl] Waiting for Elasticsearch to be up and running
+Failed to load native library:jansi-2.4.0-f27666fd4d5699c8-libjansi.so. The native library file at /opt/sonarqube/temp/jansi-2.4.0-f27666fd4d5699c8-libjansi.so is not executable, make sure that the directory is mounted on a partition without the noexec flag, or set the jansi.tmpdir system property to point to a proper location.  osinfo: Linux/x86_64
+java.lang.UnsatisfiedLinkError: /opt/sonarqube/temp/jansi-2.4.0-f27666fd4d5699c8-libjansi.so: /opt/sonarqube/temp/jansi-2.4.0-f27666fd4d5699c8-libjansi.so: failed to map segment from shared object
+Oct 03, 2026 5:33:24 AM sun.util.locale.provider.LocaleProviderAdapter <clinit>
+INFO: Invalid locale provider adapter "COMPAT" ignored.
+Oct 03, 2026 5:33:24 AM sun.util.locale.provider.LocaleProviderAdapter <clinit>
+WARNING: COMPAT locale provider has been removed
+2026.10.03 05:33:24 INFO  es[][o.e.b.Elasticsearch] version[9.4.3], pid[94], build[tar/45f6a06b1b441b41fe711059b8720013173e7c89/2026-06-25T14:04:34.316306228Z], OS[Linux/6.8.0-138-generic/amd64], JVM[Eclipse Adoptium/OpenJDK 64-Bit Server VM/25.0.4.1/25.0.4.1+1-LTS]
+2026.10.03 05:33:24 INFO  es[][o.e.b.Elasticsearch] JVM home [/opt/java/openjdk], using bundled JDK [false]
+2026.10.03 05:33:24 INFO  es[][o.e.b.Elasticsearch] JVM arguments [-Des.networkaddress.cache.ttl=60, -Des.networkaddress.cache.negative.ttl=10, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -XX:-OmitStackTraceInFastThrow, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, --add-opens=org.apache.lucene.core/org.apache.lucene.codecs.lucene99=org.elasticsearch.server, --add-opens=org.apache.lucene.core/org.apache.lucene.codecs.hnsw=org.elasticsearch.server, --add-opens=org.apache.lucene.core/org.apache.lucene.internal.vectorization=org.elasticsearch.server, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j2.formatMsgNoLookups=true, -Djava.locale.providers=CLDR, -Dorg.apache.lucene.vectorization.upperJavaFeatureVersion=25, -Des.path.home=/opt/sonarqube/elasticsearch, -Des.distribution.type=tar, -Des.java.type=ES_JAVA_HOME, --enable-native-access=org.elasticsearch.nativeaccess,org.apache.lucene.core, --enable-native-access=ALL-UNNAMED, --illegal-native-access=deny, -XX:ReplayDataFile=logs/replay_pid%p.log, -XX:+EnableDynamicAgentLoading, -Djdk.attach.allowAttachSelf=true, --patch-module=java.base=/opt/sonarqube/elasticsearch/lib/entitlement-bridge/elasticsearch-entitlement-bridge-9.4.3.jar, --add-exports=java.base/org.elasticsearch.entitlement.bridge=org.elasticsearch.entitlement,java.logging,java.net.http,java.naming,jdk.net,jdk.zipfs,jdk.management.agent, -XX:+UseG1GC, -Djava.io.tmpdir=/opt/sonarqube/temp, -XX:ErrorFile=/opt/sonarqube/logs/es_hs_err_pid%p.log, -Xlog:disable, -Des.networkaddress.cache.ttl=60, -Des.networkaddress.cache.negative.ttl=10, -XX:+AlwaysPreTouch, -Xss1m, -Djava.awt.headless=true, -Dfile.encoding=UTF-8, -Djna.nosys=true, -Djna.tmpdir=/opt/sonarqube/temp, -XX:-OmitStackTraceInFastThrow, -Dio.netty.noUnsafe=true, -Dio.netty.noKeySetOptimization=true, -Dio.netty.recycler.maxCapacityPerThread=0, -Dio.netty.allocator.numDirectArenas=0, -Dlog4j.shutdownHookEnabled=false, -Dlog4j2.disable.jmx=true, -Dlog4j2.formatMsgNoLookups=true, -Djava.locale.providers=COMPAT, -Xmx512m, -Xms512m, -XX:MaxDirectMemorySize=256m, -XX:+HeapDumpOnOutOfMemoryError, -XX:G1HeapRegionSize=4m, -XX:InitiatingHeapOccupancyPercent=30, -XX:G1ReservePercent=15, --module-path=/opt/sonarqube/elasticsearch/lib, --add-modules=jdk.net, --add-modules=jdk.management.agent, --add-modules=ALL-MODULE-PATH, -Djdk.module.main=org.elasticsearch.server]
+2026.10.03 05:33:24 INFO  es[][o.e.b.Elasticsearch] Default Locale [en_US]
+2026.10.03 05:33:24 INFO  es[][o.e.n.j.JdkVectorLibrary] vec_caps=1
+2026.10.03 05:33:24 INFO  es[][o.e.n.NativeAccess] Using native vector library; to disable start with -Dorg.elasticsearch.nativeaccess.enableVectorLibrary=false
+2026.10.03 05:33:24 INFO  es[][o.e.n.NativeAccess] Using [jdk] native provider and native methods for [Linux]
+2026.10.03 05:33:24 WARN  es[][o.a.l.i.v.VectorizationProvider] Java vector incubator module is not readable. For optimal vector performance, pass '--add-modules jdk.incubator.vector' to enable Vector API.
+2026.10.03 05:33:24 INFO  es[][o.e.b.Elasticsearch] Bootstrapping Entitlements
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-core]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-migrate]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [rest-root]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [reindex]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-redact]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-security]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-geoip-enterprise-downloader]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [lang-painless]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [rank-vectors]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-esql-core]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [parent-join]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [old-lucene-versions]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [counted-keyword]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [x-pack-inference]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [analysis-common]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [dot-prefix-validation]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [health-shards-availability]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [transport-netty4]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [apm]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [aggregations]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [ingest-common]
+2026.10.03 05:33:27 INFO  es[][o.e.p.PluginsService] loaded module [user-agent]
+2026.10.03 05:33:28 INFO  es[][o.e.e.NodeEnvironment] using [1] data paths, mounts [[/opt/sonarqube/data (tmpfs)]], net usable_space [1023.9mb], net total_space [1gb], types [tmpfs]
+2026.10.03 05:33:28 INFO  es[][o.e.e.NodeEnvironment] heap size [512mb], compressed ordinary object pointers [true]
+2026.10.03 05:33:28 INFO  es[][o.e.n.Node] node name [sonarqube], node ID [NjQvTlsAQlmcchictN-HZA], cluster name [sonarqube], roles [data_cold, data, remote_cluster_client, master, data_warm, data_content, transform, data_hot, ml, data_frozen, ingest]
+2026.10.03 05:33:30 INFO  es[][o.e.f.FeatureService] Registered local node features [ES_V_8, ES_V_9, aggregate_metric_double.default_metric.deprecated, certificate_identity_field, cluster.reroute.ignores_metric_param, cluster.stats.source_modes, inference.auth_poller.persistent_task, inference.ccm.cache, inference.ccm.enablement_service, inference.embedding_task_type, inference.endpoint.cache, inference.metadata_field, ingest.field_access_pattern, lucene_10_1_upgrade, lucene_10_upgrade, resolve_index_returns_mode, security.queryable_built_in_roles, security_stats_endpoint, simulate.ignored.fields, snapshots.get.state_parameter]
+2026.10.03 05:33:30 INFO  es[][o.e.i.r.RecoverySettings] using rate limit [40mb] with [default=40mb, read=0b, write=0b, max=0b]
+2026.10.03 05:33:30 INFO  es[][o.e.c.m.DataStreamGlobalRetentionSettings] Updated global default retention to [null]
+2026.10.03 05:33:30 INFO  es[][o.e.c.m.DataStreamGlobalRetentionSettings] Updated global max retention to [null]
+2026.10.03 05:33:30 INFO  es[][o.e.c.m.DataStreamGlobalRetentionSettings] Updated failures default retention to [30d]
+2026.10.03 05:33:30 INFO  es[][o.e.c.m.DataStreamFailureStoreSettings] Updated data stream name patterns for enabling failure store to [[]]
+2026.10.03 05:33:30 INFO  es[][o.e.x.s.Security] Security is disabled
+2026.10.03 05:33:30 INFO  es[][o.e.x.i.s.e.a.AuthorizationTaskExecutor] Authorization task executor EIS URL: [https://inference.us-east-1.aws.svc.elastic.cloud]
+2026.10.03 05:33:30 INFO  es[][o.e.x.i.s.e.a.AuthorizationTaskExecutor] Starting authorization task executor
+2026.10.03 05:33:30 INFO  es[][o.e.t.a.APM] Sending apm metrics is disabled
+2026.10.03 05:33:30 INFO  es[][o.e.t.a.APM] Sending apm tracing is disabled
+2026.10.03 05:33:30 INFO  es[][o.e.t.n.NettyAllocator] creating NettyAllocator with the following configs: [name=unpooled, suggested_max_allocation_size=1mb, factors={es.unsafe.use_unpooled_allocator=null, g1gc_enabled=true, g1gc_region_size=4mb, heap_size=512mb}]
+2026.10.03 05:33:30 INFO  es[][o.e.d.DiscoveryModule] using discovery type [single-node] and seed hosts providers [settings]
+2026.10.03 05:33:31 INFO  es[][o.e.n.Node] initialized
+2026.10.03 05:33:31 INFO  es[][o.e.n.Node] starting ...
+2026.10.03 05:33:31 INFO  es[][o.e.t.TransportService] publish_address {127.0.0.1:35151}, bound_addresses {127.0.0.1:35151}
+2026.10.03 05:33:31 INFO  es[][o.e.c.c.ClusterBootstrapService] this node has not joined a bootstrapped cluster yet; [cluster.initial_master_nodes] is set to [sonarqube]
+2026.10.03 05:33:31 INFO  es[][o.e.c.c.Coordinator] setting initial configuration to VotingConfiguration[NjQvTlsAQlmcchictN-HZA]
+2026.10.03 05:33:31 WARN  es[][i.o.usage] OpenTelemetry API usage issue detected. To see more details, enable FINEST logging for io.opentelemetry.usage. Stacktraces are includes to identify the offending call site.
+2026.10.03 05:33:31 INFO  es[][o.e.c.s.MasterService] elected-as-master ([1] nodes joined in term 1)[_FINISH_ELECTION_, {sonarqube}{NjQvTlsAQlmcchictN-HZA}{6j9jYZxkTuOQnsGSKILxsw}{sonarqube}{127.0.0.1}{127.0.0.1:35151}{cdfhilmrstw}{9.4.3}{8000099-9094000} completing election], term: 1, version: 1, delta: master node changed {previous [], current [{sonarqube}{NjQvTlsAQlmcchictN-HZA}{6j9jYZxkTuOQnsGSKILxsw}{sonarqube}{127.0.0.1}{127.0.0.1:35151}{cdfhilmrstw}{9.4.3}{8000099-9094000}]}
+2026.10.03 05:33:31 INFO  es[][o.e.c.c.CoordinationState] cluster UUID set to [DW2yXwTeQvijGgrcC81AVg]
+2026.10.03 05:33:31 INFO  es[][o.e.c.s.ClusterApplierService] master node changed {previous [], current [{sonarqube}{NjQvTlsAQlmcchictN-HZA}{6j9jYZxkTuOQnsGSKILxsw}{sonarqube}{127.0.0.1}{127.0.0.1:35151}{cdfhilmrstw}{9.4.3}{8000099-9094000}]}, term: 1, version: 1, reason: Publication{term=1, version=1}
+2026.10.03 05:33:31 INFO  es[][o.e.c.c.NodeJoinExecutor] node-join: [{sonarqube}{NjQvTlsAQlmcchictN-HZA}{6j9jYZxkTuOQnsGSKILxsw}{sonarqube}{127.0.0.1}{127.0.0.1:35151}{cdfhilmrstw}{9.4.3}{8000099-9094000}] with reason [completing election]
+2026.10.03 05:33:31 INFO  es[][o.e.h.AbstractHttpServerTransport] publish_address {127.0.0.1:9001}, bound_addresses {127.0.0.1:9001}
+2026.10.03 05:33:31 INFO  es[][o.e.n.Node] started {sonarqube}{NjQvTlsAQlmcchictN-HZA}{6j9jYZxkTuOQnsGSKILxsw}{sonarqube}{127.0.0.1}{127.0.0.1:35151}{cdfhilmrstw}{9.4.3}{8000099-9094000}{xpack.installed=true, rack_id=sonarqube}
+2026.10.03 05:33:31 INFO  es[][o.e.c.f.AbstractFileWatchingService] starting file watcher ...
+2026.10.03 05:33:31 WARN  es[][o.e.x.i.s.e.ElasticsearchInternalService] Get deployment stats failed, cannot update the endpoint's number of allocations
+java.lang.IllegalStateException: failed to find action [cluster:internal/xpack/ml/trained_models/deployments/stats/get] to execute
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.node.NodeClient.transportAction(NodeClient.java:136)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.node.NodeClient.executeLocally(NodeClient.java:109)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.node.NodeClient.doExecute(NodeClient.java:85)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.support.AbstractClient.execute(AbstractClient.java:160)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.FilterClient.doExecute(FilterClient.java:57)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.OriginSettingClient.doExecute(OriginSettingClient.java:44)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.client.internal.support.AbstractClient.execute(AbstractClient.java:160)
+	at org.elasticsearch.inference@9.4.3/org.elasticsearch.xpack.inference.services.elasticsearch.ElasticsearchInternalService.updateModelsWithDynamicFields(ElasticsearchInternalService.java:901)
+	at org.elasticsearch.inference@9.4.3/org.elasticsearch.xpack.inference.action.TransportGetInferenceModelAction.parseModels(TransportGetInferenceModelAction.java:164)
+	at org.elasticsearch.inference@9.4.3/org.elasticsearch.xpack.inference.action.TransportGetInferenceModelAction.lambda$getAllModels$2(TransportGetInferenceModelAction.java:119)
+	at org.elasticsearch.server@9.4.3/org.elasticsearch.common.util.concurrent.ThreadContext$ContextPreservingRunnable.run(ThreadContext.java:1047)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+2026.10.03 05:33:31 INFO  es[][o.e.c.f.AbstractFileWatchingService] file settings service up and running [tid=50]
+2026.10.03 05:33:31 INFO  es[][o.e.r.s.FileSettingsService] setting file [/opt/sonarqube/data/es9/config/operator/settings.json] not found, initializing [file_settings] as empty
+2026.10.03 05:33:31 INFO  es[][o.e.g.GatewayService] recovered [0] indices into cluster_state
+2026.10.03 05:33:31 INFO  es[][o.e.x.c.t.IndexTemplateRegistry] adding ingest pipeline reindex-data-stream-pipeline
+2026.10.03 05:33:32 INFO  app[][o.s.a.SchedulerImpl] Process[es] is up
+2026.10.03 05:33:32 INFO  app[][o.s.a.ProcessLauncherImpl] Launch process[WEB_SERVER] from [/opt/sonarqube]: /opt/java/openjdk/bin/java -Djava.awt.headless=true -Dfile.encoding=UTF-8 -Djava.io.tmpdir=/opt/sonarqube/temp -XX:-OmitStackTraceInFastThrow --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.management/sun.management=ALL-UNNAMED --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED -Xmx512m -Xms128m -XX:+HeapDumpOnOutOfMemoryError -Dhttp.nonProxyHosts=localhost|127.*|[::1] -cp ./lib/sonar-application-26.9.0.129388.jar:/opt/sonarqube/lib/jdbc/h2/h2-2.3.232.jar org.sonar.server.app.WebServer /opt/sonarqube/temp/sq-process14955720003761340495properties
+2026.10.03 05:33:32 INFO  es[][o.e.l.ClusterStateLicenseService] license [13a9a142-a669-435b-8a1f-2b5ff6e8f9ba] mode [basic] - valid
+2026.10.03 05:33:32 INFO  es[][o.e.h.n.s.HealthNodeTaskExecutor] Node [NjQvTlsAQlmcchictN-HZA/sonarqube] is selected as the current health node.
+2026.10.03 05:33:32 INFO  web[][o.s.p.ProcessEntryPoint] Starting Web Server
+2026.10.03 05:33:32 INFO  web[][o.s.s.a.TomcatHttpConnectorFactory] Starting Tomcat on port 9000
+2026.10.03 05:33:33 WARN  web[][o.a.c.c.StandardHost] appBase on host [localhost] is a parent folder of CATALINA_BASE, which is a bad idea
+2026.10.03 05:33:33 INFO  web[][o.s.s.p.LogServerVersion] SonarQube Server / 26.9.0.129388 / 7d3af781ec381ac1de3193498ffc6ff1dbd362c6
+2026.10.03 05:33:33 INFO  web[][o.s.s.p.d.EmbeddedDatabase] Starting embedded database on port 9092 with url jdbc:h2:tcp://127.0.0.1:9092/sonar;NON_KEYWORDS=VALUE
+2026.10.03 05:33:33 INFO  web[][o.s.s.p.d.EmbeddedDatabase] Embedded database started. Data stored in: /opt/sonarqube/data
+2026.10.03 05:33:33 INFO  web[][o.s.d.DefaultDatabase] Create JDBC data source for jdbc:h2:tcp://127.0.0.1:9092/sonar;NON_KEYWORDS=VALUE
+2026.10.03 05:33:33 INFO  web[][c.z.h.HikariDataSource] HikariPool-1 - Starting...
+2026.10.03 05:33:33 INFO  web[][c.z.h.p.HikariPool] HikariPool-1 - Added connection conn2: url=jdbc:h2:tcp://127.0.0.1:9092/sonar user=
+2026.10.03 05:33:33 INFO  web[][c.z.h.HikariDataSource] HikariPool-1 - Start completed.
+2026.10.03 05:33:33 WARN  web[][o.s.db.dialect.H2] H2 database should be used for evaluation purpose only.
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerFileSystemImpl] SonarQube home: /opt/sonarqube
+2026.10.03 05:33:34 INFO  web[][o.s.s.u.SystemPasscodeImpl] System authentication by passcode is disabled
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.d.m.h.MigrationHistoryTableImpl] Creating table schema_migrations
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy C# Code Quality and Security / 10.33.0.1635 / ea106bc601532a89b0ef80a86ec5b7b1ff3b7239
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Clean as You Code / 2.6.0.3665 / 55c5ecf4a75806328950c2526ed2660a69e5376b
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Flex Code Quality and Security / 2.18.0.6281 / 84cf021e37206d01e7f04ffe7172c40d0ee8ad85
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Go Code Quality and Security / 1.43.0.7704 / 3ceaf273e5cc26e33e28ef563f016b44a8f4f76a
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy HTML Code Quality and Security / 3.31.0.8334 / 420801ca5fcfd5d9875890ed46a6f152e58b0588
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy IaC Code Quality and Security / 2.16.0.22905 / null
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy JaCoCo / 1.6.0.5741 / d7ac50ea711e3321dabc2e4fbb7edf757507f892
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Java Advanced Code Quality Analyzer / 8.16.4.1912 / 8d1b73d26c83a998d7af4e4a8f10587654f2e12c
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Java Code Quality and Security / 8.41.0.47177 / 68605929e2ce0013fdbe7852937ab4e5681c411e
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy JavaScript/TypeScript/CSS Code Quality and Security / 13.8.0.44569 / 1eea9253f87b448684d1089dc7160eca388b21b6
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Kotlin Code Quality and Security / 3.9.0.9809 / de1144c967cef5fc537294d603aacdbba6bd91de
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy PHP Code Quality and Security / 3.60.0.16641 / null
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Python Code Quality and Security / 5.31.0.36502 / 67630d25ba3983fc0846795621935c475e761e80
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Ruby Code Quality and Security / 1.25.0.2597 / 310fea768e3c269667a008954d18844366fe2451
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Rust Code Quality and Security / 1.8.1.3395 / null
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Scala Code Quality and Security / 1.24.0.2554 / f8e0a83baf34dbe3fb8313eca792f0abd6e47ff5
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy Text Code Quality and Security / 2.49.0.12346 / null
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy VB.NET Code Quality and Security / 10.33.0.1635 / ea106bc601532a89b0ef80a86ec5b7b1ff3b7239
+2026.10.03 05:33:34 INFO  web[][o.s.s.p.ServerPluginManager] Deploy XML Code Quality and Security / 2.19.0.8138 / 86bebf89b5b8a93074cfdeff8437fabe40974701
+2026.10.03 05:33:35 INFO  web[][o.s.s.e.EsClientProvider] Connected to local Elasticsearch: [http://localhost:9001]
+2026.10.03 05:33:35 INFO  web[][o.s.s.p.d.m.AutoDbMigration] Automatically perform DB migration on fresh install
+2026.10.03 05:33:35 INFO  web[][DbMigrations] Executing 97 DB migrations...
+2026.10.03 05:33:35 INFO  web[][DbMigrations] 1/97 #1 'Create initial schema'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 1/97 #1 'Create initial schema': success | time=308ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 2/97 #2 'Populate initial schema'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 2/97 #2 'Populate initial schema': success | time=42ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 3/97 #202601000 'Create 'components_copy_component_uuid' index'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 3/97 #202601000 'Create 'components_copy_component_uuid' index': success | time=5ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 4/97 #202601001 'Populate the 'analyses.counter.date' internal property'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 4/97 #202601001 'Populate the 'analyses.counter.date' internal property': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 5/97 #202601002 'Create unique partial index on 'snapshots' for root_component_uuid where islast = true'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 5/97 #202601002 'Create unique partial index on 'snapshots' for root_component_uuid where islast = true': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 6/97 #202601003 'Add 'part_number' column to 'ce_task_input''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 6/97 #202601003 'Add 'part_number' column to 'ce_task_input'': success | time=22ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 7/97 #202601004 'Add 'part_count' column to 'ce_queue''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 7/97 #202601004 'Add 'part_count' column to 'ce_queue'': success | time=9ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 8/97 #202602000 'Create 'sca_ir_cve_locations' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 8/97 #202602000 'Create 'sca_ir_cve_locations' table': success | time=6ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 9/97 #202602001 'Create 'integration_bindings' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 9/97 #202602001 'Create 'integration_bindings' table': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 10/97 #202603000 'Add epss_score, epss_percentile, known_exploited columns to 'sca_vulnerability_issues''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 10/97 #202603000 'Add epss_score, epss_percentile, known_exploited columns to 'sca_vulnerability_issues'': success | time=7ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 11/97 #202603001 'Alter 'sca_analyses.failed_reason' column type to clob'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 11/97 #202603001 'Alter 'sca_analyses.failed_reason' column type to clob': success | time=22ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 12/97 #202603002 'Add GitLab Planner role permission mapping'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 12/97 #202603002 'Add GitLab Planner role permission mapping': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 13/97 #202603003 'Add GitLab Security Manager role permission mapping'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 13/97 #202603003 'Add GitLab Security Manager role permission mapping': success | time=4ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 14/97 #202603004 'Add 'component_uuid' column to 'sca_issues_releases' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 14/97 #202603004 'Add 'component_uuid' column to 'sca_issues_releases' table': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 15/97 #202603005 'Backfill 'component_uuid' on 'sca_issues_releases' from 'sca_releases''...
+2026.10.03 05:33:36 INFO  web[][o.s.s.p.d.m.v.v.BackfillComponentUuidOnScaIssuesReleases] No rows require component_uuid backfill in sca_issues_releases
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 15/97 #202603005 'Backfill 'component_uuid' on 'sca_issues_releases' from 'sca_releases'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 16/97 #202603006 'Make 'sca_issues_releases.component_uuid' not nullable'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 16/97 #202603006 'Make 'sca_issues_releases.component_uuid' not nullable': success | time=5ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 17/97 #202603007 'Create 'admin_alert_status' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 17/97 #202603007 'Create 'admin_alert_status' table': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 18/97 #202604000 'Drop redundant unique index 'uniq_iss_key_sof_qual' on 'issues_impacts''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 18/97 #202604000 'Drop redundant unique index 'uniq_iss_key_sof_qual' on 'issues_impacts'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 19/97 #202604001 'Drop redundant unique index 'uniq_rul_uuid_sof_qual' on 'rules_default_impacts''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 19/97 #202604001 'Drop redundant unique index 'uniq_rul_uuid_sof_qual' on 'rules_default_impacts'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 20/97 #202604002 'Rename index 'uniq_iss_key_sof_qual' to 'pk_issues_impacts' on Oracle'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 20/97 #202604002 'Rename index 'uniq_iss_key_sof_qual' to 'pk_issues_impacts' on Oracle': success | time=0ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 21/97 #202604003 'Rename index 'uniq_rul_uuid_sof_qual' to 'pk_rules_default_impacts' on Oracle'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 21/97 #202604003 'Rename index 'uniq_rul_uuid_sof_qual' to 'pk_rules_default_impacts' on Oracle': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 22/97 #202604004 'Drop redundant index 'issue_changes_issue_key' on 'issue_changes''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 22/97 #202604004 'Drop redundant index 'issue_changes_issue_key' on 'issue_changes'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 23/97 #202604005 'Create index 'sca_issues_updated_at' on 'sca_issues.updated_at''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 23/97 #202604005 'Create index 'sca_issues_updated_at' on 'sca_issues.updated_at'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 24/97 #202604006 'Create index 'sca_releases_updated_at' on 'sca_releases.updated_at''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 24/97 #202604006 'Create index 'sca_releases_updated_at' on 'sca_releases.updated_at'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 25/97 #202604007 'Create index 'sca_issues_releases_updated_at' on 'sca_issues_releases.updated_at''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 25/97 #202604007 'Create index 'sca_issues_releases_updated_at' on 'sca_issues_releases.updated_at'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 26/97 #202604008 'Set portfolios as private when their matching component is private'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 26/97 #202604008 'Set portfolios as private when their matching component is private': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 27/97 #202604009 'Decommission 'Sonar way for AI Code' quality gate'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 27/97 #202604009 'Decommission 'Sonar way for AI Code' quality gate': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 28/97 #202604010 'Add organization_uuid to sca_encountered_licenses and update unique index'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 28/97 #202604010 'Add organization_uuid to sca_encountered_licenses and update unique index': success | time=5ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 29/97 #202604011 'Create table 'architecture_models''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 29/97 #202604011 'Create table 'architecture_models'': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 30/97 #202604012 'Drop table 'architecture_graphs''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 30/97 #202604012 'Drop table 'architecture_graphs'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 31/97 #202604013 'Add architectureadmin permission to existing project admins'...
+2026.10.03 05:33:36 INFO  web[][o.s.s.p.d.m.s.MassUpdate] 0 rows processed (0 items/sec)
+2026.10.03 05:33:36 INFO  web[][o.s.s.p.d.m.s.MassUpdate] 0 rows processed (0 items/sec)
+2026.10.03 05:33:36 INFO  web[][o.s.s.p.d.m.s.MassUpdate] 0 rows processed (0 items/sec)
+2026.10.03 05:33:36 INFO  web[][o.s.s.p.d.m.s.MassUpdate] 0 rows processed (0 items/sec)
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 31/97 #202604013 'Add architectureadmin permission to existing project admins': success | time=9ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 32/97 #202604014 'Add 'signature_type' to 'sca_ir_cve_locations''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 32/97 #202604014 'Add 'signature_type' to 'sca_ir_cve_locations'': success | time=6ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 33/97 #202604015 'Create table 'arch_graph_metadata''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 33/97 #202604015 'Create table 'arch_graph_metadata'': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 34/97 #202604016 'Create table 'arch_graph_blobs''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 34/97 #202604016 'Create table 'arch_graph_blobs'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 35/97 #202604017 'Create table 'arch_scanner_data''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 35/97 #202604017 'Create table 'arch_scanner_data'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 36/97 #202604018 'Create table 'arch_directives''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 36/97 #202604018 'Create table 'arch_directives'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 37/97 #202604019 'Drop table 'architecture_models''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 37/97 #202604019 'Drop table 'architecture_models'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 38/97 #202604020 'Create table 'arch_intended''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 38/97 #202604020 'Create table 'arch_intended'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 39/97 #202604021 'Add 'origin' to 'arch_directives''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 39/97 #202604021 'Add 'origin' to 'arch_directives'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 40/97 #202605000 'Create table 'a3s_contexts''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 40/97 #202605000 'Create table 'a3s_contexts'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 41/97 #202605001 'Create table 'a3s_context_items''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 41/97 #202605001 'Create table 'a3s_context_items'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 42/97 #202605002 'Create table 'a3s_analysis_usages''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 42/97 #202605002 'Create table 'a3s_analysis_usages'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 43/97 #202605003 'Create table 'agent_schedules''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 43/97 #202605003 'Create table 'agent_schedules'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 44/97 #202605004 'Create table 'agent_sched_proc_issues''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 44/97 #202605004 'Create table 'agent_sched_proc_issues'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 45/97 #202605005 'Add 'reachability_analyzed' to 'sca_issues_releases''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 45/97 #202605005 'Add 'reachability_analyzed' to 'sca_issues_releases'': success | time=11ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 46/97 #202605006 'Seed global '*' row in 'agent_schedules''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 46/97 #202605006 'Seed global '*' row in 'agent_schedules'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 47/97 #202605007 'Create 'issue_count_dimensions' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 47/97 #202605007 'Create 'issue_count_dimensions' table': success | time=8ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 48/97 #202605008 'Create 'issue_count_history' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 48/97 #202605008 'Create 'issue_count_history' table': success | time=5ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 49/97 #202605009 'Create 'measure_key_mapping' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 49/97 #202605009 'Create 'measure_key_mapping' table': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 50/97 #202605010 'Create 'measure_history' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 50/97 #202605010 'Create 'measure_history' table': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 51/97 #202605011 'Increase issue_stats_by_rule_key.rule_key column size'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 51/97 #202605011 'Increase issue_stats_by_rule_key.rule_key column size': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 52/97 #202605012 'Create table 'sca_issue_dimensions''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 52/97 #202605012 'Create table 'sca_issue_dimensions'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 53/97 #202605013 'Create table 'sca_ttr_history''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 53/97 #202605013 'Create table 'sca_ttr_history'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 54/97 #202605014 'Make 'branch_name' nullable in 'a3s_contexts''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 54/97 #202605014 'Make 'branch_name' nullable in 'a3s_contexts'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 55/97 #202605015 'Add 'producer' column to 'issues' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 55/97 #202605015 'Add 'producer' column to 'issues' table': success | time=5ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 56/97 #202605016 'Create table 'agentic_job''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 56/97 #202605016 'Create table 'agentic_job'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 57/97 #202605017 'Create table 'llm_providers''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 57/97 #202605017 'Create table 'llm_providers'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 58/97 #202605018 'Create table 'llm_provider_mappings''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 58/97 #202605018 'Create table 'llm_provider_mappings'': success | time=4ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 59/97 #202605019 'Create table 'arch_boundary_descriptors''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 59/97 #202605019 'Create table 'arch_boundary_descriptors'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 60/97 #202605020 'Rename table 'arch_intended' to 'arch_models''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 60/97 #202605020 'Rename table 'arch_intended' to 'arch_models'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 61/97 #202605021 'Rename index 'arch_intended_uuid' to 'arch_models_uuid''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 61/97 #202605021 'Rename index 'arch_intended_uuid' to 'arch_models_uuid'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 62/97 #202605022 'Create table 'arch_patterns''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 62/97 #202605022 'Create table 'arch_patterns'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 63/97 #202605023 'Create table 'arch_model_patterns''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 63/97 #202605023 'Create table 'arch_model_patterns'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 64/97 #202605024 'Rename constraint 'pk_arch_intended' to 'pk_arch_models''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 64/97 #202605024 'Rename constraint 'pk_arch_intended' to 'pk_arch_models'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 65/97 #202605025 'Create table 'arch_org_placeholders''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 65/97 #202605025 'Create table 'arch_org_placeholders'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 66/97 #202605026 'Create table 'arch_proj_relations''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 66/97 #202605026 'Create table 'arch_proj_relations'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 67/97 #202605027 'Create table 'arch_proj_org_compo''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 67/97 #202605027 'Create table 'arch_proj_org_compo'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 68/97 #202605028 'Create 'dashboards' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 68/97 #202605028 'Create 'dashboards' table': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 69/97 #202605029 'Create table 'issue_ttr_history''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 69/97 #202605029 'Create table 'issue_ttr_history'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 70/97 #202605030 'Drop index 'sca_ttr_history_uq_idx''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 70/97 #202605030 'Drop index 'sca_ttr_history_uq_idx'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 71/97 #202605031 'Drop index 'sca_ttr_history_ent_type_epoch''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 71/97 #202605031 'Drop index 'sca_ttr_history_ent_type_epoch'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 72/97 #202605032 'Resize entity_id and entity_type columns in 'sca_ttr_history''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 72/97 #202605032 'Resize entity_id and entity_type columns in 'sca_ttr_history'': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 73/97 #202605033 'Add 'url' and 'repo_id' columns to 'project_alm_settings' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 73/97 #202605033 'Add 'url' and 'repo_id' columns to 'project_alm_settings' table': success | time=5ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 74/97 #202605034 'Create index 'sca_dependencies_updated_at' on 'sca_dependencies.updated_at''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 74/97 #202605034 'Create index 'sca_dependencies_updated_at' on 'sca_dependencies.updated_at'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 75/97 #202605035 'Create index 'sca_ir_cve_loc_updated_at' on 'sca_ir_cve_locations.updated_at''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 75/97 #202605035 'Create index 'sca_ir_cve_loc_updated_at' on 'sca_ir_cve_locations.updated_at'': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 76/97 #202605036 'Create 'agent_jobs' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 76/97 #202605036 'Create 'agent_jobs' table': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 77/97 #202605037 'Create 'remediation_agent_jobs' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 77/97 #202605037 'Create 'remediation_agent_jobs' table': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 78/97 #202605038 'Drop 'agentic_job' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 78/97 #202605038 'Drop 'agentic_job' table': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 79/97 #202605039 'Create 'findings' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 79/97 #202605039 'Create 'findings' table': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 80/97 #202605040 'Create 'finding_locations' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 80/97 #202605040 'Create 'finding_locations' table': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 81/97 #202605041 'Create 'organization_configs' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 81/97 #202605041 'Create 'organization_configs' table': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 82/97 #202605042 'Create 'project_configs' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 82/97 #202605042 'Create 'project_configs' table': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 83/97 #202605043 'Add 'selected_project_ids' column to 'agent_schedules' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 83/97 #202605043 'Add 'selected_project_ids' column to 'agent_schedules' table': success | time=10ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 84/97 #202605044 'Add 'dop_user_id' column to 'remediation_agent_jobs' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 84/97 #202605044 'Add 'dop_user_id' column to 'remediation_agent_jobs' table': success | time=4ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 85/97 #202605045 'Add 'issues_selection_strategy' column to 'remediation_agent_jobs' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 85/97 #202605045 'Add 'issues_selection_strategy' column to 'remediation_agent_jobs' table': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 86/97 #202605046 'Create 'hunter_scheduled_tasks' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 86/97 #202605046 'Create 'hunter_scheduled_tasks' table': success | time=4ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 87/97 #202605047 'Make legacy-id columns nullable in 'project_configs''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 87/97 #202605047 'Make legacy-id columns nullable in 'project_configs'': success | time=6ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 88/97 #202605048 'Create 'agent_orch_tasks' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 88/97 #202605048 'Create 'agent_orch_tasks' table': success | time=4ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 89/97 #202605049 'Create 'remediation_sched_tasks' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 89/97 #202605049 'Create 'remediation_sched_tasks' table': success | time=4ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 90/97 #202605050 'Create table 'cag_usage''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 90/97 #202605050 'Create table 'cag_usage'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 91/97 #202605051 'Create 'hunter_agent_jobs' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 91/97 #202605051 'Create 'hunter_agent_jobs' table': success | time=1ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 92/97 #202605052 'Create 'dop_pr_snapshots' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 92/97 #202605052 'Create 'dop_pr_snapshots' table': success | time=6ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 93/97 #202605053 'Create 'hunter_agent_runs' table'...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 93/97 #202605053 'Create 'hunter_agent_runs' table': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 94/97 #202605054 'Create index 'group_roles_ent_role_grp' on 'group_roles''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 94/97 #202605054 'Create index 'group_roles_ent_role_grp' on 'group_roles'': success | time=4ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 95/97 #202605055 'Add the rule body to 'findings''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 95/97 #202605055 'Add the rule body to 'findings'': success | time=3ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 96/97 #202605056 'Add flow metadata to 'finding_locations''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 96/97 #202605056 'Add flow metadata to 'finding_locations'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 97/97 #202605057 'Add 'expected_credits' to 'agent_jobs''...
+2026.10.03 05:33:36 INFO  web[][DbMigrations] 97/97 #202605057 'Add 'expected_credits' to 'agent_jobs'': success | time=2ms
+2026.10.03 05:33:36 INFO  web[][DbMigrations] Executed 97/97 DB migrations: success | time=733ms
+2026.10.03 05:33:36 INFO  web[][o.s.s.p.Platform] Database has been automatically updated
+2026.10.03 05:33:36 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.WebServiceFilter@595814a1 [pattern=UrlPattern{inclusions=[/api/system/migrate_db.*, ...], exclusions=[/api/components/update_key, ...]}]
+2026.10.03 05:33:36 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.NoCacheFilter@48368a08 [pattern=UrlPattern{inclusions=[/api/v2/*], exclusions=[]}]
+2026.10.03 05:33:36 INFO  web[][o.s.s.p.DetectPluginChange] Detect plugin changes
+2026.10.03 05:33:36 INFO  web[][o.s.s.s.PropertiesDBCleaner] Clean up properties from db
+2026.10.03 05:33:38 INFO  web[][o.s.s.e.IndexCreator] Create index [metadatas]
+2026.10.03 05:33:38 INFO  web[][o.h.v.i.util.Version] HV000001: Hibernate Validator 9.1.0.Final
+2026.10.03 05:33:38 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [metadatas] in project [default], cause [api], templates [], shards [1]/[0]
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by com.google.protobuf.UnsafeUtil (file:/opt/sonarqube/lib/sonar-application-26.9.0.129388.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.protobuf.UnsafeUtil
+WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release
+2026.10.03 05:33:38 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[metadatas][0]]])." previous.health="YELLOW" reason="shards started [[metadatas][0]]"
+2026.10.03 05:33:39 INFO  web[][o.s.s.e.IndexCreator] Create mapping metadatas
+2026.10.03 05:33:39 INFO  es[][o.e.c.m.MetadataMappingService] [metadatas/OOBpXyWWRm24-_XfuE89KA] create_mapping
+2026.10.03 05:33:39 INFO  web[][o.s.s.e.IndexCreator] Create index [components]
+2026.10.03 05:33:39 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [components] in project [default], cause [api], templates [], shards [5]/[0]
+2026.10.03 05:33:39 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[components][4]]])." previous.health="YELLOW" reason="shards started [[components][4]]"
+2026.10.03 05:33:39 INFO  web[][o.s.s.e.IndexCreator] Create mapping components
+2026.10.03 05:33:39 INFO  es[][o.e.c.m.MetadataMappingService] [components/n1ijNnInSlC3m8C4vX0ezA] create_mapping
+2026.10.03 05:33:39 INFO  web[][o.s.s.e.IndexCreator] Create index [projectmeasures]
+2026.10.03 05:33:40 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [projectmeasures] in project [default], cause [api], templates [], shards [5]/[0]
+2026.10.03 05:33:40 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[projectmeasures][4]]])." previous.health="YELLOW" reason="shards started [[projectmeasures][4]]"
+2026.10.03 05:33:40 INFO  web[][o.s.s.e.IndexCreator] Create mapping projectmeasures
+2026.10.03 05:33:40 INFO  es[][o.e.c.m.MetadataMappingService] [projectmeasures/pj-b6odFQJSWzyVHw9rL_A] create_mapping
+2026.10.03 05:33:40 INFO  web[][o.s.s.e.IndexCreator] Create index [rules]
+2026.10.03 05:33:40 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [rules] in project [default], cause [api], templates [], shards [2]/[0]
+2026.10.03 05:33:40 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[rules][1]]])." previous.health="YELLOW" reason="shards started [[rules][1]]"
+2026.10.03 05:33:40 INFO  web[][o.s.s.e.IndexCreator] Create mapping rules
+2026.10.03 05:33:40 INFO  es[][o.e.c.m.MetadataMappingService] [rules/AjIZOil-S9KxiqMkUmPeWg] create_mapping
+2026.10.03 05:33:40 INFO  web[][o.s.s.e.IndexCreator] Create index [issues]
+2026.10.03 05:33:40 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [issues] in project [default], cause [api], templates [], shards [5]/[0]
+2026.10.03 05:33:40 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[issues][4]]])." previous.health="YELLOW" reason="shards started [[issues][4]]"
+2026.10.03 05:33:40 INFO  web[][o.s.s.e.IndexCreator] Create mapping issues
+2026.10.03 05:33:40 INFO  es[][o.e.c.m.MetadataMappingService] [issues/VteRqHa7T82KqdnmzFvIQg] create_mapping
+2026.10.03 05:33:40 INFO  web[][o.s.s.e.IndexCreator] Create index [views]
+2026.10.03 05:33:40 INFO  es[][o.e.c.m.MetadataCreateIndexService] creating index [views] in project [default], cause [api], templates [], shards [5]/[0]
+2026.10.03 05:33:40 INFO  es[][o.e.c.r.a.AllocationService] current.health="GREEN" message="Cluster health status changed from [YELLOW] to [GREEN] (reason: [shards started [[views][4]]])." previous.health="YELLOW" reason="shards started [[views][4]]"
+2026.10.03 05:33:40 INFO  web[][o.s.s.e.IndexCreator] Create mapping views
+2026.10.03 05:33:40 INFO  es[][o.e.c.m.MetadataMappingService] [views/ggr5W9cuQ7W8mDJ_8t15-Q] create_mapping
+2026.10.03 05:33:40 INFO  web[][o.s.s.s.LogServerId] Server ID: 147B411E-AaEAQOqX-HA7XBgy7A5E
+2026.10.03 05:33:41 INFO  web[][o.o.c.c.InitializationService] Initializing OpenSAML using the Java Services API
+2026.10.03 05:33:41 INFO  web[][o.o.x.a.AlgorithmRegistry] Algorithm failed runtime support check, will not be usable: http://www.w3.org/2001/04/xmlenc#ripemd160
+2026.10.03 05:33:41 INFO  web[][o.o.x.a.AlgorithmRegistry] Algorithm failed runtime support check, will not be usable: http://www.w3.org/2001/04/xmldsig-more#hmac-ripemd160
+2026.10.03 05:33:41 INFO  web[][o.o.x.a.AlgorithmRegistry] Algorithm failed runtime support check, will not be usable: http://www.w3.org/2001/04/xmldsig-more#rsa-ripemd160
+2026.10.03 05:33:41 WARN  web[][o.s.s.a.LogOAuthWarning] For security reasons, OAuth authentication should use HTTPS. You should set the property 'Administration > Configuration > Server base URL' to an HTTPS URL.
+2026.10.03 05:33:41 INFO  web[][o.s.s.p.UpdateCenterClient] Update center: https://downloads.sonarsource.com/sonarqube/update/update-center.properties
+2026.10.03 05:33:42 WARN  web[][o.s.a.s.w.WebService$Action] The response example is not set on action api/hotspots/migration_status
+2026.10.03 05:33:42 INFO  web[][o.s.s.a.p.ExpiredSessionsCleaner] Purge of expired session tokens has removed 0 elements
+2026.10.03 05:33:42 INFO  web[][o.s.s.a.p.ExpiredSessionsCleaner] Purge of expired SAML message ids has removed 0 elements
+2026.10.03 05:33:42 INFO  web[][o.s.s.n.NotificationDaemon] Notification service started (delay 60 sec.)
+2026.10.03 05:33:42 INFO  web[][o.s.t.TelemetryDaemon] Sharing of SonarQube statistics is enabled.
+2026.10.03 05:33:44 INFO  web[][o.s.s.r.r.RulesRegistrant] Register rules
+2026.10.03 05:33:46 INFO  web[][o.r.Reflections] Reflections took 98 ms to scan 1 urls, producing 30 keys and 295 values
+2026.10.03 05:33:53 WARN  es[][o.e.s.i.v.ESVectorizationProvider] Java vector incubator module is not readable. For optimal vector performance, pass '--add-modules jdk.incubator.vector' to enable Vector API.
+2026.10.03 05:34:08 INFO  web[][o.s.s.s.RegisterMetrics] Register metrics
+2026.10.03 05:34:08 INFO  web[][o.s.s.q.RegisterQualityGates] Quality Gate's conditions of [Sonar way] has been updated
+2026.10.03 05:34:08 INFO  web[][o.s.s.q.b.BuiltInQProfileRepositoryImpl] Load quality profiles
+2026.10.03 05:34:08 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register quality profiles
+2026.10.03 05:34:08 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile kubernetes/Sonar way
+2026.10.03 05:34:08 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile css/Sonar way
+2026.10.03 05:34:08 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile scala/Sonar way
+2026.10.03 05:34:08 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile jsp/Sonar way
+2026.10.03 05:34:08 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile js/Sonar agentic AI
+2026.10.03 05:34:09 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile js/Sonar way
+2026.10.03 05:34:09 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile py/Sonar way
+2026.10.03 05:34:09 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile py/Sonar agentic AI
+2026.10.03 05:34:09 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile docker/Sonar way
+2026.10.03 05:34:09 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile rust/Sonar way
+2026.10.03 05:34:09 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile java/Sonar way
+2026.10.03 05:34:10 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile java/Sonar agentic AI
+2026.10.03 05:34:10 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile web/Sonar way
+2026.10.03 05:34:10 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile flex/Sonar way
+2026.10.03 05:34:10 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile xml/Sonar way
+2026.10.03 05:34:10 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile json/Sonar way
+2026.10.03 05:34:10 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile ipynb/Sonar way
+2026.10.03 05:34:11 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile ipynb/Sonar agentic AI
+2026.10.03 05:34:11 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile text/Sonar way
+2026.10.03 05:34:11 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile vbnet/Sonar way
+2026.10.03 05:34:11 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile cloudformation/Sonar way
+2026.10.03 05:34:11 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile yaml/Sonar way
+2026.10.03 05:34:11 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile kotlin/Sonar way
+2026.10.03 05:34:11 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile go/Sonar way
+2026.10.03 05:34:11 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile secrets/Sonar way
+2026.10.03 05:34:11 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile ruby/Sonar way
+2026.10.03 05:34:11 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile cs/Sonar way
+2026.10.03 05:34:11 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile php/Sonar way
+2026.10.03 05:34:12 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile terraform/Sonar way
+2026.10.03 05:34:12 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile azureresourcemanager/Sonar way
+2026.10.03 05:34:12 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile ts/Sonar agentic AI
+2026.10.03 05:34:12 INFO  web[][o.s.s.q.RegisterQualityProfiles] Register profile ts/Sonar way
+2026.10.03 05:34:12 INFO  web[][o.s.s.s.RegisterPermissionTemplates] Register permission templates
+2026.10.03 05:34:12 INFO  web[][o.s.s.s.RenameDeprecatedPropertyKeys] Rename deprecated property keys
+2026.10.03 05:34:12 INFO  web[][o.s.s.s.RegisterPlugins] Register plugins
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.SonarQubeIdeConnectionFilter@367ecb90 [pattern=UrlPattern{inclusions=[/api/*], exclusions=[/api/v2/*]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.WebServiceFilter@293455be [pattern=UrlPattern{inclusions=[/api/issues/delete_comment.*, ...], exclusions=[/api/authentication/login.*, ...]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.NoCacheFilter@4bccfea3 [pattern=UrlPattern{inclusions=[/api/v2/*], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.platform.web.WebServiceReroutingFilter@bfd69fe [pattern=UrlPattern{inclusions=[/api/components/bulk_update_key, ...], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.DefaultAdminCredentialsVerifierFilter@4b9f115a [pattern=UrlPattern{inclusions=[/*], exclusions=[*.css, ...]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.InitFilter@400d3432 [pattern=UrlPattern{inclusions=[/sessions/init/*], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.SamlValidationRedirectionFilter@6c98f376 [pattern=UrlPattern{inclusions=[/oauth2/callback/saml], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.OAuth2CallbackFilter@c4ad582 [pattern=UrlPattern{inclusions=[/oauth2/callback/*], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.ResetPasswordFilter@3f6c0090 [pattern=UrlPattern{inclusions=[/*], exclusions=[*.css, ...]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.ws.LoginAction@36f1a26 [pattern=UrlPattern{inclusions=[/api/authentication/login], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.ws.LogoutAction@fd97b1c [pattern=UrlPattern{inclusions=[/api/authentication/logout], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.authentication.ws.ValidateAction@3d1caa12 [pattern=UrlPattern{inclusions=[/api/authentication/validate], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.saml.ws.ValidationInitAction@4034ea3a [pattern=UrlPattern{inclusions=[/saml/validation_init], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.saml.ws.ValidationAction@58132c80 [pattern=UrlPattern{inclusions=[/saml/validation], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.user.ws.ChangePasswordAction@16690feb [pattern=UrlPattern{inclusions=[/api/users/change_password], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.almsettings.ws.GithubManifestCallbackFilter@3dc15d13 [pattern=UrlPattern{inclusions=[/github/manifest/callback], exclusions=[]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.p.w.MasterServletFilter] Initializing servlet filter org.sonar.server.plugins.PluginsRiskConsentFilter@677d79ec [pattern=UrlPattern{inclusions=[/*], exclusions=[*.css, ...]}]
+2026.10.03 05:34:12 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [projectmeasures/auth/projectmeasure]...
+2026.10.03 05:34:12 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [projectmeasures/auth/projectmeasure] done | time=94ms
+2026.10.03 05:34:12 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [components/auth/component]...
+2026.10.03 05:34:12 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [components/auth/component] done | time=51ms
+2026.10.03 05:34:12 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [views/view]...
+2026.10.03 05:34:12 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of type [views/view] done | time=127ms
+2026.10.03 05:34:12 INFO  web[][o.s.s.e.IndexerStartupTask] Trigger asynchronous indexing of type [issues/auth/issue]...
+2026.10.03 05:34:12 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] 0 pending indexing task found to be deleted...
+2026.10.03 05:34:12 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] 0 completed indexing task found to be deleted...
+2026.10.03 05:34:12 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] Indexing task deletion complete.
+2026.10.03 05:34:12 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] Deleting tasks characteristics...
+2026.10.03 05:34:12 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] Tasks characteristics deletion complete.
+2026.10.03 05:34:12 INFO  web[][o.s.s.i.i.AsyncIssueIndexingImpl] 0 branch found in need of issue sync.
+2026.10.03 05:34:12 INFO  web[][o.s.s.e.IndexerStartupTask] Trigger asynchronous indexing of type [issues/auth/issue] done | time=46ms
+2026.10.03 05:34:13 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of types [components/auth],[projectmeasures/auth],[issues/auth]...
+2026.10.03 05:34:13 INFO  web[][o.s.s.e.IndexerStartupTask] Indexing of types [components/auth],[projectmeasures/auth],[issues/auth] done | time=90ms
+2026.10.03 05:34:13 INFO  web[][o.s.s.p.p.PlatformLevelStartup] Running Community Edition
+2026.10.03 05:34:13 INFO  app[][o.s.a.SchedulerImpl] Process[web] is up
+2026.10.03 05:34:13 INFO  app[][o.s.a.ProcessLauncherImpl] Launch process[COMPUTE_ENGINE] from [/opt/sonarqube]: /opt/java/openjdk/bin/java -Djava.awt.headless=true -Dfile.encoding=UTF-8 -Djava.io.tmpdir=/opt/sonarqube/temp -XX:-OmitStackTraceInFastThrow --add-opens=java.base/java.util=ALL-UNNAMED --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.management/sun.management=ALL-UNNAMED --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED -Xmx512m -Xms128m -XX:+HeapDumpOnOutOfMemoryError -Dhttp.nonProxyHosts=localhost|127.*|[::1] -cp ./lib/sonar-application-26.9.0.129388.jar:/opt/sonarqube/lib/jdbc/h2/h2-2.3.232.jar org.sonar.ce.app.CeServer /opt/sonarqube/temp/sq-process15218892377100310331properties
+2026.10.03 05:34:13 WARN  app[][startup] ####################################################################################################################
+2026.10.03 05:34:13 WARN  app[][startup] Default Administrator credentials are still being used. Make sure to change the password or deactivate the account.
+2026.10.03 05:34:13 WARN  app[][startup] ####################################################################################################################
+2026.10.03 05:34:13 INFO  web[][o.s.s.p.Platform] Web Server is operational
+2026.10.03 05:34:13 INFO  ce[][o.s.p.ProcessEntryPoint] Starting Compute Engine
+2026.10.03 05:34:13 INFO  ce[][o.s.ce.app.CeServer] Compute Engine starting up...
+2026.10.03 05:34:13 INFO  ce[][o.s.d.DefaultDatabase] Create JDBC data source for jdbc:h2:tcp://127.0.0.1:9092/sonar;NON_KEYWORDS=VALUE
+2026.10.03 05:34:13 INFO  ce[][c.z.h.HikariDataSource] HikariPool-1 - Starting...
+2026.10.03 05:34:13 INFO  ce[][c.z.h.p.HikariPool] HikariPool-1 - Added connection conn0: url=jdbc:h2:tcp://127.0.0.1:9092/sonar user=
+2026.10.03 05:34:13 INFO  ce[][c.z.h.HikariDataSource] HikariPool-1 - Start completed.
+2026.10.03 05:34:13 WARN  ce[][o.s.db.dialect.H2] H2 database should be used for evaluation purpose only.
+2026.10.03 05:34:14 INFO  ce[][o.s.s.p.ServerFileSystemImpl] SonarQube home: /opt/sonarqube
+2026.10.03 05:34:15 INFO  ce[][o.s.c.c.CePluginRepository] Load plugins
+2026.10.03 05:34:15 WARN  ce[][o.s.c.a.AnnotationConfigApplicationContext] Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'jdk.internal.loader.ClassLoaders$AppClassLoader@5bc2b487-org.sonar.ce.container.CePluginRepository': Fail to unzip plugin [sonarscala] /opt/sonarqube/lib/extensions/sonar-scala-plugin-1.24.0.2554.jar to /opt/sonarqube/temp/ce-exploded-plugins/sonarscala
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'jdk.internal.loader.ClassLoaders$AppClassLoader@5bc2b487-org.sonar.ce.container.CePluginRepository': Fail to unzip plugin [sonarscala] /opt/sonarqube/lib/extensions/sonar-scala-plugin-1.24.0.2554.jar to /opt/sonarqube/temp/ce-exploded-plugins/sonarscala
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:609)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:196)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1225)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1191)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1121)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:994)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:621)
+	at org.sonar.core.platform.SpringComponentContainer.startComponents(SpringComponentContainer.java:226)
+	at org.sonar.ce.container.ComputeEngineContainerImpl.startLevel2(ComputeEngineContainerImpl.java:226)
+	at org.sonar.ce.container.ComputeEngineContainerImpl.start(ComputeEngineContainerImpl.java:206)
+	at org.sonar.ce.app.CeServer$CeMainThread.attemptStartup(CeServer.java:161)
+	at org.sonar.ce.app.CeServer$CeMainThread.run(CeServer.java:139)
+Caused by: java.lang.IllegalStateException: Fail to unzip plugin [sonarscala] /opt/sonarqube/lib/extensions/sonar-scala-plugin-1.24.0.2554.jar to /opt/sonarqube/temp/ce-exploded-plugins/sonarscala
+	at org.sonar.ce.container.CePluginJarExploder.explode(CePluginJarExploder.java:56)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:214)
+	at java.base/java.util.HashMap$ValueSpliterator.forEachRemaining(HashMap.java:1788)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:723)
+	at org.sonar.ce.container.CePluginRepository.extractPlugins(CePluginRepository.java:92)
+	at org.sonar.ce.container.CePluginRepository.start(CePluginRepository.java:77)
+	at org.sonar.core.platform.StartableBeanPostProcessor.postProcessBeforeInitialization(StartableBeanPostProcessor.java:33)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:426)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1807)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:603)
+	... 16 common frames omitted
+Caused by: java.nio.file.FileSystemException: /opt/sonarqube/lib/extensions/sonar-scala-plugin-1.24.0.2554.jar -> /opt/sonarqube/temp/ce-exploded-plugins/sonarscala/sonar-scala-plugin-1.24.0.2554.jar: No space left on device
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:100)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixFileSystem.copyFile(UnixFileSystem.java:653)
+	at java.base/sun.nio.fs.UnixFileSystem.copy(UnixFileSystem.java:1022)
+	at java.base/sun.nio.fs.UnixFileSystemProvider.copy(UnixFileSystemProvider.java:280)
+	at java.base/java.nio.file.Files.copy(Files.java:1192)
+	at org.apache.commons.io.FileUtils.copyFile(FileUtils.java:883)
+	at org.apache.commons.io.FileUtils.copyFile(FileUtils.java:909)
+	at org.apache.commons.io.FileUtils.copyFile(FileUtils.java:811)
+	at org.sonar.ce.container.CePluginJarExploder.explode(CePluginJarExploder.java:52)
+	... 29 common frames omitted
+2026.10.03 05:34:15 INFO  ce[][o.s.p.ProcessEntryPoint] Hard stopping process
+2026.10.03 05:34:15 INFO  app[][o.s.a.SchedulerImpl] Process[Compute Engine] is stopped
+2026.10.03 05:34:15 INFO  web[][o.s.p.ProcessEntryPoint] Hard stopping process
+2026.10.03 05:34:15 INFO  web[][o.s.s.n.NotificationDaemon] Notification service stopped
+2026.10.03 05:34:16 INFO  web[][o.s.s.p.d.EmbeddedDatabase] Embedded database stopped
+2026.10.03 05:34:16 WARN  web[][o.a.c.l.WebappClassLoaderBase] The web application [ROOT] appears to have started a thread named [HikariPool-1:housekeeper] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:\n java.base/jdk.internal.misc.Unsafe.park(Native Method)\n java.base/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:271)\n java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1803)\n java.base/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1166)\n java.base/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:883)\n java.base/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1016)\n java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1076)\n java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)\n java.base/java.lang.Thread.run(Thread.java:1474)
+2026.10.03 05:34:16 WARN  web[][o.a.c.l.WebappClassLoaderBase] The web application [ROOT] appears to have started a thread named [OkHttp ConnectionPool connection closer] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:\n java.base/java.lang.Object.wait0(Native Method)\n java.base/java.lang.Object.wait(Object.java:389)\n java.base/java.lang.Object.wait(Object.java:504)\n okhttp3.internal.concurrent.TaskRunner$RealBackend.coordinatorWait(TaskRunner.kt:373)\n okhttp3.internal.concurrent.TaskRunner.awaitTaskToRun(TaskRunner.kt:237)\n okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:87)\n java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)\n java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)\n java.base/java.lang.Thread.run(Thread.java:1474)
+2026.10.03 05:34:16 WARN  web[][o.a.c.l.WebappClassLoaderBase] The web application [ROOT] appears to have started a thread named [OkHttp telemetry.sonarsource.com] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:\n java.base/sun.nio.ch.Net.poll(Native Method)\n java.base/sun.nio.ch.NioSocketImpl.park(NioSocketImpl.java:190)\n java.base/sun.nio.ch.NioSocketImpl.park(NioSocketImpl.java:200)\n java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:307)\n java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:354)\n java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:798)\n java.base/java.net.Socket$SocketInputStream.implRead(Socket.java:974)\n java.base/java.net.Socket$SocketInputStream.read(Socket.java:964)\n java.base/sun.security.ssl.SSLSocketInputRecord.read(SSLSocketInputRecord.java:489)\n java.base/sun.security.ssl.SSLSocketInputRecord.readHeader(SSLSocketInputRecord.java:483)\n java.base/sun.security.ssl.SSLSocketInputRecord.bytesInCompletePacket(SSLSocketInputRecord.java:70)\n java.base/sun.security.ssl.SSLSocketImpl.readApplicationRecord(SSLSocketImpl.java:1461)\n java.base/sun.security.ssl.SSLSocketImpl$AppInputStream.read(SSLSocketImpl.java:1068)\n okio.internal.DefaultSocket$SocketSource.read(DefaultSocket.kt:124)\n okio.RealBufferedSource.request(RealBufferedSource.kt:232)\n okio.RealBufferedSource.require(RealBufferedSource.kt:225)\n okhttp3.internal.http2.Http2Reader.nextFrame(Http2Reader.kt:94)\n okhttp3.internal.http2.Http2Connection$ReaderRunnable.invoke(Http2Connection.kt:629)\n okhttp3.internal.http2.Http2Connection$ReaderRunnable.invoke(Http2Connection.kt:619)\n okhttp3.internal.concurrent.TaskQueue$execute$1.runOnce(TaskQueue.kt:112)\n okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)\n java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)\n java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)\n java.base/java.lang.Thread.run(Thread.java:1474)
+2026.10.03 05:34:16 WARN  web[][o.a.c.l.WebappClassLoaderBase] The web application [ROOT] appears to have started a thread named [Okio Watchdog] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:\n java.base/jdk.internal.misc.Unsafe.park(Native Method)\n java.base/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:271)\n java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1892)\n okio.AsyncTimeout$Companion.awaitTimeout(AsyncTimeout.kt:359)\n okio.AsyncTimeout$Watchdog.run(AsyncTimeout.kt:235)
+2026.10.03 05:34:16 WARN  web[][o.a.c.l.WebappClassLoaderBase] The web application [ROOT] appears to have started a thread named [OkHttp TaskRunner] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:\n java.base/jdk.internal.misc.Unsafe.park(Native Method)\n java.base/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:408)\n java.base/java.util.concurrent.LinkedTransferQueue$DualNode.await(LinkedTransferQueue.java:452)\n java.base/java.util.concurrent.SynchronousQueue$Transferer.xferLifo(SynchronousQueue.java:194)\n java.base/java.util.concurrent.SynchronousQueue.xfer(SynchronousQueue.java:235)\n java.base/java.util.concurrent.SynchronousQueue.poll(SynchronousQueue.java:338)\n java.base/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1015)\n java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1076)\n java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)\n java.base/java.lang.Thread.run(Thread.java:1474)

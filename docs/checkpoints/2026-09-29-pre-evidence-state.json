@@ -1,0 +1,29 @@
+{
+  "recorded_at": "2026-09-29T04:25:00.552154+00:00",
+  "cix_commit": "f26d32836c15cb1a5e37ebfddd5826c4b33ff8a6",
+  "branch": "research/silesia-competitive",
+  "implementation": "benchmarks.competitive_section_paq_v25",
+  "qualified_total_bytes": 25502494,
+  "research_status": "No new discovery launches; current atomic experiments draining before evidence measurement",
+  "processes": [
+    "2168838 1385821  23  2080    16:06:30 /bin/bash -lc git add AGENTS.md docs/research/2026-09-28-competitive-objective.txt docs/research/2026-09-28-paq-per-file-deficits.json benchmarks/paq_reference_run.py benchmarks/spatial_image_codec.py benchmarks/spatial_image_probe.py git diff --cached --check git -c user.name=maldous -c user.email=matthew.aldous@gmail.com commit -m 'Adopt competitive Silesia scope and add PAQ and spatial reference experiments' OMP_NUM_THREADS=1 .venv/bin/python -m benchmarks.paq_reference_run --output results/leaderboard/paq-v215-reference --version v215 --options=-12L --jobs 1 --order nci webster mozilla ooffice dickens reymont samba xml osdb sao mr x-ray > results/leaderboard/paq-v215-reference.log 2>&1",
+    "2168849 2168838   6  8916    16:06:30 .venv/bin/python -m benchmarks.paq_reference_run --output results/leaderboard/paq-v215-reference --version v215 --options=-12L --jobs 1 --order nci webster mozilla ooffice dickens reymont samba xml osdb sao mr x-ray",
+    "2571922 1385821  20 15704    13:38:07 .venv/bin/python -m benchmarks.paq_reference_run --output results/leaderboard/paq-v215-priority9L --version v215 --options=-9L --jobs 2 --only mozilla webster",
+    "3416450 2168849   6  1444    06:00:52 /usr/bin/time -f %e %M -o /home/user/src/colour-index-compression/results/leaderboard/paq-v215-reference/webster/encode.metrics /home/user/src/colour-index-compression/benchmark-work/references/paq8px-v215/build-local/paq8px -12L -simd AVX2 /home/user/src/colour-index-compression/benchmark-work/silesia/webster /home/user/src/colour-index-compression/results/leaderboard/paq-v215-reference/webster/stream.paq8px215",
+    "3416451 3416450   6 22812636 06:00:52 /home/user/src/colour-index-compression/benchmark-work/references/paq8px-v215/build-local/paq8px -12L -simd AVX2 /home/user/src/colour-index-compression/benchmark-work/silesia/webster /home/user/src/colour-index-compression/results/leaderboard/paq-v215-reference/webster/stream.paq8px215",
+    "3550731 1385821   0 87048    04:47:40 .venv/bin/python -m benchmarks.paq_joint_discount_full",
+    "3802333 2571922  12  1444    02:32:59 /usr/bin/time -f %e %M -o /home/user/src/colour-index-compression/results/leaderboard/paq-v215-priority9L/mozilla/decode.metrics /home/user/src/colour-index-compression/benchmark-work/references/paq8px-v215/build-local/paq8px -d -simd AVX2 /home/user/src/colour-index-compression/results/leaderboard/paq-v215-priority9L/mozilla/stream.paq8px215 /home/user/src/colour-index-compression/results/leaderboard/paq-v215-priority9L/mozilla/restored.bin",
+    "3802334 3802333  12 5559340  02:32:59 /home/user/src/colour-index-compression/benchmark-work/references/paq8px-v215/build-local/paq8px -d -simd AVX2 /home/user/src/colour-index-compression/results/leaderboard/paq-v215-priority9L/mozilla/stream.paq8px215 /home/user/src/colour-index-compression/results/leaderboard/paq-v215-priority9L/mozilla/restored.bin",
+    "3899792 3550731   0 3998036  01:41:44 /home/user/src/colour-index-compression/benchmark-work/references/paq8px-cix-joint-discount/build-local/paq8px -d -simd AVX2 /home/user/src/colour-index-compression/results/leaderboard/paq-joint-discount-full8/decode-input.paq8px215 /home/user/src/colour-index-compression/results/leaderboard/paq-joint-discount-full8/restored-structure.bin",
+    "4057340 1385821   8 20384       20:16 .venv/bin/python -m benchmarks.paq_reference_run --output results/leaderboard/paq-v215-text9L-20260929 --version v215 --options=-9L --jobs 1 --only dickens reymont --order dickens reymont",
+    "4057349 4057340   8  1564       20:16 /usr/bin/time -f %e %M -o /home/user/src/colour-index-compression/results/leaderboard/paq-v215-text9L-20260929/dickens/encode.metrics /home/user/src/colour-index-compression/benchmark-work/references/paq8px-v215/build-local/paq8px -9L -simd AVX2 /home/user/src/colour-index-compression/benchmark-work/silesia/dickens /home/user/src/colour-index-compression/results/leaderboard/paq-v215-text9L-20260929/dickens/stream.paq8px215",
+    "4057350 4057349   8 3677488     20:16 /home/user/src/colour-index-compression/benchmark-work/references/paq8px-v215/build-local/paq8px -9L -simd AVX2 /home/user/src/colour-index-compression/benchmark-work/silesia/dickens /home/user/src/colour-index-compression/results/leaderboard/paq-v215-text9L-20260929/dickens/stream.paq8px215",
+    "4057424 1385821  10 35536       20:15 .venv/bin/python -m benchmarks.ecoff_pointer_delta_probe --backend paq --options=-4L --modes 5 --jobs 1 --output results/leaderboard/ecoff-pointer-lstm-regions-20260929",
+    "4080983 1385821  14 40292       08:18 .venv/bin/python -m benchmarks.ecoff_function_template_probe --backend paq --options=-4 --modes 0 2 --output results/leaderboard/ecoff-function-templates-paq-regions-20260929",
+    "4091104 4082343  10 1429404     03:11 /home/user/src/colour-index-compression/benchmark-work/references/paq8px-v215/build-local/paq8px -d -simd AVX2 /tmp/cix-paq-n5kk4d71/stream.paq8px215 /tmp/cix-paq-n5kk4d71/decoded.bin",
+    "4095760 4080983  14 1352396     00:57 /home/user/src/colour-index-compression/benchmark-work/references/paq8px-v215/build-local/paq8px -4 -simd AVX2 /tmp/cix-paq-ajmqq15j/source.bin /tmp/cix-paq-ajmqq15j/stream.paq8px215"
+  ],
+  "pending_site_checkout": "/home/user/src/cix-research-site",
+  "source_archive": "results/releases/cix-source-portfolio25-20260929.tar.gz",
+  "source_archive_sha256": "82057df6eb217602cbb3e5b10538f00e30acedd791c88dbe9cef2f81b9e7414e"
+}

@@ -1,0 +1,147 @@
+{
+  "cells": [
+    {
+      "acceptance": [
+        "one observation only; existing WaveScheduler lease only",
+        "capture stdout, stderr, /usr/bin/time -v, cgroup and affinity receipts",
+        "fresh decoder SHA-256 equals frozen input",
+        "one- and four-worker complete archive SHA-256 values equal",
+        "report wall, user CPU, system CPU, peak RSS and cgroup high-water"
+      ],
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-performance-01/selected/cix",
+        "--format",
+        "cixg2",
+        "--block-size",
+        "16KiB",
+        "--memory",
+        "256MiB",
+        "-f",
+        "--threads",
+        "1",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/release-performance-01/evidence/S-G2-AUTO-1/artifacts/S-G2-AUTO-1.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/canterbury/kennedy.xls"
+      ],
+      "fresh_decode": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-performance-01/selected/uncix",
+        "-f",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/release-performance-01/evidence/S-G2-AUTO-1/verification/restored",
+        "/home/user/src/colour-index-compression/benchmark-work/release-performance-01/evidence/S-G2-AUTO-1/artifacts/S-G2-AUTO-1.cix"
+      ],
+      "id": "S-G2-AUTO-1",
+      "resources": {
+        "cpus": [
+          8
+        ],
+        "memory_bytes": 2000000000,
+        "swap_bytes": 0,
+        "temp_bytes": 256000000,
+        "wall_seconds": 300
+      },
+      "status": "PREPARED_NOT_DISPATCHED"
+    },
+    {
+      "acceptance": [
+        "one observation only; existing WaveScheduler lease only",
+        "capture stdout, stderr, /usr/bin/time -v, cgroup and affinity receipts",
+        "fresh decoder SHA-256 equals frozen input",
+        "one- and four-worker complete archive SHA-256 values equal",
+        "report wall, user CPU, system CPU, peak RSS and cgroup high-water"
+      ],
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-performance-01/selected/cix",
+        "--format",
+        "cixg2",
+        "--block-size",
+        "16KiB",
+        "--memory",
+        "256MiB",
+        "-f",
+        "--threads",
+        "4",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/release-performance-01/evidence/S-G2-AUTO-4/artifacts/S-G2-AUTO-4.cix",
+        "/home/user/src/colour-index-compression/benchmark-work/canterbury/kennedy.xls"
+      ],
+      "fresh_decode": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-performance-01/selected/uncix",
+        "-f",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/release-performance-01/evidence/S-G2-AUTO-4/verification/restored",
+        "/home/user/src/colour-index-compression/benchmark-work/release-performance-01/evidence/S-G2-AUTO-4/artifacts/S-G2-AUTO-4.cix"
+      ],
+      "id": "S-G2-AUTO-4",
+      "resources": {
+        "cpus": [
+          8,
+          10,
+          12,
+          14
+        ],
+        "memory_bytes": 2000000000,
+        "swap_bytes": 0,
+        "temp_bytes": 256000000,
+        "wall_seconds": 300
+      },
+      "status": "PREPARED_NOT_DISPATCHED"
+    }
+  ],
+  "dispatch": "root-owned WaveScheduler; run serially under one lease; do not alter the frozen v2 plan",
+  "preconditions": {
+    "input_sha256": "9af47239ca29dfe20e633f80bbbb9a4cc9783d0803d7b2b5626f42e4c3790420",
+    "plan": "/home/user/src/colour-index-compression/docs/research/2026-10-04-release-0.1/performance-plan-v2/plan.json",
+    "runner": "/home/user/src/colour-index-compression/docs/research/2026-10-04-release-0.1/performance_run.py",
+    "s_m6": {
+      "cgroup_verified": true,
+      "command": [
+        "/bin/bash",
+        "-c",
+        "set -e; taskset -pc $$ > \"$1\"; cg=$(awk -F: '$1 == \"0\" {print $3}' /proc/self/cgroup); base=/sys/fs/cgroup$cg; test -r \"$base/cpuset.cpus.effective\"; test -r \"$base/memory.max\"; test -r \"$base/memory.swap.max\"; printf \"cpuset=%s\\nmemory.max=%s\\nmemory.swap.max=%s\\n\" \"$(cat \"$base/cpuset.cpus.effective\")\" \"$(cat \"$base/memory.max\")\" \"$(cat \"$base/memory.swap.max\")\" > \"$2\"; shift 2; exec \"$@\"",
+        "cix-cgroup",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-release-0.1/raw/perf-s-m6-v1/affinity.txt",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-release-0.1/raw/perf-s-m6-v1/cgroup.txt",
+        "/usr/bin/time",
+        "-v",
+        "-o",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-release-0.1/raw/perf-s-m6-v1/time.txt",
+        "/usr/bin/env",
+        "OPENBLAS_NUM_THREADS=1",
+        "OMP_NUM_THREADS=1",
+        "CIX_RELEASE_LEASE=1",
+        "/usr/bin/python3",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-release-0.1/performance_run.py",
+        "--plan",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-release-0.1/performance-plan-v2/plan.json",
+        "--cell",
+        "S-M6",
+        "--output",
+        "/home/user/src/colour-index-compression/benchmark-work/release-performance-01/evidence/S-M6",
+        "--run"
+      ],
+      "command_file_sha256": "18032f57f0cdf2c0ddf8191cc9342b15ad31bfc5f351bad782bd2dfe715b7766",
+      "cpu_usage_seconds": 300.019723,
+      "elapsed_seconds": 300.94877881499997,
+      "exit_code": 1,
+      "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable",
+      "peak_temp_bytes": 867073278,
+      "phase": "cix-rel01-perf-s-m6-v1",
+      "sampled_cgroup_memory_high_water_bytes": 23617536,
+      "stop_reason": "wall_budget_exhausted",
+      "supervisor_command": [
+        "/usr/bin/python3",
+        "/home/user/src/colour-index-compression/benchmarks/cix_phase_receipt.py",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-release-0.1/raw/perf-s-m6-v1/cix-rel01-perf-s-m6-v1.child-status.json",
+        "--command-file",
+        "/home/user/src/colour-index-compression/docs/research/2026-10-04-release-0.1/raw/perf-s-m6-v1/cix-rel01-perf-s-m6-v1.command.json",
+        "18032f57f0cdf2c0ddf8191cc9342b15ad31bfc5f351bad782bd2dfe715b7766"
+      ],
+      "supervisor_exit_code": 1
+    },
+    "selected_cix_sha256": "f4673930d22448b1b7f84807b4405ffdbf9fb8e0cdff73baa4dcda19a89e6ca5",
+    "selected_uncix_sha256": "109d4d36215ec3966f59e58609bbffc1d470b37784e010884edc962943da4c7e"
+  },
+  "schema": "cix-v0.1-g2-extension-v1",
+  "status": "PREPARED_NOT_DISPATCHED"
+}

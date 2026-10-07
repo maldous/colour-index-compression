@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-04",
+  "purpose": "User-requested feasibility assessment of the mathematical representation and generator reports. Finite exact description grammar; no corpus or production qualification.",
+  "grammar": {
+    "length": "Elias gamma(n), n in {16,256} in this screen; retained original bit length includes leading zeros",
+    "raw": "0 + n literal bits",
+    "rational": "10 + gamma(w) + w-bit numerator p + w-bit denominator q; reduced 0<=p<q; w=bit_length(q); target=floor(2^n*p/q)",
+    "power": "110 + 2-bit exponent selector k-2 (k=2..5) + ceil(n/k)-bit base a + signed residual code; target=a^k+d",
+    "signed_residual": "0 for zero; otherwise 1 + sign bit (1=negative) + gamma(abs(d))",
+    "generated": "1110 + 2-bit seed + 4-bit bit-offset + 2-bit mask selector; SHAKE256(b'CIX-feasibility-v1:' + one-byte seed), MSB-first; masks zero/all-one/alternating01/alternating10",
+    "direct_mask": "1111 + 2-bit mask selector with the same mask family and no generated reference",
+    "padding": "Zero padding to the next byte; decoder derives meaningful length and rejects nonzero/excess padding",
+    "limits": "Length header and padding are counted. Grammar is externally fixed. No magic/version/checksum/public-container wrapper is claimed. These are isolated mathematical frames, not CIX archives."
+  },
+  "search": {
+    "rational": "Enumerate reduced rationals with q<=1023; prune only when mandatory candidate bits exceed raw bits. This denominator cap is a declared search restriction, not global rational optimality.",
+    "power": "For each k, evaluate floor integer-root(X) and its successor if it fits the base field; residual code length is monotonic in absolute residual, so neighboring powers suffice within this family.",
+    "generated": "All 4 seeds, 16 offsets and 4 masks; deduplicate identical target outputs by shortest/lexicographic description.",
+    "selection": "Minimum encoded bits including the common length header; tie-break lexicographically. Byte padding also reported. Retain literal fallback.",
+    "controls": "Raw representation, directly coded same masks, leave-one-family-out costs, and mathematically ideal rank cost for each finite generated dictionary support. No strongest-compressor comparison."
+  },
+  "inputs": {
+    "exhaustive": "All 65536 values with n=16, equal weight; no random sampling.",
+    "constructed_n256": [
+      "zero, all-one, alternating01, alternating10",
+      "a=(2^127+37): a^2 and a^2+3",
+      "a=(2^85+27): a^3 and a^3-5",
+      "floor(257*2^256/509)",
+      "generated seed=2, offset=7, zero mask and alternating01 mask"
+    ],
+    "pseudo_random_null_n256": "SHA256(b'CIX-feasibility-null-v1:' + one byte i), i=0..3. Deterministic tiny controls, not evidence about a random source population."
+  },
+  "acceptance": "Every chosen frame must decode without the input or side channels; all cases and failed assertions preserved. Do not promote a CIX route from synthetic or whole-universe findings.",
+  "resources": {"cpus": 1, "wall_seconds": 30, "memory_bytes": 200000000, "new_disk_bytes": 1000000},
+  "release_gate": "Unchanged. No real assets, production code, dependency installation, broad benchmark or closed-branch reopening."
+}

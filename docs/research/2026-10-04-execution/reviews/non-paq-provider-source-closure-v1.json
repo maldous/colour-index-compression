@@ -1,0 +1,33 @@
+{
+  "schema": "cix-non-paq-provider-source-closure-review-v1",
+  "status": "source_inputs_partially_closed",
+  "scope": "Read-only evidence review and a prepared staging recipe. No artifact selection, build, package, legal conclusion, or final dependency closure is made.",
+  "selected_closure": {
+    "path": "docs/research/2026-10-04-execution/jobs/distribution-engineering-v4/selected-provider-closure.json",
+    "sha256": "bd9741e579ca749ac4da77ed23a7ec48a8e034b21b5d8f26671285fac25755a1"
+  },
+  "metadata": {
+    "path": "rust/cix-native/docs/research/2026-10-04-execution/reviews/non-paq-provider-sources-v1.json",
+    "schema": "cix-non-paq-provider-source-inputs-v1"
+  },
+  "staging_recipe": {
+    "path": "rust/cix-native/packaging/export/stage_non_paq_provider_sources.py",
+    "status": "prepared_not_executed",
+    "available_source_inputs": [
+      "libjxl v0.12.0 receipt-verified complete source tree",
+      "frozen CIX spatial bridge snapshot members"
+    ],
+    "verified_binary_only_inputs": [
+      "CharLS runtime and development Debian archives",
+      "OpenJPEG runtime and development Debian archives"
+    ]
+  },
+  "dispositions": {
+    "jxl_family": "local_source_identity_and_selected_install_binding_present",
+    "spatial_bridge": "recorded_snapshot_to_selected_installed_binary_trace_present",
+    "charls": "binary_package_identity_only_source_chain_missing",
+    "openjpeg": "binary_package_identity_only_source_chain_missing"
+  },
+  "next_action": "Retain immutable CharLS and OpenJPEG source-package inputs and record their package-file-to-selected-ELF relations; then run the prepared staging recipe under the release scheduler.",
+  "non_claim": "This does not establish a final dependency closure, legal compliance, redistribution rights, or release acceptance."
+}

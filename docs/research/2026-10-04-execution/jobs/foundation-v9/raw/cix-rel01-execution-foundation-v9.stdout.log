@@ -1,0 +1,65 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v9/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'build', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v9/Cargo.toml', '--lib', '--bin', 'cix']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v9/Cargo.toml', '--lib', 'full_engine::', '--', '--test-threads=2']
+
+running 43 tests
+test full_engine::address_relations::tests::finite_word_delta_preserves_sign_boundary ... ok
+test full_engine::address_relations::tests::got_choice_encodings_round_trip_all_modes ... ok
+test full_engine::address_relations::tests::got_choices_match_frozen_reference_bytes ... ok
+test full_engine::address_relations::tests::got_empty_admission_keeps_complete_paid_transform ... ok
+test full_engine::address_relations::tests::got_wire_mode_zero_restores_the_fields_parent ... ok
+test full_engine::address_relations::tests::pointer_delta_empty_admission_round_trips_all_modes ... ok
+test full_engine::address_relations::tests::pointer_delta_rejects_malformed_residual_metadata ... ok
+test full_engine::address_relations::tests::malformed_got_choice_lengths_are_rejected ... ok
+test full_engine::arithmetic::tests::arithmetic_and_fenwick_reject_invalid_state ... ok
+test full_engine::arithmetic::tests::ordered_subset_method_one_and_residual_vectors ... ok
+test full_engine::arithmetic::tests::python_reference_varint_and_frame_vectors ... ok
+test full_engine::containers::tests::paq_identifiers_match_historical_wrapping_and_reject_unassigned_ids ... ok
+test full_engine::containers::tests::stored_frame_checks_length_checksum_and_limits_before_allocation ... ok
+test full_engine::containers::tests::stored_historical_empty_frame_has_known_digest ... ok
+test full_engine::graph_residuals::tests::all_modes_preserve_line_endings_and_literal_bytes ... ok
+test full_engine::graph_residuals::tests::frame_rejects_truncation_trailing_and_bounded_expansion ... ok
+test full_engine::graph_residuals::tests::frame_validates_declared_coordinate_count_before_rebuild ... ok
+test full_engine::graph_residuals::tests::historical_frame_zero_is_exact_and_retains_unparsed_records ... ok
+test full_engine::graph_residuals::tests::hydrogen_all_models_and_choice_representations_match_reference_vectors ... ok
+test full_engine::graph_residuals::tests::hydrogen_extract_keeps_absolute_coordinates_for_candidate_selection ... ok
+test full_engine::graph_residuals::tests::hydrogen_model_zero_preserves_masks_records_and_bounds ... ok
+test full_engine::graph_residuals::tests::known_graph_and_sequential_residuals ... ok
+test full_engine::graph_residuals::tests::palette_frames_restore_all_prediction_modes_and_reject_trailing_bytes ... ok
+test full_engine::arithmetic::tests::exhaustive_small_combinatorics_and_compositions ... ok
+test full_engine::graph_residuals::tests::rejects_noncanonical_fields_modes_and_counts ... ok
+test full_engine::graph_residuals::tests::rejects_reconstruction_overflow_and_missing_vectors ... ok
+test full_engine::graph_residuals::tests::palette_uses_first_seen_order_and_escapes_the_sixty_fifth_vector ... ok
+test full_engine::graph_residuals::tests::text_payload_uses_bytes_splitlines_rules ... ok
+test full_engine::graph_residuals::tests::text_frame_is_exact_for_all_prediction_modes ... ok
+test full_engine::record_ordering::tests::each_order_code_restores_nontrivial_composition ... ok
+test full_engine::record_ordering::tests::matches_tiny_legacy_mycs_and_mycc_vectors ... ok
+test full_engine::jxl_provider::tests::packaged_bridge_roundtrips_canonical_frames ... ok
+test full_engine::record_ordering::tests::record_constraint_and_fixed_raw_transforms_restore_paid_literals ... ok
+test full_engine::strided_values::tests::matches_tiny_legacy_sagr_vectors_for_every_mode ... FAILED
+test full_engine::strided_values::tests::paid_grid_transpose_and_frame_restore ... ok
+test full_engine::strided_values::tests::recognizes_exact_wcs_extent ... ok
+test full_engine::strided_values::tests::signed_varint_mapping_round_trips ... ok
+test full_engine::volume_lifting::tests::dicom_recognizer_rejects_truncated_pixel_member ... ok
+test full_engine::volume_lifting::tests::multiscale_lifting_round_trips_every_axis ... ok
+test full_engine::volume_lifting::tests::multiscale_shape_validation_rejects_malformed_inputs_without_panicking ... ok
+test full_engine::volume_lifting::tests::signed_wrap_matches_reference_and_all_volume_modes_restore ... ok
+test full_engine::volume_lifting::tests::spatial_jxl_round_trip_probes_paid_pixels_before_decode ... ok
+test full_engine::record_ordering::tests::permutation_crosses_rank_block_boundary ... ok
+
+failures:
+
+---- full_engine::strided_values::tests::matches_tiny_legacy_sagr_vectors_for_every_mode stdout ----
+
+thread 'full_engine::strided_values::tests::matches_tiny_legacy_sagr_vectors_for_every_mode' (2295719) panicked at src/full_engine/strided_values.rs:1047:13:
+assertion `left == right` failed
+  left: [83, 65, 71, 82, 49, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 28, 0, 0, 0, 0, 1, 2, 0, 0, 0, 192, 192, 192, 127, 127, 127, 142, 209, 9, 223, 107, 133, 115, 62, 12, 252, 157, 178, 16, 246, 237, 167, 1, 244, 237, 167, 1, 1, 3, 141, 182, 221, 136, 1, 237, 255, 207, 45, 144, 195, 192, 84, 9, 8, 3, 3, 0, 0, 0, 1, 4, 96, 18, 194, 183, 126, 58, 7, 106, 62, 12, 243, 217, 150, 49, 142, 222, 186, 2, 140, 222, 186, 2, 1, 3, 237, 255, 207, 45, 170, 149, 157, 42, 254, 231, 173, 50, 9, 8, 3, 3, 0, 0, 0, 1, 4, 48, 225, 232, 66, 203, 223, 59, 63, 62, 13, 136, 199, 254, 202, 3, 254, 142, 153, 8, 254, 142, 153, 8, 1, 1, 0, 5, 4, 3, 1, 0, 0, 64, 155, 44, 50, 149, 210, 52, 62, 3, 0, 0, 0, 1, 3, 130, 132, 136, 16, 132, 136, 144, 32, 134, 140, 152, 48, 9, 8, 3, 3, 0, 0, 0, 1, 4, 16]
+ right: [83, 65, 71, 82, 49, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 28, 0, 0, 0, 0, 1, 2, 0, 0, 0, 192, 192, 192, 127, 127, 127, 142, 209, 9, 223, 107, 133, 115, 62, 12, 252, 157, 178, 16, 246, 237, 167, 1, 244, 237, 167, 1, 1, 3, 141, 182, 221, 136, 1, 237, 255, 207, 45, 144, 195, 192, 84, 9, 8, 3, 3, 0, 0, 0, 1, 4, 96, 18, 194, 183, 126, 58, 7, 106, 62, 12, 243, 217, 150, 49, 142, 222, 186, 2, 140, 222, 186, 2, 1, 3, 237, 255, 207, 45, 170, 149, 157, 42, 254, 231, 173, 50, 9, 8, 3, 3, 0, 0, 0, 1, 4, 48, 225, 232, 66, 203, 223, 59, 63, 62, 13, 136, 199, 254, 202, 3, 254, 142, 153, 8, 254, 142, 153, 8, 1, 1, 0, 7, 6, 3, 1, 0, 1, 2, 64, 64, 155, 44, 50, 149, 210, 52, 62, 3, 0, 0, 0, 1, 3, 130, 132, 136, 16, 132, 136, 144, 32, 134, 140, 152, 48, 9, 8, 3, 3, 0, 0, 0, 1, 4, 16]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    full_engine::strided_values::tests::matches_tiny_legacy_sagr_vectors_for_every_mode
+
+test result: FAILED. 42 passed; 1 failed; 0 ignored; 0 measured; 135 filtered out; finished in 0.01s
+

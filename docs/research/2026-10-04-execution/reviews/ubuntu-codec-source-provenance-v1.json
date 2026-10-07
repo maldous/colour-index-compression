@@ -1,0 +1,78 @@
+{
+  "schema": "cix-ubuntu-codec-source-provenance-v1",
+  "status": "immutable_source_inputs_identified_not_acquired",
+  "scope": "Official Ubuntu source-descriptor metadata and retained Debian binary-package content inspection for the selected Linux x86_64 CharLS and OpenJPEG runtime libraries. No source archive was retained, unpacked, built, or substituted.",
+  "retrieval": {
+    "date": "2026-10-05",
+    "official_archive_base": "https://archive.ubuntu.com/ubuntu"
+  },
+  "charls": {
+    "source_package": "charls",
+    "source_version": "2.4.2-2build2",
+    "source_descriptor": {
+      "url": "https://archive.ubuntu.com/ubuntu/pool/universe/c/charls/charls_2.4.2-2build2.dsc",
+      "bytes": 2121,
+      "sha256": "a485b5c4470f5dee00ce573466d1f65933573da544c693251c59e76ed1d4ed68"
+    },
+    "source_files": [
+      {
+        "url": "https://archive.ubuntu.com/ubuntu/pool/universe/c/charls/charls_2.4.2.orig.tar.gz",
+        "filename": "charls_2.4.2.orig.tar.gz",
+        "bytes": 9492449,
+        "sha256": "d1c2c35664976f1e43fec7764d72755e6a50a80f38eca70fcc7553cad4fe19d9"
+      },
+      {
+        "url": "https://archive.ubuntu.com/ubuntu/pool/universe/c/charls/charls_2.4.2-2build2.debian.tar.xz",
+        "filename": "charls_2.4.2-2build2.debian.tar.xz",
+        "bytes": 5732,
+        "sha256": "4f720af1d6b14dc9ff4da020aae63803933be59fa38b4802521b8b6e5ab218dc"
+      }
+    ],
+    "selected_binary_package": {
+      "package": "libcharls2",
+      "version": "2.4.2-2build2",
+      "architecture": "amd64",
+      "archive_sha256": "4e0899b98fe57b5011412bfdb2fa96f2559c746f05bb1604da306642940ceaec",
+      "control_source": "charls",
+      "payload_member": "./usr/lib/x86_64-linux-gnu/libcharls.so.2.4.2",
+      "payload_member_sha256": "6fc5859988357c676d874fa98509445b8a8c8eee4eac533b5ae3eb884e0b858c"
+    },
+    "selected_provider": "CIX_RUNTIME_CHARLS_LIBRARY"
+  },
+  "openjpeg": {
+    "source_package": "openjpeg2",
+    "source_version": "2.5.0-2ubuntu0.5",
+    "source_descriptor": {
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/o/openjpeg2/openjpeg2_2.5.0-2ubuntu0.5.dsc",
+      "bytes": 2788,
+      "sha256": "86237fe866b3ab1ddc4b32c218b26a4e40c958e3054828c5d6e5bedf5aea0b67"
+    },
+    "source_files": [
+      {
+        "url": "https://archive.ubuntu.com/ubuntu/pool/main/o/openjpeg2/openjpeg2_2.5.0.orig.tar.xz",
+        "filename": "openjpeg2_2.5.0.orig.tar.xz",
+        "bytes": 1221108,
+        "sha256": "007e19d772c8b6b22e35379630b06ff3549e49ba719d96453607a36ad7b4de73"
+      },
+      {
+        "url": "https://archive.ubuntu.com/ubuntu/pool/main/o/openjpeg2/openjpeg2_2.5.0-2ubuntu0.5.debian.tar.xz",
+        "filename": "openjpeg2_2.5.0-2ubuntu0.5.debian.tar.xz",
+        "bytes": 20744,
+        "sha256": "56268a969b8788574a215b922691e2f2c7ec3a8c47255635736f36d01a88861d"
+      }
+    ],
+    "selected_binary_package": {
+      "package": "libopenjp2-7",
+      "version": "2.5.0-2ubuntu0.5",
+      "architecture": "amd64",
+      "archive_sha256": "24b92ce9c4b306f5370e768024d35ec565792001678b510f0d40b6395b43524f",
+      "control_source": "openjpeg2",
+      "payload_member": "./usr/lib/x86_64-linux-gnu/libopenjp2.so.2.5.0",
+      "payload_member_sha256": "19906c0334e8db2137912f83cceed5a03d954a9c12d9781901a9a27f92ce1c4d"
+    },
+    "selected_provider": "CIX_RUNTIME_OPENJPEG_LIBRARY"
+  },
+  "binary_relation_method": "The retained .deb control Source field was read with dpkg-deb. The named data-tar member was streamed through dpkg-deb --fsys-tarfile and tar -xOf directly to SHA-256, without materialising an extraction tree. Each resulting digest equals the selected-provider closure digest.",
+  "remaining_action": "Under a bounded scheduler lease, retrieve the four listed source archives, verify descriptor and component SHA-256 values before unpacking, preserve source identities and notices, and then add their staged-tree receipts to the final dependency closure.",
+  "non_claim": "The recorded source packages and binary package contents identify immutable inputs. They do not establish a fresh reproducible binary build, legal compliance, redistribution terms, or release acceptance."
+}

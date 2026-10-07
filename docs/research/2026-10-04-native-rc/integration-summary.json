@@ -1,0 +1,552 @@
+{
+  "schema": "cix.native-integration-check.v1",
+  "status": "partial native integration qualified; release candidate not ready",
+  "baseline_commit": "0f1f65abd0016519fb613b6666135cc82b36837a",
+  "jobs": [
+    {
+      "id": "focused-v6",
+      "source_manifest_sha256": "517f4dd5361495891149d1663885e4c7acd0193b7d662beb532ee1fc1a3e8674",
+      "result_sha256": "7acaf8b4f5feca1fd421c6baa51dc89e918da163f182222d4c9b688b33994b42",
+      "exit_code": 0,
+      "resource_receipt": {
+        "cgroup_verified": true,
+        "elapsed_seconds": 18.117828126996756,
+        "cpu_usage_seconds": 25.18114,
+        "sampled_cgroup_memory_high_water_bytes": 934281216,
+        "peak_temp_bytes": 1372100862,
+        "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable"
+      }
+    },
+    {
+      "id": "paq-v215-build-v1",
+      "source_manifest_sha256": "1792dba1dd584111e0a71a49c0748204b310fc7de8468ea96860c2be319860e3",
+      "result_sha256": "50738d2d80604093ed1b9a74e7820de44162da490f1fbdf588708eeae4e1a356",
+      "exit_code": 0,
+      "resource_receipt": {
+        "cgroup_verified": true,
+        "elapsed_seconds": 14.532031226997788,
+        "cpu_usage_seconds": 54.280417,
+        "sampled_cgroup_memory_high_water_bytes": 798339072,
+        "peak_temp_bytes": 1109754948,
+        "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable"
+      }
+    },
+    {
+      "id": "paq-v215-qualification-v2",
+      "source_manifest_sha256": "2967a7726e4210f9012f3a26b9fb851fc1ca60b49b4531511310fa26c1746d46",
+      "result_sha256": "2e40bdb68b385b382338488c1ec43f592017798d2a8f444b3dc6556267bce417",
+      "exit_code": 0,
+      "resource_receipt": {
+        "cgroup_verified": true,
+        "elapsed_seconds": 16.237558362998243,
+        "cpu_usage_seconds": 54.948221,
+        "sampled_cgroup_memory_high_water_bytes": 778854400,
+        "peak_temp_bytes": 1116399968,
+        "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable"
+      },
+      "qualification": {
+        "status": "component qualification passed; not full CIX worker integration",
+        "input_bytes": 2112,
+        "input_sha256": "c437ed35f5be654f63493a2da80e69bacb7f72868a12850c39f4dedbe7bf6367",
+        "archive_bytes": 61,
+        "archive_sha256": "59e8cc514d30c7d04da00b6e7f4727f473cb67d0b7c79d6ae72250963fcb2271",
+        "bridge_sha256": "645f2f80dbe219465640d4489a219a90ae0787c9c8900d165045fe69b0e43757",
+        "probe_sha256": "1c08c3d0b70079ae8dedbab58638776bcd6cbf7b010d6e274251b6e16959d968",
+        "exact_reference_archive": true,
+        "fresh_process_cross_decode": true,
+        "cases": [
+          {
+            "name": "bridge-encode-and-one-call-guard",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reference-encode",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "bridge-decodes-bridge",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "bridge-decodes-reference",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reference-decodes-bridge",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reject-existing-output",
+            "returncode": 1,
+            "expected": 1
+          },
+          {
+            "name": "reject-dangling-output",
+            "returncode": 1,
+            "expected": 1
+          },
+          {
+            "name": "reject-intentional-upstream-error",
+            "returncode": 3,
+            "expected": 3
+          }
+        ]
+      },
+      "qualification_sha256": "2982e3cece510d80444016e32e50fac6a77a6cace32a7bc4e6f5feb87c85965d"
+    },
+    {
+      "id": "paq-v216-qualification-v1",
+      "source_manifest_sha256": "b3471beaf7f1e1549c008401eed3657698231c858d9e333d9eed2fba769b1204",
+      "result_sha256": "af9286cdc9d6aa5fad3e27095de52b1951864df0efc60c39107372b95c273ea1",
+      "exit_code": 0,
+      "resource_receipt": {
+        "cgroup_verified": true,
+        "elapsed_seconds": 16.126307879996602,
+        "cpu_usage_seconds": 54.304725,
+        "sampled_cgroup_memory_high_water_bytes": 775974912,
+        "peak_temp_bytes": 1326759054,
+        "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable"
+      },
+      "qualification": {
+        "status": "component qualification passed; not full CIX worker integration",
+        "input_bytes": 2112,
+        "input_sha256": "c437ed35f5be654f63493a2da80e69bacb7f72868a12850c39f4dedbe7bf6367",
+        "archive_bytes": 62,
+        "archive_sha256": "7bfd464a3aeddae71bad138d6a1ebc6d60ef2a5fe028889a8ddc278f43575ebc",
+        "bridge_sha256": "fc511f145184396f4cea39ac8281d12c7ac913914a9e2d6da770cf58f4098fb2",
+        "probe_sha256": "35ea4bfaab125a330b01d1b01f21133256f7bce7c8b0b9828aae65f37e72c2f6",
+        "exact_reference_archive": true,
+        "fresh_process_cross_decode": true,
+        "cases": [
+          {
+            "name": "bridge-encode-and-one-call-guard",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reference-encode",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "bridge-decodes-bridge",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "bridge-decodes-reference",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reference-decodes-bridge",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reject-existing-output",
+            "returncode": 1,
+            "expected": 1
+          },
+          {
+            "name": "reject-dangling-output",
+            "returncode": 1,
+            "expected": 1
+          },
+          {
+            "name": "reject-intentional-upstream-error",
+            "returncode": 3,
+            "expected": 3
+          }
+        ]
+      },
+      "qualification_sha256": "cc2ff2162cb5edc28394606c25fb8ec4e709252d3c7d1ee72503a199d889d1d5"
+    },
+    {
+      "id": "paq-joint-discount-qualification-v1",
+      "source_manifest_sha256": "dbcab9f9a962112bc19d2fae4c0e031b1bdfa150db0f6444a2a13cd10bac5cea",
+      "result_sha256": "50f6c5062f12531f89f69db208b4cb728481bd828ef4c8b4f1b47ba881a7738f",
+      "exit_code": 0,
+      "resource_receipt": {
+        "cgroup_verified": true,
+        "elapsed_seconds": 16.146220515001914,
+        "cpu_usage_seconds": 54.581452,
+        "sampled_cgroup_memory_high_water_bytes": 794267648,
+        "peak_temp_bytes": 1333798894,
+        "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable"
+      },
+      "qualification": {
+        "status": "component qualification passed; not full CIX worker integration",
+        "input_bytes": 2112,
+        "input_sha256": "c437ed35f5be654f63493a2da80e69bacb7f72868a12850c39f4dedbe7bf6367",
+        "archive_bytes": 61,
+        "archive_sha256": "59e8cc514d30c7d04da00b6e7f4727f473cb67d0b7c79d6ae72250963fcb2271",
+        "bridge_sha256": "8e8b74a7037654bf26d3a2d1c587ab3ff0d2028db68f4a48c387e8a2b925a597",
+        "probe_sha256": "e850383f0436d39a7d8a044b417eff683a4dd9d838bab8f4b1be18b768208564",
+        "exact_reference_archive": true,
+        "fresh_process_cross_decode": true,
+        "cases": [
+          {
+            "name": "bridge-encode-and-one-call-guard",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reference-encode",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "bridge-decodes-bridge",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "bridge-decodes-reference",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reference-decodes-bridge",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reject-existing-output",
+            "returncode": 1,
+            "expected": 1
+          },
+          {
+            "name": "reject-dangling-output",
+            "returncode": 1,
+            "expected": 1
+          },
+          {
+            "name": "reject-intentional-upstream-error",
+            "returncode": 3,
+            "expected": 3
+          }
+        ]
+      },
+      "qualification_sha256": "5e3274e3f72e96e9ffd7fbeb01e9e0bf3b49e24363e7724403e932ea89b82014"
+    },
+    {
+      "id": "paq-store-state-qualification-v1",
+      "source_manifest_sha256": "3eb431a2cdad6b69b2862a55d235b0068e3c5d4995033ea52c5aae59a463399b",
+      "result_sha256": "c1f23a0c9654e23906204da8bcce6fdf13251bf2fcb16222a9c7a3cb01374302",
+      "exit_code": 0,
+      "resource_receipt": {
+        "cgroup_verified": true,
+        "elapsed_seconds": 16.094354803004535,
+        "cpu_usage_seconds": 54.155259,
+        "sampled_cgroup_memory_high_water_bytes": 742559744,
+        "peak_temp_bytes": 1340654487,
+        "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable"
+      },
+      "qualification": {
+        "status": "component qualification passed; not full CIX worker integration",
+        "input_bytes": 2112,
+        "input_sha256": "c437ed35f5be654f63493a2da80e69bacb7f72868a12850c39f4dedbe7bf6367",
+        "archive_bytes": 62,
+        "archive_sha256": "7bfd464a3aeddae71bad138d6a1ebc6d60ef2a5fe028889a8ddc278f43575ebc",
+        "bridge_sha256": "57bba97ddbe7d1cde36625a88060f7b2ee06a095d8e0966658b38d05bcb598b2",
+        "probe_sha256": "8e531efb997a75aac0b2a64a9ce4eeaff5771b94aa60202b6b37f52c64fbc021",
+        "exact_reference_archive": true,
+        "fresh_process_cross_decode": true,
+        "cases": [
+          {
+            "name": "bridge-encode-and-one-call-guard",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reference-encode",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "bridge-decodes-bridge",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "bridge-decodes-reference",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reference-decodes-bridge",
+            "returncode": 0,
+            "expected": 0
+          },
+          {
+            "name": "reject-existing-output",
+            "returncode": 1,
+            "expected": 1
+          },
+          {
+            "name": "reject-dangling-output",
+            "returncode": 1,
+            "expected": 1
+          },
+          {
+            "name": "reject-intentional-upstream-error",
+            "returncode": 3,
+            "expected": 3
+          }
+        ]
+      },
+      "qualification_sha256": "9cfc024aa1edee4534f2a8ed9a38c2cd5a10df2dac863acb204d83499acf5572"
+    },
+    {
+      "id": "paq-cix-worker-v1",
+      "source_manifest_sha256": "d60128b5a6e241f134c97a530413cedc053c80922cd6997fc015fedec4c37768",
+      "result_sha256": "59d573b12b45a759298de7ac0cd8cec606072531b7efd2048c68c4d3a3aa574e",
+      "exit_code": 1,
+      "resource_receipt": {
+        "cgroup_verified": true,
+        "elapsed_seconds": 18.411923379004293,
+        "cpu_usage_seconds": 25.109896,
+        "sampled_cgroup_memory_high_water_bytes": 863735808,
+        "peak_temp_bytes": 1427629664,
+        "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable"
+      }
+    },
+    {
+      "id": "paq-cix-worker-v2",
+      "source_manifest_sha256": "0b7eaa1cd05313ad7444c8301d217683de6ac41e77d53b04bb781b5fe5d985cc",
+      "result_sha256": "d558c0e62b6a1879c5564f708176d975bb2f124785eb7a5d2e3c8f3626518c88",
+      "exit_code": 0,
+      "resource_receipt": {
+        "cgroup_verified": true,
+        "elapsed_seconds": 26.39891984299902,
+        "cpu_usage_seconds": 32.698887,
+        "sampled_cgroup_memory_high_water_bytes": 1283612672,
+        "peak_temp_bytes": 1476471006,
+        "memory_measurement_note": "sampled cgroup high-water lower bound; true process peak unavailable"
+      },
+      "qualification": {
+        "status": "focused same-CIX worker passed; not full engine or RC qualification",
+        "binary_sha256": "dd312d520985c678565271c931870cad10e162a965968a0ac4a13c1ef90f11bf",
+        "profile": "Linux x86-64 AVX2, debug CIX, Release PAQ DSOs, level 1, two LSTM layers (LSTM not enabled)",
+        "variants": [
+          "v215",
+          "v216",
+          "joint-discount",
+          "store-state"
+        ],
+        "cases": [
+          {
+            "name": "v215-encode",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "v215-decode-worker",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "v215-decode-reference",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "v215-reference-decode",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "v215-reject-existing",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "v215-reject-dangling",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "v215-output-limit",
+            "returncode": -25,
+            "expected_success": false
+          },
+          {
+            "name": "v216-encode",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "v216-decode-worker",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "v216-decode-reference",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "v216-reference-decode",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "v216-reject-existing",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "v216-reject-dangling",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "v216-output-limit",
+            "returncode": -25,
+            "expected_success": false
+          },
+          {
+            "name": "joint-discount-encode",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "joint-discount-decode-worker",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "joint-discount-decode-reference",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "joint-discount-reference-decode",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "joint-discount-reject-existing",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "joint-discount-reject-dangling",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "joint-discount-output-limit",
+            "returncode": -25,
+            "expected_success": false
+          },
+          {
+            "name": "store-state-encode",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "store-state-decode-worker",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "store-state-decode-reference",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "store-state-reference-decode",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "store-state-reject-existing",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "store-state-reject-dangling",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "store-state-output-limit",
+            "returncode": -25,
+            "expected_success": false
+          },
+          {
+            "name": "extensionless-output",
+            "returncode": 0,
+            "expected_success": true
+          },
+          {
+            "name": "reject-trailing-separator",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "reject-backslash-path",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "reject-insufficient-memory",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "reject-relative-library-path",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "reject-invalid-request",
+            "returncode": 1,
+            "expected_success": false
+          },
+          {
+            "name": "ordinary-cli-version",
+            "returncode": 0,
+            "expected_success": true
+          }
+        ]
+      },
+      "qualification_sha256": "4064555c462a0c7857b78693ac53ed26df8ed920655be52a1702607ff0f42f11"
+    }
+  ],
+  "latest_snapshot_unchanged": true,
+  "latest_tested_files_match_current_source": true,
+  "focused_v6": {
+    "all_targets_compile": true,
+    "full_engine_tests": 29,
+    "jxl_mock_tests": 3,
+    "reference_vector_integration_tests": 2,
+    "reference_frames_compared": 12
+  },
+  "paq_cix_worker_v2": {
+    "all_targets_compile": true,
+    "unit_tests": 4,
+    "fresh_process_cases": 35,
+    "variants": 4
+  },
+  "still_unqualified": [
+    "full-engine parent supervision, automatic dispatch and aggregate product limits",
+    "full specialist encoder/decoder catalogue",
+    "JXL dependency build and physical cross-decoding",
+    "stable SDK and consumer adapters",
+    "final source quality/Sonar/Clippy",
+    "optimized distribution and platform installation",
+    "RC readiness and renewed benchmarks"
+  ],
+  "new_non_code_files_after_snapshot": [
+    "tests/fixtures/native_ports/README.md",
+    "tests/fixtures/native_ports/.gitattributes"
+  ]
+}

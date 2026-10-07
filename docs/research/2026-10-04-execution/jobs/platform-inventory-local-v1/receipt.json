@@ -1,0 +1,84 @@
+{
+  "schema": "cix-platform-inventory-local-v1",
+  "inputs_before": {
+    "tools/platform-validation/inventory.py": "7cc1c918cae93a54fc3d18dba9fe7b97bef96ce001402ac4a0759ecc1356459f",
+    ".github/workflows/cix-platform-validation.yml": "38d74890353d712a6f4ebf9f10fe260290c9f0b423988f593839160a97af07e8"
+  },
+  "phases": [
+    {
+      "argv": [
+        "--source-sha",
+        "0000000000000000000000000000000000000000",
+        "--target",
+        "linux-arm64",
+        "--output",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/platform-inventory-local-v1/valid.json"
+      ],
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "--source-sha",
+        "0000000000000000000000000000000000000000",
+        "--target",
+        "linux-arm64",
+        "--output",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/platform-inventory-local-v1/valid.json"
+      ],
+      "returncode": 1,
+      "stderr": "refusing to overwrite an existing inventory artifact\n"
+    },
+    {
+      "argv": [
+        "--source-sha",
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "--target",
+        "linux-arm64",
+        "--output",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/platform-inventory-local-v1/bad-sha.json"
+      ],
+      "returncode": 1,
+      "stderr": "source SHA must be exactly 40 lowercase hexadecimal characters\n"
+    },
+    {
+      "argv": [
+        "--source-sha",
+        "0000000000000000000000000000000000000000",
+        "--target",
+        "not-a-target",
+        "--output",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/platform-inventory-local-v1/bad-target.json"
+      ],
+      "returncode": 2,
+      "stderr": "usage: inventory.py [-h] --source-sha SOURCE_SHA --target\n                    {linux-arm64,macos-arm64,macos-x64,windows-x64} --output\n                    OUTPUT\ninventory.py: error: argument --target: invalid choice: 'not-a-target' (choose from 'linux-arm64', 'macos-arm64', 'macos-x64', 'windows-x64')\n"
+    }
+  ],
+  "probe_fixtures": {
+    "overflow": {
+      "available": true,
+      "path": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/platform-inventory-local-v1/overflow-tool",
+      "returncode": 0,
+      "retained_output_cap_bytes": 4096,
+      "output_overflow_observed": true,
+      "timed_out": false,
+      "termination_scope": "none",
+      "version_first_line": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "timeout": {
+      "available": true,
+      "path": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/platform-inventory-local-v1/timeout-tool",
+      "returncode": -15,
+      "retained_output_cap_bytes": 4096,
+      "output_overflow_observed": false,
+      "timed_out": true,
+      "termination_scope": "process-group",
+      "version_first_line": ""
+    }
+  },
+  "inputs_after": {
+    "tools/platform-validation/inventory.py": "7cc1c918cae93a54fc3d18dba9fe7b97bef96ce001402ac4a0759ecc1356459f",
+    ".github/workflows/cix-platform-validation.yml": "38d74890353d712a6f4ebf9f10fe260290c9f0b423988f593839160a97af07e8"
+  },
+  "status": "pass"
+}

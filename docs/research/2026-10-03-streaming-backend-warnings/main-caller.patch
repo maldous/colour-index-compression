@@ -1,0 +1,33 @@
+diff --git a/rust/cix-native/src/main.rs b/rust/cix-native/src/main.rs
+index fdecbb390..336753c93 100644
+--- a/rust/cix-native/src/main.rs
++++ b/rust/cix-native/src/main.rs
+@@ -4585,16 +4585,18 @@ fn encode_automatic_persistent_stream<R: Read, W: Write>(
+     streaming_backend::encode(
+         src,
+         dst,
+-        first,
+-        first_eof,
+-        block,
+-        9,
+-        input_fd,
+-        flush_interval,
+-        memory,
+-        threads,
+-        explain,
+-        verbose,
++        streaming_backend::EncodeRequest {
++            first,
++            first_eof,
++            block,
++            level: 9,
++            input_fd,
++            flush_interval,
++            memory,
++            workers: threads,
++            explain,
++            verbose,
++        },
+     )
+ }
+ 

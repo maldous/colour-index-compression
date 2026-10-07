@@ -1,0 +1,200 @@
+{
+  "audit_version": "2026-09-30",
+  "purpose": "Read-only implementation-path audit of historical Portfolio 25 for bounded Wikipedia experiment design.",
+  "scope": {
+    "result_source": "docs/research/2026-09-29-portfolio25-contributions.json",
+    "portfolio_total_bytes": 25502494,
+    "local_v216_8_total_bytes": 28803779,
+    "saved_vs_local_v216_8_bytes": 3301285,
+    "historical_author_v215_12L_total_bytes": 27825511,
+    "source_revision": "f26d32836c15cb1a5e37ebfddd5826c4b33ff8a6",
+    "source_archive_sha256": "82057df6eb217602cbb3e5b10538f00e30acedd791c88dbe9cef2f81b9e7414e",
+    "claim_boundary": "Historical Silesia only; no Wikipedia, enwik9, Hutter, or transfer compression claim."
+  },
+  "portfolio_rows": [
+    {
+      "file": "dickens",
+      "selected": "paq-v216-8-under-12MiB-nondatabase",
+      "cix_bytes": 1902345,
+      "v216_8_control_bytes": 1902345
+    },
+    {
+      "file": "mozilla",
+      "selected": "section-constraints-paq-v215-8-mode4",
+      "cix_bytes": 5834880,
+      "v216_8_control_bytes": 6477226
+    },
+    {
+      "file": "mr",
+      "selected": "volume-0-3-10",
+      "cix_bytes": 1671101,
+      "v216_8_control_bytes": 1820661
+    },
+    {
+      "file": "nci",
+      "selected": "geometry-hydrogen-slots-paq-v215-8",
+      "cix_bytes": 447748,
+      "v216_8_control_bytes": 809461
+    },
+    {
+      "file": "ooffice",
+      "selected": "paq-v216-8-under-12MiB-nondatabase",
+      "cix_bytes": 1267529,
+      "v216_8_control_bytes": 1267529
+    },
+    {
+      "file": "osdb",
+      "selected": "database-remaining-count-paq-v215-8",
+      "cix_bytes": 1698992,
+      "v216_8_control_bytes": 2018086
+    },
+    {
+      "file": "reymont",
+      "selected": "paq-v216-8-under-12MiB-nondatabase",
+      "cix_bytes": 746894,
+      "v216_8_control_bytes": 746894
+    },
+    {
+      "file": "samba",
+      "selected": "paq-v216-8-12to24MiB-nondatabase",
+      "cix_bytes": 1625132,
+      "v216_8_control_bytes": 1625132
+    },
+    {
+      "file": "sao",
+      "selected": "grouped-prediction-paq-v215-8",
+      "cix_bytes": 2105875,
+      "v216_8_control_bytes": 3730635
+    },
+    {
+      "file": "webster",
+      "selected": "lstm-prediction-paq-v215-9L",
+      "cix_bytes": 4423086,
+      "v216_8_control_bytes": 4626898
+    },
+    {
+      "file": "x-ray",
+      "selected": "paq-v216-8-under-12MiB-nondatabase",
+      "cix_bytes": 3531428,
+      "v216_8_control_bytes": 3531428
+    },
+    {
+      "file": "xml",
+      "selected": "paq-v216-8-under-12MiB-nondatabase",
+      "cix_bytes": 247484,
+      "v216_8_control_bytes": 247484
+    }
+  ],
+  "audited_paths": {
+    "osdb_remaining_counts": {
+      "implementation": "benchmarks/mysql_record_constraints.py",
+      "sha256": "ce79f2845f422c03d886e57fe1a521a123bf4a8f130da8ccf6948af678e03a1b",
+      "selected_mode": 3,
+      "functions": [
+        "split",
+        "column_encode",
+        "order_encode",
+        "order_decode",
+        "transform",
+        "inverse",
+        "encode",
+        "decode"
+      ],
+      "mechanism": "Canonical MyISAM parser; observed field palettes and counts are transmitted; mode 3 dynamically arithmetic-codes remaining counts.",
+      "rank_control": "Mode 4: exact rank for n <= 4096, Lehmer rank when all distinct, otherwise remaining-count arithmetic.",
+      "transfer_status": "No generic markup/prose parser or arbitrary cross-field learner."
+    },
+    "sao_grouped_corrections": {
+      "implementation": "benchmarks/grid_conditional_corrections.py",
+      "sha256": "59f0d271834198809a204a3bb6a8b50f1449e4f417a2371faf2341f079910465",
+      "qualification_wrapper": "benchmarks/grid_conditional_paq_probe.py",
+      "qualification_wrapper_sha256": "81f72f68e34f0186f579a46100d5ee2c0da12c88f05d355490a08528da403871",
+      "selected_context": 3,
+      "selected_coding": 0,
+      "mechanism": "Exact decoded quantized-coordinate partitions; coding 0 writes correction palette IDs raw; transformed stream goes to v215 -8 PAQ.",
+      "rank_control": "Codings 1 and 2 call grid.type_frame but were unselected.",
+      "transfer_status": "No text, paragraph, markup, or semantic grouping."
+    }
+  },
+  "backend_boundary": {
+    "native_v216_8_selected_members": [
+      "dickens",
+      "ooffice",
+      "reymont",
+      "samba",
+      "x-ray",
+      "xml"
+    ],
+    "v215_8_structural_selected_members": [
+      "mozilla",
+      "nci",
+      "osdb",
+      "sao"
+    ],
+    "v215_9L_native_selected_members": [
+      "webster"
+    ],
+    "non_paq_or_not_classified_here": [
+      "mr"
+    ],
+    "rule": "Do not treat row-to-control differences as isolated backend-version or entropy-coder measurements."
+  },
+  "wikipedia_d2_block_exact_eligibility": {
+    "status": "READ_ONLY_PROFILE_NOT_COMPRESSION",
+    "source": "benchmarks/hutter_structure_columns.extract_columns plus benchmarks/hutter_wikipedia_column_coding._eligible semantics",
+    "codec_boundary": "Only non-article-text D2 column blocks are considered; article body text is not remaining-count/rank coded by this path.",
+    "block_values": 1024,
+    "criteria": "at least 4 values, at most 256 distinct values per actual block, and every value below 1 MiB",
+    "cpu": 6,
+    "wall_seconds": 0.2,
+    "memory_limit_bytes": 1000000000,
+    "regions": [
+      {"offset":0,"input_bytes":4194304,"eligible_blocks":194,"eligible_values":10899,"short_field_blocks":259,"short_field_values":10964,"global_palette_gt256_but_block_eligible_blocks":0,"global_palette_gt256_but_block_eligible_values":0},
+      {"offset":100000000,"input_bytes":4194304,"eligible_blocks":170,"eligible_values":8153,"short_field_blocks":194,"short_field_values":8177,"global_palette_gt256_but_block_eligible_blocks":0,"global_palette_gt256_but_block_eligible_values":0},
+      {"offset":400000000,"input_bytes":4194304,"eligible_blocks":114,"eligible_values":21553,"short_field_blocks":192,"short_field_values":25663,"global_palette_gt256_but_block_eligible_blocks":0,"global_palette_gt256_but_block_eligible_values":0}
+    ],
+    "interpretation": "The earlier whole-column screen does not understate block eligibility from globally over-256 palettes in these regions. This is eligibility evidence only, not a pre-PAQ or compressed-size result."
+  },
+  "prioritised_new_hypotheses": [
+    {
+      "priority": 1,
+      "name": "repeated_body_long_paragraph_skeleton",
+      "implemented_in_portfolio25": false,
+      "controls": [
+        "literal",
+        "copy plus literal substitutions",
+        "dictionary IDs",
+        "remaining-count IDs",
+        "rank IDs"
+      ]
+    },
+    {
+      "priority": 2,
+      "name": "numeric_joint_corrections",
+      "implemented_in_portfolio25": false,
+      "controls": [
+        "raw IDs",
+        "remaining-count arithmetic",
+        "type-class rank"
+      ]
+    },
+    {
+      "priority": 3,
+      "name": "strong_field_dictionary_only",
+      "implemented_in_portfolio25": false,
+      "controls": [
+        "literal field",
+        "static IDs",
+        "remaining-count IDs"
+      ]
+    }
+  ],
+  "not_implemented": [
+    "generic Wikipedia parser",
+    "generic paragraph skeleton/substitution representation",
+    "generic markup field-schema learner",
+    "generic Wikipedia numeric joint-correction codec",
+    "whole-Wikipedia or enwik9 qualification",
+    "same-predictions CIX-versus-PAQ residual result"
+  ]
+}

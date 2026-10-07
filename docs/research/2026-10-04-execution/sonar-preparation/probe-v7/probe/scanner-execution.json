@@ -1,0 +1,46 @@
+{
+  "argv": "ulimit -f 16384; sonar-scanner -Dsonar.scanner.skipJreProvisioning=true -Dsonar.projectBaseDir=/usr/src -Dproject.settings=/out/properties -Dsonar.scanner.metadataFilePath=/scanner-report-task > /scanner-log 2>&1",
+  "contract": {
+    "container_root_filesystem": "read-only (--read-only)",
+    "docker_log_driver": "none; scanner stdout/stderr is retained through the bounded scanner-log file bind",
+    "jre": "image Java 21; scanner JRE provisioning disabled with -Dsonar.scanner.skipJreProvisioning=true",
+    "report_mount": "/out:ro; the only writable evidence paths are two pre-created, size-bounded file binds",
+    "scanner_log": {
+      "bytes": 8388608,
+      "container_path": "/scanner-log",
+      "host_path": "<attempt>/scanner.log",
+      "precreated_file_bind": true
+    },
+    "scanner_report_task": {
+      "bytes": 65536,
+      "container_path": "/scanner-report-task",
+      "host_path": "<attempt>/report-task.txt",
+      "precreated_file_bind": true
+    },
+    "source_mount": "/usr/src:ro",
+    "writable_tmpfs": {
+      "bytes": 67108864,
+      "includes": [
+        "HOME",
+        "XDG_CONFIG_HOME",
+        "SONAR_USER_HOME",
+        "SCANNER_WORKDIR_PATH"
+      ],
+      "path": "/tmp"
+    }
+  },
+  "docker_cp": {
+    "reason": "stopped-container tmpfs was unrecoverable in probe-v6; bounded file binds retain both artifacts before exit",
+    "used": false
+  },
+  "docker_wait": {
+    "exit": 0,
+    "stderr": "",
+    "stdout": "1\n"
+  },
+  "exit": "1",
+  "log_bytes": 3618,
+  "log_path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/sonar-preparation/probe-v7/probe/scanner.log",
+  "report_task_bytes": 0,
+  "report_task_path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/sonar-preparation/probe-v7/probe/report-task.txt"
+}

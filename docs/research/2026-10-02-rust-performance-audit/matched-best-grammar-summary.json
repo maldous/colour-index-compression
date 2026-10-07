@@ -1,0 +1,96 @@
+{
+  "schema": "cix-performance-focused-evidence-v1",
+  "scope": "Preliminary matched native CLI measurement; not corpus qualification or a general profile claim",
+  "input": {
+    "label": "canterbury/grammar.lsp",
+    "bytes": 3721,
+    "sha256": "1b0805dfc0ae706b35aac2bb4e15f02485efd24dda5dbd29de7b2f84d1a88c15"
+  },
+  "profiles": [
+    "best"
+  ],
+  "repetitions": 3,
+  "threads": 1,
+  "cpu_set": [
+    8
+  ],
+  "flags": [
+    "--best",
+    "--threads",
+    "1"
+  ],
+  "complete_archive_bytes": 1096,
+  "archive_sha256": "136b20d02ba2d578ac770e9b64c6c084d3e9c382231cf471dc3cd4a15e98c679",
+  "fresh_cross_decodes": 12,
+  "exact_archive_identity": true,
+  "groups": {
+    "pre_refactor": {
+      "revision": "99f4f731991aeaf495fe3346a553afdcd107926b",
+      "binary_sha256": "0a2731722d197083558d13210ca828316fe1bcd1f9a1d372d1d92d8502f55a7e",
+      "wall_seconds": {
+        "mean": 45.68666666666667,
+        "sample_stddev": 0.6795096271086474,
+        "samples": [
+          45.5,
+          45.12,
+          46.44
+        ]
+      },
+      "cpu_seconds": {
+        "mean": 45.666666666666664,
+        "samples": [
+          45.48,
+          45.1,
+          46.42
+        ]
+      },
+      "peak_rss_bytes": {
+        "mean": 102470997.33333333,
+        "samples": [
+          102670336,
+          102318080,
+          102424576
+        ]
+      },
+      "input_bytes_per_second": 81.44608200787975
+    },
+    "post_refactor_optimized": {
+      "revision": "15426f310f40b9a3d753313741c28e718f7aceb6",
+      "binary_sha256": "e6ede6735f4b59bf75540353f4efcb26e3b05877c8af647cf77ed3f35e6729ab",
+      "wall_seconds": {
+        "mean": 46.18666666666667,
+        "sample_stddev": 1.5316766412442695,
+        "samples": [
+          45.71,
+          47.9,
+          44.95
+        ]
+      },
+      "cpu_seconds": {
+        "mean": 46.163333333333334,
+        "samples": [
+          45.690000000000005,
+          47.870000000000005,
+          44.93
+        ]
+      },
+      "peak_rss_bytes": {
+        "mean": 102421845.33333333,
+        "samples": [
+          102440960,
+          102187008,
+          102637568
+        ]
+      },
+      "input_bytes_per_second": 80.56437644341801
+    }
+  },
+  "raw_evidence_directory": "benchmark-work/rust-performance-audit/matched-best-grammar-v1",
+  "limitations": [
+    "Only one tiny CCA input; no Silesia gate qualification",
+    "Wall time includes process startup, selection, validation, complete framing and file output",
+    "GNU Time decoder resolution too coarse for a decode-throughput claim",
+    "Concurrent research on disjoint CPU sets; no timing rank claim",
+    "Final Sonar quality gate and complete audit are pending"
+  ]
+}

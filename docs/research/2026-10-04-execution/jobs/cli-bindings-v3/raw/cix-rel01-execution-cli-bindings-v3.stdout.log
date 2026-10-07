@@ -1,0 +1,69 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v3/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v3/Cargo.toml', '--lib', 'full_engine::job_protocol::tests', '--', '--test-threads=1']
+
+running 4 tests
+test full_engine::job_protocol::tests::control_round_trip ... ok
+test full_engine::job_protocol::tests::decode_entry_counts_actual_native_output_and_finishes_stage ... ok
+test full_engine::job_protocol::tests::direct_selection_entry_applies_limits_cancel_and_reports_actual_output ... ok
+test full_engine::job_protocol::tests::rejects_unknown_version_oversize_truncated_and_utf8 ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 259 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v3/Cargo.toml', '--test', 'c_stream_contract', '--test', 'cli_full_engine', '--test', 'cli_smoke', '--test', 'standard_formats_cli', '--test', 'selection_overrides', '--', '--test-threads=1']
+
+running 8 tests
+test accepts_null_zero_length_buffers ... ok
+test corrupted_decoder_poison_requires_reset ... ok
+test create_rejects_misaligned_overflow_and_options_overlap_before_write ... ok
+test flush_closes_partial_archive_compatible_with_core ... ok
+test fragmented_cross_block_roundtrip_and_core_compatibility ... ok
+test fragmented_encoder_backpressure_empty_and_reset ... ok
+test rejects_invalid_ranges ... ok
+test rejects_result_alias_before_constructing_slices ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 5 tests
+test damaged_full_frame_does_not_publish_atomic_output_or_remove_input ... ok
+test mixed_raw_member_needs_no_image_provider ... FAILED
+test named_default_reaches_selector_and_independent_cli_decode ... FAILED
+test native_stream_remains_available_and_ignores_unused_bad_image_libraries ... FAILED
+test raw_frame_decodes_and_lists_without_optional_providers_or_home ... FAILED
+
+failures:
+
+---- mixed_raw_member_needs_no_image_provider stdout ----
+
+thread 'mixed_raw_member_needs_no_image_provider' (2654532) panicked at tests/cli_full_engine.rs:47:5:
+cix: unsupported option: -dc
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- named_default_reaches_selector_and_independent_cli_decode stdout ----
+
+thread 'named_default_reaches_selector_and_independent_cli_decode' (2654535) panicked at tests/cli_full_engine.rs:47:5:
+cix: unsupported option: -dc
+
+
+---- native_stream_remains_available_and_ignores_unused_bad_image_libraries stdout ----
+
+thread 'native_stream_remains_available_and_ignores_unused_bad_image_libraries' (2654542) panicked at tests/cli_full_engine.rs:47:5:
+cix: unsupported option: -dc
+
+
+---- raw_frame_decodes_and_lists_without_optional_providers_or_home stdout ----
+
+thread 'raw_frame_decodes_and_lists_without_optional_providers_or_home' (2654551) panicked at tests/cli_full_engine.rs:47:5:
+cix: unsupported option: -dc
+
+
+
+failures:
+    mixed_raw_member_needs_no_image_provider
+    named_default_reaches_selector_and_independent_cli_decode
+    native_stream_remains_available_and_ignores_unused_bad_image_libraries
+    raw_frame_decodes_and_lists_without_optional_providers_or_home
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

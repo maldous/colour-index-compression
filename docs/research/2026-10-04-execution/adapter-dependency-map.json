@@ -1,0 +1,316 @@
+{
+  "schema": "cix.adapter-dependency-map.v2",
+  "created": "2026-10-05",
+  "scope": "current narrow adapter inventory through host-adapters-v7, codec-hosts-v8 and relocated-providers-v4. Passing host receipts cover exactly the named source snapshot, library, host and cases; no RC ID is closed and runtime finalisation is not a release. No builds/downloads were performed for this refresh.",
+  "existing_native_sdk": [
+    "rust/cix-native/include/cix.h",
+    "rust/cix-native/include/cix_stream.h",
+    "rust/cix-native/include/cix_formats.h",
+    "rust/cix-native/include/cix_dictionary.h",
+    "rust/cix-native/include/cix.hpp",
+    "rust/cix-native/packaging/sdk/"
+  ],
+  "known_local_tools": [
+    "/bin/tar",
+    "/bin/7z",
+    "/bin/7za",
+    "/bin/mksquashfs",
+    "/bin/unsquashfs",
+    "/bin/cmake",
+    "/bin/ninja",
+    "/bin/pkg-config",
+    "/bin/go",
+    "/bin/java",
+    "/bin/javac",
+    "/bin/node",
+    "/bin/npm"
+  ],
+  "known_local_shared_objects_without_development_contract": [
+    "libarchive.so.13",
+    "libhdf5_serial.so.103",
+    "libnetcdf.so.19",
+    "libfuse3.so.3",
+    "libfuse.so.2"
+  ],
+  "known_absences_or_unverified": [
+    "squash-0.8 pkg-config and headers",
+    "libarchive/HDF5/netCDF/FUSE/SquashFS development headers in inspected include paths",
+    "7-Zip SDK",
+    "protoc/grpc tools",
+    ".NET",
+    "WASM toolchain/runtime",
+    "platform execution runners"
+  ],
+  "entries": [
+    {
+      "id": "RC27",
+      "scope": "Tar and libarchive",
+      "source_present": "CIX-owned libarchive/tar adapter source; host-adapters-v3 receipt",
+      "local_host_evidence": "host-adapters-v3 PASS: GNU tar plus actual C program filter, explicit --cix path; old runtime-closure-v1 remains scoped Linux evidence",
+      "proposed_disjoint_paths": [
+        "adapters/tar/cix-tar-filter.rs",
+        "adapters/libarchive/cix_archive_filter.c",
+        "adapters/tests/tar_interop.rs"
+      ],
+      "qualification_blocker": "libarchive lifecycle/error/interoperability matrix, packages and platform qualification remain open",
+      "status": "narrow_host_receipt"
+    },
+    {
+      "id": "RC28",
+      "scope": "QuixDB Squash plugin",
+      "source_present": "CIX Squash0.8 plugin contract source; codec-hosts-v8 pinned-host source snapshot",
+      "local_host_evidence": "codec-hosts-v8 PASS: actual Squash0.8 plugin buffer, stream and custom-splice contracts; no CAN_FLUSH claim",
+      "proposed_disjoint_paths": [
+        "adapters/quix_squash/cix_squash_plugin.c",
+        "adapters/quix_squash/tests/plugin_contract.c (or retain package shim only after SDK binding)"
+      ],
+      "qualification_blocker": "map the final package to the v8 source/SDK receipt; accepted identifier, package/registry handling, host/version matrix and any untested lifecycle claims remain open; distinct from SquashFS",
+      "status": "narrow_host_receipt"
+    },
+    {
+      "id": "RC29",
+      "scope": "7-Zip coder",
+      "source_present": "7-Zip source-only, uncompiled",
+      "local_host_evidence": "no host acceptance",
+      "proposed_disjoint_paths": [
+        "adapters/7zip/CixCoder.h",
+        "adapters/7zip/CixCoder.cpp",
+        "adapters/7zip/CMakeLists.txt"
+      ],
+      "qualification_blocker": "pinned SDK build, experimental method identity, decoder distribution and host test",
+      "status": "source_uncompiled"
+    },
+    {
+      "id": "RC30",
+      "scope": "HDF5 / h5py / netCDF chunk filters",
+      "source_present": "CIX-owned HDF5/netCDF filter source with h5py integration receipt",
+      "local_host_evidence": "host-adapters-v6 PASS: HDF5 1.10.10/netCDF 4.9.2 reopen compression/raw-mask/corruption/limit cases with 64 MiB input, 512 MiB output and four-worker deployment caps; private filter ID 65001. host-adapters-v7 PASS: h5py 3.10/HDF5 1.10.10/NumPy 1.26.4 actual compressed mask-0 reopen exactness.",
+      "proposed_disjoint_paths": [
+        "adapters/hdf5/cix_h5_filter.c",
+        "adapters/netcdf/cix_netcdf_filter.c",
+        "bindings/python/cix_h5py.py",
+        "adapters/tests/hdf_chunk_filter.c"
+      ],
+      "qualification_blocker": "bounded receipts only: h5py/HDF5/NumPy version and platform matrices plus registry/upstream acceptance remain open",
+      "status": "narrow_host_receipt"
+    },
+    {
+      "id": "RC31",
+      "scope": "Numcodecs / Zarr",
+      "source_present": "bindings/python integrations/numcodecs.py, zarr_v2.py and zarr_v3.py; experimental explicit-SDK adapters",
+      "local_host_evidence": "language-consumers-v4 passed recorded staged Python host integration",
+      "proposed_disjoint_paths": [
+        "bindings/python/cix_numcodecs.py",
+        "bindings/python/cix_zarr_v2.py",
+        "bindings/python/cix_zarr_v3.py",
+        "bindings/python/tests/test_zarr_codecs.py"
+      ],
+      "qualification_blocker": "repeat after source changes; host/version/interpreter matrix, registry/upstream acceptance, partial-chunk and dtype/shape boundaries remain open",
+      "status": "scoped_receipt"
+    },
+    {
+      "id": "RC32",
+      "scope": "Blosc2 plugin",
+      "source_present": "Blosc2 source-only, uncompiled",
+      "local_host_evidence": "no host acceptance",
+      "proposed_disjoint_paths": [
+        "adapters/blosc2/cix_blosc2_plugin.c",
+        "adapters/blosc2/CMakeLists.txt"
+      ],
+      "qualification_blocker": "pinned Blosc2 plugin ABI, identity and incompressible/bounds host tests",
+      "status": "source_uncompiled"
+    },
+    {
+      "id": "RC33",
+      "scope": "RocksDB / WiredTiger",
+      "source_present": "WiredTiger source-only, uncompiled",
+      "local_host_evidence": "no host acceptance",
+      "proposed_disjoint_paths": [
+        "adapters/rocksdb/cix_compression_manager.cc",
+        "adapters/wiredtiger/cix_wt_compressor.c",
+        "adapters/tests/kv_adapters.rs"
+      ],
+      "qualification_blocker": "pinned host interfaces and independent WT_COMPRESSOR qualification",
+      "status": "source_uncompiled"
+    },
+    {
+      "id": "RC34",
+      "scope": "Hadoop and seekable chunks",
+      "source_present": "Hadoop adapter source-only, uncompiled; sequential CIXG1 only",
+      "local_host_evidence": "no Hadoop runtime/API receipt",
+      "proposed_disjoint_paths": [
+        "adapters/hadoop/CixCompressionCodec.java",
+        "adapters/hadoop/CixInputStream.java",
+        "adapters/seek/cix_seek_index.rs"
+      ],
+      "qualification_blocker": "pinned Hadoop API compile/runtime; seek index remains separately unproved and no splittable claim",
+      "status": "source_uncompiled"
+    },
+    {
+      "id": "RC35",
+      "scope": "C/C++/Rust/Python primary bindings",
+      "source_present": "C/C++/Rust SDK plus optional stdlib ctypes Python consumer",
+      "local_host_evidence": "cli-bindings-v8 Python contract and language-consumers-v3 core Python contract passed at recorded snapshots",
+      "proposed_disjoint_paths": [
+        "bindings/python/cix_native_module.c",
+        "bindings/python/pyproject.toml",
+        "bindings/python/tests/test_native_binding.py"
+      ],
+      "qualification_blocker": "repeat current source and qualify wheel/interpreter/platform matrices; standalone CIX remains Python-free",
+      "status": "scoped_receipt"
+    },
+    {
+      "id": "RC36",
+      "scope": "Go / Java / .NET / Node bindings",
+      "source_present": "optional Go, Java/JNI, Node-API and .NET source trees",
+      "local_host_evidence": "Go passed cli-bindings-v8; Java/Node substeps passed language-consumers-v2; .NET 8 passed dotnet-consumer-v2",
+      "proposed_disjoint_paths": [
+        "bindings/go/cix.go",
+        "bindings/java/src/.../Cix.java",
+        "bindings/dotnet/CixNative.cs",
+        "bindings/node/cix_node.cc"
+      ],
+      "qualification_blocker": "repeat after binding changes and qualify target toolchain/VM/OS matrices; cancellation remains entry-fence only",
+      "status": "scoped_receipt"
+    },
+    {
+      "id": "RC37",
+      "scope": "Portable WASM subset",
+      "source_present": "no WASM subset",
+      "local_host_evidence": "no target/runtime receipt",
+      "proposed_disjoint_paths": [
+        "bindings/wasm/Cargo.toml",
+        "bindings/wasm/src/lib.rs",
+        "bindings/wasm/web.ts"
+      ],
+      "qualification_blocker": "portable target/toolchain, explicit capability subset and browser/runtime tests",
+      "status": "open"
+    },
+    {
+      "id": "RC38",
+      "scope": "gRPC and HTTP",
+      "source_present": "no gRPC/HTTP adapter",
+      "local_host_evidence": "no protoc/gRPC host receipt",
+      "proposed_disjoint_paths": [
+        "adapters/grpc/cix.proto",
+        "adapters/grpc/server.rs",
+        "adapters/http/cix_http.rs"
+      ],
+      "qualification_blocker": "pinned runtime/toolchain, message limits, negotiation and interop tests",
+      "status": "open"
+    },
+    {
+      "id": "RC39",
+      "scope": "GIO / GStreamer / storage examples",
+      "source_present": "CIX-owned GIO adapter source",
+      "local_host_evidence": "host-adapters-v4 PASS: four native-SDK GIO contract cases; cancellation is entry-fence only",
+      "proposed_disjoint_paths": [
+        "adapters/gio/cix_converter.c",
+        "adapters/gstreamer/gstcix.c",
+        "examples/storage/manifest_backup.rs"
+      ],
+      "qualification_blocker": "GStreamer/storage, platform matrix and any hard-preemption claim remain open",
+      "status": "narrow_host_receipt"
+    },
+    {
+      "id": "RC40",
+      "scope": "Native SquashFS userspace",
+      "source_present": "SquashFS source present but uncompiled; libSquash plugin remains separate",
+      "local_host_evidence": "SDK downloaded but no build/load/runtime receipt",
+      "proposed_disjoint_paths": [
+        "adapters/squashfs/cix_mksquashfs.c",
+        "adapters/squashfs/cix_unsquashfs.c",
+        "adapters/squashfs/libsquashfs.c",
+        "adapters/squashfuse/cix_squashfuse.c"
+      ],
+      "qualification_blocker": "build against pinned userspace APIs and qualify data/metadata/fragments/xattrs separately",
+      "status": "source_uncompiled"
+    },
+    {
+      "id": "RC41",
+      "scope": "Restricted SquashFS decoder and VM mount",
+      "source_present": "no restricted decoder/VM receipt",
+      "local_host_evidence": "no disposable VM/kernel evidence",
+      "proposed_disjoint_paths": [
+        "adapters/squashfs/restricted_decoder.rs",
+        "adapters/squashfs/tests/differential.rs",
+        "adapters/squashfs/vm/mount_check.sh"
+      ],
+      "qualification_blocker": "chosen profile, differential decoder cases and disposable VM runner",
+      "status": "open"
+    },
+    {
+      "id": "RC42",
+      "scope": "EROFS/Btrfs/OpenZFS/ZIP/Parquet/Arrow/OCI proposals",
+      "source_present": "no accepted proposal implementation",
+      "local_host_evidence": "no host SDK evidence",
+      "proposed_disjoint_paths": [
+        "adapters/proposals/{erofs,btrfs,zfs,zip,parquet,arrow,oci}/README.md",
+        "one bounded CIX-owned prototype per accepted proposal"
+      ],
+      "qualification_blocker": "per-format compatibility proposal, distinct development identity and feasible prototype",
+      "status": "open"
+    },
+    {
+      "id": "RC43",
+      "scope": "Platform qualification",
+      "source_present": "Linux x86-64 source/package receipts only",
+      "local_host_evidence": "no Linux ARM64, macOS or Windows execution receipt",
+      "proposed_disjoint_paths": [
+        "ci-independent qualification manifests under docs/research/2026-10-04-execution/platforms/ (evidence only",
+        "no workflow implied)"
+      ],
+      "qualification_blocker": "actual Linux ARM64, macOS ARM64/x86-64 and Windows x64 build-and-run hosts",
+      "status": "scoped_linux_receipt"
+    },
+    {
+      "id": "RC54",
+      "scope": "External registries and host acceptance",
+      "source_present": "base SDK packaging and experimental binding identities only",
+      "local_host_evidence": "no registry/upstream allocation or acceptance",
+      "proposed_disjoint_paths": [
+        "docs/research/2026-10-04-execution/adapter-identities.json",
+        "per-adapter compatibility manifest adjacent to each adapter"
+      ],
+      "qualification_blocker": "per-host collision-free development identities and real pinned SDK/registry acceptance",
+      "status": "open"
+    }
+  ],
+  "dependency_order": [
+    "repeat scoped binding receipts after current source changes",
+    "obtain pinned host SDKs and bind each source-in-progress adapter",
+    "run each adapter on its actual host/plugin/runtime",
+    "perform platform/VM qualification and registry acceptance separately"
+  ],
+  "native_fullengine_boundary": "The public SDK exposes complete buffers, CIXG1 independent streams, explicit standard formats and dictionaries. The ordinary CLI has a separate bounded whole-input FullEngine path. Optional bindings do not expose full-engine selection, retained-history streaming, PAQ/JXL choice or specialist routing.",
+  "research_boundary": "Adapter/binding work does not reopen closed numeric structural composition or the negative predictive-mixture first decision gate.",
+  "recorded_evidence": {
+    "navigation_current_source_bound": {
+      "stream_hosts": "docs/research/2026-10-04-execution/STREAM-HOSTS-CHECKPOINT.md and stream-hosts-evidence.json: scoped stream/storage host evidence; no general filesystem or full-engine claim.",
+      "filesystem": "docs/research/2026-10-04-execution/jobs/filesystem-evidence-v1/FILESYSTEM-CHECKPOINT.md and filesystem-evidence.json: bounded filesystem/VM evidence only.",
+      "native_quality": "docs/research/2026-10-04-execution/jobs/native-quality-v10/receipt.json and source.json: source-bound fmt and Clippy receipt; it does not upgrade historical host outcomes."
+    },
+    "cli_bindings_v8": "exit 0: installed SDK configure/install, Python and Go consumer checks, and relocated Linux runtime command checks; not every retained family or CLI mode.",
+    "language_consumers_v2": "Node and Java configure/build/contract substeps exit 0; the job later failed during Python host dependency installation, so it is not a whole-job pass.",
+    "language_consumers_v3": "Python core contract substeps passed; Python host integration later failed, so it is not a whole-job pass.",
+    "language_consumers_v4": "exit 0: staged Python Numcodecs/Zarr integration test only.",
+    "dotnet_consumer_v2": "exit 0: staged .NET 8 info/restore/build/contract only.",
+    "runtime_closure_v1": "exit 0: relocated Linux dependency receipt only.",
+    "host_adapters_v3": "PASS: GNU tar plus actual C program libarchive filter with explicit --cix path; narrow Linux host receipt.",
+    "host_adapters_v4": "PASS: four GIO native-SDK contract cases. Cancellation prevents later entry only; it cannot preempt an in-flight native call.",
+    "host_adapters_v5": "PASS: HDF5 1.10.10 and netCDF 4.9.2 reopen-compression, raw-mask, corruption and limit cases using private filter ID 65001. h5py remains unqualified.",
+    "current_constraints": "46 tests pass; runtime finalisation is not a release.",
+    "host_adapters_v6": "PASS: HDF5 1.10.10/netCDF 4.9.2 reopen compression, raw-mask, corruption and limits under 64 MiB input, 512 MiB output and four-worker deployment caps; private filter ID 65001.",
+    "host_adapters_v7": "PASS: h5py 3.10, HDF5 1.10.10 and NumPy 1.26.4 actual compressed mask-0 reopen exactness.",
+    "runtime_closure_v2": "installed the new binary; Linux scoped receipt only.",
+    "relocated_providers_v4": "PASS: actual JXL gray/planar and all four PAQ level-1 exact cases. PAQ level-0 known upstream null bug is guarded by the worker before DSO entry; all four negative guards passed."
+  },
+  "remaining_external_prerequisites": [
+    "actual Linux ARM64, macOS ARM64/x86-64 and Windows x64 build-and-run hosts",
+    "disposable VM/kernel runner for restricted SquashFS mount qualification",
+    "target C compiler/loader for cgo; target JDK/JNI headers and JVM; Node N-API 8 headers/runtime; .NET 8 SDK/runtime; target CPython interpreters",
+    "staged compatible Numcodecs/Zarr hosts plus explicit installed SDK path",
+    "per-host registry/identity acceptance where any stock integration claim is desired",
+    "h5py host qualification; Hadoop, Blosc2, WiredTiger, 7-Zip and Squash SDK/API compile-and-run receipts for their source-only adapters"
+  ]
+}

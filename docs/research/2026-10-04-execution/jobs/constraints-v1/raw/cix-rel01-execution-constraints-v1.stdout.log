@@ -1,0 +1,99 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-constraints-v1/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-constraints-v1/Cargo.toml', '--lib', 'full_engine::native_portfolio', '--', '--test-threads=1']
+
+running 6 tests
+test full_engine::native_portfolio::tests::best_admission_includes_a_raw_fallback ... ok
+test full_engine::native_portfolio::tests::best_tiny_input_keeps_every_whole_archive_family_observable ... ok
+test full_engine::native_portfolio::tests::capped_writer_keeps_an_equal_candidate_materializable ... ok
+test full_engine::native_portfolio::tests::direct_profile_allows_a_smaller_legal_output_cap ... ok
+test full_engine::native_portfolio::tests::family_budget_is_split_without_losing_total_time ... ok
+test full_engine::native_portfolio::tests::output_reservation_failure_is_fallible ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 260 filtered out; finished in 2.53s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-constraints-v1/Cargo.toml', '--lib', 'full_engine::selection', '--', '--test-threads=1']
+
+running 8 tests
+test full_engine::selection::cancellation_regressions::cancellation_after_raw_never_returns_archive ... ok
+test full_engine::selection::cancellation_regressions::panicking_worker_is_recorded_without_scheduler_hang ... ok
+test full_engine::selection::cancellation_regressions::pre_cancel_is_terminal ... ok
+test full_engine::selection::tests::default_512m_admits_and_records_a_generic_mixed_trial ... ok
+test full_engine::selection::tests::default_marks_paq_specialists_as_profile_omitted ... ok
+test full_engine::selection::tests::first_priority_wins_equal_complete_frames_and_generic_trials_overlap ... ok
+test full_engine::selection::tests::malformed_optional_providers_do_not_suppress_generic_mixed_carrier ... ok
+test full_engine::selection::tests::nested_diagnostics_survive_outer_selection ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 258 filtered out; finished in 0.02s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-constraints-v1/Cargo.toml', '--test', 'full_engine_constraints', '--test', 'selection_overrides', '--test', 'auto_best_portfolio', '--test', 'cli_full_engine', '--', '--test-threads=1']
+
+running 5 tests
+test block_override_retains_matching_cixm6_packaging_trial ... FAILED
+test canonical_direct_bzip2_is_a_deterministic_complete_cixb1_archive ... ok
+test named_best_compares_complete_archives_and_fresh_cli_decodes ... FAILED
+test named_empty_best_rejects_bsc_candidate_and_retains_a_valid_archive ... ok
+test streaming_best_reports_whole_archive_exclusion_and_stays_framed ... ok
+
+failures:
+
+---- block_override_retains_matching_cixm6_packaging_trial stdout ----
+
+thread 'block_override_retains_matching_cixm6_packaging_trial' (2748371) panicked at tests/auto_best_portfolio.rs:179:5:
+--block-size must retain the matching complete CIXM6 trial: cix: full_engine selected=native input_bytes=9216 peak_memory=536870912 peak_workers=1 peak_temporary=136324096
+cix: discovery=Diagnostic { family: "chemical", admitted: false, available: true, reason: "no-sdf-v2000-marker" }
+cix: discovery=Diagnostic { family: "database", admitted: false, available: true, reason: "no-myisam-header-admission" }
+cix: discovery=Diagnostic { family: "grid", admitted: false, available: true, reason: "no-wcstools-grid-admission" }
+cix: discovery=Diagnostic { family: "spatial-image", admitted: false, available: true, reason: "no-implicit-vr-dicom-admission" }
+cix: discovery=Diagnostic { family: "spatial-jls", admitted: false, available: true, reason: "native-jls-recipe-requires-installed-spatial-bridge" }
+cix: discovery=Diagnostic { family: "spatial-j2k", admitted: false, available: true, reason: "native-j2k-recipe-requires-installed-spatial-bridge" }
+cix: discovery=Diagnostic { family: "executable-got", admitted: false, available: true, reason: "no-exact-native-transform-admission" }
+cix: discovery=Diagnostic { family: "executable-pointer", admitted: false, available: true, reason: "no-exact-native-transform-admission" }
+cix: discovery=Diagnostic { family: "executable-section", admitted: false, available: true, reason: "no-exact-native-transform-admission" }
+cix: discovery=Diagnostic { family: "executable-filter", admitted: false, available: true, reason: "no-exact-native-transform-admission" }
+cix: discovery=Diagnostic { family: "executable-elf", admitted: false, available: true, reason: "no-exact-native-transform-admission" }
+cix: candidate=raw status=Completed archive_bytes=Some(9261) reason=None
+cix: candidate=native status=Selected archive_bytes=Some(62) reason=None
+cix: native_candidate=cixg2:raw-baseline status=Completed archive_bytes=Some(9311) reason=None
+cix: native_candidate=cixg1:native-auto:block=16384 status=Completed archive_bytes=Some(143) reason=None
+cix: native_candidate=cixg2:native-auto:block=16384 status=Completed archive_bytes=Some(143) reason=None
+cix: native_candidate=cixm6:native-auto:block=16384 status=Selected archive_bytes=Some(62) reason=None
+cix: native_candidate=gzip-fast status=Completed archive_bytes=Some(160) reason=None
+cix: native_candidate=gzip-size status=Completed archive_bytes=Some(130) reason=None
+cix: native_candidate=bzip2-size status=Completed archive_bytes=Some(143) reason=None
+cix: native_candidate=xz-default-6 status=Completed archive_bytes=Some(179) reason=None
+cix: native_candidate=xz-size-9e status=Omitted archive_bytes=None reason=Some("need 710138426 bytes for CIXB1 xz-size-9e (xz), available 400537600")
+cix: native_candidate=zstd-fast status=Completed archive_bytes=Some(9273) reason=None
+cix: native_candidate=zstd-default-3 status=Completed archive_bytes=Some(89) reason=None
+cix: native_candidate=zstd-size-22 status=Omitted archive_bytes=None reason=Some("need 685287525 bytes for CIXB1 zstd-size-22 (zstd), available 400537600")
+cix: native_candidate=brotli-fast-0 status=Completed archive_bytes=Some(147) reason=None
+cix: native_candidate=brotli-size-q11-generic-w22 status=Completed archive_bytes=Some(71) reason=None
+cix: native_candidate=xz-dict128-size-9e status=Omitted archive_bytes=None reason=Some("need 1416887866 bytes for CIXB1 xz-dict128-size-9e (xz), available 400537600")
+cix: native_candidate=xz-dict128-preset6 status=Omitted archive_bytes=None reason=Some("need 1416887866 bytes for CIXB1 xz-dict128-preset6 (xz), available 400537600")
+cix: native_candidate=bsc-v3.3.12-bwt-qlfc-static-lzp15-72-fast status=Completed archive_bytes=Some(143) reason=None
+cix: native_candidate=zpaq715-l5 status=Omitted archive_bytes=None reason=Some("need 1080192047 bytes for CIXB1 zpaq715-l5 (zpaq), available 400537600")
+cix: candidate=paq-v216-8 status=BudgetOmitted archive_bytes=None reason=Some("memory/workers/temporary first-fit admission")
+cix: candidate=paq-v215-8 status=BudgetOmitted archive_bytes=None reason=Some("memory/workers/temporary first-fit admission")
+cix: candidate=paq-v215-9L status=BudgetOmitted archive_bytes=None reason=Some("memory/workers/temporary first-fit admission")
+cix: candidate=heterogeneous-cixh1-v1 status=Completed archive_bytes=Some(171) reason=None
+cix: mixed_region=0 kind=generic candidate=zlib-6 status=Considered backend=Some(Zlib) payload_bytes=Some(71) detail=None
+cix: mixed_region=0 kind=generic candidate=xz-preset-3 status=Failed backend=Some(Xz) payload_bytes=None detail=Some("raw XZ output exceeds limit or encoding failed")
+cix: mixed_region=0 kind=generic candidate=specialists status=Omitted backend=Some(Specialist) payload_bytes=None detail=Some("unknown generic region")
+cix: mixed_region=0 kind=generic candidate=region status=Selected backend=Some(Zlib) payload_bytes=Some(71) detail=None
+cix: mixed_provider_omission=JXL provider unavailable: not configured
+cix: mixed_provider_omission=spatial provider unavailable: not configured
+/tmp/cix-auto-best-2748370-1-block-archive.cix
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- named_best_compares_complete_archives_and_fresh_cli_decodes stdout ----
+
+thread 'named_best_compares_complete_archives_and_fresh_cli_decodes' (2748497) panicked at tests/auto_best_portfolio.rs:76:5:
+BEST failed: 
+
+
+failures:
+    block_override_retains_matching_cixm6_packaging_trial
+    named_best_compares_complete_archives_and_fresh_cli_decodes
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 42.10s
+

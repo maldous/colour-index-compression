@@ -1,0 +1,193 @@
+{
+  "schema": "cix-non-paq-provider-source-inputs-v1",
+  "status": "engineering_source_inputs_incomplete_not_release_closure",
+  "scope": "This manifest binds the selected Linux x86_64 non-PAQ provider artifacts to retained engineering source and package evidence. It is an input to receipt-verified staging, not a legal conclusion or final dependency closure.",
+  "selected_closure": {
+    "schema": "cix-engineering-provider-closure-v1",
+    "sha256": "bd9741e579ca749ac4da77ed23a7ec48a8e034b21b5d8f26671285fac25755a1"
+  },
+  "evidence": {
+    "jxl_source_receipt": {
+      "path": "docs/research/2026-10-04-execution/jobs/jxl-provision-v2/source.json",
+      "sha256": "c2543b2c0314bf807e09bde82cd4f9c9e8fc96431a4af09597e5a1d8347bdce0",
+      "file_map_key": "sha256"
+    },
+    "jxl_install_receipt": {
+      "path": "docs/research/2026-10-04-execution/jobs/jxl-bridge-v3/installed.json",
+      "sha256": "81d78ed24fe09ee57cf2c326946bd0e2b315d249283472cf406190cfe91abf09",
+      "file_map_key": "sha256"
+    },
+    "spatial_source_receipt": {
+      "path": "docs/research/2026-10-04-execution/jobs/spatial-counts-v2/source.json",
+      "sha256": "106687b86ad252082df221250b051dc7ffd07cf392cc889a3930bf5652434459",
+      "file_map_key": "sha256"
+    },
+    "spatial_binary_binding": {
+      "path": "docs/research/2026-10-04-execution/reviews/provider-binary-binding-v1.json",
+      "sha256": "b274d649f68f7f2bb753c764937d7ee7ffa42e35a8abc73e71981501bd912f54"
+    },
+    "codec_packages": {
+      "path": "docs/research/2026-10-04-execution/jobs/codec-sdk-provision-v1/packages.json",
+      "sha256": "b3626dc977ccae48e43e2a9e4bb1aff1abd0de54b87d1a21dbd9e435bd8573c2"
+    },
+    "codec_install": {
+      "path": "docs/research/2026-10-04-execution/jobs/codec-sdk-provision-v1/provisioned.json",
+      "sha256": "52a3118f852cb44a2035cb1d09538339a6b941fd0438a854c2182d2681eda1be"
+    },
+    "ubuntu_codec_source_provenance": {
+      "path": "docs/research/2026-10-04-execution/reviews/ubuntu-codec-source-provenance-v1.json",
+      "sha256": "a97830d01db307629fde6094fea5b083f9a55a5e7211f31a6e96000555ecb0a3"
+    }
+  },
+  "jxl_source": {
+    "source_url": "https://github.com/libjxl/libjxl.git",
+    "version_tag": "v0.12.0",
+    "commit": "a7a9c787341cf703dede03c2009fa460cae5e5df",
+    "required_submodules": {
+      "testdata": "73695d303670c90e4d506ea89d9901b081385089",
+      "third_party/brotli": "028fb5a23661f123017c060daa546b55cf4bde29",
+      "third_party/googletest": "6910c9d9165801d8827d628cb72eb7ea9dd538c5",
+      "third_party/highway": "457c891775a7397bdb0376bb1031e6e027af1c48",
+      "third_party/lcms": "5176347635785e53ee5cee92328f76fda766ecc6",
+      "third_party/libjpeg-turbo": "8ecba3647edb6dd940463fedf38ca33a8e2a73d1",
+      "third_party/libpng": "872555f4ba910252783af1507f9e7fe1653be252",
+      "third_party/sjpeg": "94e0df6d0f8b44228de5be0ff35efb9f946a13c9",
+      "third_party/skcms": "96d9171c94b937a1b5f0293de7309ac16311b722",
+      "third_party/zlib": "51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf"
+    },
+    "source_tree_receipt": "jxl_source_receipt",
+    "selected_provider_install_members": {
+      "CIX_RUNTIME_JXL_BRIDGE": "lib/libcix_jxl_bridge.so",
+      "CIX_RUNTIME_JXL_LIBRARY": "lib/libjxl.so.0.12.0",
+      "CIX_RUNTIME_JXL_THREADS_LIBRARY": "lib/libjxl_threads.so.0.12.0",
+      "CIX_RUNTIME_JXL_CMS_LIBRARY": "lib/libjxl_cms.so.0.12.0",
+      "CIX_RUNTIME_BROTLIDEC_LIBRARY": "lib/libbrotlidec.so.1.2.0",
+      "CIX_RUNTIME_BROTLIENC_LIBRARY": "lib/libbrotlienc.so.1.2.0",
+      "CIX_RUNTIME_BROTLICOMMON_LIBRARY": "lib/libbrotlicommon.so.1.2.0"
+    },
+    "source_staging": "Verify every source-receipt file before copying. The installed receipt binds each listed selected shared-object hash."
+  },
+  "spatial_bridge": {
+    "selected_provider": "CIX_RUNTIME_SPATIAL_BRIDGE",
+    "selected_artifact_sha256": "51636cb3cbd9830d3f869142915d9e86345909a98cc57f38c86f6bf0f15c31cf",
+    "source_tree_receipt": "spatial_source_receipt",
+    "required_source_files": {
+      "codecs/spatial/CMakeLists.txt": "611063af757bca8f70108abba5cbcefc4700a0ee083c854e353ccb2d684a6ce6",
+      "codecs/spatial/cix_spatial_bridge.cpp": "e54188e999a93b7dffaa13012dfbc5b23d976fab8a861766fb97781d9aefe54c",
+      "codecs/spatial/cix_spatial_bridge.h": "049b7ec3e64b162b5a27d3e440ae90658c51696bdea572ad8c71f6899b39d07e",
+      "codecs/spatial/README.md": "fa74b163e6de363ae89ff200be0357f6d5fe072f41d0b0d81d76e543a10558d0"
+    },
+    "binary_binding": "spatial_binary_binding",
+    "source_staging": "Stage only the listed CIX bridge snapshot files after receipt verification. The selected installed ELF is tied to this snapshot by the recorded CMake install RPATH transformation; it is not a claim that later current-source rebuilds are byte-identical."
+  },
+  "binary_package_inputs": {
+    "charls": {
+      "selected_provider": "CIX_RUNTIME_CHARLS_LIBRARY",
+      "selected_artifact_sha256": "6fc5859988357c676d874fa98509445b8a8c8eee4eac533b5ae3eb884e0b858c",
+      "packages": {
+        "runtime": {
+          "name": "libcharls2",
+          "version": "2.4.2-2build2",
+          "architecture": "amd64",
+          "repository_filename": "pool/universe/c/charls/libcharls2_2.4.2-2build2_amd64.deb",
+          "archive_filename": "libcharls2_2.4.2-2build2_amd64.deb",
+          "sha256": "4e0899b98fe57b5011412bfdb2fa96f2559c746f05bb1604da306642940ceaec"
+        },
+        "development": {
+          "name": "libcharls-dev",
+          "version": "2.4.2-2build2",
+          "architecture": "amd64",
+          "repository_filename": "pool/universe/c/charls/libcharls-dev_2.4.2-2build2_amd64.deb",
+          "archive_filename": "libcharls-dev_2.4.2-2build2_amd64.deb",
+          "sha256": "4896b664cf2c287b08d85cd5fd219d90065b16f3ac902e1d3d4ae901b50b545f"
+        }
+      },
+      "source_package_input": {
+        "source_package": "charls",
+        "source_version": "2.4.2-2build2",
+        "source_directory_url": "https://archive.ubuntu.com/ubuntu/pool/universe/c/charls/",
+        "provenance_receipt": "ubuntu_codec_source_provenance",
+        "files": [
+          {
+            "filename": "charls_2.4.2-2build2.dsc",
+            "url": "https://archive.ubuntu.com/ubuntu/pool/universe/c/charls/charls_2.4.2-2build2.dsc",
+            "bytes": 2121,
+            "sha256": "a485b5c4470f5dee00ce573466d1f65933573da544c693251c59e76ed1d4ed68"
+          },
+          {
+            "filename": "charls_2.4.2.orig.tar.gz",
+            "url": "https://archive.ubuntu.com/ubuntu/pool/universe/c/charls/charls_2.4.2.orig.tar.gz",
+            "bytes": 9492449,
+            "sha256": "d1c2c35664976f1e43fec7764d72755e6a50a80f38eca70fcc7553cad4fe19d9"
+          },
+          {
+            "filename": "charls_2.4.2-2build2.debian.tar.xz",
+            "url": "https://archive.ubuntu.com/ubuntu/pool/universe/c/charls/charls_2.4.2-2build2.debian.tar.xz",
+            "bytes": 5732,
+            "sha256": "4f720af1d6b14dc9ff4da020aae63803933be59fa38b4802521b8b6e5ab218dc"
+          }
+        ],
+        "status": "immutable_inputs_identified_not_retained"
+      }
+    },
+    "openjpeg": {
+      "selected_provider": "CIX_RUNTIME_OPENJPEG_LIBRARY",
+      "selected_artifact_sha256": "19906c0334e8db2137912f83cceed5a03d954a9c12d9781901a9a27f92ce1c4d",
+      "packages": {
+        "runtime": {
+          "name": "libopenjp2-7",
+          "version": "2.5.0-2ubuntu0.5",
+          "architecture": "amd64",
+          "repository_filename": "pool/main/o/openjpeg2/libopenjp2-7_2.5.0-2ubuntu0.5_amd64.deb",
+          "archive_filename": "libopenjp2-7_2.5.0-2ubuntu0.5_amd64.deb",
+          "sha256": "24b92ce9c4b306f5370e768024d35ec565792001678b510f0d40b6395b43524f"
+        },
+        "development": {
+          "name": "libopenjp2-7-dev",
+          "version": "2.5.0-2ubuntu0.5",
+          "architecture": "amd64",
+          "repository_filename": "pool/main/o/openjpeg2/libopenjp2-7-dev_2.5.0-2ubuntu0.5_amd64.deb",
+          "archive_filename": "libopenjp2-7-dev_2.5.0-2ubuntu0.5_amd64.deb",
+          "sha256": "817cf65fcce80a3ce9b44f0c870cf8e227f9b035c5aeb7e7c9f30a4f24b9756a"
+        }
+      },
+      "evidence": [
+        "codec_packages",
+        "codec_install"
+      ],
+      "source_package_input": {
+        "source_package": "openjpeg2",
+        "source_version": "2.5.0-2ubuntu0.5",
+        "source_directory_url": "https://archive.ubuntu.com/ubuntu/pool/main/o/openjpeg2/",
+        "provenance_receipt": "ubuntu_codec_source_provenance",
+        "files": [
+          {
+            "filename": "openjpeg2_2.5.0-2ubuntu0.5.dsc",
+            "url": "https://archive.ubuntu.com/ubuntu/pool/main/o/openjpeg2/openjpeg2_2.5.0-2ubuntu0.5.dsc",
+            "bytes": 2788,
+            "sha256": "86237fe866b3ab1ddc4b32c218b26a4e40c958e3054828c5d6e5bedf5aea0b67"
+          },
+          {
+            "filename": "openjpeg2_2.5.0.orig.tar.xz",
+            "url": "https://archive.ubuntu.com/ubuntu/pool/main/o/openjpeg2/openjpeg2_2.5.0.orig.tar.xz",
+            "bytes": 1221108,
+            "sha256": "007e19d772c8b6b22e35379630b06ff3549e49ba719d96453607a36ad7b4de73"
+          },
+          {
+            "filename": "openjpeg2_2.5.0-2ubuntu0.5.debian.tar.xz",
+            "url": "https://archive.ubuntu.com/ubuntu/pool/main/o/openjpeg2/openjpeg2_2.5.0-2ubuntu0.5.debian.tar.xz",
+            "bytes": 20744,
+            "sha256": "56268a969b8788574a215b922691e2f2c7ec3a8c47255635736f36d01a88861d"
+          }
+        ],
+        "status": "immutable_inputs_identified_not_retained"
+      }
+    }
+  },
+  "remaining_source_obligations": [
+    "Retain the three listed CharLS source descriptor/component archives, verify every recorded SHA-256 before unpacking, and write a staged source-tree receipt.",
+    "Retain the three listed OpenJPEG source descriptor/component archives, verify every recorded SHA-256 before unpacking, and write a staged source-tree receipt.",
+    "Bind each staged source-tree receipt to the already verified binary package-to-selected-ELF relation before requesting final dependency closure."
+  ],
+  "non_claim": "The CharLS and OpenJPEG .deb archives are verified binary package inputs, not source inputs. This manifest deliberately leaves final dependency closure and legal review to their respective gates."
+}

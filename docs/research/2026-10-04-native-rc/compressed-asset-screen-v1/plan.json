@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-04",
+  "authorization": "User explicitly requests a short experiment on existing compressed assets now. This narrow screen supersedes the previous wait recommendation only for itself; no stopped corpus benchmark is resumed.",
+  "inputs": [
+    {
+      "cell": "confirm-best-dickens",
+      "path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-automatic-specialised-models/qualification/silesia-confirmation-v1/results/confirm-best-dickens/archive.cix",
+      "bytes": 1862182,
+      "sha256": "3c0f1768ca0ad80c232928428d9e6abe4af21af242520031da763ab026eaa85b",
+      "prior_status": "VERIFIED"
+    },
+    {
+      "cell": "confirm-default-dickens",
+      "path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-automatic-specialised-models/qualification/silesia-confirmation-v1/results/confirm-default-dickens/archive.cix",
+      "bytes": 3777545,
+      "sha256": "1cd692a7324f5f3df0b73ef4106d463533b647700e8a5813ca71500cbd6cb2cb",
+      "prior_status": "VERIFIED"
+    },
+    {
+      "cell": "confirm-default-mozilla",
+      "path": "/home/user/src/colour-index-compression/docs/research/2026-10-04-automatic-specialised-models/qualification/silesia-confirmation-v1/results/confirm-default-mozilla/archive.cix",
+      "bytes": 12733922,
+      "sha256": "aecd81b8829f98d7f0ce7618d0a33d439ba68636496eb2d8e22afa5a2d8ddcca",
+      "prior_status": "VERIFIED"
+    }
+  ],
+  "windows": "4096 bytes at offsets 0, floor((N//2)/4096)*4096, N-4096; all frozen before trial; headers/middle/tail reported separately",
+  "methods": {
+    "generator": "SHAKE256(domain=CIX-asset-screen-v1: plus seed); eight one-byte literal seeds 0..7, or full SHA256(window) explicitly stored as 32-byte seed; byte offsets 0,1,16,256; XOR or modular subtraction on big-endian 8/16/32-bit words; exact addition/XOR inverse",
+    "sqrt": "each big-endian u32 X mapped to floor(2^17 sqrt(X)); each q in fixed 5 bytes; exact integer root and inverse interval",
+    "cube_root": "u32 X to floor(2^23 cbrt(X)), each q in 5 bytes; exact integer root and inverse interval",
+    "reciprocal": "u32 X to floor(2^64/(X+1)), each q in 9 bytes; exact inverse interval",
+    "math_description": "128 consecutive 32-byte values, frozen representation-feasibility grammar per value; each frame prefixed by its one-byte byte length; includes raw fallback and all earlier family metadata"
+  },
+  "second_pass_codecs": [
+    "zlib level 9",
+    "xz/LZMA preset 1"
+  ],
+  "controls": [
+    "unchanged archive",
+    "whole-archive raw wrapper and ordinary zlib/xz second pass",
+    "same-window identity plus same second-pass codecs, same patch wrapper"
+  ],
+  "container": "RXP1 + original-byte-count:u64be + kind:u8. Kind0 raw; kind1 coder:u8 + whole compressed bytes; kind2 offset:u64be + window-size:u32be + method:u8 + coder:u8 + encoded-size:u32be + parameter-size:u16be + parameters + literal prefix + encoded transformed window + literal suffix. Method constants are fixed by version. No new checksum required; archive bytes preserve existing original integrity fields. All wrapper/parameter/padding bytes counted.",
+  "selection": "Smallest complete bytes, stable enumeration-order tie. One patch maximum per candidate. Report best mathematical/generator candidate separately from best direct control and unchanged archive. Encoder search may inspect input; selected recipe is stored.",
+  "validation": "Verify source hashes before evaluation. Every candidate window inverse must equal original. Serialize best theory and best wrapped control per asset outside git, decode in fresh process using only frame, and compare full restored compressed-asset SHA256. Original uncompressed files are not read.",
+  "budgets": {
+    "cpus": 1,
+    "wall_seconds": 45,
+    "cpu_seconds": 45,
+    "address_space_bytes": 512000000,
+    "temporary_and_archives_bytes": 96000000,
+    "research_evidence_bytes": 1000000
+  },
+  "scope": "Quick exposed-asset screen, not held-out qualification, global-optimality proof or production change. No tuning/retries from outcome. Preserve failures."
+}

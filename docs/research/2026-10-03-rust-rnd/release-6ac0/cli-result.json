@@ -1,0 +1,133 @@
+{
+  "status": "VERIFIED_FOCUSED_CLI",
+  "rows": [
+    {
+      "case": "old-m6-decode",
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/target/release-lto/uncix",
+        "--stream",
+        "--memory",
+        "16MiB",
+        "-c",
+        "-"
+      ],
+      "exit": 0,
+      "wall": 0.0027491850778460503,
+      "stdout_bytes": 1024,
+      "stdout_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "stderr": ""
+    },
+    {
+      "case": "valid-cixf1-footer",
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/target/release-lto/uncix",
+        "--stream",
+        "--memory",
+        "16MiB",
+        "-c",
+        "-"
+      ],
+      "exit": 0,
+      "wall": 0.0024074390530586243,
+      "stdout_bytes": 1024,
+      "stdout_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "stderr": ""
+    },
+    {
+      "case": "bad-cixf1-name-length",
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/target/release-lto/uncix",
+        "--stream",
+        "--memory",
+        "16MiB",
+        "-c",
+        "-"
+      ],
+      "exit": 2,
+      "wall": 0.002266655210405588,
+      "stdout_bytes": 1024,
+      "stdout_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "stderr": "cix: invalid CIXF1 filename footer\n"
+    },
+    {
+      "case": "bad-cixf1-utf8",
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/target/release-lto/uncix",
+        "--stream",
+        "--memory",
+        "16MiB",
+        "-c",
+        "-"
+      ],
+      "exit": 2,
+      "wall": 0.0022215992212295532,
+      "stdout_bytes": 1024,
+      "stdout_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "stderr": "cix: invalid CIXF1 filename footer\n"
+    },
+    {
+      "case": "trailing-m6-data",
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/target/release-lto/uncix",
+        "--stream",
+        "--memory",
+        "16MiB",
+        "-c",
+        "-"
+      ],
+      "exit": 2,
+      "wall": 0.002277510240674019,
+      "stdout_bytes": 1024,
+      "stdout_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "stderr": "cix: trailing bytes after CIXM6 stream\n"
+    },
+    {
+      "case": "explicit-m6-parallelism-rejected",
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/target/release-lto/cix",
+        "--fast",
+        "--format",
+        "cixm6",
+        "--threads",
+        "1",
+        "--memory",
+        "16MiB",
+        "--stream",
+        "--block-size",
+        "512B",
+        "-c",
+        "-",
+        "--parallelism",
+        "blocks"
+      ],
+      "exit": 2,
+      "wall": 0.0022815540432929993,
+      "stdout_bytes": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "cix: --parallelism is not supported by CIXM6/CIXF1 encoding\n"
+    },
+    {
+      "case": "decode-parallelism-rejected",
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/release-6ac0/target/release-lto/uncix",
+        "--parallelism",
+        "candidates",
+        "-c",
+        "-"
+      ],
+      "exit": 2,
+      "wall": 0.0021952027454972267,
+      "stdout_bytes": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "cix: compression options cannot be used while decoding\n"
+    },
+    {
+      "case": "complete-footer-input-kept-open-SIGINT",
+      "exit": 2,
+      "interrupt_seconds": 0.0011166483163833618,
+      "SIGKILL_fallback": false,
+      "restored_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "input_pipe_remained_open": true
+    }
+  ]
+}

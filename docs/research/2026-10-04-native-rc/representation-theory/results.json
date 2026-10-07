@@ -1,0 +1,63 @@
+{
+  "scope": "Exact finite integer calculations only, not corpus or CIX archive measurements",
+  "plan_sha256": "22eef6d9a23e6fc664c15ed79930bab2c5cbe3a74c07da5261dd068041818681",
+  "script_sha256": "6501ff659efb2f2fdfa30f457a2ab007bcd3bee459ed903796b1c4c855107d26",
+  "root_checks": [
+    {
+      "degree": 2,
+      "input_count": 4096,
+      "input_width_bits": 12,
+      "integer_only_distinct_outputs": 64,
+      "integer_only_invertible": false,
+      "fractional_precision_bits": 7,
+      "exact_prefix_distinct_outputs": 4096,
+      "maximum_prefix_integer_bit_length": 13,
+      "exact_uniform_output_entropy_bits": 12,
+      "all_inverse_intervals_singleton": true,
+      "qualification": "Conservative sufficient fixed precision, not minimal adaptive precision or optimized coding; generator/precision/length/framing costs not measured."
+    },
+    {
+      "degree": 3,
+      "input_count": 4096,
+      "input_width_bits": 12,
+      "integer_only_distinct_outputs": 16,
+      "integer_only_invertible": false,
+      "fractional_precision_bits": 10,
+      "exact_prefix_distinct_outputs": 4096,
+      "maximum_prefix_integer_bit_length": 14,
+      "exact_uniform_output_entropy_bits": 12,
+      "all_inverse_intervals_singleton": true,
+      "qualification": "Conservative sufficient fixed precision, not minimal adaptive precision or optimized coding; generator/precision/length/framing costs not measured."
+    }
+  ],
+  "reciprocal_check": {
+    "inputs": "1 through 4095; zero excluded explicitly",
+    "input_count": 4095,
+    "fractional_precision_bits": 24,
+    "distinct_prefixes": 4095,
+    "all_inverse_intervals_singleton": true,
+    "full_width_subset": {
+      "inputs": "2048 through 4095",
+      "count": 2048,
+      "uniform_information_bits": 11,
+      "prefix_integer_min": 4097,
+      "prefix_integer_max": 8192,
+      "shortest_leading_zero_run_in_24_fractional_places": 10,
+      "longest_leading_zero_run_in_24_fractional_places": 11
+    },
+    "qualification": "Precision is not encoded size. Leading zeros may be coded compactly; scale, precision and target length remain required or shared."
+  },
+  "perfect_square_positive_control": {
+    "targets": 4096,
+    "square_targets": 64,
+    "square_code_bits_including_tag": 7,
+    "other_targets": 4032,
+    "other_code_bits_including_tag": 13,
+    "uniform_average_bits": 12.90625,
+    "uniform_average_exact": "413/32",
+    "raw_control_bits": 12,
+    "all_targets_roundtrip": true,
+    "qualification": "Source-specific savings exist; this toy is not an optimal code or evidence of real compressed assets being perfect powers."
+  },
+  "all_checks_passed": true
+}

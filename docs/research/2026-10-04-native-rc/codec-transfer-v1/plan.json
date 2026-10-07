@@ -1,0 +1,489 @@
+{
+  "experiment": "codec-transfer-v1",
+  "frozen_before_execution": true,
+  "authorization": "Latest user explicitly requests experiments to test transfer beyond gzip. This narrowly authorizes this screen, not stopped RC corpus benchmarking, production integration or downloads.",
+  "scope": "16 preexisting standalone compressed streams: two previously exposed real 16KiB ranges, four codec families, historical fast and size settings. Fast and size strata must be reported separately. Generated same-encoder fixtures validate only; no untouched holdout or broad qualification claim.",
+  "inputs": [
+    {
+      "id": "fcbench-mhd-brotli-fast",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-1589a34f3296afdf10879336/806fafc81a8e998a3ee54d0b66f7ba788889036236cbceaedfad5cea19d91f95/work/candidate.bin",
+      "bytes": 613,
+      "sha256": "301ff5621c186ae2ddba3d61a45c92f506e73607e12e586602cec27990d2db65",
+      "family": "brotli",
+      "historical_profile": "fast",
+      "historical_settings": {
+        "level": 0
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "c4ca7d17e2de606d3aa778c0c0e11ebbe1c93685e666b8cb84aba2aa13f9c059",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-1589a34f3296afdf10879336/806fafc81a8e998a3ee54d0b66f7ba788889036236cbceaedfad5cea19d91f95/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-1589a34f3296afdf10879336.json",
+      "manifest_sha256": "7fd9eef5088d9224196801c8d9fe1d8c3093f1c260233c5f2c6c39a234811304",
+      "source_label": "fcbench-mhd",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "fcbench-mhd-brotli-size",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-57ddef91b445d9528d6f7f11/0b07d18e0d367a1be225a19f866e29cfefe80635814478eccc5b8cf10a16107f/work/candidate.bin",
+      "bytes": 366,
+      "sha256": "36e486ced1bcfc4e76ccc4eb7da1c3ca96116b6c8dd19dad34262b5b383048a7",
+      "family": "brotli",
+      "historical_profile": "size",
+      "historical_settings": {
+        "level": 11
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "c4ca7d17e2de606d3aa778c0c0e11ebbe1c93685e666b8cb84aba2aa13f9c059",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-57ddef91b445d9528d6f7f11/0b07d18e0d367a1be225a19f866e29cfefe80635814478eccc5b8cf10a16107f/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-57ddef91b445d9528d6f7f11.json",
+      "manifest_sha256": "90a352cee8545cc2557b39db6b6b400b481fdf0a8813d189a625f5a441292ed8",
+      "source_label": "fcbench-mhd",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "fcbench-mhd-bzip2-fast",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-29122e23416dee9b5eadda1a/7e33341cd68b8c2b1077721d4a274721541bc44428345557159069ab96382dfb/work/candidate.bin",
+      "bytes": 649,
+      "sha256": "0ea76c27b5e78a0fd34cceafdf136b2fc345bff58a4af921fc3b28a2ed1b69f2",
+      "family": "bzip2",
+      "historical_profile": "fast",
+      "historical_settings": {
+        "level": 1
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "c4ca7d17e2de606d3aa778c0c0e11ebbe1c93685e666b8cb84aba2aa13f9c059",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-29122e23416dee9b5eadda1a/7e33341cd68b8c2b1077721d4a274721541bc44428345557159069ab96382dfb/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-29122e23416dee9b5eadda1a.json",
+      "manifest_sha256": "1012a7b3ae498b52def74f723a048a63c0dda73f671cc799c42b39e00b8e459c",
+      "source_label": "fcbench-mhd",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "fcbench-mhd-bzip2-size",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-471ac8bc147583e9b2840e2c/3874c8e94a0bf9c635a8d6105d9950da198d2f699ffa6d3a162d6f8726b4c740/work/candidate.bin",
+      "bytes": 649,
+      "sha256": "158b76add8871d3312f6278007f5b7b2cc2bdd1d3a1b671b5f4b1759a0299c1a",
+      "family": "bzip2",
+      "historical_profile": "size",
+      "historical_settings": {
+        "level": 9
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "c4ca7d17e2de606d3aa778c0c0e11ebbe1c93685e666b8cb84aba2aa13f9c059",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-471ac8bc147583e9b2840e2c/3874c8e94a0bf9c635a8d6105d9950da198d2f699ffa6d3a162d6f8726b4c740/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-471ac8bc147583e9b2840e2c.json",
+      "manifest_sha256": "5f53f23634a31f5988d410506def42faba8f7e29af197c82e8a67dfe482e7cd7",
+      "source_label": "fcbench-mhd",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "fcbench-mhd-xz-fast",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-2182d6cc8d5a6a6d3b678b68/1df9d8ac9aa5c2107d709719fe8fba2b264afe05ced35e8d9344f334ce8565ad/work/candidate.bin",
+      "bytes": 476,
+      "sha256": "609bd17e4b7c6201c4cc7c444f5276b7cf5b3ac305a91b608c404b8a14917ad2",
+      "family": "xz",
+      "historical_profile": "fast",
+      "historical_settings": {
+        "level": 0
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "c4ca7d17e2de606d3aa778c0c0e11ebbe1c93685e666b8cb84aba2aa13f9c059",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-2182d6cc8d5a6a6d3b678b68/1df9d8ac9aa5c2107d709719fe8fba2b264afe05ced35e8d9344f334ce8565ad/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-2182d6cc8d5a6a6d3b678b68.json",
+      "manifest_sha256": "962fc493d2ca0c13485f351e27a39f0edd5cfa984da6ddbd4c8261675737e470",
+      "source_label": "fcbench-mhd",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "fcbench-mhd-xz-size",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-216f7eddb265498d7ac2448b/dc7b5e35dcb86e231989f0ea3f7112f67e5cb11123b4c09958fed49e7ff8273e/work/candidate.bin",
+      "bytes": 468,
+      "sha256": "e58ec3264b89cd1ed16b093acb3f4af68716920785e9e8a845f6cd68cff6f15f",
+      "family": "xz",
+      "historical_profile": "size",
+      "historical_settings": {
+        "extreme": true,
+        "level": 9
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "c4ca7d17e2de606d3aa778c0c0e11ebbe1c93685e666b8cb84aba2aa13f9c059",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-216f7eddb265498d7ac2448b/dc7b5e35dcb86e231989f0ea3f7112f67e5cb11123b4c09958fed49e7ff8273e/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-216f7eddb265498d7ac2448b.json",
+      "manifest_sha256": "4dc7d509a16918cc092bb1672557840c83cdb0c3b01ca8be09d186c0041827eb",
+      "source_label": "fcbench-mhd",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "fcbench-mhd-zstd-fast",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-adcbdacce7ff5b7fd6703994/f6c1111317568a60fcbe9e18559d3cc5b239a9112e1e6402c08ef92309419600/work/candidate.bin",
+      "bytes": 16398,
+      "sha256": "5d37aa0530087b38ccfe5e9881ccfd5e7326a0b827e70a14aaaf11b8dccdf340",
+      "family": "zstd",
+      "historical_profile": "fast",
+      "historical_settings": {
+        "level": -131072
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "c4ca7d17e2de606d3aa778c0c0e11ebbe1c93685e666b8cb84aba2aa13f9c059",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-adcbdacce7ff5b7fd6703994/f6c1111317568a60fcbe9e18559d3cc5b239a9112e1e6402c08ef92309419600/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-adcbdacce7ff5b7fd6703994.json",
+      "manifest_sha256": "6f901dca0f335642f5182e8d499c8e4458c3c89ddf457d50d34ae016feb14ebe",
+      "source_label": "fcbench-mhd",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "fcbench-mhd-zstd-size",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-41aa3c7821f795e50aa85524/862a715960dffd0623bd333a41fbd0180161e109fd68bb2d77d2964075fa95d6/work/candidate.bin",
+      "bytes": 384,
+      "sha256": "ed08708686f4bed534db90cb29ea8952da157dae8d1660626fd0c78706ef7406",
+      "family": "zstd",
+      "historical_profile": "size",
+      "historical_settings": {
+        "level": 22
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "c4ca7d17e2de606d3aa778c0c0e11ebbe1c93685e666b8cb84aba2aa13f9c059",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-41aa3c7821f795e50aa85524/862a715960dffd0623bd333a41fbd0180161e109fd68bb2d77d2964075fa95d6/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-41aa3c7821f795e50aa85524.json",
+      "manifest_sha256": "25934128e3bccd44e3d540be6015f3f6894f49bf5b86e1b459ae4c7f8002161b",
+      "source_label": "fcbench-mhd",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "golf-brotli-fast",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-b438781797daddbe3aed1198/4bd2594eec9fb815a00cd3595af099a61e3fae0b6774d69c1f9a1d7ddbffff8e/work/candidate.bin",
+      "bytes": 3230,
+      "sha256": "625a2e082cd52c495005821484ff0b102b6b52bd7298f6520890ef188fbc80b7",
+      "family": "brotli",
+      "historical_profile": "fast",
+      "historical_settings": {
+        "level": 0
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "8fc3ecba635e9552acd6d422ffab3f9b7eb08dd7138e292433fb7bf6c0b7f912",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-b438781797daddbe3aed1198/4bd2594eec9fb815a00cd3595af099a61e3fae0b6774d69c1f9a1d7ddbffff8e/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-b438781797daddbe3aed1198.json",
+      "manifest_sha256": "ccc78a517d7e3fcbf3d0f06d0e1ed735fadf06a99b711f98ce26941510394904",
+      "source_label": "golf",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "golf-brotli-size",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-a294d5c961e73834d393f908/a0e012c8f1a5239e25f44d45dfea14222298c7d1a1468bc0c891e56f33ec9a29/work/candidate.bin",
+      "bytes": 2306,
+      "sha256": "2538facb5bedb955328bd5f9f7b8e4bac4563af564c8aef4284fb3bac9aa38b4",
+      "family": "brotli",
+      "historical_profile": "size",
+      "historical_settings": {
+        "level": 11
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "8fc3ecba635e9552acd6d422ffab3f9b7eb08dd7138e292433fb7bf6c0b7f912",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-a294d5c961e73834d393f908/a0e012c8f1a5239e25f44d45dfea14222298c7d1a1468bc0c891e56f33ec9a29/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-a294d5c961e73834d393f908.json",
+      "manifest_sha256": "b03e8f6bbfbcb00388250dbbc187f254fb6c1d1752972a65594afea2bf10b8e8",
+      "source_label": "golf",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "golf-bzip2-fast",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-9465b2d4f815d3528de87339/fb17c02a27ef988482a87ca717464450a88d973a15481dc0acf6d113cb016958/work/candidate.bin",
+      "bytes": 2834,
+      "sha256": "f1e7d2bc06992b88db0f7e773b18fd96802a1774a2e8aff7e685e11b7f73b06c",
+      "family": "bzip2",
+      "historical_profile": "fast",
+      "historical_settings": {
+        "level": 1
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "8fc3ecba635e9552acd6d422ffab3f9b7eb08dd7138e292433fb7bf6c0b7f912",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-9465b2d4f815d3528de87339/fb17c02a27ef988482a87ca717464450a88d973a15481dc0acf6d113cb016958/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-9465b2d4f815d3528de87339.json",
+      "manifest_sha256": "69ece4edba3d09e2d37660ec559d206c8ca36179faf9e387b89003c816994abd",
+      "source_label": "golf",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "golf-bzip2-size",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-4eeb527a618747458df77358/ed6f3bf1053d78b2f1d9a293bdce4f0b158c76d94697d6796ca6af4b3de14734/work/candidate.bin",
+      "bytes": 2834,
+      "sha256": "e30a7b0977771065bb03307b5ab36c79d3e7204392a6768bd13e022e7ab889e3",
+      "family": "bzip2",
+      "historical_profile": "size",
+      "historical_settings": {
+        "level": 9
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "8fc3ecba635e9552acd6d422ffab3f9b7eb08dd7138e292433fb7bf6c0b7f912",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-4eeb527a618747458df77358/ed6f3bf1053d78b2f1d9a293bdce4f0b158c76d94697d6796ca6af4b3de14734/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-4eeb527a618747458df77358.json",
+      "manifest_sha256": "c66b64b77525ead8c83c91161f4660b1c588389166394b33cf985c3f9878696c",
+      "source_label": "golf",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "golf-xz-fast",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-c4671b5a437d472efd496b8f/13e3f612e4d295c7d2bf5f3ffb311b03e48c74c917ea10d362f23fd7609f6036/work/candidate.bin",
+      "bytes": 2820,
+      "sha256": "fd27aada55fb0fab93b00f8ac848edbdb432859327aa21f92d356aba30f197ec",
+      "family": "xz",
+      "historical_profile": "fast",
+      "historical_settings": {
+        "level": 0
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "8fc3ecba635e9552acd6d422ffab3f9b7eb08dd7138e292433fb7bf6c0b7f912",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-c4671b5a437d472efd496b8f/13e3f612e4d295c7d2bf5f3ffb311b03e48c74c917ea10d362f23fd7609f6036/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-c4671b5a437d472efd496b8f.json",
+      "manifest_sha256": "eccf2e28139155b70c18fd0ad6c11e0f19776ee821854a86499469366b35fce1",
+      "source_label": "golf",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "golf-xz-size",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-45d475fbec002b95a5d7e738/7a0cbd8dd15e1fb89de6f9391448d177906ad348b13b9e790152cad669132e1f/work/candidate.bin",
+      "bytes": 2568,
+      "sha256": "4271a047d687adb6f78d2b08c6622b00295aadad8058325e672bd6c605018ca9",
+      "family": "xz",
+      "historical_profile": "size",
+      "historical_settings": {
+        "extreme": true,
+        "level": 9
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "8fc3ecba635e9552acd6d422ffab3f9b7eb08dd7138e292433fb7bf6c0b7f912",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-45d475fbec002b95a5d7e738/7a0cbd8dd15e1fb89de6f9391448d177906ad348b13b9e790152cad669132e1f/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-45d475fbec002b95a5d7e738.json",
+      "manifest_sha256": "400d7a5c19850d4a9ae71831d8e44f520726232ef8edc9cb4c4d9c7fc86b5b38",
+      "source_label": "golf",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "golf-zstd-fast",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-430d4d90a5a5142e6e5da268/fcc465035e242f4e8d8740ec9f00b444fc734ef8f96dd348ecf18fa6672ae640/work/candidate.bin",
+      "bytes": 16398,
+      "sha256": "ce0467f6977b4c3bb72b71a2ceca2430792434df1ccb6e66f84cdf305d080b09",
+      "family": "zstd",
+      "historical_profile": "fast",
+      "historical_settings": {
+        "level": -131072
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "8fc3ecba635e9552acd6d422ffab3f9b7eb08dd7138e292433fb7bf6c0b7f912",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-430d4d90a5a5142e6e5da268/fcc465035e242f4e8d8740ec9f00b444fc734ef8f96dd348ecf18fa6672ae640/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-430d4d90a5a5142e6e5da268.json",
+      "manifest_sha256": "3cf46227661074e025b2090803bb607d3550a22d23f8b5d88e3124f89071c616",
+      "source_label": "golf",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    },
+    {
+      "id": "golf-zstd-size",
+      "path": "docs/research/2026-09-30-codec-profiles/runs/profiles-030bc6df18732a9f4c9b190a/5355fbfdb7196b094acc9124ec0c35c450e167b210fde2738b72be296e18fda1/work/candidate.bin",
+      "bytes": 2631,
+      "sha256": "836381ad1ef0e2f657a17be06e10bd2f1278f54e31cc5e83c687fe8993512a27",
+      "family": "zstd",
+      "historical_profile": "size",
+      "historical_settings": {
+        "level": 22
+      },
+      "plaintext_bytes": 16384,
+      "plaintext_sha256": "8fc3ecba635e9552acd6d422ffab3f9b7eb08dd7138e292433fb7bf6c0b7f912",
+      "plaintext_reference": "docs/research/2026-09-30-codec-profiles/runs/profiles-030bc6df18732a9f4c9b190a/5355fbfdb7196b094acc9124ec0c35c450e167b210fde2738b72be296e18fda1/work/restored.bin",
+      "manifest_path": "docs/research/2026-09-30-codec-profiles/manifests/profiles-030bc6df18732a9f4c9b190a.json",
+      "manifest_sha256": "1d1d1d198cd255f9d8c876545f1e38040051be54be360cc9b59e92c8684e575e",
+      "source_label": "golf",
+      "source_offset": 0,
+      "role": "preexisting real-data stream; exposed prior screen"
+    }
+  ],
+  "recipes": [
+    {
+      "family": "xz",
+      "preset": 0,
+      "check": 1
+    },
+    {
+      "family": "xz",
+      "preset": 0,
+      "check": 4
+    },
+    {
+      "family": "xz",
+      "preset": 1,
+      "check": 1
+    },
+    {
+      "family": "xz",
+      "preset": 1,
+      "check": 4
+    },
+    {
+      "family": "xz",
+      "preset": 6,
+      "check": 1
+    },
+    {
+      "family": "xz",
+      "preset": 6,
+      "check": 4
+    },
+    {
+      "family": "xz",
+      "preset": 2147483657,
+      "check": 1
+    },
+    {
+      "family": "xz",
+      "preset": 2147483657,
+      "check": 4
+    },
+    {
+      "family": "bzip2",
+      "level": 1
+    },
+    {
+      "family": "bzip2",
+      "level": 9
+    },
+    {
+      "family": "zstd",
+      "level": -131072,
+      "checksum": 0,
+      "content_size": 1,
+      "workers": 0
+    },
+    {
+      "family": "zstd",
+      "level": -131072,
+      "checksum": 1,
+      "content_size": 1,
+      "workers": 0
+    },
+    {
+      "family": "zstd",
+      "level": 3,
+      "checksum": 0,
+      "content_size": 1,
+      "workers": 0
+    },
+    {
+      "family": "zstd",
+      "level": 3,
+      "checksum": 1,
+      "content_size": 1,
+      "workers": 0
+    },
+    {
+      "family": "zstd",
+      "level": 19,
+      "checksum": 0,
+      "content_size": 1,
+      "workers": 0
+    },
+    {
+      "family": "zstd",
+      "level": 19,
+      "checksum": 1,
+      "content_size": 1,
+      "workers": 0
+    },
+    {
+      "family": "zstd",
+      "level": 22,
+      "checksum": 0,
+      "content_size": 1,
+      "workers": 0
+    },
+    {
+      "family": "zstd",
+      "level": 22,
+      "checksum": 1,
+      "content_size": 1,
+      "workers": 0
+    },
+    {
+      "family": "brotli",
+      "quality": 0,
+      "lgwin": 22,
+      "mode": 0
+    },
+    {
+      "family": "brotli",
+      "quality": 5,
+      "lgwin": 22,
+      "mode": 0
+    },
+    {
+      "family": "brotli",
+      "quality": 11,
+      "lgwin": 22,
+      "mode": 0
+    }
+  ],
+  "runtime": {
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "machine": "x86_64",
+    "zlib": "1.3",
+    "brotli": "1.1.0",
+    "lzma": "5.4.5",
+    "bzip2": "1.0.8, 13-Jul-2019",
+    "zstd": "1.5.5"
+  },
+  "source_sha256": "620539d7cd32434ab0bf60809f97b56fc45f2620e5a5847c6e7b8b14e21a2917",
+  "algorithm": "CTR1 + mode3 + xz1(body). Body: reference recipe ID:u8, inner XZ preset:u8, original compressed length:u64le, plaintext length:u64le, inner stream length:u64le, runtime identity SHA256:32 bytes, XZ1 or XZ6 plaintext, residual of exactly original compressed length. Residual XORs original/ref common prefix and copies any original excess; regenerated excess is ignored. Decoder restores paid plaintext, recompresses using stored recipe, inverts residual. Finite offline recipe/inner-coder selection is fully charged.",
+  "controls": [
+    "original compressed input",
+    "CTR1+mode0+raw input",
+    "CTR1+mode1+zlib9(input)",
+    "CTR1+mode2+xz1(input)",
+    "CTR1+mode4+xz6(input)",
+    "same stored-plaintext body with empty reference (ablation, not competitor)"
+  ],
+  "component_diagnostics": [
+    "paid compressed plaintext bytes",
+    "residual nonzero bytes and xz1 size",
+    "reference exact-match indicator",
+    "reference/outer encoding and inverse wall/CPU",
+    "fresh-process decoder peak RSS"
+  ],
+  "validation": [
+    "Lengths unequal/empty XOR inverse tests",
+    "All 21 reference recipe fixtures decode to their known plaintext; synthetic results excluded",
+    "Each real source decompresses to its prior plaintext hash; each reference independently decompresses to same plaintext",
+    "Every real candidate restores original compressed bytes in-process",
+    "Best reconstruction and best framed generic control each restore original SHA in fresh processes reading only their archive; expected hash is verification only"
+  ],
+  "selection": "Frozen recipe order, smallest complete bytes; stable first tie. No post-outcome recipe changes. Preserve every candidate and loss.",
+  "promotion": "An observed transfer win must beat both original bytes and best generic framed control and pass all exact restoration checks; report by codec and historical effort stratum. One tiny input win is feasibility only, no production promotion.",
+  "budgets": {
+    "cpu_core": 8,
+    "wall_seconds": 120,
+    "cpu_seconds": 120,
+    "address_space_bytes": 1500000000,
+    "output_file_bytes": 128000000,
+    "aggregate_output_bytes": 256000000,
+    "no_swap": true
+  },
+  "limits": [
+    "Not native decision/token models for these codecs: uses generic compressed-byte corrections.",
+    "Reference runtime pin guards this prototype but does not establish portable encoder reproduction.",
+    "Only admitted fixed recipes; arbitrary filters, external dictionaries and unknown implementations not modeled.",
+    "Decoder-accepted concatenation/trailing behavior uses each library normal semantics; exact original syntax remains in residual. No unsupported-input generality claim.",
+    "Shared decoder program bytes are not added, as for standard archive comparison."
+  ]
+}

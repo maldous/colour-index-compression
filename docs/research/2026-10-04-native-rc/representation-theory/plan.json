@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-04",
+  "scope": "Theoretical extension requested by the user: exact/arbitrary-precision projections, roots, reciprocals, other mathematical functions and bounded recursive recompression. No production or corpus changes.",
+  "hypothesis": "A reversible change of representation may expose a short description to a practical coder; infinite expansions alone do not establish a smaller complete representation.",
+  "finite_checks": [
+    "Every 12-bit unsigned integer: floor square root without fractional information and exact square-root prefix q=floor(2^7*sqrt(X)); count outputs and invert through exact integer interval bounds.",
+    "Every 12-bit unsigned integer: floor cube root without fractional information and exact cube-root prefix q=floor(2^10*cuberoot(X)); count outputs and invert through exact integer interval bounds.",
+    "Integers 1 through 4095: reciprocal prefix q=floor(2^24/X); invert using exact rational inequalities, with a separately reported full-width [2048,4095] subset.",
+    "Perfect-square positive control over the entire 12-bit universe using tag+6-bit root vs tag+12-bit literal; account for all inputs. This is a mathematical witness, not a compressor comparison."
+  ],
+  "fixed_costs_and_limits": "Input length, transform, precision and tag grammar are shared for each mathematical check. No claim of physical archive size or optimized prefix representation. Exact integer arithmetic only.",
+  "resources": {"cpus": 1, "wall_seconds": 30, "memory_bytes": 100000000, "new_disk_bytes": 1000000},
+  "release_gate": "Unchanged; no benchmark restart or reopening of closed numeric composition research."
+}

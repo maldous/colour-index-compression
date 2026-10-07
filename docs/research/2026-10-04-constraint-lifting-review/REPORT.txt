@@ -1,0 +1,367 @@
+Constraint compression reconsidered: shared relations and adjustable auxiliary dimensions
+2026-10-04
+
+Decision
+
+There is a coherent remaining research hypothesis, but no new measured CIX
+compression gain or new information-theoretic principle has been established.
+The strongest formulation joins two ideas: discover a short relation shared
+across many source records, and allow the encoder to choose among expanded
+representations that a fixed decoder maps back to the same original data.
+Higher-dimensional coordinates can help that search or simplify its model.
+The benefit must be the shorter complete description of the original input.
+
+This note responds to the user's new reconsideration, auxiliary/null-coordinate
+extension and autoregressive polynomial/axis/gradient proposal. It preserves
+earlier finite negative results and release obligations.
+No compression experiment, build, corpus acquisition or benchmark was run for
+this review. No production source, acceptance ledger or benchmark gate is changed.
+
+What the existing evidence establishes
+
+1. The original constraint formulation is a finite-set/model description plus
+   an index. Its central counting and coding principles are established. The
+   earlier report already made this distinction; it did not certify new theory.
+   [Local: ../2026-10-03-constraint-space/REPORT.md]
+2. The eight-bit finite search covered 337 predicates and 56,616 pairs. It found
+   7,810 positive set-volume interactions and no paid pair-code wins. This does
+   not exhaust larger shared relationships or arbitrary higher-order factors.
+   [Local: ../2026-10-03-constraint-space/search-evidence/REPORT.md]
+3. Equality/count record intersections produced synthetic complete-size wins
+   of 12 and 59 bytes. Against the direct dictionary for the same support, these
+   were model-description savings; the rank payload was identical. That is a
+   legitimate engineering result, not extra entropy reduction for the same set.
+   [Local: ../2026-10-03-constraint-space/record-evidence/REPORT.md]
+4. Shared local two/three-factor descriptions and equal-fee normalization were
+   studied. They are not a generic learned nonlinear feature-lifting procedure
+   or a multi-factor graph compiler with certified prefix-counting resources.
+   [Local: ../2026-10-03-constraint-space/model-evidence/REPORT.md;
+   ../2026-10-03-constraint-space/normalised-evidence/REPORT.md]
+5. The frozen numeric/M6 composition saved 4 internal bytes and paid 29 bytes,
+   losing 25 complete bytes. It remains a closed, scoped experiment.
+   [Local: ../2026-10-03-constraint-space/segmentation/composition-evidence/REPORT.md]
+6. Identity plus 31 nonlinear seeded bijections were tested. A constructed
+   hidden 17-dimensional support shrank by 44.52% against its declared controls;
+   all five exposed real windows lost. This tests a fixed map family, not
+   learned sparse nonlinear relations or selectable auxiliary completions.
+   [Local: ../2026-10-04-rc-reconciliation/final-theory-screen/REPORT.txt]
+7. Mixing the tested existing predictors did not pass its material-gain gate.
+   That result does not measure a newly discovered higher-order relation that
+   none of those predictors supplies. An oracle's hindsight advantage cannot
+   establish that such a relation is causally usable.
+   [Local: ../2026-10-04-release-0.1/PREDICTION-RESULTS.md]
+
+The earlier OPEN-PROBLEMS.md explicitly leaves coupled overlapping counts and
+cross-factor discovery under a certified counting-state bound unexecuted.
+This is a project coverage gap, not a certified open problem in mathematics.
+
+Higher-dimensional discovery can expose an actual original-space restriction
+
+Consider independent uniform bits a,b,c,d and define
+
+    e = a XOR b XOR (c AND d).
+
+All five individual bits and every pair have uniform distributions. Nevertheless
+only 16 of the 32 five-bit tuples occur, so the joint entropy is four bits.
+There is no nonzero affine GF(2) equation satisfied by this support: substituting
+e into any candidate affine equation gives a polynomial in 1,a,b,c,d,cd; its
+coefficients must all vanish if it is zero for every a,b,c,d.
+
+Introduce a sixth coordinate z=c*d. The nonlinear source rule now becomes the
+linear lifted equation e XOR a XOR b XOR z=0. A linear search in an expanded
+feature space can therefore reveal something an affine model in the original
+five coordinates misses. But z=c*d alone is true for every possible original
+tuple. That defining identity contributes zero restriction on original inputs.
+The separate equation involving e removes half of the original possibilities.
+
+One bit per tuple is available before model/framing costs. The direct nonlinear
+predictor for e gets exactly the same saving and is a mandatory control. This
+is an analytic witness, not a new measured result or evidence that CIX misses
+this short relation. A sufficiently expressive context model can learn it too.
+With independent Bernoulli error q in e, the ideal uniform-baseline gain becomes
+1-h2(q) bits/tuple, before the rule and probability descriptions. Sparse errors
+must be coded, not dropped. Independence is an assumption of this illustration.
+
+Actual gain is measured against the incumbent model's surprise
+
+Let P0 be a normalized baseline probability model over a finite original block,
+and let a decoder-known model m define a nonempty constraint set S containing x.
+Write Z=P0(S). Conditioning gives
+
+    Q(x|m) = P0(x)/Z,  x in S.
+    [-log2 P0(x)] - [-log2 Q(x|m)] = -log2 Z.
+
+Thus the possible information gain is the baseline mass removed, not the
+ambient number of coordinates removed. If P0 already concentrates on S, there
+is little or no new gain. Replacing P0 by a uniform proxy can badly overstate
+value beyond CIX. A trace of realized-symbol losses alone does not determine Z.
+Exact Z may require exploring alternative model states or a tractable compiled
+model; that computation cannot be assumed cheap for an adaptive CIX expert.
+
+For a binary relation that is sometimes violated, let pi=P0(S) and choose a
+probability rho using development data or a decoder-reproducible past-only
+update. An everywhere-supported model is
+
+    Q(x) = P0(x)*rho/pi                  if x is in S;
+           P0(x)*(1-rho)/(1-pi)          otherwise.
+
+Held-out gain is the sum of log2(rho/pi) on hits and
+log2((1-rho)/(1-pi)) on misses, less paid metadata and physical overhead.
+Values pi,rho must have valid support; use an explicit escape where required.
+Multiple factors need joint normalization: independent gains cannot simply be
+added when factors overlap. Uniform set counting is a special case.
+
+Any block-derived rule must be transmitted with its actual cost or be learned
+before its evaluation targets. The decoder may use a known constraint to sum
+over unknown future completions; it may not use the actual future values.
+An equality for a fitted block is not a free causal expert.
+
+The user's adjustable/null-coordinate extension is a broader valid construction
+
+Let D_m map an expanded object y back to an original dataset x. For each x define
+
+    F_m(x) = { y : D_m(y)=x }.
+
+The encoder can search this set and choose whichever y compresses best with an
+existing codec C. A complete candidate has cost
+
+    L(m) + min_{y in F_m(x)} L_C(y) + framing/length/integrity costs.
+
+Decode C's payload to y, then apply D_m. D_m need not be one-to-one. The auxiliary
+coordinates are not original data, so no separate obligation exists to reproduce
+their initial null values or transmit their search history. Their chosen values
+are already represented in the encoded y in this construction. Charging every
+auxiliary bit again as independent raw metadata would be incorrect.
+
+The coordinates are still not costless: their effect on L_C(y), the model,
+dimension schedule, termination, extraction layout and resource use all count.
+A random encoder search is acceptable; the decoder need not repeat it if the
+selected representation and all necessary mapping information are in the code.
+If a search seed is required for reconstruction, then it must be reproducible
+or stored. Prefix-decodable model/selector coding already pays for the choice;
+do not automatically add a second log(number of trials) fee for the same choice.
+Selection bias still requires fixed held-out tests and matched null controls.
+
+There are two meanings of an ignored coordinate:
+* If the representation sent to C is independent of it, changing it cannot
+  improve C's result.
+* If it changes that representation but is discarded after decompression, it
+  supplies a real encoding degree of freedom. This is the useful interpretation.
+
+Useful exact examples of a decoder family are a fixed full-row-rank binary map
+D(u,z)=u XOR A*z, or an invertible finite circuit on (x,z) followed on decode by
+the inverse circuit and extraction of x. The first permits coset selection; a
+nonlinear reversible circuit can extend the family. Neither construction is
+claimed as a new algorithm. A paid map and exact extraction are indispensable.
+
+Why this does not manufacture information-free compression
+
+For a normalized codec model Q over the expanded objects, the induced original
+distribution is
+
+    P_m(x) = sum_{y in F_m(x)} Q(y).
+
+The fibres are disjoint because decoding is unambiguous, and
+
+    max_{y in F_m(x)} Q(y) <= P_m(x).
+
+Choosing a favorable representation can exploit a practical codec better than
+feeding it x. In ideal probability terms, an exact marginal code for P_m is at
+least as good as choosing one representative. Computing that sum can be hard;
+latent-variable methods are relevant controls, not a free implementation.
+Finite-precision and actual codec costs must be measured separately.
+
+Equivalently, choosing one shortest valid prefix codeword per original input
+preserves the prefix property and Kraft bound. More alternate representations
+cannot supply short codewords to every arbitrary source string. For an induced
+random expanded Y with X=D(Y), H(Y)=H(X)+H(Y|X)>=H(X). A deterministic selected
+representative can preserve entropy while becoming easier for a limited model.
+Lower bits per expanded byte alone is not a gain in total archive bytes.
+
+One global model versus many local models
+
+A global constraint can beat local models by paying a shared rule once and
+capturing cross-region dependencies that resets or separate ranks discard.
+The comparison is complete global model+payload versus all local models,
+boundaries, payloads and framing. The global model need not have the best local
+fit to win overall. Conversely, a single simple global relation may fit mixed
+data badly, and its search/counting cost can be much worse.
+
+There is no guarantee that a shorter single global model exists for every file.
+Any finite file can be named by one sufficiently precise coordinate or by a
+model containing the file; that naming can still cost all the original bits.
+If the global language includes segmented models, its optimum is no worse than
+those local descriptions (up to format overhead), but strict improvement and
+efficient discovery still do not follow.
+
+Prior-art boundary, verified from primary sources
+
+Cover's enumerative source encoding already ranks a sequence within a specified
+set using prefix completion counts. Vereshchagin and Vitanyi study the tradeoff
+between model description and residual set size. These encompass the core
+constraint-index accounting, not a proof that CIX's discovery is optimal.
+https://isl.stanford.edu/~cover/papers/transIT/0073cove.pdf
+https://homepages.cwi.nl/~paulv/papers/structure.pdf
+
+Vanishing Component Analysis learns polynomial relationships using expanded
+features. Its approximate numerical learning method is not an exact CIX codec;
+finite-field/exact residual handling would require separate work. Probabilistic
+circuits demonstrate tractable marginalization for lossless coding. Neither
+feature lifting nor coding a joint constraint distribution is new by itself.
+https://proceedings.mlr.press/v28/livni13.html
+https://starai.cs.ucla.edu/papers/LiuICLR22.pdf
+
+Test-data compression is especially close to adjustable null values. Li,
+Chakrabarty and Touba describe filling don't-care positions so more words match
+a small dictionary, including padding unequal scan subvectors. Balakrishnan
+and Touba analyze entropy and don't-care assignment. These sources already
+have don't-care freedoms or a known test layout. An arbitrary file has no
+dispensable original bits; a CIX lift must create valid alternatives with its
+own paid, exact extraction map. The analogy is useful but is not transfer proof.
+https://users.ece.utexas.edu/~touba/research/todaes03.pdf
+https://users.ece.utexas.edu/~touba/research/tcad07a.pdf
+
+Homophonic source representations and bits-back latent coding are further
+precedents. They have distinct goals and practical conditions; no claim is made
+that adding nulls implements bits-back or reaches a marginal code automatically.
+https://www.isiweb.ee.ethz.ch/archive/massey_pub/pdf/BI316.pdf
+https://arxiv.org/abs/1901.04866
+
+Autoregressive polynomial and colour-boundary models
+
+These are valid candidate models when they produce a short approximation and
+an exact residual. For binary colours, a causal integer score can be
+
+    s_t = b + sum_i a_i*u_(t-l_i)
+              + sum_(i,j) c_ij*u_(t-l_i)*u_(t-l_j)
+              + selected causal gradient/min/max features;
+    predicted_bit_t = 1 if s_t >= 0, otherwise 0;
+    error_t = actual_bit_t XOR predicted_bit_t.
+
+Here u denotes already reconstructed bits or explicitly defined numeric words;
+all lags are positive, initialization is specified, and every coefficient and
+feature selection is fixed, paid or causally learned. The decoder predicts,
+decodes the error, reconstructs the actual bit, and updates from that actual
+value. This prevents a single wrong prediction from becoming an unrecoverable
+free-running trajectory. A numeric-word variant codes an exact arithmetic
+residual with a specified overflow/modular convention.
+
+There are several distinct cases:
+* A polynomial p(t) of position alone gives predicted colour from its sign.
+  Under exact ordered arithmetic and a fixed zero tie, a nonzero degree-d
+  polynomial has at most d sign transitions on increasing sample positions.
+  Zero samples respect that bound when root multiplicities are counted. The
+  identically zero polynomial gives a constant tie colour. This is primarily
+  a run/boundary model; compare paid roots/coefficients with direct run lengths.
+  Degree n-1 interpolation can fit n arbitrary values but does not supply a
+  cheap coefficient description. Modular arithmetic and periodic functions
+  are different model classes, not exceptions to the real-root bound.
+* Derivative sign and extrema of a positional polynomial similarly describe a
+  limited number of monotone regions. High-fit quality on a plotted curve is
+  not the compression objective; exact residual information still counts.
+* A polynomial of lagged decoded values is different. It can generate many
+  temporal transitions at low degree because its inputs follow a changing
+  trajectory. Cross-products make a linear search in a lifted feature space
+  a nonlinear source predictor. For Boolean 0/1 inputs, repeated powers of one
+  bit collapse to that bit; distinct lag products carry the extra interactions.
+* Gradient, difference, minimum, maximum and clipping features can select local
+  regimes. They must use decoded history/neighbours. A centred gradient or
+  minimum involving the unknown target/future is unavailable unless its side
+  information is actually transmitted and charged. Numeric interpretation
+  must be justified, not assumed meaningful for arbitrary text/packed bytes.
+* A short finite-state nonlinear recurrence can generate random-looking but
+  compressible data. Initial state, coefficients, precision and length all
+  belong in the description. An infinite-precision state can simply hide the
+  entire file; chaos supplies no automatic coding advantage.
+
+If the error stream is modelled as Bernoulli(q), its fitted ideal length is
+n*h2(q), plus probability/model/framing cost. For q=0.05 this is about 0.2864
+bits per source bit, leaving about 0.7136 before overhead versus uniform raw
+bits. This is an analytic illustration, not a CIX result. The symmetric case
+q>0.5 can be handled by flipping the predictor or coding mostly-one residuals;
+the essential quantity is residual description length, not only error rate.
+An empirical h2(q) with q optimized on evaluation data is an optimistic
+diagnostic unless that parameter and its selection are charged. Frozen or
+past-adaptive probabilities supply the legitimate held-out comparison.
+
+The error stream is lossless residual information, not forward-error-correction
+redundancy for a noisy channel. A probabilistic version can use a specified
+integer score-to-probability table and directly entropy-code the original bit.
+Confidence/log loss matters: fewer sign mistakes does not guarantee fewer bits
+than a well-calibrated existing model. Use exact integer/fixed-point evaluation,
+explicit ranges, rounding and tie rules so encoder and decoder cannot disagree.
+
+Code inspection of the first-party native core found byte-lag and match experts
+in fixedmix.rs and delta/delta2 residual representations in numeric.rs/chain.rs.
+The inspected FixedMix features do not include fitted polynomial lag products
+or min/max/gradient threshold experts. Delta2 already covers a simple fixed
+linear extrapolation; it must be a control, not rediscovered as a new signal.
+This is not a claim that every bundled third-party backend lacks nonlinear or
+image prediction. Context models can implicitly represent the same relation.
+
+FLAC supplies established exact linear prediction plus coded residuals. LOCO-I/
+JPEG-LS uses nonlinear edge/min/max prediction and context modelling. Polynomial
+nonlinear autoregression is established system-identification machinery in the
+NARMAX literature. These validate feasibility of the model classes, not their
+marginal value for CIX or novelty of fitting a function then coding its errors.
+https://www.rfc-editor.org/rfc/rfc9639.html#section-4.3
+https://www.sfu.ca/~jiel/courses/861/ref/LOCOI.pdf
+https://eprints.soton.ac.uk/251145/
+
+One evidence-selected next investigation, refined by the final user addition
+
+The most economical first discriminator is a sparse causal nonlinear
+autoregressive residual screen. It is a tractable special case of shared
+constraints and higher-dimensional feature discovery: the extra coordinates
+are products/features of decoded history, and prediction has an exact inverse
+through the residual. This does not require a general latent-space solver.
+
+Freeze a small finite lag/feature grammar with degree at most two initially,
+bounded integer coefficient precision, a model-byte budget, a deterministic
+residual probability rule and an explicit fallback. Compare one shared model
+with paid local models in the same grammar. Match raw/lag/delta/delta2/linear
+and context-model controls; ablate only the nonlinear interactions. Use synthetic
+nonlinear and uniform controls to validate the instrument, then the existing
+authorized real-data qualification order and frozen evaluation splits.
+Require improvement beyond the strongest equivalent predictor, not just raw
+bits, a positional polynomial or one weak component. Measure complete costs
+before any physical-route promotion and report prediction/update/decode costs.
+This is the single proposed immediate diagnostic; it has not been executed.
+
+The more general adjustable-completion question remains a follow-on hypothesis
+
+Its question is whether a short shared constraint/decoder map with selectable
+auxiliary completions improves COMPLETE coding cost beyond its direct and local
+controls. It must earn a separate finite scope after the first discriminator;
+it is not an automatic second experiment or an addition to release requirements.
+
+Any eventual comparison must include:
+* Direct original-input coding with the same underlying codecs and limits.
+* The same lifted map with canonical zero fill and with shuffled/random fill.
+* Optimized fill with one paid global map, versus paid local maps in the same
+  finite grammar and with disclosed, comparable search budgets.
+* Equivalent direct nonlinear predictor/residual or linear-coset coding as
+  applicable; a dictionary/decision-table control where feasible.
+* Constructed shared nonlinear structure and uniform controls, followed by the
+  existing authorized real-data qualification order, not hand-picked winners.
+
+Before execution, freeze a tiny exact mapping grammar, auxiliary expansion cap,
+model/length code, decoder memory bound, optimizer budget, input identities and
+development/evaluation split. All first tests must have an exhaustive tiny
+inverse oracle; actual candidate archives need archive-only exact restoration.
+Early discovery may use larger feature spaces, but transmitted models must be
+small and the decoder must have a certified resource limit. Unknown/noisy cases
+need an exact fallback. Past exposed windows cannot be relabelled pristine.
+
+Separate three findings: better than zero fill; better than direct original
+coding; better than the strongest equivalent complete control. Only the last
+establishes an additional compression opportunity. Record wall/CPU/memory as
+well as bytes. Close the tested family if gains are only synthetic, metadata
+omissions, easier controls or expansion-relative ratios. Do not infer that all
+possible nonlinear models are exhausted.
+
+Status: theoretical review complete; the proposed diagnostic is not executed
+or a frozen run plan. Potential novelty is a specific cheap discovery/search/
+compilation method with real-data gain, not dimension growth or constraint
+coding in general. No claim of a new record, universal compression limit or
+release-ready capability follows from this note.

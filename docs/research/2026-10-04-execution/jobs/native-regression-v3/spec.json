@@ -1,0 +1,68 @@
+{
+  "id": "execution-native-regression-v3",
+  "status": "prepared-awaiting-root-source-freeze",
+  "purpose": "post-quality native Rust regression qualification; not a benchmark",
+  "cpus": [8, 10, 12, 14],
+  "wall_seconds": 3600,
+  "memory_bytes": 12000000000,
+  "temp_bytes": 3936000000,
+  "raw": "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/native-regression-v3/raw",
+  "work": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1",
+  "env": [
+    "CARGO_TARGET_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target",
+    "CARGO_BUILD_JOBS=4",
+    "CARGO_INCREMENTAL=0",
+    "CARGO_PROFILE_DEV_DEBUG=0",
+    "CARGO_PROFILE_TEST_DEBUG=0",
+    "CIX_RELEASE_LEASE=1",
+    "CIX_NATIVE_LIBRARY_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/lib/x86_64-linux-gnu",
+    "LIBRARY_PATH=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/lib/x86_64-linux-gnu",
+    "PATH=/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin:/usr/bin:/bin"
+  ],
+  "aggregate_policy": {
+    "cpus": 4,
+    "memory_bytes": 12000000000,
+    "temporary_bytes": 3936000000,
+    "aggregate_temporary_ceiling_bytes": 4000000000,
+    "private_paq_root_reservation_bytes": 64000000,
+    "swap": "none",
+    "concurrent_heavy_jobs": 1,
+    "cargo_build_jobs": 4,
+    "test_threads": 1,
+    "debug_info": false
+  },
+  "required_provider_inputs": {
+    "native_library_directory": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/lib/x86_64-linux-gnu",
+    "paq_library_directory": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/paq-cix-worker-v2-output/lib",
+    "paq_bridge_basenames": [
+      "libcix_paq_v215_bridge.so",
+      "libcix_paq_v216_bridge.so",
+      "libcix_paq_joint_discount_bridge.so",
+      "libcix_paq_store_state_bridge.so"
+    ],
+    "jxl_bridge": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v3/lib/libcix_jxl_bridge.so",
+    "spatial_bridge": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v8/lib/libcix_spatial_bridge.so"
+  },
+  "required_observations": [
+    "all Rust library tests pass with real PAQ, JXL and spatial provider inputs configured",
+    "all four PAQ worker variants complete the opt-in parent lifecycle test using a fresh built cix binary and a private 0700 work root",
+    "the installed JXL and spatial bridge tests run because their variables and files are present",
+    "focused C ABI, dictionary, CLI, resource-limit and streaming/window integration targets pass",
+    "receipt records source, lockfile, executable and provider SHA-256 identities plus every command result"
+  ],
+  "command": [
+    "/usr/bin/time", "-v", "-o",
+    "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/native-regression-v3.time.txt",
+    "python3",
+    "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/native-regression-v3/run.py",
+    "--source", "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-native-regression-v3",
+    "--freeze-record", "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-native-regression-v3.freeze.json",
+    "--work", "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/native-regression-v3",
+    "--target", "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target",
+    "--native-library-dir", "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/lib/x86_64-linux-gnu",
+    "--paq-libdir", "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/paq-cix-worker-v2-output/lib",
+    "--paq-work-root", "/home/user/.cache/cix-paq-native-regression-v3",
+    "--jxl-bridge", "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/jxl-prefix-v3/lib/libcix_jxl_bridge.so",
+    "--spatial-bridge", "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v8/lib/libcix_spatial_bridge.so"
+  ]
+}

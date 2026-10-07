@@ -1,0 +1,52 @@
+{
+  "schema": "cix-provider-binary-binding-review-v1",
+  "scope": "Read-only comparison of retained bridge-portability outputs and spatial-v8 evidence against the selected provider closure. No provider selection is changed.",
+  "selected_closure": {
+    "path": "docs/research/2026-10-04-execution/jobs/distribution-engineering-v4/selected-provider-closure.json",
+    "sha256": "bd9741e579ca749ac4da77ed23a7ec48a8e034b21b5d8f26671285fac25755a1"
+  },
+  "bridge_portability_v1": {
+    "receipt": "docs/research/2026-10-04-execution/jobs/bridge-portability-v1/receipt.json",
+    "receipt_sha256": "0cd49ebea7468edb4f16eecabee7e69c5e947d79e3b4ffb7457056412bacf597",
+    "receipt_status": "fail",
+    "reason_for_status": "The retained v1 script reached PAQ and JXL installs, then failed while configuring its spatial step; its artifact map was therefore not finalized.",
+    "artifacts": {
+      "CIX_RUNTIME_PAQ_V215_BRIDGE": {"rebuilt_sha256": "f9c865ce50c04c7fed227f7aafad153abf6238d96dbcd20e78da6151d493266f", "selected_sha256": "645f2f80dbe219465640d4489a219a90ae0787c9c8900d165045fe69b0e43757", "comparison": "different"},
+      "CIX_RUNTIME_PAQ_V216_BRIDGE": {"rebuilt_sha256": "70e4d234eb3de11afcdaac06052d620366acf8cf96a37bc3cc6ed4fab98b1ec4", "selected_sha256": "fc511f145184396f4cea39ac8281d12c7ac913914a9e2d6da770cf58f4098fb2", "comparison": "different"},
+      "CIX_RUNTIME_PAQ_JOINT_DISCOUNT_BRIDGE": {"rebuilt_sha256": "554afa850125183c06014db0c6d2aad67ebcf4f5dfbe50923a4bf371e6868b45", "selected_sha256": "8e8b74a7037654bf26d3a2d1c587ab3ff0d2028db68f4a48c387e8a2b925a597", "comparison": "different"},
+      "CIX_RUNTIME_PAQ_STORE_STATE_BRIDGE": {"rebuilt_sha256": "9241fb8d76af7a0fbb79c7a2622fb9718063494b86e5f707a09a53d298cf91ed", "selected_sha256": "57bba97ddbe7d1cde36625a88060f7b2ee06a095d8e0966658b38d05bcb598b2", "comparison": "different"},
+      "CIX_RUNTIME_JXL_BRIDGE": {"rebuilt_sha256": "06557f893f26ce312b97e5e5755d6365046c1616f66a45b3de140fcf04e19b4b", "selected_sha256": "06557f893f26ce312b97e5e5755d6365046c1616f66a45b3de140fcf04e19b4b", "comparison": "exact"}
+    }
+  },
+  "paq_source_identity": {
+    "status": "reproducible_input_identity_supported",
+    "evidence": "Each selected PAQ bridge has a retained local source root, a README hash, and a per-file source receipt listed in provider-provenance-v3.json. Those records identify the staged source bytes without requiring an upstream revision.",
+    "limit": "The v1 rebuilt PAQ shared objects are not byte-identical to the selected shared objects. The retained receipts do not establish a byte-reproducible selected PAQ binary build; they establish reproducible source inputs."
+  },
+  "spatial_selected_binary_binding": {
+    "status": "closed_for_engineering_source_to_selected_binary_trace",
+    "selected_artifact": {
+      "path": "benchmark-work/native-rc-check-v1/spatial-prefix-v8/lib/libcix_spatial_bridge.so",
+      "sha256": "51636cb3cbd9830d3f869142915d9e86345909a98cc57f38c86f6bf0f15c31cf"
+    },
+    "source_snapshot": {
+      "path": "benchmark-work/native-rc-check-v1/execution-spatial-counts-v2/codecs/spatial",
+      "source_receipt": "docs/research/2026-10-04-execution/jobs/spatial-counts-v2/source.json",
+      "source_receipt_sha256": "106687b86ad252082df221250b051dc7ffd07cf392cc889a3930bf5652434459",
+      "source_receipt_head": "4dcdf53312e99d4f8043177403fc5338628653d0",
+      "source_cmakelists_sha256": "611063af757bca8f70108abba5cbcefc4700a0ee083c854e353ccb2d684a6ce6",
+      "source_cpp_sha256": "e54188e999a93b7dffaa13012dfbc5b23d976fab8a861766fb97781d9aefe54c"
+    },
+    "build_and_install": {
+      "checks": "docs/research/2026-10-04-execution/jobs/spatial-counts-v2/checks.json",
+      "checks_sha256": "b30f6f6b53076be7cef36503885e2ca31237c1f55be93bd603884c8fd7fa81a6",
+      "build_directory": "benchmark-work/native-rc-check-v1/spatial-build-v8",
+      "configure_inputs": {"codec_sdk_prefix": "benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix", "install_prefix": "benchmark-work/native-rc-check-v1/spatial-prefix-v8", "generator": "Ninja"},
+      "uninstalled_binary_sha256": "f44ac6c8630a57020b6b70d01d47cd59bb558fca4fdb8f9477b0442e64c05186",
+      "installed_binary_sha256": "51636cb3cbd9830d3f869142915d9e86345909a98cc57f38c86f6bf0f15c31cf",
+      "install_transform": "The retained cmake_install.cmake records an RPATH change from the build artifact to $ORIGIN; both files retain Build ID a465aa650d7c14bba3635f4c47959c8b8e2e5a4c."
+    },
+    "current_source_limit": "The current spatial CMakeLists.txt has a different hash from the retained v8 snapshot. bridge-portability-v2 therefore produced 5d9c067693d24e02d751469789a2e70c072c1d99af9ef25bd6d7fb73c48bf09e, which is recorded as a different rebuild rather than substituted for the selected binary."
+  },
+  "non_claim": "This evidence does not change the selected closure, establish legal compliance, or make the selected PAQ binaries byte-reproducible."
+}

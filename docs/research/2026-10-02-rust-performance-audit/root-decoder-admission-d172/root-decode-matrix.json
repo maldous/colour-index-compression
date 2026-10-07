@@ -1,0 +1,593 @@
+{
+  "purpose": "root decoder helper compatibility, not throughput measurement",
+  "affinity": [
+    8
+  ],
+  "cgroup_readback": {
+    "memory.max": "1073741824",
+    "memory.swap.max": "0",
+    "cpuset.cpus.effective": "8"
+  },
+  "input_bytes": 2048,
+  "input_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe",
+  "source_main_sha256": "87990d4ba44bf51cf99cd369d1adf4e37b43191f5d1709fa405f6f32675e69d8",
+  "binary_sha256": {
+    "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/cix": "7c36c166c3b924b3db24c7cf1819db9e285f27676bed9f36a7696fd5b51e3612",
+    "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/uncix": "859e5e624e5a98a386d6404c5cd8ea5b038064c87bb351f34858e790fd79bb8f",
+    "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/cix": "8f3f3c518560d4653e56f031ea08e18f82951ea7b4d17b487ecff56bea6b4937",
+    "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix": "25938d8b60eb682240e80c03006748ab9385005e1d9eb76fc966130f2995d2db"
+  },
+  "cases": [
+    {
+      "name": "g1raw",
+      "commands": [
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/cix",
+            "--fast",
+            "--stream",
+            "--format",
+            "cixg1",
+            "--route",
+            "raw",
+            "--threads",
+            "1",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.parent.cix",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/input.bin"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.parent.cix\n"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.parent.parent.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.parent.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.parent.parent.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.parent.candidate.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.parent.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.parent.candidate.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/cix",
+            "--fast",
+            "--stream",
+            "--format",
+            "cixg1",
+            "--route",
+            "raw",
+            "--threads",
+            "1",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.candidate.cix",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/input.bin"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.candidate.cix\n"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.candidate.parent.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.candidate.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.candidate.parent.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.candidate.candidate.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.candidate.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.candidate.candidate.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-c",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1raw.truncated.cix"
+          ],
+          "exit": 2,
+          "stderr": "cix: truncated archive\n",
+          "stdout_bytes": 2048
+        }
+      ],
+      "archive_sha256": "3327a47e6bdbd2e285156c7ac5d3822af9bf0d8d936eac2abbe9e8adc1dd4111",
+      "archive_bytes": 2143
+    },
+    {
+      "name": "g1composition",
+      "commands": [
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/cix",
+            "--fast",
+            "--stream",
+            "--format",
+            "cixg1",
+            "--route",
+            "composition",
+            "--threads",
+            "1",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.parent.cix",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/input.bin"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.parent.cix\n"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.parent.parent.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.parent.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.parent.parent.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.parent.candidate.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.parent.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.parent.candidate.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/cix",
+            "--fast",
+            "--stream",
+            "--format",
+            "cixg1",
+            "--route",
+            "composition",
+            "--threads",
+            "1",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.candidate.cix",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/input.bin"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.candidate.cix\n"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.candidate.parent.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.candidate.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.candidate.parent.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.candidate.candidate.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.candidate.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.candidate.candidate.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-c",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g1composition.truncated.cix"
+          ],
+          "exit": 2,
+          "stderr": "cix: truncated archive\n",
+          "stdout_bytes": 2048
+        }
+      ],
+      "archive_sha256": "11c67b09f6d9b5b2ad190ed76f1e4ed9716b3fdd8f31278a45387649196c0479",
+      "archive_bytes": 145
+    },
+    {
+      "name": "g2raw",
+      "commands": [
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/cix",
+            "--fast",
+            "--stream",
+            "--format",
+            "cixg2",
+            "--route",
+            "raw",
+            "--threads",
+            "1",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.parent.cix",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/input.bin"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.parent.cix\n"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.parent.parent.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.parent.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.parent.parent.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.parent.candidate.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.parent.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.parent.candidate.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/cix",
+            "--fast",
+            "--stream",
+            "--format",
+            "cixg2",
+            "--route",
+            "raw",
+            "--threads",
+            "1",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.candidate.cix",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/input.bin"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.candidate.cix\n"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.candidate.parent.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.candidate.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.candidate.parent.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.candidate.candidate.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.candidate.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.candidate.candidate.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-c",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/g2raw.truncated.cix"
+          ],
+          "exit": 2,
+          "stderr": "cix: truncated archive\n",
+          "stdout_bytes": 2048
+        }
+      ],
+      "archive_sha256": "2efa432e7e495ecf37707d0a5ecafaaf317f78ec0a411d2444c94bb0e681ba8f",
+      "archive_bytes": 2143
+    },
+    {
+      "name": "m6",
+      "commands": [
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/cix",
+            "--fast",
+            "--format",
+            "cixm6",
+            "--threads",
+            "1",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/m6.parent.cix",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/input.bin"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/m6.parent.cix\n"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/m6.parent.parent.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/m6.parent.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/m6.parent.parent.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/m6.parent.candidate.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/m6.parent.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/m6.parent.candidate.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/cix",
+            "--fast",
+            "--format",
+            "cixm6",
+            "--threads",
+            "1",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/m6.candidate.cix",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/input.bin"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/m6.candidate.cix\n"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/m6.candidate.parent.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/m6.candidate.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/m6.candidate.parent.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/m6.candidate.candidate.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/m6.candidate.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/m6.candidate.candidate.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-c",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/m6.truncated.cix"
+          ],
+          "exit": 2,
+          "stderr": "cix: truncated archive\n",
+          "stdout_bytes": 2048
+        }
+      ],
+      "archive_sha256": "92c9e3b109bc047ba30ef5f4de0b291ed953fc4060ce4e239690bc10aa1c901a",
+      "archive_bytes": 97
+    },
+    {
+      "name": "b1",
+      "commands": [
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/cix",
+            "--external",
+            "bzip2",
+            "--threads",
+            "1",
+            "--memory",
+            "512MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/b1.parent.cix",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/input.bin"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/b1.parent.cix\n"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/b1.parent.parent.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/b1.parent.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/b1.parent.parent.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/b1.parent.candidate.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/b1.parent.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/b1.parent.candidate.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/cix",
+            "--external",
+            "bzip2",
+            "--threads",
+            "1",
+            "--memory",
+            "512MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/b1.candidate.cix",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/input.bin"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/b1.candidate.cix\n"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/combined-45e7-validation/final/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/b1.candidate.parent.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/b1.candidate.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/b1.candidate.parent.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-f",
+            "-o",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/b1.candidate.candidate.bin",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/b1.candidate.cix"
+          ],
+          "exit": 0,
+          "stderr": "/tmp/cix-root-decode-matrix-hrtm2jis/b1.candidate.candidate.bin\n",
+          "restored_sha256": "dce7fcf6d80f2fd9b9daeb79ebd7f25fcae5876ac9df095345889b38cd892cfe"
+        },
+        {
+          "command": [
+            "/home/user/src/colour-index-compression/benchmark-work/root-decode-current/target/debug/uncix",
+            "--memory",
+            "128MiB",
+            "-c",
+            "/tmp/cix-root-decode-matrix-hrtm2jis/b1.truncated.cix"
+          ],
+          "exit": 2,
+          "stderr": "cix: truncated archive\n",
+          "stdout_bytes": 0
+        }
+      ],
+      "archive_sha256": "b0a425e8154b1c3b56f3abd6f5908f746d0324e688a4efb6f1d0d956cd0fb1b6",
+      "archive_bytes": 115
+    }
+  ]
+}

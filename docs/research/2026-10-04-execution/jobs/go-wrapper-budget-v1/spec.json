@@ -1,0 +1,40 @@
+{
+  "id": "execution-go-wrapper-budget-v1",
+  "status": "prepared-awaiting-root-source-freeze",
+  "purpose": "Run the Go wrapper allocation-budget contract against the existing installed CIX SDK closure. This is a focused ABI-consumer test, not a native rebuild or benchmark.",
+  "cpus": [8, 10],
+  "wall_seconds": 600,
+  "memory_bytes": 2000000000,
+  "temp_bytes": 4000000000,
+  "raw": "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/go-wrapper-budget-v1/raw",
+  "work": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1",
+  "source_freeze": {
+    "required": true,
+    "scheduler_action": "Copy the current repository to benchmark-work/native-rc-check-v1/execution-go-wrapper-budget-v1 immediately before dispatch. Do not mutate that staging tree after the copy.",
+    "snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-go-wrapper-budget-v1",
+    "manifest": "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/go-wrapper-budget-v1/source.json",
+    "verification": "run.py verifies the four frozen Go binding file hashes before any command, and records the installed SDK header, library, and pkg-config hashes."
+  },
+  "installed_sdk": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8",
+  "aggregate_policy": {
+    "cpus": 2,
+    "memory_bytes": 2000000000,
+    "temporary_bytes": 4000000000,
+    "concurrent_heavy_jobs": 1,
+    "post_run_go_cache_cap_bytes": 536870912,
+    "cache_note": "The Go toolchain has no live quota in this recipe. GOCACHE, GOTMPDIR, and GOMODCACHE are confined to the job work tree, measured after the test, rejected above this cap, and removed before completion."
+  },
+  "acceptance": [
+    "The frozen Go wrapper tests pass through cgo against the verified installed CIX library and headers.",
+    "Verbose test output includes the wrapper-allocation rejection test as evidence that an oversized requested stream buffer fails before make.",
+    "The receipt records command return codes, frozen source hashes, SDK header/library/pkg-config hashes, Go version, pkg-config version, and transient cache sizes."
+  ],
+  "env": [
+    "CIX_RELEASE_LEASE=1",
+    "PATH=/usr/bin:/bin"
+  ],
+  "command": [
+    "python3",
+    "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/go-wrapper-budget-v1/run.py"
+  ]
+}

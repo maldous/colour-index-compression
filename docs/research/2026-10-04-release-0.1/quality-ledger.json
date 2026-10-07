@@ -1,0 +1,192 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-10-04",
+  "scope": "Read-only release-quality audit; no build, scan, or production change was performed.",
+  "checkpoint": {
+    "research": "20e18503b1d208a552ff8efc1231bab2281fb82e",
+    "production_scan_source": "d3a2cd416e49f93403d1dbd348a3e9a45db66ec6",
+    "runtime_paths_changed_between_scan_and_checkpoint": [],
+    "research_only_paths_added_between_scan_and_checkpoint": 22,
+    "runtime_scan_freshness": "The runtime source, Cargo.toml, Cargo.lock, and build.rs are unchanged through the stated checkpoint. The scan is not a substitute for scanning the immutable public export."
+  },
+  "sonar": {
+    "status": "clean_for_scanned_rust_scope",
+    "analysis_id": "9c1a4a91-3b62-4907-89a1-380081ffbe98",
+    "compute_engine_status": "SUCCESS",
+    "quality_gate": "OK",
+    "cayc_status": "compliant",
+    "current_issue_count": 0,
+    "source_files_indexed": 82,
+    "profile": "Rust Sonar way",
+    "completed_at": "2026-10-03T06:05:41+0000",
+    "stale_for_public_export": true,
+    "excluded_or_unqualified_scope": [
+      "rust/cix-native/experiments",
+      "vendored C/C++ source",
+      "future public-export file manifest"
+    ],
+    "warnings": [
+      "SCM provider autodetection failed in the containerized scan.",
+      "One C++ file was detected but could not be analyzed by the available SonarQube edition."
+    ],
+    "historical_resolved_issues": [
+      {
+        "source": "6ac05f8e9fd78ff01e2f8d71e6557c5dc66bb8bb",
+        "rule": "rust:S3776",
+        "paths": [
+          "src/chain.rs:1247",
+          "src/main.rs:2886",
+          "src/main.rs:3830"
+        ],
+        "resolution_evidence": "The later d3a2cd416 scan reports zero current issues."
+      }
+    ]
+  },
+  "dead_code": {
+    "status": "historical finding; release Rust disposition recorded below",
+    "warning_instances": 241,
+    "evidence_source": "docs/research/2026-10-03-rust-rnd/sonar-6ac0/run-v8/raw/clippy-raw.jsonl",
+    "warning_kind_counts": {
+      "dead_code": 241
+    },
+    "interpretation": "The count includes path-importing examples, tests, audit binaries, and duplicate target builds. It still prevents a claim of dead-code closure because the shipping library has a crate-wide allow(dead_code).",
+    "shipping_items_requiring_disposition": [
+      "src/bwt_legacy.rs:1516 encode_version",
+      "src/chain.rs:50,59 candidate-report fields",
+      "src/chain.rs:1241 encode",
+      "src/expertmix.rs:244,252,319,327 encoder/decoder entry points",
+      "src/stateful.rs:124,342 estimate/model-specification methods",
+      "src/transform.rs:400 encode_id",
+      "src/lib.rs:1 crate-wide allow(dead_code)"
+    ],
+    "required_resolution": "Use released library APIs in fixtures, remove unreachable code only after compatibility tests, and replace the crate-wide allowance with narrowly scoped justified allowances if any remain."
+  },
+  "public_export": {
+    "strategy": "allow_list",
+    "include": [
+      "rust/cix-native/Cargo.toml",
+      "rust/cix-native/Cargo.lock",
+      "rust/cix-native/build.rs",
+      "rust/cix-native/src/**",
+      "rust/cix-native/vendor/libzpaq715/**",
+      "rust/cix-native/vendor/libbsc/**",
+      "rust/cix-native/FORMAT-CIXB1.md",
+      "rust/cix-native/FORMAT-CIXZ1.md",
+      "rust/cix-native/THIRD_PARTY_NOTICES.txt",
+      "release README and license/notice files"
+    ],
+    "optional_subpackage": [
+      "squash/**",
+      "built libcix_native shared library"
+    ],
+    "exclude": [
+      "docs/research/**",
+      "benchmarks/**",
+      "benchmark-work/**",
+      "results/**",
+      ".hutter-experiment-scheduler/**",
+      "rust/cix-native/experiments/**",
+      "rust/cix-native/benches/**",
+      "rust/cix-native/examples/**",
+      "development Python package/tests",
+      "target/**",
+      "historical dist binaries",
+      ".github/workflows/**"
+    ],
+    "compatibility_guard": "Keep the entire released src tree, including legacy decoders and non-default modes, until archive-format compatibility has been separately versioned and qualified."
+  },
+  "release_export_closure": {
+    "export_path": "/home/user/src/cix-0.1-release",
+    "dead_code_disposition": "The crate-wide Rust allow(dead_code) was removed. Shipping-unreachable convenience APIs and research-only oracle exposure were removed or test-confined; no Rust dead-code warning appeared in the fresh all-target Cargo check.",
+    "cargo_check": {
+      "status": "passed",
+      "receipt": "docs/research/2026-10-04-release-0.1/raw/cargo-check-v3/result.json",
+      "exit_code": 0,
+      "scope": "--locked --offline --all-targets",
+      "rust_warnings": 0,
+      "third_party_warning_scope": "Vendored C/C++ compilation emits existing warnings; these are separate from Rust source/dead-code closure."
+    },
+    "cargo_test": {
+      "status": "passed",
+      "superseded_receipt": "docs/research/2026-10-04-release-0.1/raw/cargo-test-v1/result.json",
+      "receipt": "docs/research/2026-10-04-release-0.1/raw/prune-test-v1/result.json",
+      "exit_code": 0,
+      "scope": "--locked --offline --release, portable opt3 fat-LTO codegen-units1",
+      "passed": {
+        "library": 115,
+        "cli_smoke": 4,
+        "streaming_pipe": 7
+      }
+    },
+    "cargo_clippy": {
+      "status": "passed",
+      "superseded_receipt": "docs/research/2026-10-04-release-0.1/raw/cargo-clippy-v2/result.json",
+      "receipt": "docs/research/2026-10-04-release-0.1/raw/cargo-clippy-prune-v1/result.json",
+      "exit_code": 0,
+      "scope": "--locked --offline --all-targets -- -D warnings",
+      "rust_diagnostics": 0
+    },
+    "sonar_release": {
+      "status": "passed",
+      "superseded_receipt": "docs/research/2026-10-04-release-0.1/sonar-release/run-v1",
+      "receipt": "docs/research/2026-10-04-release-0.1/sonar-release/run-v2",
+      "source_tree": "bd28975a504abbeb011d2aaba36224af6b5c7f3fa844f491c224166750cab1e7",
+      "binding_status": "Final Sonar v2 binds the complete current export tree, including final documentation and package metadata.",
+      "quality_gate": "OK",
+      "cayc_status": "compliant",
+      "current_issues": 0,
+      "clippy_imported_diagnostics": 0,
+      "temporary_token_revocation": "success"
+    },
+    "scope_limits": {
+      "sonar": "The scanner detected and analyzed Rust only. It did not provide a C/C++ analyzer result for the vendored libzpaq715/libbsc sources.",
+      "vendor_cpp": "Existing vendor C/C++ compiler warnings remain visible in the Cargo receipts. They are not suppressed and are not covered by the Rust dead-code or Sonar-zero-issue conclusion.",
+      "compatibility": "112 library tests plus 4 CLI smoke and 7 streaming-pipe process tests passed. They cover released command and streaming/malformed-input behavior, but do not alone establish every historical external archive fixture or exported C ABI symbol."
+    },
+    "command_parse_review": {
+      "status": "passed_static_review",
+      "evidence": "src/cli.rs set_flag sets decode for -t and -l; finish_parse then selects a 2 GiB decode memory default whenever --memory was not explicit.",
+      "defect_found": false
+    },
+    "exact_prefix_prune": {
+      "status": "qualified",
+      "test_receipt": "docs/research/2026-10-04-release-0.1/raw/prune-test-v1/result.json",
+      "matched_controls": "docs/research/2026-10-04-release-0.1/prune-match-results.json",
+      "small_native_archive_bytes": 1096,
+      "medium_predictor_archive_bytes": 79507,
+      "matched_archive_identity": true,
+      "fresh_restores_exact": true,
+      "deadline_omissions": false,
+      "limit": "Identity is established for the two matched completed-set controls; deadline-limited searches may have different later-candidate availability."
+    },
+    "final_artifact": {
+      "freeze": "docs/research/2026-10-04-release-0.1/release-binary-freeze-final.json",
+      "build_receipt": "docs/research/2026-10-04-release-0.1/raw/prune-build-v1/result.json",
+      "qualification_receipt": "docs/research/2026-10-04-release-0.1/raw/final-qualification-v1/result.json",
+      "qualification_results": "docs/research/2026-10-04-release-0.1/final-qualification-results.json",
+      "status": "passed"
+    },
+    "distribution_notice_successor": {
+      "status": "passed",
+      "successor_export": "/home/user/src/cix-0.1-distribution",
+      "packages": "/home/user/src/cix-0.1-artifacts/distribution-v2/packages",
+      "measured_binaries": "/home/user/src/cix-0.1-artifacts/final/bin",
+      "amendment": "docs/research/2026-10-04-release-0.1/dependency-notices/amendment.json",
+      "protected_runtime_files": 90,
+      "runtime_equivalence": "byte-identical to the final measured tree; only notice, README, Makefile, and Debian/RPM packaging files changed",
+      "qualification_receipt": "docs/research/2026-10-04-release-0.1/raw/notice-qualification-v2/result.json",
+      "qualification_elapsed_seconds": 34.52988434299914,
+      "qualification_results": "docs/research/2026-10-04-release-0.1/notice-qualification-results-v2.json",
+      "third_party_receipt": "benchmark-work/release-notice-qualification-v2/third-party/third-party-validation.json",
+      "validated": [
+        "matching notice hashes in source and binary tarballs",
+        "offline source build",
+        "staged install and uninstall",
+        "DEB, RPM, and DSC contents"
+      ],
+      "v1_failure_retained": "Generated RPM spec listed the notice without installing it; v2 derives install and ownership from the same legal-file list."
+    },
+    "open_quality_blockers": []
+  },
+  "next_action": "No current Rust-release quality blocker is recorded. Preserve the vendor C/C++ scope boundary and the stated limits of the qualified compatibility cases."
+}

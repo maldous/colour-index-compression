@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "status": "V1_INVALID_FOR_SELECTION",
+  "reason": [
+    "v1 tested reservation by window start rather than intersection, exposing bytes in boundary windows.",
+    "v1 used decimal 64,000,000-byte reserve widths rather than requested binary 64 MiB (67,108,864 bytes).",
+    "v1 census_rich ranking had no actual US-census-pattern metric.",
+    "v1 redirect locator missed directives immediately following <text ...>."
+  ],
+  "v1_preservation": "asset-v1 contains byte-preserved source, plan and result artifacts with SHA-256 inventory.",
+  "contaminated_boundary_windows": [
+    {"offset": 599785472, "end": 603979776, "reserve": [600000000, 667108864]},
+    {"offset": 666894336, "end": 671088640, "reserve": [600000000, 667108864]},
+    {"offset": 897581056, "end": 901775360, "reserve": [900000000, 967108864]},
+    {"offset": 964689920, "end": 968884224, "reserve": [900000000, 967108864]}
+  ],
+  "v2_policy": "Skip any 4 MiB aligned window intersecting either true 64 MiB reserved range. v2 artifact is separately named asset-opportunities-v2.json."
+}

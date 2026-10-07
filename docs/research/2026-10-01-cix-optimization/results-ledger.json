@@ -1,0 +1,374 @@
+{
+  "schema": 1,
+  "scope": "Existing official Silesia Dickens only; screening, not Silesia qualification. Squash public CPU figures are not ranked against local results.",
+  "errata": "See evidence-errata.md for immutable v3 manifest block-size discrepancy; v3 timing/RSS fields use GNU time artifacts, while scheduler receipt metrics are retained separately.",
+  "input": {
+    "bytes": 10192446,
+    "sha256": "b24c37886142e11d0ee687db6ab06f936207aa7f2ea1fd1d9a36763c7a507e6a",
+    "path": "/home/user/src/colour-index-compression/benchmark-work/silesia/dickens"
+  },
+  "trials": [
+    {
+      "id": "squash-zpaq705-method5-reproduction",
+      "status": "VERIFIED_SCREENING",
+      "role": "published lead reproduction; direct ZPAQ output",
+      "bytes": 2142935,
+      "sha256": "8d01934319b0938aa2e40a760d27647c2e287efadc8fbe37649a7650cb4e66e6",
+      "encode_wall_s": 19.21,
+      "encode_cpu_s": 19.2,
+      "decode_wall_s": 18.34,
+      "decode_cpu_s": 18.34,
+      "peak_rss_kib": {
+        "encode": 282880,
+        "decode": 272896
+      },
+      "settings": {
+        "zpaq": "7.05",
+        "method": "5",
+        "threads": 1
+      },
+      "artifact_directory": "runs/zpaq-dickens-v1/",
+      "limitation": "ZPAQ stream, not a CIX archive. Historical Squash CPU timing is excluded."
+    },
+    {
+      "id": "zpaq715-method5-direct-control",
+      "status": "VERIFIED_SCREENING",
+      "role": "version control on original Dickens bytes",
+      "bytes": 2142935,
+      "sha256": "8d01934319b0938aa2e40a760d27647c2e287efadc8fbe37649a7650cb4e66e6",
+      "encode_wall_s": 17.59,
+      "encode_cpu_s": 17.58,
+      "decode_wall_s": 18.28,
+      "decode_cpu_s": 18.26,
+      "peak_rss_kib": {
+        "encode": 282880,
+        "decode": 272896
+      },
+      "settings": {
+        "zpaq": "7.15",
+        "method": "5",
+        "threads": 1
+      },
+      "artifact_directory": "runs/zpaq-dickens-v1/"
+    },
+    {
+      "id": "rust-cixg1-best-dynamic-queue-v3",
+      "status": "VERIFIED_SCREENING",
+      "role": "Rust CIX native auto BEST",
+      "bytes": 3506980,
+      "sha256": "4e02d23f43c48ef2812138a945d650bf9093b42e80cabfd8151258cbe23741d8",
+      "encode_wall_s": 331.56,
+      "encode_cpu_s": 546.02,
+      "decode_wall_s": 5.34,
+      "decode_cpu_s": 5.32,
+      "max_rss_kib": {
+        "encode": 42496,
+        "decode": 5976
+      },
+      "cgroup_sampled_peak_bytes": {
+        "encode": 42315776,
+        "decode": 13582336
+      },
+      "settings": {
+        "format": "CIXG1",
+        "effort": "best",
+        "route": "auto",
+        "block_bytes": 65536,
+        "threads": 4,
+        "memory_bytes": 2147483648
+      },
+      "candidate_observability_repeat": {
+        "candidate_count": 5304,
+        "memory_skips": 0,
+        "candidate_seconds_sum": 555.97,
+        "search_wall_seconds": 330.983,
+        "profile_seconds": 0.113,
+        "selected_source_bytes": {
+          "ppm": 10192446
+        }
+      },
+      "manifest": "runs/zpaq-dickens-v3-dynamic-queue/manifest.json",
+      "receipt": "runs/zpaq-dickens-v3-dynamic-queue/run/14729ed9e49b5dd0ef6383bc2bae9ff9b33e978c43282116a30f78f681bd352a/receipt.json",
+      "python_cross_decode": "VERIFIED; Python commit 0d835c98040a197e37b7432f2ec7a8688116dae6"
+    },
+    {
+      "id": "rust-best-selector-observability-repeat-v4",
+      "status": "VERIFIED_SCREENING",
+      "role": "deterministic archive identity and selector overhead capture",
+      "bytes": 3506980,
+      "sha256": "4e02d23f43c48ef2812138a945d650bf9093b42e80cabfd8151258cbe23741d8",
+      "encode_wall_s": 331.01,
+      "encode_cpu_s": 545.19,
+      "settings": {
+        "format": "CIXG1",
+        "effort": "best",
+        "route": "auto",
+        "block_bytes": 65536,
+        "threads": 4,
+        "memory_bytes": 2147483648,
+        "verbose": true
+      },
+      "manifest": "runs/zpaq-dickens-v4-selector-observability/manifest.json",
+      "receipt": "runs/zpaq-dickens-v4-selector-observability/run/b288e12f0458dddcda956ac4f8a257e9b580cf6f5a916b7e4a324a036da863c6/receipt.json"
+    },
+    {
+      "id": "zpaq715-over-rust-cixg1-representation",
+      "status": "VERIFIED_SCREENING_NEGATIVE",
+      "role": "outer ZPAQ backend over complete Rust CIXG1 representation",
+      "bytes": 3507411,
+      "sha256": "8cbbf3b02608ea458051417631781b1f7b9c8f395ac303625312e612438c0a63",
+      "input_representation_bytes": 3506980,
+      "size_change_bytes": 431,
+      "encode_wall_s": 11.5,
+      "encode_cpu_s": 9.93,
+      "decode_wall_s": 17.73,
+      "decode_cpu_s": 15.38,
+      "cgroup_sampled_peak_bytes": {
+        "encode": 144592896,
+        "decode": 141000704
+      },
+      "settings": {
+        "zpaq": "7.15",
+        "method": "5",
+        "threads": 1
+      },
+      "manifest": "runs/zpaq-wrap-rust-cix-v1/manifest.json",
+      "receipt": "runs/zpaq-wrap-rust-cix-v1/run/a62bb5172caa4633844e25f1b0db7d84b8b3f3e6add4baba8a78a5208f234101/receipt.json",
+      "interpretation": "Verified size expansion only for this archive/input; not a result for other reversible representations."
+    },
+    {
+      "id": "python-cix-size-historical-verified-control",
+      "status": "VERIFIED_SCREENING_HISTORICAL",
+      "role": "previous Python adaptive portfolio result on identical input bytes",
+      "bytes": 2799567,
+      "sha256": "b4b0e195209b593a3cf7ee047a1addc2556c70035a3fc037b64a44ef3d45c955",
+      "encode_wall_s": 67.04,
+      "encode_cpu_s": 57.94,
+      "decode_wall_s": 0.715,
+      "decode_cpu_s": 0.524,
+      "input_sha256": "b24c37886142e11d0ee687db6ab06f936207aa7f2ea1fd1d9a36763c7a507e6a",
+      "profile": "size",
+      "effort": "maximum",
+      "manifest": "../2026-10-01-complete-benchmarks/silesia-v3/checkpoints/2026-09-30T220259Z/manifests/dickens-size-cix.json",
+      "limitation": "Different selector and candidate plan from Rust; descriptive size context, not a matched causal comparison."
+    },
+    {
+      "id": "fast-one-vs-four-worker-smoke",
+      "status": "FUNCTIONAL_PERFORMANCE_SMOKE",
+      "role": "CIXG1 deterministic candidate-worker equivalence and informal wall timing",
+      "archive_bytes": null,
+      "archive_sha256_both": "455ff83d59ff87eb5d4c440801ea12825cccdd59b7f16d9f0bd98c58200475d8",
+      "wall_seconds": {
+        "threads_1": 16.93,
+        "threads_4": 11.66
+      },
+      "cpu_seconds": {
+        "threads_1": 16.94,
+        "threads_4": 16.38
+      },
+      "max_rss_kib": {
+        "threads_1": 5632,
+        "threads_4": 9864
+      },
+      "speedup": 1.45,
+      "exact_restore": true,
+      "limitation": "Not a scheduler-capped performance claim; same host, same bytes and command except worker count."
+    },
+    {
+      "id": "rust-best-single-thread-interrupted",
+      "status": "INTERRUPTED_INCOMPLETE",
+      "role": "partial one-worker screening archive",
+      "archive_bytes_excluded": 1749690,
+      "artifact_directory": "runs/zpaq-dickens-v1/",
+      "limitation": "User directed parallel CPUs before completion. Never treated as a complete archive/size result."
+    },
+    {
+      "id": "rust-best-four-core-fixed-batch-300s",
+      "status": "CEILING_INCOMPLETE",
+      "role": "four-core bounded trial before shared candidate queue",
+      "wall_limit_seconds": 300,
+      "archive_bytes_excluded": true,
+      "artifact_directory": "runs/zpaq-dickens-v2-parallel-fixed/",
+      "limitation": "No footer or complete archive; no decode; incomplete bytes are not a result."
+    },
+    {
+      "id": "rust-best-ppm-order-search-dickens-v1",
+      "status": "VERIFIED_SCREENING_NO_GAIN",
+      "role": "CIXG1 PPM order search; matched fixed-order Rust BEST control",
+      "bytes": 3506980,
+      "sha256": "4e02d23f43c48ef2812138a945d650bf9093b42e80cabfd8151258cbe23741d8",
+      "size_change_bytes": 0,
+      "encode_wall_s": 327.95,
+      "encode_cpu_s": 548.22,
+      "decode_wall_s": 5.23,
+      "decode_cpu_s": 5.22,
+      "python_cross_decode_wall_s": 98.69,
+      "max_rss_kib": {
+        "encode": 43744,
+        "decode": 5972
+      },
+      "selector": {
+        "candidates": 5616,
+        "candidate_seconds_sum": 559.131,
+        "search_wall_seconds": 327.814,
+        "profile_seconds": 0.117,
+        "memory_skips": 0,
+        "budget_skips": 0,
+        "selected_source_bytes": {
+          "ppm": 10192446
+        }
+      },
+      "settings": {
+        "format": "CIXG1",
+        "effort": "best",
+        "route": "auto",
+        "block_bytes": 65536,
+        "threads": 4,
+        "memory_bytes": 2147483648,
+        "ppm_orders": [
+          3,
+          1,
+          2
+        ]
+      },
+      "input_sha256": "b24c37886142e11d0ee687db6ab06f936207aa7f2ea1fd1d9a36763c7a507e6a",
+      "fresh_rust_decode": "VERIFIED exact source SHA-256",
+      "python_cross_decode": "VERIFIED exact source SHA-256; frozen Python commit 0d835c98040a197e37b7432f2ec7a8688116dae6",
+      "runner_status": "SIZE_REJECTED_UNVERIFIED because archive equaled completed size gate; manual fresh Rust and Python decodes were then run and verified",
+      "manifest": "runs/ppm-order-search-dickens-v1/manifest.json",
+      "cell": "runs/ppm-order-search-dickens-v1/cells.json",
+      "artifacts": "runs/ppm-order-search-dickens-v1/run/e33633b556337af412d745df91b70e30a031596b84e70f906f25adbd250bcc29/",
+      "interpretation": "Orders 1 and 2 did not change any selected bytes: the complete archive exactly matches the order-3 control. Search added 312 candidates with no size improvement and no budget skips. More than three is excluded because the frozen Python decoder rejects PPM payloads with order >3; the rejected order-4..6 trial is preserved."
+    },
+    {
+      "id": "rust-cix-candidate-dispatch-priority-dickens-v1",
+      "status": "VERIFIED_SCREENING_NO_PROMOTION",
+      "role": "bounded four-worker candidate-dispatch order comparison",
+      "input_sha256": "b24c37886142e11d0ee687db6ab06f936207aa7f2ea1fd1d9a36763c7a507e6a",
+      "bytes": 3506980,
+      "sha256": "4e02d23f43c48ef2812138a945d650bf9093b42e80cabfd8151258cbe23741d8",
+      "fifo_control": {
+        "encode_wall_s": 327.95,
+        "encode_cpu_s": 548.22,
+        "cpu_percent": 167
+      },
+      "priority_replicates": [
+        {
+          "encode_wall_s": 317.13,
+          "encode_cpu_s": 531.88,
+          "cpu_percent": 167,
+          "rust_decode_s": 5.46
+        },
+        {
+          "encode_wall_s": 334.21,
+          "encode_cpu_s": 551.91,
+          "cpu_percent": 165,
+          "rust_decode_s": 5.31
+        }
+      ],
+      "settings": {
+        "format": "CIXG1",
+        "effort": "best",
+        "route": "auto",
+        "block_bytes": 65536,
+        "threads": 4,
+        "memory_bytes": 2147483648,
+        "candidate_count": 5616
+      },
+      "python_cross_decode": "Verified for identical archive SHA in rust-best-ppm-order-search-dickens-v1",
+      "manifest": "runs/ppm-dispatch-priority-dickens-v1/manifest.json",
+      "replicate_cells": "runs/ppm-dispatch-priority-dickens-v1/replicate-2-cells.json",
+      "artifacts": "runs/ppm-dispatch-priority-dickens-v1/",
+      "interpretation": "Priority average is 325.67 seconds, 0.7% below one FIFO control, while the replicate is slower than FIFO. This is inconclusive and not a promoted optimization; FIFO dispatch remains in the encoder."
+    }
+  ],
+  "adversarial_parallel_checkpoint": {
+    "source_revisions": [
+      "90e457277dcb80b1ff713413b07a8c904bb660df",
+      "2b26cc074370c4db9c13c4dd0471a2f37f16443e",
+      "08711c49659ddddb73e5f19b34bf29d50845e3d2",
+      "ee6b4396df760d19005c4e0800783fef58d52334"
+    ],
+    "scope": "Local frozen Dickens ranges and native correctness fixtures, not renewed Silesia qualification or ranking.",
+    "report": "adversarial-parallel-results.md",
+    "provenance_erratum": "adversarial-parallel-evidence/CONTROL-REVISION-ERRATA.md",
+    "experiments": [
+      {
+        "id": "cix-parallel-qualification",
+        "summary": "adversarial-parallel-evidence/cix-parallel-qualification/qualification-summary.json",
+        "verified_cells": 8,
+        "all_fresh_restoration_matched": true,
+        "complete_archive_bytes": [
+          354023,
+          354023,
+          354023,
+          354023,
+          354023,
+          354023,
+          354023,
+          354023
+        ]
+      },
+      {
+        "id": "cix-profile-qualification",
+        "summary": "adversarial-parallel-evidence/cix-profile-qualification/profile-summary.json",
+        "verified_cells": 6,
+        "all_fresh_restoration_matched": true,
+        "complete_archive_bytes": [
+          476034,
+          476034,
+          407643,
+          407643,
+          354023,
+          354023
+        ]
+      },
+      {
+        "id": "cix-default-model-qualification",
+        "summary": "adversarial-parallel-evidence/cix-default-model-qualification/default-model-summary.json",
+        "verified_cells": 8,
+        "all_fresh_restoration_matched": true,
+        "complete_archive_bytes": [
+          407643,
+          407643,
+          381955,
+          381955,
+          423660,
+          423660,
+          397078,
+          397078
+        ]
+      },
+      {
+        "id": "cix-mixer-qualification-mixer-stack-scratch-v1",
+        "summary": "adversarial-parallel-evidence/cix-mixer-qualification-mixer-stack-scratch-v1/qualification-summary.json",
+        "verified_cells": 4,
+        "all_fresh_restoration_matched": true,
+        "complete_archive_bytes": [
+          52400,
+          52400,
+          52400,
+          52400
+        ]
+      },
+      {
+        "id": "cix-default-confidence-v2",
+        "summary": "adversarial-parallel-evidence/cix-default-confidence-v2/default-model-summary.json",
+        "verified_cells": 8,
+        "all_fresh_restoration_matched": true,
+        "complete_archive_bytes": [
+          407643,
+          381955,
+          381955,
+          407643,
+          423660,
+          397078,
+          397078,
+          423660
+        ],
+        "order": "ABBA per range",
+        "implementation_provenance": "Recovered control receipt bound to source90 and binary hash; candidate source ee6."
+      }
+    ]
+  }
+}

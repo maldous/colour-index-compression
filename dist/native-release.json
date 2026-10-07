@@ -1,0 +1,64 @@
+{
+  "schema": "cix-native-expanded-best-release-v1",
+  "source_revision": "250fe49041b40e9172be2f1b6f987d90a6606256",
+  "build_source_state": {
+    "revision": "250fe49041b40e9172be2f1b6f987d90a6606256",
+    "dirty_diff_sha256": "2330dbc2f74cb60eed0cabf38f85bba14a8879b9508e620a33afdfeed1fb31f5",
+    "untracked_source_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "untracked_source_files": {}
+  },
+  "best_default_memory_bytes": 2147483648,
+  "selector_defaults": {
+    "best_memory_bytes": 2147483648,
+    "default_memory_bytes": 536870912,
+    "max_threads": 4
+  },
+  "candidate_registry": [
+    "gzip-fast",
+    "gzip-size",
+    "bzip2-size",
+    "xz-default-6",
+    "xz-size-9e",
+    "zstd-fast",
+    "zstd-default-3",
+    "zstd-size-22",
+    "brotli-fast-0",
+    "brotli-size-q11-generic-w22",
+    "xz-dict128-size-9e",
+    "xz-dict128-preset6",
+    "bsc-v3.3.12-bwt-qlfc-static-lzp15-72-fast",
+    "zpaq715-l5"
+  ],
+  "binaries": {
+    "cix": {
+      "sha256": "407cdd0df0ba24f7a31a0536e9f69e6a6a9644ff083dd7e45249cd0272006796",
+      "bytes": 2519760
+    },
+    "uncix": {
+      "sha256": "f8e663c8c8d00875a127cca0a57f73e178057fe8af878fa6e9a32a6af243dab9",
+      "bytes": 2521240
+    },
+    "cixcat": {
+      "sha256": "514bc5211e8cfb3da98b1554982f38fbc361a1b2837cbd39bd3f9264d37b18b1",
+      "bytes": 2521984
+    },
+    "libcix_native.so": {
+      "sha256": "7f36693a7e425ee038c2ca0b6666f800a1482b66545198508a6c6d9f60c3ce63",
+      "bytes": 1418968
+    }
+  },
+  "resources": {
+    "THIRD_PARTY_NOTICES.txt": {
+      "sha256": "4fae3f66e3e103b8c9e5c06159cdcf061adeaf65e51ed4a41a9b69cd138f5e94",
+      "bytes": 24086
+    }
+  },
+  "build_command": "CARGO_BUILD_JOBS=2 cargo build --profile release-lto --manifest-path rust/cix-native/Cargo.toml --locked --bin cix --bin uncix --bin cixcat --lib",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "host": "Linux x86_64",
+  "portable_cpu_baseline": true,
+  "backend_attribution": "ZPAQ and BSC are native-library backend candidates, not native CIX modeling gains",
+  "qualification": {
+    "status": "LOCAL_CORRECTNESS_PASSED_CORPUS_PENDING"
+  }
+}

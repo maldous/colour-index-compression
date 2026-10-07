@@ -1,0 +1,83 @@
+{
+  "schema": "cix.gpu-cuda-opportunities.v1",
+  "status": "research_only; no GPU job run",
+  "host_receipt": "host.json",
+  "sources": [
+    "https://docs.nvidia.com/cuda/nvcomp/",
+    "https://developer.nvidia.com/nvcomp",
+    "rust/cix-native/build.rs",
+    "rust/cix-native/vendor/libbsc/UPSTREAM.md",
+    "https://github.com/IlyaGrebnov/libcubwt",
+    "https://docs.nvidia.com/cuda/nvcomp/installation.html",
+    "https://bellard.org/nncp/readme.txt",
+    "https://bellard.org/libnc/"
+  ],
+  "ranked": [
+    {
+      "rank": 1,
+      "opportunity": "libbsc CUDA BWT prototype",
+      "class": "bit-identical acceleration candidate",
+      "evidence": "vendored bwt.cpp retains CUDA code, but build.rs and UPSTREAM.md intentionally exclude CUDA/OpenMP and libcubwt",
+      "constraints": "global CUDA/OpenMP state, device transfer, library availability, CPU decoder parity and build/package portability",
+      "status": "unmeasured"
+    },
+    {
+      "rank": 2,
+      "opportunity": "GPU checksum/preprocess batch offload",
+      "class": "bit-identical acceleration candidate",
+      "evidence": "nvCOMP provides GPU CRC32 and generic compression APIs",
+      "constraints": "does not accelerate sequential PAQ/context models; transfer/batch overhead can dominate CIX blocks",
+      "status": "unmeasured"
+    },
+    {
+      "rank": 3,
+      "opportunity": "nvCOMP route",
+      "class": "Optional encoder provider for verified existing formats, or new route for distinct payload semantics",
+      "evidence": "nvCOMP supports LZ4/Snappy/Deflate/Zstd and GPU-specific formats",
+      "constraints": "Per-API raw/frame interoperability, CPU decoding, license/redistribution and transfer-inclusive qualification; new method identity only if payload semantics differ",
+      "status": "not selected"
+    },
+    {
+      "rank": 4,
+      "opportunity": "PAQ/LSTM/context mixer GPU",
+      "class": "speculative",
+      "evidence": "predictor updates are causal/sequential; historical -12L five-LSTM setting was excluded at about 29GB RAM",
+      "constraints": "per-symbol dependencies, synchronization, floating-point determinism, GPU memory limits, CPU decoder replay",
+      "status": "no credible bounded implementation identified"
+    }
+  ],
+  "next_action": "Qualify the isolated optional libbsc/libcubwt provider for correctness under the source/resource gate when root schedules it; specification prepared, no job launched or RC promotion.",
+  "future_gate": "Generated correctness fixtures then admitted 64KiB/1MiB/16MiB/64MiB/128MiB; unchanged BSC payload/CPU restoration/deterministic fallback; later frozen transfer-inclusive performance plan. VRAM estimated at20.5*n plus queried workspace and staging, no256MiB case on4GiB.",
+  "host_disposition": {
+    "gpu": "GTX 1650 TU117",
+    "compute_capability": "7.5",
+    "vram_mib": 4096,
+    "free_at_probe_mib": 3812,
+    "driver": "580.173.02",
+    "cuda_toolkit": "12.1",
+    "nvcc_path": "/usr/local/cuda/bin/nvcc",
+    "nvcomp": "absent from linker cache",
+    "libcubwt": "absent from linker cache",
+    "decision": "Hardware may support bounded libcubwt/nvCOMP tests; provider/build/resource qualification missing. NNCP current CUDA target not supported by documented architecture/memory."
+  },
+  "source_evidence": {
+    "libbsc_gate": "bwt.cpp:48 gates only shared OpenMP global storage; bwt.cpp:79 gates CUDA execution. The non-OpenMP branch allocates per-call device storage. CUDA therefore requires LIBBSC_CUDA_SUPPORT, not OpenMP.",
+    "fallback": "bwt.cpp:bsc_bwt_encode calls GPU then CPU when GPU result < 0",
+    "cix_policy": "rust/cix-native/build.rs:49 disables libbsc OpenMP/CUDA; bsc_ffi.rs uses FEATURE_NONE and distinct blocks <=1GiB",
+    "hardware": "docs/research/2026-10-04-gpu-cuda/host.json",
+    "device_memory": "libcubwt.cuh:47-52 documents approximately 20.5*n device bytes; with observed 3812MiB free, a conservative prototype ceiling is 128MiB input before additional buffers/driver overhead."
+  },
+  "integration_requirements": [
+    "optional CUDA capability discovery, no required GPU package",
+    "explicit device-memory and transfer accounting",
+    "Bit-identical transform acceleration; alternative encoders require format/exact-restoration compatibility, not identical compressed bytes",
+    "CPU decoder remains sufficient for archives",
+    "context guard: do not batch sequential PAQ/mixer state across symbols",
+    "feature reports availability/reason and never changes route selection silently",
+    "CPU-only baseline required for every GPU claim",
+    "distribution separates optional CUDA/libcubwt package from core CLI"
+  ],
+  "additional_methodology_ledger": "methodologies.json",
+  "conditional_source_requirements": "source-requirements.json",
+  "probe_specification": "PROBE-SPEC.md"
+}

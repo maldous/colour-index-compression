@@ -1,0 +1,134 @@
+--- /home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/graph-residual-parity-v1/root_run.py
++++ /home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/graph-residual-parity-execution-v3/scheduled_recipe.py
+@@ -3,7 +3,7 @@
+ import argparse,hashlib,json,os,resource,signal,subprocess,sys,time
+ from pathlib import Path
+ ROOT=Path('/home/user/src/colour-index-compression')
+-JOB=Path(__file__).resolve().parent
++JOB=Path('/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/graph-residual-parity-v3')
+ OUT=ROOT/'benchmark-work/native-rc-check-v1/graph-residual-parity-v1'
+ TOOLCHAIN=Path('/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin')
+ parser=argparse.ArgumentParser()
+@@ -17,21 +17,17 @@
+         for b in iter(lambda:f.read(1024*1024),b''): h.update(b)
+     return h.hexdigest()
+ def verify():
+-    for name,expected in json.loads((JOB/'candidate-manifest.json').read_text()).items():
+-        assert digest(Path(name))==expected,name
+-    for name,expected in json.loads((JOB/'read-only-inputs.json').read_text()).items():
+-        assert digest(Path(name))==expected,name
+-    for name,expected in json.loads((JOB/'tool-inputs.json').read_text()).items():
+-        assert digest(Path(name))==expected,name
++    for manifest in [JOB/'candidate-manifest.json', JOB/'read-only-reference-manifest.json',
++                     JOB.parent/'graph-residual-parity-v1/tool-inputs.json']:
++        for name,expected in json.loads(manifest.read_text()).items():
++            assert digest(Path(name))==expected,name
+ verify()
+-RUN=OUT/'root-run'
++RUN=Path(os.environ['CIX_GRAPH_SCRATCH'])/'run'
+ assert not RUN.exists(), 'Each candidate receives one admitted run; successor lease required to retry.'
+ RUN.mkdir()
+ for name in ['tmp','cargo-home','target','native-frames','decoded']:(RUN/name).mkdir()
+-start=time.monotonic(); deadline=start+180
++start=time.monotonic(); deadline=start+145
+ os.sched_setaffinity(0,{8})
+-resource.setrlimit(resource.RLIMIT_AS,(500_000_000,500_000_000))
+-resource.setrlimit(resource.RLIMIT_FSIZE,(1_000_000,1_000_000))
+ sys.dont_write_bytecode=True
+ ENV={'PATH':str(TOOLCHAIN)+':/usr/bin:/bin','HOME':str(RUN),
+      'CARGO_HOME':str(RUN/'cargo-home'),'CARGO_TARGET_DIR':str(RUN/'target'),
+@@ -53,13 +49,11 @@
+ 
+ def limits():
+     os.sched_setaffinity(0,{8})
+-    resource.setrlimit(resource.RLIMIT_AS,(1_000_000_000,1_000_000_000))
+-    resource.setrlimit(resource.RLIMIT_FSIZE,(140_000_000,140_000_000))
+     resource.setrlimit(resource.RLIMIT_CPU,(180,180))
+ 
+ commands=[]; peak_disk=0;peak_rss=0
+ 
+-def run(command,label):
++def run(command,label,expected_rejection=None):
+     global peak_disk,peak_rss
+     assert time.monotonic()<deadline
+     log=RUN/(label+'.log')
+@@ -71,7 +65,7 @@
+             while p.poll() is None:
+                 disk=allocated();rss=process_rss(p.pid)
+                 peak_disk=max(peak_disk,disk);peak_rss=max(peak_rss,rss)
+-                if time.monotonic()>=deadline:reason='180s aggregate wall limit'
++                if time.monotonic()>=deadline:reason='145s inner wall limit, preserving outer evidence budget'
+                 elif disk>=140_000_000:reason='140MB early stop before 150MB allocation ceiling'
+                 elif rss>=950_000_000:reason='950MB early stop before 1GB aggregate RSS ceiling'
+                 elif log.stat().st_size>=1_000_000:reason='1MB log limit'
+@@ -83,9 +77,15 @@
+             try:os.killpg(p.pid,signal.SIGKILL)
+             except ProcessLookupError:pass
+         commands.append(dict(label=label,command=command,exit=p.returncode))
+-        assert p.returncode==0, f'{label} exit {p.returncode}; inspect bounded log'
++        if expected_rejection is None:
++            assert p.returncode==0, f'{label} exit {p.returncode}; inspect bounded log'
++        else:
++            assert p.returncode==101, f'{label}: expected driver unwrap rejection, got {p.returncode}'
++            diagnostic=log.read_text()
++            assert 'on an `Err` value:' in diagnostic and expected_rejection in diagnostic, label+' unexpected failure'
+     assert allocated()<150_000_000
+ 
++variant_results=[]
+ result={'admission':args.root_admission,'scope':'five-module qualification only','benchmarks':'STOPPED'}
+ try:
+     cargo=str(TOOLCHAIN/'cargo')
+@@ -110,14 +110,50 @@
+             dest=RUN/'decoded'/(origin+'-'+name+'.decoded')
+             run([str(RUN/'target/debug/parity-driver'),kind,str(archive),str(dest),str(len(expected))],origin+'-'+name)
+             assert dest.read_bytes()==expected, 'fresh-process decode '+name
++    variants=json.loads((JOB/'variant-manifest.json').read_text())
++    assert variants['text_sources']==15 and len(variants['cases'])==45
++    for case in variants['cases']:
++        archive=Path(case['archive_path']); source=Path(case['source_frame_path'])
++        expected_path=Path(case['expected_input_path'])
++        assert digest(archive)==case['archive_sha256'] and digest(source)==case['source_frame_sha256']
++        assert digest(expected_path)==case['expected_input_sha256']
++        expected=expected_path.read_bytes(); assert len(expected)==case['output_cap_bytes']
++        kind=case['native_driver_kind']; assert kind in ('graph','hydrogen')
++        decoder=sdf_hydrogen.decode if kind=='hydrogen' else sdf_geometry.decode
++        accepts=case['expected_outcome']=='ACCEPT_EXACT_INPUT'
++        assert accepts or case['expected_outcome']=='REJECT'
++        raw=archive.read_bytes(); assert len(raw)==case['archive_bytes']
++        dest=RUN/'decoded'/('variant-'+case['id']+'.decoded')
++        label='variant-'+case['id']
++        if accepts:
++            assert decoder(raw)==expected, 'reference variant identity '+case['id']
++            run([str(RUN/'target/debug/parity-driver'),kind,str(archive),str(dest),str(len(expected))],label)
++            assert dest.read_bytes()==expected, 'native variant identity '+case['id']
++            evidence={'reference':'ACCEPT_EXACT_INPUT','native':'ACCEPT_EXACT_INPUT','output_sha256':digest(dest)}
++        else:
++            try:
++                decoder(raw)
++            except ValueError as error:
++                reference_error=str(error)
++            else:
++                raise AssertionError('reference accepted invalid variant '+case['id'])
++            reason='invalid coordinate list' if kind=='graph' else ('invalid residual vector' if case['mutation']=='empty-final-component' else 'missing coordinate residual')
++            run([str(RUN/'target/debug/parity-driver'),kind,str(archive),str(dest),str(len(expected))],label,expected_rejection=reason)
++            assert not dest.exists(), 'rejected driver wrote output '+case['id']
++            evidence={'reference':'REJECT','reference_error':reference_error,'native':'REJECT','native_error':reason}
++        variant_results.append({'id':case['id'],'archive_sha256':case['archive_sha256'],**evidence})
++    (RUN/'variant-results.json').write_text(json.dumps(variant_results,indent=2)+'\n')
++    assert sum(row['native']=='ACCEPT_EXACT_INPUT' for row in variant_results)==15
++    assert sum(row['native']=='REJECT' for row in variant_results)==30
+     verify()
+-    result.update(status='PASS',native_frames=28,fresh_process_decodes=56,reference_crossdecodes=28)
++    result.update(status='PASS',native_frames=28,fresh_process_decodes=56,reference_crossdecodes=28,
++                  variant_native_accepts=15,variant_native_rejections=30,variant_reference_accepts=15,variant_reference_rejections=30)
+ except BaseException as e:
+     result.update(status='STOPPED_OR_FAILED',error=str(e))
+ finally:
+-    result.update(commands=commands,elapsed_seconds=time.monotonic()-start,allocated_bytes=allocated(),
++    result.update(commands=commands,variant_results=variant_results,elapsed_seconds=time.monotonic()-start,allocated_bytes=allocated(),
+                   peak_sampled_allocated_bytes=peak_disk,peak_sampled_group_rss=peak_rss,
+-                  guards='Per-process AS/CPU/file ceilings plus 20ms process-group RSS/disk/log/wall watchdog; sampled aggregate guards are not filesystem/cgroup quotas.')
++                  guards='Hard outer CPU/memory/no-swap cgroup and size-limited scratch tmpfs; additional per-process CPU and 20ms diagnostic RSS/disk/log/wall watchdog. Exact enclosing enforcement is in execution spec and scheduler receipt.')
+     (RUN/'result.json').write_text(json.dumps(result,indent=2)+'\n')
+     print(json.dumps(result))
+ if result['status']!='PASS':sys.exit(1)

@@ -1,0 +1,28 @@
+{
+  "exit_marker": "/opt/sonarqube/logs/cix-startup-exit",
+  "image_entrypoint": [
+    "/opt/sonarqube/docker/entrypoint.sh"
+  ],
+  "image_volumes": [
+    "/opt/sonarqube/data",
+    "/opt/sonarqube/extensions",
+    "/opt/sonarqube/logs",
+    "/opt/sonarqube/temp"
+  ],
+  "image_volumes_bounded": [
+    "/opt/sonarqube/data",
+    "/opt/sonarqube/extensions",
+    "/opt/sonarqube/logs",
+    "/opt/sonarqube/temp"
+  ],
+  "startup_log": "/opt/sonarqube/logs/cix-startup.log",
+  "startup_log_bytes": 65536,
+  "tmpfs": {
+    "data": 268435456,
+    "extensions": 16777216,
+    "logs": 16777216,
+    "temp": 67108864,
+    "tmp": 16777216
+  },
+  "wrapper": "set -o pipefail; ( \"$@\" 2>&1 | { head -c 65536 > /opt/sonarqube/logs/cix-startup.log; cat > /dev/null; }; status=${PIPESTATUS[0]}; printf '%s\\n' \"$status\" > /opt/sonarqube/logs/cix-startup-exit; while :; do sleep 3600; done )"
+}

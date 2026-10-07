@@ -1,0 +1,72 @@
+{
+  "canonical_unchanged_before_after": true,
+  "claim": "5c6e7fc9-6097-4858-9361-08cfece755ba",
+  "corrected_census_UTC": "2026-10-05T18:11:50.863337Z",
+  "files": {
+    "README.md": {
+      "exact_replacements": [
+        [
+          "for zlib, bzip2, liblzma, Zstandard, and Brotli.",
+          "for zlib, bzip2, liblzma, Zstandard, Brotli, LZ4, and Snappy."
+        ],
+        [
+          "libzstd-dev libbrotli-dev\n",
+          "libzstd-dev libbrotli-dev liblz4-dev libsnappy-dev\n"
+        ],
+        [
+          "libzstd-devel brotli-devel\n",
+          "libzstd-devel brotli-devel lz4-devel snappy-devel\n"
+        ],
+        [
+          "The normal CLI links system zlib, bzip2, liblzma, Zstandard, Brotli, and the\n",
+          "The normal CLI links system zlib, bzip2, liblzma, Zstandard, Brotli, LZ4, Snappy, and the\n"
+        ]
+      ],
+      "post_bytes": 5960,
+      "post_sha256": "5526d7f7fd0d0e9040a61afbcba9bd669ce1a1671bade685b19eefcc7a7f9e51",
+      "pre_bytes": 5886,
+      "pre_sha256": "aacb57afdd82bda6cdd69d98b3b713b370785fd19711952b4ee346a249e3e5e0"
+    },
+    "packaging/debian/control": {
+      "exact_replacements": [
+        [
+          "libzstd-dev, libbrotli-dev\n",
+          "libzstd-dev, libbrotli-dev, liblz4-dev, libsnappy-dev\n"
+        ]
+      ],
+      "post_bytes": 1140,
+      "post_sha256": "356422c19e98906c36c6a0f5e4df13f0e98354adc752349b6abd0a55bed81f01",
+      "pre_bytes": 1113,
+      "pre_sha256": "035799acf3bba0571fcf1b4314aca91491cb8e0755fcaf87fceeec8c0f4096ec"
+    },
+    "packaging/homebrew/Cix.rb.in": {
+      "exact_replacements": [
+        [
+          "  depends_on \"zstd\"\n",
+          "  depends_on \"zstd\"\n  depends_on \"lz4\"\n  depends_on \"snappy\"\n"
+        ]
+      ],
+      "post_bytes": 1049,
+      "post_sha256": "729f01e7499f70717ceaab06adaee2051f9683e4a31469541a2824118f6077fa",
+      "pre_bytes": 1008,
+      "pre_sha256": "4d9124afa2dfde1d55cbc5f6b0536c0725d83efc88538724f12c60e475dde4d4"
+    },
+    "packaging/rpm/cix.spec": {
+      "exact_replacements": [
+        [
+          "BuildRequires:  brotli-devel\n",
+          "BuildRequires:  brotli-devel\nBuildRequires:  lz4-devel\nBuildRequires:  snappy-devel\n"
+        ]
+      ],
+      "post_bytes": 2818,
+      "post_sha256": "052321bf3aea978490204bcfe05cd5f94e3238d16104271687266ed95e73ccfa",
+      "pre_bytes": 2763,
+      "pre_sha256": "5778380787194dc7706b9488fc4001f92af2061dc87777ee93708a91acc6cffe"
+    }
+  },
+  "occupied_bytes": 3741446144,
+  "root_contract": "f5699809-3127-4126-b26f-cc8b43213d41",
+  "scope": "shadow dependency declarations only; no canonical writes/build/install/fetch",
+  "unrun": "consumer builds/install/runtime/platform/distribution acceptance; ROOT applies after V3 release and Quinn source QA",
+  "with_240MB_coord10MB_shadow2MB": 3993446144
+}

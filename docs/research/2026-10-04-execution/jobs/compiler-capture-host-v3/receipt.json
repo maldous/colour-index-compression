@@ -1,0 +1,2980 @@
+{
+  "schema": "cix.compiler-capture-host.v3",
+  "kind": "NEW_ANALYSIS_CONFIGURATION",
+  "restrictions": [
+    "fresh output directory",
+    "no vendor tree writes",
+    "no runtime qualification"
+  ],
+  "pinned_inputs": {
+    "squashfs_tools": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools",
+    "tools_overlay_pass_snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-adapter-source-v3",
+    "sqfsng": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src",
+    "squashfuse": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+    "readers_pass_snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-source-v5",
+    "fuse_sdk": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1",
+    "squash_sdk": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix",
+    "squash_sdk_source": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-source",
+    "cix_sdk": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8",
+    "kernel_vm_pass_snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-vm-source-v1",
+    "squash_plugin_pass_snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v8"
+  },
+  "source_identity": {
+    "tools-compressor-table": {
+      "current": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/tools/cix_compressor_table.c",
+      "snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-adapter-source-v3/cix_compressor_table.c",
+      "sha256": "20c007667dc6f467f6ae4af083af586f481c76bc492886825b1ad9c19e46babf"
+    },
+    "tools-wrapper": {
+      "current": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/tools/cix_wrapper.c",
+      "snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-adapter-source-v3/cix_wrapper.c",
+      "sha256": "e15b227f9fd15b414ffad375e0055b73a59ec279e3395081627d3c8a80958466"
+    },
+    "sqfsng-compressor": {
+      "current": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_compressor.c",
+      "snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-source-v5/userspace/libsquashfs/cix_sqfsng_compressor.c",
+      "sha256": "773a119922e11b83692a8eec5ee8180c1c7d6df181e85f56b6a6a54ba267d4d6"
+    },
+    "sqfsng-decode-bridge": {
+      "current": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_decode.c",
+      "snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-source-v5/userspace/libsquashfs/cix_sqfsng_decode.c",
+      "sha256": "7d773d9e312e5dc037c2dddcf3dfadd12a8d9186e8249818eeb575a9faa01374"
+    },
+    "sqfsng-read-super": {
+      "current": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_read_super.c",
+      "snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-source-v5/userspace/libsquashfs/cix_sqfsng_read_super.c",
+      "sha256": "6a6bc154f017fcad48ad7cc06924d5f19cab0b9063ea32a1e94545dacd89bdbe"
+    },
+    "squashfuse-library-fixture-contract": {
+      "current": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_library_fixture_contract.c",
+      "snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-source-v5/userspace/tests/squashfuse_library_fixture_contract.c",
+      "sha256": "4e87e3f94a82b6c058cf0ea4d7807eec2c6bb5703f7bc3c01f575556f37203b2"
+    },
+    "squashfuse-xattr-contract": {
+      "current": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/tests/squashfuse_xattr_contract.c",
+      "snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-source-v5/userspace/tests/squashfuse_xattr_contract.c",
+      "sha256": "6ac8af394f54338fb58f66b8772b9533c6e4834df526bc1b79486472ec72bf5a"
+    },
+    "kernel-xattr-helper": {
+      "current": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/kernel/tests/xattr_check.c",
+      "snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/kernel-vm-source-v1/tests/xattr_check.c",
+      "sha256": "c5a2aeede5a52c0088ad672de522c758e66c580ef30c0ee7ae5164e09c3e053b"
+    },
+    "squash-compatibility-plugin": {
+      "current": "/home/user/src/colour-index-compression/rust/cix-native/packaging/squash/squash-cix.c",
+      "snapshot": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-source-v8/packaging/squash/squash-cix.c",
+      "sha256": "f18bf2ce13e4b67bbdb1d765f8761936fd23a052e76581d8580a74781cf16517"
+    }
+  },
+  "commands": [
+    {
+      "label": "tools-static-deps-setup",
+      "kind": "copied passed generated capability result",
+      "source": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-host-v2/tools-build/static_deps",
+      "sha256": "87d61f4a2378f6d3c1527f2319783b47ddbb7eb7c56c1776f58f474f9ba354b6"
+    },
+    {
+      "label": "tools-replacement-objects",
+      "argv": [
+        "make",
+        "-I",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools",
+        "-f",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/tools/cix-tools.mk",
+        "UPSTREAM=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools",
+        "PROFILE=/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile",
+        "GZIP_SUPPORT=1",
+        "XZ_SUPPORT=0",
+        "LZO_SUPPORT=0",
+        "LZ4_SUPPORT=0",
+        "ZSTD_SUPPORT=0",
+        "XATTR_SUPPORT=1",
+        "V=1",
+        "cix_wrapper.o",
+        "cix_compressor_table.o"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfs-tools",
+      "returncode": 0,
+      "stdout": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -c -O2 -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include -I. -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_GNU_SOURCE -DCOMP_DEFAULT=\\\"gzip\\\" -Wall -DGZIP_SUPPORT -DXATTR_SUPPORT -DXATTR_DEFAULT -DXATTR_OS_SUPPORT -DMAX_READER_THREADS=1024 -DSMALL_READER_THREADS=4 -DBLOCK_READER_THREADS=4 -DVERSION=\\\"4.7.5-db038ef26\\\" -DDATE=\\\"2026/08/21\\\" -DYEAR=\\\"2026\\\"  -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/tools/cix_wrapper.c -o cix_wrapper.o\n/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -c -O2 -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include -I. -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_GNU_SOURCE -DCOMP_DEFAULT=\\\"gzip\\\" -Wall -DGZIP_SUPPORT -DXATTR_SUPPORT -DXATTR_DEFAULT -DXATTR_OS_SUPPORT -DMAX_READER_THREADS=1024 -DSMALL_READER_THREADS=4 -DBLOCK_READER_THREADS=4 -DVERSION=\\\"4.7.5-db038ef26\\\" -DDATE=\\\"2026/08/21\\\" -DYEAR=\\\"2026\\\"  -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/tools/cix_compressor_table.c -o cix_compressor_table.o\n",
+      "stderr": ""
+    },
+    {
+      "label": "sqfsng-configure",
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/configure",
+        "--disable-shared"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "returncode": 0,
+      "stdout": "checking for a BSD-compatible install... /usr/bin/install -c\nchecking whether build environment is sane... yes\nchecking for a race-free mkdir -p... /usr/bin/mkdir -p\nchecking for gawk... gawk\nchecking whether make sets $(MAKE)... yes\nchecking whether make supports nested variables... yes\nchecking whether make supports nested variables... (cached) yes\nchecking whether the C compiler works... yes\nchecking for C compiler default output file name... a.out\nchecking for suffix of executables... \nchecking whether we are cross compiling... no\nchecking for suffix of object files... o\nchecking whether the compiler supports GNU C... yes\nchecking whether /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc accepts -g... yes\nchecking for /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc option to enable C11 features... none needed\nchecking whether /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc understands -c and -o together... yes\nchecking whether make supports the include directive... yes (GNU style)\nchecking dependency style of /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc... gcc3\nchecking build system type... x86_64-pc-linux-gnu\nchecking host system type... x86_64-pc-linux-gnu\nchecking how to print strings... printf\nchecking for a sed that does not truncate output... /usr/bin/sed\nchecking for grep that handles long lines and -e... /usr/bin/grep\nchecking for egrep... /usr/bin/grep -E\nchecking for fgrep... /usr/bin/grep -F\nchecking for ld used by /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc... /usr/bin/ld\nchecking if the linker (/usr/bin/ld) is GNU ld... yes\nchecking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm -B\nchecking the name lister (/usr/bin/nm -B) interface... BSD nm\nchecking whether ln -s works... yes\nchecking the maximum length of command line arguments... 1572864\nchecking how to convert x86_64-pc-linux-gnu file names to x86_64-pc-linux-gnu format... func_convert_file_noop\nchecking how to convert x86_64-pc-linux-gnu file names to toolchain format... func_convert_file_noop\nchecking for /usr/bin/ld option to reload object files... -r\nchecking for file... file\nchecking for objdump... objdump\nchecking how to recognize dependent libraries... pass_all\nchecking for dlltool... no\nchecking how to associate runtime and link libraries... printf %s\\n\nchecking for ar... ar\nchecking for archiver @FILE support... @\nchecking for strip... strip\nchecking for ranlib... ranlib\nchecking command to parse /usr/bin/nm -B output from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc object... ok\nchecking for sysroot... no\nchecking for a working dd... /usr/bin/dd\nchecking how to truncate binary pipes... /usr/bin/dd bs=4096 count=1\nchecking for mt... mt\nchecking if mt is a manifest tool... no\nchecking for stdio.h... yes\nchecking for stdlib.h... yes\nchecking for string.h... yes\nchecking for inttypes.h... yes\nchecking for stdint.h... yes\nchecking for strings.h... yes\nchecking for sys/stat.h... yes\nchecking for sys/types.h... yes\nchecking for unistd.h... yes\nchecking for dlfcn.h... yes\nchecking for objdir... .libs\nchecking if /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc supports -fno-rtti -fno-exceptions... no\nchecking for /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc option to produce PIC... -fPIC -DPIC\nchecking if /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc PIC flag -fPIC -DPIC works... yes\nchecking if /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc static flag -static works... yes\nchecking if /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc supports -c -o file.o... yes\nchecking if /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc supports -c -o file.o... (cached) yes\nchecking whether the /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes\nchecking dynamic linker characteristics... GNU/Linux ld.so\nchecking how to hardcode library paths into programs... immediate\nchecking whether stripping libraries is possible... yes\nchecking if libtool supports shared libraries... yes\nchecking whether to build shared libraries... no\nchecking whether to build static libraries... yes\nchecking for a sed that does not truncate output... (cached) /usr/bin/sed\nchecking for special C compiler options needed for large files... no\nchecking for _FILE_OFFSET_BITS value needed for large files... no\nchecking for pkg-config... /usr/bin/pkg-config\nchecking pkg-config is at least version 0.9.0... yes\nchecking how to run the C preprocessor... /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -E\nchecking whether compiler handles -Wall... yes\nchecking whether compiler handles -Wextra... yes\nchecking whether compiler handles -Wunused... yes\nchecking whether compiler handles -Wmissing-prototypes... yes\nchecking whether compiler handles -Wmissing-declarations... yes\nchecking whether compiler handles -Wwrite-strings... yes\nchecking whether compiler handles -Wjump-misses-init... yes\nchecking whether compiler handles -Wuninitialized... yes\nchecking whether compiler handles -Winit-self... yes\nchecking whether compiler handles -Wlogical-op... yes\nchecking whether compiler handles -Wunused-but-set-parameter... yes\nchecking whether compiler handles -Wunused-but-set-variable... yes\nchecking whether compiler handles -Wunused-parameter... yes\nchecking whether compiler handles -Wunused-result... yes\nchecking whether compiler handles -Wunused-variable... yes\nchecking whether compiler handles -Wduplicated-cond... yes\nchecking whether compiler handles -Wduplicated-branches... yes\nchecking whether compiler handles -Wrestrict... yes\nchecking whether compiler handles -Wnull-dereference... yes\nchecking whether compiler handles -pedantic... yes\nchecking whether compiler handles -Wpedantic... yes\nchecking whether compiler handles -Walloc-zero... yes\nchecking whether compiler handles -Wcast-align... yes\nchecking whether compiler handles -Wcast-align=strict... yes\nchecking whether compiler handles -Wcast-qual... yes\nchecking whether compiler handles -Wdangling-else... yes\nchecking whether compiler handles -Wdate-time... yes\nchecking whether compiler handles -Wdouble-promotion... yes\nchecking whether compiler handles -Wformat-nonliteral... yes\nchecking whether compiler handles -Wformat-security... yes\nchecking whether compiler handles -Wformat-signedness... yes\nchecking whether compiler handles -Wmissing-format-attribute... yes\nchecking whether compiler handles -Wmissing-noreturn... yes\nchecking whether compiler handles -Wpacked... yes\nchecking whether compiler handles -Wpacked-not-aligned... yes\nchecking whether compiler handles -Wredundant-decls... yes\nchecking whether compiler handles -Wswitch-default... yes\nchecking whether compiler handles -Wswitch-enum... yes\nchecking whether compiler handles -Wtrampolines... yes\nchecking whether compiler handles -Wundef... yes\nchecking whether compiler handles -Wunused-const-variable... yes\nchecking whether compiler handles -Wvla... yes\nchecking for doxygen... no\nchecking for BZ2_bzCompress in -lbz2... yes\nchecking for bzlib.h... yes\nchecking for zlib... yes\nchecking for liblzma >= 5.0.0... yes\nchecking for liblz4... no\nchecking for libzstd >= 1.3.1... yes\nchecking whether zstd supports stream compression... yes\nchecking for libselinux... yes\nchecking for selinux/selinux.h... yes\nchecking for selinux/label.h... yes\nchecking for lzo1x_1_15_compress in -llzo2... no\nchecking for lzo1x_1_15_compress in -llzo... no\nchecking whether /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc is Clang... no\nchecking whether pthreads work with \"-pthread\" and \"-lpthread\"... yes\nchecking for joinable pthread attribute... PTHREAD_CREATE_JOINABLE\nchecking whether more special flags are required for pthreads... no\nchecking for PTHREAD_PRIO_INHERIT... yes\nchecking for readline... no\nchecking for sys/xattr.h... yes\nchecking for alloca.h... yes\nchecking for strndup... yes\nchecking for getopt... yes\nchecking for getopt_long... yes\nchecking for getsubopt... yes\nchecking for fnmatch... yes\nchecking for strchrnul... yes\nchecking for sched_getaffinity... yes\nchecking that generated files are newer than configure... done\nconfigure: creating ./config.status\nconfig.status: creating lib/sqfs/libsquashfs1.pc\nconfig.status: creating Doxyfile\nconfig.status: creating tests/tar2sqfs/test_tar_sqfs.sh\nconfig.status: creating tests/rdsquashfs/pathtraversal.sh\nconfig.status: creating Makefile\nconfig.status: creating config.h\nconfig.status: executing depfiles commands\nconfig.status: executing libtool commands\n\n\tsquashfs-tools-ng  1.2.0\n\n\tprefix:            /usr/local\n\texec prefix:       ${prefix}\n\n\trunstatedir:       ${localstatedir}/run\n\tbindir:            ${exec_prefix}/bin\n\tsbindir:           ${exec_prefix}/sbin\n\tlibdir:            ${exec_prefix}/lib\n\tincludedir:        ${prefix}/include\n\n\tcompiler:          /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc\n\tcflags:            -g -O2\n\tldflags:           \n\n\tGZIP support:      yes\n\tXZ/LZMA support:   yes\n\tLZO support:       no\n\tLZ4 support:       no\n\tZSTD support:      yes\n\tBZIP2 support:     yes\n\n\tSELinux support:   yes\n\tUsing pthreads:    yes\n\n\tCustom allocators: yes\n\n\tBuilding tools:    yes\n\tDoxygen found:     no\n\n\twarnings:\n\n -Wall -Wextra -Wunused -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wjump-misses-init -Wuninitialized -Winit-self -Wlogical-op -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-parameter -Wunused-result -Wunused-variable -Wduplicated-cond -Wduplicated-branches -Wrestrict -Wnull-dereference -pedantic -Wpedantic -Walloc-zero -Wcast-align -Wcast-align=strict -Wcast-qual -Wdangling-else -Wdate-time -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wmissing-format-attribute -Wmissing-noreturn -Wpacked -Wpacked-not-aligned -Wredundant-decls -Wswitch-default -Wswitch-enum -Wtrampolines -Wundef -Wunused-const-variable -Wvla\n\n\tType 'make' or 'make <utilname>' to compile.\n\n",
+      "stderr": ""
+    },
+    {
+      "label": "sqfsng-replacement-objects",
+      "argv": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/overlay.mk",
+        "V=1",
+        "CIX_READER=sqfsng",
+        "SQFSNG_SRC=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src",
+        "lib/sqfs/comp/libsquashfs_la-compressor.lo",
+        "lib/sqfs/libsquashfs_la-read_super.lo"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "returncode": 0,
+      "stdout": "/bin/bash ./libtool --tag=CC --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src  -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include -D_GNU_SOURCE    -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include -D_GNU_SOURCE    -DWITH_GZIP -DWITH_XZ  -DWITH_ZSTD -Wall -Wextra -Wunused -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wjump-misses-init -Wuninitialized -Winit-self -Wlogical-op -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-parameter -Wunused-result -Wunused-variable -Wduplicated-cond -Wduplicated-branches -Wrestrict -Wnull-dereference -pedantic -Wpedantic -Walloc-zero -Wcast-align -Wcast-align=strict -Wcast-qual -Wdangling-else -Wdate-time -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wmissing-format-attribute -Wmissing-noreturn -Wpacked -Wpacked-not-aligned -Wredundant-decls -Wswitch-default -Wswitch-enum -Wtrampolines -Wundef -Wunused-const-variable -Wvla -g -O2 -Wall -Wextra -Wunused -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wjump-misses-init -Wuninitialized -Winit-self -Wlogical-op -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-parameter -Wunused-result -Wunused-variable -Wduplicated-cond -Wduplicated-branches -Wrestrict -Wnull-dereference -pedantic -Wpedantic -Walloc-zero -Wcast-align -Wcast-align=strict -Wcast-qual -Wdangling-else -Wdate-time -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wmissing-format-attribute -Wmissing-noreturn -Wpacked -Wpacked-not-aligned -Wredundant-decls -Wswitch-default -Wswitch-enum -Wtrampolines -Wundef -Wunused-const-variable -Wvla -pthread     -pthread  -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include -DCIX_SQFSNG_COMPRESSOR_SOURCE='\"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/lib/sqfs/comp/compressor.c\"' -c -o lib/sqfs/comp/libsquashfs_la-compressor.lo /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_compressor.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include -D_GNU_SOURCE -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include -D_GNU_SOURCE -DWITH_GZIP -DWITH_XZ -DWITH_ZSTD -Wall -Wextra -Wunused -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wjump-misses-init -Wuninitialized -Winit-self -Wlogical-op -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-parameter -Wunused-result -Wunused-variable -Wduplicated-cond -Wduplicated-branches -Wrestrict -Wnull-dereference -pedantic -Wpedantic -Walloc-zero -Wcast-align -Wcast-align=strict -Wcast-qual -Wdangling-else -Wdate-time -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wmissing-format-attribute -Wmissing-noreturn -Wpacked -Wpacked-not-aligned -Wredundant-decls -Wswitch-default -Wswitch-enum -Wtrampolines -Wundef -Wunused-const-variable -Wvla -g -O2 -Wall -Wextra -Wunused -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wjump-misses-init -Wuninitialized -Winit-self -Wlogical-op -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-parameter -Wunused-result -Wunused-variable -Wduplicated-cond -Wduplicated-branches -Wrestrict -Wnull-dereference -pedantic -Wpedantic -Walloc-zero -Wcast-align -Wcast-align=strict -Wcast-qual -Wdangling-else -Wdate-time -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wmissing-format-attribute -Wmissing-noreturn -Wpacked -Wpacked-not-aligned -Wredundant-decls -Wswitch-default -Wswitch-enum -Wtrampolines -Wundef -Wunused-const-variable -Wvla -pthread -pthread -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include -DCIX_SQFSNG_COMPRESSOR_SOURCE=\\\"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/lib/sqfs/comp/compressor.c\\\" -c /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_compressor.c -o lib/sqfs/comp/libsquashfs_la-compressor.o\n/bin/bash ./libtool --tag=CC --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src  -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include -D_GNU_SOURCE    -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include -D_GNU_SOURCE    -DWITH_GZIP -DWITH_XZ  -DWITH_ZSTD -Wall -Wextra -Wunused -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wjump-misses-init -Wuninitialized -Winit-self -Wlogical-op -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-parameter -Wunused-result -Wunused-variable -Wduplicated-cond -Wduplicated-branches -Wrestrict -Wnull-dereference -pedantic -Wpedantic -Walloc-zero -Wcast-align -Wcast-align=strict -Wcast-qual -Wdangling-else -Wdate-time -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wmissing-format-attribute -Wmissing-noreturn -Wpacked -Wpacked-not-aligned -Wredundant-decls -Wswitch-default -Wswitch-enum -Wtrampolines -Wundef -Wunused-const-variable -Wvla -g -O2 -Wall -Wextra -Wunused -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wjump-misses-init -Wuninitialized -Winit-self -Wlogical-op -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-parameter -Wunused-result -Wunused-variable -Wduplicated-cond -Wduplicated-branches -Wrestrict -Wnull-dereference -pedantic -Wpedantic -Walloc-zero -Wcast-align -Wcast-align=strict -Wcast-qual -Wdangling-else -Wdate-time -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wmissing-format-attribute -Wmissing-noreturn -Wpacked -Wpacked-not-aligned -Wredundant-decls -Wswitch-default -Wswitch-enum -Wtrampolines -Wundef -Wunused-const-variable -Wvla -pthread     -pthread  -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include -DCIX_SQFSNG_READ_SUPER_SOURCE='\"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/lib/sqfs/read_super.c\"' -c -o lib/sqfs/libsquashfs_la-read_super.lo /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_read_super.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include -D_GNU_SOURCE -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include -D_GNU_SOURCE -DWITH_GZIP -DWITH_XZ -DWITH_ZSTD -Wall -Wextra -Wunused -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wjump-misses-init -Wuninitialized -Winit-self -Wlogical-op -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-parameter -Wunused-result -Wunused-variable -Wduplicated-cond -Wduplicated-branches -Wrestrict -Wnull-dereference -pedantic -Wpedantic -Walloc-zero -Wcast-align -Wcast-align=strict -Wcast-qual -Wdangling-else -Wdate-time -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wmissing-format-attribute -Wmissing-noreturn -Wpacked -Wpacked-not-aligned -Wredundant-decls -Wswitch-default -Wswitch-enum -Wtrampolines -Wundef -Wunused-const-variable -Wvla -g -O2 -Wall -Wextra -Wunused -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wjump-misses-init -Wuninitialized -Winit-self -Wlogical-op -Wunused-but-set-parameter -Wunused-but-set-variable -Wunused-parameter -Wunused-result -Wunused-variable -Wduplicated-cond -Wduplicated-branches -Wrestrict -Wnull-dereference -pedantic -Wpedantic -Walloc-zero -Wcast-align -Wcast-align=strict -Wcast-qual -Wdangling-else -Wdate-time -Wdouble-promotion -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wmissing-format-attribute -Wmissing-noreturn -Wpacked -Wpacked-not-aligned -Wredundant-decls -Wswitch-default -Wswitch-enum -Wtrampolines -Wundef -Wunused-const-variable -Wvla -pthread -pthread -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include -DCIX_SQFSNG_READ_SUPER_SOURCE=\\\"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/lib/sqfs/read_super.c\\\" -c /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_read_super.c -o lib/sqfs/libsquashfs_la-read_super.o\n",
+      "stderr": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/overlay.mk:29: warning: overriding recipe for target 'lib/sqfs/comp/libsquashfs_la-compressor.lo'\nMakefile:5029: warning: ignoring old recipe for target 'lib/sqfs/comp/libsquashfs_la-compressor.lo'\n/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/overlay.mk:31: warning: overriding recipe for target 'lib/sqfs/libsquashfs_la-read_super.lo'\nMakefile:4980: warning: ignoring old recipe for target 'lib/sqfs/libsquashfs_la-read_super.lo'\n/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_compressor.c:30:5: warning: no previous prototype for 'sqfs_compressor_create' [-Wmissing-prototypes]\n   30 | int sqfs_compressor_create(const sqfs_compressor_config_t *cfg,sqfs_compressor_t **out) { if(!cfg||!out)return SQFS_ERROR_ARG_INVALID;if(cfg->id==CIX_ID)return cix_create(cfg,out);return cix_upstream_compressor_create(cfg,out); }\n      |     ^~~~~~~~~~~~~~~~~~~~~~\n/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_compressor.c:31:13: warning: no previous prototype for 'sqfs_compressor_name_from_id' [-Wmissing-prototypes]\n   31 | const char *sqfs_compressor_name_from_id(SQFS_COMPRESSOR id) { return (sqfs_u16)id==CIX_ID?\"cix-experimental\":cix_upstream_compressor_name_from_id(id); }\n      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_compressor.c:32:5: warning: no previous prototype for 'sqfs_compressor_id_from_name' [-Wmissing-prototypes]\n   32 | int sqfs_compressor_id_from_name(const char *name) { return !strcmp(name,\"cix-experimental\")?CIX_ID:cix_upstream_compressor_id_from_name(name); }\n      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_compressor.c: In function 'sqfs_compressor_id_from_name':\n/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_compressor.c:32:101: warning: operand of '?:' changes signedness from 'int' to 'unsigned int' due to unsignedness of other operand [-Wsign-compare]\n   32 | int sqfs_compressor_id_from_name(const char *name) { return !strcmp(name,\"cix-experimental\")?CIX_ID:cix_upstream_compressor_id_from_name(name); }\n      |                                                                                                     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_compressor.c: At top level:\n/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_compressor.c:33:5: warning: no previous prototype for 'sqfs_compressor_config_init' [-Wmissing-prototypes]\n   33 | int sqfs_compressor_config_init(sqfs_compressor_config_t *cfg,SQFS_COMPRESSOR id,size_t block,sqfs_u16 flags) { if((sqfs_u16)id!=CIX_ID)return cix_upstream_compressor_config_init(cfg,id,block,flags);if(!cfg||block==0||block>131072||flags&~SQFS_COMP_FLAG_UNCOMPRESS)return SQFS_ERROR_UNSUPPORTED;memset(cfg,0,sizeof(*cfg));cfg->id=CIX_ID;cfg->block_size=block;cfg->flags=flags;return 0; }\n      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~\n/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_read_super.c:13:25: warning: no previous prototype for 'cix_upstream_super_read' [-Wmissing-prototypes]\n   13 | #define sqfs_super_read cix_upstream_super_read\n      |                         ^~~~~~~~~~~~~~~~~~~~~~~\n/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/lib/sqfs/read_super.c:17:5: note: in expansion of macro 'sqfs_super_read'\n   17 | int sqfs_super_read(sqfs_super_t *super, sqfs_file_t *file)\n      |     ^~~~~~~~~~~~~~~\n"
+    },
+    {
+      "label": "sqfsng-decode-bridge",
+      "argv": [
+        "cc",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-c",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/include",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_decode.c",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/cix_sqfsng_decode.o"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "squashfuse-configure",
+      "argv": [
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/configure",
+        "--disable-shared",
+        "--disable-demo"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "returncode": 0,
+      "stdout": "checking build system type... x86_64-pc-linux-gnu\nchecking host system type... x86_64-pc-linux-gnu\nchecking target system type... x86_64-pc-linux-gnu\nchecking for a BSD-compatible install... /usr/bin/install -c\nchecking whether build environment is sane... yes\nchecking for a race-free mkdir -p... /usr/bin/mkdir -p\nchecking for gawk... gawk\nchecking whether make sets $(MAKE)... yes\nchecking whether make supports nested variables... yes\nchecking whether make supports the include directive... yes (GNU style)\nchecking for gcc... /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc\nchecking whether the C compiler works... yes\nchecking for C compiler default output file name... a.out\nchecking for suffix of executables... \nchecking whether we are cross compiling... no\nchecking for suffix of object files... o\nchecking whether the compiler supports GNU C... yes\nchecking whether /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc accepts -g... yes\nchecking for /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc option to enable C11 features... none needed\nchecking whether /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc understands -c and -o together... yes\nchecking dependency style of /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc... gcc3\nchecking for stdio.h... yes\nchecking for stdlib.h... yes\nchecking for string.h... yes\nchecking for inttypes.h... yes\nchecking for stdint.h... yes\nchecking for strings.h... yes\nchecking for sys/stat.h... yes\nchecking for sys/types.h... yes\nchecking for unistd.h... yes\nchecking for wchar.h... yes\nchecking for minix/config.h... no\nchecking whether it is safe to define __EXTENSIONS__... yes\nchecking whether _XOPEN_SOURCE should be defined... no\nchecking whether make supports nested variables... (cached) yes\nchecking for ar... ar\nchecking the archiver (ar) interface... ar\nchecking how to print strings... printf\nchecking for a sed that does not truncate output... /usr/bin/sed\nchecking for grep that handles long lines and -e... /usr/bin/grep\nchecking for egrep... /usr/bin/grep -E\nchecking for fgrep... /usr/bin/grep -F\nchecking for ld used by /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc... /usr/bin/ld\nchecking if the linker (/usr/bin/ld) is GNU ld... yes\nchecking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm -B\nchecking the name lister (/usr/bin/nm -B) interface... BSD nm\nchecking whether ln -s works... yes\nchecking the maximum length of command line arguments... 1572864\nchecking how to convert x86_64-pc-linux-gnu file names to x86_64-pc-linux-gnu format... func_convert_file_noop\nchecking how to convert x86_64-pc-linux-gnu file names to toolchain format... func_convert_file_noop\nchecking for /usr/bin/ld option to reload object files... -r\nchecking for file... file\nchecking for objdump... objdump\nchecking how to recognize dependent libraries... pass_all\nchecking for dlltool... no\nchecking how to associate runtime and link libraries... printf %s\\n\nchecking for archiver @FILE support... @\nchecking for strip... strip\nchecking for ranlib... ranlib\nchecking command to parse /usr/bin/nm -B output from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc object... ok\nchecking for sysroot... no\nchecking for a working dd... /usr/bin/dd\nchecking how to truncate binary pipes... /usr/bin/dd bs=4096 count=1\nchecking for mt... mt\nchecking if mt is a manifest tool... no\nchecking for dlfcn.h... yes\nchecking for objdir... .libs\nchecking if /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc supports -fno-rtti -fno-exceptions... no\nchecking for /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc option to produce PIC... -fPIC -DPIC\nchecking if /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc PIC flag -fPIC -DPIC works... yes\nchecking if /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc static flag -static works... yes\nchecking if /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc supports -c -o file.o... yes\nchecking if /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc supports -c -o file.o... (cached) yes\nchecking whether the /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes\nchecking dynamic linker characteristics... GNU/Linux ld.so\nchecking how to hardcode library paths into programs... immediate\nchecking whether stripping libraries is possible... yes\nchecking if libtool supports shared libraries... yes\nchecking whether to build shared libraries... no\nchecking whether to build static libraries... yes\nchecking for pkg-config... /usr/bin/pkg-config\nchecking pkg-config is at least version 0.9.0... yes\nchecking for gawk... (cached) gawk\nchecking for a sed that does not truncate output... (cached) /usr/bin/sed\nchecking how to run the C preprocessor... /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -E\nchecking for special C compiler options needed for large files... no\nchecking for _FILE_OFFSET_BITS value needed for large files... no\nchecking how to enable all compiler warnings... -Wall\nchecking for QNX makedev... no\nchecking for sys/mkdev.h... no\nchecking for sys/sysmacros.h... yes\nconfigure: checking for definition needed by makedev\nchecking if makedev works without changes... yes\nconfigure: checking for definition needed by pread\nchecking if pread works without changes... yes\nconfigure: checking for definition needed by S_IFSOCK\nchecking if S_IFSOCK works without changes... yes\nchecking for attr/xattr.h... no\nconfigure: checking for definition needed by ENOATTR\nchecking if ENOATTR works without changes... no\nchecking if ENOATTR requires changing _DARWIN_C_SOURCE... no\nchecking if ENOATTR requires changing _NETBSD_SOURCE... no\nchecking if ENOATTR requires changing _XOPEN_SOURCE... no\nchecking if ENOATTR requires changing _BSD_SOURCE... no\nchecking if ENOATTR requires changing _GNU_SOURCE... no\nchecking if ENOATTR requires changing _POSIX_C_SOURCE... no\nconfigure: checking for definition needed by symlink\nchecking if symlink works without changes... yes\nchecking for library containing uncompress... -lz\nchecking for zlib.h... yes\nchecking for liblzma... yes\nchecking for library containing lzma_stream_buffer_decode... none required\nchecking for lzma.h... yes\nchecking for library containing lzo1x_decompress_safe... no\nchecking for library containing LZ4_decompress_safe... no\nchecking for library containing ZSTD_decompress... -lzstd\nchecking for zstd.h... yes\nchecking for fuse3 >= 3.2... yes\nchecking for FUSE library... already present\nchecking for FUSE header... yes\nchecking for /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc options needed to detect all undeclared functions... none needed\nchecking whether fuse_session_loop is declared... yes\nchecking for fuse_session_loop... yes\nchecking whether fuse_add_direntry is declared... yes\nchecking whether fuse_add_dirent is declared... no\nchecking whether fuse_daemonize is declared... yes\nchecking whether fuse_session_remove_chan is declared... no\nchecking for two-argument fuse_unmount... no\nchecking whether fuse_cmdline_help is declared... yes\nchecking for position argument to FUSE xattr operations... no\nchecking if make supports export... yes\nchecking for __le16... yes\nchecking for asm/byteorder.h... yes\nchecking for endian.h... yes\nchecking for inline... inline\nchecking for fusermount3... fusermount3\nchecking for mksquashfs... yes\nchecking for md5sum... md5sum\nchecking for pthread_mutex_lock in -lpthread... yes\nchecking that generated files are newer than configure... done\nconfigure: creating ./config.status\nconfig.status: creating tests/ll-smoke.sh\nconfig.status: creating tests/umount-test.sh\nconfig.status: creating Makefile\nconfig.status: creating squashfuse.pc\nconfig.status: creating squashfuse_ll.pc\nconfig.status: creating tests/lib.sh\nconfig.status: creating ci/features\nconfig.status: creating config.h\nconfig.status: executing depfiles commands\nconfig.status: executing libtool commands\n\nCompression support ....... : ZLIB XZ ZSTD\nHigh-level FUSE driver .... : yes\nLow-level FUSE driver ..... : yes\nDemo program .............. : \nTests ..................... : FUSE\n\n",
+      "stderr": ""
+    },
+    {
+      "label": "squashfuse-contract-objects",
+      "argv": [
+        "make",
+        "-f",
+        "Makefile",
+        "-f",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/overlay.mk",
+        "V=1",
+        "CIX_READER=squashfuse",
+        "SQUASHFUSE_SRC=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "squashfuse-library-fixture-contract",
+        "squashfuse-xattr-contract"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "returncode": 0,
+      "stdout": "SED=\"/usr/bin/sed\" /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/gen_swap.sh /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/squashfs_fs.h\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-swap.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-swap.Tpo -c -o libsquashfuse_convenience_la-swap.lo `test -f 'swap.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`swap.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-swap.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-swap.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/swap.c -o libsquashfuse_convenience_la-swap.o\nmv -f .deps/libsquashfuse_convenience_la-swap.Tpo .deps/libsquashfuse_convenience_la-swap.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-cache.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-cache.Tpo -c -o libsquashfuse_convenience_la-cache.lo `test -f 'cache.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`cache.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-cache.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-cache.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/cache.c -o libsquashfuse_convenience_la-cache.o\nmv -f .deps/libsquashfuse_convenience_la-cache.Tpo .deps/libsquashfuse_convenience_la-cache.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-table.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-table.Tpo -c -o libsquashfuse_convenience_la-table.lo `test -f 'table.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`table.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-table.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-table.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/table.c -o libsquashfuse_convenience_la-table.o\nmv -f .deps/libsquashfuse_convenience_la-table.Tpo .deps/libsquashfuse_convenience_la-table.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-dir.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-dir.Tpo -c -o libsquashfuse_convenience_la-dir.lo `test -f 'dir.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`dir.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-dir.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-dir.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/dir.c -o libsquashfuse_convenience_la-dir.o\nmv -f .deps/libsquashfuse_convenience_la-dir.Tpo .deps/libsquashfuse_convenience_la-dir.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-file.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-file.Tpo -c -o libsquashfuse_convenience_la-file.lo `test -f 'file.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`file.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-file.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-file.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/file.c -o libsquashfuse_convenience_la-file.o\nmv -f .deps/libsquashfuse_convenience_la-file.Tpo .deps/libsquashfuse_convenience_la-file.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-fs.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-fs.Tpo -c -o libsquashfuse_convenience_la-fs.lo `test -f 'fs.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`fs.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-fs.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-fs.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/fs.c -o libsquashfuse_convenience_la-fs.o\nmv -f .deps/libsquashfuse_convenience_la-fs.Tpo .deps/libsquashfuse_convenience_la-fs.Plo\n/bin/bash ./libtool --tag=CC --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src         -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3  -Wall -g -O2 -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include -DCIX_SQUASHFUSE_DECOMPRESS_SOURCE='\"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/decompress.c\"' -c -o libsquashfuse_convenience_la-decompress.lo /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//squashfuse/cix_squashfuse_decode.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include -DCIX_SQUASHFUSE_DECOMPRESS_SOURCE=\\\"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/decompress.c\\\" -c /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//squashfuse/cix_squashfuse_decode.c -o libsquashfuse_convenience_la-decompress.o\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-xattr.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-xattr.Tpo -c -o libsquashfuse_convenience_la-xattr.lo `test -f 'xattr.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`xattr.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-xattr.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-xattr.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/xattr.c -o libsquashfuse_convenience_la-xattr.o\nmv -f .deps/libsquashfuse_convenience_la-xattr.Tpo .deps/libsquashfuse_convenience_la-xattr.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-hash.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-hash.Tpo -c -o libsquashfuse_convenience_la-hash.lo `test -f 'hash.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`hash.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-hash.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-hash.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/hash.c -o libsquashfuse_convenience_la-hash.o\nmv -f .deps/libsquashfuse_convenience_la-hash.Tpo .deps/libsquashfuse_convenience_la-hash.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-stack.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-stack.Tpo -c -o libsquashfuse_convenience_la-stack.lo `test -f 'stack.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`stack.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-stack.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-stack.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/stack.c -o libsquashfuse_convenience_la-stack.o\nmv -f .deps/libsquashfuse_convenience_la-stack.Tpo .deps/libsquashfuse_convenience_la-stack.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-traverse.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-traverse.Tpo -c -o libsquashfuse_convenience_la-traverse.lo `test -f 'traverse.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`traverse.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-traverse.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-traverse.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/traverse.c -o libsquashfuse_convenience_la-traverse.o\nmv -f .deps/libsquashfuse_convenience_la-traverse.Tpo .deps/libsquashfuse_convenience_la-traverse.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-util.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-util.Tpo -c -o libsquashfuse_convenience_la-util.lo `test -f 'util.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`util.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-util.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-util.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/util.c -o libsquashfuse_convenience_la-util.o\nmv -f .deps/libsquashfuse_convenience_la-util.Tpo .deps/libsquashfuse_convenience_la-util.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-nonstd-pread.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-nonstd-pread.Tpo -c -o libsquashfuse_convenience_la-nonstd-pread.lo `test -f 'nonstd-pread.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`nonstd-pread.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-nonstd-pread.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-nonstd-pread.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/nonstd-pread.c -o libsquashfuse_convenience_la-nonstd-pread.o\nmv -f .deps/libsquashfuse_convenience_la-nonstd-pread.Tpo .deps/libsquashfuse_convenience_la-nonstd-pread.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-nonstd-stat.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-nonstd-stat.Tpo -c -o libsquashfuse_convenience_la-nonstd-stat.lo `test -f 'nonstd-stat.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`nonstd-stat.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-nonstd-stat.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-nonstd-stat.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/nonstd-stat.c -o libsquashfuse_convenience_la-nonstd-stat.o\nmv -f .deps/libsquashfuse_convenience_la-nonstd-stat.Tpo .deps/libsquashfuse_convenience_la-nonstd-stat.Plo\n/bin/bash ./libtool  --tag=CC   --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src       -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3   -Wall -g -O2 -MT libsquashfuse_convenience_la-cache_mt.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-cache_mt.Tpo -c -o libsquashfuse_convenience_la-cache_mt.lo `test -f 'cache_mt.c' || echo '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/'`cache_mt.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -MT libsquashfuse_convenience_la-cache_mt.lo -MD -MP -MF .deps/libsquashfuse_convenience_la-cache_mt.Tpo -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/cache_mt.c -o libsquashfuse_convenience_la-cache_mt.o\nmv -f .deps/libsquashfuse_convenience_la-cache_mt.Tpo .deps/libsquashfuse_convenience_la-cache_mt.Plo\n/bin/bash ./libtool --tag=CC --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src         -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3  -Wall -g -O2 -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include  -c -o cix_sqfs_userspace.lo /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//cix_sqfs_userspace.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include -c /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//cix_sqfs_userspace.c -o cix_sqfs_userspace.o\n/bin/bash ./libtool --tag=CC --mode=compile /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src         -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3  -Wall -g -O2 -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include  -c -o cix_squashfs_profile.lo /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/src/cix_squashfs_profile.c\nlibtool: compile:  /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3 -Wall -g -O2 -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include -I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include -c /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/src/cix_squashfs_profile.c -o cix_squashfs_profile.o\n/bin/bash ./libtool  --tag=CC   --mode=link /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -Wall -g -O2   -o libsquashfuse_convenience.la  libsquashfuse_convenience_la-swap.lo libsquashfuse_convenience_la-cache.lo libsquashfuse_convenience_la-table.lo libsquashfuse_convenience_la-dir.lo libsquashfuse_convenience_la-file.lo libsquashfuse_convenience_la-fs.lo libsquashfuse_convenience_la-decompress.lo libsquashfuse_convenience_la-xattr.lo libsquashfuse_convenience_la-hash.lo libsquashfuse_convenience_la-stack.lo libsquashfuse_convenience_la-traverse.lo libsquashfuse_convenience_la-util.lo libsquashfuse_convenience_la-nonstd-pread.lo libsquashfuse_convenience_la-nonstd-stat.lo libsquashfuse_convenience_la-cache_mt.lo cix_sqfs_userspace.lo cix_squashfs_profile.lo -lz  -llzma    -lzstd  -L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/lib/x86_64-linux-gnu -lfuse3 -lpthread  -lpthread \nlibtool: link: ar cr .libs/libsquashfuse_convenience.a  libsquashfuse_convenience_la-swap.o libsquashfuse_convenience_la-cache.o libsquashfuse_convenience_la-table.o libsquashfuse_convenience_la-dir.o libsquashfuse_convenience_la-file.o libsquashfuse_convenience_la-fs.o libsquashfuse_convenience_la-decompress.o libsquashfuse_convenience_la-xattr.o libsquashfuse_convenience_la-hash.o libsquashfuse_convenience_la-stack.o libsquashfuse_convenience_la-traverse.o libsquashfuse_convenience_la-util.o libsquashfuse_convenience_la-nonstd-pread.o libsquashfuse_convenience_la-nonstd-stat.o libsquashfuse_convenience_la-cache_mt.o cix_sqfs_userspace.o cix_squashfs_profile.o\nlibtool: link: ranlib .libs/libsquashfuse_convenience.a\nlibtool: link: ( cd \".libs\" && rm -f \"libsquashfuse_convenience.la\" && ln -s \"../libsquashfuse_convenience.la\" \"libsquashfuse_convenience.la\" )\n/bin/bash ./libtool  --tag=CC   --mode=link /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -Wall -g -O2   -o libsquashfuse.la -rpath /usr/local/lib  libsquashfuse_convenience.la -lpthread \nlibtool: link: (cd .libs/libsquashfuse.lax/libsquashfuse_convenience.a && ar x \"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build/./.libs/libsquashfuse_convenience.a\")\nlibtool: link: ar cr .libs/libsquashfuse.a   .libs/libsquashfuse.lax/libsquashfuse_convenience.a/cix_sqfs_userspace.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/cix_squashfs_profile.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-cache.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-cache_mt.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-decompress.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-dir.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-file.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-fs.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-hash.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-nonstd-pread.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-nonstd-stat.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-stack.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-swap.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-table.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-traverse.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-util.o .libs/libsquashfuse.lax/libsquashfuse_convenience.a/libsquashfuse_convenience_la-xattr.o \nlibtool: link: ranlib .libs/libsquashfuse.a\nlibtool: link: rm -fr .libs/libsquashfuse.lax\nlibtool: link: ( cd \".libs\" && rm -f \"libsquashfuse.la\" && ln -s \"../libsquashfuse.la\" \"libsquashfuse.la\" )\n/bin/bash ./libtool --tag=CC --mode=link /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src    -g -O2 -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -o squashfuse-library-fixture-contract /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//tests/squashfuse_library_fixture_contract.c libsquashfuse.la -lz  -llzma    -lzstd  -L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/lib/x86_64-linux-gnu -lfuse3 -lpthread \nlibtool: link: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -g -O2 -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -o squashfuse-library-fixture-contract /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//tests/squashfuse_library_fixture_contract.c  ./.libs/libsquashfuse.a -L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/lib/x86_64-linux-gnu -lz -llzma -lzstd -lfuse3 -lpthread\n/bin/bash ./libtool --tag=CC --mode=link /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src    -g -O2 -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -o squashfuse-xattr-contract /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//tests/squashfuse_xattr_contract.c libsquashfuse.la -lz  -llzma    -lzstd  -L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/lib/x86_64-linux-gnu -lfuse3 -lpthread \nlibtool: link: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/bin/cc -DHAVE_CONFIG_H -I. -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -g -O2 -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src -o squashfuse-xattr-contract /home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//tests/squashfuse_xattr_contract.c  ./.libs/libsquashfuse.a -L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/lib/x86_64-linux-gnu -lz -llzma -lzstd -lfuse3 -lpthread\n",
+      "stderr": "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/overlay.mk:43: warning: overriding recipe for target 'libsquashfuse_convenience_la-decompress.lo'\nMakefile:1219: warning: ignoring old recipe for target 'libsquashfuse_convenience_la-decompress.lo'\n"
+    },
+    {
+      "label": "kernel-xattr-helper",
+      "argv": [
+        "cc",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-c",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/kernel/tests/xattr_check.c",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/xattr_check.o"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "squash-compatibility-plugin",
+      "argv": [
+        "sh",
+        "/home/user/src/colour-index-compression/rust/cix-native/packaging/squash/build-plugin.sh"
+      ],
+      "cwd": "/home/user/src/colour-index-compression/rust/cix-native",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "compiler_invocations": [
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfs-tools",
+      "argv": [
+        "-c",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+        "-I.",
+        "-D_FILE_OFFSET_BITS=64",
+        "-D_LARGEFILE_SOURCE",
+        "-D_GNU_SOURCE",
+        "-DCOMP_DEFAULT=\"gzip\"",
+        "-Wall",
+        "-DGZIP_SUPPORT",
+        "-DXATTR_SUPPORT",
+        "-DXATTR_DEFAULT",
+        "-DXATTR_OS_SUPPORT",
+        "-DMAX_READER_THREADS=1024",
+        "-DSMALL_READER_THREADS=4",
+        "-DBLOCK_READER_THREADS=4",
+        "-DVERSION=\"4.7.5-db038ef26\"",
+        "-DDATE=\"2026/08/21\"",
+        "-DYEAR=\"2026\"",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/tools/cix_wrapper.c",
+        "-o",
+        "cix_wrapper.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfs-tools",
+      "argv": [
+        "-c",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+        "-I.",
+        "-D_FILE_OFFSET_BITS=64",
+        "-D_LARGEFILE_SOURCE",
+        "-D_GNU_SOURCE",
+        "-DCOMP_DEFAULT=\"gzip\"",
+        "-Wall",
+        "-DGZIP_SUPPORT",
+        "-DXATTR_SUPPORT",
+        "-DXATTR_DEFAULT",
+        "-DXATTR_OS_SUPPORT",
+        "-DMAX_READER_THREADS=1024",
+        "-DSMALL_READER_THREADS=4",
+        "-DBLOCK_READER_THREADS=4",
+        "-DVERSION=\"4.7.5-db038ef26\"",
+        "-DDATE=\"2026/08/21\"",
+        "-DYEAR=\"2026\"",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/tools/cix_compressor_table.c",
+        "-o",
+        "cix_compressor_table.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "--version"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-v"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-V"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-qversion"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-version"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "conftest.c",
+        "-o",
+        "conftest2.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "conftest.c",
+        "-o",
+        "conftest2.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build/conftest.dir",
+      "argv": [
+        "-MT",
+        "sub/conftest.o",
+        "-MD",
+        "-MP",
+        "-MF",
+        "sub/conftest.TPo",
+        "-c",
+        "-o",
+        "sub/conftest.o",
+        "sub/conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "/tmp/cgbyfSw6/dummy.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-print-prog-name=ld"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c",
+        "conftstm.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-fno-rtti",
+        "-fno-exceptions",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-fPIC",
+        "-DPIC",
+        "-DPIC",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "-static",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build/conftest",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-o",
+        "out/conftest2.o",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-V"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-print-search-dirs"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-g",
+        "-O2",
+        "-print-multi-os-directory"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "-Wl,-rpath",
+        "-Wl,/foo",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wall",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wextra",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wunused",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wmissing-prototypes",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wmissing-declarations",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wwrite-strings",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wjump-misses-init",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wuninitialized",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Winit-self",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wlogical-op",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wunused-but-set-parameter",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wunused-but-set-variable",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wunused-parameter",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wunused-result",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wunused-variable",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wduplicated-cond",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wduplicated-branches",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wrestrict",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wnull-dereference",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-pedantic",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wpedantic",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Walloc-zero",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wcast-align",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wcast-align=strict",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wcast-qual",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wdangling-else",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wdate-time",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wdouble-promotion",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wformat-nonliteral",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wformat-security",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wformat-signedness",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wmissing-format-attribute",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wmissing-noreturn",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wpacked",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wpacked-not-aligned",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wredundant-decls",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wswitch-default",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wswitch-enum",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wtrampolines",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wundef",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wunused-const-variable",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "-Werror",
+        "-Wvla",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c",
+        "-lbz2"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c",
+        "-llzo2"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c",
+        "-llzo"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-E",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "-pthread",
+        "conftest.c",
+        "-lpthread"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "-pthread",
+        "conftest.c",
+        "-lpthread"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "-pthread",
+        "conftest.c",
+        "-lpthread"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include",
+        "-D_GNU_SOURCE",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include",
+        "-D_GNU_SOURCE",
+        "-DWITH_GZIP",
+        "-DWITH_XZ",
+        "-DWITH_ZSTD",
+        "-Wall",
+        "-Wextra",
+        "-Wunused",
+        "-Wmissing-prototypes",
+        "-Wmissing-declarations",
+        "-Wwrite-strings",
+        "-Wjump-misses-init",
+        "-Wuninitialized",
+        "-Winit-self",
+        "-Wlogical-op",
+        "-Wunused-but-set-parameter",
+        "-Wunused-but-set-variable",
+        "-Wunused-parameter",
+        "-Wunused-result",
+        "-Wunused-variable",
+        "-Wduplicated-cond",
+        "-Wduplicated-branches",
+        "-Wrestrict",
+        "-Wnull-dereference",
+        "-pedantic",
+        "-Wpedantic",
+        "-Walloc-zero",
+        "-Wcast-align",
+        "-Wcast-align=strict",
+        "-Wcast-qual",
+        "-Wdangling-else",
+        "-Wdate-time",
+        "-Wdouble-promotion",
+        "-Wformat-nonliteral",
+        "-Wformat-security",
+        "-Wformat-signedness",
+        "-Wmissing-format-attribute",
+        "-Wmissing-noreturn",
+        "-Wpacked",
+        "-Wpacked-not-aligned",
+        "-Wredundant-decls",
+        "-Wswitch-default",
+        "-Wswitch-enum",
+        "-Wtrampolines",
+        "-Wundef",
+        "-Wunused-const-variable",
+        "-Wvla",
+        "-g",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wunused",
+        "-Wmissing-prototypes",
+        "-Wmissing-declarations",
+        "-Wwrite-strings",
+        "-Wjump-misses-init",
+        "-Wuninitialized",
+        "-Winit-self",
+        "-Wlogical-op",
+        "-Wunused-but-set-parameter",
+        "-Wunused-but-set-variable",
+        "-Wunused-parameter",
+        "-Wunused-result",
+        "-Wunused-variable",
+        "-Wduplicated-cond",
+        "-Wduplicated-branches",
+        "-Wrestrict",
+        "-Wnull-dereference",
+        "-pedantic",
+        "-Wpedantic",
+        "-Walloc-zero",
+        "-Wcast-align",
+        "-Wcast-align=strict",
+        "-Wcast-qual",
+        "-Wdangling-else",
+        "-Wdate-time",
+        "-Wdouble-promotion",
+        "-Wformat-nonliteral",
+        "-Wformat-security",
+        "-Wformat-signedness",
+        "-Wmissing-format-attribute",
+        "-Wmissing-noreturn",
+        "-Wpacked",
+        "-Wpacked-not-aligned",
+        "-Wredundant-decls",
+        "-Wswitch-default",
+        "-Wswitch-enum",
+        "-Wtrampolines",
+        "-Wundef",
+        "-Wunused-const-variable",
+        "-Wvla",
+        "-pthread",
+        "-pthread",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+        "-DCIX_SQFSNG_COMPRESSOR_SOURCE=\"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/lib/sqfs/comp/compressor.c\"",
+        "-c",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_compressor.c",
+        "-o",
+        "lib/sqfs/comp/libsquashfs_la-compressor.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/sqfsng-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include",
+        "-D_GNU_SOURCE",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include",
+        "-D_GNU_SOURCE",
+        "-DWITH_GZIP",
+        "-DWITH_XZ",
+        "-DWITH_ZSTD",
+        "-Wall",
+        "-Wextra",
+        "-Wunused",
+        "-Wmissing-prototypes",
+        "-Wmissing-declarations",
+        "-Wwrite-strings",
+        "-Wjump-misses-init",
+        "-Wuninitialized",
+        "-Winit-self",
+        "-Wlogical-op",
+        "-Wunused-but-set-parameter",
+        "-Wunused-but-set-variable",
+        "-Wunused-parameter",
+        "-Wunused-result",
+        "-Wunused-variable",
+        "-Wduplicated-cond",
+        "-Wduplicated-branches",
+        "-Wrestrict",
+        "-Wnull-dereference",
+        "-pedantic",
+        "-Wpedantic",
+        "-Walloc-zero",
+        "-Wcast-align",
+        "-Wcast-align=strict",
+        "-Wcast-qual",
+        "-Wdangling-else",
+        "-Wdate-time",
+        "-Wdouble-promotion",
+        "-Wformat-nonliteral",
+        "-Wformat-security",
+        "-Wformat-signedness",
+        "-Wmissing-format-attribute",
+        "-Wmissing-noreturn",
+        "-Wpacked",
+        "-Wpacked-not-aligned",
+        "-Wredundant-decls",
+        "-Wswitch-default",
+        "-Wswitch-enum",
+        "-Wtrampolines",
+        "-Wundef",
+        "-Wunused-const-variable",
+        "-Wvla",
+        "-g",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Wunused",
+        "-Wmissing-prototypes",
+        "-Wmissing-declarations",
+        "-Wwrite-strings",
+        "-Wjump-misses-init",
+        "-Wuninitialized",
+        "-Winit-self",
+        "-Wlogical-op",
+        "-Wunused-but-set-parameter",
+        "-Wunused-but-set-variable",
+        "-Wunused-parameter",
+        "-Wunused-result",
+        "-Wunused-variable",
+        "-Wduplicated-cond",
+        "-Wduplicated-branches",
+        "-Wrestrict",
+        "-Wnull-dereference",
+        "-pedantic",
+        "-Wpedantic",
+        "-Walloc-zero",
+        "-Wcast-align",
+        "-Wcast-align=strict",
+        "-Wcast-qual",
+        "-Wdangling-else",
+        "-Wdate-time",
+        "-Wdouble-promotion",
+        "-Wformat-nonliteral",
+        "-Wformat-security",
+        "-Wformat-signedness",
+        "-Wmissing-format-attribute",
+        "-Wmissing-noreturn",
+        "-Wpacked",
+        "-Wpacked-not-aligned",
+        "-Wredundant-decls",
+        "-Wswitch-default",
+        "-Wswitch-enum",
+        "-Wtrampolines",
+        "-Wundef",
+        "-Wunused-const-variable",
+        "-Wvla",
+        "-pthread",
+        "-pthread",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+        "-DCIX_SQFSNG_READ_SUPER_SOURCE=\"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/lib/sqfs/read_super.c\"",
+        "-c",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//libsquashfs/cix_sqfsng_read_super.c",
+        "-o",
+        "lib/sqfs/libsquashfs_la-read_super.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3",
+      "argv": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-c",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/include",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_decode.c",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/cix_sqfsng_decode.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-E",
+        "/tmp/cglkbGZz/dummy.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-E",
+        "-"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "--version"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-v"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-V"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-qversion"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-version"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "conftest.c",
+        "-o",
+        "conftest2.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "conftest.c",
+        "-o",
+        "conftest2.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build/conftest.dir",
+      "argv": [
+        "-MT",
+        "sub/conftest.o",
+        "-MD",
+        "-MP",
+        "-MF",
+        "sub/conftest.TPo",
+        "-c",
+        "-o",
+        "sub/conftest.o",
+        "sub/conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-print-prog-name=ld"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c",
+        "conftstm.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-fno-rtti",
+        "-fno-exceptions",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-fPIC",
+        "-DPIC",
+        "-DPIC",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "-static",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build/conftest",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-o",
+        "out/conftest2.o",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-V"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-print-search-dirs"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-g",
+        "-O2",
+        "-print-multi-os-directory"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "-Wl,-rpath",
+        "-Wl,/foo",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-E",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-E",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-E",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-E",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-Wall",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c",
+        "-lz"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c",
+        "-llzma"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c",
+        "-llzo2"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c",
+        "-llz4"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c",
+        "-lzstd"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "conftest.c",
+        "-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/lib/x86_64-linux-gnu",
+        "-lfuse3",
+        "-lpthread"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "conftest.c",
+        "-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/lib/x86_64-linux-gnu",
+        "-lfuse3",
+        "-lpthread"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "conftest.c",
+        "-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/lib/x86_64-linux-gnu",
+        "-lfuse3",
+        "-lpthread"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "conftest.c",
+        "-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/lib/x86_64-linux-gnu",
+        "-lfuse3",
+        "-lpthread"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-c",
+        "-g",
+        "-O2",
+        "conftest.c"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-o",
+        "conftest",
+        "-g",
+        "-O2",
+        "conftest.c",
+        "-lpthread"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-swap.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-swap.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/swap.c",
+        "-o",
+        "libsquashfuse_convenience_la-swap.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-cache.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-cache.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/cache.c",
+        "-o",
+        "libsquashfuse_convenience_la-cache.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-table.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-table.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/table.c",
+        "-o",
+        "libsquashfuse_convenience_la-table.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-dir.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-dir.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/dir.c",
+        "-o",
+        "libsquashfuse_convenience_la-dir.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-file.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-file.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/file.c",
+        "-o",
+        "libsquashfuse_convenience_la-file.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-fs.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-fs.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/fs.c",
+        "-o",
+        "libsquashfuse_convenience_la-fs.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+        "-DCIX_SQUASHFUSE_DECOMPRESS_SOURCE=\"/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/decompress.c\"",
+        "-c",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//squashfuse/cix_squashfuse_decode.c",
+        "-o",
+        "libsquashfuse_convenience_la-decompress.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-xattr.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-xattr.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/xattr.c",
+        "-o",
+        "libsquashfuse_convenience_la-xattr.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-hash.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-hash.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/hash.c",
+        "-o",
+        "libsquashfuse_convenience_la-hash.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-stack.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-stack.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/stack.c",
+        "-o",
+        "libsquashfuse_convenience_la-stack.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-traverse.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-traverse.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/traverse.c",
+        "-o",
+        "libsquashfuse_convenience_la-traverse.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-util.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-util.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/util.c",
+        "-o",
+        "libsquashfuse_convenience_la-util.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-nonstd-pread.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-nonstd-pread.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/nonstd-pread.c",
+        "-o",
+        "libsquashfuse_convenience_la-nonstd-pread.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-nonstd-stat.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-nonstd-stat.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/nonstd-stat.c",
+        "-o",
+        "libsquashfuse_convenience_la-nonstd-stat.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-MT",
+        "libsquashfuse_convenience_la-cache_mt.lo",
+        "-MD",
+        "-MP",
+        "-MF",
+        ".deps/libsquashfuse_convenience_la-cache_mt.Tpo",
+        "-c",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/cache_mt.c",
+        "-o",
+        "libsquashfuse_convenience_la-cache_mt.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+        "-c",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//cix_sqfs_userspace.c",
+        "-o",
+        "cix_sqfs_userspace.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/include/fuse3",
+        "-Wall",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//include",
+        "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+        "-c",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/src/cix_squashfs_profile.c",
+        "-o",
+        "cix_squashfs_profile.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-o",
+        "squashfuse-library-fixture-contract",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//tests/squashfuse_library_fixture_contract.c",
+        "./.libs/libsquashfuse.a",
+        "-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/lib/x86_64-linux-gnu",
+        "-lz",
+        "-llzma",
+        "-lzstd",
+        "-lfuse3",
+        "-lpthread"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfuse-build",
+      "argv": [
+        "-DHAVE_CONFIG_H",
+        "-I.",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-g",
+        "-O2",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src",
+        "-o",
+        "squashfuse-xattr-contract",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace//tests/squashfuse_xattr_contract.c",
+        "./.libs/libsquashfuse.a",
+        "-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/fuse-sdk-v1/prefix/usr/lib/x86_64-linux-gnu",
+        "-lz",
+        "-llzma",
+        "-lzstd",
+        "-lfuse3",
+        "-lpthread"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3",
+      "argv": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-c",
+        "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/kernel/tests/xattr_check.c",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/xattr_check.o"
+      ]
+    },
+    {
+      "cwd": "/home/user/src/colour-index-compression/rust/cix-native",
+      "argv": [
+        "-std=c11",
+        "-fPIC",
+        "-shared",
+        "/home/user/src/colour-index-compression/rust/cix-native/packaging/squash/squash-cix.c",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include",
+        "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8",
+        "-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squash-plugins/cix",
+        "-lcix_native",
+        "-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib",
+        "-lsquash0.8",
+        "-Wl,-rpath,$ORIGIN",
+        "-o",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squash-plugins/cix/libsquash0.8-plugin-cix.so"
+      ]
+    }
+  ],
+  "selected_translation_units": {
+    "tools-compressor-table": [
+      {
+        "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfs-tools",
+        "argv": [
+          "-c",
+          "-O2",
+          "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools",
+          "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+          "-I.",
+          "-D_FILE_OFFSET_BITS=64",
+          "-D_LARGEFILE_SOURCE",
+          "-D_GNU_SOURCE",
+          "-DCOMP_DEFAULT=\"gzip\"",
+          "-Wall",
+          "-DGZIP_SUPPORT",
+          "-DXATTR_SUPPORT",
+          "-DXATTR_DEFAULT",
+          "-DXATTR_OS_SUPPORT",
+          "-DMAX_READER_THREADS=1024",
+          "-DSMALL_READER_THREADS=4",
+          "-DBLOCK_READER_THREADS=4",
+          "-DVERSION=\"4.7.5-db038ef26\"",
+          "-DDATE=\"2026/08/21\"",
+          "-DYEAR=\"2026\"",
+          "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools",
+          "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+          "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/tools/cix_compressor_table.c",
+          "-o",
+          "cix_compressor_table.o"
+        ]
+      }
+    ],
+    "tools-wrapper": [
+      {
+        "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squashfs-tools",
+        "argv": [
+          "-c",
+          "-O2",
+          "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools",
+          "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+          "-I.",
+          "-D_FILE_OFFSET_BITS=64",
+          "-D_LARGEFILE_SOURCE",
+          "-D_GNU_SOURCE",
+          "-DCOMP_DEFAULT=\"gzip\"",
+          "-Wall",
+          "-DGZIP_SUPPORT",
+          "-DXATTR_SUPPORT",
+          "-DXATTR_DEFAULT",
+          "-DXATTR_OS_SUPPORT",
+          "-DMAX_READER_THREADS=1024",
+          "-DSMALL_READER_THREADS=4",
+          "-DBLOCK_READER_THREADS=4",
+          "-DVERSION=\"4.7.5-db038ef26\"",
+          "-DDATE=\"2026/08/21\"",
+          "-DYEAR=\"2026\"",
+          "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools",
+          "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/profile/include",
+          "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/tools/cix_wrapper.c",
+          "-o",
+          "cix_wrapper.o"
+        ]
+      }
+    ],
+    "sqfsng-compressor": [],
+    "sqfsng-decode-bridge": [
+      {
+        "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3",
+        "argv": [
+          "-std=c11",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-c",
+          "-I/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/include",
+          "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_decode.c",
+          "-o",
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/cix_sqfsng_decode.o"
+        ]
+      }
+    ],
+    "sqfsng-read-super": [],
+    "squashfuse-library-fixture-contract": [],
+    "squashfuse-xattr-contract": [],
+    "kernel-xattr-helper": [
+      {
+        "cwd": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3",
+        "argv": [
+          "-std=c11",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-c",
+          "/home/user/src/colour-index-compression/rust/cix-native/adapters/squashfs/kernel/tests/xattr_check.c",
+          "-o",
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/xattr_check.o"
+        ]
+      }
+    ],
+    "squash-compatibility-plugin": [
+      {
+        "cwd": "/home/user/src/colour-index-compression/rust/cix-native",
+        "argv": [
+          "-std=c11",
+          "-fPIC",
+          "-shared",
+          "/home/user/src/colour-index-compression/rust/cix-native/packaging/squash/squash-cix.c",
+          "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+          "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include",
+          "-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8",
+          "-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squash-plugins/cix",
+          "-lcix_native",
+          "-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib",
+          "-lsquash0.8",
+          "-Wl,-rpath,$ORIGIN",
+          "-o",
+          "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/compiler-capture-host-v3/squash-plugins/cix/libsquash0.8-plugin-cix.so"
+        ]
+      }
+    ]
+  }
+}

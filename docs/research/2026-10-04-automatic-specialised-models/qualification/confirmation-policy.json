@@ -1,0 +1,281 @@
+{
+  "schema": "cix.integrated-confirmation-policy.v1",
+  "source_revision": "5d93d9f1ba5d104a6f68a95ff3de49677dca3a06",
+  "ordinary_cli": "/home/user/src/cix-integrated-candidate/bin/cix",
+  "decoder": "/home/user/src/cix-integrated-candidate/bin/uncix",
+  "source_snapshot": "/home/user/src/cix-integrated-source-candidate",
+  "profiles": {
+    "fast": "raw + native FAST",
+    "default": "raw + native DEFAULT + non-PAQ specialists + paid heterogeneous regions excluding nested PAQ",
+    "best": "raw + native BEST + PAQ v216 -8, v215 -8, v215 -9L + admitted specialists + paid heterogeneous regions"
+  },
+  "runtime_policy_source_files": [
+    "runtime/cix_runtime/engine.py",
+    "runtime/cix_runtime/specialized.py",
+    "runtime/cix_runtime/image_grid.py",
+    "runtime/cix_runtime/heterogeneous.py",
+    "runtime/cix_runtime/regions.py",
+    "runtime/cix_runtime/model.py"
+  ],
+  "selection": "smallest complete current-input archive; deterministic original-priority ties; no saved streams or corpus lookup",
+  "workers": "bounded canonical first-fit independent candidate processes; native uses up to four threads; PAQ/specialists one thread; no silent context splitting",
+  "budgets": {
+    "physical_cpus": [
+      8,
+      10,
+      12,
+      14
+    ],
+    "total_cpu_quota_percent": 400,
+    "aggregate_memory_bytes": 12000000000,
+    "product_admission_memory_bytes": 11000000000,
+    "aggregate_temp_bytes": 4000000000,
+    "swap_bytes": 0,
+    "per_candidate_seconds": 43200,
+    "cell_encode_seconds": 172800,
+    "cell_decode_seconds": 43200,
+    "temp_enforcement": "sampled total-directory cap including retained evidence; no hard filesystem quota"
+  },
+  "native_build": {
+    "files": {
+      "cix": {
+        "bytes": 2258256,
+        "sha256": "09434a7f34b62691d0e187a22bd1b77fbb48a4b7f3f7d3ceea3857ca4e8b16a2"
+      },
+      "uncix": {
+        "bytes": 2258256,
+        "sha256": "51d08e1d297920032dabb40599e92fa6c640c13d2e72c5e77b6b281a0e1f58eb"
+      },
+      "cixcat": {
+        "bytes": 2258256,
+        "sha256": "095370fa7de767d552223ce7e3f2adfc6a5b339aed13d3962a19ff82d26b3449"
+      },
+      "libcix_native.so": {
+        "bytes": 1311432,
+        "sha256": "862be208c30edcfe88c1111114a6aeeb05c06c84bd373c8c90c0448dc1d35012"
+      }
+    },
+    "flags": {
+      "CARGO_TARGET_DIR": "/home/user/src/colour-index-compression/benchmark-work/integrated-native-build-1/target",
+      "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": "1",
+      "CARGO_PROFILE_RELEASE_LTO": "fat",
+      "CARGO_PROFILE_RELEASE_OPT_LEVEL": "3",
+      "RUSTFLAGS": "-C target-cpu=x86-64"
+    }
+  },
+  "platform": {
+    "uname": [
+      "Linux",
+      "foo",
+      "6.8.0-142-generic",
+      "#142-Ubuntu SMP PREEMPT_DYNAMIC Wed Sep  2 14:24:27 UTC 2026",
+      "x86_64",
+      "x86_64"
+    ],
+    "cpu": {
+      "lscpu": [
+        {
+          "field": "Architecture:",
+          "data": "x86_64"
+        },
+        {
+          "field": "CPU op-mode(s):",
+          "data": "32-bit, 64-bit"
+        },
+        {
+          "field": "Address sizes:",
+          "data": "46 bits physical, 48 bits virtual"
+        },
+        {
+          "field": "Byte Order:",
+          "data": "Little Endian"
+        },
+        {
+          "field": "CPU(s):",
+          "data": "32"
+        },
+        {
+          "field": "On-line CPU(s) list:",
+          "data": "0-31"
+        },
+        {
+          "field": "Vendor ID:",
+          "data": "GenuineIntel"
+        },
+        {
+          "field": "Model name:",
+          "data": "13th Gen Intel(R) Core(TM) i9-13900K"
+        },
+        {
+          "field": "CPU family:",
+          "data": "6"
+        },
+        {
+          "field": "Model:",
+          "data": "183"
+        },
+        {
+          "field": "Thread(s) per core:",
+          "data": "2"
+        },
+        {
+          "field": "Core(s) per socket:",
+          "data": "24"
+        },
+        {
+          "field": "Socket(s):",
+          "data": "1"
+        },
+        {
+          "field": "Stepping:",
+          "data": "1"
+        },
+        {
+          "field": "CPU(s) scaling MHz:",
+          "data": "31%"
+        },
+        {
+          "field": "CPU max MHz:",
+          "data": "5800.0000"
+        },
+        {
+          "field": "CPU min MHz:",
+          "data": "800.0000"
+        },
+        {
+          "field": "BogoMIPS:",
+          "data": "5990.40"
+        },
+        {
+          "field": "Flags:",
+          "data": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt clwb intel_pt sha_ni xsaveopt xsavec xgetbv1 xsaves split_lock_detect user_shstk avx_vnni dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req hfi vnmi umip pku ospke waitpkg gfni vaes vpclmulqdq tme rdpid movdiri movdir64b fsrm md_clear serialize pconfig arch_lbr ibt flush_l1d arch_capabilities"
+        },
+        {
+          "field": "Virtualization:",
+          "data": "VT-x"
+        },
+        {
+          "field": "L1d cache:",
+          "data": "896 KiB (24 instances)"
+        },
+        {
+          "field": "L1i cache:",
+          "data": "1.3 MiB (24 instances)"
+        },
+        {
+          "field": "L2 cache:",
+          "data": "32 MiB (12 instances)"
+        },
+        {
+          "field": "L3 cache:",
+          "data": "36 MiB (1 instance)"
+        },
+        {
+          "field": "NUMA node(s):",
+          "data": "1"
+        },
+        {
+          "field": "NUMA node0 CPU(s):",
+          "data": "0-31"
+        },
+        {
+          "field": "Vulnerability Gather data sampling:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Indirect target selection:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Itlb multihit:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability L1tf:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Mds:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Meltdown:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Mmio stale data:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Reg file data sampling:",
+          "data": "Vulnerable"
+        },
+        {
+          "field": "Vulnerability Retbleed:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Spec rstack overflow:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Spec store bypass:",
+          "data": "Vulnerable"
+        },
+        {
+          "field": "Vulnerability Spectre v1:",
+          "data": "Vulnerable: __user pointer sanitization and usercopy barriers only; no swapgs barriers"
+        },
+        {
+          "field": "Vulnerability Spectre v2:",
+          "data": "Vulnerable; IBPB: disabled; STIBP: disabled; PBRSB-eIBRS: Vulnerable; BHI: Vulnerable"
+        },
+        {
+          "field": "Vulnerability Srbds:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Tsa:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Tsx async abort:",
+          "data": "Not affected"
+        },
+        {
+          "field": "Vulnerability Vmscape:",
+          "data": "Vulnerable"
+        }
+      ]
+    }
+  },
+  "qualification": {
+    "members": 12,
+    "input_bytes": 211938580,
+    "cells": 36,
+    "repeats": 1,
+    "decode": "fresh-process archive-only, independently timed, source SHA-256 checked after decode",
+    "concurrency": "one phase at a time; internal product workers share four-core budget",
+    "freeze_checks": "source/stage/dependencies/harness/scheduler checked outside each timed phase",
+    "speed_claim": "single observations, not statistical speedups"
+  },
+  "limitations": [
+    "host-pinned Linux x86-64 Python/native closure; PAQ AVX2 binaries",
+    "no portable integrated distribution/package claim",
+    "first-party C++ and third-party vendor not scanned by Sonar because CFamily unavailable",
+    "whole-input specialist catalogue capped at 128 MiB; larger/stdin encoding delegates native",
+    "Webster PAQ -12L resource-excluded; historical reference remains separate",
+    "raster240 unproven schema excluded; finite registry does not recognize every semantic structure"
+  ],
+  "source_hygiene": {
+    "sonar_run": "hygiene/run-5",
+    "rust_issues": 0,
+    "python_issues": 0,
+    "rust_format": "PASS",
+    "rust_clippy_warnings_denied": "PASS",
+    "optimized_native_tests": 126,
+    "python_focused_tests": 37,
+    "final_harness_tests": 4,
+    "final_staged_cli_smoke": "PASS"
+  }
+}

@@ -1,0 +1,1 @@
+/home/user/src/cix-sonar-main-encoders-d52/rust/cix-native/target/release/uncix -o /tmp/cix-main-encoder-stages.rb587P/predictor.candidate.restore /tmp/cix-main-encoder-stages.rb587P/predictor.parent.cix 

@@ -1,0 +1,147 @@
+{
+  "schema": "cix.performance-carry-forward.v1",
+  "status": "READ_ONLY_FINAL_REVIEW_CARRY_FORWARD",
+  "claims": {
+    "new_measurement": false,
+    "speed_percentage": false,
+    "artifact_to_source_provenance_proven": false
+  },
+  "frozen_artifacts": {
+    "cix": {
+      "path": "/home/user/src/cix-0.1-artifacts/final/bin/cix",
+      "sha256": "09434a7f34b62691d0e187a22bd1b77fbb48a4b7f3f7d3ceea3857ca4e8b16a2",
+      "gnu_build_id": "b7f2977efd4086b836ac520507566683d8e46188"
+    },
+    "uncix": {
+      "path": "/home/user/src/cix-0.1-artifacts/final/bin/uncix",
+      "sha256": "51d08e1d297920032dabb40599e92fa6c640c13d2e72c5e77b6b281a0e1f58eb",
+      "gnu_build_id": "902d8bf3259b49ea330d3bbaf1bf7aabe5a95feb"
+    },
+    "libcix_native": {
+      "path": "/home/user/src/cix-0.1-artifacts/final/bin/libcix_native.so",
+      "sha256": "862be208c30edcfe88c1111114a6aeeb05c06c84bd373c8c90c0448dc1d35012",
+      "public_dynamic_exports_observed": [
+        "cix_squash_splice"
+      ]
+    }
+  },
+  "source_root": "/home/user/src/cix-0.1-distribution/src",
+  "source_sha256": {
+    "rank.rs": "55f443be9cfb1568b78b7b952af7932b1987368c0b6247e938111dd24cf2759f",
+    "combinatorics.rs": "ef8b03079471e12553b189c845bae5988097050759d5a2c9c4fbb003124de19c",
+    "fixedmix.rs": "e21fd00a43d1fea64ac479db2e35d97d234c0d2ce408544dac633cae9f7fad91",
+    "ppm.rs": "2a42a83fcb2548baae3f3a2469f58560dc7eeaa16b4ce620d082f061ba4f8ef0",
+    "bounded_reader.rs": "9fc5e7c417a0e7bf4e287a3bdcc4a6d7409972a0f24311224f7ccc97585ca02c",
+    "parallel.rs": "be47ea119b263b2d6eae7d64fcd4f560d322b4e624febe131889f46ea3acf8f8",
+    "gstream.rs": "465f31bf00e3ecf251a3a0ec09354ab1a51cdf4bc5bbb3f44c5aba8f4af1ec5a",
+    "chain.rs": "912fb8248f5cff67c8ca616fbacdc19e92c3aa7dd45a8b83cadac145452e131a",
+    "cli.rs": "21231071a6a3b1326887af55bc13219be0ba8deb2ca22277eac2e97be1acfada",
+    "portfolio_auto.rs": "5955eab9bbf750f71e3c867d6dc769d4df76e4074fddeedb0212712f8260a428"
+  },
+  "implemented_changes": [
+    {
+      "id": "count_range_rank_avoidance",
+      "anchors": [
+        "rank.rs:267-284"
+      ]
+    },
+    {
+      "id": "colex_cardinality_reuse",
+      "anchors": [
+        "combinatorics.rs:1-7",
+        "combinatorics.rs:31-36",
+        "rank.rs:446-464",
+        "rank.rs:559-579"
+      ]
+    },
+    {
+      "id": "fixedmix_stretch_once",
+      "anchors": [
+        "fixedmix.rs:59-72",
+        "fixedmix.rs:590-604"
+      ]
+    },
+    {
+      "id": "ppm_borrowed_lookup_fixed_eligible_scan",
+      "anchors": [
+        "ppm.rs:31-72",
+        "ppm.rs:425-451"
+      ],
+      "scope": "fixed encoder path"
+    },
+    {
+      "id": "bounded_reader",
+      "anchors": [
+        "bounded_reader.rs:1-5",
+        "bounded_reader.rs:18-37",
+        "bounded_reader.rs:60-70"
+      ]
+    },
+    {
+      "id": "ordered_streaming_backpressure",
+      "anchors": [
+        "parallel.rs:1-8",
+        "parallel.rs:154-157",
+        "parallel.rs:227-230",
+        "gstream.rs:292-316"
+      ]
+    },
+    {
+      "id": "transformed_byte_per_encode_cache",
+      "anchors": [
+        "chain.rs:82-104",
+        "chain.rs:1234-1314",
+        "chain.rs:1321-1389",
+        "cli.rs:2727-2742"
+      ]
+    },
+    {
+      "id": "m6_t1_no_histogram",
+      "anchors": [
+        "cli.rs:2279-2313",
+        "cli.rs:2315-2322",
+        "cli.rs:2832-2839"
+      ]
+    },
+    {
+      "id": "append_only_exact_prefix_cap",
+      "anchors": [
+        "portfolio_auto.rs:34-37",
+        "portfolio_auto.rs:173-228",
+        "portfolio_auto.rs:449-453",
+        "portfolio_auto.rs:511-515",
+        "portfolio_auto.rs:620-626"
+      ]
+    }
+  ],
+  "legacy_python_closure": {
+    "multinomial_module": {
+      "path": "/home/user/src/colour-index-compression/cix/multinomial.py",
+      "sha256": "c778e1abb15fc869f2d740ccb1cdb518940f92d0caad7bda71342903cf215729",
+      "kind": "pure_python",
+      "stdlib_imports": [
+        "hashlib",
+        "math",
+        "struct",
+        "zlib"
+      ],
+      "native_multinomial_binding": false
+    },
+    "optional_exact_acceleration": {
+      "helper": "/home/user/src/colour-index-compression/benchmarks/fast_runtime.py",
+      "sha256": "ab1ad4dbe21cdbcbf15f07ead8d4a256d892c988f8da4313e6187f3127192d73",
+      "dependency": "gmpy2",
+      "mechanism": "exact math.comb replacement via int(gmpy2.comb(...))",
+      "needed_when": "the extracted legacy closure calls fast_runtime.enable()"
+    },
+    "separate_bwt_lz_acceleration": {
+      "dependency": "pydivsufsort",
+      "not_multinomial": true,
+      "anchors": [
+        "cix/bwt.py:23-51",
+        "cix/lz.py:196-198"
+      ]
+    },
+    "native_library_constraint": "Frozen libcix_native.so exports only cix_squash_splice; it is not a Python multinomial bridge."
+  }
+}

@@ -1,0 +1,8 @@
+UNQUALIFIED: do not treat as native fresh-decoder evidence.
+
+The first standalone example-decoder attempt used a manually assembled shell frame and failed before restoration with:
+  decode_legacy_lz: LZ decoded length or token count mismatch
+  cmp: EOF on - which is empty
+  parity-rc=1
+
+The failure is retained for auditability. It was not used for any passing claim; only the focused in-tree native round trip is recorded as restoration coverage.

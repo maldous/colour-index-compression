@@ -1,0 +1,324 @@
+diff --git a/rust/cix-native/adapters/blosc2/include/cix_blosc2_adapter.h b/rust/cix-native/adapters/blosc2/include/cix_blosc2_adapter.h
+index d76c8f1b4..d9cb8fc42 100644
+--- a/rust/cix-native/adapters/blosc2/include/cix_blosc2_adapter.h
++++ b/rust/cix-native/adapters/blosc2/include/cix_blosc2_adapter.h
+@@ -11,11 +11,13 @@ extern "C" {
+ #define CIX_BLOSC2_ADAPTER_METADATA_V1 UINT8_C(1)
+ #define CIX_BLOSC2_ADAPTER_CODEC_VERSION UINT8_C(1)
+ 
+-/*
+- * Registers the explicitly configured CIX user codec with this process's
+- * Blosc2 registry.  This is intentionally explicit: applications choose when
+- * registration happens and the CMake configuration chooses the codec ID.
+- * Returns the upstream blosc2_register_codec result.
++/**
++ * @brief Registers the configured CIX user codec in this process's Blosc2 registry.
++ *
++ * Applications choose the registration point; the CMake configuration selects
++ * the codec ID.
++ *
++ * @return The result of `blosc2_register_codec()`.
+  */
+ #if defined(_WIN32)
+ # if defined(CIX_BLOSC2_BUILDING)
+diff --git a/rust/cix-native/adapters/gio/cix-gconverter.h b/rust/cix-native/adapters/gio/cix-gconverter.h
+index 85ba89027..8f588c4ca 100644
+--- a/rust/cix-native/adapters/gio/cix-gconverter.h
++++ b/rust/cix-native/adapters/gio/cix-gconverter.h
+@@ -4,8 +4,29 @@
+ G_BEGIN_DECLS
+ #define CIX_TYPE_GCONVERTER (cix_gconverter_get_type())
+ G_DECLARE_FINAL_TYPE(CixGConverter, cix_gconverter, CIX, GCONVERTER, GObject)
++
++/**
++ * cix_gconverter_new:
++ * @encoder: %TRUE for an encoder and %FALSE for a decoder
++ * @options: options passed to the native stream constructor
++ * @error: return location for a #GError, or %NULL
++ *
++ * Creates a #GConverter backed by one native CIX stream. The returned object
++ * owns that stream and is released with g_object_unref().
++ *
++ * Returns: (transfer full): a new converter, or %NULL after reporting
++ *   `G_IO_ERROR` when native stream creation fails.
++ */
+ CixGConverter *cix_gconverter_new(gboolean encoder, const cix_options_v1 *options, GError **error);
+-/* Thread-safe entry fence; an in-flight native codec call is not preempted.
+- * Keep the object alive while cancelling. reset clears cancellation. */
++
++/**
++ * cix_gconverter_cancel:
++ * @converter: a #CixGConverter that remains alive for the call
++ *
++ * Requests cancellation through an atomic entry fence. An in-flight native
++ * codec call is not preempted; a later conversion observes cancellation until
++ * the #GConverter reset operation clears it. This does not provide a general
++ * concurrent-use guarantee for the object.
++ */
+ void cix_gconverter_cancel(CixGConverter *converter);
+ G_END_DECLS
+diff --git a/rust/cix-native/adapters/rocksdb/cix_compression_manager.h b/rust/cix-native/adapters/rocksdb/cix_compression_manager.h
+index c0f1651a8..2123840cf 100644
+--- a/rust/cix-native/adapters/rocksdb/cix_compression_manager.h
++++ b/rust/cix-native/adapters/rocksdb/cix_compression_manager.h
+@@ -8,11 +8,38 @@
+ 
+ namespace rocksdb {
+ 
+-// Experimental, pinned to RocksDB v10.10.1 / commit 4595a5e.
++/**
++ * @brief Creates the experimental CIX manager pinned to RocksDB v10.10.1
++ * (commit 4595a5e).
++ *
++ * @param max_block_bytes Per-block admission cap, from 1 through 128 MiB.
++ * @return A manager on success, or `nullptr` for an invalid cap or allocation
++ * failure.
++ */
+ std::shared_ptr<CompressionManager> NewCixCompressionManagerV1(
+     size_t max_block_bytes = 64U << 20);
+-struct CixCompressionManagerStatsV1 { uint64_t encode_attempts, cix_blocks, raw_fallbacks, decode_attempts; };
+-bool GetCixCompressionManagerStatsV1(const std::shared_ptr<CompressionManager>&,
++
++/** @brief Independently loaded counters for a CIX compression manager. */
++struct CixCompressionManagerStatsV1 {
++  uint64_t encode_attempts;  ///< Compression callback attempts.
++  uint64_t cix_blocks;      ///< Blocks emitted with the CIX compression type.
++  uint64_t raw_fallbacks;   ///< Blocks emitted without CIX compression.
++  uint64_t decode_attempts; ///< Decompression callback attempts.
++};
++
++/**
++ * @brief Obtains a counter snapshot from a CIX manager.
++ *
++ * @param manager Manager to inspect; the caller retains its shared ownership.
++ * @param out Caller-owned destination written only when this function returns
++ * `true`.
++ * @return `true` for a compatible CIX manager and non-null @p out; otherwise
++ * `false`.
++ *
++ * The counters are atomic individual loads and may change while the manager is
++ * in use, so this is not a single coherent point-in-time aggregate.
++ */
++bool GetCixCompressionManagerStatsV1(const std::shared_ptr<CompressionManager>& manager,
+                                      CixCompressionManagerStatsV1* out);
+ 
+ }  // namespace rocksdb
+diff --git a/rust/cix-native/adapters/squashfs/kernel/include/cix_squashfs_kernel.h b/rust/cix-native/adapters/squashfs/kernel/include/cix_squashfs_kernel.h
+index a55e5d7da..b37d270dc 100644
+--- a/rust/cix-native/adapters/squashfs/kernel/include/cix_squashfs_kernel.h
++++ b/rust/cix-native/adapters/squashfs/kernel/include/cix_squashfs_kernel.h
+@@ -9,14 +9,30 @@
+ #define CIX_SQUASHFS_DATA_LIMIT (128 * 1024)
+ #define CIX_SQUASHFS_METADATA_LIMIT (8 * 1024)
+ 
++/**
++ * @brief Returns bytes required by the caller-owned profile decode workspace.
++ */
+ extern size_t cix_squashfs_profile_decode_workspace_size(void);
++
++/**
++ * @brief Decodes a complete bounded profile block without allocating.
++ *
++ * @param kind #CIX_SQUASHFS_KERNEL_DATA or #CIX_SQUASHFS_KERNEL_METADATA.
++ * @param src Input range that must not overlap @p dst or @p workspace.
++ * @param dst Caller-owned output range.
++ * @param workspace Caller-owned storage of at least
++ * cix_squashfs_profile_decode_workspace_size() bytes.
++ * @param written Caller-owned output length, valid after a zero result.
++ * @return Zero on success; a nonzero profile status otherwise.
++ */
+ extern int cix_squashfs_profile_decode_with_workspace(int kind, const u8 *src,
+ 	size_t src_len, u8 *dst, size_t dst_cap, void *workspace,
+ 	size_t workspace_len, size_t *written);
+ 
++/** @brief Kernel block classes used to select the portable profile limit. */
+ enum cix_squashfs_kernel_kind {
+-	CIX_SQUASHFS_KERNEL_DATA,
+-	CIX_SQUASHFS_KERNEL_METADATA,
++	CIX_SQUASHFS_KERNEL_DATA,      /**< Data or fragment limit: 128 KiB. */
++	CIX_SQUASHFS_KERNEL_METADATA,  /**< Metadata or xattr limit: 8 KiB. */
+ };
+ 
+ #endif
+diff --git a/rust/cix-native/adapters/squashfs/kernel/include/cix_squashfs_register.h b/rust/cix-native/adapters/squashfs/kernel/include/cix_squashfs_register.h
+index 2586ee44d..4656c1cd8 100644
+--- a/rust/cix-native/adapters/squashfs/kernel/include/cix_squashfs_register.h
++++ b/rust/cix-native/adapters/squashfs/kernel/include/cix_squashfs_register.h
+@@ -3,6 +3,18 @@
+ #define CIX_SQUASHFS_REGISTER_H
+ 
+ #include <linux/fs.h>
++
++/**
++ * @brief Registers @p fs under the private `cix_squashfs` filesystem name.
++ *
++ * @return The result from the kernel's register_filesystem().
++ */
+ int cix_squashfs_register_filesystem(struct file_system_type *fs);
++
++/**
++ * @brief Unregisters a filesystem previously registered by the kernel.
++ *
++ * @return The result from the kernel's unregister_filesystem().
++ */
+ int cix_squashfs_unregister_filesystem(struct file_system_type *fs);
+ #endif
+diff --git a/rust/cix-native/adapters/squashfs/profile/include/cix_squashfs_profile.h b/rust/cix-native/adapters/squashfs/profile/include/cix_squashfs_profile.h
+index 811cb6601..f80747adb 100644
+--- a/rust/cix-native/adapters/squashfs/profile/include/cix_squashfs_profile.h
++++ b/rust/cix-native/adapters/squashfs/profile/include/cix_squashfs_profile.h
+@@ -9,51 +9,87 @@
+ extern "C" {
+ #endif
+ 
++/** @brief Profile block class, which determines the decoded-size limit. */
+ enum cix_squashfs_profile_kind {
+-    CIX_SQUASHFS_DATA = 0,
+-    CIX_SQUASHFS_METADATA = 1
++    CIX_SQUASHFS_DATA = 0,     /**< Data or fragment block; limit is 131072 bytes. */
++    CIX_SQUASHFS_METADATA = 1  /**< Metadata or xattr block; limit is 8192 bytes. */
+ };
+ 
++/** @brief Result values returned by profile encode and decode operations. */
+ enum cix_squashfs_profile_status {
+-    CIX_SQUASHFS_OK = 0,
+-    CIX_SQUASHFS_NO_BENEFIT = 1,
+-    CIX_SQUASHFS_INVALID_ARGUMENT = 2,
+-    CIX_SQUASHFS_OUTPUT_TOO_SMALL = 3,
+-    CIX_SQUASHFS_MALFORMED = 4,
+-    CIX_SQUASHFS_LIMIT = 5
++    CIX_SQUASHFS_OK = 0,                /**< Operation completed. */
++    CIX_SQUASHFS_NO_BENEFIT = 1,        /**< Encoding cannot reduce the block. */
++    CIX_SQUASHFS_INVALID_ARGUMENT = 2,  /**< Pointer, range, kind, or workspace is invalid. */
++    CIX_SQUASHFS_OUTPUT_TOO_SMALL = 3,  /**< Destination cannot hold decoded output. */
++    CIX_SQUASHFS_MALFORMED = 4,         /**< Input is not one complete valid profile block. */
++    CIX_SQUASHFS_LIMIT = 5              /**< Declared decoded size exceeds the class limit. */
+ };
+ 
+-/* 131072 for data, 8192 for metadata, or zero for an invalid kind. */
++/**
++ * @brief Returns the decoded-input limit for @p kind.
++ *
++ * @return 131072 for data, 8192 for metadata, or zero for an invalid kind.
++ */
+ size_t cix_squashfs_profile_max_input(enum cix_squashfs_profile_kind kind);
+ 
+-/* Bytes and alignment needed by the caller-owned adaptive decode model. */
++/**
++ * @brief Returns the bytes required for a caller-owned adaptive decode model.
++ *
++ * The returned workspace must be suitably aligned for `uint32_t`.
++ */
+ size_t cix_squashfs_profile_decode_workspace_size(void);
+ 
+-/*
+- * `src` and `dst` must name non-overlapping ranges. `dst` must be at least
+- * src_len bytes. On success, written is smaller than src_len. NO_BENEFIT tells
+- * a SquashFS caller to store its input uncompressed. No heap allocation,
+- * process state, history, dictionary, or floating point is used. dst contents
+- * are unspecified unless this returns OK.
++/**
++ * @brief Encodes one block with the experimental profile.
++ *
++ * @param kind Block class that limits @p src_len.
++ * @param src Source range, which must not overlap @p dst.
++ * @param src_len Source bytes; @p dst must have capacity for this many bytes.
++ * @param dst Caller-owned destination.
++ * @param dst_cap Destination capacity.
++ * @param written Required caller-owned result length. If non-null, it is zeroed
++ * before validation; a null pointer returns #CIX_SQUASHFS_INVALID_ARGUMENT.
++ * @return #CIX_SQUASHFS_OK with `*written < src_len`, or
++ * #CIX_SQUASHFS_NO_BENEFIT for a caller to store the input uncompressed.
++ *
++ * This operation has no heap allocation, process state, history, dictionary,
++ * or floating-point dependency. Destination contents are unspecified unless it
++ * returns #CIX_SQUASHFS_OK.
+  */
+ int cix_squashfs_profile_encode(enum cix_squashfs_profile_kind kind,
+     const uint8_t *src, size_t src_len, uint8_t *dst, size_t dst_cap,
+     size_t *written);
+ 
+-/*
+- * Decodes one complete, non-overlapping profile block. written equals the
+- * declared length only on success.
++/**
++ * @brief Decodes one complete profile block using stack-local workspace.
++ *
++ * @param kind Block class used to enforce the decoded-size limit.
++ * @param src Complete encoded input, which must not overlap @p dst.
++ * @param src_len Encoded input length.
++ * @param dst Caller-owned destination.
++ * @param dst_cap Destination capacity.
++ * @param written Required caller-owned result length. If non-null, it is zeroed
++ * before validation and equals the declared length only on
++ * #CIX_SQUASHFS_OK; a null pointer returns #CIX_SQUASHFS_INVALID_ARGUMENT.
++ * @return A #cix_squashfs_profile_status value.
+  */
+ int cix_squashfs_profile_decode(enum cix_squashfs_profile_kind kind,
+     const uint8_t *src, size_t src_len, uint8_t *dst, size_t dst_cap,
+     size_t *written);
+ 
+-/*
+- * Equivalent to decode, but its adaptive model lives in `workspace`.  This is
+- * the kernel-safe entry point: workspace must have at least
+- * cix_squashfs_profile_decode_workspace_size() bytes and suitable uint32_t
+- * alignment.  The workspace must not overlap either src or dst.  It has no
+- * allocation and never retains the workspace.
++/**
++ * @brief Decodes one complete profile block using caller-owned workspace.
++ *
++ * @param workspace Adaptive model storage with at least
++ * cix_squashfs_profile_decode_workspace_size() bytes and `uint32_t` alignment.
++ * It must not overlap @p src or @p dst and is never retained.
++ * @param workspace_len Available workspace bytes.
++ * @param written Required caller-owned result length. If non-null, it is zeroed
++ * before validation; a null pointer returns #CIX_SQUASHFS_INVALID_ARGUMENT.
++ * @return A #cix_squashfs_profile_status value.
++ *
++ * The remaining parameters and successful output contract match
++ * cix_squashfs_profile_decode(). This entry point performs no allocation.
+  */
+ int cix_squashfs_profile_decode_with_workspace(
+     enum cix_squashfs_profile_kind kind, const uint8_t *src, size_t src_len,
+diff --git a/rust/cix-native/adapters/squashfs/userspace/include/cix_sqfs_userspace.h b/rust/cix-native/adapters/squashfs/userspace/include/cix_sqfs_userspace.h
+index 954762a86..482eed3f8 100644
+--- a/rust/cix-native/adapters/squashfs/userspace/include/cix_sqfs_userspace.h
++++ b/rust/cix-native/adapters/squashfs/userspace/include/cix_sqfs_userspace.h
+@@ -7,15 +7,31 @@
+ 
+ #define CIX_SQFS_EXPERIMENTAL_COMPRESSION_ID 65001u
+ 
++/** @brief SquashFS source block class supplied by the reader overlay. */
+ enum cix_sqfs_block_class {
+-    CIX_SQFS_BLOCK_DATA = 0,
+-    CIX_SQFS_BLOCK_FRAGMENT = 1,
+-    CIX_SQFS_BLOCK_METADATA = 2,
+-    CIX_SQFS_BLOCK_XATTR = 3
++    CIX_SQFS_BLOCK_DATA = 0,      /**< Regular data block. */
++    CIX_SQFS_BLOCK_FRAGMENT = 1,  /**< Fragment data block. */
++    CIX_SQFS_BLOCK_METADATA = 2,  /**< Metadata table block. */
++    CIX_SQFS_BLOCK_XATTR = 3      /**< Extended-attribute block. */
+ };
+ 
+-/* The source adapter must pass the superblock method and the real block class.
+- * It returns zero only after a complete bounded profile decode. */
++/**
++ * @brief Decodes one CIX experimental SquashFS compressed block.
++ *
++ * @param compression_id Superblock method; only
++ * #CIX_SQFS_EXPERIMENTAL_COMPRESSION_ID is accepted.
++ * @param block_class Actual source block class, which chooses the profile cap.
++ * @param compressed Input bytes for one complete compressed block.
++ * @param compressed_size Input length.
++ * @param output Caller-owned output range.
++ * @param output_capacity Output capacity.
++ * @param output_size Caller-owned destination for bytes decoded.
++ * @return Zero only after a complete bounded profile decode; `-1` for an
++ * unsupported method or class, invalid output-size destination, or profile
++ * decode failure.
++ *
++ * The adapter must pass the real superblock method and block class.
++ */
+ int cix_sqfs_userspace_decode(uint16_t compression_id,
+     enum cix_sqfs_block_class block_class, const void *compressed,
+     size_t compressed_size, void *output, size_t output_capacity,

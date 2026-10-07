@@ -1,0 +1,36 @@
+19:12:33.548 INFO  Scanner configuration file: /opt/sonar-scanner/conf/sonar-scanner.properties
+19:12:33.549 INFO  Project root configuration file: /out/properties
+19:12:33.556 INFO  SonarScanner CLI 8.1.0.6389
+19:12:33.558 INFO  Linux 6.8.0-142-generic amd64
+19:12:34.017 INFO  Communicating with SonarQube Community Build 26.9.0.129388
+19:12:34.017 INFO  JRE provisioning: os[linux], arch[x86_64]
+19:12:34.321 INFO  EXECUTION FAILURE
+19:12:34.322 INFO  Total time: 0.779s
+19:12:34.322 ERROR Error during SonarScanner CLI execution
+java.lang.IllegalStateException: Failed to extract archive
+	at org.sonarsource.scanner.lib.internal.facade.forked.JavaRunnerFactory.extractArchive(JavaRunnerFactory.java:203)
+	at org.sonarsource.scanner.lib.internal.facade.forked.JavaRunnerFactory.getJreFromServer(JavaRunnerFactory.java:148)
+	at org.sonarsource.scanner.lib.internal.facade.forked.JavaRunnerFactory.createRunner(JavaRunnerFactory.java:88)
+	at org.sonarsource.scanner.lib.internal.facade.forked.ScannerEngineLauncherFactory.createLauncher(ScannerEngineLauncherFactory.java:61)
+	at org.sonarsource.scanner.lib.ScannerEngineBootstrapper.buildNewFacade(ScannerEngineBootstrapper.java:196)
+	at org.sonarsource.scanner.lib.ScannerEngineBootstrapper.bootstrapServer(ScannerEngineBootstrapper.java:176)
+	at org.sonarsource.scanner.lib.ScannerEngineBootstrapper.bootstrap(ScannerEngineBootstrapper.java:151)
+	at org.sonarsource.scanner.cli.Main.analyze(Main.java:76)
+	at org.sonarsource.scanner.cli.Main.main(Main.java:64)
+Caused by: java.io.IOException: No space left on device
+	at java.base/sun.nio.ch.UnixFileDispatcherImpl.write0(Native Method)
+	at java.base/sun.nio.ch.UnixFileDispatcherImpl.write(UnixFileDispatcherImpl.java:65)
+	at java.base/sun.nio.ch.IOUtil.writeFromNativeBuffer(IOUtil.java:137)
+	at java.base/sun.nio.ch.IOUtil.write(IOUtil.java:102)
+	at java.base/sun.nio.ch.IOUtil.write(IOUtil.java:72)
+	at java.base/sun.nio.ch.FileChannelImpl.write(FileChannelImpl.java:300)
+	at java.base/sun.nio.ch.ChannelOutputStream.writeFully(ChannelOutputStream.java:68)
+	at java.base/sun.nio.ch.ChannelOutputStream.write(ChannelOutputStream.java:105)
+	at java.base/java.io.InputStream.transferTo(InputStream.java:797)
+	at java.base/java.nio.file.Files.copy(Files.java:3164)
+	at org.sonarsource.scanner.lib.internal.util.CompressionUtils.extractTarGz(CompressionUtils.java:146)
+	at org.sonarsource.scanner.lib.internal.facade.forked.JavaRunnerFactory.extract(JavaRunnerFactory.java:237)
+	at org.sonarsource.scanner.lib.internal.facade.forked.JavaRunnerFactory.extractArchive(JavaRunnerFactory.java:196)
+	... 8 common frames omitted
+19:12:34.322 ERROR 
+19:12:34.322 ERROR Re-run SonarScanner CLI using the -X switch to enable full debug logging.

@@ -1,0 +1,66 @@
+DEFLATE-CONTAINER-TRANSFER-V1 — WHOLE ZIP DCP TRANSFER SCREEN
+2026-10-04
+
+Purpose and selected existing asset
+-----------------------------------
+This screen tests whether the retained gzip DEFLATE predictor/correction idea
+transfers to a real ZIP container without discarding ZIP framing. Existing local
+asset inspection found only two ZIP/PNG-suffix candidates: upstream.zip at
+731,518 B and silesia.zip at 67,633,896 B; no PNG was present under
+benchmark-work. The predeclared small-asset preference selected only:
+
+  benchmark-work/references/cmix-v21/upstream.zip
+  731,518 B compressed; 2,231,947 B aggregate inflated; SHA-256
+  8fd46731ed0125707021c2db4feb24179617b3993b735c335f2e0b3c00e5a0dc
+
+It contains 89 entries: 78 raw-DEFLATE members (716,820 B total compressed)
+and 11 stored members. No selected member uses a ZIP data descriptor.
+
+Representation and correctness
+------------------------------
+ZTI1 preserves every original ZIP byte outside selected raw-DEFLATE member
+spans, in its original order. Each selected member is stored as the retained
+DCP1 reference-predictor/correction representation using the corrected
+stored-block offset generator. ZTP1 is ASCII "ZTP1" plus xz-preset-1 coding of
+the complete ZTI1 byte stream. It therefore charges untouched local headers,
+stored members, central directory, comments/gaps if any, stream boundaries and
+every predictor/correction byte.
+
+The decoder regenerates each raw-DEFLATE stream, concatenates it with the
+preserved bytes, and emits the original ZIP bytes. A constructed two-member ZIP
+with one nonempty stored and one DEFLATE member was used only to validate mixed
+container handling; it restored exactly. On the real input, ZTP1 passed a fresh
+Python-process inverse using only the ZTP1 payload and expected SHA-256. The
+rebuilt ZIP has 89 entries, 2,231,947 inflated bytes and Python zipfile.testzip
+accepted every member.
+
+Measured complete-container results
+-----------------------------------
+  original ZIP                         731,518 B
+  ZBZ1 + whole ZIP zlib-9              714,529 B  (-16,989 B; -2.322%)
+  ZBX1 + whole ZIP xz-1                714,344 B  (-17,174 B; -2.348%)
+  raw ZTI1                           2,922,241 B
+  ZTP1 complete                      1,367,164 B  (+635,646 B; +86.894%)
+
+The format-aware DCP transfer is not competitive here. The corresponding
+reference token accounting is 178,676 same-as-reference predictions (24.324%
+of non-end tokens), 328,717 plaintext-derived literals (44.750%), 227,176
+explicit matches (30.926%) and 157 end markers. The archive's many independent
+members do not reproduce the historical gzip setup closely enough for the
+fixed predictor to make corrections cheap.
+
+Resource record and interpretation
+----------------------------------
+The fixed screen used one CPU on core 10, 12.66 seconds wall, 12.54 seconds
+user CPU, 206,016 KiB peak resident memory and zero swaps. Its limits were
+90 seconds, 1 GB address space and 256 MB output. The complete ZTP1 payload is
+SHA-256 7fdbfcc34a7df6a1d6b7cb3de9bb52ca3769da6407a1e4f88e263894eea81ce5.
+Machine-readable results.json and resources.txt are preserved beside this
+report; the binary remains in benchmark-work.
+
+Retain the demonstrated gzip DCP2 result as its own narrow candidate, but close
+this fixed per-member ZIP transfer on upstream.zip. The small whole-ZIP xz
+control is a generic outer-wrapper observation, not evidence for a DCP route.
+Any later ZIP research needs a predeclared portable predictor/control designed
+for independent entries and must compete with complete-container controls; do
+not promote this transfer screen into CIX.

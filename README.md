@@ -1,5 +1,20 @@
 # Colour/Index Compression Research
 
+## Local research checkpoint
+
+Research computation runs locally; do not trigger GitHub Actions. The verified
+2026-09-28 checkpoint and remaining corpus gates are in
+[the local research report](docs/research/2026-09-28-local.md).
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -e '.[dev,fast-bwt,benchmarks]'
+OMP_NUM_THREADS=1 .venv/bin/python -m pytest -q --timeout=45
+```
+
+New streams use `CIXM6` for the count-vector portfolio. The current decoder also
+reads `CIXM5`; older decoders need upgrading to read `CIXM6`.
+
 CIX is an experimental **universal, lossless, streaming compressor**. The canonical
 direction is direct 256-symbol multinomial/type-class coding combined with generic
 byte-statistical models.

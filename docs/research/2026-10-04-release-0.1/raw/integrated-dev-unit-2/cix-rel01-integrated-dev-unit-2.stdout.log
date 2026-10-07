@@ -1,0 +1,37 @@
+
+==================================== ERRORS ====================================
+______________ ERROR collecting runtime/tests/test_chemical_db.py ______________
+ImportError while importing test module '/home/user/src/colour-index-compression/runtime/tests/test_chemical_db.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../runtime/tests/test_chemical_db.py:3: in <module>
+    from runtime.cix_runtime.legacy import chemical_db
+../../../../../runtime/cix_runtime/legacy/chemical_db.py:15: in <module>
+    from . import sdf_geometry as geometry
+../../../../../runtime/cix_runtime/legacy/sdf_geometry.py:8: in <module>
+    from .multinomial import vencode, vdecode, encode_type_class, decode_type_class
+E   ImportError: cannot import name 'encode_type_class' from 'runtime.cix_runtime.legacy.multinomial' (/home/user/src/colour-index-compression/runtime/cix_runtime/legacy/multinomial.py)
+______________ ERROR collecting runtime/tests/test_image_grid.py _______________
+ImportError while importing test module '/home/user/src/colour-index-compression/runtime/tests/test_image_grid.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../runtime/tests/test_image_grid.py:1: in <module>
+    from runtime.cix_runtime.legacy import image_grid
+../../../../../runtime/cix_runtime/legacy/image_grid.py:2: in <module>
+    from ..image_grid import catalog, DECODERS
+../../../../../runtime/cix_runtime/image_grid.py:6: in <module>
+    from .legacy import record_float_grid as grid, grid_backend, grid_feedback, grid_interval, grid_context, grid_conditional, grid_grouped
+../../../../../runtime/cix_runtime/legacy/record_float_grid.py:13: in <module>
+    from .multinomial import (vencode,vdecode,encode_type_class,decode_type_class,
+E   ImportError: cannot import name 'encode_type_class' from 'runtime.cix_runtime.legacy.multinomial' (/home/user/src/colour-index-compression/runtime/cix_runtime/legacy/multinomial.py)
+=========================== short test summary info ============================
+ERROR ../../../../../runtime/tests/test_chemical_db.py
+ERROR ../../../../../runtime/tests/test_image_grid.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+2 errors in 0.10s

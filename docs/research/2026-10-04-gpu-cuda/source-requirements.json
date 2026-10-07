@@ -1,0 +1,43 @@
+{
+  "schema": "cix.gpu-cuda-distribution-requirements.v1",
+  "recorded_at": "2026-10-04",
+  "scope": "research/design only; no implementation, installation, workload, benchmark, driver change, or release commitment",
+  "base_product": {
+    "cpu_only_default": true,
+    "normal_install_requires_cuda_driver": false,
+    "normal_install_requires_cuda_toolkit": false,
+    "normal_install_requires_gpu": false,
+    "cpu_decode_required_for_default_archives": true
+  },
+  "must_have_if_gpu_route_ships": [
+    "explicit gpu auto/off/required capability policy with explainable fallback",
+    "Stable wire-format identity and required framing; no new archive ID/metadata solely for a byte-compatible hardware accelerator",
+    "bounded host input/output and GPU VRAM/scratch/staging admission",
+    "Host framing/bounds plus actual malformed-payload safety evidence; trusted-input-only GPU decompressors cannot silently become general archive decoders",
+    "typed unavailable/unsupported/omitted/cancelled/backend-failed outcomes",
+    "device-context, stream, concurrency and cooperative-cancellation ownership contract",
+    "CPU decoder or explicitly distributed CIX decoder for every non-standard GPU payload",
+    "reproducible link/dependency/architecture manifest and selected-release license review",
+    "CPU-only and GPU-present CI/package/install tests without making GPU mandatory"
+  ],
+  "research_questions": [
+    "end-to-end throughput after transfer, setup, staging and final framing",
+    "block size and input classes that genuinely admit independent GPU work",
+    "standard-codec versus GPU-private format trade-offs",
+    "measured VRAM, host memory, cancellation latency and multi-device behavior"
+  ],
+  "external_dependencies": [
+    "NVIDIA driver, CUDA runtime/toolkit and nvCOMP release-specific support and redistribution terms",
+    "Windows CUDA/MSVC runtime packaging",
+    "AMD hipCOMP is early-access and not a release dependency",
+    "macOS has no current CUDA/nvCOMP add-on target"
+  ],
+  "current_disposition": "Research candidates and conditional requirements recorded; no GPU implementation promoted, CPU-capable base distribution retained",
+  "source_naming": "First-party modules named for mechanisms (e.g. block_sort, entropy_parallel, device_provider), no corpus or presumed semantic-domain names; third-party identities remain exact",
+  "sources": [
+    "https://docs.nvidia.com/cuda/nvcomp/installation.html",
+    "https://docs.nvidia.com/cuda/nvcomp/license.html",
+    "https://docs.nvidia.com/cuda/nvcomp/release_notes.html",
+    "https://github.com/ROCm/hipCOMP-core"
+  ]
+}

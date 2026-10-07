@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/hadoop-host-v1/run.py", line 10, in <module>
+    run(['/usr/lib/jvm/java-21-openjdk-amd64/bin/javac','--release','17','-cp',cp,'-d',classes,*files])
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/hadoop-host-v1/run.py", line 8, in run
+    if p.returncode:raise RuntimeError(p.stderr[-4000:] or p.stdout[-4000:])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-source-v1/adapters/hadoop/src/main/java/dev/cix/hadoop/CixCodec.java:126: error: method does not override or implement a method from a supertype
+        @Override public boolean needsDictionary() { return false; }
+        ^
+/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/hadoop-source-v1/adapters/hadoop/src/main/java/dev/cix/hadoop/CixCodec.java:231: error: method does not override or implement a method from a supertype
+        @Override public synchronized void reinit(Configuration ignored) { reset(); }
+        ^
+2 errors
+

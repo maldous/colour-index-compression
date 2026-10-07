@@ -1,0 +1,4 @@
+Remaining actual CLI and focused library test qualification.
+
+Source/build/baseCLI/Brotli positives from V4 remain source-bound prior evidence. Reuse exact V4 CIX binary, correct only NEW nested PAQ fixture offsets12-17 according to existing historical/native CIXP format; preserve old rawmember frame as negative. The old physical PAQ harness demonstrated transform+rawpayload, not historical nested PAQ frame compatibility.
+Run corrected PAQ exact restore, original badCRC and oldrawPAQ negatives, then exact fullcfgtest libtest with unchanged334sources/169fixtures/providers. No fullCLI rebuild/base repetition/product source changes.170MB bounded scratch/167earlystop+18export+2outer,190TOTAL includesprep. Execution requires separate execution-admission.json and frozen execution-inputs. No automatic launch from preparation.

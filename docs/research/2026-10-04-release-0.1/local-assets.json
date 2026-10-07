@@ -1,0 +1,188 @@
+{
+  "schema": "cix.release-0.1.local-assets.v1",
+  "generated_at": "2026-10-04T00:00:00+11:00",
+  "purpose": "Authoritative input inventory for the release-build benchmark. A listed asset is an original input, never a prior archive, transformed stream, research slice, log, source checkout, or resume artifact.",
+  "root_policy": {
+    "research_slices": "EXCLUDED",
+    "archives_and_prior_outputs": "EXCLUDED",
+    "source_checkouts_and_build_products": "EXCLUDED",
+    "exact_duplicate_policy": "Run one canonical path only; preserve aliases only as provenance.",
+    "all_runs_require": ["fresh release binary", "fresh independent decode", "source and restored SHA-256 equality", "FAST, DEFAULT, and BEST measured separately"]
+  },
+  "inventory": [
+    {
+      "id": "canterbury-11",
+      "kind": "standard-corpus",
+      "root": "/home/user/src/colour-index-compression/benchmark-work/canterbury",
+      "selection": "all files in root",
+      "members": ["alice29.txt", "asyoulik.txt", "cp.html", "fields.c", "grammar.lsp", "kennedy.xls", "lcet10.txt", "plrabn12.txt", "ptt5", "sum", "xargs.1"],
+      "member_count": 11,
+      "total_bytes": 2810784,
+      "official_source": "https://corpus.canterbury.ac.nz/descriptions/",
+      "status": "READY",
+      "benchmark_reporting": "aggregate and per-member"
+    },
+    {
+      "id": "calgary-14",
+      "kind": "standard-corpus",
+      "root": "/home/user/src/colour-index-compression/benchmark-work/calgary",
+      "members": ["bib", "book1", "book2", "geo", "news", "obj1", "obj2", "paper1", "paper2", "pic", "progc", "progl", "progp", "trans"],
+      "member_count": 14,
+      "total_bytes": 3122304,
+      "official_source": "https://corpus.canterbury.ac.nz/descriptions/",
+      "status": "READY",
+      "benchmark_reporting": "aggregate and per-member"
+    },
+    {
+      "id": "calgary-legacy-paper3-to-paper6",
+      "kind": "legacy-extra-members",
+      "root": "/home/user/src/colour-index-compression/benchmark-work/calgary",
+      "members": ["paper3", "paper4", "paper5", "paper6"],
+      "member_count": 4,
+      "total_bytes": 111871,
+      "official_source": "https://corpus.canterbury.ac.nz/descriptions/",
+      "status": "READY_NONCANONICAL",
+      "benchmark_reporting": "per-member only; exclude from Calgary-14 aggregate because the corpus publisher identifies these as removed legacy files"
+    },
+    {
+      "id": "canterbury-artificial-4",
+      "kind": "pathology-corpus",
+      "root": "/home/user/src/colour-index-compression/benchmark-work/artificial",
+      "members": ["a.txt", "aaa.txt", "alphabet.txt", "random.txt"],
+      "member_count": 4,
+      "total_bytes": 300001,
+      "official_source": "https://corpus.canterbury.ac.nz/descriptions/",
+      "status": "READY",
+      "benchmark_reporting": "per-member only; the corpus publisher says no overall average is meaningful"
+    },
+    {
+      "id": "silesia-12",
+      "kind": "standard-corpus",
+      "root": "/home/user/src/colour-index-compression/benchmark-work/silesia",
+      "members": ["dickens", "mozilla", "mr", "nci", "ooffice", "osdb", "reymont", "samba", "sao", "webster", "x-ray", "xml"],
+      "member_count": 12,
+      "total_bytes": 211938580,
+      "identity_manifest": "results/silesia-manifest.json",
+      "official_source": "https://mattmahoney.net/dc/silesia.html",
+      "status": "READY",
+      "benchmark_reporting": "aggregate and per-member"
+    },
+    {
+      "id": "fcbench-ready-25",
+      "kind": "floating-point-lossless-benchmark",
+      "root": "/home/user/cix-datasets/originals/fcbench",
+      "member_selector": {
+        "manifest": "/home/user/cix-datasets/manifests/dataset-preparation-2026-09-30.json",
+        "manifest_sha256": "f7916bdf0aa31eb1f2f038bb6378b7201f06176fcbd2c680abbde877638fb0f4",
+        "object": "opportunities.fcbench.files",
+        "status": "READY"
+      },
+      "member_count": 25,
+      "total_bytes": 15049858080,
+      "largest_member": {"name": "miranda3d_f32", "bytes": 4294967296},
+      "official_source": "https://github.com/hpdps-group/FCBench",
+      "status": "READY",
+      "benchmark_reporting": "per-member and domain subtotal; no unweighted cross-domain aggregate",
+      "note": "The source manifest records 33 planned FCBench assets: 25 READY, seven MISSING database assets, and one SIZE_MISMATCH asset. Only READY entries are benchmark inputs."
+    },
+    {
+      "id": "compression-golf-training-jsonl",
+      "kind": "training-data-only",
+      "path": "/home/user/cix-datasets/originals/compression-golf/data.json",
+      "bytes": 200727388,
+      "sha256": "a6a127492afedb539800e9716ef1c5e3659e7e9922613a59fd4d2f8c1e507064",
+      "official_source": "https://github.com/agavra/compression-golf",
+      "status": "READY_NONQUALIFYING",
+      "benchmark_reporting": "per-input only; no public evaluation asset was released at the pinned source revision"
+    },
+    {
+      "id": "baseline-inputs-5",
+      "kind": "complete-primary-inputs",
+      "root": "/home/user/src/cix-baseline-data/inputs",
+      "members": [
+        {"name": "harness-smoke.bin", "bytes": 1548, "sha256": "3470bf47f63e3a227e470db48b76557296b75d4e3b4427bc51ceb8ac889b880e"},
+        {"name": "backup_1GB", "bytes": 1000000000, "sha256": "ca3c53465568b36c6b160fe9adfea51cc72f7f81b0c8d38a1961e579175dab63"},
+        {"name": "text8", "bytes": 100000000, "sha256": "6e890197040d37d85beb962ae1f041ff1d9a9ca8d20c7d99c85027eebf51dca7"},
+        {"name": "enwik8", "bytes": 100000000, "sha256": "2b49720ec4d78c3c9fabaee6e4179a5e997302b3a70029f30f2d582218c024a8", "md5": "a1fa5ffddb56f4953e226637dabbb36a", "official_identity_source": "https://mattmahoney.net/dc/textdata.html"},
+        {"name": "enwik9", "bytes": 1000000000, "sha256": "159b85351e5f76e60cbe32e04c677847a9ecba3adc79addab6f4c6c7aa3744bc", "md5": "e206c3450ac99950df65bf70ef61a12d", "official_identity_source": "https://mattmahoney.net/dc/textdata.html"}
+      ],
+      "member_count": 5,
+      "total_bytes": 2200001548,
+      "status": "READY",
+      "benchmark_reporting": "per-input only; enwik8 and enwik9 must retain their established benchmark identities, and backup_1GB is a distinct local asset rather than an assumed alias"
+    },
+    {
+      "id": "stored-primary-sra-1",
+      "kind": "stored-primary-scientific-data",
+      "root": "/home/user/src/cix-baseline-data/sources",
+      "members": [{"name": "ERR7091247.sra", "bytes": 242333315, "sha256": "2fe9f63183a778019cf341f511544227cdbc738b690e72fdfc55b8e847430800"}],
+      "member_count": 1,
+      "total_bytes": 242333315,
+      "status": "READY_AS_STORED",
+      "benchmark_reporting": "per-input stored SRA bytes only; it is not an extracted FASTQ comparison."
+    },
+    {
+      "id": "baseline-acquisition-and-tool-containers-21",
+      "kind": "acquisition-containers-and-tool-source",
+      "root": "/home/user/src/cix-baseline-data/sources",
+      "members": [
+        {"name":"enwik8.zip","reason":"transport duplicate of canonical enwik8"},{"name":"enwik9.zip","reason":"transport duplicate of canonical enwik9"},{"name":"text8.zip","reason":"transport duplicate of local text8"},{"name":"brotli-1.2.0.tar.gz","reason":"tool source archive"},{"name":"zpaq715.zip","reason":"tool archive"},
+        {"name":"train-images-idx3-ubyte.gz","reason":"acquisition container; extracted identity not declared"},{"name":"DNACorpus.zip","reason":"acquisition container; extracted identity not declared"},{"name":"ERR7091247-ncbi-download","reason":"compressed acquisition transport"},{"name":"dev-clean.tar.gz","reason":"acquisition container"},{"name":"cifar-10-python.tar.gz","reason":"acquisition container"},{"name":"LJSpeech-1.1.tar.bz2","reason":"acquisition container"},{"name":"t10k-images-idx3-ubyte.gz","reason":"acquisition container"},{"name":"enwiki-20260901-pages-articles-multistream.xml.bz2","reason":"downloaded Wikipedia acquisition container, not canonical enwik input"},{"name":"B2003699_AA.fq.gz","reason":"acquisition container"},{"name":"speech_commands_v0.01.tar.gz","reason":"acquisition container"},{"name":"ILSVRC2012_img_train_t3.tar","reason":"acquisition container"},{"name":"ESC-50-33c8ce9eb2cf0b1c2f8bcf322eb349b6be34dbb6.zip","reason":"acquisition container"},{"name":"rgb8bit.zip","reason":"acquisition container"},{"name":"nnlcb-backup-download.bin","reason":"download transport with undeclared raw identity"},{"name":"bookcorpus.tar.bz2","reason":"acquisition container"},{"name":"ERR7091247.fastq.gz","reason":"acquisition container; raw FASTQ identity not declared"}
+      ],
+      "member_count": 21,
+      "total_bytes": 40485965265,
+      "status": "EXCLUDED_ACQUISITION_CONTAINER",
+      "benchmark_reporting": "excluded from release measurement; retain provenance only."
+    },
+    {
+      "id": "squash-fixtures-4",
+      "kind": "complete-primary-fixtures",
+      "root": "/home/user/src/colour-index-compression/benchmark-work/squash-fixtures",
+      "members": [
+        {"name": "fireworks.jpeg", "bytes": 123093, "sha256": "93b986ce7d7e361f0d3840f9d531b5f40fb6ca8c14d6d74364150e255f126512"},
+        {"name": "geo.protodata", "bytes": 118588, "sha256": "7c2875cd6d06c954240ba644618d1e1f2a167e4541731f019de5b4c1f8080f24"},
+        {"name": "paper-100k.pdf", "bytes": 102400, "sha256": "60f73a051b7ca35bfec44734b2eed7736cb5c0b7f728beb7b97ade6c5e44849b"},
+        {"name": "urls.10K", "bytes": 702087, "sha256": "0319ce7fe1f51b14eace3de879fe7da15418d1525d3176c2b26c5985943a3cad"}
+      ],
+      "member_count": 4,
+      "total_bytes": 1046168,
+      "status": "READY",
+      "benchmark_reporting": "per-fixture only; record their Squash-fixture provenance rather than claiming a corpus leaderboard"
+    },
+    {
+      "id": "domain-transfer-primary-assets-9",
+      "kind": "complete-primary-inputs",
+      "root": "/home/user/src/colour-index-compression/docs/research/2026-09-30-domain-transfer",
+      "members": [
+        {"name": "pubchem-2d-development-batch", "path": "assets/pubchem-2d-batch/pubchem-2d-cids-1983-2244-2519-3672-5793-5950-681-702.sdf", "bytes": 29088, "sha256": "a337dc43a915618cb2e57ef7e419eb9466ed292deccb3ec875e9049f07c50d1e", "official_source_pattern": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/record/SDF/?record_type=2d"},
+        {"name": "pubchem-2d-replication-batch", "path": "assets/pubchem-2d-replication/pubchem-2d-cids-176-180-239-280-6276-6322-784-887.sdf", "bytes": 20204, "sha256": "b2914cdddcfec16a52acd947cbcf38108c917bcb71817e63fd81cbf716ad195f", "official_source_pattern": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/record/SDF/?record_type=2d"},
+        {"name": "pubchem-3d-batch", "path": "assets/pubchem-3d-batch/pubchem-3d-cids-1983-2244-2519-3672-5793-5950-681-702.sdf", "bytes": 29663, "sha256": "3573383c76595b726b49f3e8fec1a87ba8f248f606c3ac1240af37c22ebc3ce3", "official_source_pattern": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/record/SDF/?record_type=3d"},
+        {"name": "noaa-water-level-san-francisco-202401", "path": "assets/noaa-water-level-202401.csv", "bytes": 288885, "sha256": "bd61d79fa90e4fe0817c9d702a7138c640c7e6ded5a0515e10a9fac13e4f1e97", "official_source": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=20240101&end_date=20240131&station=9414290&product=water_level&datum=MLLW&time_zone=gmt&units=metric&format=csv"},
+        {"name": "noaa-water-level-seattle-202401", "path": "assets/noaa-water-level-202401-seattle.csv", "bytes": 288330, "sha256": "628cbe421f90e9f8453e87fba1ef6cc16a981c94475093b1f42f8bb8a3b2fa4f", "official_source": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=20240101&end_date=20240131&station=9447130&product=water_level&datum=MLLW&time_zone=gmt&units=metric&format=csv"},
+        {"name": "nibabel-example4d-nifti", "path": "assets/nibabel-example4d.nii", "bytes": 1180064, "sha256": "8fae297077c65d14149c9f6f0c0dc4ac896a7f54d7456d6b2abc31e487c9e7c5", "official_source": "https://raw.githubusercontent.com/nipy/nibabel/master/nibabel/tests/data/example4d.nii.gz"},
+        {"name": "system-strip-elf", "path": "input/strip-0d980587ada7.bin", "bytes": 166568, "sha256": "0d980587ada7ab12193f39271f060d5663aa2f289b0e80d2a0274ce7306e4e42", "provenance": "copy of /usr/bin/x86_64-linux-gnu-strip on the research host; ELF64 x86-64"},
+        {"name": "uci-adult-first2048-nonblank", "path": "database-data/uci-adult-first2048-nonblank.data", "bytes": 249655, "sha256": "316d82801c2325d83a54b1858d69c278214cdad6ad9225098cb576f342221cf5", "official_source": "https://archive.ics.uci.edu/dataset/2/adult", "status": "READY_SUBSET"},
+        {"name": "world-bank-population-usa-can", "path": "database-data/worldbank-population-usa-can.csv", "bytes": 2244, "sha256": "a2b1f9fd989d69410e425e478d7d2f24f80bed265d67049ee2febaa7c2bd4bee", "status": "READY", "source_status": "LOCAL_PROVENANCE_NOT_RECONSTRUCTED; do not attach an external record or claim a current upstream snapshot"}
+      ],
+      "member_count": 9,
+      "total_bytes": 2254701,
+      "status": "READY_WITH_DECLARED_SUBSET",
+      "benchmark_reporting": "per-input only; Adult is an explicitly bounded 2,048-row subset, while PubChem batches are the canonical concatenated response assets. Do not generalize any result to the source collections."
+    }
+  ],
+  "excluded_local_material": [
+    {"kind": "predictive-information and other research slices", "reason": "not complete source assets"},
+    {"kind": "FCBench nyc_taxi2015_f64", "reason": "source manifest status SIZE_MISMATCH"},
+    {"kind": "seven FCBench database assets", "reason": "source manifest status MISSING"},
+    {"kind": "FCBench interrupted astro_pt resume artifact", "reason": "archive/resume artifact, not an original input"},
+    {"kind": "Hutter smoke files under benchmark-work/cix-hutter-qualification", "reason": "6,425-byte smoke material, not the complete canonical enwik9 input; the complete 1,000,000,000-byte enwik9 input is listed in baseline-inputs-5"},
+    {"kind": "domain-transfer acquisition containers and component duplicates", "reason": "NIfTI gzip and UCI/World Bank ZIP acquisition transports are excluded in favour of the extracted original bytes; individual PubChem component and inspection SDFs are represented by their canonical batch assets"},
+    {"kind": "GDCC and raw astronomical challenge material", "reason": "dataset preparation manifest records unavailable or withheld inputs"}
+  ],
+  "deduplication_notes": [
+    "Canterbury ptt5 and Calgary pic are byte-identical but remain separately labelled standard-corpus members; benchmark reports must retain both labels and must not sum them into an invented cross-corpus aggregate.",
+    "The gzip Compression Golf training archive and its decompressed JSONL are the same content in different representations; only the original JSONL is eligible here.",
+    "The domain-transfer PubChem batch files are retained as complete response batches. Their component responses, one-off inspection copies, and acquisition containers are not additional inputs.",
+    "FCBench source-checkout copies, Docker copies, VCS object packs, libraries, and downloaded archives are not benchmark assets."
+  ]
+}

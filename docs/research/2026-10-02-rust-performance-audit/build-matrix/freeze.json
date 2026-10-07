@@ -1,0 +1,111 @@
+{
+  "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+  "cpus": "20,22",
+  "fixture_root": "/home/user/src/colour-index-compression",
+  "kernel": "Linux-6.8.0-138-generic-x86_64-with-glibc2.39",
+  "memory_bytes": 2000000000,
+  "pgo": {
+    "llvm_profdata": "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-profdata",
+    "reason": "requires separately frozen, disjoint CCA train/evaluation split",
+    "status": "not-run"
+  },
+  "repetitions": 5,
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8",
+  "schema": "cix-build-matrix-v1",
+  "source_revision": "15426f310f40b9a3d753313741c28e718f7aceb6",
+  "temporary_bytes": 1000000000,
+  "variants": [
+    {
+      "flags": {
+        "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": "1",
+        "CARGO_PROFILE_RELEASE_LTO": "fat",
+        "CARGO_PROFILE_RELEASE_OPT_LEVEL": "3",
+        "RUSTFLAGS": "-C target-cpu=x86-64"
+      },
+      "name": "portable-opt3-fat-cgu1"
+    },
+    {
+      "flags": {
+        "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": "16",
+        "CARGO_PROFILE_RELEASE_LTO": "false",
+        "CARGO_PROFILE_RELEASE_OPT_LEVEL": "2",
+        "RUSTFLAGS": "-C target-cpu=x86-64"
+      },
+      "name": "portable-opt2-none-cgu16"
+    },
+    {
+      "flags": {
+        "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": "16",
+        "CARGO_PROFILE_RELEASE_LTO": "false",
+        "CARGO_PROFILE_RELEASE_OPT_LEVEL": "3",
+        "RUSTFLAGS": "-C target-cpu=x86-64"
+      },
+      "name": "portable-opt3-none-cgu16"
+    },
+    {
+      "flags": {
+        "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": "16",
+        "CARGO_PROFILE_RELEASE_LTO": "thin",
+        "CARGO_PROFILE_RELEASE_OPT_LEVEL": "3",
+        "RUSTFLAGS": "-C target-cpu=x86-64"
+      },
+      "name": "portable-opt3-thin-cgu16"
+    },
+    {
+      "flags": {
+        "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": "16",
+        "CARGO_PROFILE_RELEASE_LTO": "fat",
+        "CARGO_PROFILE_RELEASE_OPT_LEVEL": "3",
+        "RUSTFLAGS": "-C target-cpu=x86-64"
+      },
+      "name": "portable-opt3-fat-cgu16"
+    },
+    {
+      "flags": {
+        "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": "1",
+        "CARGO_PROFILE_RELEASE_LTO": "fat",
+        "CARGO_PROFILE_RELEASE_OPT_LEVEL": "3",
+        "RUSTFLAGS": "-C target-cpu=native"
+      },
+      "name": "native-opt3-fat-cgu1"
+    }
+  ],
+  "workloads": [
+    {
+      "flags": [
+        "--fast",
+        "--threads",
+        "1"
+      ],
+      "input": "/home/user/src/colour-index-compression/benchmark-work/canterbury/kennedy.xls",
+      "label": "fast-kennedy",
+      "qualification": "ordinary FAST",
+      "sha256": "9af47239ca29dfe20e633f80bbbb9a4cc9783d0803d7b2b5626f42e4c3790420"
+    },
+    {
+      "flags": [
+        "--threads",
+        "1"
+      ],
+      "input": "/home/user/src/colour-index-compression/benchmark-work/canterbury/kennedy.xls",
+      "label": "default-kennedy",
+      "qualification": "ordinary DEFAULT",
+      "sha256": "9af47239ca29dfe20e633f80bbbb9a4cc9783d0803d7b2b5626f42e4c3790420"
+    },
+    {
+      "flags": [
+        "--best",
+        "--format",
+        "cixg1",
+        "--route",
+        "lz",
+        "--threads",
+        "1"
+      ],
+      "input": "/home/user/src/colour-index-compression/benchmark-work/canterbury/grammar.lsp",
+      "label": "best-constrained-g1-lz-grammar",
+      "qualification": "BEST constrained to CIXG1/LZ; not an unconstrained size claim",
+      "sha256": "1b0805dfc0ae706b35aac2bb4e15f02485efd24dda5dbd29de7b2f84d1a88c15"
+    }
+  ]
+}

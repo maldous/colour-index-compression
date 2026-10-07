@@ -1,0 +1,15 @@
+{
+  "artifacts":{"archive":"{workdir}/candidate.cixstr","restored":"{workdir}/restored.bin"},
+  "budget":{"cpu":6,"max_rss_bytes":3000000000,"max_temp_bytes":1000000000,"wall_seconds":300},
+  "build_paths":["benchmarks/hutter_bounded_runner.py","benchmarks/hutter_structure_probe.py"],
+  "configuration":{"mode":"original","paq_version":"v216","paq_options":"-4 -simd AVX2","paq_binary_sha256":"4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc","source_filename":"candidate.source.bin"},
+  "decode_command":["/home/user/src/colour-index-compression/.venv/bin/python","/home/user/src/colour-index-compression/benchmarks/hutter_structure_probe.py","decode","{workdir}/candidate.cixstr","{workdir}/restored.bin","--paq-binary","/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px","--paq-sha256","4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"],
+  "encode_command":["/home/user/src/colour-index-compression/.venv/bin/python","/home/user/src/colour-index-compression/benchmarks/hutter_structure_probe.py","encode","{source}","{workdir}/candidate.cixstr","--mode","original","--paq-binary","/home/user/src/colour-index-compression/benchmark-work/references/paq8px-v216/build-local/paq8px","--paq-sha256","4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc"],
+  "hypothesis":"A complete raw PAQ archive establishes the matched physical control for the deterministic body-line fixture.",
+  "initial_state":"empty PAQ process; no training, warm-up, external dictionary, model, or source state.",
+  "input":{"path":"/home/user/src/colour-index-compression/docs/research/2026-09-30-wikipedia-body/fixtures/repeated-body-lines-160pages.bin","offset":0,"length":65339,"sha256":"8e6e9ba642b50dbeb53ed8248d23addcac5afe48998228748c12d23f7fb5dd00"},
+  "matched_control":"Same fixture, PAQ binary/options, candidate.source.bin PAQ basename, shared 29-byte outer header accounting, and independent archive-only decode as body candidate.",
+  "mechanism":"raw original-byte PAQ control",
+  "promotion_criteria":"Both raw and body streams must complete physical archives and independently restore the fixture SHA-256. This is correctness only; no small-input size gate.",
+  "stage":"screening"
+}

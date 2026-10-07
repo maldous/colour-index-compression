@@ -1,0 +1,210 @@
+{
+  "schema": "cix.spatial-dictionary-checkpoint.v1",
+  "release_ready": false,
+  "benchmark_status": "held-until-RC51",
+  "source_paths": [
+    "rust/cix-native/codecs/spatial/README.md",
+    "rust/cix-native/codecs/spatial/cix_spatial_bridge.cpp",
+    "rust/cix-native/codecs/spatial/cix_spatial_bridge.h",
+    "rust/cix-native/packaging/sdk/CMakeLists.txt",
+    "rust/cix-native/packaging/sdk/README.md",
+    "rust/cix-native/packaging/sdk/tests/CMakeLists.txt",
+    "rust/cix-native/src/dictionaries.rs",
+    "rust/cix-native/src/full_engine/catalogue.rs",
+    "rust/cix-native/src/full_engine/conditional_values.rs",
+    "rust/cix-native/src/full_engine/dispatch.rs",
+    "rust/cix-native/src/full_engine/mixed_selection.rs",
+    "rust/cix-native/src/full_engine/mod.rs",
+    "rust/cix-native/src/full_engine/selection.rs",
+    "rust/cix-native/src/full_engine/spatial_provider.rs",
+    "rust/cix-native/src/lib.rs",
+    "rust/cix-native/tests/dictionary_contract.rs",
+    "rust/cix-native/examples/dictionary.c",
+    "rust/cix-native/include/cix_dictionary.h",
+    "rust/cix-native/src/c_dictionary_api.rs",
+    "rust/cix-native/src/full_engine/grid_counts.rs",
+    "rust/cix-native/src/full_engine/installed.rs",
+    "rust/cix-native/src/full_engine/spatial_frames.rs",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context2-coding0.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/make_fixtures.py",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context1-coding0.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context3-coding0.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc1-mode0.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context2-coding1.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/manifest.json",
+    "rust/cix-native/tests/fixtures/grid_counts/input.bin",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context1-coding2.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context1-coding1.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc1-mode3.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc1-mode1.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc1-mode4.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context0-coding2.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context0-coding0.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/README.md",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context3-coding1.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context2-coding2.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context0-coding1.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc1-mode2.raw",
+    "rust/cix-native/tests/fixtures/grid_counts/sgcc2-context3-coding2.raw",
+    "rust/cix-native/tests/fixtures/spatial_frames/j2k.cix",
+    "rust/cix-native/tests/fixtures/spatial_frames/make_fixtures.py",
+    "rust/cix-native/tests/fixtures/spatial_frames/j2k-input.bin",
+    "rust/cix-native/tests/fixtures/spatial_frames/jls-input.bin",
+    "rust/cix-native/tests/fixtures/spatial_frames/manifest.json",
+    "rust/cix-native/tests/fixtures/spatial_frames/README.md",
+    "rust/cix-native/tests/fixtures/spatial_frames/jls.cix"
+  ],
+  "final_source_manifest": "jobs/installed-discovery-v1/source.json",
+  "scoped_checks": [
+    {
+      "job": "spatial-counts-v1",
+      "groups": {
+        "catalogue": 3,
+        "mixed_selection": 4,
+        "selection": 6
+      },
+      "sdk": "shared/static relocated Cbuffer,Cstream,Cformats,Cdictionary andC++ consumers passed",
+      "overall_job": "failed other groups; not global pass"
+    },
+    {
+      "job": "spatial-counts-v2",
+      "groups": {
+        "conditional_values": 4,
+        "spatial_provider": 3,
+        "spatial_frames": 5,
+        "counts_dispatch": 1,
+        "spatial_dispatch": 1
+      },
+      "actual_counts_archives": 17,
+      "spatial_reference_payloads": [
+        "JPEG-LS",
+        "JP2",
+        "raw J2K"
+      ],
+      "overall_job": "failed two stale grid test bounds; not global pass"
+    },
+    {
+      "job": "dictionary-grid-v3",
+      "groups": {
+        "grid_counts": 3,
+        "c_dictionary_api": 2,
+        "dictionary_contract": 3
+      },
+      "sdk": "shared/static relocated dictionary export/import lifecycle consumer passed",
+      "overall_job": "passed"
+    },
+    {
+      "job": "installed-discovery-v1",
+      "groups": {
+        "installed": 4
+      },
+      "overall_job": "passed",
+      "limit": "filesystem presence only; not ABI or platform qualification"
+    }
+  ],
+  "total_scoped_tests": 39,
+  "metrics": {
+    "dictionary-abi-v1": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 11.308786791007151,
+      "cpu_usage_seconds": 20.824581,
+      "peak_temp_bytes": 3694343823,
+      "sampled_cgroup_memory_high_water_bytes": 918237184,
+      "cgroup_verified": true
+    },
+    "sdk-evidence-compact-v1": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 9.374208346009254,
+      "cpu_usage_seconds": 9.152034,
+      "peak_temp_bytes": 3746172385,
+      "sampled_cgroup_memory_high_water_bytes": 299999232,
+      "cgroup_verified": true
+    },
+    "grid-counts-fixture-v1": {
+      "exit_code": 1,
+      "stop_reason": null,
+      "elapsed_seconds": 0.521157317009056,
+      "cpu_usage_seconds": 0.186519,
+      "peak_temp_bytes": 2859096645,
+      "sampled_cgroup_memory_high_water_bytes": 32468992,
+      "cgroup_verified": true
+    },
+    "grid-counts-fixture-v2": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 0.8436632600059966,
+      "cpu_usage_seconds": 0.555019,
+      "peak_temp_bytes": 2859686309,
+      "sampled_cgroup_memory_high_water_bytes": 26558464,
+      "cgroup_verified": true
+    },
+    "spatial-counts-v1": {
+      "exit_code": 1,
+      "stop_reason": null,
+      "elapsed_seconds": 15.026192125005764,
+      "cpu_usage_seconds": 24.960145,
+      "peak_temp_bytes": 3287994454,
+      "sampled_cgroup_memory_high_water_bytes": 1247211520,
+      "cgroup_verified": true
+    },
+    "spatial-counts-v2": {
+      "exit_code": 1,
+      "stop_reason": null,
+      "elapsed_seconds": 9.03309961699415,
+      "cpu_usage_seconds": 14.585452,
+      "peak_temp_bytes": 3380889584,
+      "sampled_cgroup_memory_high_water_bytes": 813764608,
+      "cgroup_verified": true
+    },
+    "dictionary-grid-v3": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 13.877429765998386,
+      "cpu_usage_seconds": 23.430038,
+      "peak_temp_bytes": 3519165571,
+      "sampled_cgroup_memory_high_water_bytes": 1146671104,
+      "cgroup_verified": true
+    },
+    "installed-discovery-v1": {
+      "exit_code": 0,
+      "stop_reason": null,
+      "elapsed_seconds": 7.237576279992936,
+      "cpu_usage_seconds": 13.584956,
+      "peak_temp_bytes": 3617612684,
+      "sampled_cgroup_memory_high_water_bytes": 842903552,
+      "cgroup_verified": true
+    }
+  },
+  "artifact_identities": {
+    "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/spatial-prefix-v8/lib/libcix_spatial_bridge.so": {
+      "sha256": "51636cb3cbd9830d3f869142915d9e86345909a98cc57f38c86f6bf0f15c31cf",
+      "bytes": 33672
+    },
+    "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/libcix_native.so": {
+      "sha256": "ca7854e9f68578bc4e1725ff1b95a88606f079d02eeb1f6037fac35dfa3aed8f",
+      "bytes": 42408888
+    },
+    "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/libcix_native.a": {
+      "sha256": "6d037a2e67c5a20c2d59832ea20cd8d750ff4878149496054f6418601f15733b",
+      "bytes": 121743768
+    },
+    "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/cix": {
+      "sha256": "40ad091ade9f162b094926a445e6dbcc08197cf6e57e59b98846b596c6380823",
+      "bytes": 45393360
+    }
+  },
+  "artifact_source_note": "spatial DSO from spatial-counts-v2; current debuglibraries/executable built dictionary-grid-v3; installed-discovery-v1 only check/test, no replacementlib/bin build",
+  "negative_attempts": [
+    "grid-counts-fixture-v1 invalid generated header; v2 valid",
+    "spatial-counts-v1 singleton rank extra zero byte in shared helper; JP2 writer lacked bounded seek/backpatch",
+    "spatial-counts-v2 stale 4096byte test limits on larger30828byte source; correctedv3"
+  ],
+  "remaining": [
+    "ordinaryCLI full-engine binding and exact decoder dispatch",
+    "SDK job/streaming contracts and consumer adapters",
+    "finalquality/deadcode/packaging/platformqualification",
+    "RC51 readiness beforeSilesia confirmation"
+  ]
+}

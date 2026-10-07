@@ -1,0 +1,89 @@
+{
+  "experiment_id": "native-silesia-fixed-deflate-20261001-v1",
+  "trial_only": true,
+  "input_names": [
+    "dickens"
+  ],
+  "completed": true,
+  "elapsed_seconds": 6.087475515902042,
+  "results": [
+    {
+      "name": "dickens",
+      "source_bytes": 10192446,
+      "source_sha256": "b24c37886142e11d0ee687db6ab06f936207aa7f2ea1fd1d9a36763c7a507e6a",
+      "python_archive_bytes": 4256837,
+      "rust_fixed_archive_bytes": 4256837,
+      "rust_auto_archive_bytes": 4256837,
+      "fixed_archive_sha256": "455ff83d59ff87eb5d4c440801ea12825cccdd59b7f16d9f0bd98c58200475d8",
+      "fixed_archives_byte_identical": true,
+      "python_encode": {
+        "wall_seconds": 4.8,
+        "elapsed_wall_seconds": 4.806673028040677,
+        "peak_rss_kib": 20736
+      },
+      "python_encode_report": {
+        "encode_seconds": 4.747584822587669,
+        "selection_total_seconds": 4.703804301097989,
+        "search_and_launch_overhead_seconds": 1.2881926777772605,
+        "source_sha256": "b24c37886142e11d0ee687db6ab06f936207aa7f2ea1fd1d9a36763c7a507e6a",
+        "compressed_bytes": 4256837
+      },
+      "rust_fixed_encode": {
+        "wall_seconds": 0.47,
+        "elapsed_wall_seconds": 0.474792352411896,
+        "peak_rss_kib": 2560
+      },
+      "rust_auto_encode": {
+        "wall_seconds": 0.48,
+        "elapsed_wall_seconds": 0.4873752067796886,
+        "peak_rss_kib": 2560
+      },
+      "rust_decode_python_archive": {
+        "wall_seconds": 0.05,
+        "elapsed_wall_seconds": 0.05662194499745965,
+        "peak_rss_kib": 2048,
+        "mib_per_second": 194.40547943115234
+      },
+      "python_decode_rust_archive": {
+        "wall_seconds": 0.11,
+        "elapsed_wall_seconds": 0.1146559389308095,
+        "peak_rss_kib": 20224,
+        "mib_per_second": 88.36612701416016
+      },
+      "rust_auto_python_decode": {
+        "wall_seconds": 0.11,
+        "elapsed_wall_seconds": 0.11122875893488526,
+        "peak_rss_kib": 20224,
+        "mib_per_second": 88.36612701416016
+      }
+    }
+  ],
+  "aggregate": {
+    "source_bytes": 10192446,
+    "python_archive_bytes": 4256837,
+    "rust_fixed_archive_bytes": 4256837,
+    "rust_auto_archive_bytes": 4256837,
+    "python_search_launch_overhead_seconds": 1.2881926777772605,
+    "rust_auto_minus_fixed_seconds": 0.010000000000000009
+  },
+  "measurement_status": "EXPLORATORY_ONLY_SWAP_WAS_ACTIVE_NOT_QUALIFICATION",
+  "resource_budget_compliance": {
+    "frozen_requirement": "no swap",
+    "compliant": false,
+    "audit_observation_after_runs": {
+      "swap_active": true,
+      "devices": [
+        {
+          "name": "/swap.img",
+          "used_bytes": 6979321856
+        },
+        {
+          "name": "/swap",
+          "used_bytes": 22011707392
+        }
+      ]
+    },
+    "limitation": "Host swap was active; per-command swap attribution was not recorded, so throughput and RSS comparisons are exploratory only."
+  },
+  "superseded_by": "silesia-results-release-final.json"
+}

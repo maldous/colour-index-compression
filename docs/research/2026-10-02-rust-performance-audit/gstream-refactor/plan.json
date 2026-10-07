@@ -1,0 +1,12 @@
+{
+  "schema": "cix-rust-gstream-refactor-v1",
+  "status": "VERIFIED",
+  "hypothesis": "Extracting the gstream reader state and bounded pipeline operations reduces encode cognitive complexity without changing CIXG1 or CIXG2 bytes or stream behavior.",
+  "control": "Immutable release binary built from 5e7eb8f1286c2507afa9c885581ba95447117546 before the gstream-only source change.",
+  "candidate": "Immutable release binary built from this worktree after the gstream-only source change.",
+  "fixture": "131072 deterministic bytes formed by SHA-256(gstream-refactor-v1:<counter>) concatenation.",
+  "configuration": "--fast --stream --format cixg1|cixg2 --threads 2 --parallelism blocks --block-size 4KiB --memory 64MiB",
+  "resources": {"cpus": [12, 13], "jobs": 1, "cgroup_memory_bytes": 1073741824, "swap_bytes": 0, "temporary_bytes": 536870912},
+  "allocation_copy_change": "None intended: a completed Vec is moved to OrderedPipeline with mem::take, then a free Vec is reused and resized as before.",
+  "promotion": "Both framed archives byte-identical, before and after decoders cross-decode exactly, focused streaming tests pass, and the isolated real-pipe probe passes idle, slow-consumer, truncation, and corruption checks."
+}

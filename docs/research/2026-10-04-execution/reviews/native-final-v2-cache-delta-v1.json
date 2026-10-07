@@ -1,0 +1,39 @@
+{
+  "schema": "cix-native-final-v2-cache-delta-v1",
+  "date": "2026-10-05",
+  "copies": {
+    "failed_v2_target": "benchmark-work/native-rc-check-v1/native-final-source-v2/target",
+    "retained_target": "benchmark-work/native-rc-check-v1/distribution-engineering-v4/target",
+    "v2_receipt": "docs/research/2026-10-04-execution/jobs/native-final-source-v2/receipt.json"
+  },
+  "regular_file_counts": {
+    "failed_v2_target": 306,
+    "retained_target": 306,
+    "v2_receipt": 306
+  },
+  "symlink_counts": {
+    "failed_v2_target": 0,
+    "retained_target": 0
+  },
+  "path_set_difference": {
+    "added_in_failed_v2_target": [],
+    "missing_from_failed_v2_target": []
+  },
+  "changed_members": [
+    {
+      "path": ".rustc_info.json",
+      "failed_v2_sha256": "c77a25e289b63bbe72cd244563e847458ba478d1812d33d72ed6c288ebcb16eb",
+      "retained_and_receipt_sha256": "992942b8145317617b71dafce64b2f9f0a4744d6bde022045b6f90fb99d9086f",
+      "failed_v2_bytes": 1269,
+      "retained_bytes": 1268,
+      "classification": "Cargo compiler-information metadata; the v2 Clippy configuration error precedes compilation"
+    }
+  ],
+  "clippy_configuration_failure": {
+    "path": "benchmark-work/native-rc-check-v1/native-final-source-v2/clippy.stderr.log",
+    "sha256": "b4d3cec97c193622370e0e01a1a330560618d24c538ec1f059d731254e71f483",
+    "bytes": 177,
+    "evidence": "Cargo rejected CARGO_PROFILE_RELEASE while parsing profile configuration before compilation"
+  },
+  "execution_disposition": "prepare only; preserve the changed member and proof before any duplicate-cache removal"
+}

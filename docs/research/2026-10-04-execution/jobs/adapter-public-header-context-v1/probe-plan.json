@@ -1,0 +1,29 @@
+{
+  "schema": "cix.adapter-public-header-context-probe-plan.v1",
+  "kind": "PREPARED_NOT_EXECUTED",
+  "capture_prerequisite": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/adapter-public-header-context-v1/receipt.json",
+  "baseline": "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/sonar-preparation/adapter-context-probe-v2/adapter/issues.json",
+  "headers": [
+    "rust/cix-native/adapters/blosc2/include/cix_blosc2_adapter.h",
+    "rust/cix-native/adapters/rocksdb/cix_compression_manager.h"
+  ],
+  "expected_baseline_parsing_error_recovery": {
+    "rust/cix-native/adapters/blosc2/include/cix_blosc2_adapter.h": 2,
+    "rust/cix-native/adapters/rocksdb/cix_compression_manager.h": 2
+  },
+  "required_context_rows": ["blosc-c", "rocks-cpp"],
+  "required_properties": {
+    "sonar.cxx.file.suffixes": ".h,.hh,.hpp,.hxx",
+    "sonar.cxx.jsonCompilationDatabase": "/out/compile_commands.json"
+  },
+  "resource_contract": {
+    "scheduler": "existing authenticated stopped/idle/exclusive Sonar gate",
+    "worker_runtime_seconds": 1200,
+    "client_timeout_seconds": 1260,
+    "memory_bytes": 12000000000,
+    "temp_bytes": 4000000000,
+    "no_network": true,
+    "external_include_mounts": "only capture include-mappings.json roots, read-only"
+  },
+  "result_contract": "Record both headers as indexed and compare parser-recovery count per header against baseline. A count change is evidence only, not a full adapter-scan qualification. GIO is deliberately not an input."
+}

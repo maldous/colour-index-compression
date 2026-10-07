@@ -1,0 +1,7 @@
+import subprocess,os,json
+from pathlib import Path
+subprocess.run(['dpkg-deb', '-x', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/h5py-debs-v1/python3-h5py_3.10.0-1ubuntu3_all.deb', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/h5py-prefix-v1'],check=True)
+env={**os.environ,**{'PYTHONPATH': '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/h5py-prefix-v1/usr/lib/python3/dist-packages', 'HDF5_PLUGIN_PATH': '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6/hdf5', 'CIX_HDF5_FILTER_ID': '65001'}}
+subprocess.run(["/usr/bin/python3","-c","import h5py, numpy; print(h5py.version.info); print(numpy.__version__)"],env=env,check=True)
+subprocess.run(['/usr/bin/python3', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-source-v6/hdf5/examples/h5py_filter.py'],env=env,cwd='/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6',check=True)
+Path('/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/host-adapters-v7/h5py-result.json').write_text(json.dumps({"status":"pass","filter_id":65001,"env_extra":{'PYTHONPATH': '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/h5py-prefix-v1/usr/lib/python3/dist-packages', 'HDF5_PLUGIN_PATH': '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/host-adapters-v6/hdf5', 'CIX_HDF5_FILTER_ID': '65001'}},indent=2)+"\n")

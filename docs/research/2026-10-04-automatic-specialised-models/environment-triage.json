@@ -1,0 +1,50 @@
+{
+  "checked_at_utc": "2026-10-04T01:22:01.374225+00:00",
+  "scope": "read-only; no tests, benchmarks, source changes or run interruption",
+  "classification": "environment sanitization is ineffective in general; no effect demonstrated or expected on this frozen run",
+  "plan_sha256": "6181ed5066495a12bc6fa09a41f5b14cb2442b4aaae0b16e0ddf015356432eaa",
+  "executable_adapter_sha256": {
+    "/home/user/src/colour-index-compression/runtime/cix_runtime/legacy/executable.py": "f0c274fd44365efff02eeaf916cd06696b5d1c5fb21f55fedf8020391df8b8b4",
+    "/home/user/src/cix-integrated-candidate/python/site-packages/cix_runtime/legacy/executable.py": "f0c274fd44365efff02eeaf916cd06696b5d1c5fb21f55fedf8020391df8b8b4",
+    "/home/user/src/cix-integrated-source-candidate/runtime/cix_runtime/legacy/executable.py": "f0c274fd44365efff02eeaf916cd06696b5d1c5fb21f55fedf8020391df8b8b4"
+  },
+  "process_environment": [
+    {
+      "pid": 1151857,
+      "cix_flags_only": {}
+    },
+    {
+      "pid": 1152772,
+      "cix_flags_only": {}
+    },
+    {
+      "pid": 1152781,
+      "cix_flags_only": {
+        "CIX_RELEASE_LEASE": "1"
+      }
+    },
+    {
+      "pid": 1238734,
+      "cix_flags_only": {
+        "CIX_RUNTIME_PROGRAM": "cix",
+        "CIX_BACKEND_ROOT": "/home/user/src/cix-integrated-candidate/libexec/cix",
+        "CIX_RELEASE_LEASE": "1",
+        "CIX_CANDIDATE_DIAGNOSTICS": "/home/user/src/colour-index-compression/docs/research/2026-10-04-automatic-specialised-models/qualification/silesia-confirmation-v1/results/confirm-best-dickens/scratch/cix-search-ydl8_tc9/candidate-0004/backend-diagnostics.json"
+      }
+    }
+  ],
+  "system_manager_cix_names": [],
+  "source_consumers": {
+    "joint-discount": [
+      "CIX_JOINT_DISCOUNT",
+      "CIX_REGISTER_BASE_TRACE"
+    ],
+    "v215": [],
+    "v216": [],
+    "store-state": []
+  },
+  "actual_admission": "specialized.catalog selects encode_joint_discount default mode2; nested selection reuses same catalog",
+  "model_control": "mode0..3 explicitly overwrite CIX_JOINT_DISCOUNT for encode/decode; mode4 uses stockv215 which does not read these flags",
+  "trace_control": "CIX_REGISTER_BASE_TRACE absent; if inherited by an unrelated invocation, opens a trace file and may affect I/O/failure but is not a predictive input",
+  "required_action": "leave frozen pass unchanged; retain sanitization/trace isolation as a public-distribution hardening item"
+}

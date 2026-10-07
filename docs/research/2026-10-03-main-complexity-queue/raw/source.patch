@@ -1,0 +1,224 @@
+diff --git a/rust/cix-native/src/main.rs b/rust/cix-native/src/main.rs
+index d4ec67227..d9f836d8d 100644
+--- a/rust/cix-native/src/main.rs
++++ b/rust/cix-native/src/main.rs
+@@ -2428,11 +2428,60 @@ fn report_candidate_selection(
+     );
+ }
+ 
++struct CandidateEncoderState {
++    archive_magic: &'static [u8; 5],
++    budget: resources::MemoryBudget,
++    buf: Vec<u8>,
++    selection_stats: AutoSelectionStats,
++    whole: Sha256,
++    total_bytes: u64,
++    archive_bytes: u64,
++}
++
++fn prepare_candidate_encoder<W: Write>(
++    dst: &mut W,
++    options: &EncodeOptions<'_>,
++) -> Result<CandidateEncoderState, String> {
++    let EncodeOptions { block, level, forced, backend, backend_set, format, memory, workers, .. } = *options;
++    if format == "cixg1"
++        && backend_set
++        && (backend.starts_with("context-range-") || backend == "huffman")
++    {
++        return Err("versioned substream coder requires --format cixg2 or --format auto".into());
++    }
++    let archive_magic = candidate_archive_magic(format, level, backend, backend_set);
++    dst.write_all(archive_magic).map_err(ioerr)?;
++    dst.write_all(&block.to_le_bytes()).map_err(ioerr)?;
++    dst.write_all(&0u32.to_le_bytes()).map_err(ioerr)?;
++    let whole = Sha256::new();
++    let total_bytes = 0;
++    let archive_bytes = HEADER as u64;
++    let buf = vec![0; block as usize];
++    let selection_stats = AutoSelectionStats::default();
++    let retained = (block as usize)
++        .saturating_mul(3)
++        .saturating_add(if forced.is_some() { 64 << 10 } else { 2 << 20 })
++        .saturating_add(if workers > 1 { (2 << 20) * workers } else { 0 });
++    if retained >= memory {
++        return Err("input/profiler buffers exceed --memory; reduce --block-size".into());
++    }
++    Ok(CandidateEncoderState {
++        archive_magic,
++        budget: resources::MemoryBudget::new(memory.saturating_sub(retained)),
++        buf,
++        selection_stats,
++        whole,
++        total_bytes,
++        archive_bytes,
++    })
++}
++
+ fn encode_candidates<R: Read, W: Write>(
+     mut src: R,
+     mut dst: W,
+     options: EncodeOptions<'_>,
+ ) -> Result<(), String> {
++    let mut state = prepare_candidate_encoder(&mut dst, &options)?;
+     let EncodeOptions {
+         block,
+         level,
+@@ -2448,34 +2497,11 @@ fn encode_candidates<R: Read, W: Write>(
+         verbose,
+         ..
+     } = options;
+-    if format == "cixg1"
+-        && backend_set
+-        && (backend.starts_with("context-range-") || backend == "huffman")
+-    {
+-        return Err("versioned substream coder requires --format cixg2 or --format auto".into());
+-    }
+     // CIXG2 is required for versioned substream coder 6 and extended PPM
+     // orders. Existing efforts retain the byte-compatible CIXG1 header.
+-    let archive_magic = candidate_archive_magic(format, level, backend, backend_set);
+-    dst.write_all(archive_magic).map_err(ioerr)?;
+-    dst.write_all(&block.to_le_bytes()).map_err(ioerr)?;
+-    dst.write_all(&0u32.to_le_bytes()).map_err(ioerr)?;
+-    let mut whole = Sha256::new();
+-    let mut total_bytes = 0u64;
+-    let mut archive_bytes = HEADER as u64;
+-    let mut buf = vec![0; block as usize];
+-    let mut selection_stats = AutoSelectionStats::default();
+-    let retained = (block as usize)
+-        .saturating_mul(3)
+-        .saturating_add(if forced.is_some() { 64 << 10 } else { 2 << 20 })
+-        .saturating_add(if workers > 1 { (2 << 20) * workers } else { 0 });
+-    if retained >= memory {
+-        return Err("input/profiler buffers exceed --memory; reduce --block-size".into());
+-    }
+-    let budget = resources::MemoryBudget::new(memory.saturating_sub(retained));
+     loop {
+         let (got, eof, symbol_counts) =
+-            fill_candidate_block(&mut src, &mut buf, input_fd, flush_interval)?;
++            fill_candidate_block(&mut src, &mut state.buf, input_fd, flush_interval)?;
+         if got == 0 {
+             if eof {
+                 break;
+@@ -2485,12 +2511,12 @@ fn encode_candidates<R: Read, W: Write>(
+         if symbol_counts.iter().sum::<u32>() != got as u32 {
+             return Err("internal block symbol count mismatch".into());
+         }
+-        total_bytes = total_bytes
++        state.total_bytes = state.total_bytes
+             .checked_add(got as u64)
+             .ok_or("input length overflow")?;
+-        let data = &buf[..got];
++        let data = &state.buf[..got];
+         let rh: [u8; 32] = Sha256::digest(data).into();
+-        whole.update(data);
++        state.whole.update(data);
+         let (route, payload) = select_candidate_route(
+             data,
+             CandidateRouteSelection {
+@@ -2499,14 +2525,14 @@ fn encode_candidates<R: Read, W: Write>(
+                 backend,
+                 backend_set,
+                 format,
+-                budget: &budget,
++                budget: &state.budget,
+                 workers,
+-                stats: &mut selection_stats,
++                stats: &mut state.selection_stats,
+                 explain,
+             },
+         )?;
+-        for explanation in selection_stats.explanations.drain(..) {
+-            eprintln!("cix: region={} {}", selection_stats.blocks, explanation);
++        for explanation in state.selection_stats.explanations.drain(..) {
++            eprintln!("cix: region={} {}", state.selection_stats.blocks, explanation);
+         }
+         write_candidate_frame(
+             &mut dst,
+@@ -2516,19 +2542,19 @@ fn encode_candidates<R: Read, W: Write>(
+                 payload: &payload,
+                 digest: &rh,
+             },
+-            &mut archive_bytes,
++            &mut state.archive_bytes,
+         )?;
+         if eof {
+             break;
+         }
+     }
+-    let h: [u8; 32] = whole.finalize().into();
++    let h: [u8; 32] = state.whole.finalize().into();
+     put_frame(&mut dst, END, 0, 0, &h).map_err(ioerr)?;
+-    archive_bytes = archive_bytes
++    state.archive_bytes = state.archive_bytes
+         .checked_add(41)
+         .ok_or("archive length overflow")?;
+     dst.flush().map_err(ioerr)?;
+-    if verbose || explain { report_candidate_selection(&selection_stats, level, archive_magic, forced, archive_bytes); }
++    if verbose || explain { report_candidate_selection(&state.selection_stats, level, state.archive_magic, forced, state.archive_bytes); }
+     Ok(())
+ }
+ 
+@@ -2805,6 +2831,35 @@ fn m6_read_block<R: Read>(src: &mut R, block: &mut [u8]) -> Result<usize, String
+     Ok(got)
+ }
+ 
++fn finish_m6_encode<W: Write>(
++    dst: &mut W,
++    budget_skips: &std::collections::BTreeSet<u8>,
++    whole: usize,
++    crc: crc32fast::Hasher,
++    file_name: Option<&str>,
++) -> Result<(), String> {
++    if !budget_skips.is_empty() {
++        let modes = budget_skips
++            .iter()
++            .map(u8::to_string)
++            .collect::<Vec<_>>()
++            .join(",");
++        eprintln!("cix: omitted CIXM6 candidates due to --memory budget: modes {modes}");
++    }
++    let mut footer = vec![255];
++    put_varint(whole, &mut footer);
++    footer.extend_from_slice(&crc.finalize().to_le_bytes());
++    dst.write_all(&footer).map_err(ioerr)?;
++    if let Some(name) = file_name {
++        let bytes = name.as_bytes();
++        let name_len = u32::try_from(bytes.len()).map_err(|_| "CIXF1 filename is too long")?;
++        dst.write_all(bytes).map_err(ioerr)?;
++        dst.write_all(&name_len.to_le_bytes()).map_err(ioerr)?;
++        dst.write_all(b"CIXF1").map_err(ioerr)?;
++    }
++    dst.flush().map_err(ioerr)
++}
++
+ fn encode_m6<R: Read, W: Write>(
+     mut src: R,
+     mut dst: W,
+@@ -2888,26 +2943,7 @@ fn encode_m6<R: Read, W: Write>(
+             break;
+         }
+     }
+-    if !budget_skips.is_empty() {
+-        let modes = budget_skips
+-            .iter()
+-            .map(u8::to_string)
+-            .collect::<Vec<_>>()
+-            .join(",");
+-        eprintln!("cix: omitted CIXM6 candidates due to --memory budget: modes {modes}");
+-    }
+-    let mut footer = vec![255];
+-    put_varint(whole, &mut footer);
+-    footer.extend_from_slice(&crc.finalize().to_le_bytes());
+-    dst.write_all(&footer).map_err(ioerr)?;
+-    if let Some(name) = file_name {
+-        let bytes = name.as_bytes();
+-        let name_len = u32::try_from(bytes.len()).map_err(|_| "CIXF1 filename is too long")?;
+-        dst.write_all(bytes).map_err(ioerr)?;
+-        dst.write_all(&name_len.to_le_bytes()).map_err(ioerr)?;
+-        dst.write_all(b"CIXF1").map_err(ioerr)?;
+-    }
+-    dst.flush().map_err(ioerr)
++    finish_m6_encode(&mut dst, &budget_skips, whole, crc, file_name)
+ }
+ 
+ fn varint_len(mut value: usize) -> usize {

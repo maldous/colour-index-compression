@@ -1,0 +1,232 @@
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'check', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/Cargo.toml', '--all-targets']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'build', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/Cargo.toml', '--lib', '--bin', 'cix']
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/Cargo.toml', '--lib', 'full_engine::', '--', '--test-threads=2']
+
+running 54 tests
+test full_engine::address_relations::tests::finite_word_delta_preserves_sign_boundary ... ok
+test full_engine::address_relations::tests::got_choice_encodings_round_trip_all_modes ... ok
+test full_engine::address_relations::tests::got_choices_match_frozen_reference_bytes ... ok
+test full_engine::address_relations::tests::got_empty_admission_keeps_complete_paid_transform ... ok
+test full_engine::address_relations::tests::got_wire_mode_zero_restores_the_fields_parent ... ok
+test full_engine::address_relations::tests::malformed_got_choice_lengths_are_rejected ... ok
+test full_engine::address_relations::tests::pdata_symbols_mode_one_keeps_nested_empty_admission_reversible ... ok
+test full_engine::address_relations::tests::pointer_delta_empty_admission_round_trips_all_modes ... ok
+test full_engine::address_relations::tests::pointer_delta_rejects_malformed_residual_metadata ... ok
+test full_engine::address_relations::tests::section_pointer_mode_four_keeps_paid_empty_admission_reversible ... FAILED
+test full_engine::arithmetic::tests::arithmetic_and_fenwick_reject_invalid_state ... ok
+test full_engine::address_relations::tests::frozen_ecoff_relation_vectors_match_native_raw_transforms_and_inverses ... ok
+test full_engine::arithmetic::tests::ordered_subset_method_one_and_residual_vectors ... ok
+test full_engine::arithmetic::tests::python_reference_varint_and_frame_vectors ... ok
+test full_engine::containers::tests::paq_identifiers_match_historical_wrapping_and_reject_unassigned_ids ... ok
+test full_engine::containers::tests::stored_frame_checks_length_checksum_and_limits_before_allocation ... ok
+test full_engine::containers::tests::stored_historical_empty_frame_has_known_digest ... ok
+test full_engine::graph_residuals::tests::all_modes_preserve_line_endings_and_literal_bytes ... ok
+test full_engine::graph_residuals::tests::frame_rejects_truncation_trailing_and_bounded_expansion ... ok
+test full_engine::graph_residuals::tests::frame_validates_declared_coordinate_count_before_rebuild ... ok
+test full_engine::graph_residuals::tests::historical_frame_zero_is_exact_and_retains_unparsed_records ... ok
+test full_engine::graph_residuals::tests::hydrogen_all_models_and_choice_representations_match_reference_vectors ... ok
+test full_engine::graph_residuals::tests::hydrogen_extract_keeps_absolute_coordinates_for_candidate_selection ... ok
+test full_engine::graph_residuals::tests::hydrogen_model_zero_preserves_masks_records_and_bounds ... ok
+test full_engine::graph_residuals::tests::known_graph_and_sequential_residuals ... ok
+test full_engine::graph_residuals::tests::palette_frames_restore_all_prediction_modes_and_reject_trailing_bytes ... ok
+test full_engine::arithmetic::tests::exhaustive_small_combinatorics_and_compositions ... ok
+test full_engine::graph_residuals::tests::rejects_noncanonical_fields_modes_and_counts ... ok
+test full_engine::graph_residuals::tests::rejects_reconstruction_overflow_and_missing_vectors ... ok
+test full_engine::graph_residuals::tests::palette_uses_first_seen_order_and_escapes_the_sixty_fifth_vector ... ok
+test full_engine::graph_residuals::tests::text_frame_is_exact_for_all_prediction_modes ... ok
+test full_engine::jxl_provider::tests::lzma_budget_reserves_bridge_and_rust_output_buffers ... ok
+test full_engine::graph_residuals::tests::text_payload_uses_bytes_splitlines_rules ... ok
+test full_engine::mixed::tests::corrupt_lengths_checksums_and_incomplete_partitions_are_rejected ... ok
+test full_engine::mixed::tests::empty_carrier_and_nested_output_bounds ... ok
+test full_engine::mixed::tests::raw_regions_match_independent_struct_reference ... ok
+test full_engine::record_ordering::tests::each_order_code_restores_nontrivial_composition ... ok
+test full_engine::record_ordering::tests::matches_tiny_legacy_mycs_and_mycc_vectors ... ok
+test full_engine::jxl_provider::tests::packaged_bridge_roundtrips_canonical_frames ... ok
+test full_engine::record_ordering::tests::record_constraint_and_fixed_raw_transforms_restore_paid_literals ... ok
+test full_engine::regions::tests::malformed_counts_and_elf_entries_are_rejected_without_losing_coverage ... ok
+test full_engine::regions::tests::matches_tiny_python_region_fixtures ... ok
+test full_engine::record_ordering::tests::permutation_crosses_rank_block_boundary ... ok
+test full_engine::strided_values::tests::forced_type_class_range_keeps_deterministic_terminator ... ok
+test full_engine::strided_values::tests::matches_tiny_legacy_sagr_vectors_for_every_mode ... ok
+test full_engine::strided_values::tests::paid_grid_transpose_and_frame_restore ... ok
+test full_engine::strided_values::tests::recognizes_exact_wcs_extent ... ok
+test full_engine::strided_values::tests::signed_varint_mapping_round_trips ... ok
+test full_engine::volume_lifting::tests::dicom_recognizer_rejects_truncated_pixel_member ... ok
+test full_engine::volume_lifting::tests::multiscale_lifting_round_trips_every_axis ... ok
+test full_engine::volume_lifting::tests::multiscale_shape_validation_rejects_malformed_inputs_without_panicking ... ok
+test full_engine::volume_lifting::tests::signed_wrap_matches_reference_and_all_volume_modes_restore ... ok
+test full_engine::volume_lifting::tests::spatial_jxl_round_trip_probes_paid_pixels_before_decode ... ok
+test full_engine::regions::tests::unknown_gaps_are_only_cut_above_the_fixed_limit ... ok
+
+failures:
+
+---- full_engine::address_relations::tests::section_pointer_mode_four_keeps_paid_empty_admission_reversible stdout ----
+
+thread 'full_engine::address_relations::tests::section_pointer_mode_four_keeps_paid_empty_admission_reversible' (2433323) panicked at src/full_engine/address_relations.rs:2540:9:
+assertion failed: section_pointer_inverse(&malformed).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    full_engine::address_relations::tests::section_pointer_mode_four_keeps_paid_empty_admission_reversible
+
+test result: FAILED. 53 passed; 1 failed; 0 ignored; 0 measured; 136 filtered out; finished in 0.02s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/Cargo.toml', '--lib', 'jxl_bridge::', '--', '--test-threads=2']
+
+running 4 tests
+test jxl_bridge::tests::canonical_decode_budget_counts_input_and_simultaneous_uint8_expansion ... ok
+test jxl_bridge::tests::bounded_mock_round_trip_releases_bridge_buffer ... ok
+test jxl_bridge::tests::invalid_geometry_or_size_never_reaches_codec ... ok
+test jxl_bridge::tests::wrong_version_rejects_before_codec_invocation ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 186 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/Cargo.toml', '--lib', 'paq_supervisor::', '--', '--test-threads=2']
+
+running 6 tests
+test paq_supervisor::tests::level_and_variant_arguments_are_closed_sets ... ok
+test paq_supervisor::tests::diagnostic_capture_drains_beyond_the_retained_cap ... ok
+test paq_supervisor::tests::private_root_rejects_a_symlink_and_keeps_shared_temp_out_of_scope ... ok
+test paq_supervisor::tests::result_read_never_allocates_past_parent_reservation ... ok
+test paq_supervisor::tests::temporary_output_cleanup_removes_private_directory ... ok
+test paq_supervisor::tests::opt_in_parent_lifecycle_exercises_all_packaged_variants ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 184 filtered out; finished in 4.42s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/Cargo.toml', '--lib', 'c_api::', '--', '--test-threads=2']
+
+running 3 tests
+test c_api::tests::short_options_prefix_is_an_error_without_a_full_struct_read ... ok
+test c_api::tests::impossible_length_and_overlapping_buffers_are_rejected ... ok
+test c_api::tests::truncating_utf8_diagnostic_stays_valid ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 187 filtered out; finished in 0.00s
+
+CHECK ['/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', 'test', '--locked', '--offline', '--manifest-path', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/Cargo.toml', '--test', 'native_context', '--test', 'c_api_contract', '--test', 'native_port_vectors', '--test', 'cli_smoke', '--test', 'streaming_pipe', '--test', 'incremental_contract', '--', '--test-threads=2']
+
+running 1 test
+test c_buffer_api_reports_needed_then_round_trips ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test dash_prefixed_filename_requires_and_accepts_option_terminator ... ok
+test implicit_stdin_decoder_rejects_a_missing_footer ... ok
+test stdout_and_named_output_conflict_before_processing_input ... ok
+test implicit_stdin_stream_round_trips_and_matches_explicit_dash ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 5 tests
+test checksummed_end_and_trailing_bytes_are_required ... ok
+test data_frame_is_available_before_finish_and_flush_preserves_input ... ok
+test paid_lengths_and_output_limits_are_checked_before_payload ... ok
+test zero_output_backpressure_cancellation_deadline_and_error_reset ... ok
+test fragmented_streams_cross_decode_with_ordinary_core ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 4 tests
+test independent_calls_do_not_share_cancellation ... ok
+test nested_internal_token_cannot_mask_callers_cancellation ... ok
+test pipeline_propagates_the_callers_context_to_worker_polls ... ok
+test buffer_api_preserves_bytes_and_enforces_output_limits ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 3 tests
+test graph_frames_match_preserved_reference_for_all_supported_modes ... ok
+test pointer_frames_match_preserved_reference_for_all_modes ... ok
+test palette_frames_match_preserved_reference_with_grouped_tokens_and_escapes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test decoder_reconstructs_a_complete_frame_before_archive_eof ... ok
+test empty_truncated_and_corrupt_streams_have_defined_pipe_behaviour ... ok
+test idle_input_flushes_a_partial_frame_before_eof ... ok
+test nonseekable_irregular_producer_emits_a_frame_before_eof_and_round_trips ... ok
+test parallel_stream_can_exceed_its_working_memory_budget ... ok
+test fast_lz_low_memory_stream_emits_before_eof_and_exceeds_budget ... ok
+test slow_downstream_consumer_preserves_bytes_without_deadlock ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.10s
+
+CHECK ['python3', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/foundation-v12/check_sdk_install.py', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1', 'foundation-v12']
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/packaging/sdk', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-foundation-v12', '-G', 'Ninja', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/libcix_native.so', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v12']
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-foundation-v12
+SDK_CHECK ['cmake', '--install', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-install-build-foundation-v12']
+-- Install configuration: ""
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v12/include/cix.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v12/include/cix.hpp
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v12/lib/libcix_native.so
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v12/lib/cmake/CIX/CIXConfig.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v12/lib/cmake/CIX/CIXConfigVersion.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v12/lib/pkgconfig/cix-native.pc
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-original-foundation-v12/share/doc/CIXSDK/README.md
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/packaging/sdk/tests', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v12', '-G', 'Ninja', '-DCMAKE_PREFIX_PATH=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-foundation-v12']
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v12
+SDK_CHECK ['cmake', '--build', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v12', '--parallel', '2']
+[1/2] Building CXX object CMakeFiles/cix_installed_cpp_consumer.dir/cpp_installed_consumer.cpp.o
+[2/2] Linking CXX executable cix_installed_cpp_consumer
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v12/cix_installed_cpp_consumer']
+SDK_CHECK ['cc', '-std=c11', '-Wall', '-Wextra', '-Werror', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/tests/c_api_consumer.c', '-o', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v12/c_installed_consumer', '-I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-foundation-v12/lib/pkgconfig/../../include', '-L/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-foundation-v12/lib/pkgconfig/../../lib', '-lcix_native', '-Wl,-rpath,/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-relocated-foundation-v12/lib']
+SDK_CHECK ['/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-shared-consumer-foundation-v12/c_installed_consumer']
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/packaging/sdk', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-foundation-v12', '-G', 'Ninja', '-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/libcix_native.a', '-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v12']
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-foundation-v12
+SDK_CHECK ['cmake', '--install', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-install-build-foundation-v12']
+-- Install configuration: ""
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v12/include/cix.h
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v12/include/cix.hpp
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v12/lib/libcix_native.a
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v12/lib/cmake/CIX/CIXConfig.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v12/lib/cmake/CIX/CIXConfigVersion.cmake
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v12/lib/pkgconfig/cix-native.pc
+-- Installing: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-original-foundation-v12/share/doc/CIXSDK/README.md
+SDK_CHECK ['cmake', '-S', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-foundation-v12/packaging/sdk/tests', '-B', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-consumer-foundation-v12', '-G', 'Ninja', '-DCMAKE_PREFIX_PATH=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-static-relocated-foundation-v12']
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.3")  
+-- Found BZip2: /usr/lib/x86_64-linux-gnu/libbz2.so (found version "1.0.8") 
+-- Looking for BZ2_bzCompressInit
+-- Looking for BZ2_bzCompressInit - found
+-- Looking for lzma_auto_decoder in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_auto_decoder in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Looking for lzma_easy_encoder in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_easy_encoder in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Looking for lzma_lzma_preset in /usr/lib/x86_64-linux-gnu/liblzma.so
+-- Looking for lzma_lzma_preset in /usr/lib/x86_64-linux-gnu/liblzma.so - found
+-- Found LibLZMA: /usr/lib/x86_64-linux-gnu/liblzma.so (found version "5.4.5") 
+-- Found PkgConfig: /usr/bin/pkg-config (found version "1.8.1") 
+-- Checking for module 'libzstd'
+--   Found libzstd, version 1.5.5
+-- Checking for module 'libbrotlienc'
+--   Found libbrotlienc, version 1.1.0
+-- Checking for module 'libbrotlidec'
+--   Found libbrotlidec, version 1.1.0
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Configuring incomplete, errors occurred!

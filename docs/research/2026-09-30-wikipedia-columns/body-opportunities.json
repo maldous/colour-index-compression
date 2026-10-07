@@ -1,0 +1,492 @@
+{
+  "actual_cpu_affinity": [
+    16,
+    18
+  ],
+  "backend": "NONE",
+  "budget_seconds": 30.0,
+  "definitions": {
+    "category_interlang": "Literal [[Category:...]] and bounded language-prefix [[xx:...]] spans.",
+    "contributor_pair": "Within a D2 skeleton, first title and first contributor slot zipped by page occurrence; no identity resolution or external knowledge.",
+    "infobox_field": "Article text with a byte-level {{Infobox prefix and newline |key=value fields up to the stated bounds; no template parser is assumed.",
+    "numeric_field": "Bounded |key=value lines with at least one decimal-like byte token; relations are only an opportunity, not measured predictability.",
+    "redirect": "Case-insensitive byte lines beginning #REDIRECT followed by [[.",
+    "repeated_line_family": "UTF-8-agnostic byte lines up to 512 bytes normalized by replacing bounded links, URLs and numeric tokens; counts only repeated normalized forms.",
+    "repeated_paragraph_family": "Byte paragraphs split on blank lines, at most 1,024 bytes, with the same link/URL/numeric normalization.",
+    "template_occurrence": "Non-nested single-line {{...}} byte spans up to 512 bytes; nested/multiline templates are excluded.",
+    "title_reuse": "D2 title column values repeated within the same page-skeleton column.",
+    "url_citation": "HTTP(S) domain bytes and bounded <ref>...</ref> or self-closing ref spans.",
+    "wikitable": "Lines beginning {| and |- or | by simple byte regex; nested/template table syntax is not interpreted.",
+    "xml_wikitext_topology": "D2 page skeleton/slot layout plus body marker presence; it does not parse or normalize XML/wikitext."
+  },
+  "elapsed_seconds": 1.5839308528229594,
+  "holdouts_read": false,
+  "incremental_paq_gain": "NOT_MEASURED",
+  "input": "/home/user/src/cix-baseline-data/inputs/enwik9",
+  "limitations": [
+    "Approximate byte detectors; no XML/wikitext parser or reserialization.",
+    "No compressed asset, entropy estimate, or comparability claim.",
+    "Coverage categories overlap and must not be summed.",
+    "No numeric, relation, title, contributor or text coding was performed."
+  ],
+  "metadata_cost": "NOT_MEASURED",
+  "paq": "NOT_RUN",
+  "proposed_mechanisms": {
+    "category_interlang": "Category/language-prefix terminal stream with complete raw link escapes.",
+    "contributor_pair": "Per-skeleton title/contributor relation model only after matching raw field columns and explicit exception stream.",
+    "infobox_field": "Validated infobox field columns keyed by exact field-name bytes; preserve unknown/nested syntax literally.",
+    "numeric_field": "Per-field canonical-number validation followed by causal delta/error stream and raw spelling escapes.",
+    "redirect": "Redirect target field stream with a literal fallback for noncanonical syntax.",
+    "repeated_line_family": "Bounded line-family dictionary plus exact member/escape stream, selected only after physical framing comparison.",
+    "repeated_paragraph_family": "Bounded paragraph skeleton/reference stream with raw exceptions and explicit boundaries.",
+    "template_occurrence": "Template terminal/field layout stream with raw nested or multiline exceptions.",
+    "title_reuse": "D2 short title column composition/order coding with a matched arithmetic control and charged counts.",
+    "url_citation": "Domain/citation layout columns plus raw URL/citation escape payloads.",
+    "wikitable": "Validated row/cell column streams with raw fallback for nested or malformed tables.",
+    "xml_wikitext_topology": "D2 skeleton-relative field columns; then condition value coder on skeleton/slot class."
+  },
+  "ranges": [
+    {
+      "bytes": 4194304,
+      "offset": 0
+    },
+    {
+      "bytes": 4194304,
+      "offset": 100000000
+    },
+    {
+      "bytes": 4194304,
+      "offset": 400000000
+    }
+  ],
+  "regions": [
+    {
+      "bytes": 4194304,
+      "offset": 0,
+      "profile": {
+        "coverage_overlap_pairs": {
+          "category_interlang|url_citation": 186,
+          "category_interlang|xml_wikitext_topology": 6,
+          "infobox_field|category_interlang": 20,
+          "infobox_field|numeric_field": 14,
+          "infobox_field|redirect": 0,
+          "infobox_field|url_citation": 20,
+          "infobox_field|wikitable": 20,
+          "infobox_field|xml_wikitext_topology": 2,
+          "numeric_field|category_interlang": 55,
+          "numeric_field|redirect": 0,
+          "numeric_field|url_citation": 52,
+          "numeric_field|xml_wikitext_topology": 1,
+          "redirect|category_interlang": 2,
+          "redirect|url_citation": 0,
+          "redirect|xml_wikitext_topology": 6,
+          "repeated_line_family|category_interlang": 256,
+          "repeated_line_family|infobox_field": 20,
+          "repeated_line_family|numeric_field": 55,
+          "repeated_line_family|redirect": 248,
+          "repeated_line_family|repeated_paragraph_family": 506,
+          "repeated_line_family|template_occurrence": 208,
+          "repeated_line_family|url_citation": 186,
+          "repeated_line_family|wikitable": 78,
+          "repeated_line_family|xml_wikitext_topology": 12,
+          "repeated_paragraph_family|category_interlang": 256,
+          "repeated_paragraph_family|infobox_field": 20,
+          "repeated_paragraph_family|numeric_field": 55,
+          "repeated_paragraph_family|redirect": 248,
+          "repeated_paragraph_family|template_occurrence": 208,
+          "repeated_paragraph_family|url_citation": 186,
+          "repeated_paragraph_family|wikitable": 78,
+          "repeated_paragraph_family|xml_wikitext_topology": 12,
+          "template_occurrence|category_interlang": 198,
+          "template_occurrence|infobox_field": 20,
+          "template_occurrence|numeric_field": 51,
+          "template_occurrence|redirect": 6,
+          "template_occurrence|url_citation": 157,
+          "template_occurrence|wikitable": 68,
+          "template_occurrence|xml_wikitext_topology": 7,
+          "url_citation|xml_wikitext_topology": 6,
+          "wikitable|category_interlang": 78,
+          "wikitable|numeric_field": 55,
+          "wikitable|redirect": 0,
+          "wikitable|url_citation": 68,
+          "wikitable|xml_wikitext_topology": 2
+        },
+        "coverage_union_body_occurrences": 506,
+        "opportunities": {
+          "category_interlang": {
+            "coverage_body_occurrences": 256,
+            "distinct_values": null,
+            "occurrences": 7902,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "contributor_pair": {
+            "coverage_body_occurrences": 0,
+            "distinct_values": null,
+            "occurrences": 506,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "infobox_field": {
+            "coverage_body_occurrences": 20,
+            "distinct_values": 297,
+            "occurrences": 693,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "numeric_field": {
+            "coverage_body_occurrences": 55,
+            "distinct_values": 297,
+            "occurrences": 930,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "redirect": {
+            "coverage_body_occurrences": 248,
+            "distinct_values": null,
+            "occurrences": 248,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "repeated_line_family": {
+            "coverage_body_occurrences": 506,
+            "distinct_values": 14541,
+            "occurrences": 16900,
+            "repeated_families": 932,
+            "structural_variation": "normalized bounded lines"
+          },
+          "repeated_paragraph_family": {
+            "coverage_body_occurrences": 506,
+            "distinct_values": 6900,
+            "occurrences": 966,
+            "repeated_families": 133,
+            "structural_variation": "normalized bounded paragraphs"
+          },
+          "template_occurrence": {
+            "coverage_body_occurrences": 208,
+            "distinct_values": null,
+            "occurrences": 2136,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "title_reuse": {
+            "coverage_body_occurrences": 0,
+            "distinct_values": null,
+            "occurrences": 0,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "url_citation": {
+            "coverage_body_occurrences": 186,
+            "distinct_values": 1662,
+            "occurrences": 2273,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "wikitable": {
+            "coverage_body_occurrences": 78,
+            "distinct_values": null,
+            "occurrences": 78,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "xml_wikitext_topology": {
+            "coverage_body_occurrences": 12,
+            "distinct_values": null,
+            "occurrences": 506,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          }
+        },
+        "profile_note": "Coverage union is over D2 articletext field occurrences, not unique pages; title reuse and contributor pairs use page-column occurrences and are excluded from that union. Categories overlap and are not additive.",
+        "top_domains_counted": 1662,
+        "top_field_names_counted": 297,
+        "topology": {
+          "articletext_columns": 12,
+          "articletext_occurrences": 506,
+          "literal_exception_bytes": 3344,
+          "pages": 506,
+          "skeletoncount": 12,
+          "slotcolumns": 271
+        }
+      },
+      "sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77"
+    },
+    {
+      "bytes": 4194304,
+      "offset": 100000000,
+      "profile": {
+        "coverage_overlap_pairs": {
+          "category_interlang|url_citation": 233,
+          "category_interlang|xml_wikitext_topology": 6,
+          "infobox_field|category_interlang": 23,
+          "infobox_field|numeric_field": 21,
+          "infobox_field|redirect": 0,
+          "infobox_field|url_citation": 23,
+          "infobox_field|wikitable": 23,
+          "infobox_field|xml_wikitext_topology": 0,
+          "numeric_field|category_interlang": 35,
+          "numeric_field|redirect": 0,
+          "numeric_field|url_citation": 34,
+          "numeric_field|xml_wikitext_topology": 1,
+          "redirect|category_interlang": 0,
+          "redirect|url_citation": 0,
+          "redirect|xml_wikitext_topology": 3,
+          "repeated_line_family|category_interlang": 286,
+          "repeated_line_family|infobox_field": 23,
+          "repeated_line_family|numeric_field": 35,
+          "repeated_line_family|redirect": 90,
+          "repeated_line_family|repeated_paragraph_family": 377,
+          "repeated_line_family|template_occurrence": 245,
+          "repeated_line_family|url_citation": 233,
+          "repeated_line_family|wikitable": 128,
+          "repeated_line_family|xml_wikitext_topology": 9,
+          "repeated_paragraph_family|category_interlang": 286,
+          "repeated_paragraph_family|infobox_field": 23,
+          "repeated_paragraph_family|numeric_field": 35,
+          "repeated_paragraph_family|redirect": 90,
+          "repeated_paragraph_family|template_occurrence": 245,
+          "repeated_paragraph_family|url_citation": 233,
+          "repeated_paragraph_family|wikitable": 128,
+          "repeated_paragraph_family|xml_wikitext_topology": 9,
+          "template_occurrence|category_interlang": 244,
+          "template_occurrence|infobox_field": 23,
+          "template_occurrence|numeric_field": 35,
+          "template_occurrence|redirect": 0,
+          "template_occurrence|url_citation": 209,
+          "template_occurrence|wikitable": 128,
+          "template_occurrence|xml_wikitext_topology": 5,
+          "url_citation|xml_wikitext_topology": 4,
+          "wikitable|category_interlang": 128,
+          "wikitable|numeric_field": 35,
+          "wikitable|redirect": 0,
+          "wikitable|url_citation": 125,
+          "wikitable|xml_wikitext_topology": 1
+        },
+        "coverage_union_body_occurrences": 377,
+        "opportunities": {
+          "category_interlang": {
+            "coverage_body_occurrences": 286,
+            "distinct_values": null,
+            "occurrences": 12160,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "contributor_pair": {
+            "coverage_body_occurrences": 0,
+            "distinct_values": null,
+            "occurrences": 377,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "infobox_field": {
+            "coverage_body_occurrences": 23,
+            "distinct_values": 118,
+            "occurrences": 552,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "numeric_field": {
+            "coverage_body_occurrences": 35,
+            "distinct_values": 118,
+            "occurrences": 335,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "redirect": {
+            "coverage_body_occurrences": 90,
+            "distinct_values": null,
+            "occurrences": 90,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "repeated_line_family": {
+            "coverage_body_occurrences": 377,
+            "distinct_values": 19194,
+            "occurrences": 22713,
+            "repeated_families": 1704,
+            "structural_variation": "normalized bounded lines"
+          },
+          "repeated_paragraph_family": {
+            "coverage_body_occurrences": 377,
+            "distinct_values": 5020,
+            "occurrences": 982,
+            "repeated_families": 123,
+            "structural_variation": "normalized bounded paragraphs"
+          },
+          "template_occurrence": {
+            "coverage_body_occurrences": 245,
+            "distinct_values": null,
+            "occurrences": 1220,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "title_reuse": {
+            "coverage_body_occurrences": 0,
+            "distinct_values": null,
+            "occurrences": 0,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "url_citation": {
+            "coverage_body_occurrences": 233,
+            "distinct_values": 1019,
+            "occurrences": 1738,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "wikitable": {
+            "coverage_body_occurrences": 128,
+            "distinct_values": null,
+            "occurrences": 128,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "xml_wikitext_topology": {
+            "coverage_body_occurrences": 9,
+            "distinct_values": null,
+            "occurrences": 377,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          }
+        },
+        "profile_note": "Coverage union is over D2 articletext field occurrences, not unique pages; title reuse and contributor pairs use page-column occurrences and are excluded from that union. Categories overlap and are not additive.",
+        "top_domains_counted": 1019,
+        "top_field_names_counted": 118,
+        "topology": {
+          "articletext_columns": 9,
+          "articletext_occurrences": 377,
+          "literal_exception_bytes": 29747,
+          "pages": 377,
+          "skeletoncount": 9,
+          "slotcolumns": 203
+        }
+      },
+      "sha256": "fd30602741222df957545a821556c8428bb8c3e4ed45634367ae8470d901c6ec"
+    },
+    {
+      "bytes": 4194304,
+      "offset": 400000000,
+      "profile": {
+        "coverage_overlap_pairs": {
+          "category_interlang|url_citation": 366,
+          "category_interlang|xml_wikitext_topology": 4,
+          "infobox_field|category_interlang": 35,
+          "infobox_field|numeric_field": 34,
+          "infobox_field|redirect": 0,
+          "infobox_field|url_citation": 33,
+          "infobox_field|wikitable": 35,
+          "infobox_field|xml_wikitext_topology": 1,
+          "numeric_field|category_interlang": 78,
+          "numeric_field|redirect": 0,
+          "numeric_field|url_citation": 68,
+          "numeric_field|xml_wikitext_topology": 1,
+          "redirect|category_interlang": 84,
+          "redirect|url_citation": 0,
+          "redirect|xml_wikitext_topology": 5,
+          "repeated_line_family|category_interlang": 777,
+          "repeated_line_family|infobox_field": 35,
+          "repeated_line_family|numeric_field": 78,
+          "repeated_line_family|redirect": 433,
+          "repeated_line_family|repeated_paragraph_family": 1189,
+          "repeated_line_family|template_occurrence": 514,
+          "repeated_line_family|url_citation": 386,
+          "repeated_line_family|wikitable": 117,
+          "repeated_line_family|xml_wikitext_topology": 9,
+          "repeated_paragraph_family|category_interlang": 776,
+          "repeated_paragraph_family|infobox_field": 35,
+          "repeated_paragraph_family|numeric_field": 78,
+          "repeated_paragraph_family|redirect": 433,
+          "repeated_paragraph_family|template_occurrence": 513,
+          "repeated_paragraph_family|url_citation": 386,
+          "repeated_paragraph_family|wikitable": 117,
+          "repeated_paragraph_family|xml_wikitext_topology": 9,
+          "template_occurrence|category_interlang": 452,
+          "template_occurrence|infobox_field": 30,
+          "template_occurrence|numeric_field": 65,
+          "template_occurrence|redirect": 1,
+          "template_occurrence|url_citation": 269,
+          "template_occurrence|wikitable": 97,
+          "template_occurrence|xml_wikitext_topology": 2,
+          "url_citation|xml_wikitext_topology": 4,
+          "wikitable|category_interlang": 117,
+          "wikitable|numeric_field": 78,
+          "wikitable|redirect": 0,
+          "wikitable|url_citation": 98,
+          "wikitable|xml_wikitext_topology": 2
+        },
+        "coverage_union_body_occurrences": 1190,
+        "opportunities": {
+          "category_interlang": {
+            "coverage_body_occurrences": 777,
+            "distinct_values": null,
+            "occurrences": 7424,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "contributor_pair": {
+            "coverage_body_occurrences": 0,
+            "distinct_values": null,
+            "occurrences": 1190,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "infobox_field": {
+            "coverage_body_occurrences": 35,
+            "distinct_values": 331,
+            "occurrences": 799,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "numeric_field": {
+            "coverage_body_occurrences": 78,
+            "distinct_values": 331,
+            "occurrences": 754,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "redirect": {
+            "coverage_body_occurrences": 433,
+            "distinct_values": null,
+            "occurrences": 433,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "repeated_line_family": {
+            "coverage_body_occurrences": 1190,
+            "distinct_values": 16538,
+            "occurrences": 17611,
+            "repeated_families": 1329,
+            "structural_variation": "normalized bounded lines"
+          },
+          "repeated_paragraph_family": {
+            "coverage_body_occurrences": 1189,
+            "distinct_values": 7427,
+            "occurrences": 2409,
+            "repeated_families": 181,
+            "structural_variation": "normalized bounded paragraphs"
+          },
+          "template_occurrence": {
+            "coverage_body_occurrences": 514,
+            "distinct_values": null,
+            "occurrences": 1439,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "title_reuse": {
+            "coverage_body_occurrences": 0,
+            "distinct_values": null,
+            "occurrences": 0,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "url_citation": {
+            "coverage_body_occurrences": 386,
+            "distinct_values": 1414,
+            "occurrences": 1910,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "wikitable": {
+            "coverage_body_occurrences": 117,
+            "distinct_values": null,
+            "occurrences": 117,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "xml_wikitext_topology": {
+            "coverage_body_occurrences": 9,
+            "distinct_values": null,
+            "occurrences": 1190,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          }
+        },
+        "profile_note": "Coverage union is over D2 articletext field occurrences, not unique pages; title reuse and contributor pairs use page-column occurrences and are excluded from that union. Categories overlap and are not additive.",
+        "top_domains_counted": 1414,
+        "top_field_names_counted": 331,
+        "topology": {
+          "articletext_columns": 9,
+          "articletext_occurrences": 1190,
+          "literal_exception_bytes": 16099,
+          "pages": 1190,
+          "skeletoncount": 9,
+          "slotcolumns": 201
+        }
+      },
+      "sha256": "a07035d4de761fc30cee70f4528156e8128abf7430222cfd63c2311168ea7f17"
+    }
+  ],
+  "schema": "cix-wikipedia-body-opportunities-v1",
+  "status": "PROFILE_ONLY_NOT_COMPRESSION"
+}

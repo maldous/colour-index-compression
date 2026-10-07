@@ -1,0 +1,11 @@
+{
+  "schema": "cix-molecular-pubchem-2d-batch-plan-v1",
+  "purpose": "separate fixed 2-D source dataset for structural transfer across record layouts",
+  "cids": [1983, 2244, 2519, 3672, 5793, 5950, 681, 702],
+  "request_template": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/record/SDF/?record_type=2d",
+  "response_policy": "retain every returned response byte; record missing IDs and retain unsupported records as adapter literal exceptions",
+  "preparation": "literal concatenation in declared CID order; no coordinate conversion, reserialization or artificial hydrogen generation",
+  "separation": "the 2-D batch is never mixed with the 3-D batch; future matched PAQ comparisons use them separately",
+  "backend": "NOT_RUN",
+  "download_limit_bytes": 204800
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "cix-domain-database-source-v1",
+  "status": "acquired_and_frozen_for_lightweight_correctness_only",
+  "retrieved_utc_date": "2026-09-30",
+  "source": {
+    "publisher": "World Bank",
+    "dataset_description": "World Development Indicators API download: total population (SP.POP.TOTL), source 2, countries USA and CAN",
+    "download_url": "https://api.worldbank.org/v2/country/usa;can/indicator/SP.POP.TOTL?source=2&downloadformat=csv",
+    "documentation_urls": [
+      "https://datahelpdesk.worldbank.org/knowledgebase/articles/898581-api-basic-call-structures",
+      "https://api.worldbank.org/v2/country?format=json"
+    ]
+  },
+  "artifacts": {
+    "download_zip": {
+      "path": "database-data/worldbank-population-usa-can.zip",
+      "bytes": 2232,
+      "sha256": "42479202fb87ac6c4d42041d701e5c5adea56ba704c05143ff57124300d04b94"
+    },
+    "compressor_input": {
+      "path": "database-data/worldbank-population-usa-can.csv",
+      "member": "API_Download_DS2_EN_csv_v2_440466.csv",
+      "bytes": 2244,
+      "sha256": "a2b1f9fd989d69410e425e478d7d2f24f80bed265d67049ee2febaa7c2bd4bee",
+      "preparation": "unzip -p worldbank-population-usa-can.zip API_Download_DS2_EN_csv_v2_440466.csv > worldbank-population-usa-can.csv",
+      "byte_transformations": "none; the extracted member is supplied unchanged"
+    }
+  },
+  "frozen_adapter_variants": [
+    "literal",
+    "dictionary_remaining"
+  ],
+  "planned_matched_pipeline": {
+    "control": "original CSV bytes -> pinned PAQ v216 -4 AVX2",
+    "candidate": "complete self-contained CSV structural frame -> same pinned PAQ v216 -4 AVX2",
+    "not_run_by_this_artifact": true,
+    "rank_coding": "not included",
+    "packing_ablation": "not predeclared: profile shows no recoverable alignment padding and no evidence yet of redundant stream termination"
+  }
+}

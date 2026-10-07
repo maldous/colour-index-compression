@@ -1,0 +1,1456 @@
+
+ 
+ 
+   
+   
+   
+   
+   
+   Human Knowledge Compression Contest: Frequently Asked Questions & Answers 
+
+ 
+  h3 { color:blue;  }
+  a.extern { color:black;  }
+  a:hover { color:#00C000; }
+  a.foot { color:black; text-decoration:none; } /* FONT-FAMILY: sans-serif,Helvetica,Arial; font-weight:bold; */
+  a.foot:hover { color:black; background-color:yellow; }
+  a.foot:active { color:black; background-color:yellow; }
+  p { text-align:justify }
+  p { alignment:justify }
+ 
+ 
+
+ 
+   
+     
+       
+      Human Knowledge Compression Contest 
+      Frequently Asked Questions & Answers 
+       
+     
+   
+ [ back to the prize page ] 
+
+ 
+ 
+ Compress the 1GB file  enwik9  to less than the current record of about 116MB 
+
+ 
+ 
+ Frequently Asked Questions 
+ 
+ 
+ 
+   What is this contest about? 
+   Is the compression contest still ongoing? 
+   Why did you grant a temporary relaxation in 2021 of 5'000 Byte per day? 
+   Where do I start? How do I develop a competitive compressor? 
+   What is (artificial) intelligence? 
+   What does compression has to do with (artificial) intelligence? 
+   What is/are (developing better) compressors good for? 
+   The contest encourages developing special purpose compressors 
+   Why lossless compression? 
+   I have a really good lossy compressor. (How) can I participate? 
+   Why aren't cross-validation or train/test-set used for evaluation? 
+   Why is (sequential) compression superior to other learning paradigms? 
+   Why is Compressor Length superior to other Regularizations? 
+   How can I achieve small code length with huge Neural Networks? 
+   Batch vs incremental/online/sequential compression. 
+   Why don't you allow using some fixed default background knowledge data base? 
+   Why is "understanding" of the text or "intelligence" needed to achieve maximal compression? 
+   Why do you focus on text? 
+   What is the ultimate compression of enwik9? 
+   Why recursively compressing compressed or compressing random files won't work 
+   Can you prove the claims in the answers to the FAQ above? 
+   The PAQ8 compressors are hard to beat 
+   There are lots of non-human language pieces in the file 
+   Why include the decompressor? 
+   Why do you require submission of the compressor and include its size and time? 
+   Why not use Perplexity, as most big language models do? 
+   Why did you start with 100MB enwik8 back in 2006? 
+   Why did you go BIG in 2020? 
+ 
+ 
+   Why are you limiting (de)compression to less than 100 hours on systems with less than 10GB RAM? 
+   Why do you restrict to a single CPU core and exclude GPUs? 
+   The total prize is not exactly 500'000€ 
+   Is 1GB 2^30 byte or 10^9 byte? 
+   The website looks dated 
+   Why do you require Windows or Linux executables? 
+   Why do you require submission of documented source code? 
+   Where can I find the source code of the past winners and baseline phda9? 
+   Under which license can/shall I submit my code? 
+   What if I can (significantly) beat the current record? 
+   How can I produce self-contained or smaller decompressors? 
+   Is Artificial General Intelligence (AGI) possible? 
+   Is Ockham's razor and hence compression sufficient for AI? 
+   The human brain works very differently from (de)compressors 
+   I have other questions or am not satisfied with the answer 
+ 
+ 
+
+ 
+ What is this contest about? 
+ 
+The contest is about compressing the human world knowledge as well as possible.
+There's a prize of  nominally 500'000€  attached to the contest.
+If your compressor compresses the 1GB file  enwik9  x% better than the current record,
+you'll receive x% of the prize. 
+Enwik9 is a 1GB text snapshot of part of Wikipedia.
+The contest is motivated by the fact that
+compression ratios can be regarded as intelligence measures.
+See  http://prize.hutter1.net/  for details.
+Technically the contest is about  lossless data compression ,
+like when you compress the files on your computer into a smaller zip archive.
+In particular the goal is to creating a small  self-extracting archive  that encodes enwik9.
+
+ 
+ Is the compression contest still ongoing? 
+ 
+Yes it is (as of 2023), and I intend to fund it even beyond my death.
+It just became harder to beat the previous record,
+which is the reason that there have been fewer winners in recent years.
+If I ever should change my mind, I will update this website.
+
+ 
+ Why did you grant a temporary relaxation in 2021 of 5'000 Byte per day? 
+ 
+
+The contest went big early 2020, but no-one was able to beat the baseline for nearly a year,
+I introduced a relaxation of 5'000 Byte from 1.1.2021 on to ease participation and guarantee eventually at least one winner.
+The relaxation was around 1.5% per year, so allowed a first winner within a year.
+The reason for the incremental discount was to prevent a quick win by whoever notices the relaxation first.
+Eventually Artemyi Margaritov was able to beat the baseline by 1% even without this relaxation,
+but the relaxation (≈21.73€) per day has of course been respected in the awarded prize money, 
+which for this reason was €8260,- rather than just €5000,-. 
+
+ 
+ Where do I start? How do I develop a competitive compressor? 
+ 
+ 
+Minimal programming skills are required to write programs that compress files somewhat,
+but to win the contest, you first need to understand the most important existing data compression ideas, concepts, and basic algorithms,
+and then the state-of-the-art compressors which build on these (by refining, adapting, and combining them).
+Maybe you have a new great idea of your own,
+but by itself without combining it with existing ideas,
+you have no chance of winning.
+
+ 
+You can get a first glimpse of the vast field of data compression from
+Matt Mahoney's  Data Compression Explained .
+If this is too dense, a more gentle and comprehensive introduction to (lossless) data compression and overview of existing compressors is (Chapters 1-6 of)
+the  Handbook of Data Compression ,
+after which you should be able to re-implement and tinker with the most important existing algorithms,
+and  understand the current state-of-the-art compressors  
+such as  PAQ .
+
+Most modern compression algorithms are based on  arithmetic coding  
+based on estimated probabilistic predictions.
+To fully appreciate them you need some background in
+information theory,
+machine learning,
+probability and
+statistics, on the level of University  courses/books .
+
+ 
+For a more light-weight start, I recommend you implement some simple  Run-Length coding ,
+then  Lempel-Zip , and if you're able to, the elegant but fiendishly subtle-to-implement  CTW .
+If you have an idea of your own, great, but to be able to win, you need to combine it with current state-of-the-art compressors, which are messy combinations of many ideas.
+The  source codes of the 2023  and  2021 winners  are publicly available, and can be used/adapted/improved with attribution.
+Unfortunately the  source code of the previous winning entries  (up to 2017 for enwik8) are not
+publicly available , but the  PAQ source , on which they build on, and  other source code  are.
+
+Matt Mahoney's webpage lists and explains the most recent (and older)  Data Compression Programs .
+Use  our discussion forum  for questions and general discussion or to get feedback on your ideas.
+ More discussion  can be found on the  general data compression forum encode.su .
+ Good luck! 
+
+ 
+ What is (artificial) intelligence? 
+ 
+Intelligence has many faces, like creativity, solving problems,
+pattern recognition, classification, learning, induction,
+deduction, building analogies, optimization, surviving in an
+environment, language processing, knowledge, and many more.
+
+A  formal definition  incorporating all or at least most aspect of
+intelligence is difficult but not impossible.
+
+Informally,  intelligence is an agent's ability to achieve goals in
+a wide range of environments .
+
+The key concepts for a formal definition are  compression 
+and  utility maximization , the other aspects are emergent phenomena.
+
+ 
+ What does compression has to do with (artificial) intelligence? 
+ 
+One can prove that the better you can compress,
+the better you can predict; and being able to predict
+[the environment] well is key for being able to act well.
+
+Consider the sequence of 1000 digits "14159... [990 more
+digits] ...01989". If it looks random to you, you can neither
+compress it  nor  can you predict the 1001st digit. If you
+realize that they are the first 1000 digits of  π ,
+you can compress the sequence  and  predict the next digit.
+
+While the program computing the digits of π is an example of a
+one-part self-extracting archive,
+the impressive  Minimum Description Length  (MDL) principle is a two-part
+coding scheme akin to a (parameterized) decompressor plus a
+compressed archive. If M is a probabilistic model of the data X,
+then the data can be compressed (to an archive of) length log(1/P(X|M)) 
+via  arithmetic coding ,
+where P(X|M) is the probability of X under M.
+The decompressor must know M, hence has length L(M).
+One can show that the model M that minimizes the total length L(M)+log(1/P(X|M))
+leads to best predictions of future data.
+
+For instance, the quality of natural language models
+is typically judged by its  Perplexity , which is equivalent to code length.
+ 
+
+Finally,  sequential decision theory  tells you how to exploit such
+models M for optimal rational actions.
+
+Indeed, integrating compression (=prediction) into sequential decision theory (=stochastic planning) can serve as the
+theoretical foundations of super-intelligence
+( brief  and 
+ comprehensive introduction , 
+ full treatment  with  proofs ).
+
+ 
+ What is/are (developing better) compressors good for? 
+ 
+
+ 
+ 
+ Storage:  The most obvious application of (better) data compressors is of course to save (more) memory.
+The most popular large data types are images, music, and movies, which require lossy compression,
+but not less important are 
+data from scientific experiments, 
+billions of user data, 
+documents, 
+medical records, 
+software, etc., which require exact storage and transmission and hence lossless compression, as e.g. in zip-files.
+For rarely accessed data, esp. backup files, 
+even slow (de)compressors may be acceptable, 
+saving a couple of percent in a multi-billion dollar industry.
+
+ 
+ Transmission:  Similarly for data transmission, 
+most prominently mobile internet with limited-capacity channels, 
+higher compression effectively results in faster and/or more data transmission.
+Most gain could be achieved on (semi)synthetic data by smart compressors that 
+reverse engineer the algorithms that produced the data.
+
+ 
+ Prediction:  Another important application is prediction or time-series forecasting,
+with weather forecasting and stock-market forecasting being classical examples.
+ The better you can compress, the better you can predict. 
+Indeed one can show that Solomonoff's universal predictor is the best possible predictor for any task,
+which is essentially equivalent to  Kolmogorov's  universal best possible compressor.
+Natural Language Processing models (for translation, virtual assistants, text analytics, free-form search, etc.) 
+heavily rely on and measure their performance in terms compression (log  Perplexity ).
+
+ 
+ Understanding:   Better compression requires understanding , 
+but the reverse is true too.
+Finding more compact representations of some data
+can lead to a better understanding or in some sense  is  understanding.
+Scientists do that all the time by hand,
+but imagine an algorithm that finds regularities in (obscure) time-series,
+then inspecting the algorithm can help understanding the time-series.
+In simple cases this is exactly what Sloane's
+ On-Line Encyclopedia of Integer Sequences 
+does. 
+
+ 
+ Induction:  Philosophically, the process of inducing=inferring=learning models from data, is called 'induction'. 
+While philosophers still ponder how and why induction is possible,
+scientists are rarely troubled, if necessary use regularization in practice, 
+and in theory
+ Solomonoff's theory solves induction 
+as well as logic serves deduction.
+
+ 
+ Intelligence:  Finally,  AI  increasingly  is about  
+building agents that understand their environment (learning/training models inductively),
+and base their decisions on the predicted consequences of their actions,
+all related to compression and the primary motivation for this contest.
+ 
+
+ 
+ The contest encourages developing special purpose compressors tailored towards enwik9, rather than general purpose compressors. 
+ 
+ 
+
+The top compressors may be somewhat tuned to  enwik9 ,
+but the major progress will not come from
+coding e.g. thousands of grammatical and semantic rules to compress
+frequent phrases well.
+A compressor that learns these rules from the data itself will lead to better compression.
+Such a compressor will compress other text corpora well too.
+
+ enwik9  constitutes an amount of non-visual knowledge an average adult human holds,
+so compressors compressing  enwik9  better than a human,
+will predict better, and hence should be smarter.
+So any tuning towards  enwik9  is just a tailoring towards 
+exceeding human performance in human environments, which, 
+if achieved, most would agree constitutes AGI. 
+
+ 
+ Why lossless compression? 
+ 
+ Doesn't a lossless compressor waste resources on coding random noise and (spelling) errors
+in enwik9, in contrast to lossy compressors like the human brain? 
+
+ 
+
+  ---   Not really, due to the following reasons:
+ 
+ 
+The test data is very clean. Misspelled words and grammatical errors
+are very rare. This is one reason why we chose this data set.  See
+ http://mattmahoney.net/dc/textdata.html 
+for an analysis of the data.
+ 
+Even if the corpus would contain a lot of  noise , 
+lossless compression is still the right way to go for.
+Noise does not at all harm the strong relation between compression and
+understandng/intelligence/predictability/etc.
+ 
+It is not always clear what accounts for errors/noise and what for useful data.
+Consider e.g. some keyboard-layout, hence country-related, typos like y versus z.
+There is probably a correlation between the type of Wikipedia entry
+and the type of typo. A compressor finding such a correlation will
+compress better. Figuring out this correlation can lead to useful insight.
+Simply correcting the errors would miss this piece of human "culture".
+Hence it is not clear how to setup a fair lossy compression contest.
+ 
+Compressors can always ignore  errors ; 
+the decompressor reconstructs the error-corrected  enwik9 .
+Finally, a table of errors is used to reintroduce them.
+In this way any lossy compressor can be converted to a lossless compressor.
+ 
+All compressors have to deal with the same noise and errors.
+The extra information needed to encode the exact text is small, and is the same
+for all contestants. In this sense lossless compression is not harder than lossy
+compression.
+ 
+Human brains are probably lossy compressors, but this does not invalidate
+the strong relation between lossless compression and AI. The competition is
+ not  about imitating or emulating a human brain. It is about
+creating rational intelligences. Suitably storing what today
+looks like noise and errors does not harm and allows future reconsideration.
+ Indeed, many modern Deep Learning models are over-parameterized and overfit and
+interpolate the data, i.e. are (near) perfect=lossless predictors.
+ Lossless compression implies AI,
+but lossy compression doesn't .
+ Every lossy compressor can be converted to a lossless compressor .
+ 
+
+ 
+ I have a really good lossy compressor. (How) can I participate? 
+ 
+
+ 
+ 
+  Any lossy compressor can be converted into a lossless one.
+The basic idea is that the compressor produces an archive,
+which if decompressed only approximately reconstructs the original file,
+and an error correction program or table fixes the errors.
+This correction takes space and penalizes imperfect compressors.
+(Only) in this way, lossy compressors can fairly be compared to lossless ones and among each other,
+even if we do not actually care about (coding) the errors/noise.
+ 
+  More concretely, errors and exceptions and noise in the data can be dealt with in this way:
+Assume either a preprocessing step fixes errors (e.g. typos) or exceptions (e.g. unconventional capitalization),
+or you have a genuinely lossy compressor for noisy data such as images and movies.
+The decompressor then reconstructs the error-corrected or exception-cleaned or approximate file.
+The decompressor can be augmented by an error-correction or exception/noise reinstantiating table.
+In this way any lossy compressor can be converted to a lossless compressor.
+ 
+  For instance, consider simple bit-errors,
+and an error-correction table with 32 bit entries, 30 bits for at which bit in the file the error occurred,
+and 2 bits to fix it, e.g. 10=delete bit, 11=flip bit, 01=insert 1, 00=0 insert 0 (cf. Levenshtein distance).
+We could have relaxed the rules and allowed for bit errors in the rules and penalize each error by 32 bit,
+but that would only offer this one extremely naive and non-competitive error-correction scheme.
+ 
+  Consider for instance an OCR of a scanned PDF which is far from perfect,
+but in addition to the OCRed page (approximate reconstruction of the scanned PDF),
+the difference between the OCRed page and the original scanned PDF (the errors) is also stored,
+and so the reconstruction is always perfect. While compression is not the primary purpose 
+of lossless OCR, it sometimes does compress the scanned PDF (sometimes it blows it up).
+ 
+  Most modern/competitive compressors treat errors as noise:
+One can show that among the shortest codes for a noisy data corpus, 
+there is a two-part code of length L(N)+L(M), 
+where M contains all "useful" information and N contains all "noise". 
+The theory is called "algorithmic statistics", while in practice two-part 
+ MDL / MML  is used: 
+A probabilistic model M plus the log-likelihood of the data X under the model: CodeLength(X)
+= -log P(X|M) + L(M). If you have any stochastic decompressor
+that reconstructs the next symbol correctly only with a certain probability,
+you can use arithmetic coding to convert this into a lossless compressors.
+Of course you pay a price of -log P(X|M) in code length.
+ 
+  Instead of allowing lossy compressors and some fixed scheme and penalties for error correction,
+the contest rules allow the participant to deal with errors and noise as they see fit.
+ 
+
+ 
+ Why aren't cross-validation or train/test-set used for evaluation? 
+ 
+A common way of evaluating machine learning algorithms is to split the data into 
+a training set and a test set, learn e.g. the parameters of a Neural Network (NN) on the train set
+and evaluate its performance on the test set.
+While this method, and similarly its extension to cross-validation, can work in practice,
+ it is not a fool-proof method for evaluation :
+
+In the training phase, 
+the algorithm could  somehow  manage to "effectively" store the information contained in the test set
+and use it to predict the test set without the desired generalization capability.
+This can happen in a number of ways:
+ 
+ The test set could be very  similar  or in the extreme case identical to the train set,
+so even without access to the test set, 
+the algorithm has effectively access to the information in the test set via the train set.
+For instance, if you downloaded all images from the internet and randomly split them into train and test set,
+most images would be in both sets, since most images appear multiple times online.
+Similarly if you download all text. 
+Admittedly, Wikipedia should be less prone to repetition, since curated.
+ The algorithm could  accidentally  contain test set information, though statistically this is very unlikely,
+and would only be a problem if HKCP received an enormous number of submissions, 
+or contestants optimize their algorithms based on test-set performance.
+ The contestant could  cheat  and simply hide the test set in the algorithm itself.
+This could be circumvented by keeping the test set secret, 
+but one could never be sure whether it has leaked,
+a grain of doubt will always remain, and even if not, ...
+ if the test set is taken from a  public  source like Wikipedia,
+a gargantuan NN could be trained on all of Wikipedia or the whole Internet.
+Limiting the size of the decompression algorithm can prevent this.
+Indeed this is the spirit of the used compression metric.
+ 
+One the other hand, including the size of the decompressor rules out many  SOTA  batch NN, which are often huge,
+but maybe they only  appear  better than HKCP records, due to some of (a)-(d).
+The solution is to  train online  or 
+to go to larger corpora that are a more comprehensive sample of human knowledge.
+
+ 
+ Why is (sequential) compression superior to other learning paradigms? 
+ 
+The limitations of 
+ train/test set split , 
+ regularized maximum likelihood , and
+ lossy compression 
+is discussed in the linked FAQs.
+There are many further popular learning paradigms, e.g. 
+ continual/lifelong/never-ending learning ,
+ multitask/transfer learning ,
+ meta-learning ,
+ few-shot learning ,
+ fine-tuning / domain adaptation ,
+ out-of-distribution generalization ,
+ online learning .
+The (sequential) compression paradigm subsumes all of them.
+The general reason is that compression algorithms are designed to find and exploit regularities in the data
+(which is also at the heart of all other learning algorithms)
+but without committing or being confined to any particular regularity.
+Indeed, the  ultimate compressor (Kolmogorov complexity)  finds  all  regularities,
+hence automatically subsumes/mimics/outperforms all specific learners to the extent they are effective.
+Conversely, since practical learning algorithms in effect find and exploit  particular  kinds of regularities in the data,
+these algorithms can be useful components within compression algorithms.
+Learning paradigms devised to improve prediction accuracy in the specific settings above,
+therefore can also be repurposed to improve compression:
+ Better prediction implies better compression .
+
+ 
+ Why is Compressor Length superior to other Regularizations? 
+ 
+
+ Probabilistic models: 
+Most modern data compressors are based on 
+ probabilistic models  of the data.
+Assume you have a model M that assign probability P(X|M) to data X (in our case X= enwik9 ).
+It is the possible to code X via  Huffman  
+or  Shannon-Fano coding  
+or in practice  arithmetic coding  
+in ⌈log 1/P(X|M)⌉ bits.
+But (de)coding requires knowledge of the model, so we need C(M) further bits for (de)coding X,
+hence a code of total length C(X,M):=⌈log 1/P(X|M)⌉+C(M).
+
+For instance, P(X|M):=1 and P(X'|M)=0 for all X'≠X is a valid (deterministic) model,
+which allows to code X in ⌈log 1/P(X|M)⌉=log 1/1 = 0 bits,
+but since M must store all of X, C(M)≥C(X) and we have gained nothing.
+If we choose a uniform distribution, P(X|M)=2^-L, where L is the length of X in bits,
+then C(M)= O(1)  
+hence C(X,M)=log(1/2^-L)+O(1)=L+O(1), achieving no compression at all.
+A good model somewhere lies in-between these two extremes,
+trading off the two-parts in C(X,M).
+
+ Regularization: 
+Adding C(M) is a special case of  regularization  
+in  machine learning  and 
+ statistics . Many estimators can be rephrased as 
+ Maximum Likelihood estimators 
+(e.g. least-squares  regression ):
+Find M in some restricted class which maximizes the data  likelihood  P(X|M),
+or equivalently minimizes code length log 1/P(X|M), but this  overfits  
+X for large model classes.
+The solution is to add a regularizing penalty term R(M),
+and minimize -log(P(X|M))+R(M) instead.
+If R is chosen to be a code-length for M, 
+this exactly reduces to C(X,M) above.
+If we chose R smaller, e.g. C(M)/2,
+the minimum would be achieved by the deterministic model above.
+If we chose R larger, e.g. 2×C(M),
+the minimum would be achieved by  Solomonoff's universal distribution .
+Only the choice R(M)=C(M) leads to reasonable models M.
+
+ Alternative Regularizers: 
+Now, in statistics and machine learning, many other regularizers are used,
+which are not or do not appear to be code lengths.
+
+This is ok if and only if a restricted class of models is considered.
+The most common assumption is that X is a sequence of 
+ independent and identically distributed (iid) 
+"tokens", e.g.  coin flips  or 
+ bag-of-words model , in the simplest case.
+For  parametric models ,
+regularizers are mostly chosen by convenience and what works in practice,
+e.g.  convex  to ease optimization, 
+ LASSO  to encourage sparse models,
+classical  Ridge regression  for analytic solutions, etc.
+
+For semi-parametric models with d real parameters, where d varies,
+MML/MDL/BIC/AIC/... have been developed.
+ MML  
+uses R(M)=C(M) and constructs an explicit code for iid models,
+ MDL  and 
+ BIC  
+can be regarded as (crude) approximations of this.
+While they have legit (approximate) code length interpretation,
+the expressions are valid only for iid data.
+They can be extended to  Markov data , 
+and possibly  stationary data ,
+but essentially not beyond. 
+As an extreme example, without model restrictions, you could code all of  enwik9  in the binary expansion of a single real number,
+with C( enwik9 ,Mextreme)=½log(10^9)≈15 for BIC or even just 1 for AIC. If you insist on using 
+ floating point numbers ,
+chop enwik9 into chunks of F bytes interpreted as floats (with some caveats), 
+and start arguing what is the maximal "legal" precision F 
+( 4 ? 
+ 8 ? 
+ 16 ? 
+ 32 ? 
+ ... ? 10^9?).
+For  non-parametric models  
+such as  k-Nearest Neighbors (kNN) ,
+ LoRP  can be used and has a code-length interpretation.
+
+Regularizers smaller than C(M) such as  AIC  are particularly dangerous,
+since they can lead to huge models.
+
+ Conclusion:   
+As argued above, many heuristic and useful but limited regularizers have been suggested, 
+but (only) a general code length penalty C(M)
+imposes no restrictions on data X and models M,
+which is important for this  AGI-motivated contest .
+Beyond the arguments given above, 
+this choice can be rigorously justified by  Algorithmic Information Theory .
+
+ 
+
+ 
+ How can I achieve small code length with huge Neural Networks? 
+ 
+Large Neural Networks (NN) can be trained to achieve 
+ excellent performance for text compression incl. enwik9 , 
+but are not competitive for the HKCP,
+since the networks often have (tens of) millions of (real-valued) parameters (weights and biases), 
+i.e. the models hence decompressors are huge,
+possibly even larger than enwik9 itself.
+On the other hand, the untrained NN usually has a simple description:
+the structure of the network, the activation function, the learning algorithm,
+some hyper-parameters, and deterministic (pseudo-random or zero) weight initialization -- 
+all code that is explicitly written by a human,
+which by necessity is not much, 
+as long as no data-heavy libraries such as dictionaries are included.
+In this case it is possible to include only the smallish code
+and not the millions of trained weight values in the (de)compressor, 
+ provided  the NN is  trained sequentially or online (rather than in batch) ,
+and similarly for other small-ROM(=code) large-RAM(=parameters,...) algorithms.
+ Huge Transformer NN have achieved SOTA code-length on enwik8  
+ and enwik9  this way, but they are currently too slow for enwik9.
+
+ 
+ Batch vs incremental/online/sequential compression. 
+ 
+ Batch learning:  
+Consider data X chopped up into natural units x1,x2,...,xn, such as bits, bytes, words, phrases, sentences, or even paragraphs and beyond.
+Batch learning trains the parameters of a model M on all data X, often via multiple passes through x1..xn. 
+Once the model is trained, the parameters are frozen, and M can be used for prediction or compression.
+The code length of the model consists of the program itself and the trained parameters,
+the inclusion of the latter prevents overfitting by penalizing large models.
+This makes huge Neural Networks with millions or even billions of parameters (weights) non-competitive, 
+but there is a simple solution:
+
+ Sequential learning:  
+In  incremental  or 
+ online learning  (see also
+ Predictive MDL  or 
+ Prequential MDL ),
+learning and prediction are interleaved: 
+For t=1,2,3,...:  
+- train the model only on xt (online) or only on data x1..xt up to time t (sequential), 
+- use it to probabilistically predict the next data item x_{t+1}, 
+- employ an arithmetic (de)coder based on this prediction. 
+
+In this case, the (de)compressor only consists of the (small) algorithm itself,
+since it does not need to know the trained parameters.
+
+ Conversion:  
+All algorithms can trivially be converted from batch to online at a computational cost,
+which can be mitigated by training on and predicting  mini-batches . 
+
+An exponential scheme such as t=1,2,4,8,16,... (or a bit finer) rather than fixed size
+leads to minimal computational overhead, likely with comparable compression.
+Plenty of details, such as dynamic hyper-parameter choices, 
+likely make a good batch to sequential conversion less straight-forward.
+
+Also, the online performance will look inferior to the  batch train/test performance ,
+since the smaller t the worse the prediction,
+but this is no price to pay for a fair and incorruptible and universal comparison.
+
+ Regularization effect:  Illustration:
+If your test set is contaminated, say, in the extreme case is a subset of the training set, 
+then any "bad" batch learning algorithm that just effectively stores the training set has better test performance 
+compared to any non-interpolating batch learning algorithm that tries to do the "right" thing and generalize.
+But if you train&evaluate online as above, 
+memorization algorithms that do not also generalize are punished, 
+because they don't predict x_{t+1} well.
+
+ 
+ Why don't you allow using some fixed default background knowledge database? 
+ 
+
+Since Wikipedia contains enough human knowledge in the text itself:
+If advantageous, some advanced statistical and/or other smart
+but relatively short algorithms could extract and create such a
+probably more structured "database of knowledge" from Wikipedia.
+If this turns out to be impossible, it would indicate that enwik9
+is not a representative sample of human knowledge,
+and larger sources should be used.
+
+ 
+ Why is "understanding" of the text or "intelligence" needed to achieve maximal compression? 
+ 
+
+ 
+
+Consider the following
+ little excerpt from a Wikipedia page ,
+where 12 words have been replaced by the placeholders [1]-[12].
+
+ In [1], HTML and XML documents, the logical constructs known as
+character data and [2] [3] consist of sequences of
+characters, in which each [4] can manifest directly
+(representing itself), or can be [5] by a series of
+characters called a [6] reference, of which there are [7]
+types: a numeric character reference and a character entity
+[8]. This article lists the [9] entity [10] that
+are valid in [11] and [12] documents.
+ 
+
+If you do not understand any English,
+there is little hope that you can fill in the missing words.
+You may assign a high probability that the missing words
+equal some of the other words,
+and a small probability to all other strings of letters.
+Working on a string pattern matching level you may conjecture  [11]=HTML  and  [12]=XML ,
+since they precede the word "documents", and similarly
+ [9]=character  preceding "entity".
+
+If you do understand English you would probably further easily guess that
+ [4]=character ,
+ [5]=represented , and
+ [7]=two , where
+ [4]  requires to understand that characters are "in" sequences,
+ [5]  needs understanding of conjugation, and
+ [7]  needs understanding the concept of counting.
+To guess  [8]=reference  probably needs some understanding of the
+contents of the article, which then easily implies
+ [10]=references .
+
+As a Markup Language expert, you "know" that
+ [2]=attribute ,
+ [3]=values , and
+ [6]=character , and you may conjecture
+ [1]=SGML .
+
+So clearly, the more you understand, the more you can delete
+from the text without loss (this idea is behind 
+ Cloze-style reading comprehension  and led to the 
+ Billion Word Imputation challenge ).
+
+If a program reaches the reconstruction capabilities of a human,
+it should be regarded as has having the same understanding.
+(Sure, many will continue to define intelligence as what a machine can't
+do, but that will make them ultimately non-intelligent).
+(Y cn ccmplsh lt wtht ndrstndng nd ntllgnc, bt mr wth).
+
+ 
+ Why do you focus on text? 
+ 
+ Visual (and audio and tactile) knowledge precedes linguistic
+knowledge and seems crucial to ground symbolic knowledge. 
+
+While the first part is true, the second is questionable. We decided
+not to include photo, video, and audio material in the file for the
+following reasons:
+
+Natural text, in particular novels, contains ample of descriptions
+of 3-dimensional scenes (the white house right of the beautiful tree
+under which ...). It is possible to extract the meaning of nouns and
+(directional) propositions and all other words from a sufficiently
+large corpus of text in an unknown language. Meaning is codified by
+relating words to other words (house-artificial, house-residence,
+house-right-tree), so a (spatial) representation of the world can be
+established without ever having seen a single picture
+This is akin to being able to "visualize" abstract mathematics,
+given enough exposure and skills.
+
+So it is plausible that any knowledge that can be demonstrated
+over a text-only channel as in the Turing test,
+can also be learned over a text-only channel,
+as e.g. evidenced by the blind and deaf writer Helen Keller.
+
+Given that higher (conscious) cognition is essentially symbolic, and
+a symbolic representation and understanding can be extracted from
+text alone, it is plausible that textual information is sufficient
+for the purpose of this contest.
+
+Inclusion of photo, video, and audio material would require the
+contestants to deal with and improve upon not only state-of-the-art
+textual but also many kinds of non-textual compressors
+and deal with terabyte of video. Most of the compression would
+be about modeling physics rather than cognition.
+This puts enormous unnecessary extra burden upon the contestants.
+and given the arguments above, without real benefit.
+
+ 
+ 
+ 
+ 
+
+ 
+ What is the ultimate compression of enwik9? 
+ 
+
+The  Kolmogorov Complexity   K  
+of a string  x  is
+defined as the length of the shortest program (self-extracting
+archive) computing  x , hence  K ( enwik9 ) 
+is the ultimate compression length of  enwik9 .
+
+Unfortunately  K ( x ) itself cannot be computed, only
+approximated from above, namely by finding better and better
+compressions, but even if we reach  K ( x ), we will never know whether we
+have done so. 
+
+One can also not prove any interesting lower bound on  K ( x ) because there are 
+ very short programs for which we cannot (dis)prove whether they halt ,
+even if  x  is as large as  enwik9 .
+In princple, if  the universe is computable  
+from simple initial conditions (cf. Conway's   Game of Life ),
+running this  TOE  programm  p  (as a thought experiment) and 
+ locating  ( ≈100 bits ), interpreting and printing (O(10'000 bits))
+the simulated  enwik9  in this simulation 
+constitutes a program of possibly only a few KiloByte(!) for  enwik9 .
+If we  assume  that quantum noise is truly random, 
+we may be able to estimate the degree to which  enwik9  has been affected by change events,
+which should lead to a possibly interesting (high-probability) lower bound.
+If we assume limited resources, as this compression contest does, a better lower bound may be possible,
+even in a deterministic world.
+
+More empirically, Shannon's lower estimate suggests that humans might be able to compress  enwik9  down to 75MB, and computers some day may do better.
+ 
+ Algorithmic Probability  
+is the predictive counterpart of Kolmogorov complexity,
+the optimal predictor leading to the optimal compressor by arithmetic coding.
+
+Probably the strongest endorsement of the importance of Algorithmic Probability to Artificial Intelligence is
+by AI father,  Marvin Minsky . Even 50 years after its discovery 
+he  says :
+ It seems to me that the most important discovery since Gödel 
+was the discovery by Chaitin, Solomonoff, and Kolmogorov of a concept called Algorithmic Probability.
+... This is a beautiful theory ... Everybody should learn all about that and spend the rest of their lives working on it. 
+
+
+ 
+ Why recursively compressing compressed or compressing random files won't work 
+ 
+
+This idea comes up over and over again and has been  discussed and refuted at length .
+Unlike a perpetuum mobile, which is "only" physically impossible, 
+a universal compressor is even mathematically impossible.
+ 
+Real data is compressible only because it has regularities and is redundant.
+A compressed file has less regularities and hence is less compressible.
+Ultimately you hit an archive that looks random to any compressor, 
+hence cannot be compressed any further.
+ 
+This can formally be proven by a counting argument as follows:
+A lossless compressor C is an 
+ injective function  
+from data files to archive files. 
+If C mapped two files X≠Y to the same archive A,
+the decompressors D could not uniquely reconstruct the data
+(C(X)=A=C(Y) implies X=D(C(X))=D(A)=D(C(Y))=Y contradicting X≠Y).
+Now there are 2^n files of length n bits,
+but there are only 2^{n-c} files of length (less than) n-c bits,
+hence only a fraction 1/2^c files can be compressed from n to (less than) n-c bits.
+That is, less than 0.4% of all files can be compressed by 1 byte.
+The chance that your compressed file is again compressible by 1 byte is again less than 0.4%,
+and so on. Of course this argument only applies when you start with a random file,
+and real data is far from random, but the more a file is compressed, the more it looks random,
+and ultimately you hit a lower bound, 
+called  Kolmogorov complexity .
+ 
+It is a weird fact that a maximally compressed file is computationally indistinguishable from random noise.
+If you open a zipped archive with an ASCII editor, you will notice.
+Still it contains all information of the original file.
+ 
+Aliens may be able to decipher our analog radio and TV transmissions that have escaped to space in the last century,
+but they will find it increasingly harder to decipher our increasingly compressed digital transmissions
+(without providing them with the decompressor). And vice versa, 
+maybe some of the apparent cosmic noise we receive are 
+ highly compressed signals from advanced aliens . 
+
+ 
+
+
+ 
+ Can you prove the claims you make in the answers to the FAQ above? 
+ 
+Most of the assertions above can be formalized and proven,
+but some mathematical background is necessary.
+Good science books to start with are
+ M. Li & P.M.B.Vitanyi, Kolmogorov Complexity, 2008 , and
+ M.Hutter, Universal Artificial Intelligence, 2005  and  2024 .
+The  recommended reading  contains further 
+(informal, formal, experimental, theoretical, philosophical) 
+demonstrations/insights/arguments for (the relevance of) the compression paradigm for A(G)I.
+For a  broader reading recommendation, see here .
+
+ 
+ The PAQ8 compressors are already so good that it will be difficult to beat them. 
+ 
+Yes, it will not be easy (nobody said this),
+but there is likely a lot of room for improvement.
+PAQ8 models text only.
+There has been lots of research in language modelling (mostly for speech recognition)
+at the syntactic and semantic levels,
+but these are usually offline models on preprocessed text where words are mapped to tokens,
+and messy details like capitalization, punctuation, formatting, and rare words are removed.
+So far, nobody has figured out how to integrate these two approaches,
+but when that happens we will have a very powerful text compressor.
+From Shannon's estimates, human text contains information of about 0.6-1.3 bit per character,
+so humans may compress  enwik9  down to 75MB and super-intelligent machines should do better.
+On the other hand, compressors have already beaten by far Shannon's upper estimate.
+
+Also, from 2006-2017, PAQ8 has been beaten the previous record 4 times on enwik8 in total by ~14%,
+which is over 1% per year, which also seemed unlikely at the time.
+
+ 
+ There are lots of non-human language pieces in the file. 
+ 
+ enwik9  is about 75% clean text and 25% "artificial" data of various forms
+(tables, hypertext links, XML, etc). As long as there is  some  natural
+language text (and  enwik9  contains 75%),
+compressing it is a hard AI problem,
+regardless of whatever else is present in the file.
+The "artificial" data is also human-generated,
+and belongs to the human knowledge base.
+So it is not that devious to ask to model that too.
+Ideas of filtering out the "artificial" data or using other
+apparently cleaner text-sources didn't prove superior.
+
+ 
+
+ 
+ Why include the decompressor? 
+ 
+ Doesn't adding the decompressor length to the length of the archive
+encourage developing unreadable short decompressors, rather than
+smart compressors based on understanding the text corpus enwik9? 
+ 
+The typical size of current decompressors is less than 100KB. So
+obscuring them by making them shorter will give you at most
+a 0.01% = 100KB/1GB advantage (not enough to be eligible for the prize).
+On the other hand, for fairness it is necessary to include the
+size of the decompressor. Take a compressor like PAQ8H that contains 800KB of tokens or 
+ NLP models with billions of parameters . 
+Clearly it can achieve better compression than one from scratch. 
+If you're not convinced by this argument, consider
+an extreme "decompressor" of size 1GB that simply outputs
+ enwik9  byte by byte (from a zero byte archive),
+thus achieving a compressed size of 0.
+
+ 
+
+ 
+ Why do you require submission of the compressor and include its size and time? 
+ 
+
+ 
+ Induction=compression: 
+While only measuring decompressor+archive size is clean and simple, 
+it also has some downsides. Only the decompressor=predictor is evaluated.  
+Induction=compression is arguably even more important for AI.
+
+ Compression time: 
+Demonstrating the compressor within limited computational resources limits labor-intensive compression of enwik9 by hand 
+as well as use of excessive hardware resources unavailable to most contestants.
+ 
+
+ Compression is harder than decompression: 
+In general, compression is much harder than decompression.  
+For instance, the mpeg video compression standard contains features that are easy and fast to implement for decompressors, 
+but that no current compressor is able to exploit/produce.  
+So far, this is not the case for most text compressors, but we expect this to happen with smarter compressors.
+
+ Compression learns, decompression predicts: 
+On the one hand, a compressed version of enwik9 provides a good (predictive) model of Human Knowledge, and this is an important motivation for the contest.  
+On the other hand, if knowledge increases, the model and hence the compressed file has to be updated, which should be automatic, rather than by hand or using computing resources inaccessible to most.  
+For good reasons we decided against  cross-validation  or testing on a secret test-set. 
+The compressor learns, the decompressor predicts, both are important for AI.
+
+ Compression size: 
+If we were to limit only the compute time of the compressor C and not its size L(C), 
+one could simply submit the archive A prefixed with a tiny program to output A verbatim, 
+ignoring input enwik9.  
+This formally satisfies the criteria of being a compressor, 
+but with all the compute hidden in producing A in advance.
+
+ Equivalent alternatives: 
+We therefore opted to evaluate L(C)+L(DA), 
+where DA is a self-extracting archive for enwik9, 
+and L(DA) its size in byte.  
+If we allow C to produce a decompressor D and archive A separately, 
+we (have to) measure L(C)+L(D)+L(A).  
+If we relax the condition that C has to output D, 
+but allow to submit D separately, we (need to) measure L(C)+2×L(D)+L(A).
+
+Often Compressor and Decompressor are essentially the same.
+Asking C to output D=C is trivial, so (only) in this case, 
+we can drop this requirement, and still measure L(C)+L(D)+L(A) w/o the factor 2×.
+
+ Other advantages: 
+By just measuring L(D)+L(A), 
+one can freely hand-craft large word tables (or other structures) used by C and D, 
+and place them in C and either D or A.  
+By counting both, L(C) and L(D), such tables become 2-3 times more expensive, 
+and hence discourages them. 
+If you need large (word) tables, write a short program that creates them from enwik9 itself.
+L(C)+2×L(D)+L(A) encourages small but non-vacuous C, 
+arguably containing the interesting algorithmic learning and prediction aspects, 
+while A contains the compressed knowledge.
+
+ Non-working/non-equivalent: 
+If we drop the 2×, one could choose C to produce an empty archive A', 
+and choose huge D' to include the archive A, 
+leading to L(C')+L(D)+L(A') = 0+L(D')+0 = L(D)+L(A), 
+circumventing the requirement of submitting a compressor.  
+Dropping the L(C), 2×L(D)+L(A) would strongly favor vacuous programs D'=0 with self-extracting archive DA.
+ 
+
+ 
+ Why not use Perplexity, as most big language models do? 
+ 
+
+The quality of natural language models
+is typically judged by its  Perplexity ,
+which is essentially an exponentiated compression ratio: Perplexity(X):=2^{CodeLength(X)/Length(X)},
+hence equivalent to CodeLength. 
+That is, Perplexity per-se as a performance measure is fine.
+The problem is that it is usually applied to a  test set  and the 
+ size of the language model  itself is ignored.
+ Online compression  would be most appropriate for large models.
+
+ 
+ Why did you start with 100MB enwik8 back in 2006? 
+ 
+ 
+Indeed, there are good arguments for the 1GB corpus.
+You can find them at
+ http://mattmahoney.net/dc/rationale.html .
+Nevertheless we decided to start initially with the 100MB file  enwik8  rather
+than the 1GB file enwik9 for the following reasons:
+ 
+  Although enwik9 is not a hardship in the long run, it is a hardship now.
+The contest will have highest participation when the prize will be initiated,
+so the file-size should be appropriate for moderate-cost home-computers.
+  100MB already contains a lot of Human knowledge.
+  Typical decompressors are significantly less than 1% of 100MB,
+so there is no problem here.
+   Enwik8  could still be downloaded by an analog modem.
+  It's easy to upgrade to enwik9 later.
+  Many standard compressors crash on enwik9 or start thrashing.
+  It allows non-streaming offline (de)compressors that need the whole
+file in the RAM in a straightforward way. Enwik9 needs to be processed block-wise
+unless you have many GB RAM available.
+  Maybe the most compelling one: We want to encourage smart compressors.
+Smart compressors can easily take ridiculous time already on small corpora.
+So if we would go for enwik9, we would lose some of the smarter ideas for (de)compressors.
+ 
+
+ 
+ Why did you go BIG in 2020? 
+ 
+The contest started 14+ years ago.
+Since then, processor speed, memory, disk space, internet speed have all increased sufficiently,
+that many of the  issues above  became less critical.
+>10GB RAM and >100GB free HDD space is standard by now. 
+Moore's law for PCs has been disappointing in the last decade,
+so we decided to also be more generous with time. 
+Finally I can afford to pay out larger prizes, so I decided to go 10x on all fronts:
+ 10x Size, 10x Money, 10x Time, 10x RAM, 10x HDD .
+Still I expect most testing will be done on enwik8 and even smaller files,
+and enwik9 will only be used for the "final tweaks",
+but these "final tweaks"  may  actually be the most relevant for AI.
+NLP in recent years has been tremendously successful by training on billions of words.
+Enwik9 arguably contains about as much non-visual information 
+as a typical adult human, so human-level  understanding=compression  may only be possible on enwik9.
+
+ 
+ Why are you limiting (de)compression to less than 100 hours on systems with less than 10GB RAM? 
+ 
+ 
+ Compute/memory cost money:  
+Some of the best minds in the world are  limited by the computers  they can afford.
+Typical PCs and Laptops bought in 2006 when the contest started were equipped with 1GB RAM or less,
+let alone older systems and developing countries.
+One of our most successful contestants wrote us:
+" I still don't have access to a PC with 1 Gb or more,
+have found only 512 Mb computer, but it's about 7 or 8 km away from my home
+(~20 minutes on the bicycle I use),
+thus I usually test on a 5 Mb stub of enwik8, with -5, using only ~210 Mb ".
+Even in 2020, upgrading to 16GB RAM for about 100€ sounds cheap (for many but not
+all) compared to the involved prize money and invested effort.
+But lets assume 10'000 potential participants (sure, fewer will succeed),
+and, say, half of them first need to upgrade their machines,
+then overall 5'000×100€ = 500'000€ is invested in
+hardware, i.e. the prize supports the memory chip industry,
+and overall the participants suffer a loss, 
+which is definitely not the aim of the prize.
+So 16GB RAM for the whole system (10GB working RAM) was
+chosen as a widely-affordable system.
+Also the overall ratio of 1 : 10 : 100 GB of  enwik9  : RAM : HDD seems balanced.
+
+ Testing costs time:  
+Developing a competitive compressor, 
+whether based on a grand new idea or by incremental improvements,
+typically requires a lot of trial and error. 
+Many ideas and parameter tuning may be testable on enwik8 or even smaller files,
+but I expect a significant amount of testing on enwik9 itself is also necessary.
+100 hours of CPU time per core per run is already inconveniently long for all but 
+a few researchers with access to super-computers.
+
+ Encourage ideas:  The more compute and memory one provides, the better one can compress.
+Given unlimited compute, one can limit-compute the 
+ ultimate compression  of enwik9 by brute-force dovetailing through all programs.
+This  improve of compression with increase in compute and memory for otherwise the same algorithm is real for enwik9  and  NLP in general .
+The contest is not meant to award the person or organization who can afford to spend the most compute,
+but to encourage algorithmic advances, 
+which arguably can be achieved and measured in 100 hours as well as in 10'000 hours,
+and some limit needs to be set. 
+We would be thrilled to see such algorithm, when giving 1000-fold resources, 
+to excel on some AI task or solve AGI.
+
+ Applications:  Though this is not the primary purpose of this contest, 
+it would be nice if the developed compressors
+find  applications  in other areas, such as archiving.
+The more compression time we allow, the less likely this will be the case.
+
+ AI:  Some argue that the very notion of (artificial) intelligence needs to include time and memory usage.
+In any case, AI systems, the motivating application, will have resource constraints, so  some  constraints are unavoidable.
+ 
+ 
+ Penalize time:  Instead of a hard time-bound one could think of penalizing slow (de)compressors.
+In theory one should penalize a (de)compressor by one bit for every
+factor of two it is slower than its competitor (keyword:  Levin complexity ).
+A (de)compressor running in 30 days compared to one running in one
+second would be penalized by scanty 21 bits, i.e. less than 3 bytes,
+so in practice one would need a much stronger penalty.
+Similarly one could penalize excessive memory usage.
+
+ 
+ Why do you restrict to a single CPU core and exclude GPUs? 
+ 
+
+The primary intention is to limit compute and memory to some generally available amount
+in a transparent, easy, fair, and measurable way. 
+
+100 hours on one i7 core with 10GB RAM seems to get sufficiently close to this ideal.
+This roughly corresponds 500'000/T hours, where T is the GeekBench5 score of the machine. 
+The latter can be used by contestants to estimate whether their algorithm is likely to run in under 100 hours on our test machine. 
+
+If your algorithm uses C cores, typical speedup is at most a factor of C, and often much less.
+So adapting the rules to allow 100/C wall-clock hours on C cores would be unhelpful. 
+If we'd allow 100 hours straight, we'd favor super computers with 1000s of cores.
+
+The primary reason for excluding GPUs is that they  stifle creative/innovative ideas .
+Any algorithmic ideas that cannot (easily or at all) be vectorized are disadvantaged compared to vectorizable algorithms.
+As an example, sparse Neural Networks seem to be superior to dense ones but had a hard time reaping the benefits on GPUs and TPUs before hardware support for sparsity.
+If non-vectorizable algorithms start to consistently beat vectorizable ones on CPUs, 
+this will drive hardware innovation to support whatever special structure (e.g. sparsity) these novel algorithms may have.
+Using CPUs levels the playing field.
+
+ 
+
+Anyway, contestants are welcome to develop their own algorithms on whatever architecture they like.
+Converting it back to single core and CPU is usually easy.
+
+If the number of cores on standard PCs creeps up into the 100s,  
+we will consider relaxing the current resource restrictions.
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ The total prize is not exactly 500'000€ 
+ 
+Right! The prize formula is a compromise between many considerations
+(simplicity, fairness, risk, and others).
+
+Since it is  principally impossible  to know what the ultimate compression of
+ enwik9  will be, a prize formula leading to an exact total payout of 500'000€ is impossible.
+So no formula allows to tell what total amount will be awarded.
+Theoretically you can win more than 500'000€.
+For instance, if you halve the current record, then
+halve your own record, and then again halve it, you would
+receive 3×250'000€. Some, admittedly mostly amateurs, believe that they
+can even beat this, e.g. by  recursive compression .
+Realistically (based on past experience)
+I expect at most a 1% improvement per year for the next 20 years or so,
+but  you  may be the one having a breakthrough of 20% improvement tomorrow.
+In theory, the current formula also allows optimizing your profit by sending
+e.g. three 1% improvements in monthly intervals,
+rather than one 3% improvement.
+You would gain scanty 150€ at the risk that someone else sneaks in between.
+(An alternative prize formula Z×ln(L/S) would prevent this gain).
+The total payout will be 500'000€ if  enwik9  could
+be compressed down to 43MB (in 1% steps). I would be thrilled to see this happening, 
+but realistically I expect the total achievable payout to be smaller than that.
+Shannon's lower estimate is 0.6 bit per character for humans,
+corresponding to a compression down to 75MB and a total payout of ~223'000€.
+
+This is still better than competitions with hard all-or-nothing winning criteria,
+especially when in the end no-one was able to win.
+Also, a win is often made possible due to  earlier advances  by many other people, 
+the latter ending up empty-handed.
+
+ 
+ Is 1GB 2^30 byte or 10^9 byte? 
+ 
+Most computer scientists use the prefix K(ilo) for 2^10, M(ega) for 2^20, and G(iga) for 2^30,
+while the International System of Units
+( SI, 7th edt.1998, p.103 )
+defines K(ilo), M(ega), G(iga) as 10^3, 10^6, 10^9, respectively,
+and explicitly forbids misusing them for powers of 2.
+So the answer depends on whether you are a geek or a pedant.
+A good solution is to regard K/M/G as standing for "roughly" 10^3 or 2^10, etc, and
+avoid using them if more precision is needed, as is done on the contest page.  Enwik9  is 10^9 byte.
+See  MAA Online Counting by Twos (1999) 
+for other solutions and references.
+In any case this is tangential to the contest.
+
+ 
+ The website looks dated 
+ 
+True, but consistent with the spirit of the contest, simplicity trumps complexity.
+
+I also disapprove of modern webpages, where sometimes only a couple of words fit on a FullHD screen,
+because the screen estate has been wasted with irrelevant graphics, gigantic font size, and worst of all, empty space.
+
+Generally I prefer function over form, information over design, content over marketing, relevance over art,
+and this site is (hopefully) functional and informative with a lot of relevant content.
+
+Fashion comes and goes, but like ASCII, HTML will be around forever.
+Modern website building tools offer a lot of (irrelevant) functionality, 
+but they rely on sophisticated back-ends and protocols,
+and typically are around for a decade or two, 
+and then something breaks or one has to switch to a new tool.
+I neither have time nor patience nor sympathy nor  money  for that.
+
+Finally, I actually like the nostalgic look of good old html websites.
+
+ 
+ Why do you require Windows or Linux executables? 
+ 
+There is a myriad of options we could allow for the contest.
+The related  Large Text Compression Benchmark 
+for instance is very flexible in this respect. This is convenient for contributors,
+but makes a fair comparison more difficult and fraud easier.
+Ideal would be one platform (e.g. Turing's Universal Machine).
+In real life, Windows and Linux executables cover most needs.
+Most programs are written in C(++), which neatly compiles to self-contained
+reasonably-sized executables, and indeed submission of zipped source is also allowed. 
+
+ 
+ Why do you require submission of documented source code? 
+ 
+A primary goal of this contest is to increase awareness of the relation between compression and (artificial) intelligence,
+and to foster the development of better compressors. The (ideas and insights behind the) submitted (de)compressors
+should in turn help to create even better compressors and ultimately in developing smarter AIs.
+Up until 2017 the source code was not required for participation in the contest,
+and has also not been released voluntarily.
+The past submissions are therefore useless to others and the ideas in them may be lost forever.
+Furthermore this made it difficult for other contestants to beat the (as of 2017) four-time winner Alexander Rhatushnyak.
+Making the source available should rectify these problems.
+
+Therefore, for the new "10×" contest, the source code is required,
+which should help to revive the contest,
+make it easier to build improved compressors by combining ideas,
+foster collaboration,
+and ultimately lead to better AI.
+Contributors can still copyright their code or patent their ideas,
+as long as non-commercial use,
+and in particular use by other future contestants, is not restricted.
+
+ 
+ Where can I find the source code of the past winners and baseline phda9? 
+ 
+
+The  source code of the last two  winners
+building on  fast-cmix  
+and the  previous winner  
+is publicly available, and can be used/adapted/improved with attribution.
+Unfortunately the last winner for enwik8 has not released the source code 
+of his  phd9 , which forms the baseline for enwik9.
+At the time of submission in 2017, 
+providing source code for the (smaller) enwik8 contest was not a prerequisite.
+Maybe someone can convince him to release his source code,
+for the sake of scientific progress,
+or maybe he is willing to trade the source for something else in return.
+The source is based on the  PAQ8  
+family of compressors for which the  source code  is available.
+ CMIX  builds on top of PAQ8 and 
+was the top performing compressor until y2020 under no time constraint,
+and its  source code  is also available.
+The set of enwik-specific transformations from the 2017 winner 
+is also  open source .
+Finally, here are some  high-level  
+ thoughts  by the 
+ author .
+
+In January 2021, the modified Transformer-XL NN  NNCPv2  beat CMIX by over 3%, 
+but is too slow.  Documentation  
+and  source code  are also available.
+
+All together this should serve as a good starting point.
+
+ 
+ Under which license can/shall I submit my code? 
+ 
+Any of the Open Source Initiative  (OSI)-approved licenses  is acceptable.
+In case of doubt, consider  choosing a license  as permissive as you feel comfortable with.
+We prefer  Unlicense  over 
+ MIT  over 
+ Apache  over 
+ Mozilla  over 
+ GNU , 
+but all of them are acceptable.
+Simply put a statement such as 
+" This Code is licensed under UNLICENSE http://unlicense.org "
+somewhere in your code. 
+We require open-source even if your submission is  revolutionary 
+for  reasons explained here .
+
+ 
+ What if I can (significantly) beat the current record? 
+ 
+In this case, submit your code and win the award
+and/or copyright your code and/or patent your ideas.
+ 
+Also note that a  provisional  patent application is quite cheap.
+Thereafter you can enter the competition and fund the expensive non-provisional patent application with the prize money.
+You should be able to monetize your invention beyond the HKCP.
+This happened to the first winner,
+a Russian/Ukrainian who always had to cycle 8km to a friend to test his code because
+he did not even have a suitable computer,
+and who now has a lucrative job at  QTR  in Canada.
+
+I cannot directly help you with your aspirations,
+but the HKCP award on your CV plus a report that clearly explains
+your code, your algorithm, and the ideas behind them,
+should make you an attractive employee and/or your patent 
+a valuable asset.
+The mp3 patent (the most famous lossy compressor for music)
+for instance, made millions of dollars from licensing fees.
+
+If your compressor is revolutionary, say beats current SOTA by over 30%,
+this is most likely due to a mistake or misunderstanding or violation of the  rules .
+
+
+ 
+ How can I produce self-contained or smaller decompressors? 
+ 
+ 
+  Use plain C. It produces neat small self-contained executables, and is fast.
+
+  External needed data files (like dictionaries) should be added to
+the decompressor, and can in this way be (re)created by the
+decompressor.
+
+  You can compress your executable with programs like  UPX ,
+because the result is still an executable.
+
+   GCJ  (use  Cygwin  on Windows) can convert
+Java to executables (smaller than 600KB after UPX).
+
+   Salamander .NET
+Linker  (plus mini-deployment tool) allows you to link .net
+assemblies and .dll's on demand together into a single
+self-contained executable.
+
+  Similar tools for other languages may be available too.
+ 
+
+ 
+ Is Artificial General Intelligence (AGI) possible? 
+ 
+
+ There have been many arguments for and against
+the possibility of creating Artificial General Intelligence (AGI).
+If AGI is  not  possible, what's the relevance of this contest? 
+
+The primary argument that AGI is possible is the computational hypothesis
+(supported by physical evidence) that the universe including organic matter
+and human brains are computable. Estimates of the complexity of a human
+brain look promising too, although they are more controversial.
+
+The second argument is the steady progress (hardware and software) in the last century
+in solving increasingly complex AI problems.
+
+Third, all arguments against AGI so far 
+(at least  those worth to refute ) have been refuted;
+most are not even plausible in the first place.
+The primary reasons for their perseverance seem to be
+metathesiophobia (fear of change), 
+robophobia, 
+lack of imagination, 
+mysticism, 
+religious reasons, and 
+Carbon chauvinism.
+
+Scientific arguments include no free lunch theorems,
+alleged experimental evidence against Ockham's razor,
+Lucas/Penrose Goedel-type argument, and some others.
+
+Philosophical arguments that a machine cannot have free will,
+imagination, emotions, a soul, cannot be conscious, creative, etc.
+have been put forward. Actually, one can find claims that
+'a machine will never be able to do X' for literally hundreds of X
+(many of them meanwhile being refuted).
+
+Further, there are all kinds of religious arguments.
+
+Finally, even if the great AGI goal is denied,
+the close relation between compression, prediction, and intelligence is undeniable,
+and hence this contest will in any case advance the field of text understanding and AI.
+
+And  the  conceptual  problem of AGI  is already  solved .
+
+ 
+ Is Ockham's razor and hence compression sufficient for AGI? 
+ 
+
+ Ockham's razor  principle roughly says if two theories are equally well supported by data,
+one should favor the simpler one.
+Ockham's razor principle is well supported theoretically and experimentally,
+and there is no other similarly general and powerful principle which could replace or augment it.
+Ockham's razor principle has been proven to be invaluable for understanding our world.
+Until other necessary or sufficient principles are found,
+it is prudent to accept Ockham's razor as the foundation of inductive reasoning.
+ Kolmogorov complexity  quantifies the concept of simplicity/complexity.
+Together with with  sequential decision theory , 
+this can serve as a  foundation for AGI .
+Indeed, Ockham's razor together with experimental design and logical reasoning are even sufficient founding principles of science itself.
+
+So far, all attempts to discredit the universal role of Ockham's razor have failed.
+Arguments include  no
+free lunch theorems  and some questionable experimental evidence.
+
+ 
+ The human brain works very differently from (de)compressors 
+ 
+
+This may well be, but the contest is not about reverse-engineering or emulating the human brain.
+The contest aims at encouraging research into developing better (de)compressors, which, as argued 
+ above , leads to more intelligent systems.
+Copying or being inspired by nature is one way of solving problems.
+Sometimes artificial approaches different from nature work better.
+Think about the wheel, airplanes, or closer to home, 
+existing computers based on silicon and logic gates surpass humans on many cognitive tasks already.
+
+Anyway, the contest is agnostic to the (de)compression approach.
+Indeed, past winners were based in parts on neural networks, and 
+ deep learning is close of being competitive 
+via  onlinization .
+
+The contest is (only) prescriptive and arguably "unnatural" in its performance measure.
+The rationale has been explained in detail in other FAQs, 
+and it seems that machine learning researcher are slowly converging to measuring performance in terms of 
+perplexity or equivalently codelength, except usually still on a test set and program length is ignored.
+Compression length may even be a good measure of human intelligence:
+bits per character as Shannon measured.
+
+ 
+ I have other questions or am not satisfied with the answer 
+ 
+Matt Mahoney's page on the  rationale of the contest 
+may help you. It explains in more detail
+why compression is equivalent to AI,
+why text compression is AI-Hard,
+why not lossy compression, 
+what's the problem with other evaluation measures,
+how much compression can be achieved,
+why Wikipedia,
+why only English,
+why only text and not a variety of data types,
+why include the decompressor size,
+why bother with compression at all,
+will it lead to A(G)I,
+why not rank by speed and memory,
+what has been achieved so far, 
+and gives further references.
+
+If all this doesn't help, read or post your questions at the
+ H-Prize discussion forum .
+
+
+ 
+ 
+ 
+   
+     
+        © 2000 by ... 
+       
+       [home] 
+       [search]   [science] 
+       [contact] 
+       [up] 
+       [prize]   
+       ... Marcus Hutter  
+     
+   
+
+ 
+ 

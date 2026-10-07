@@ -1,0 +1,629 @@
+{
+  "actual_cpu_affinity": [
+    16,
+    18
+  ],
+  "backend": "NONE",
+  "budget_seconds": 30.0,
+  "definitions": {
+    "category_interlang": "Literal [[Category:...]] and bounded language-prefix [[xx:...]] spans.",
+    "contributor_pair": "Within a D2 skeleton, first title and first contributor slot zipped by page occurrence; no identity resolution or external knowledge.",
+    "infobox_field": "Article text with a byte-level {{Infobox prefix and newline |key=value fields up to the stated bounds; no template parser is assumed.",
+    "numeric_field": "Bounded |key=value lines with at least one decimal-like byte token; relations are only an opportunity, not measured predictability.",
+    "redirect": "Case-insensitive byte lines beginning #REDIRECT followed by [[.",
+    "repeated_line_family": "UTF-8-agnostic byte lines up to 512 bytes normalized by replacing bounded links, URLs and numeric tokens; counts only repeated normalized forms.",
+    "repeated_paragraph_family": "Byte paragraphs split on blank lines, at most 1,024 bytes, with the same link/URL/numeric normalization.",
+    "template_occurrence": "Non-nested single-line {{...}} byte spans up to 512 bytes; nested/multiline templates are excluded.",
+    "title_reuse": "D2 title column values repeated within the same page-skeleton column.",
+    "url_citation": "HTTP(S) domain bytes and bounded <ref>...</ref> or self-closing ref spans.",
+    "wikitable": "Lines beginning {| and |- or | by simple byte regex; nested/template table syntax is not interpreted.",
+    "xml_wikitext_topology": "D2 page skeleton/slot layout plus body marker presence; it does not parse or normalize XML/wikitext."
+  },
+  "elapsed_seconds": 1.6348790749907494,
+  "holdouts_read": false,
+  "incremental_paq_gain": "NOT_MEASURED",
+  "input": "/home/user/src/cix-baseline-data/inputs/enwik9",
+  "limitations": [
+    "Approximate byte detectors; no XML/wikitext parser or reserialization.",
+    "No compressed asset, entropy estimate, or comparability claim.",
+    "Coverage categories overlap and must not be summed.",
+    "No numeric, relation, title, contributor or text coding was performed."
+  ],
+  "metadata_cost": "NOT_MEASURED",
+  "paq": "NOT_RUN",
+  "proposed_mechanisms": {
+    "category_interlang": "Category/language-prefix terminal stream with complete raw link escapes.",
+    "contributor_pair": "Per-skeleton title/contributor relation model only after matching raw field columns and explicit exception stream.",
+    "infobox_field": "Validated infobox field columns keyed by exact field-name bytes; preserve unknown/nested syntax literally.",
+    "numeric_field": "Per-field canonical-number validation followed by causal delta/error stream and raw spelling escapes.",
+    "redirect": "Redirect target field stream with a literal fallback for noncanonical syntax.",
+    "repeated_line_family": "Bounded line-family dictionary plus exact member/escape stream, selected only after physical framing comparison.",
+    "repeated_paragraph_family": "Bounded paragraph skeleton/reference stream with raw exceptions and explicit boundaries.",
+    "template_occurrence": "Template terminal/field layout stream with raw nested or multiline exceptions.",
+    "title_reuse": "D2 short title column composition/order coding with a matched arithmetic control and charged counts.",
+    "url_citation": "Domain/citation layout columns plus raw URL/citation escape payloads.",
+    "wikitable": "Validated row/cell column streams with raw fallback for nested or malformed tables.",
+    "xml_wikitext_topology": "D2 skeleton-relative field columns; then condition value coder on skeleton/slot class."
+  },
+  "ranges": [
+    {
+      "bytes": 4194304,
+      "offset": 0
+    },
+    {
+      "bytes": 4194304,
+      "offset": 100000000
+    },
+    {
+      "bytes": 4194304,
+      "offset": 400000000
+    }
+  ],
+  "regions": [
+    {
+      "bytes": 4194304,
+      "offset": 0,
+      "profile": {
+        "coverage_overlap_pairs": {
+          "category_interlang|url_citation": 186,
+          "category_interlang|xml_wikitext_topology": 256,
+          "infobox_field|category_interlang": 20,
+          "infobox_field|numeric_field": 14,
+          "infobox_field|redirect": 0,
+          "infobox_field|title_reuse": 20,
+          "infobox_field|url_citation": 20,
+          "infobox_field|wikitable": 20,
+          "infobox_field|xml_wikitext_topology": 20,
+          "numeric_field|category_interlang": 55,
+          "numeric_field|redirect": 0,
+          "numeric_field|title_reuse": 55,
+          "numeric_field|url_citation": 52,
+          "numeric_field|xml_wikitext_topology": 55,
+          "redirect|category_interlang": 2,
+          "redirect|url_citation": 0,
+          "redirect|xml_wikitext_topology": 248,
+          "repeated_line_family|category_interlang": 256,
+          "repeated_line_family|infobox_field": 20,
+          "repeated_line_family|numeric_field": 55,
+          "repeated_line_family|redirect": 242,
+          "repeated_line_family|repeated_paragraph_family": 480,
+          "repeated_line_family|template_occurrence": 203,
+          "repeated_line_family|title_reuse": 239,
+          "repeated_line_family|url_citation": 186,
+          "repeated_line_family|wikitable": 78,
+          "repeated_line_family|xml_wikitext_topology": 499,
+          "repeated_paragraph_family|category_interlang": 242,
+          "repeated_paragraph_family|infobox_field": 18,
+          "repeated_paragraph_family|numeric_field": 52,
+          "repeated_paragraph_family|redirect": 240,
+          "repeated_paragraph_family|template_occurrence": 186,
+          "repeated_paragraph_family|title_reuse": 224,
+          "repeated_paragraph_family|url_citation": 178,
+          "repeated_paragraph_family|wikitable": 73,
+          "repeated_paragraph_family|xml_wikitext_topology": 480,
+          "template_occurrence|category_interlang": 198,
+          "template_occurrence|infobox_field": 20,
+          "template_occurrence|numeric_field": 51,
+          "template_occurrence|redirect": 6,
+          "template_occurrence|title_reuse": 189,
+          "template_occurrence|url_citation": 157,
+          "template_occurrence|wikitable": 68,
+          "template_occurrence|xml_wikitext_topology": 208,
+          "title_reuse|category_interlang": 232,
+          "title_reuse|redirect": 4,
+          "title_reuse|url_citation": 177,
+          "title_reuse|xml_wikitext_topology": 240,
+          "url_citation|xml_wikitext_topology": 186,
+          "wikitable|category_interlang": 78,
+          "wikitable|numeric_field": 55,
+          "wikitable|redirect": 0,
+          "wikitable|title_reuse": 78,
+          "wikitable|url_citation": 68,
+          "wikitable|xml_wikitext_topology": 78
+        },
+        "coverage_union_body_occurrences": 506,
+        "coverage_union_source_bytes": 614574,
+        "opportunities": {
+          "category_interlang": {
+            "coverage_body_occurrences": 256,
+            "distinct_values": null,
+            "occurrences": 7902,
+            "source_bytes_covered": 196448,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "contributor_pair": {
+            "coverage_body_occurrences": 0,
+            "distinct_values": 226,
+            "id_to_multiple_username_conflicts": 0,
+            "occurrences": 366,
+            "repeated_exact_pairs": 180,
+            "source_byte_scope": "decoded contributor id/username or id/ip slot values, not articletext",
+            "source_bytes_covered": 5006,
+            "structural_variation": "same-record contributor id/username or id/ip positions, paired in decoded slot order",
+            "tag_paths": {
+              "page/revision/contributor/id": 366,
+              "page/revision/contributor/ip": 140,
+              "page/revision/contributor/username": 366
+            }
+          },
+          "infobox_field": {
+            "coverage_body_occurrences": 20,
+            "distinct_values": 237,
+            "occurrences": 713,
+            "source_bytes_covered": 25783,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "numeric_field": {
+            "coverage_body_occurrences": 55,
+            "distinct_values": 237,
+            "occurrences": 930,
+            "source_bytes_covered": 46069,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "redirect": {
+            "coverage_body_occurrences": 248,
+            "distinct_values": null,
+            "occurrences": 248,
+            "source_bytes_covered": 2976,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "repeated_line_family": {
+            "coverage_body_occurrences": 499,
+            "distinct_values": 14541,
+            "exact_duplicate_forms": 746,
+            "exact_duplicate_members": 3925,
+            "exact_duplicate_source_bytes": 67206,
+            "occurrences": 17605,
+            "source_bytes_covered": 439488,
+            "structural_variation": "bounded raw members grouped by link/URL/number-normalized byte skeleton",
+            "variable_skeleton_members": 13680,
+            "variable_skeleton_source_bytes": 387874,
+            "variable_skeletons": 476
+          },
+          "repeated_paragraph_family": {
+            "coverage_body_occurrences": 480,
+            "distinct_values": 6900,
+            "exact_duplicate_forms": 81,
+            "exact_duplicate_members": 258,
+            "exact_duplicate_source_bytes": 10818,
+            "occurrences": 1079,
+            "source_bytes_covered": 119576,
+            "structural_variation": "bounded raw members grouped by link/URL/number-normalized byte skeleton",
+            "variable_skeleton_members": 821,
+            "variable_skeleton_source_bytes": 112552,
+            "variable_skeletons": 99
+          },
+          "template_occurrence": {
+            "coverage_body_occurrences": 208,
+            "distinct_values": null,
+            "occurrences": 2136,
+            "source_bytes_covered": 79357,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "title_reuse": {
+            "coverage_body_occurrences": 240,
+            "distinct_values": null,
+            "occurrences": 240,
+            "opening_body_exact_bytes": 2142,
+            "opening_body_exact_occurrences": 177,
+            "source_bytes_covered": 2856,
+            "structural_variation": "decoded title bytes searched only in the same decoded page's articletext",
+            "whole_body_exact_bytes": 2856,
+            "whole_body_exact_occurrences": 240
+          },
+          "url_citation": {
+            "coverage_body_occurrences": 186,
+            "distinct_values": 1662,
+            "occurrences": 2273,
+            "source_bytes_covered": 55527,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "wikitable": {
+            "coverage_body_occurrences": 78,
+            "distinct_values": null,
+            "occurrences": 5003,
+            "source_bytes_covered": 7265,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "xml_wikitext_topology": {
+            "coverage_body_occurrences": 506,
+            "distinct_values": null,
+            "occurrences": 506,
+            "source_bytes_covered": 4002936,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          }
+        },
+        "profile_note": "Coverage union excludes XML/wikitext topology because that detector intentionally spans every decoded article body. It is exact raw-byte interval coverage over the remaining D2 articletext relations. Title reuse is a separate title-in-same-body query; contributor relations use decoded same-record contributor ID/username pairs.",
+        "top_domains_counted": 1662,
+        "top_field_names_counted": 237,
+        "topology": {
+          "articletext_columns": 12,
+          "articletext_occurrences": 506,
+          "literal_exception_bytes": 3344,
+          "pages": 506,
+          "skeletoncount": 12,
+          "slotcolumns": 271
+        }
+      },
+      "sha256": "5ba647fec2ba51b0383cbe7147e15a478d85613245b7131c41764dbdd5062f77"
+    },
+    {
+      "bytes": 4194304,
+      "offset": 100000000,
+      "profile": {
+        "coverage_overlap_pairs": {
+          "category_interlang|url_citation": 233,
+          "category_interlang|xml_wikitext_topology": 286,
+          "infobox_field|category_interlang": 23,
+          "infobox_field|numeric_field": 21,
+          "infobox_field|redirect": 0,
+          "infobox_field|title_reuse": 22,
+          "infobox_field|url_citation": 23,
+          "infobox_field|wikitable": 23,
+          "infobox_field|xml_wikitext_topology": 23,
+          "numeric_field|category_interlang": 35,
+          "numeric_field|redirect": 0,
+          "numeric_field|title_reuse": 34,
+          "numeric_field|url_citation": 34,
+          "numeric_field|xml_wikitext_topology": 35,
+          "redirect|category_interlang": 0,
+          "redirect|url_citation": 0,
+          "redirect|xml_wikitext_topology": 90,
+          "repeated_line_family|category_interlang": 286,
+          "repeated_line_family|infobox_field": 23,
+          "repeated_line_family|numeric_field": 35,
+          "repeated_line_family|redirect": 90,
+          "repeated_line_family|repeated_paragraph_family": 370,
+          "repeated_line_family|template_occurrence": 245,
+          "repeated_line_family|title_reuse": 277,
+          "repeated_line_family|url_citation": 233,
+          "repeated_line_family|wikitable": 128,
+          "repeated_line_family|xml_wikitext_topology": 377,
+          "repeated_paragraph_family|category_interlang": 280,
+          "repeated_paragraph_family|infobox_field": 22,
+          "repeated_paragraph_family|numeric_field": 33,
+          "repeated_paragraph_family|redirect": 89,
+          "repeated_paragraph_family|template_occurrence": 241,
+          "repeated_paragraph_family|title_reuse": 272,
+          "repeated_paragraph_family|url_citation": 230,
+          "repeated_paragraph_family|wikitable": 126,
+          "repeated_paragraph_family|xml_wikitext_topology": 370,
+          "template_occurrence|category_interlang": 244,
+          "template_occurrence|infobox_field": 23,
+          "template_occurrence|numeric_field": 35,
+          "template_occurrence|redirect": 0,
+          "template_occurrence|title_reuse": 239,
+          "template_occurrence|url_citation": 209,
+          "template_occurrence|wikitable": 128,
+          "template_occurrence|xml_wikitext_topology": 245,
+          "title_reuse|category_interlang": 272,
+          "title_reuse|redirect": 4,
+          "title_reuse|url_citation": 225,
+          "title_reuse|xml_wikitext_topology": 277,
+          "url_citation|xml_wikitext_topology": 233,
+          "wikitable|category_interlang": 128,
+          "wikitable|numeric_field": 35,
+          "wikitable|redirect": 0,
+          "wikitable|title_reuse": 127,
+          "wikitable|url_citation": 125,
+          "wikitable|xml_wikitext_topology": 128
+        },
+        "coverage_union_body_occurrences": 377,
+        "coverage_union_source_bytes": 843041,
+        "opportunities": {
+          "category_interlang": {
+            "coverage_body_occurrences": 286,
+            "distinct_values": null,
+            "occurrences": 12160,
+            "source_bytes_covered": 273412,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "contributor_pair": {
+            "coverage_body_occurrences": 0,
+            "distinct_values": 210,
+            "id_to_multiple_username_conflicts": 0,
+            "occurrences": 300,
+            "repeated_exact_pairs": 123,
+            "source_byte_scope": "decoded contributor id/username or id/ip slot values, not articletext",
+            "source_bytes_covered": 4271,
+            "structural_variation": "same-record contributor id/username or id/ip positions, paired in decoded slot order",
+            "tag_paths": {
+              "page/revision/contributor/id": 300,
+              "page/revision/contributor/ip": 77,
+              "page/revision/contributor/username": 300
+            }
+          },
+          "infobox_field": {
+            "coverage_body_occurrences": 23,
+            "distinct_values": 95,
+            "occurrences": 575,
+            "source_bytes_covered": 41487,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "numeric_field": {
+            "coverage_body_occurrences": 35,
+            "distinct_values": 95,
+            "occurrences": 335,
+            "source_bytes_covered": 32803,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "redirect": {
+            "coverage_body_occurrences": 90,
+            "distinct_values": null,
+            "occurrences": 90,
+            "source_bytes_covered": 1074,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "repeated_line_family": {
+            "coverage_body_occurrences": 377,
+            "distinct_values": 19194,
+            "exact_duplicate_forms": 556,
+            "exact_duplicate_members": 4582,
+            "exact_duplicate_source_bytes": 64609,
+            "occurrences": 23856,
+            "source_bytes_covered": 739218,
+            "structural_variation": "bounded raw members grouped by link/URL/number-normalized byte skeleton",
+            "variable_skeleton_members": 19274,
+            "variable_skeleton_source_bytes": 685953,
+            "variable_skeletons": 1296
+          },
+          "repeated_paragraph_family": {
+            "coverage_body_occurrences": 370,
+            "distinct_values": 5020,
+            "exact_duplicate_forms": 51,
+            "exact_duplicate_members": 331,
+            "exact_duplicate_source_bytes": 8848,
+            "occurrences": 1041,
+            "source_bytes_covered": 126115,
+            "structural_variation": "bounded raw members grouped by link/URL/number-normalized byte skeleton",
+            "variable_skeleton_members": 710,
+            "variable_skeleton_source_bytes": 118849,
+            "variable_skeletons": 85
+          },
+          "template_occurrence": {
+            "coverage_body_occurrences": 245,
+            "distinct_values": null,
+            "occurrences": 1220,
+            "source_bytes_covered": 45631,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "title_reuse": {
+            "coverage_body_occurrences": 277,
+            "distinct_values": null,
+            "occurrences": 277,
+            "opening_body_exact_bytes": 2417,
+            "opening_body_exact_occurrences": 224,
+            "source_bytes_covered": 3213,
+            "structural_variation": "decoded title bytes searched only in the same decoded page's articletext",
+            "whole_body_exact_bytes": 3213,
+            "whole_body_exact_occurrences": 277
+          },
+          "url_citation": {
+            "coverage_body_occurrences": 233,
+            "distinct_values": 1019,
+            "occurrences": 1738,
+            "source_bytes_covered": 42228,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "wikitable": {
+            "coverage_body_occurrences": 128,
+            "distinct_values": null,
+            "occurrences": 3374,
+            "source_bytes_covered": 4351,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "xml_wikitext_topology": {
+            "coverage_body_occurrences": 377,
+            "distinct_values": null,
+            "occurrences": 377,
+            "source_bytes_covered": 4023313,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          }
+        },
+        "profile_note": "Coverage union excludes XML/wikitext topology because that detector intentionally spans every decoded article body. It is exact raw-byte interval coverage over the remaining D2 articletext relations. Title reuse is a separate title-in-same-body query; contributor relations use decoded same-record contributor ID/username pairs.",
+        "top_domains_counted": 1019,
+        "top_field_names_counted": 95,
+        "topology": {
+          "articletext_columns": 9,
+          "articletext_occurrences": 377,
+          "literal_exception_bytes": 29747,
+          "pages": 377,
+          "skeletoncount": 9,
+          "slotcolumns": 203
+        }
+      },
+      "sha256": "fd30602741222df957545a821556c8428bb8c3e4ed45634367ae8470d901c6ec"
+    },
+    {
+      "bytes": 4194304,
+      "offset": 400000000,
+      "profile": {
+        "coverage_overlap_pairs": {
+          "category_interlang|url_citation": 366,
+          "category_interlang|xml_wikitext_topology": 777,
+          "infobox_field|category_interlang": 35,
+          "infobox_field|numeric_field": 34,
+          "infobox_field|redirect": 0,
+          "infobox_field|title_reuse": 35,
+          "infobox_field|url_citation": 33,
+          "infobox_field|wikitable": 35,
+          "infobox_field|xml_wikitext_topology": 35,
+          "numeric_field|category_interlang": 78,
+          "numeric_field|redirect": 0,
+          "numeric_field|title_reuse": 75,
+          "numeric_field|url_citation": 68,
+          "numeric_field|xml_wikitext_topology": 78,
+          "redirect|category_interlang": 84,
+          "redirect|url_citation": 0,
+          "redirect|xml_wikitext_topology": 433,
+          "repeated_line_family|category_interlang": 774,
+          "repeated_line_family|infobox_field": 35,
+          "repeated_line_family|numeric_field": 78,
+          "repeated_line_family|redirect": 429,
+          "repeated_line_family|repeated_paragraph_family": 1110,
+          "repeated_line_family|template_occurrence": 497,
+          "repeated_line_family|title_reuse": 682,
+          "repeated_line_family|url_citation": 386,
+          "repeated_line_family|wikitable": 117,
+          "repeated_line_family|xml_wikitext_topology": 1169,
+          "repeated_paragraph_family|category_interlang": 737,
+          "repeated_paragraph_family|infobox_field": 35,
+          "repeated_paragraph_family|numeric_field": 77,
+          "repeated_paragraph_family|redirect": 428,
+          "repeated_paragraph_family|template_occurrence": 444,
+          "repeated_paragraph_family|title_reuse": 653,
+          "repeated_paragraph_family|url_citation": 363,
+          "repeated_paragraph_family|wikitable": 114,
+          "repeated_paragraph_family|xml_wikitext_topology": 1110,
+          "template_occurrence|category_interlang": 452,
+          "template_occurrence|infobox_field": 30,
+          "template_occurrence|numeric_field": 65,
+          "template_occurrence|redirect": 1,
+          "template_occurrence|title_reuse": 421,
+          "template_occurrence|url_citation": 269,
+          "template_occurrence|wikitable": 97,
+          "template_occurrence|xml_wikitext_topology": 514,
+          "title_reuse|category_interlang": 648,
+          "title_reuse|redirect": 77,
+          "title_reuse|url_citation": 328,
+          "title_reuse|xml_wikitext_topology": 687,
+          "url_citation|xml_wikitext_topology": 386,
+          "wikitable|category_interlang": 117,
+          "wikitable|numeric_field": 78,
+          "wikitable|redirect": 0,
+          "wikitable|title_reuse": 110,
+          "wikitable|url_citation": 98,
+          "wikitable|xml_wikitext_topology": 117
+        },
+        "coverage_union_body_occurrences": 1189,
+        "coverage_union_source_bytes": 845745,
+        "opportunities": {
+          "category_interlang": {
+            "coverage_body_occurrences": 777,
+            "distinct_values": null,
+            "occurrences": 7424,
+            "source_bytes_covered": 191493,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "contributor_pair": {
+            "coverage_body_occurrences": 0,
+            "distinct_values": 561,
+            "id_to_multiple_username_conflicts": 1,
+            "occurrences": 1007,
+            "repeated_exact_pairs": 550,
+            "source_byte_scope": "decoded contributor id/username or id/ip slot values, not articletext",
+            "source_bytes_covered": 13802,
+            "structural_variation": "same-record contributor id/username or id/ip positions, paired in decoded slot order",
+            "tag_paths": {
+              "page/revision/contributor/id": 1007,
+              "page/revision/contributor/ip": 183,
+              "page/revision/contributor/username": 1007
+            }
+          },
+          "infobox_field": {
+            "coverage_body_occurrences": 35,
+            "distinct_values": 260,
+            "occurrences": 834,
+            "source_bytes_covered": 44677,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "numeric_field": {
+            "coverage_body_occurrences": 78,
+            "distinct_values": 260,
+            "occurrences": 754,
+            "source_bytes_covered": 50158,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "redirect": {
+            "coverage_body_occurrences": 433,
+            "distinct_values": null,
+            "occurrences": 433,
+            "source_bytes_covered": 5193,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "repeated_line_family": {
+            "coverage_body_occurrences": 1169,
+            "distinct_values": 16538,
+            "exact_duplicate_forms": 757,
+            "exact_duplicate_members": 4682,
+            "exact_duplicate_source_bytes": 105228,
+            "occurrences": 18633,
+            "source_bytes_covered": 687913,
+            "structural_variation": "bounded raw members grouped by link/URL/number-normalized byte skeleton",
+            "variable_skeleton_members": 13951,
+            "variable_skeleton_source_bytes": 626408,
+            "variable_skeletons": 872
+          },
+          "repeated_paragraph_family": {
+            "coverage_body_occurrences": 1110,
+            "distinct_values": 7427,
+            "exact_duplicate_forms": 122,
+            "exact_duplicate_members": 523,
+            "exact_duplicate_source_bytes": 16827,
+            "occurrences": 2571,
+            "source_bytes_covered": 295986,
+            "structural_variation": "bounded raw members grouped by link/URL/number-normalized byte skeleton",
+            "variable_skeleton_members": 2048,
+            "variable_skeleton_source_bytes": 285518,
+            "variable_skeletons": 104
+          },
+          "template_occurrence": {
+            "coverage_body_occurrences": 514,
+            "distinct_values": null,
+            "occurrences": 1439,
+            "source_bytes_covered": 45141,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "title_reuse": {
+            "coverage_body_occurrences": 687,
+            "distinct_values": null,
+            "occurrences": 687,
+            "opening_body_exact_bytes": 6481,
+            "opening_body_exact_occurrences": 533,
+            "source_bytes_covered": 9092,
+            "structural_variation": "decoded title bytes searched only in the same decoded page's articletext",
+            "whole_body_exact_bytes": 9092,
+            "whole_body_exact_occurrences": 687
+          },
+          "url_citation": {
+            "coverage_body_occurrences": 386,
+            "distinct_values": 1414,
+            "occurrences": 1910,
+            "source_bytes_covered": 47561,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "wikitable": {
+            "coverage_body_occurrences": 117,
+            "distinct_values": null,
+            "occurrences": 3675,
+            "source_bytes_covered": 4806,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          },
+          "xml_wikitext_topology": {
+            "coverage_body_occurrences": 1190,
+            "distinct_values": null,
+            "occurrences": 1190,
+            "source_bytes_covered": 3740456,
+            "structural_variation": "byte-level bounded detector; see documented definition"
+          }
+        },
+        "profile_note": "Coverage union excludes XML/wikitext topology because that detector intentionally spans every decoded article body. It is exact raw-byte interval coverage over the remaining D2 articletext relations. Title reuse is a separate title-in-same-body query; contributor relations use decoded same-record contributor ID/username pairs.",
+        "top_domains_counted": 1414,
+        "top_field_names_counted": 260,
+        "topology": {
+          "articletext_columns": 9,
+          "articletext_occurrences": 1190,
+          "literal_exception_bytes": 16099,
+          "pages": 1190,
+          "skeletoncount": 9,
+          "slotcolumns": 201
+        }
+      },
+      "sha256": "a07035d4de761fc30cee70f4528156e8128abf7430222cfd63c2311168ea7f17"
+    }
+  ],
+  "residual_token_bytes": null,
+  "residual_token_rules": "NOT_MEASURED",
+  "schema": "cix-wikipedia-body-opportunities-v2",
+  "status": "PROFILE_ONLY_NOT_COMPRESSION"
+}

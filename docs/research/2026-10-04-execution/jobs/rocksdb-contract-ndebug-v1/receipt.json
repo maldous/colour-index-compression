@@ -1,0 +1,72 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-contract-ndebug-v1/source",
+        "-B",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-contract-ndebug-v1/build",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_CXX_FLAGS_RELEASE=-O3 -DNDEBUG",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+        "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+        "-DROCKSDB_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include",
+        "-DROCKSDB_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-host-v1/upstream-build/librocksdb.so"
+      ],
+      "env_extra": {},
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Performing Test CIX_ROCKSDB_V10101_API\n-- Performing Test CIX_ROCKSDB_V10101_API - Success\n-- Configuring done (0.5s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-contract-ndebug-v1/build\n"
+    },
+    {
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-contract-ndebug-v1/build",
+        "--target",
+        "cix_rocksdb_contract",
+        "-j2"
+      ],
+      "env_extra": {},
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[ 25%] Building CXX object CMakeFiles/cix_rocksdb_compression_manager.dir/cix_compression_manager.cc.o\n[ 50%] Linking CXX static library libcix_rocksdb_compression_manager.a\n[ 50%] Built target cix_rocksdb_compression_manager\n[ 75%] Building CXX object CMakeFiles/cix_rocksdb_contract.dir/contract_test.cc.o\n[100%] Linking CXX executable cix_rocksdb_contract\n[100%] Built target cix_rocksdb_contract\n"
+    },
+    {
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-contract-ndebug-v1/build",
+        "--output-on-failure"
+      ],
+      "env_extra": {
+        "LD_LIBRARY_PATH": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib:/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-host-v1/upstream-build",
+        "TMPDIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-contract-ndebug-v1"
+      },
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Internal ctest changing into directory: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-contract-ndebug-v1/build\nTest project /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-contract-ndebug-v1/build\n    Start 1: cix_rocksdb_contract\n1/1 Test #1: cix_rocksdb_contract .............   Passed    0.63 sec\n\n100% tests passed, 0 tests failed out of 1\n\nTotal Test time (real) =   0.63 sec\n"
+    }
+  ],
+  "contract_compile_command": "/usr/bin/c++  -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-contract-ndebug-v1/source -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include -I/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include -O3 -DNDEBUG -std=gnu++20 -fno-rtti -o CMakeFiles/cix_rocksdb_contract.dir/contract_test.cc.o -c /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-contract-ndebug-v1/source/contract_test.cc",
+  "job": "execution-rocksdb-contract-ndebug-v1",
+  "pinned_input_sha256": {
+    "rocksdb_advanced_compression_header": "2b6e84b305e7862ca64b910f000a9b21537d69d4b24d7a1d92dfa1d4a372664c",
+    "rocksdb_compression_type_header": "08f7a61896c83bf7ca055c213cb5121e1c6e6d752a920930cc0a03bd352ca13b",
+    "rocksdb_library": "d5baf86c54cfb9d0017312410dd57399bc9de1d93e94c726dfea7506d5894d58",
+    "rocksdb_version_header": "32e8f0373592985ed24d49e2559c9e1fac9e4ad71f525c0f8cc735973b700ebc",
+    "sdk_library": "8cfb14fe08a81105eaf6135b4eada992dae6d6c91e9ca17367fd578dec7205d1"
+  },
+  "qualification": {
+    "assertion_independent_checks": "all contract runtime checks; source validation rejects every assert( call",
+    "configuration": "Release with explicit -DNDEBUG and no -UNDEBUG in the actual contract compile command"
+  },
+  "source_sha256": {
+    "CMakeLists.txt": "4777e0d288826b1985ac78ff040d704f5233d3916db0ba4e65c95fbaae8f8d9d",
+    "cix_compression_manager.cc": "91cc350da423249541b1b5a9e31bd935e0d3360462f535b16403f0882e6f6747",
+    "cix_compression_manager.h": "17856bcd05e18cd2bf75683c2b634b66b9a1f8181126ca6aeaa6a2d306655b80",
+    "contract_test.cc": "f15c259a28713bb7d812f32267471cc9644c51f68a7ce3d3b8e6d6df685acfa8"
+  }
+}

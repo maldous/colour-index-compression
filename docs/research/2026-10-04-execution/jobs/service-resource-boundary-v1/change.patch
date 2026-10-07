@@ -1,0 +1,172 @@
+--- a/rust/cix-native/src/lib.rs
++++ b/rust/cix-native/src/lib.rs
+@@ -10,6 +10,7 @@
+ pub mod i18n;
+ mod job_cli;
+ pub mod jxl_bridge;
++pub mod managed_sdk;
+ pub mod paq_bridge;
+ mod paq_supervisor;
+ mod paq_worker;
+--- a/rust/cix-native/src/service/contracts.rs
++++ b/rust/cix-native/src/service/contracts.rs
+@@ -48,8 +48,9 @@
+ }
+ impl ResourceLimits {
+     pub fn within(&self, cap: &Self) -> Result<()> {
++        // Zero temporary storage is a prohibition; other resources must be positive.
+         for (name, n, max) in [("input_bytes",self.input_bytes,cap.input_bytes),("output_bytes",self.output_bytes,cap.output_bytes),("memory_bytes",self.memory_bytes,cap.memory_bytes),("temporary_bytes",self.temporary_bytes,cap.temporary_bytes),("deadline_ms",self.deadline_ms,cap.deadline_ms)] {
+-            if n.0 == 0 || n > max { return Err(Problem::limit(name)); }
++            if (n.0 == 0 && name != "temporary_bytes") || n > max { return Err(Problem::limit(name)); }
+             n.usize()?;
+         }
+         if self.workers == 0 || self.workers > cap.workers { return Err(Problem::limit("workers")); }
+--- a/rust/cix-native/src/service/engine.rs
++++ b/rust/cix-native/src/service/engine.rs
+@@ -12,6 +12,9 @@
+     pub fn available(&self)->bool {self.config.private_library_directory.as_ref().is_some_and(|p|p.is_dir())}
+     pub fn validate(&self,request:&TransformRequest)->Result<()> {
+         request.limits.within(&self.config.limits)?;
++        // This worker always creates temporary files. Refuse before queue
++        // admission, provider lookup, object access or process/filesystem effects.
++        if request.limits.temporary_bytes.0 == 0 {return Err(Problem::limit("temporary_bytes"));}
+         let o=&request.options;
+         // Until mapped to the full-engine protocol, expert controls must not be silently ignored.
+         if o.output_format.as_deref().is_some_and(|f|f!="cix") || o.container.is_some() || o.route.is_some() || o.backend.is_some() || o.dictionary_id.is_some() || o.block_bytes.is_some() || o.history_bytes.is_some() || o.independent_blocks.is_some() || o.flush_interval_ms.is_some() || o.parallelism.is_some() {
+--- a/rust/cix-native/tests/service_contract.rs
++++ b/rust/cix-native/tests/service_contract.rs
+@@ -54,3 +54,134 @@
+     let (a,b)=tokio::join!(r.claim("a",30_000),r.claim("b",30_000));
+     assert_eq!(usize::from(a.unwrap().is_some())+usize::from(b.unwrap().is_some()),1);
+ }
++
++fn assert_resource_limit(problem: cix_native::service::error::Problem, resource: &str) {
++    assert_eq!(problem.code, "resource_limit");
++    assert_eq!(problem.arguments["resource"], json!(resource));
++}
++
++#[test]
++fn temporary_storage_budget_preserves_zero_as_a_prohibition() {
++    let mut requested = ResourceLimits::default();
++    requested.temporary_bytes = Count(0);
++    requested.within(&ResourceLimits::default()).unwrap();
++
++    let cap = requested.clone();
++    requested.within(&cap).unwrap();
++    requested.temporary_bytes = Count(1);
++    assert_resource_limit(requested.within(&cap).unwrap_err(), "temporary_bytes");
++
++    let mut positive_cap = cap.clone();
++    positive_cap.temporary_bytes = Count(1);
++    requested.within(&positive_cap).unwrap();
++    requested.temporary_bytes = Count(2);
++    assert_resource_limit(requested.within(&positive_cap).unwrap_err(), "temporary_bytes");
++
++    // Configuration loading must retain this prohibition instead of widening it.
++    let mut config = cix_native::service::config::Config::default();
++    config.state_directory = std::env::temp_dir().join("cix-resource-validation-only");
++    config.limits = cap;
++    config.validate().unwrap();
++    assert_eq!(config.effective_policy().unwrap().limits.temporary_bytes, 0);
++}
++
++#[test]
++fn required_positive_resources_and_upper_caps_remain_enforced() {
++    let fields: [(&str, fn(&mut ResourceLimits) -> &mut Count); 4] = [
++        ("input_bytes", |limits| &mut limits.input_bytes),
++        ("output_bytes", |limits| &mut limits.output_bytes),
++        ("memory_bytes", |limits| &mut limits.memory_bytes),
++        ("deadline_ms", |limits| &mut limits.deadline_ms),
++    ];
++    for (name, field) in fields {
++        let mut cap = ResourceLimits::default();
++        let mut requested = cap.clone();
++        *field(&mut requested) = Count(0);
++        assert_resource_limit(requested.within(&cap).unwrap_err(), name);
++        *field(&mut cap) = Count(1);
++        *field(&mut requested) = Count(2);
++        assert_resource_limit(requested.within(&cap).unwrap_err(), name);
++    }
++    let cap = ResourceLimits::default();
++    for workers in [0, cap.workers + 1] {
++        let mut requested = cap.clone();
++        requested.workers = workers;
++        assert_resource_limit(requested.within(&cap).unwrap_err(), "workers");
++    }
++}
++
++struct ServiceTestDirectory(std::path::PathBuf);
++
++impl ServiceTestDirectory {
++    fn new() -> Self {
++        let path = std::env::temp_dir().join(format!("cix-service-resource-{}", new_id()));
++        let mut builder = std::fs::DirBuilder::new();
++        #[cfg(unix)]
++        {
++            use std::os::unix::fs::DirBuilderExt;
++            builder.mode(0o700);
++        }
++        builder.create(&path).unwrap();
++        Self(path)
++    }
++}
++
++impl Drop for ServiceTestDirectory {
++    fn drop(&mut self) {
++        let _ = std::fs::remove_dir_all(&self.0);
++    }
++}
++
++#[tokio::test]
++async fn zero_temp_worker_rejects_before_admission_or_storage_effects() {
++    use cix_native::service::{config::Config, engine::Engine, jobs::Jobs, objects::Objects};
++    use std::sync::Arc;
++
++    let directory = ServiceTestDirectory::new();
++    let mut config = Config::default();
++    config.state_directory = directory.0.clone();
++    config.limits.temporary_bytes = Count(0);
++    config.validate().unwrap();
++    // No provider directory or input artifact exists. A late check would return
++    // providers_not_configured or not_found instead of the required budget error.
++    let repository = repository().await;
++    let objects = Objects::open(&config, repository.clone()).await.unwrap();
++    let config = Arc::new(config);
++    let engine = Engine::new(config.clone(), objects).unwrap();
++    let jobs = Jobs::new(repository.clone(), engine.clone(), config);
++    let mut actor = principal("team", "alice");
++    actor.scopes.push("codec:encode".into());
++    let mut zero_temp = request("no-temporary-storage");
++    zero_temp.limits.temporary_bytes = Count(0);
++
++    assert!(repository.jobs(&actor, None).await.unwrap().items.is_empty());
++    assert_resource_limit(engine.validate(&zero_temp).unwrap_err(), "temporary_bytes");
++    assert_resource_limit(
++        jobs.submit(&actor, zero_temp.clone()).await.unwrap_err(),
++        "temporary_bytes",
++    );
++    assert!(repository.jobs(&actor, None).await.unwrap().items.is_empty());
++
++    // Direct execution must recheck the same prohibition before reading the
++    // nonexistent input or creating the worker's temporary directory.
++    let job = Job {
++        id: new_id(),
++        tenant: actor.tenant.clone(),
++        subject: actor.subject.clone(),
++        state: JobState::Running,
++        revision: Count(1),
++        attempt: 1,
++        created_ms: Count(now_ms()),
++        updated_ms: Count(now_ms()),
++        request: zero_temp,
++        result: None,
++        error: None,
++    };
++    let (_cancel, receiver) = tokio::sync::watch::channel(false);
++    assert_resource_limit(
++        engine.execute(&actor, &job, receiver).await.unwrap_err(),
++        "temporary_bytes",
++    );
++    assert!(!directory.0.join("workers").exists());
++    assert_eq!(std::fs::read_dir(directory.0.join("objects")).unwrap().count(), 0);
++}

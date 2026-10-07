@@ -1,0 +1,54 @@
+# Focused instrument ledger and addendum priority
+
+| Instrument | Status | Evidence / remaining limit |
+|---|---|---|
+| Same-space representations of equality/count | Complete | Seven paid descriptions, five original spaces; no rank advantage for the same ordered set. |
+| Additional combinations, held-out | Complete within small binary-record bank | Upper-count/parity and count/parity/endpoint XOR; related primitives, not unrelated real-data generalisation. |
+| Three-way sharing | Complete, negative vs stronger control | Saves3B over naive flat, ties packed metadata. |
+| Automatic reusable components | Complete for selector interning/discovery | Finite primitive bank; no grammar/library synthesis claim. |
+| Full archives vs declared controls | Complete | Four new synthetic wins; explain model strength separately from sharing. |
+| Noise-tolerant exceptions | Complete bounded screen |83new archives; weak932B, four noisy wins; see ../exception-evidence/REPORT.md. |
+| Paid record usage histogram | Complete restricted matched/Auto control | Weak925B beats exceptions; clean histogram losses retained. Distinct probability-model control remains open. |
+| Specific PSDD/PC/VS-SDD/Stitch/GenCon/Monarch prior art | Completed method-level targeted review | ../addendum-prior-art.md states exact read limits; no executable coverage by citation. |
+| Grammar and shift/substitution-aware wire controls | Gated next | Actual references/mappings/edits paid; no/exact/shift/near-reuse cases. |
+| Exact superset decoding | Gated | Only execute after concrete cost/budget justification; no arbitrary approximate count ranker. |
+
+| Paid exception-position templates | Complete |49new archives; weak854B vs925B histogram; irregular/clean losses preserved. ../position-evidence/REPORT.md. |
+| Actual selection/boundary/state audit | Complete | ../segmentation/current-audit.md and physical2-block trace; no content-adaptive production boundaries. |
+| Exact partition reference and adaptive routing | Complete bounded screen |204archives,9malformed; declared finite DP, held-seed38/43B gains vswhole/fixed; stronger controls win. |
+| Retained history with sufficient optimizer state | Complete restricted position-determined history |116archives,16dependency/compatibility probes; no adaptive gain, fixed reset savings. Paid template-cache state remains unimplemented. |
+| One bounded decomposition extension | Complete v1 and evidence-driven v2 |103+63archives,44v1compatibility decodes,12extra fresh contiguous controls; per-column masks and matchedZstd controls. ../segmentation/mask-evidence/REPORT.md. |
+| Shared lane-support descriptions | Closed: no repeated support model | Native inspection of12existing archives; one global stride/mask already shared. See ../segmentation/support-evidence/REPORT.md. No imaginary compressed/diagram results. |
+
+The shared-support applicability gate is closed: current lanes have no repeated
+transmitted support table. The next bounded programme is the matched representation
+attribution matrix, then frozen schema-free joint geometry/transform/backend
+selection. See ../segmentation/latent-evidence/PLAN.md. Broad grammar/library
+synthesis remains gated; production is unchanged.
+
+## Latent-layout follow-on completed checkpoint
+
+| Work | Status | Boundary |
+|---|---|---|
+| Shared-support applicability | Closed |12existing archives inspected; support already global; no fictitious diagram/compressed wins. |
+| BSS/residual/backend attribution | Complete |59new archives; representation and outer framing/backend separated. |
+| Prior-art Parquet/Lance/CAST | Complete scoped primary review | ../segmentation/latent-prior-art.md; no novelty by vocabulary. |
+| Joint width/phase/operator/backend selector | Complete bounded standalone |169selected/control archives; finite heuristic global shortlist, exact lane minimisation. |
+| Exact tiny reference and adversarial inverse | Complete lengths0..8 |1344constructed fresh native inverses,20malformed; raw-dominated zero-regret caveat. |
+| Frozen real-prefix transfer | Complete with losses |40archives; numeric20B vsnon-CIX but126Bbehindincumbent; no production promotion. |
+| Local segmentation/template-cache extension | Gated, not launched | No strongest-incumbent real win; do not open hierarchy to rescue this bank. |
+| Incumbent CIXM6 same-representation numeric ablation | Complete, rejected | New frozen4KiB slice: original1393B, paidE1418B; no15-bank neighbour wins. Replication gate failed. ../segmentation/composition-evidence/REPORT.md. |
+
+See ../segmentation/latent-evidence/REPORT.md. The only next experiment is the
+matched CIXM6 backend/model ablation above; broader transforms, local geometry,
+learned DAGs and shared-template synthesis remain gated. Production stays unchanged.
+
+## Numeric composition closure
+
+The sole queued incumbent-CIXM6 ablation completed under
+`composition-m6-citytemp-v1-buildfix1`. Forty-eight measured compression trials,
+45 paid SMC1 archives,30 independent tiny cases and37 malformed/unsupported
+rejections qualify the bounded comparison. The4B inner M6 saving cannot pay
+the29B descriptor. Close this numeric branch; no wider search, local geometry,
+DAG or production selector work is authorised by these results. The conditional
+replication reservation was not extracted. See the linked composition report.

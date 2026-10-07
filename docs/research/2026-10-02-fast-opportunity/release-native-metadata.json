@@ -1,0 +1,56 @@
+{
+  "source_revision": "d66739120c40fc409f2bf011b165389fc1062c2b",
+  "host": "Linux-6.8.0-138-generic-x86_64-with-glibc2.39",
+  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "profile": "release-lto full LTO codegen-units=1",
+  "build_command": "taskset -c 16,17 env CARGO_BUILD_JOBS=2 cargo build --offline --locked --profile release-lto --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib",
+  "binaries": {
+    "cix": {
+      "sha256": "c1ce98c218207cd1b9b9b4aac3efa04ec133e9d716e3fe288d52c0dac910f65a",
+      "bytes": 1978768
+    },
+    "uncix": {
+      "sha256": "acd2764a2184f000f6147c29372e793765787b8bc4d5b3fdcf4522cd916753de",
+      "bytes": 1980152
+    },
+    "cixcat": {
+      "sha256": "e6852dfbaa5d9bfe07ed451097db2900b4bf3181f8f58a4af49afda67002b37c",
+      "bytes": 1980848
+    },
+    "libcix_native.so": {
+      "sha256": "c14abd9c0549ba09ebefd4eb2f904da58a9d78f4b6b3c9d1994108d024dd5d7a",
+      "bytes": 1201208
+    }
+  },
+  "no_python_runtime": true,
+  "other_platforms_verified": false,
+  "original_python_reference_commit": "80b95427725ecf59d626b2982d50f6349abd56e1",
+  "reproduce_command": "CARGO_BUILD_JOBS=2 cargo build --offline --locked --profile release-lto --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib",
+  "native_codec_versions": {
+    "zlib": "1.3",
+    "liblzma": "5.4.5",
+    "zstd": "1.5.5",
+    "brotli": "1.1.0"
+  },
+  "compatibility_reference_role": "historical validation only; no runtime dependency or new-model restriction",
+  "qualification": {
+    "status": "LOCAL_VERIFIED",
+    "artifact_identity": "all four binaries byte-identical to frozen d5e candidate; exact d667 rebuild verified",
+    "cca_pairs": 33,
+    "cca_all_exact": true,
+    "cca_size_regression_bytes": 50053,
+    "mr_fast_repetitions": 2,
+    "mr_best_screens": 1,
+    "mr_best_matches_historical_python_maximum_archive": true,
+    "pipe_idle_pre_eof": true,
+    "partial_ffi_callbacks_and_errors": true,
+    "working_budget_stream_test_bytes": 20971833,
+    "working_budget_stream_test_memory_bytes": 8388608,
+    "test_summary": "docs/research/2026-10-02-fast-opportunity/release-tests.json",
+    "receipt_index": "docs/research/2026-10-02-fast-opportunity/FINDINGS.json",
+    "squash_sdk_plugin_build_loaded": false
+  },
+  "previous_candidate_source_revision": "d5e7d4ba148f234cd5fd42ecfe6a6cbb2c369fea",
+  "implementation_revision": "8ffa2c391",
+  "integration_revision": "d66739120c40fc409f2bf011b165389fc1062c2b"
+}

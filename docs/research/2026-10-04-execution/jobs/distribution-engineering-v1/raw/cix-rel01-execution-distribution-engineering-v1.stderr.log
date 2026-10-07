@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py", line 199, in <module>
+    main()
+  File "/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py", line 102, in main
+    readelf, providers, provider_hashes, dependencies = read_provider_closure(
+                                                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py", line 52, in read_provider_closure
+    readelf = require_absolute_file(document.get("readelf", ""), "readelf")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py", line 39, in require_absolute_file
+    raise ValueError(f"{label} must be an existing, non-symlink absolute file")
+ValueError: readelf must be an existing, non-symlink absolute file
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/distribution-engineering-v1/run.py", line 44, in <module>
+    main()
+  File "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/distribution-engineering-v1/run.py", line 40, in main
+    subprocess.run(command, cwd=PROJECT, env=environment, check=True)
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/usr/bin/python3', '/home/user/src/colour-index-compression/rust/cix-native/packaging/export/engineering_export_job.py', '--source-root', '/home/user/src/colour-index-compression/rust/cix-native', '--manifest', '/home/user/src/colour-index-compression/rust/cix-native/packaging/export/source-allowlist.json', '--provider-closure', '/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/distribution-engineering-v1/selected-provider-closure.json', '--work-directory', '/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/distribution-engineering-v1', '--cargo', '/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo', '--cmake', '/usr/bin/cmake', '--make', '/usr/bin/make', '--jobs', '2']' returned non-zero exit status 1.

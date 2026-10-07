@@ -1,0 +1,36 @@
+{
+  "source_revision": "08101079c71a07ef9f268da7058a76802c1dbde3",
+  "host": "Linux-6.8.0-138-generic-x86_64-with-glibc2.39",
+  "rust": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "profile": "release-lto full LTO codegen-units=1",
+  "build_command": "taskset -c 16-19 env CARGO_BUILD_JOBS=2 cargo build --offline --locked --profile release-lto --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib",
+  "binaries": {
+    "cix": {
+      "sha256": "836d8913a7eef9bfd76b366a198ea1c96f886ce15abbb0f3ceab6e3cc61a144c",
+      "bytes": 1975600
+    },
+    "uncix": {
+      "sha256": "5326cdd8ebc8cdd3cbae153cda25e22576c5d52aa0be29ec4fa8cf23748fe68e",
+      "bytes": 1976984
+    },
+    "cixcat": {
+      "sha256": "58f589221603a018528cf4d66e4c40998ebd34bbfa24f35b2dbffab6a2a9aebb",
+      "bytes": 1977672
+    },
+    "libcix_native.so": {
+      "sha256": "a75ee0e5bf645aa25394c8e0343267467b4da2b840f8a378a9d1ec1979c70903",
+      "bytes": 1197432
+    }
+  },
+  "no_python_runtime": true,
+  "other_platforms_verified": false,
+  "original_python_reference_commit": "80b95427725ecf59d626b2982d50f6349abd56e1",
+  "reproduce_command": "CARGO_BUILD_JOBS=2 cargo build --offline --locked --profile release-lto --manifest-path rust/cix-native/Cargo.toml --bin cix --bin uncix --bin cixcat --lib",
+  "native_codec_versions": {
+    "zlib": "1.3",
+    "liblzma": "5.4.5",
+    "zstd": "1.5.5",
+    "brotli": "1.1.0"
+  },
+  "compatibility_reference_role": "historical validation only; no runtime dependency or new-model restriction"
+}

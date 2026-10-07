@@ -1,0 +1,28 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff7c9173f in __GI_fwrite_unlocked (buf=0x7ffff728c42d, size=1, count=5, fp=0x2000) at ./libio/iofwrite_u.c:40
+
+Thread 1 (Thread 0x7ffff7f7e740 (LWP 2822012) "squash-contract"):
+#0  0x00007ffff7c9173f in __GI_fwrite_unlocked (buf=0x7ffff728c42d, size=1, count=5, fp=0x2000) at ./libio/iofwrite_u.c:40
+#1  0x00007ffff7fb34d4 in squash_file_splice_write () from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/libsquash0.8.so.0.8.0
+#2  0x00007ffff7351149 in cix_native::core::engine::{impl#4}::write (self=0x7fffffff8dc0, buffer=...) at src/engine.rs:4730
+#3  0x00007ffff7351325 in std::io::Write::write_all<cix_native::core::engine::SquashWriter> (self=0x7fffffff8dc0, buf=...) at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/std/src/io/mod.rs:1613
+#4  0x00007ffff731dcb6 in cix_native::core::engine::prepare_candidate_encoder<cix_native::core::engine::SquashWriter> (dst=0x7fffffff8dc0, options=0x7fffffffaca8) at src/engine.rs:2281
+#5  0x00007ffff7315d5a in cix_native::core::engine::encode_candidates<cix_native::core::engine::SquashReader, cix_native::core::engine::SquashWriter> (src=..., dst=..., options=...) at src/engine.rs:2312
+#6  0x00007ffff731c0f6 in cix_native::core::engine::encode_with_strategy<cix_native::core::engine::SquashReader, cix_native::core::engine::SquashWriter> (src=..., dst=..., options=...) at src/engine.rs:2043
+#7  0x00007ffff7324387 in cix_native::core::engine::encode<cix_native::core::engine::SquashReader, cix_native::core::engine::SquashWriter> (src=..., dst=..., options=...) at src/engine.rs:1985
+#8  0x00007ffff732cb06 in cix_native::core::engine::cix_squash_splice::{closure#0} () at src/engine.rs:4777
+#9  0x00007ffff73b6831 in core::ops::function::FnOnce::call_once<cix_native::core::engine::cix_squash_splice::{closure_env#0}, ()> () at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/ops/function.rs:250
+#10 0x00007ffff73d507b in core::panic::unwind_safe::{impl#23}::call_once<core::result::Result<(), alloc::string::String>, cix_native::core::engine::cix_squash_splice::{closure_env#0}> (self=...) at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/panic/unwind_safe.rs:275
+#11 0x00007ffff74ab656 in std::panicking::catch_unwind::do_call<core::panic::unwind_safe::AssertUnwindSafe<cix_native::core::engine::cix_squash_splice::{closure_env#0}>, core::result::Result<(), alloc::string::String>> (data=0x7fffffffb1e0) at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/std/src/panicking.rs:576
+#12 0x00007ffff737652b in __rust_try () from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v6/squash-plugins/cix/libcix_native.so
+#13 0x00007ffff7368145 in std::panicking::catch_unwind<core::result::Result<(), alloc::string::String>, core::panic::unwind_safe::AssertUnwindSafe<cix_native::core::engine::cix_squash_splice::{closure_env#0}>> (f=...) at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/std/src/panicking.rs:544
+#14 std::panic::catch_unwind<core::panic::unwind_safe::AssertUnwindSafe<cix_native::core::engine::cix_squash_splice::{closure_env#0}>, core::result::Result<(), alloc::string::String>> (f=...) at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/std/src/panic.rs:359
+#15 0x00007ffff73514fd in cix_native::core::engine::cix_squash_splice (direction=1, level=6, read_cb=..., write_cb=..., user=0x7fffffffb5e0) at src/engine.rs:4765
+#16 0x00007ffff7fa25dd in cix_splice_compat () from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v6/squash-plugins/cix/libsquash0.8-plugin-cix.so
+#17 0x00007ffff7fb3584 in squash_splice_custom_with_options () from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/libsquash0.8.so.0.8.0
+#18 0x00007ffff7fb431d in squash_splice_custom () from /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/lib/libsquash0.8.so.0.8.0
+#19 0x0000555555555b0c in splice_roundtrip ()
+#20 0x00005555555562fa in main ()

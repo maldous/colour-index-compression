@@ -1,0 +1,142 @@
+# Native RC integration checkpoint — 2026-10-04
+
+**Release candidate not ready; benchmark remains stopped.** This checkpoint
+preserves implementation progress and failed as well as passing checks. It is
+not full-engine qualification, a public release or a compression record.
+
+## Latest palette compatibility check
+
+The subsequent [palette check](palette-check-summary.json) completes the historical
+SDFG palette representation using the existing exact type-class coder. All nine
+new generated reference frames match byte for byte across three predictor modes
+and palette sizes 1, 2 and 64, including grouped tokens, ties and escaped values.
+The check passed all-target compilation, 31 full-engine unit tests and three
+reference-vector integration tests covering 21 total archives. The signed scalar
+mapping now handles `i64::MIN` without overflow; both signed endpoints are tested.
+These are faithful retained-format ports and fixes, not new structural research
+or new compression records. Full-engine admission remains unfinished.
+
+## Latest integration batch
+
+The latest [integration summary](integration-summary.json) extends the saved
+foundation checkpoint `0f1f65abd`. Four unchanged PAQ source variants now build
+as private codec libraries. Each passed exact reference archive and fresh
+cross-decode checks. The compiled CIX executable's internal worker subsequently
+passed 35 fresh-process cases and four unit checks; its parent supervisor and
+automatic full-engine integration remain unfinished. See [the worker contract](PAQ-WORKER.md).
+
+Native graph framing and six pointer-delta modes match all 12 generated reference
+archives exactly. The focused batch passed all-target compilation, 29 full-engine
+tests, three JXL mock boundary tests and two reference-vector integration tests.
+The JXL C++ bridge is implemented but not yet built against provisioned libjxl;
+mock tests do not qualify that codec. Failed first worker integration remains
+preserved with its option-handling correction. These checks are not benchmarks.
+
+## Current source
+
+The baseline remains `97fea6189`, reconciled from the qualified native snapshot.
+No third-party source was modified. The following CIX-owned additions are under
+qualification; the maintained Python code remains a reference outside the
+standalone runtime and future distribution allowlist.
+
+| Area | Present at this checkpoint | Still required |
+| --- | --- | --- |
+| Library context | Rust Read/Write and buffer entry points; caller limits, cooperative cancellation/deadline scopes and worker context inheritance; CLI signal state excluded from native-library scopes | Full extraction from the CLI implementation, stable C/context/incremental ABI, complete error/resource contracts and installed SDK consumers |
+| Exact arithmetic | Checked varints, big integer rank/composition, Fenwick frequencies and arithmetic interval coding with reference/small exhaustive checks | Complete route/frame parity and final resource qualification |
+| Record ordering | Count-conditioned streams, permutation rank blocks and framing primitives | Complete retained column/fixed-record models and native dispatch |
+| Address relations | Validated object discovery, constraints, fields, GOT and pointer-delta transforms and historical envelope helpers; golden choice-code bytes; corrected historical mode-0 inverse | Remaining section/other specialists, broader object/frame reference fixtures, model allocation budgets and end-to-end backend integration |
+| Graph residuals | Fixed-width coordinate extraction/restoration, graph/sequential residuals, canonical-field checks, mixed line-ending preservation and historical varint/text framing | Hydrogen constraints and dispatch |
+| Strided values | Strict extent recognition and signed scalar mapping | Complete retained grid representations and frame qualification |
+| Volume lifting | Volume modes, finite-width residuals, axis layouts and bounded multiscale shape operations; explicit codec callbacks | Actual JXL bridge/dependency build, CIXI1 migration constraints and cross-decoding all retained physical frames |
+| PAQ boundary | Four variant libraries with exact archive/cross-decode checks; same-CIX child invocation, SDK rejection, bounded error text, exact Unix arguments, environment and per-child limits | Parent supervisor, candidate dispatch, aggregate resource/cancellation guarantees, all retained options and platform paths |
+| Analysis gating | CIX-owned CXX runner accepts the authenticated stopped-benchmark state while retaining idle/source/lease guards | Actual CXX scan, final integrated-source Sonar/Clippy and dead-code disposition |
+
+The current `core::codec` still includes the existing CLI implementation below a
+library module. This is a reusable-entry foundation, not proof that RC02's full
+library-first extraction is complete. The full-engine modules are not admitted
+to ordinary CLI selection. Successful primitive tests cannot substitute for
+archive-only restoration through the real integrated codec backends.
+
+## Naming and distribution
+
+All five newly ported domain-labelled modules use mathematical/process names:
+`structured_frames`, `record_ordering`, `address_relations`, `strided_values`
+and `volume_lifting`. The new coordinate helper is `graph_residuals`.
+[Source naming](source-naming.json) records the mapping and exact preserved
+research moves; [the audit](NAMING-AUDIT.md) checks the broader source layout.
+No old module declarations/imports remain in current production candidates.
+
+Names do not establish corpus independence. Recognition still requires
+validated input-derived structure. Standard-format identities, external codec
+names, wire bytes and provenance remain precise. Frozen historical snapshots
+retain their original filenames. The old unexported oracle and its test were
+moved byte-for-byte to `experiments/research_oracle`, outside automatic production
+test discovery. Their hashes are in the naming receipt. A final explicit public
+source/install allowlist is still required; no public repository was created.
+
+## Evidence and failures
+
+Every job has immutable input hashes, its actual command and resource receipt.
+The original snapshots remain unchanged, verified in
+[snapshot-verification.json](snapshot-verification.json). No failed run was
+rewritten as a success.
+
+| Job | Result and disposition |
+| --- | --- |
+| check-v1 | Launcher failed because PATH selected snap Cargo, which could not run in the constrained service. No codec check completed. |
+| check-v2 | Same source as check-v1, direct toolchain path; exposed missing imports/constants in volume code. |
+| check-v3 | Corrected source; exposed an old integration test importing parallel implementation without its limits module. |
+| focused-v1 | Exposed the unexported research oracle left under automatic test discovery. Both old files preserved outside shipping/test discovery. |
+| focused-v2 | All-target compilation, 11 full-engine primitive tests, 4 native-context tests, 3 PAQ descriptor tests, 7 pipeline tests and 6 CXX guard tests passed. |
+| focused-v3 | New GOT/graph source failed compilation on two explicit type/error-conversion issues; no tests ran. |
+| focused-v4 | All-target compilation passed; 19 primitive tests passed and 2 test assumptions failed. One expected the legacy zero-bit arithmetic padding to be rejected; the other accidentally joined CR and LF across an empty header line. Both test inputs corrected; decoder behavior was not tightened to hide the mismatch. |
+| focused-v5 | All-target compilation and all 140 library tests passed, with zero failures/ignored tests. Its 133-file source matched the tested immutable snapshot at that checkpoint. |
+
+The two GOT golden cases include repeated shared contexts, so adaptive and static
+arithmetic outputs differ. The [reference receipt](got-reference-vectors.json)
+binds the frozen Python source hashes. These are generated tiny fixtures,
+not evaluation corpus data or a new benchmark.
+
+The CXX guard's six passing tests do not establish C++ analyzer coverage. Vendor
+compiler warnings remain visible. Cargo does not compile the C++ bridges. Separate CMake PAQ builds and physical
+checks now qualify the narrow PAQ boundary; JXL native linkage remains unqualified.
+The separate [JXL build plan](JXL-BUILD.md) records actual dependency and API
+requirements rather than treating a Python-wheel library as an installed SDK.
+
+## GPU opportunity disposition
+
+[The GPU review](../2026-10-04-gpu-cuda/OPPORTUNITIES.md) records current source,
+primary references, local device metadata and additional lossless methodologies.
+No GPU kernels, installations or benchmark ran. A pinned isolated BWT parity
+specification is prepared. GPU speed, a smaller CIX archive and exhaustive limits
+of possible compression are not established. Conditional GPU requirements do
+not silently become required RC implementations or justify a benchmark restart.
+
+## Continuing gate
+
+The coordinator's 55-row requirements register remains authoritative and open.
+The immediate implementation direction remains completing the native full-engine
+ports and actual codec-library integration, followed by SDK/adapters, installation,
+final quality and independent readiness review. No source feature is waived by
+this foundation checkpoint. New benchmarking follows that review, not this log.
+
+The earlier foundation [check summary](check-summary.json) binds its result and log
+hashes. The job used 252.429 seconds wall time and 280.590 CPU seconds under
+four physical cores, no swap and a 6 GB host limit. Sampled cgroup memory reached
+1,664,053,248 bytes (a lower bound, not a true process peak); temporary files
+peaked at 1,157,203,097 bytes. These are correctness-check resource observations,
+not compression-throughput benchmark results.
+
+## Approved implementation wave — 5 October 2026
+
+The user-approved plan now has a [native foundation checkpoint](../2026-10-04-execution/FOUNDATION.md)
+with source-bound component evidence. Actual pinned gray/planar JXL crossdecode,
+all four supervised PAQ variants, new native transform reference vectors,
+Rust incremental framing, C buffer contexts, and relocated shared/static C/C++
+SDK consumers have passing focused checks. Earlier failures are preserved and
+are not relabelled as successful jobs. The detailed scope and remaining gaps
+are explicit; neither all 55 release requirements nor final-source quality,
+platform qualification, catalogue/CLI integration or the final benchmark is
+accepted by this checkpoint.
+
+Native catalogue/streaming checkpoint: see ../2026-10-04-execution/CATALOGUE.md and source-bound catalogue-v4/v5 receipts. Library provider dispatch and relocated C stream consumers passed; ordinary CLI integration and final RC remain open.

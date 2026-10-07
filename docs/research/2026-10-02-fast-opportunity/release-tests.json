@@ -1,0 +1,120 @@
+{
+  "source_revision": "d66739120c40fc409f2bf011b165389fc1062c2b",
+  "checks": [
+    {
+      "target": "fast_path_tests",
+      "returncode": 0,
+      "log": "docs/research/2026-10-02-fast-opportunity/release-test-1.log"
+    },
+    {
+      "target": "fast_lz",
+      "returncode": 0,
+      "log": "docs/research/2026-10-02-fast-opportunity/release-test-2.log"
+    },
+    {
+      "target": "selection_overrides",
+      "returncode": 0,
+      "log": "docs/research/2026-10-02-fast-opportunity/release-test-3.log"
+    },
+    {
+      "target": "implicit_stdin_cli",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "rust/cix-native/Cargo.toml",
+        "-j",
+        "2",
+        "--test",
+        "implicit_stdin_cli",
+        "--",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "log": "docs/research/2026-10-02-fast-opportunity/release-test-5.log"
+    },
+    {
+      "target": "streaming_pipe",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "rust/cix-native/Cargo.toml",
+        "-j",
+        "2",
+        "--test",
+        "streaming_pipe",
+        "--",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "log": "docs/research/2026-10-02-fast-opportunity/release-test-6.log"
+    },
+    {
+      "target": "stdout_writer",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "rust/cix-native/Cargo.toml",
+        "-j",
+        "2",
+        "--test",
+        "stdout_writer",
+        "--",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "log": "docs/research/2026-10-02-fast-opportunity/release-test-7.log"
+    },
+    {
+      "target": "parallel_cli",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "rust/cix-native/Cargo.toml",
+        "-j",
+        "2",
+        "--test",
+        "parallel_cli",
+        "--",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "log": "docs/research/2026-10-02-fast-opportunity/release-test-8.log"
+    },
+    {
+      "target": "auto_best_portfolio",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "rust/cix-native/Cargo.toml",
+        "-j",
+        "2",
+        "--test",
+        "auto_best_portfolio",
+        "--",
+        "--test-threads=1"
+      ],
+      "returncode": 0,
+      "log": "docs/research/2026-10-02-fast-opportunity/release-test-9.log"
+    }
+  ],
+  "status": "PASS",
+  "preserved_harness_error": {
+    "log": "release-test-4.log",
+    "reason": "Mistyped test target implicit_stdin; corrected to implicit_stdin_cli. No product test ran under the bad target."
+  }
+}

@@ -1,0 +1,542 @@
+21:10:46.746 INFO  Scanner configuration file: /opt/sonar-scanner/conf/sonar-scanner.properties
+21:10:46.747 INFO  Project root configuration file: /out/properties
+21:10:46.753 INFO  SonarScanner CLI 8.1.0.6389
+21:10:46.754 INFO  Linux 6.8.0-142-generic amd64
+21:10:47.159 INFO  Communicating with SonarQube Community Build 26.9.0.129388
+21:10:47.159 INFO  JRE provisioning is disabled
+21:10:47.159 INFO  Using the java executable '/usr/lib/jvm/java-21-amazon-corretto/bin/java' from JAVA_HOME
+21:10:47.454 INFO  Starting SonarScanner Engine...
+21:10:47.454 INFO  Java 21.0.12.1 Amazon.com Inc. (64-bit)
+21:10:48.009 INFO  Load global settings
+21:10:48.045 INFO  Load global settings (done) | time=34ms
+21:10:48.046 INFO  Server id: 147B411E-AaEIwHCqqlnuyOPCPkNW
+21:10:48.050 INFO  Loading required plugins
+21:10:48.050 INFO  Load plugins index
+21:10:48.056 INFO  Load plugins index (done) | time=5ms
+21:10:48.056 INFO  Load/download plugins
+21:10:48.056 INFO  Load/download plugins (done) | time=1ms
+21:10:48.154 INFO  Process project properties
+21:10:48.158 INFO  Process project properties (done) | time=8ms
+21:10:48.162 INFO  Project key: cix-cxx-cix-native-adapters
+21:10:48.162 INFO  Base dir: /usr/src
+21:10:48.163 INFO  Working dir: /tmp/.scannerwork
+21:10:48.165 INFO  Load project settings for component key: 'cix-cxx-cix-native-adapters'
+21:10:48.181 INFO  Load quality profiles
+21:10:48.219 INFO  Load quality profiles (done) | time=37ms
+21:10:48.233 INFO  Load active rules
+21:10:48.311 INFO  Load active rules (done) | time=73ms
+21:10:48.312 INFO  Load analysis cache
+21:10:48.313 INFO  Load analysis cache (404) | time=4ms
+21:10:48.379 INFO  Preprocessing files...
+21:10:48.385 INFO  1 language detected in 55 preprocessed files (done) | time=6ms
+21:10:48.388 INFO  Loading plugins for detected languages
+21:10:48.388 INFO  Load/download plugins
+21:10:48.443 INFO  Load/download plugins (done) | time=57ms
+21:10:48.532 INFO  Load project repositories
+21:10:48.536 INFO  Load project repositories (done) | time=4ms
+21:10:48.543 INFO  Indexing files...
+21:10:48.544 INFO  Project configuration:
+21:10:48.549 INFO  55 files indexed (done) | time=5ms
+21:10:48.551 INFO  Quality profile for cxx: CIX CXX and Cppcheck
+21:10:48.551 INFO  ------------- Run sensors on module cix-cxx-cix-native-adapters
+21:10:48.569 INFO  Load metrics repository
+21:10:48.597 INFO  Load metrics repository (done) | time=27ms
+21:10:48.607 INFO  ------------- Run sensors on project
+21:10:48.746 INFO  Sensor CXX [cxx]
+21:10:49.077 ERROR preprocessor: /cix-external/7/arch/x86/include/uapi '/cix-external/7/arch/x86/include/uapi'
+java.nio.file.NoSuchFileException: /cix-external/7/arch/x86/include/uapi
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixPath.toRealPath(UnixPath.java:834)
+	at org.sonar.cxx.preprocessor.PPInclude.setStandardIncludeDirs(PPInclude.java:87)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.addUnitIncludeDirectories(CxxPreprocessor.java:379)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.init(CxxPreprocessor.java:170)
+	at com.sonar.cxx.sslr.impl.Lexer.initPreprocessors(Lexer.java:182)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:122)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:113)
+	at com.sonar.cxx.sslr.impl.Parser.parse(Parser.java:76)
+	at org.sonar.cxx.squidbridge.AstScanner.scanInputFiles(AstScanner.java:129)
+	at org.sonar.plugins.cxx.CxxSquidSensor.execute(CxxSquidSensor.java:316)
+	at org.sonar.scanner.sensor.AbstractSensorWrapper.analyse(AbstractSensorWrapper.java:69)
+	at org.sonar.scanner.sensor.ProjectSensorsExecutor.execute(ProjectSensorsExecutor.java:54)
+	at org.sonar.scanner.scan.SpringProjectScanContainer.doAfterStart(SpringProjectScanContainer.java:200)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringScannerContainer.doAfterStart(SpringScannerContainer.java:388)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringGlobalContainer.doAfterStart(SpringGlobalContainer.java:146)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.ServerScannerEngineRunner.execute(ServerScannerEngineRunner.java:39)
+	at org.sonar.scanner.bootstrap.ScannerMain.runScannerEngine(ScannerMain.java:144)
+	at org.sonar.scanner.bootstrap.ScannerMain.run(ScannerMain.java:65)
+	at org.sonar.scanner.bootstrap.ScannerMain.main(ScannerMain.java:45)
+
+21:10:49.077 ERROR preprocessor: /cix-external/7/include/uapi '/cix-external/7/include/uapi'
+java.nio.file.NoSuchFileException: /cix-external/7/include/uapi
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixPath.toRealPath(UnixPath.java:834)
+	at org.sonar.cxx.preprocessor.PPInclude.setStandardIncludeDirs(PPInclude.java:87)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.addUnitIncludeDirectories(CxxPreprocessor.java:379)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.init(CxxPreprocessor.java:170)
+	at com.sonar.cxx.sslr.impl.Lexer.initPreprocessors(Lexer.java:182)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:122)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:113)
+	at com.sonar.cxx.sslr.impl.Parser.parse(Parser.java:76)
+	at org.sonar.cxx.squidbridge.AstScanner.scanInputFiles(AstScanner.java:129)
+	at org.sonar.plugins.cxx.CxxSquidSensor.execute(CxxSquidSensor.java:316)
+	at org.sonar.scanner.sensor.AbstractSensorWrapper.analyse(AbstractSensorWrapper.java:69)
+	at org.sonar.scanner.sensor.ProjectSensorsExecutor.execute(ProjectSensorsExecutor.java:54)
+	at org.sonar.scanner.scan.SpringProjectScanContainer.doAfterStart(SpringProjectScanContainer.java:200)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringScannerContainer.doAfterStart(SpringScannerContainer.java:388)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringGlobalContainer.doAfterStart(SpringGlobalContainer.java:146)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.ServerScannerEngineRunner.execute(ServerScannerEngineRunner.java:39)
+	at org.sonar.scanner.bootstrap.ScannerMain.runScannerEngine(ScannerMain.java:144)
+	at org.sonar.scanner.bootstrap.ScannerMain.run(ScannerMain.java:65)
+	at org.sonar.scanner.bootstrap.ScannerMain.main(ScannerMain.java:45)
+
+21:10:49.077 ERROR preprocessor: /cix-external/7/ubuntu/include '/cix-external/7/ubuntu/include'
+java.nio.file.NoSuchFileException: /cix-external/7/ubuntu/include
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixPath.toRealPath(UnixPath.java:834)
+	at org.sonar.cxx.preprocessor.PPInclude.setStandardIncludeDirs(PPInclude.java:87)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.addUnitIncludeDirectories(CxxPreprocessor.java:379)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.init(CxxPreprocessor.java:170)
+	at com.sonar.cxx.sslr.impl.Lexer.initPreprocessors(Lexer.java:182)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:122)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:113)
+	at com.sonar.cxx.sslr.impl.Parser.parse(Parser.java:76)
+	at org.sonar.cxx.squidbridge.AstScanner.scanInputFiles(AstScanner.java:129)
+	at org.sonar.plugins.cxx.CxxSquidSensor.execute(CxxSquidSensor.java:316)
+	at org.sonar.scanner.sensor.AbstractSensorWrapper.analyse(AbstractSensorWrapper.java:69)
+	at org.sonar.scanner.sensor.ProjectSensorsExecutor.execute(ProjectSensorsExecutor.java:54)
+	at org.sonar.scanner.scan.SpringProjectScanContainer.doAfterStart(SpringProjectScanContainer.java:200)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringScannerContainer.doAfterStart(SpringScannerContainer.java:388)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringGlobalContainer.doAfterStart(SpringGlobalContainer.java:146)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.ServerScannerEngineRunner.execute(ServerScannerEngineRunner.java:39)
+	at org.sonar.scanner.bootstrap.ScannerMain.runScannerEngine(ScannerMain.java:144)
+	at org.sonar.scanner.bootstrap.ScannerMain.run(ScannerMain.java:65)
+	at org.sonar.scanner.bootstrap.ScannerMain.main(ScannerMain.java:45)
+
+21:10:49.125 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.125 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.125 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.125 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.125 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.125 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.126 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.126 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.126 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.127 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.127 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.127 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.127 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.127 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.127 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.129 ERROR preprocessor: undefined function-like macro 'g_macro__has_feature' assuming 0
+21:10:49.131 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.131 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.131 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.134 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.166 ERROR preprocessor: undefined function-like macro 'g_macro__has_builtin' assuming 0
+21:10:49.329 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.330 ERROR preprocessor: undefined function-like macro 'g_macro__has_feature' assuming 0
+21:10:49.334 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.334 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.334 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.336 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.361 ERROR preprocessor: undefined function-like macro 'g_macro__has_builtin' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.610 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.611 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.611 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.611 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.611 ERROR preprocessor: undefined function-like macro 'g_macro__has_feature' assuming 0
+21:10:49.614 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.614 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.614 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.615 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.638 ERROR preprocessor: undefined function-like macro 'g_macro__has_builtin' assuming 0
+21:10:49.817 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.817 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.817 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.818 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.820 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.820 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.820 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.820 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.821 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.821 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.821 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.821 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.821 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.821 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.821 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.821 ERROR preprocessor: undefined function-like macro 'g_macro__has_feature' assuming 0
+21:10:49.822 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.822 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.822 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.824 ERROR preprocessor: undefined function-like macro 'g_macro__has_attribute' assuming 0
+21:10:49.849 ERROR preprocessor: undefined function-like macro 'g_macro__has_builtin' assuming 0
+21:10:50.100 ERROR preprocessor: /cix-external/7/arch/x86/include/uapi '/cix-external/7/arch/x86/include/uapi'
+java.nio.file.NoSuchFileException: /cix-external/7/arch/x86/include/uapi
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixPath.toRealPath(UnixPath.java:834)
+	at org.sonar.cxx.preprocessor.PPInclude.setStandardIncludeDirs(PPInclude.java:87)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.addUnitIncludeDirectories(CxxPreprocessor.java:379)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.init(CxxPreprocessor.java:170)
+	at com.sonar.cxx.sslr.impl.Lexer.initPreprocessors(Lexer.java:182)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:122)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:113)
+	at com.sonar.cxx.sslr.impl.Parser.parse(Parser.java:76)
+	at org.sonar.cxx.squidbridge.AstScanner.scanInputFiles(AstScanner.java:129)
+	at org.sonar.plugins.cxx.CxxSquidSensor.execute(CxxSquidSensor.java:316)
+	at org.sonar.scanner.sensor.AbstractSensorWrapper.analyse(AbstractSensorWrapper.java:69)
+	at org.sonar.scanner.sensor.ProjectSensorsExecutor.execute(ProjectSensorsExecutor.java:54)
+	at org.sonar.scanner.scan.SpringProjectScanContainer.doAfterStart(SpringProjectScanContainer.java:200)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringScannerContainer.doAfterStart(SpringScannerContainer.java:388)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringGlobalContainer.doAfterStart(SpringGlobalContainer.java:146)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.ServerScannerEngineRunner.execute(ServerScannerEngineRunner.java:39)
+	at org.sonar.scanner.bootstrap.ScannerMain.runScannerEngine(ScannerMain.java:144)
+	at org.sonar.scanner.bootstrap.ScannerMain.run(ScannerMain.java:65)
+	at org.sonar.scanner.bootstrap.ScannerMain.main(ScannerMain.java:45)
+
+21:10:50.100 ERROR preprocessor: /cix-external/7/include/uapi '/cix-external/7/include/uapi'
+java.nio.file.NoSuchFileException: /cix-external/7/include/uapi
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixPath.toRealPath(UnixPath.java:834)
+	at org.sonar.cxx.preprocessor.PPInclude.setStandardIncludeDirs(PPInclude.java:87)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.addUnitIncludeDirectories(CxxPreprocessor.java:379)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.init(CxxPreprocessor.java:170)
+	at com.sonar.cxx.sslr.impl.Lexer.initPreprocessors(Lexer.java:182)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:122)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:113)
+	at com.sonar.cxx.sslr.impl.Parser.parse(Parser.java:76)
+	at org.sonar.cxx.squidbridge.AstScanner.scanInputFiles(AstScanner.java:129)
+	at org.sonar.plugins.cxx.CxxSquidSensor.execute(CxxSquidSensor.java:316)
+	at org.sonar.scanner.sensor.AbstractSensorWrapper.analyse(AbstractSensorWrapper.java:69)
+	at org.sonar.scanner.sensor.ProjectSensorsExecutor.execute(ProjectSensorsExecutor.java:54)
+	at org.sonar.scanner.scan.SpringProjectScanContainer.doAfterStart(SpringProjectScanContainer.java:200)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringScannerContainer.doAfterStart(SpringScannerContainer.java:388)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringGlobalContainer.doAfterStart(SpringGlobalContainer.java:146)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.ServerScannerEngineRunner.execute(ServerScannerEngineRunner.java:39)
+	at org.sonar.scanner.bootstrap.ScannerMain.runScannerEngine(ScannerMain.java:144)
+	at org.sonar.scanner.bootstrap.ScannerMain.run(ScannerMain.java:65)
+	at org.sonar.scanner.bootstrap.ScannerMain.main(ScannerMain.java:45)
+
+21:10:50.100 ERROR preprocessor: /cix-external/7/ubuntu/include '/cix-external/7/ubuntu/include'
+java.nio.file.NoSuchFileException: /cix-external/7/ubuntu/include
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixPath.toRealPath(UnixPath.java:834)
+	at org.sonar.cxx.preprocessor.PPInclude.setStandardIncludeDirs(PPInclude.java:87)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.addUnitIncludeDirectories(CxxPreprocessor.java:379)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.init(CxxPreprocessor.java:170)
+	at com.sonar.cxx.sslr.impl.Lexer.initPreprocessors(Lexer.java:182)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:122)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:113)
+	at com.sonar.cxx.sslr.impl.Parser.parse(Parser.java:76)
+	at org.sonar.cxx.squidbridge.AstScanner.scanInputFiles(AstScanner.java:129)
+	at org.sonar.plugins.cxx.CxxSquidSensor.execute(CxxSquidSensor.java:316)
+	at org.sonar.scanner.sensor.AbstractSensorWrapper.analyse(AbstractSensorWrapper.java:69)
+	at org.sonar.scanner.sensor.ProjectSensorsExecutor.execute(ProjectSensorsExecutor.java:54)
+	at org.sonar.scanner.scan.SpringProjectScanContainer.doAfterStart(SpringProjectScanContainer.java:200)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringScannerContainer.doAfterStart(SpringScannerContainer.java:388)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringGlobalContainer.doAfterStart(SpringGlobalContainer.java:146)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.ServerScannerEngineRunner.execute(ServerScannerEngineRunner.java:39)
+	at org.sonar.scanner.bootstrap.ScannerMain.runScannerEngine(ScannerMain.java:144)
+	at org.sonar.scanner.bootstrap.ScannerMain.run(ScannerMain.java:65)
+	at org.sonar.scanner.bootstrap.ScannerMain.main(ScannerMain.java:45)
+
+21:10:50.253 ERROR preprocessor: /cix-external/7/arch/x86/include/uapi '/cix-external/7/arch/x86/include/uapi'
+java.nio.file.NoSuchFileException: /cix-external/7/arch/x86/include/uapi
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixPath.toRealPath(UnixPath.java:834)
+	at org.sonar.cxx.preprocessor.PPInclude.setStandardIncludeDirs(PPInclude.java:87)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.addUnitIncludeDirectories(CxxPreprocessor.java:379)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.init(CxxPreprocessor.java:170)
+	at com.sonar.cxx.sslr.impl.Lexer.initPreprocessors(Lexer.java:182)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:122)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:113)
+	at com.sonar.cxx.sslr.impl.Parser.parse(Parser.java:76)
+	at org.sonar.cxx.squidbridge.AstScanner.scanInputFiles(AstScanner.java:129)
+	at org.sonar.plugins.cxx.CxxSquidSensor.execute(CxxSquidSensor.java:316)
+	at org.sonar.scanner.sensor.AbstractSensorWrapper.analyse(AbstractSensorWrapper.java:69)
+	at org.sonar.scanner.sensor.ProjectSensorsExecutor.execute(ProjectSensorsExecutor.java:54)
+	at org.sonar.scanner.scan.SpringProjectScanContainer.doAfterStart(SpringProjectScanContainer.java:200)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringScannerContainer.doAfterStart(SpringScannerContainer.java:388)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringGlobalContainer.doAfterStart(SpringGlobalContainer.java:146)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.ServerScannerEngineRunner.execute(ServerScannerEngineRunner.java:39)
+	at org.sonar.scanner.bootstrap.ScannerMain.runScannerEngine(ScannerMain.java:144)
+	at org.sonar.scanner.bootstrap.ScannerMain.run(ScannerMain.java:65)
+	at org.sonar.scanner.bootstrap.ScannerMain.main(ScannerMain.java:45)
+
+21:10:50.253 ERROR preprocessor: /cix-external/7/include/uapi '/cix-external/7/include/uapi'
+java.nio.file.NoSuchFileException: /cix-external/7/include/uapi
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixPath.toRealPath(UnixPath.java:834)
+	at org.sonar.cxx.preprocessor.PPInclude.setStandardIncludeDirs(PPInclude.java:87)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.addUnitIncludeDirectories(CxxPreprocessor.java:379)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.init(CxxPreprocessor.java:170)
+	at com.sonar.cxx.sslr.impl.Lexer.initPreprocessors(Lexer.java:182)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:122)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:113)
+	at com.sonar.cxx.sslr.impl.Parser.parse(Parser.java:76)
+	at org.sonar.cxx.squidbridge.AstScanner.scanInputFiles(AstScanner.java:129)
+	at org.sonar.plugins.cxx.CxxSquidSensor.execute(CxxSquidSensor.java:316)
+	at org.sonar.scanner.sensor.AbstractSensorWrapper.analyse(AbstractSensorWrapper.java:69)
+	at org.sonar.scanner.sensor.ProjectSensorsExecutor.execute(ProjectSensorsExecutor.java:54)
+	at org.sonar.scanner.scan.SpringProjectScanContainer.doAfterStart(SpringProjectScanContainer.java:200)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringScannerContainer.doAfterStart(SpringScannerContainer.java:388)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringGlobalContainer.doAfterStart(SpringGlobalContainer.java:146)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.ServerScannerEngineRunner.execute(ServerScannerEngineRunner.java:39)
+	at org.sonar.scanner.bootstrap.ScannerMain.runScannerEngine(ScannerMain.java:144)
+	at org.sonar.scanner.bootstrap.ScannerMain.run(ScannerMain.java:65)
+	at org.sonar.scanner.bootstrap.ScannerMain.main(ScannerMain.java:45)
+
+21:10:50.253 ERROR preprocessor: /cix-external/7/ubuntu/include '/cix-external/7/ubuntu/include'
+java.nio.file.NoSuchFileException: /cix-external/7/ubuntu/include
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixPath.toRealPath(UnixPath.java:834)
+	at org.sonar.cxx.preprocessor.PPInclude.setStandardIncludeDirs(PPInclude.java:87)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.addUnitIncludeDirectories(CxxPreprocessor.java:379)
+	at org.sonar.cxx.preprocessor.CxxPreprocessor.init(CxxPreprocessor.java:170)
+	at com.sonar.cxx.sslr.impl.Lexer.initPreprocessors(Lexer.java:182)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:122)
+	at com.sonar.cxx.sslr.impl.Lexer.lex(Lexer.java:113)
+	at com.sonar.cxx.sslr.impl.Parser.parse(Parser.java:76)
+	at org.sonar.cxx.squidbridge.AstScanner.scanInputFiles(AstScanner.java:129)
+	at org.sonar.plugins.cxx.CxxSquidSensor.execute(CxxSquidSensor.java:316)
+	at org.sonar.scanner.sensor.AbstractSensorWrapper.analyse(AbstractSensorWrapper.java:69)
+	at org.sonar.scanner.sensor.ProjectSensorsExecutor.execute(ProjectSensorsExecutor.java:54)
+	at org.sonar.scanner.scan.SpringProjectScanContainer.doAfterStart(SpringProjectScanContainer.java:200)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringScannerContainer.doAfterStart(SpringScannerContainer.java:388)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.SpringGlobalContainer.doAfterStart(SpringGlobalContainer.java:146)
+	at org.sonar.scanner.spring.SpringComponentContainer.startComponents(SpringComponentContainer.java:205)
+	at org.sonar.scanner.spring.SpringComponentContainer.execute(SpringComponentContainer.java:184)
+	at org.sonar.scanner.bootstrap.ServerScannerEngineRunner.execute(ServerScannerEngineRunner.java:39)
+	at org.sonar.scanner.bootstrap.ScannerMain.runScannerEngine(ScannerMain.java:144)
+	at org.sonar.scanner.bootstrap.ScannerMain.run(ScannerMain.java:65)
+	at org.sonar.scanner.bootstrap.ScannerMain.main(ScannerMain.java:45)
+
+21:10:50.391 INFO  Sensor CXX [cxx] (done) | time=1644ms
+21:10:50.391 INFO  Sensor CXX Cppcheck report import [cxx]
+21:10:50.391 INFO  Downloading rules for 'cppcheck' from server
+21:10:50.391 INFO  Download url for server is 'http://127.0.0.1:9017'
+21:10:50.396 INFO  trust store based on javax.net.ssl not loadable: The value for the system property [javax.net.ssl.keyStore] is absent
+21:10:50.627 INFO  Processing report '/out/cppcheck.xml'
+21:10:50.649 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/cache.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.650 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/types.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.651 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/slice.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.651 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/data_structure.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.652 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/comparator.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.652 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/configurable.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.655 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/status.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.656 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/memory_allocator.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.656 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include/cix.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.660 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/database-hosts-v1/wiredtiger-prefix/include/wiredtiger.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.664 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/advanced_compression.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.664 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1/usr/include/hdf5/serial/H5public.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.664 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1/usr/include/hdf5/serial/H5Epublic.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.664 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1/usr/include/hdf5/serial/H5Gpublic.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.664 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/include/blosc2/blosc2-common.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.664 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/include/blosc2/blosc2-stdio.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.665 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/blosc2-prefix/include/blosc2.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.669 WARN  Cannot find the file '/usr/include/glib-2.0/gio/gdebugcontroller.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.669 WARN  Cannot find the file '/usr/include/glib-2.0/gio/gdebugcontrollerdbus.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.670 WARN  Cannot find the file '/usr/include/glib-2.0/gio/glistmodel.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.670 WARN  Cannot find the file '/usr/include/glib-2.0/gio/gliststore.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.670 WARN  Cannot find the file '/usr/include/glib-2.0/gio/gmemorymonitor.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.670 WARN  Cannot find the file '/usr/include/glib-2.0/gio/gpowerprofilemonitor.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.672 INFO  Rule 'unknownMacro' is unknown in 'cppcheck' and will be mapped to 'unknown'
+21:10:50.675 WARN  Cannot find the file '/usr/include/node/js_native_api.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.675 WARN  Cannot find the file '/usr/include/node/js_native_api_types.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.680 WARN  Cannot find the file '/usr/lib/jvm/java-21-openjdk-amd64/include/jni.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.680 WARN  Cannot find the file '/usr/include/c++/13/new' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.680 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Common/MyGuidDef.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.680 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Common/MyCom.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.680 WARN  Cannot find the file '/usr/include/c++/13/bits/stl_pair.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.680 WARN  Cannot find the file '/usr/include/c++/13/bits/stl_construct.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.680 WARN  Cannot find the file '/usr/include/c++/13/bits/uniform_int_dist.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.680 WARN  Cannot find the file '/usr/include/strings.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.680 WARN  Cannot find the file '/usr/include/c++/13/ext/type_traits.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.681 WARN  Cannot find the file '/usr/include/c++/13/bits/stl_algobase.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.681 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1/usr/include/archive.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.681 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1/usr/include/archive_entry.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.681 WARN  Cannot find the file '/usr/include/c++/13/bits/stl_bvector.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.681 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/host-sdk-prefix-v1/usr/include/netcdf.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.684 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Windows/PropVariant.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.684 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Common/MyString.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.685 WARN  Cannot find the file '/usr/include/c++/13/bits/stl_vector.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.685 WARN  Cannot find the file '/usr/include/c++/13/bits/refwrap.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.688 WARN  Cannot find the file '/usr/include/c++/13/tuple' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.688 WARN  Cannot find the file '/usr/include/c++/13/bits/memory_resource.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.688 WARN  Cannot find the file '/usr/include/c++/13/bits/allocator.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.688 WARN  Cannot find the file '/usr/include/c++/13/bits/new_allocator.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-types.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-object.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-options.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-stream.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-file.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-license.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-codec.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/codec-hosts-v2/squash-prefix/include/squash-0.8/squash/squash-splice.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/include/c++/13/bits/alloc_traits.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/include/c++/13/bits/uses_allocator.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/sevenzip-source-v1/CPP/Common/MyVector.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/include/stdlib.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/include/c++/13/bits/stl_function.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/usr/include/c++/13/bits/stl_uninitialized.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.689 WARN  Cannot find the file '/lib/modules/6.8.0-142-generic/build/include/linux/compiler_types.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.695 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/squashfs-readers-source-v5/userspace/include/cix_sqfs_userspace.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.696 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/squashfs-readers-source-v5/profile/include/cix_squashfs_profile.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.697 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/common.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.697 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/squashfs-tools-source-v1/squashfs-tools/squashfs_fs.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.697 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include/sqfs/predef.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.697 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include/compat.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.697 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/squashfs-readers-v3/sqfsng-src/include/util/util.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.697 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/squashfs_fs.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.697 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/squashfs-readers-v3/squashfuse-src/util.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.701 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/distribution-engineering-v4/stage/usr/include/cix.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.702 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/db.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.702 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/wide_columns.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.702 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/options.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.702 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/advanced_options.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.702 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/memtablerep.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.702 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/universal_compaction.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.703 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/env.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.703 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/functor_wrapper.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.703 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/thread_status.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.703 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/file_checksum.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.703 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/listener.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.703 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/compaction_job_stats.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.703 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/io_status.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.703 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/table_properties.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.703 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/sst_partitioner.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.708 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/version.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.710 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/write_buffer_manager.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.711 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/system_clock.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.711 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/trace_record.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.711 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/iterator.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.711 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/metadata.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.711 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/sst_file_writer.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.712 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/transaction_log.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.712 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/write_batch.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.712 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/write_batch_base.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.712 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/utilities/table_properties_collectors.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.712 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/utilities/write_batch_with_index.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.712 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/table.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.712 WARN  Cannot find the file '/usr/src/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include/rocksdb/multi_scan.h' in project 'cix-cxx-cix-native-adapters' with baseDir '/usr/src', skipping
+21:10:50.712 INFO  Rule 'checkersReport' is unknown in 'cppcheck' and will be mapped to 'unknown'
+21:10:50.712 INFO  Processing successful, saved new issues=174
+21:10:50.712 INFO  Sensor CXX Cppcheck report import [cxx] (done) | time=319ms
+21:10:50.712 INFO  Sensor Zero Coverage Sensor
+21:10:50.720 INFO  Sensor Zero Coverage Sensor (done) | time=9ms
+21:10:50.720 INFO  ------------- Gather SCA dependencies on project
+21:10:50.722 INFO  Dependency analysis skipped
+21:10:50.723 INFO  SCM Publisher is disabled
+21:10:50.731 INFO  CPD Executor 19 files had no CPD blocks
+21:10:50.732 INFO  CPD Executor Calculating CPD for 36 files
+21:10:50.744 INFO  CPD Executor CPD calculation finished (done) | time=13ms
+21:10:50.814 INFO  Analysis report generated in 62ms, dir size=645.8 kB
+21:10:50.848 INFO  Analysis report compressed in 37ms, zip size=227.9 kB
+21:10:50.961 INFO  Analysis report uploaded in 113ms
+21:10:50.963 INFO  ANALYSIS SUCCESSFUL, you can find the results at: http://127.0.0.1:9017/dashboard?id=cix-cxx-cix-native-adapters
+21:10:50.963 INFO  Note that you will be able to access the updated dashboard once the server has processed the submitted analysis report
+21:10:50.963 INFO  More about the report processing at http://127.0.0.1:9017/api/ce/task?id=bf13090d-bc7d-4d6b-a85a-839c547d38e8
+21:10:50.965 INFO  Executing post-job 'Final report'
+21:10:50.968 WARN  Preprocessor: 662 include directive error(s). This is only relevant if parser creates syntax errors. The preprocessor searches for include files in the with 'sonar.cxx.includeDirectories' defined directories and order.
+21:10:50.968 WARN  Source code parser: 26 syntax error(s) detected. Syntax errors could cause invalid software metric values. Root cause are typically missing includes, missing macros or compiler specific extensions.
+21:10:50.968 INFO  Turn debug info on to get more details (sonar-scanner -X -Dsonar.verbose=true ...).
+21:10:50.969 INFO  Analysis total time: 2.899 s
+21:10:50.971 INFO  SonarScanner Engine completed successfully
+21:10:51.291 INFO  EXECUTION SUCCESS
+21:10:51.292 INFO  Total time: 4.547s

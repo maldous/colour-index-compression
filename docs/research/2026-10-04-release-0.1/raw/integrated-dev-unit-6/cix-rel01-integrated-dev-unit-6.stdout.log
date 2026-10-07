@@ -1,0 +1,95 @@
+.........F.F.....................                                        [100%]
+=================================== FAILURES ===================================
+__________ EngineTests.test_paid_selection_ties_and_failure_evidence ___________
+
+self = <test_engine.EngineTests testMethod=test_paid_selection_ties_and_failure_evidence>
+
+    def test_paid_selection_ties_and_failure_evidence(self):
+        data = b"unknown bytes\x00\xff"
+        frame = raw_encode(data)
+        def broken(_):
+            raise ValueError("malformed optional candidate")
+        candidates = [
+            Candidate("first", "test", lambda _: frame, 1000, 1000),
+            Candidate("tie", "test", lambda _: frame, 1000, 1000),
+            Candidate("over-budget", "test", lambda _: b"short", 10**12, 1000),
+            Candidate("broken", "test", broken, 1000, 1000),
+        ]
+        with tempfile.TemporaryDirectory() as work:
+>           result, report = encode(data, candidates=candidates, progress_path=Path(work)/"progress.json")
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+../../../../../runtime/tests/test_engine.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../../../runtime/cix_runtime/engine.py:366: in encode
+    completed_archives = _run_trials(
+../../../../../runtime/cix_runtime/engine.py:295: in _run_trials
+    selected_index = _next_ready(queue, running, memory_bytes, threads)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../runtime/cix_runtime/engine.py:257: in _next_ready
+    used_memory = sum(state["memory"] for state in running.values())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+.0 = <dict_valueiterator object at 0x740c80df85e0>
+
+>   used_memory = sum(state["memory"] for state in running.values())
+                      ^^^^^^^^^^^^^^^
+E   KeyError: 'memory'
+
+../../../../../runtime/cix_runtime/engine.py:257: KeyError
+--------------------------- Captured stderr teardown ---------------------------
+Process ForkProcess-1:
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/user/src/colour-index-compression/runtime/cix_runtime/engine.py", line 139, in _worker
+    _save(Path(receipt), row)
+  File "/home/user/src/colour-index-compression/runtime/cix_runtime/engine.py", line 82, in _save
+    temporary.write_text(json.dumps(value, sort_keys=True, indent=2) + "\n")
+  File "/usr/lib/python3.12/pathlib.py", line 1049, in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/cix-search-la8xtlk2/candidate-0000/receipt.json.tmp'
+____ EngineTests.test_resource_admitted_parallel_trials_keep_priority_ties _____
+
+self = <test_engine.EngineTests testMethod=test_resource_admitted_parallel_trials_keep_priority_ties>
+
+    def test_resource_admitted_parallel_trials_keep_priority_ties(self):
+        data = b"parallel candidate input"
+        candidates = [
+            Candidate("first-slow", "test", _slow_frame, 64 << 20, 64 << 20),
+            Candidate("second-fast", "test", _fast_frame, 64 << 20, 64 << 20),
+            Candidate("broken", "test", _broken_frame, 64 << 20, 64 << 20),
+        ]
+>       result, report = encode(data, candidates=candidates, memory_bytes=160 << 20)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+../../../../../runtime/tests/test_engine.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../../../runtime/cix_runtime/engine.py:366: in encode
+    completed_archives = _run_trials(
+../../../../../runtime/cix_runtime/engine.py:295: in _run_trials
+    selected_index = _next_ready(queue, running, memory_bytes, threads)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../../runtime/cix_runtime/engine.py:257: in _next_ready
+    used_memory = sum(state["memory"] for state in running.values())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+.0 = <dict_valueiterator object at 0x740c7e919da0>
+
+>   used_memory = sum(state["memory"] for state in running.values())
+                      ^^^^^^^^^^^^^^^
+E   KeyError: 'memory'
+
+../../../../../runtime/cix_runtime/engine.py:257: KeyError
+=========================== short test summary info ============================
+FAILED ../../../../../runtime/tests/test_engine.py::EngineTests::test_paid_selection_ties_and_failure_evidence
+FAILED ../../../../../runtime/tests/test_engine.py::EngineTests::test_resource_admitted_parallel_trials_keep_priority_ties
+2 failed, 31 passed in 4.32s

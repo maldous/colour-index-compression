@@ -1,0 +1,45 @@
+[
+  {
+    "argv": [
+      "cmake",
+      "-S",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-adapter-source-v2",
+      "-B",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-host-v2/adapter",
+      "-DCIX_NATIVE_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/include",
+      "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-relocated-cli-bindings-v8/lib/libcix_native.so",
+      "-DROCKSDB_INCLUDE_DIR=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-source-v1/include",
+      "-DROCKSDB_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-host-v1/upstream-build/librocksdb.so"
+    ],
+    "env_extra": {},
+    "returncode": 0,
+    "stdout": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Performing Test CIX_ROCKSDB_V10101_API\n-- Performing Test CIX_ROCKSDB_V10101_API - Success\n-- Configuring done (0.5s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-host-v2/adapter\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "cmake",
+      "--build",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-host-v2/adapter",
+      "-j4"
+    ],
+    "env_extra": {},
+    "returncode": 0,
+    "stdout": "[ 25%] Building CXX object CMakeFiles/cix_rocksdb_compression_manager.dir/cix_compression_manager.cc.o\n[ 50%] Linking CXX static library libcix_rocksdb_compression_manager.a\n[ 50%] Built target cix_rocksdb_compression_manager\n[ 75%] Building CXX object CMakeFiles/cix_rocksdb_contract.dir/contract_test.cc.o\n[100%] Linking CXX executable cix_rocksdb_contract\n[100%] Built target cix_rocksdb_contract\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-host-v2/adapter",
+      "--output-on-failure"
+    ],
+    "env_extra": {
+      "TMPDIR": "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-host-v2"
+    },
+    "returncode": 0,
+    "stdout": "Internal ctest changing into directory: /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-host-v2/adapter\nTest project /home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/rocksdb-host-v2/adapter\n    Start 1: cix_rocksdb_contract\n1/1 Test #1: cix_rocksdb_contract .............   Passed    0.75 sec\n\n100% tests passed, 0 tests failed out of 1\n\nTotal Test time (real) =   0.75 sec\n",
+    "stderr": ""
+  }
+]

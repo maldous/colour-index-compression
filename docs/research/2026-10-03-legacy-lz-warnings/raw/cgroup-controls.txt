@@ -1,0 +1,12 @@
+Source: systemctl --user show cix-legacy-lz-receipt-controls.service -p Id -p ActiveState -p Result -p ExecMainStatus -p AllowedCPUs -p MemoryMax -p MemorySwapMax -p ControlGroup
+
+Result=success
+ExecMainStatus=0
+ControlGroup=
+AllowedCPUs=26
+MemoryMax=1073741824
+MemorySwapMax=0
+Id=cix-legacy-lz-receipt-controls.service
+ActiveState=active
+
+The test unit used the same three properties and taskset -c 26, as recorded in focused-test.command.txt. The user manager does not expose a delegated cpuset.cpus.effective file for this transient scope; AllowedCPUs and the taskset wrapper are the retained controls.

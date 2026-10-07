@@ -1,0 +1,72 @@
+{
+  "schema": "cix-cxx-core-triage-v1",
+  "scope": "Read-only triage of scan-v2 cix-native-core while the active scan is preserved. It recommends later bounded CIX-owned work; no scanned source, vendor source, analyzer configuration, or compile database was changed.",
+  "inputs": {
+    "issues": {"path": "docs/research/2026-10-04-execution/sonar-preparation/scan-v2/cix-native-core/issues.json", "sha256": "dece48edeff96a6610193d1b01a15709dd11da18f690ae531598538a11953a3a"},
+    "cppcheck": {"path": "docs/research/2026-10-04-execution/sonar-preparation/scan-v2/cix-native-core/cppcheck.xml", "sha256": "c33befb29c0220f8b9ceb1781ff25d54bb3effb7e49ee4933efc1eef672fe32a"},
+    "execution": {"path": "docs/research/2026-10-04-execution/sonar-preparation/scan-v2/cix-native-core/cppcheck-execution.json", "sha256": "c2268cae304e12e3b728668b4cd2a98a149fd47275c1d2581af5ca7fc99448f1"},
+    "compile_database": {"path": "docs/research/2026-10-04-execution/sonar-preparation/scan-v2/cix-native-core/compile_commands.cppcheck.json", "sha256": "cf205ebb3b36e51e00bcdcbaa3892d1660b89e9d1b3e48a272a5898e5271eb01"}
+  },
+  "scan_shape": {"translation_units": 13, "indexed_files": 20, "sonar_issues": 602, "sonar_issue_type": "CODE_SMELL", "cppcheck_diagnostics": 141},
+  "sonar_rule_counts": {
+    "cxx:UndocumentedApi": 207,
+    "cxx:TooManyStatementsPerLine": 142,
+    "cppcheck:missingIncludeSystem": 67,
+    "cxx:ParsingErrorRecovery": 39,
+    "cxx:FunctionComplexity": 24,
+    "cxx:TooLongLine": 24,
+    "cxx:MethodName": 23,
+    "cxx:FileHeader": 20,
+    "cxx:FunctionCognitiveComplexity": 12,
+    "cxx:TooManyParameters": 12,
+    "cxx:ClassName": 12,
+    "cppcheck:first_party_style_suggestions": 12,
+    "cppcheck:analyzer_metadata": 2,
+    "cxx:other_naming_or_file_complexity": 6
+  },
+  "ownership_and_disposition": {
+    "first_party_bridge_and_ffi": {
+      "paths": ["rust/cix-native/codecs/jxl", "rust/cix-native/codecs/spatial", "rust/cix-native/codecs/paq", "rust/cix-native/src/zpaq_ffi.cpp"],
+      "disposition": "CIX-owned candidates for later, focused work. Most findings are maintainability policy violations; they are not evidence of a presently failing codec operation."
+    },
+    "external_headers": {
+      "paths": ["rust/cix-native/vendor/libzpaq715/libzpaq.h", "benchmark-work/native-rc-check-v1/codec-sdk-v1/prefix/usr/include/charls"],
+      "cppcheck_diagnostics": 27,
+      "disposition": "Report separately; do not edit vendored or SDK headers."
+    },
+    "analyzer_configuration_artifacts": {
+      "cppcheck_diagnostics": 102,
+      "detail": "100 missing system includes, one missing project include in the example translation unit, and one checkers-report metadata entry. The core scan ran in a readonly overlay and did not receive a complete system/project include model.",
+      "disposition": "No source fix. A later scanner-only follow-up may use recorded SDK/include roots and preserve the active scan evidence. kernel_overlay confirmed it will make no include rewrite or compile-database change during this scan."
+    }
+  },
+  "correctness_triage": [
+    {
+      "priority": "P1-review",
+      "path": "rust/cix-native/codecs/spatial/cix_spatial_bridge.cpp",
+      "lines": [259, 270, 297, 299],
+      "finding": "The CharLS path forms a uint32_t stride as w * 2 for samples above eight bits. bytes() validates total size in size_t but does not establish w <= UINT32_MAX / 2. A public C ABI caller with an extreme width can wrap the stride before it reaches CharLS.",
+      "bounded_fix_group": "Add one precondition before each 16-bit CharLS stride construction (or centralize a checked stride helper); return CIX_SPATIAL_INVALID_ARGUMENT on overflow. Cover the rejected-width boundary and normal 8/16-bit behavior in the existing spatial contract suite.",
+      "confidence": "source-review candidate; not emitted by the current analyzer"
+    },
+    {
+      "priority": "P2-verify-before-change",
+      "path": "rust/cix-native/codecs/spatial/cix_spatial_bridge.cpp",
+      "line": 161,
+      "finding": "Cppcheck reports redundantAssignment for the JP2 box walker. The assignment advances the loop cursor after payload parsing, so the warning is plausibly a path-insensitive false positive. It should not be deleted without a focused malformed-JP2 regression check.",
+      "bounded_fix_group": "No source change from this scan alone. Re-evaluate after include-model cleanup or with a narrowly targeted parser test."
+    },
+    {
+      "priority": "P2-maintainability-with-correctness-benefit",
+      "paths": ["rust/cix-native/codecs/jxl/cix_jxl_bridge.cpp", "rust/cix-native/codecs/spatial/cix_spatial_bridge.cpp", "rust/cix-native/src/zpaq_ffi.cpp"],
+      "finding": "JXL decode/encode, spatial marker parsing and ZPAQ decode contain the high-complexity boundaries that enforce exact consumption, dimensions, output limits and cancellation. Refactoring them wholesale solely for threshold compliance risks decoder semantics.",
+      "bounded_fix_group": "Extract only side-effect-free checked helpers around existing branch groups, with exact-decoding and malformed-input regressions run per helper. Keep ABI function names and vendor sources unchanged."
+    }
+  ],
+  "deprioritized_first_party_findings": {
+    "count": 533,
+    "categories": ["API documentation", "file header", "line length", "multiple statements per line", "identifier style", "complexity threshold", "parameter-count threshold", "const/reference and STL style suggestions"],
+    "disposition": "Bundle after correctness guards, preserving exported C ABI names and C-compatible struct names. Parser recovery in C ABI headers should be reconsidered only after the analyzer has a proper language/include configuration."
+  },
+  "non_claim": "This triage does not treat an analyzer severity as a demonstrated defect, does not modify vendor code, and does not assert a clean rescan."
+}

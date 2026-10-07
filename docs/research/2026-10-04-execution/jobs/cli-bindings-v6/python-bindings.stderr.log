@@ -1,0 +1,32 @@
+test_rejects_relative_library_path (test_contract.BindingContract.test_rejects_relative_library_path) ... ok
+test_stream_rejects_oversize_output_before_native_or_python_allocation (test_contract.PreallocationContract.test_stream_rejects_oversize_output_before_native_or_python_allocation) ... ok
+test_training_stops_an_oversize_generator_before_later_items (test_contract.PreallocationContract.test_training_stops_an_oversize_generator_before_later_items) ... ok
+test_fragmented_roundtrip_flush_finish_and_empty (test_contract.QualifiedFragmentedStreamContract.test_fragmented_roundtrip_flush_finish_and_empty) ... ok
+test_reset_and_trailing_failure (test_contract.QualifiedFragmentedStreamContract.test_reset_and_trailing_failure) ... ok
+test_buffer_and_standard_format_roundtrips (test_contract.QualifiedNativeContract.test_buffer_and_standard_format_roundtrips) ... ERROR
+test_dictionary_export_import_and_wrong_identity (test_contract.QualifiedNativeContract.test_dictionary_export_import_and_wrong_identity) ... ok
+test_stream_reports_native_progress_and_cancellation (test_contract.QualifiedNativeContract.test_stream_reports_native_progress_and_cancellation) ... ok
+
+======================================================================
+ERROR: test_buffer_and_standard_format_roundtrips (test_contract.QualifiedNativeContract.test_buffer_and_standard_format_roundtrips)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v6/bindings/python/tests/test_contract.py", line 25, in test_buffer_and_standard_format_roundtrips
+    standard = self.library.format_encode(6, payload, output_limit=1 << 20, memory_limit=512 << 20)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v6/bindings/python/src/cix_native/__init__.py", line 270, in format_encode
+    return self._format(False, format_id, data, level, output_limit, memory_limit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v6/bindings/python/src/cix_native/__init__.py", line 286, in _format
+    return _sized_buffer_call(function, _ct.byref(options), payload, output_limit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v6/bindings/python/src/cix_native/__init__.py", line 303, in _sized_buffer_call
+    _raise(status)
+  File "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v6/bindings/python/src/cix_native/__init__.py", line 314, in _raise
+    raise NativeError(status, message)
+cix_native.NativeError: native CIX call failed (status 6)
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.069s
+
+FAILED (errors=1)

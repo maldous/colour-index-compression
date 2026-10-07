@@ -1,0 +1,46 @@
+{
+  "schema": "cix-domain-database-initial-profile-v1",
+  "scope": "lightweight direct-frame correctness and physical-size inspection; no PAQ run",
+  "input": {
+    "path": "database-data/worldbank-population-usa-can.csv",
+    "bytes": 2244,
+    "sha256": "a2b1f9fd989d69410e425e478d7d2f24f80bed265d67049ee2febaa7c2bd4bee"
+  },
+  "implementation": {
+    "adapter": "benchmarks/domain_database_csv.py",
+    "adapter_sha256": "10bba7c67eb4c54fced627800ba46a3d5e0df5cb97ef0f0d358e4ea11c711db7",
+    "reused_order_mechanism": "benchmarks/mysql_record_constraints.py order_encode/order_decode mode 3",
+    "reused_order_mechanism_sha256": "ce79f2845f422c03d886e57fe1a521a123bf4a8f130da8ccf6948af678e03a1b"
+  },
+  "structural_profile": {
+    "eligible": true,
+    "record_count": 7,
+    "template_count": 3,
+    "repeated_template_records": 4,
+    "field_token_count": 221,
+    "distinct_field_tokens": 213,
+    "repeated_field_tokens": 8,
+    "termination_bytes": {"0a": 7},
+    "alignment_padding_bytes": 0,
+    "record_terminators_preserved_in_template_pieces": true
+  },
+  "complete_self_contained_frames": {
+    "literal": {
+      "bytes": 2253,
+      "sha256": "cf8e829397b695f6014a51564616f4c2ce00e74383651e1fe8235a3c7869a8e1",
+      "round_trip_verified": true
+    },
+    "dictionary_remaining": {
+      "bytes": 3036,
+      "sha256": "9ed33ce6a660632e5393ceee23da32f839525fca38705de42181c0563634e92f",
+      "round_trip_verified": true,
+      "delta_from_literal_bytes": 783
+    }
+  },
+  "interpretation": {
+    "result": "negative direct-frame result: dictionary/count/composition metadata exceeds the available repetition on this small CSV",
+    "packing": "not justified for a first ablation: no alignment padding is present; no separate termination slack was measured",
+    "capacity_sharing": "no additive savings claim: remaining-count arithmetic and downstream PAQ can encode overlapping information",
+    "next_gate": "Only a root-scheduled matched PAQ experiment may assess whether this complete representation improves the same backend over the original bytes."
+  }
+}

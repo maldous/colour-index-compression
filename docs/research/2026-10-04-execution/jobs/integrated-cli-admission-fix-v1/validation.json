@@ -1,0 +1,39 @@
+{
+  "checks": [
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "rust/cix-native/README.md",
+        "rust/cix-native/packaging/debian/control",
+        "rust/cix-native/packaging/homebrew/Cix.rb.in",
+        "rust/cix-native/packaging/rpm/cix.spec",
+        "rust/cix-native/src/full_engine/io.rs"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/home/user/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustfmt",
+        "--edition",
+        "2021",
+        "--check",
+        "/home/user/src/colour-index-compression/rust/cix-native/src/full_engine/io.rs"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "initial_tool_lookup_error": "/home/user/.cargo/bin/rustfmt absent; no formatter executed at that path. Resolved installed stable toolchain and completed source-only check.",
+  "unrun": [
+    "Rust focused test",
+    "build",
+    "full CLI specialist restoration",
+    "package builds/installations"
+  ]
+}

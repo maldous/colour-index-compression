@@ -1,0 +1,62 @@
+..............F...FF........                                             [100%]
+=================================== FAILURES ===================================
+______________________ test_malformed_archive_is_rejected ______________________
+
+    def test_malformed_archive_is_rejected() -> None:
+        data = b"x" * 1024
+        archive = _candidate(data).encode(data)
+        with pytest.raises(ValueError):
+            heterogeneous.decode(archive[:-1], len(data), heterogeneous.MAX_CIXH_MEMORY)
+        damaged = bytearray(archive)
+        damaged[-1] ^= 1
+        with pytest.raises(ValueError):
+>           heterogeneous.decode(bytes(damaged), len(data), heterogeneous.MAX_CIXH_MEMORY)
+
+../../../../../runtime/tests/test_heterogeneous.py:60: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../../../runtime/cix_runtime/heterogeneous.py:198: in decode
+    source = _decode_payload(backend, frame[position + parameter_len:end],
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+backend = 1, payload = b'x\x9c\xab\xa8\x18\x05\xa3`\x14\x8cT\x00\x00,O\xe0\x11'
+parameters = b'level=6', source_len = 1024, memory_bytes = 5368709120
+
+    def _decode_payload(backend: int, payload: bytes, parameters: bytes, source_len: int,
+                        memory_bytes: int) -> bytes:
+        if backend == RAW:
+            if parameters: raise ValueError("raw region has parameters")
+            return payload
+        if backend == ZLIB:
+            if parameters != b"level=6": raise ValueError("unsupported zlib parameters")
+            decoder = zlib.decompressobj()
+>           source = decoder.decompress(payload, source_len + 1)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           zlib.error: Error -3 while decompressing data: incorrect data check
+
+../../../../../runtime/cix_runtime/heterogeneous.py:162: error
+______________ test_late_elf_segment_extent_is_its_own_known_span ______________
+
+    def test_late_elf_segment_extent_is_its_own_known_span() -> None:
+        elf = bytearray(124)
+        elf[:7] = b"\x7fELF\x02\x01\x01"
+        struct.pack_into("<QQ", elf, 32, 64, 0)
+        struct.pack_into("<HHHHH", elf, 52, 64, 56, 1, 64, 0)
+>       struct.pack_into("<IIQQQQ", elf, 64, 1, 0, 120, 0, 0, 4, 4)
+E       struct.error: pack_into expected 6 items for packing (got 7)
+
+../../../../../runtime/tests/test_heterogeneous.py:106: error
+______________ test_catalog_uses_validated_dicom_not_path_or_name ______________
+
+    def test_catalog_uses_validated_dicom_not_path_or_name():
+        candidates, diagnostics = image_grid.catalog(_dicom_volume())
+        assert any(x.id.startswith("volume-mode3-effort10") for x in candidates)
+>       assert any(x.id.startswith("multiscale-0-0-0-effort10") for x in candidates)
+E       assert False
+E        +  where False = any(<generator object test_catalog_uses_validated_dicom_not_path_or_name.<locals>.<genexpr> at 0x7f94a7fab6b0>)
+
+../../../../../runtime/tests/test_image_grid.py:20: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../../runtime/tests/test_heterogeneous.py::test_malformed_archive_is_rejected
+FAILED ../../../../../runtime/tests/test_heterogeneous.py::test_late_elf_segment_extent_is_its_own_known_span
+FAILED ../../../../../runtime/tests/test_image_grid.py::test_catalog_uses_validated_dicom_not_path_or_name
+3 failed, 25 passed in 0.35s

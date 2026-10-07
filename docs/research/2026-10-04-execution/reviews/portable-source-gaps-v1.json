@@ -1,0 +1,181 @@
+{
+  "schema": "cix-portable-source-gaps-v1",
+  "date": "2026-10-05",
+  "method": "read-only source inspection; no cross-build or native build executed",
+  "findings": [
+    {
+      "id": "paq-worker-linux-x86_64-only",
+      "classification": "unsupported_full_engine_worker_capability",
+      "targets": [
+        "linux-arm64",
+        "macos-arm64",
+        "macos-x86_64",
+        "windows-x64"
+      ],
+      "evidence": [
+        "rust/cix-native/src/paq_worker.rs:242-245",
+        "rust/cix-native/src/paq_worker.rs:247-305"
+      ],
+      "fact": "A non-Linux-x86_64 stub returns an error; the active implementation requires Linux, AVX2, dlopen, and rlimits.",
+      "claim_boundary": "This is a deliberate runtime refusal, not an observed cross-target compile failure."
+    },
+    {
+      "id": "nonlinux-provider-loader-stubs",
+      "classification": "unsupported_provider_functionality",
+      "targets": [
+        "macos-arm64",
+        "macos-x86_64",
+        "windows-x64"
+      ],
+      "evidence": [
+        "rust/cix-native/src/full_engine/jxl_provider.rs:379-425",
+        "rust/cix-native/src/full_engine/spatial_provider.rs:378-421",
+        "rust/cix-native/src/full_engine/installed.rs:87-100"
+      ],
+      "fact": "Installed layout chooses platform suffixes, but both non-Linux provider Library implementations return load/symbol errors."
+    },
+    {
+      "id": "windows-private-worker-root",
+      "classification": "unsupported_isolation_security_implementation",
+      "targets": [
+        "windows-x64"
+      ],
+      "evidence": [
+        "rust/cix-native/src/paq_supervisor.rs:570-635",
+        "rust/cix-native/src/cli_full_engine.rs:121-191"
+      ],
+      "fact": "Private root validation/creation is Unix-only; the non-Unix path rejects the capability.",
+      "required_semantics": [
+        "ACL ownership validation",
+        "reparse-point-safe directory handling",
+        "bounded child termination/resource control"
+      ]
+    },
+    {
+      "id": "spatial-cmake-linux-layout-and-msvc-flags",
+      "classification": "source_build_blocker_risk",
+      "targets": [
+        "linux-arm64",
+        "windows-x64",
+        "macos-arm64",
+        "macos-x86_64"
+      ],
+      "evidence": [
+        "rust/cix-native/codecs/spatial/CMakeLists.txt:7-17"
+      ],
+      "fact": "The dependency layout is hard-coded to usr/lib/x86_64-linux-gnu and GNU/Clang flags are unconditional.",
+      "claim_boundary": "No target build was run; MSVC incompatibility is source-visible risk, not an observed compiler result."
+    },
+    {
+      "id": "paq-cmake-windows-artifact-layout",
+      "classification": "source_build_and_package_risk",
+      "targets": [
+        "windows-x64"
+      ],
+      "evidence": [
+        "rust/cix-native/codecs/paq/v215/CMakeLists.txt:44-60",
+        "rust/cix-native/codecs/paq/v216/CMakeLists.txt:44-60",
+        "rust/cix-native/codecs/paq/joint_discount/CMakeLists.txt:44-60",
+        "rust/cix-native/codecs/paq/store_state/CMakeLists.txt:44-60"
+      ],
+      "fact": "GNU flags are unconditional and install rules only name LIBRARY, omitting Windows RUNTIME DLL and ARCHIVE import-library destinations.",
+      "claim_boundary": "No target build was run; compiler incompatibility is a source-visible risk."
+    },
+    {
+      "id": "runtime-installer-elf-only",
+      "classification": "package_qualification_blocker",
+      "targets": [
+        "macos-arm64",
+        "macos-x86_64",
+        "windows-x64"
+      ],
+      "evidence": [
+        "rust/cix-native/packaging/runtime/CMakeLists.txt:78-145"
+      ],
+      "fact": "Full-engine staging rejects Apple/Windows and enforces ELF sonames, readelf, and $ORIGIN."
+    },
+    {
+      "id": "sdk-windows-dll-pairing-rejected",
+      "classification": "package_qualification_blocker",
+      "targets": [
+        "windows-x64"
+      ],
+      "evidence": [
+        "rust/cix-native/packaging/sdk/CMakeLists.txt:19-29"
+      ],
+      "fact": "SDK packaging accepts .so/.dylib/.a only and explicitly rejects a DLL/import-library pair."
+    },
+    {
+      "id": "windows-stdin-streaming-unimplemented",
+      "classification": "unsupported_cli_functionality",
+      "targets": [
+        "windows-x64"
+      ],
+      "evidence": [
+        "rust/cix-native/src/cli.rs:15-48",
+        "rust/cix-native/src/engine.rs:151-178"
+      ],
+      "fact": "Non-Unix stdin streaming and timed pipe reads are refused; named-file use is unaffected."
+    }
+  ],
+  "ownership_chunks": [
+    {
+      "owner": "root/source",
+      "scope": [
+        "src/full_engine/jxl_provider.rs",
+        "src/full_engine/spatial_provider.rs",
+        "src/full_engine/installed.rs"
+      ],
+      "outcome": "CIX-owned Unix/macOS and Windows provider loader abstraction preserving absolute-path and pinned ABI checks."
+    },
+    {
+      "owner": "root/source",
+      "scope": [
+        "src/paq_worker.rs",
+        "src/paq_supervisor.rs",
+        "src/cli_full_engine.rs"
+      ],
+      "outcome": "Explicit per-platform worker isolation implementations; retain route refusal until security/resource semantics are qualified."
+    },
+    {
+      "owner": "root/source",
+      "scope": [
+        "codecs/paq/*/CMakeLists.txt",
+        "codecs/spatial/CMakeLists.txt"
+      ],
+      "outcome": "Compiler-specific options, target-neutral dependency discovery, and Windows DLL/import artifact install rules without vendor edits."
+    },
+    {
+      "owner": "release-distribution",
+      "scope": [
+        "packaging/sdk",
+        "packaging/runtime"
+      ],
+      "outcome": "Windows SDK pairing plus separate macOS/Windows full-engine runtime installers and target-native loader qualification."
+    }
+  ],
+  "qualification_boundary": "No platform is qualified by this audit. Actual execution on each RC43 target remains required; cross-compilation and Wine are not native execution evidence.",
+  "current_status_addendum": {
+    "source_revision_guard": "f2d670c8b source-completeness guard",
+    "scope": "Corrects findings that became stale after the recorded audit. It supplies source and scoped layout evidence only, not native platform qualification.",
+    "superseded_findings": [
+      {
+        "id": "nonlinux-provider-loader-stubs",
+        "current_source_status": "Superseded: full_engine/dynamic_library.rs has explicit-path Unix dlopen and Windows LoadLibraryExW/GetProcAddress/FreeLibrary paths; installed discovery retains platform suffixes and generic aliases.",
+        "evidence_boundary": "No macOS or Windows provider/bridge load was executed."
+      },
+      {
+        "id": "sdk-windows-dll-pairing-rejected",
+        "current_source_status": "Superseded at SDK layout level: packaging/sdk requires selected cix_native.dll and paired cix_native.lib or cix_native.dll.lib and exports runtime/import locations.",
+        "scoped_receipt": "docs/research/2026-10-04-execution/jobs/sdk-runtime-contract-v1/receipt.json",
+        "evidence_boundary": "Synthetic Windows-targeting CMake layout, find_package, and missing-pair negative case only; not a real Windows DLL, PE-loader, ABI, or consumer check."
+      },
+      {
+        "id": "windows-stdin-streaming-unimplemented",
+        "current_source_status": "Superseded for blocking stdin: the non-Unix CLI input adapter reads stdin directly in bounded blocks.",
+        "remaining_limit": "Timed --flush-interval reads remain unavailable without Unix poll/readiness support."
+      }
+    ],
+    "remaining_qualification_boundary": "No native Linux ARM64, macOS ARM64, macOS x86-64, or Windows x64 build/runtime receipt is supplied. Existing PAQ isolation, full-engine runtime staging, bridge build/dependency, and target-runner requirements remain open unless separately evidenced."
+  }
+}

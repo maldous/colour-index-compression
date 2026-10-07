@@ -1,0 +1,13 @@
+{
+  "schema": "cix-rust-performance-audit-v1",
+  "measurement": {
+    "identity": ["input.path", "input.sha256", "release.source_revision", "release.binaries.cix.sha256", "profile", "flags", "threads", "repetition", "cpu_set"],
+    "complete_output": ["archive_bytes", "archive_sha256"],
+    "exactness": ["encode_exit", "decode_exit", "restored_sha256", "input_sha256", "cross_decode", "status"],
+    "bounded_receipt": ["artifacts_pruned_after_fresh_verification", "pruned_artifacts[].path", "pruned_artifacts[].bytes", "pruned_artifacts[].sha256", "retained_evidence_bytes"],
+    "performance": ["encode.wall_seconds", "encode.user_seconds", "encode.system_seconds", "encode.max_rss_bytes", "decode.wall_seconds", "decode.user_seconds", "decode.system_seconds", "decode.max_rss_bytes"],
+    "environment": ["platform", "kernel", "rustc", "cargo", "affinity", "physical_cpus_visible"]
+  },
+  "valid_status": ["VERIFIED", "UNQUALIFIED"],
+  "acceptance": "Only VERIFIED rows with fresh owning and cross-release native restoration and a complete GNU Time record may enter a comparison. Payloads are hashed while present and then pruned under the 4 GB aggregate temporary-space policy; later collection validates the bounded receipt rather than claiming a physical rehash. Archive size is compared before timing; timing claims include variance."
+}

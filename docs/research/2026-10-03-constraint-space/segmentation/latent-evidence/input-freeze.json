@@ -1,0 +1,852 @@
+[
+  {
+    "name": "fresh-held-mask-width3",
+    "split": "exposed-attribution",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/fresh-held-mask-width3.bin",
+    "input_bytes": 1462,
+    "input_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+    "diagnostic": {
+      "existing": {
+        "name": "fresh-held-mask-width3",
+        "split": "new-held-out",
+        "input": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin",
+        "input_bytes": 1462,
+        "input_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+        "generator": {
+          "width": 3,
+          "count": 487,
+          "seed": 1401,
+          "noise_period": 23,
+          "partial_row_bytes": 1
+        },
+        "diagnostic": "not passed to encoder"
+      },
+      "existing_controls": {
+        "matched_zstd": {
+          "status": "verified",
+          "bytes": 597,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-matched_zstd.arc",
+          "archive_sha256": "53719d9527e4267dc9244af30016d1df16ca94f38ec7e90b1687f3d4391e7dff",
+          "restored_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+          "encode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/build/zsc",
+              "encode",
+              "--stride",
+              "3",
+              "--mask",
+              "2",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-matched_zstd.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.001412767916917801
+          },
+          "decode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/build/zsc",
+              "decode",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-matched_zstd.arc",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-matched_zstd.restored"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0013869400136172771
+          },
+          "accounting": {
+            "header_bytes": 21,
+            "payload_bytes": 576,
+            "stride": 3,
+            "transform": 2
+          },
+          "trace": {
+            "source_bytes": 1462,
+            "archive_bytes": 597,
+            "model_bytes": 21,
+            "payload_bytes": 576,
+            "time_ns": 254123,
+            "stride": 3,
+            "mask": 2
+          }
+        },
+        "zstd19": {
+          "status": "verified",
+          "bytes": 1089,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-zstd19.arc",
+          "archive_sha256": "772dab4020ea136a0f3d5636617886b675201471a888962b6ce651517502393d",
+          "restored_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+          "encode": {
+            "args": [
+              "/bin/zstd",
+              "-q",
+              "-19",
+              "-T1",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014025303535163403
+          },
+          "decode": {
+            "args": [
+              "/bin/zstd",
+              "-d",
+              "-q",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-zstd19.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.00142240384593606
+          }
+        },
+        "xz9e": {
+          "status": "verified",
+          "bytes": 1148,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-xz9e.arc",
+          "archive_sha256": "9735a3642a32c7352db2b27edeebfce51a503317adfe043370af7eb309f0fa27",
+          "restored_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+          "encode": {
+            "args": [
+              "/bin/xz",
+              "-9e",
+              "-T1",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0034483950585126877
+          },
+          "decode": {
+            "args": [
+              "/bin/xz",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-xz9e.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014221020974218845
+          }
+        },
+        "bzip2_9": {
+          "status": "verified",
+          "bytes": 1277,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-bzip2_9.arc",
+          "archive_sha256": "93f1f3ae1eed65915be32db5567351181a10b6bf040f7fab5c5f382622bcfb28",
+          "restored_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+          "encode": {
+            "args": [
+              "/bin/bzip2",
+              "-9",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0013852440752089024
+          },
+          "decode": {
+            "args": [
+              "/bin/bzip2",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-bzip2_9.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014206776395440102
+          }
+        },
+        "gzip9": {
+          "status": "verified",
+          "bytes": 1087,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-gzip9.arc",
+          "archive_sha256": "83d90dbdc3822d069afd9513e67a1c7704f0b6435f5ad74118e2efa4d5c881e1",
+          "restored_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+          "encode": {
+            "args": [
+              "/bin/gzip",
+              "-n",
+              "-9",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0013847812078893185
+          },
+          "decode": {
+            "args": [
+              "/bin/gzip",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-gzip9.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0013785967603325844
+          }
+        },
+        "cix_best": {
+          "status": "verified",
+          "bytes": 911,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-cix_best.arc",
+          "archive_sha256": "47c2c44271d473764c239f4fd72f7e83bfa2cac84745cca11dba47b6c11158ca",
+          "restored_sha256": "ca5348f0583204024df0cf79cab8775c51732ffb68ae6fe301a2519ef1181e08",
+          "encode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/release-d3a2/final/cix",
+              "--best",
+              "--threads",
+              "1",
+              "--memory",
+              "1536MiB",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width3.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 14.338566763792187
+          },
+          "decode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/release-d3a2/final/cix",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width3-cix_best.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.016046313103288412
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "fresh-held-mask-width4",
+    "split": "exposed-attribution",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/fresh-held-mask-width4.bin",
+    "input_bytes": 1470,
+    "input_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+    "diagnostic": {
+      "existing": {
+        "name": "fresh-held-mask-width4",
+        "split": "new-held-out",
+        "input": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin",
+        "input_bytes": 1470,
+        "input_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+        "generator": {
+          "width": 4,
+          "count": 367,
+          "seed": 1403,
+          "noise_period": 23,
+          "partial_row_bytes": 2
+        },
+        "diagnostic": "not passed to encoder"
+      },
+      "existing_controls": {
+        "matched_zstd": {
+          "status": "verified",
+          "bytes": 484,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-matched_zstd.arc",
+          "archive_sha256": "f4efee5caa365738ea8ebe74c43f45f57fef3865df620778ddc609725e77c5cb",
+          "restored_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+          "encode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/build/zsc",
+              "encode",
+              "--stride",
+              "4",
+              "--mask",
+              "6",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-matched_zstd.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014314362779259682
+          },
+          "decode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/build/zsc",
+              "decode",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-matched_zstd.arc",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-matched_zstd.restored"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014068619348108768
+          },
+          "accounting": {
+            "header_bytes": 21,
+            "payload_bytes": 463,
+            "stride": 4,
+            "transform": 6
+          },
+          "trace": {
+            "source_bytes": 1470,
+            "archive_bytes": 484,
+            "model_bytes": 21,
+            "payload_bytes": 463,
+            "time_ns": 287616,
+            "stride": 4,
+            "mask": 6
+          }
+        },
+        "zstd19": {
+          "status": "verified",
+          "bytes": 1077,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-zstd19.arc",
+          "archive_sha256": "26cc84765b51def9736e092cd6b0d43b2137235c4b534b9499c66de761a7ed43",
+          "restored_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+          "encode": {
+            "args": [
+              "/bin/zstd",
+              "-q",
+              "-19",
+              "-T1",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0013986430130898952
+          },
+          "decode": {
+            "args": [
+              "/bin/zstd",
+              "-d",
+              "-q",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-zstd19.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014281379990279675
+          }
+        },
+        "xz9e": {
+          "status": "verified",
+          "bytes": 1012,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-xz9e.arc",
+          "archive_sha256": "c62386c726a84fc9fa57879bfecb04de32a048878b81468a9f269c83e7708ea2",
+          "restored_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+          "encode": {
+            "args": [
+              "/bin/xz",
+              "-9e",
+              "-T1",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0035091377794742584
+          },
+          "decode": {
+            "args": [
+              "/bin/xz",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-xz9e.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014909608289599419
+          }
+        },
+        "bzip2_9": {
+          "status": "verified",
+          "bytes": 1197,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-bzip2_9.arc",
+          "archive_sha256": "86c926424b90bdd81e3f4da87405d13b0bf86406480b4c973fc6758f6ad70fef",
+          "restored_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+          "encode": {
+            "args": [
+              "/bin/bzip2",
+              "-9",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014030160382390022
+          },
+          "decode": {
+            "args": [
+              "/bin/bzip2",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-bzip2_9.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014225412160158157
+          }
+        },
+        "gzip9": {
+          "status": "verified",
+          "bytes": 1097,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-gzip9.arc",
+          "archive_sha256": "fc5da2ff63fbf4f2f14356169dd0d7023b3b1ac38fcb62b9a2d56bb846147276",
+          "restored_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+          "encode": {
+            "args": [
+              "/bin/gzip",
+              "-n",
+              "-9",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.001401674933731556
+          },
+          "decode": {
+            "args": [
+              "/bin/gzip",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-gzip9.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0013932110741734505
+          }
+        },
+        "cix_best": {
+          "status": "verified",
+          "bytes": 772,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-cix_best.arc",
+          "archive_sha256": "eeae53ec05e4d9d5b65990eb06f215b6ac0524a72c3431d9a4fdcc056f6ea056",
+          "restored_sha256": "965c03cfdc4cfb6ba1675e4c3075e803d130dc12d998d9a737576464a0a03d89",
+          "encode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/release-d3a2/final/cix",
+              "--best",
+              "--threads",
+              "1",
+              "--memory",
+              "1536MiB",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width4.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 13.136353275272995
+          },
+          "decode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/release-d3a2/final/cix",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width4-cix_best.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.005560311954468489
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "fresh-held-mask-width5",
+    "split": "exposed-attribution",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/fresh-held-mask-width5.bin",
+    "input_bytes": 1468,
+    "input_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+    "diagnostic": {
+      "existing": {
+        "name": "fresh-held-mask-width5",
+        "split": "new-held-out",
+        "input": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin",
+        "input_bytes": 1468,
+        "input_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+        "generator": {
+          "width": 5,
+          "count": 293,
+          "seed": 1405,
+          "noise_period": 23,
+          "partial_row_bytes": 3
+        },
+        "diagnostic": "not passed to encoder"
+      },
+      "existing_controls": {
+        "matched_zstd": {
+          "status": "verified",
+          "bytes": 416,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-matched_zstd.arc",
+          "archive_sha256": "ded264ee4cb21bfb0674b611700fe4db8d0dbf0537a7264f274d1d891b5b3c9f",
+          "restored_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+          "encode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/build/zsc",
+              "encode",
+              "--stride",
+              "5",
+              "--mask",
+              "14",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-matched_zstd.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014133979566395283
+          },
+          "decode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/build/zsc",
+              "decode",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-matched_zstd.arc",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-matched_zstd.restored"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014247358776628971
+          },
+          "accounting": {
+            "header_bytes": 21,
+            "payload_bytes": 395,
+            "stride": 5,
+            "transform": 14
+          },
+          "trace": {
+            "source_bytes": 1468,
+            "archive_bytes": 416,
+            "model_bytes": 21,
+            "payload_bytes": 395,
+            "time_ns": 296467,
+            "stride": 5,
+            "mask": 14
+          }
+        },
+        "zstd19": {
+          "status": "verified",
+          "bytes": 996,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-zstd19.arc",
+          "archive_sha256": "3ceb2fed59fef1253308fa6caf0b6f3ecf8a9b99566f33a14a73563c68a498d9",
+          "restored_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+          "encode": {
+            "args": [
+              "/bin/zstd",
+              "-q",
+              "-19",
+              "-T1",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.001407909207046032
+          },
+          "decode": {
+            "args": [
+              "/bin/zstd",
+              "-d",
+              "-q",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-zstd19.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.00140038738027215
+          }
+        },
+        "xz9e": {
+          "status": "verified",
+          "bytes": 1052,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-xz9e.arc",
+          "archive_sha256": "ddd8ee4033439973e8771f2bc9ab2ae6747654975ef64e2e3565f2164356862f",
+          "restored_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+          "encode": {
+            "args": [
+              "/bin/xz",
+              "-9e",
+              "-T1",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0035045482218265533
+          },
+          "decode": {
+            "args": [
+              "/bin/xz",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-xz9e.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.001425017137080431
+          }
+        },
+        "bzip2_9": {
+          "status": "verified",
+          "bytes": 1106,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-bzip2_9.arc",
+          "archive_sha256": "0743201ff129be79142722a2ae918992c1d543ffb3820688e18a7ab02f5ffda7",
+          "restored_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+          "encode": {
+            "args": [
+              "/bin/bzip2",
+              "-9",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014059231616556644
+          },
+          "decode": {
+            "args": [
+              "/bin/bzip2",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-bzip2_9.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.001391023863106966
+          }
+        },
+        "gzip9": {
+          "status": "verified",
+          "bytes": 981,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-gzip9.arc",
+          "archive_sha256": "6a4ddcc843599cf70decc07a31f8638899ba0d8fb0dcf031eb11589e6d15eb54",
+          "restored_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+          "encode": {
+            "args": [
+              "/bin/gzip",
+              "-n",
+              "-9",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.001407903153449297
+          },
+          "decode": {
+            "args": [
+              "/bin/gzip",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-gzip9.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.0014023436233401299
+          }
+        },
+        "cix_best": {
+          "status": "verified",
+          "bytes": 691,
+          "archive": "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-cix_best.arc",
+          "archive_sha256": "78a496b70ba9fc3af32399b8f76ab4ae1233960cb1709425a7b01cc2d0adeaad",
+          "restored_sha256": "d68449dd3fbc5eba5ed6dc9d29ea2ea5a7d9a5b4c35ff6bb21dd7e26720fc142",
+          "encode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/release-d3a2/final/cix",
+              "--best",
+              "--threads",
+              "1",
+              "--memory",
+              "1536MiB",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/inputs/fresh-held-mask-width5.bin"
+            ],
+            "exit": 0,
+            "wall_seconds": 14.238185693975538
+          },
+          "decode": {
+            "args": [
+              "/home/user/src/colour-index-compression/benchmark-work/release-d3a2/final/cix",
+              "-d",
+              "-c",
+              "/home/user/src/colour-index-compression/benchmark-work/segmentation-masks/archives/fresh-held-mask-width5-cix_best.arc"
+            ],
+            "exit": 0,
+            "wall_seconds": 0.005984132178127766
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "alias-3-6",
+    "split": "held-out",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/alias-3-6.bin",
+    "input_bytes": 753,
+    "input_sha256": "8cc5245f8cf750ee25228633ae8ea1209b7dc6b9c11941720af0d0909025c35c",
+    "diagnostic": {
+      "seed": 2501,
+      "width": 3,
+      "alias": 6
+    }
+  },
+  {
+    "name": "shift-prefix",
+    "split": "held-out",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/shift-prefix.bin",
+    "input_bytes": 729,
+    "input_sha256": "e384227e78128e1ec41f12f4f40f5785948b92d66281eb6118e9c71d1bd091ac",
+    "diagnostic": {
+      "seed": 2511,
+      "prefix": 2,
+      "width": 4,
+      "tail": 3
+    }
+  },
+  {
+    "name": "partial-width5",
+    "split": "held-out",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/partial-width5.bin",
+    "input_bytes": 738,
+    "input_sha256": "53de4187fa55459c07f6a08a44af0ad1f354651972ecd75eea5933561f729a8b",
+    "diagnostic": {
+      "seed": 2521,
+      "width": 5,
+      "tail": 3
+    }
+  },
+  {
+    "name": "subset-correlations",
+    "split": "held-out",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/subset-correlations.bin",
+    "input_bytes": 768,
+    "input_sha256": "8a648a457a11a6319386b9c1171b4158807ac2cb9acb7eb9c51ff6b0826d1bed",
+    "diagnostic": {
+      "seed": 2531,
+      "width": 6
+    }
+  },
+  {
+    "name": "changing-correlation",
+    "split": "held-out",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/changing-correlation.bin",
+    "input_bytes": 762,
+    "input_sha256": "5163c8a03eb9b2e0d8fb8afef2a0510bb8805400d7a6aedcf12ccea6d9cf5575",
+    "diagnostic": {
+      "seed": 2541,
+      "changes_at": 381
+    }
+  },
+  {
+    "name": "alignment-edits",
+    "split": "held-out",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/alignment-edits.bin",
+    "input_bytes": 732,
+    "input_sha256": "5ef706022f8ce97797c0bb917d56637bb3d3eca90b4fa85842ffcaa711ddd197",
+    "diagnostic": {
+      "seed": 2551,
+      "insert_at": 181,
+      "delete_at": 507
+    }
+  },
+  {
+    "name": "mixed-local",
+    "split": "held-out",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/mixed-local.bin",
+    "input_bytes": 755,
+    "input_sha256": "93c869c65c11a07c5c74d27e338544dac89f6ea4da9c760125c4d613993bd489",
+    "diagnostic": {
+      "seed": 2562,
+      "local_offset": 181
+    }
+  },
+  {
+    "name": "separated-ABA",
+    "split": "held-out",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/separated-ABA.bin",
+    "input_bytes": 763,
+    "input_sha256": "dfd34b1f3b3578193686294f6324fa149618a18a2156453183c7dfbfa0b6163d",
+    "diagnostic": {
+      "seed": 2571,
+      "shared_regions": true
+    }
+  },
+  {
+    "name": "cross-row-dependencies",
+    "split": "held-out",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/cross-row-dependencies.bin",
+    "input_bytes": 753,
+    "input_sha256": "7bd39d22064294acff1d7f077f644fb361525955357092cf67440950f0599285",
+    "diagnostic": {
+      "seed": 2581,
+      "width": 3
+    }
+  },
+  {
+    "name": "absent-random",
+    "split": "held-out",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/absent-random.bin",
+    "input_bytes": 767,
+    "input_sha256": "72c1491d426b2b9b5904e016a19cad8961f8e203c7d00ca52c49236b047921c3",
+    "diagnostic": {
+      "seed": 2591
+    }
+  },
+  {
+    "name": "tiny-empty",
+    "split": "tiny",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/tiny-empty.bin",
+    "input_bytes": 0,
+    "input_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "diagnostic": {}
+  },
+  {
+    "name": "tiny-1",
+    "split": "tiny",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/tiny-1.bin",
+    "input_bytes": 1,
+    "input_sha256": "4a64a107f0cb32536e5bce6c98c393db21cca7f4ea187ba8c4dca8b51d4ea80a",
+    "diagnostic": {
+      "length": 1
+    }
+  },
+  {
+    "name": "tiny-2",
+    "split": "tiny",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/tiny-2.bin",
+    "input_bytes": 2,
+    "input_sha256": "d243d708714f4b44c7bcd4db8c01e45f28806d2bf4d9f722b8e0eb03db30c8c8",
+    "diagnostic": {
+      "length": 2
+    }
+  },
+  {
+    "name": "tiny-3",
+    "split": "tiny",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/tiny-3.bin",
+    "input_bytes": 3,
+    "input_sha256": "00b4d1d25e0847e593a2bd41e8e1a156d33211506e9213b70fcba48bf31fc17b",
+    "diagnostic": {
+      "length": 3
+    }
+  },
+  {
+    "name": "tiny-4",
+    "split": "tiny",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/tiny-4.bin",
+    "input_bytes": 4,
+    "input_sha256": "c51ec099f735b329a9694a621ecafcce596e5fc924e266eca981f465101db0a1",
+    "diagnostic": {
+      "length": 4
+    }
+  },
+  {
+    "name": "tiny-5",
+    "split": "tiny",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/tiny-5.bin",
+    "input_bytes": 5,
+    "input_sha256": "032b9b0c817b27a1b6a259eeba7462790b3186efb12e0b062b3769fcda5d84a8",
+    "diagnostic": {
+      "length": 5
+    }
+  },
+  {
+    "name": "tiny-6",
+    "split": "tiny",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/tiny-6.bin",
+    "input_bytes": 6,
+    "input_sha256": "5e9e140f012069d982623232bf47170a84aead938443f85b6aa6a9729a0432c4",
+    "diagnostic": {
+      "length": 6
+    }
+  },
+  {
+    "name": "tiny-7",
+    "split": "tiny",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/tiny-7.bin",
+    "input_bytes": 7,
+    "input_sha256": "d20d31734b2defee33da3b5ade94175397bd0ccff43e4550ef58dd033dae3d00",
+    "diagnostic": {
+      "length": 7
+    }
+  },
+  {
+    "name": "tiny-8",
+    "split": "tiny",
+    "input": "/home/user/src/colour-index-compression/benchmark-work/latent-layout/inputs/tiny-8.bin",
+    "input_bytes": 8,
+    "input_sha256": "4ae5bc5cafe8dfeed5bd3e97c0097b998e1e4073706a60e43be03c1abdb80cb0",
+    "diagnostic": {
+      "length": 8
+    }
+  }
+]

@@ -1,0 +1,147 @@
+{
+  "schema": "cix.cxx-adapter-triage.v1",
+  "status": "READ_ONLY_DURING_IMMUTABLE_SCAN",
+  "scan": {
+    "issues": "docs/research/2026-10-04-execution/sonar-preparation/scan-v2/cix-native-adapters/issues.json",
+    "cppcheck_xml": "docs/research/2026-10-04-execution/sonar-preparation/scan-v2/cix-native-adapters/cppcheck.xml",
+    "indexed_files": 55,
+    "sonar_issues": 776,
+    "sonar_severity_counts": {
+      "BLOCKER": 55,
+      "CRITICAL": 28,
+      "MAJOR": 377,
+      "MINOR": 286,
+      "INFO": 30
+    },
+    "sonar_rule_counts": {
+      "cxx:TooManyStatementsPerLine": 266,
+      "cppcheck:missingIncludeSystem": 129,
+      "cxx:FileHeader": 55,
+      "cxx:UndocumentedApi": 55,
+      "cxx:FunctionComplexity": 49,
+      "cxx:FunctionName": 46,
+      "cxx:FunctionCognitiveComplexity": 28,
+      "cxx:ParsingErrorRecovery": 26,
+      "cppcheck:missingOverride": 23
+    },
+    "sonar_scanner_parser_diagnostics": 0,
+    "parser_recovery_note": "The issue API nevertheless exposes 26 cxx:ParsingErrorRecovery rule findings. Treat them as analyzer recovery/configuration artifacts, not scanner parser diagnostics or source defects.",
+    "cppcheck_raw_diagnostics": {
+      "total": 599,
+      "missingIncludeSystem": 373,
+      "preprocessorErrorDirective": 5,
+      "unknownMacro": 2,
+      "syntaxError": 2,
+      "toomanyconfigs": 3,
+      "note": "The raw count includes transitive SDK, vendor, and kernel-header locations; the Sonar issue API reports 129 missing-system-header issues on indexed CIX components."
+    }
+  },
+  "triage": {
+    "genuine_correctness_defects": [
+      {
+        "file": "rust/cix-native/adapters/rocksdb/contract_test.cc",
+        "lines": [22, 49, 57, 65],
+        "rule": "cppcheck:assertWithSideEffect",
+        "finding": "The contract's database open and decoder-size calls occur only inside assert. A release/NDEBUG build can skip those calls and invalidate the contract's intended checks.",
+        "owner": "adapters/rocksdb",
+        "bounded_fix": "Evaluate each status-producing call before the assertion, then assert/check the stored result. Preserve the manager/reopen/decode sequence."
+      }
+    ],
+    "safe_mechanical_after_freeze": [
+      {
+        "scope": "55 cxx:FileHeader findings",
+        "owner": "respective CIX source owners",
+        "constraint": "Apply only an approved CIX license/header template; do not fabricate or replace third-party notices."
+      },
+      {
+        "scope": "266 cxx:TooManyStatementsPerLine, 17 cxx:TooLongLine, and 3 cxx:TabCharacter findings",
+        "owner": "respective CIX source owners",
+        "constraint": "Formatting-only split; preserve callback signatures, control-flow order, and generated-source boundaries."
+      },
+      {
+        "file": "rust/cix-native/packaging/squash/squash-cix.c",
+        "line": 48,
+        "rule": "cppcheck:shadowVariable",
+        "owner": "packaging/squash",
+        "bounded_fix": "Rename the local cix_options_v1 variable to avoid shadowing the static Squash option table."
+      },
+      {
+        "files": [
+          "rust/cix-native/adapters/storage-examples/cix_backup.cpp",
+          "rust/cix-native/bindings/java/src/main/c/cix_jni.c",
+          "rust/cix-native/adapters/squashfs/tools/cix_compressor_table.c"
+        ],
+        "rules": ["cppcheck:constVariableReference", "cppcheck:variableScope", "cppcheck:constParameterPointer"],
+        "owner": "named component owners",
+        "constraint": "Review source-compatible const/scope edits individually; exclude callback parameters whose host ABI fixes their exact type."
+      }
+    ],
+    "configuration_or_false_positive_with_evidence": [
+      {
+        "scope": "373 raw cppcheck:missingIncludeSystem diagnostics (129 on indexed CIX components)",
+        "evidence": "cppcheck ran with std.cfg and posix.cfg but without compiler system include roots; locations include /usr/src/benchmark-work SDK and vendor headers as well as CIX files.",
+        "owner": "scan/compile-command preparation",
+        "next_action": "Build a separate analyzer-only include-root receipt from each recorded compile command; mount compiler C/C++ system includes and the existing pinned SDK roots read-only."
+      },
+      {
+        "files": [
+          "rust/cix-native/adapters/gio/cix-gconverter.c",
+          "rust/cix-native/adapters/gstreamer/src/gstcixstream.c"
+        ],
+        "rules": ["cppcheck:unknownMacro", "cppcheck:syntaxError"],
+        "evidence": "GObject declarations use G_DEFINE_TYPE_WITH_CODE and G_DECLARE_FINAL_TYPE. The configured analyzer does not have the required GLib/GObject macro environment.",
+        "owner": "scan/compile-command preparation",
+        "next_action": "Preserve the actual GLib/GObject package include and macro inputs in a dedicated analyzer capture; do not replace these source macros."
+      },
+      {
+        "files": [
+          "rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_compressor.c",
+          "rust/cix-native/adapters/squashfs/userspace/libsquashfs/cix_sqfsng_read_super.c",
+          "rust/cix-native/adapters/squashfs/userspace/squashfuse/cix_squashfuse_decode.c"
+        ],
+        "rule": "cppcheck:preprocessorErrorDirective",
+        "evidence": "Each CIX-owned replacement TU intentionally uses macro-controlled #include of a pinned upstream source. The compiler-capture-host-v3 receipt records successful real compilations with those macros.",
+        "owner": "scan/compile-command preparation",
+        "next_action": "Feed the captured macro definitions and pinned source roots to the analyzer; retain the CIX replacement-TU boundary."
+      },
+      {
+        "file": "rust/cix-native/adapters/squashfs/profile/src/cix_squashfs_profile.c",
+        "line": 307,
+        "rule": "cppcheck:shiftTooManyBits",
+        "evidence": "shift starts at zero and advances only by seven; the loop accepts only shifts 0, 7, 14, 21, and 28. At shift 28 it rejects payload values above 15 before the shift. The reported shift 34 is infeasible.",
+        "owner": "adapters/squashfs/profile",
+        "next_action": "Retain the bounded decoder; if desired, make the five-byte bound syntactically explicit only after the frozen scan."
+      },
+      {
+        "file": "rust/cix-native/packaging/squash/contract.c",
+        "rules": ["cppcheck:varFuncNullUB", "cppcheck:uninitvar"],
+        "evidence": "The raw scan also reports 76 configurations capped at 12 and missing Squash SDK headers. The flagged calls have fixed public Squash API signatures; re-evaluate only after the SDK header path is captured.",
+        "owner": "scan/compile-command preparation then packaging/squash",
+        "next_action": "Do not change NULL option arguments or the streaming test until an analyzer run sees the real Squash declarations."
+      }
+    ],
+    "external_or_derived_ownership": [
+      {
+        "scope": "238 of 373 raw missing-system-header diagnostics under /usr/src/benchmark-work",
+        "ownership": "pinned vendor or SDK headers",
+        "action": "Do not edit; make those already-qualified include roots available read-only to the analyzer."
+      },
+      {
+        "scope": "one raw syntax error in sevenzip-source-v1 and one preprocessor error in blosc2-prefix",
+        "ownership": "pinned third-party source/SDK",
+        "action": "Do not edit; classify only as analyzer configuration coverage evidence."
+      },
+      {
+        "scope": "one raw preprocessor error in /lib/modules/6.8.0-142-generic/build/include/linux/compiler_types.h",
+        "ownership": "installed matching kernel headers",
+        "action": "Use the module-v4 kernel compiler command and generated-header context; do not edit headers or CIX shim semantics."
+      }
+    ]
+  },
+  "recommended_fix_order": [
+    "After the scan freeze, create an analyzer-only include and macro capture from the existing compiler records; no product-source changes.",
+    "Fix the four RocksDB contract assert side effects and qualify that adapter target.",
+    "Apply approved headers and formatting in bounded component-owned batches.",
+    "Re-triage complexity, naming, and parser-recovery findings only after the analyzer receives actual headers and macros; do not refactor callback or decoder paths merely to reduce metrics."
+  ]
+}

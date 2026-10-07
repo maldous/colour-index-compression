@@ -1,0 +1,41 @@
+[
+  {
+    "label": "info",
+    "command": [
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/dotnet-sdk-8.0.425/dotnet",
+      "--info"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "restore",
+    "command": [
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/dotnet-sdk-8.0.425/dotnet",
+      "restore",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-job-mode-v5/bindings/dotnet/Cix.Native.Contract",
+      "--configfile",
+      "/home/user/src/colour-index-compression/docs/research/2026-10-04-execution/jobs/dotnet-consumer-v2/NuGet.Config"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "build",
+    "command": [
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/dotnet-sdk-8.0.425/dotnet",
+      "build",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-job-mode-v5/bindings/dotnet/Cix.Native.Contract",
+      "--no-restore",
+      "-m:4",
+      "-p:UseSharedCompilation=false"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "contract",
+    "command": [
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/dotnet-sdk-8.0.425/dotnet",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-job-mode-v5/bindings/dotnet/Cix.Native.Contract/bin/Debug/net8.0/Cix.Native.Contract.dll"
+    ],
+    "exit_code": 0
+  }
+]

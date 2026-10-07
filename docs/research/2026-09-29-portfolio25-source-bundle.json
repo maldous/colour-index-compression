@@ -1,0 +1,70 @@
+{
+  "source_revision": "f26d32836c15cb1a5e37ebfddd5826c4b33ff8a6",
+  "source_archive": "/home/user/src/colour-index-compression/results/releases/cix-source-portfolio25-20260929.tar.gz",
+  "archive_bytes": 3164948,
+  "archive_sha256": "82057df6eb217602cbb3e5b10538f00e30acedd791c88dbe9cef2f81b9e7414e",
+  "source_files": 1500,
+  "matched_previously_rebuilt_source_files": 1076,
+  "reused_qualified_binaries": {
+    "results/leaderboard/native_ppm.so": "d337cde96c94ddc378c5d23c9c9000ab62a3535d60ee6917cbd52688593a6f96",
+    "results/leaderboard/native_mixer_rounding.so": "13ee84e42298c085e1c1955c66f97bc5c698bc52b65ef9f8484181668dee117a",
+    "results/leaderboard/native_ppm_decode.so": "e5b0ce02af1412accdd3d7c7dcf74d4aa9caa26f3328460b40e2cefb8bb713e2",
+    "results/leaderboard/native_legacy_mixer.so": "776d66a303c971f095229965edfbc03586f36cbbc36189029f17fcec10bd7f8a",
+    "benchmark-work/references/paq8px-v215/build-local/paq8px": "b982f1e8307d6c38e8febc6415901fafcc2e84a14d51e0af7c5cbbe6322778e7",
+    "benchmark-work/references/paq8px-v216/build-local/paq8px": "4fd7b3e768917a665ee4b91c6df3af1d22f540f7ff5beefe7fec689a8db182cc",
+    "benchmark-work/references/paq8px-cix-store-state/build-local/paq8px": "6b815f63502c515a95654df316deb30b6a050fbee1293897f4e643c54843212b"
+  },
+  "smoke_encode": {
+    "policy": "CIX competitive section-constrained and online-LSTM portfolio 25",
+    "operation": "encode",
+    "source_bytes": 494,
+    "output_bytes": 62,
+    "source_sha256": "e5c74561de1a453c5622290736ded1a4c18208ac66dd28828406cfcf926df98d",
+    "output_sha256": "f346c6a95fd8510ababcc490e67ea247e897fd4fcdedb3a626206d42555b100e",
+    "seconds": 0.6138621661812067,
+    "peak_rss_kib": 39308,
+    "child_peak_rss_kib": 546304,
+    "selection": {
+      "selected": "paq-v216-8-under-12MiB-nondatabase",
+      "trials": [
+        {
+          "name": "raw",
+          "size": 505,
+          "encode_seconds": 0
+        },
+        {
+          "name": "joint-ppm-mixer",
+          "size": 79,
+          "encode_seconds": 0.04635929921641946,
+          "cache_used": false
+        },
+        {
+          "name": "paq-v216-8-under-12MiB-nondatabase",
+          "size": 62,
+          "encode_seconds": 0.5671518188901246
+        }
+      ]
+    },
+    "round_trip": true,
+    "verify_seconds": 0.5579248699359596
+  },
+  "smoke_decode": {
+    "policy": "CIX competitive section-constrained and online-LSTM portfolio 25",
+    "operation": "decode",
+    "source_bytes": 62,
+    "output_bytes": 494,
+    "source_sha256": "f346c6a95fd8510ababcc490e67ea247e897fd4fcdedb3a626206d42555b100e",
+    "output_sha256": "e5c74561de1a453c5622290736ded1a4c18208ac66dd28828406cfcf926df98d",
+    "seconds": 0.5646209181286395,
+    "peak_rss_kib": 36024,
+    "child_peak_rss_kib": 546304,
+    "source_frame_decoded": true
+  },
+  "round_trip": true,
+  "corpus_or_saved_benchmark_frames_in_package": false,
+  "source_files_unchanged": true,
+  "github_actions_used": false,
+  "completed_at": "2026-09-29T04:19:48.149974+00:00",
+  "scope": "Source-only portfolio25 candidate. Fresh uncached small CLI round trip in isolated directory; seven previously qualified binaries reused after all native source/provenance hashes matched portfolio24. No fresh native rebuild claimed. Archive excludes binaries, corpus, saved frames and workflows. Qualified Python dependencies reused.",
+  "publication": "Private local candidate; not publicly released or officially listed."
+}

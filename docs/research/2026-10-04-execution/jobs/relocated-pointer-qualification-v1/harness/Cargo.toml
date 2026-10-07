@@ -1,0 +1,27 @@
+[package]
+name = "cix-relocated-qualification"
+version = "0.1.0"
+edition = "2021"
+autobins = false
+
+[lib]
+name = "cix_native"
+
+[[bin]]
+name = "relocated-driver"
+path = "src/driver.rs"
+
+[dependencies]
+crc32fast = "=1.5.2"
+num-bigint = "=0.4.8"
+num-traits = "=0.2.19"
+sha2 = "=0.10.9"
+libc = "=0.2.189"
+
+[profile.dev]
+debug = 0
+incremental = false
+
+[profile.test]
+debug = 0
+incremental = false

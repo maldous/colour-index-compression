@@ -1,0 +1,61 @@
+{
+  "accounting": {
+    "framing_bytes": 10,
+    "metadata_bytes": 0,
+    "payload_bytes": 223,
+    "transformed_bytes": 176757
+  },
+  "backend": "zstandard",
+  "backend_level": 19,
+  "completed_at": "2026-09-30T06:56:46.926768+00:00",
+  "encode_seconds": 0.01178100099787116,
+  "expected_mechanism": "Explicit prefix/suffix stream exposes repeated record templates",
+  "hutter_specific": true,
+  "hypothesis": "Adjacent newline records share prefixes so prefix plus suffix edit coding lowers cost",
+  "immutable_build": {
+    "script_sha256": "59c352823a21e409e366f510c8597f3f8dfd244f1e0f2e97b5f57a09e10c1bbc",
+    "zstandard_module_sha256": "5dd909e0b60a946a0b08deaf57545d17dc044f5df4040beec55f7ef6c6fecd11",
+    "zstandard_version": "0.25.0"
+  },
+  "input": {
+    "bytes": 305200,
+    "generator": "repeated-records-v1",
+    "kind": "synthetic",
+    "seed": 7302026,
+    "sha256": "5129eb948f782e98cefdfb71f70a164ab14809ad377da2493e6f4d5bbb1a3925"
+  },
+  "matched_control": "HTB1 control: same zstandard 0.25.0 level and self-contained framing, direct input",
+  "mode": "line-prefix",
+  "output": {
+    "archive": "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b2-line-prefix/synthetic-line-prefix.htb",
+    "archive_bytes": 233,
+    "archive_sha256": "1def6b892894330551a470fad89cdf0824b4ae735078d182047516e367bf5dfb",
+    "decoder_returncode": 0,
+    "decoder_stderr": "",
+    "independent_decoder_command": [
+      "/home/user/src/colour-index-compression/.venv/bin/python",
+      "-m",
+      "benchmarks.hutter_track_b",
+      "decode",
+      "--archive",
+      "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b2-line-prefix/synthetic-line-prefix.htb",
+      "--output",
+      "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b2-line-prefix/synthetic-line-prefix.restored"
+    ],
+    "restored": "/home/user/src/colour-index-compression/docs/research/2026-09-30-bounded-research/track-b-results/b2-line-prefix/synthetic-line-prefix.restored",
+    "restored_sha256": "5129eb948f782e98cefdfb71f70a164ab14809ad377da2493e6f4d5bbb1a3925",
+    "round_trip_verified": true
+  },
+  "process_peak_rss_bytes": 570732544,
+  "promotion_criteria": "Two of three development regions and aggregate at least 0.25 percent smaller than control",
+  "resource_budget": {
+    "cpu_cores": 4,
+    "rss_bytes": 3221225472,
+    "temporary_disk_bytes": 1073741824,
+    "wall_seconds": 300
+  },
+  "schema": "cix-hutter-track-b-v1",
+  "status": "COMPLETE",
+  "track": "B",
+  "trial_id": "b2-synthetic-line-prefix"
+}

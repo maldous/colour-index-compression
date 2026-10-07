@@ -1,0 +1,44 @@
+[
+  {
+    "label": "sdk-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v6/packaging/sdk",
+      "-B",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-build-cli-bindings-v6",
+      "-DCMAKE_INSTALL_PREFIX=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-cli-bindings-v6",
+      "-DCMAKE_INSTALL_LIBDIR=lib",
+      "-DCIX_NATIVE_LIBRARY=/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/target/debug/libcix_native.so"
+    ],
+    "exit_code": 0,
+    "expected_success": true,
+    "cwd": null
+  },
+  {
+    "label": "sdk-install",
+    "command": [
+      "cmake",
+      "--install",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/sdk-bindings-build-cli-bindings-v6"
+    ],
+    "exit_code": 0,
+    "expected_success": true,
+    "cwd": null
+  },
+  {
+    "label": "python-bindings",
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-v",
+      "-s",
+      "/home/user/src/colour-index-compression/benchmark-work/native-rc-check-v1/execution-cli-bindings-v6/bindings/python/tests"
+    ],
+    "exit_code": 1,
+    "expected_success": true,
+    "cwd": null
+  }
+]

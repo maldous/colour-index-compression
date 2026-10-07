@@ -1,4 +1,50 @@
 __pycache__/
 *.pyc
+
+# Settings-profile measurements: commit declarations, receipts and raw logs;
+# keep inputs, archives, restored data and executable copies outside Git.
+docs/research/2026-09-30-codec-profiles/runs/**/build/
+docs/research/2026-09-30-codec-profiles/runs/**/work/*.bin
+docs/research/2026-09-30-codec-profiles/runs/**/work/paq8px-pinned
+docs/research/2026-09-30-codec-profiles/runs/**/work/warmup.restored
+docs/research/2026-09-30-representation-coverage/runs/**/build/
+docs/research/2026-09-30-representation-coverage/runs/**/work/*.bin
+
+# Generic-pipeline evidence keeps logs/receipts in Git, source datasets and
+# reconstructed bytes remain untracked. Immutable source is pinned by hashes.
+docs/research/2026-09-30-generic-pipeline/runs/**/build/
+docs/research/2026-09-30-generic-pipeline/runs/**/work/source.bin
+docs/research/2026-09-30-generic-pipeline/runs/**/work/restored.bin
+docs/research/2026-09-30-generic-pipeline/runs/**/work/candidate.bin
+
+# Ephemeral coordination inodes; preserve claim/terminal JSON as evidence.
+.hutter-experiment-scheduler/**/*.lock
+.hutter-experiment-scheduler/wave.lock
 .venv/
 results/
+
+# Preserve this bounded review evidence despite the general results exclusion.
+!docs/research/2026-09-30-wikipedia-structure/results/
+!docs/research/2026-09-30-wikipedia-structure/results/**
+
+# Generated Python caches are not evidence, including in archived builds.
+__pycache__/
+*.pyc
+
+# Retention rounds preserve receipts/timings/hashes, not corpus bytes or builds.
+docs/research/*retention*/runs/**/build/
+docs/research/*retention*/runs/**/work/**/*.bin
+docs/research/*retention*/runs/**/work/**/*.cix
+docs/research/*retention*/runs/**/work/**/*.payload
+docs/research/*retention*/runs/**/work/**/*.restored
+
+# Complete benchmark metadata is tracked; immutable builds and full source,
+# archive and reconstructed bytes remain local to the benchmark workspace.
+docs/research/2026-10-01-complete-benchmarks/**/runs/**/build/
+docs/research/2026-10-01-complete-benchmarks/**/runs/**/work/**/*.bin
+docs/research/2026-10-01-complete-benchmarks/**/runs/**/work/**/*.cix
+docs/research/2026-10-01-complete-benchmarks/**/runs/**/work/**/*.restored
+docs/research/2026-10-01-complete-benchmarks/**/runs/**/work/**/paq8px-pinned
+
+# Rust build products; release command-line binaries are kept under dist/.
+rust/cix-native/target/

@@ -1,0 +1,130 @@
+{
+  "experiment": "codec-decisions-v1",
+  "tiny_validation": [
+    {
+      "case": "stored",
+      "gzip_bytes": 663,
+      "decision_bytes": 691,
+      "blocks": 1,
+      "block_types": [
+        0
+      ]
+    },
+    {
+      "case": "fixed",
+      "gzip_bytes": 58,
+      "decision_bytes": 134,
+      "blocks": 1,
+      "block_types": [
+        1
+      ]
+    },
+    {
+      "case": "dynamic",
+      "gzip_bytes": 881,
+      "decision_bytes": 3652,
+      "blocks": 1,
+      "block_types": [
+        2
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "asset": "artificial",
+      "source_sha256": "cc1818a084d61fe693fe2a9db7312da25fdb4b54313502a6920abf692b7a47ab",
+      "source_bytes": 76723,
+      "inflated_bytes": 307200,
+      "blocks": 4,
+      "block_types": {
+        "0": 0,
+        "1": 0,
+        "2": 4
+      },
+      "bytes": {
+        "original_gzip": 76723,
+        "gzip_bytes_zlib9": 76298,
+        "gzip_bytes_xz1": 76792,
+        "decision_unsplit": 208292,
+        "decision_zlib9": 100556,
+        "decision_xz1": 95092
+      },
+      "inverse_verified": {
+        "original_gzip": true,
+        "gzip_bytes_zlib9": true,
+        "gzip_bytes_xz1": true,
+        "decision_unsplit": true,
+        "decision_zlib9": true,
+        "decision_xz1": true
+      },
+      "fresh_archive_only_inverse": [
+        "gzip_bytes_zlib9"
+      ]
+    },
+    {
+      "asset": "canterbury",
+      "source_sha256": "f140e8a5b73d3f53198555a63bfb827889394a42f20825df33c810c3d5e3f8fb",
+      "source_bytes": 739071,
+      "inflated_bytes": 2821120,
+      "blocks": 23,
+      "block_types": {
+        "0": 0,
+        "1": 0,
+        "2": 23
+      },
+      "bytes": {
+        "original_gzip": 739071,
+        "gzip_bytes_zlib9": 632629,
+        "gzip_bytes_xz1": 628400,
+        "decision_unsplit": 2287211,
+        "decision_zlib9": 859533,
+        "decision_xz1": 837920
+      },
+      "inverse_verified": {
+        "original_gzip": true,
+        "gzip_bytes_zlib9": true,
+        "gzip_bytes_xz1": true,
+        "decision_unsplit": true,
+        "decision_zlib9": true,
+        "decision_xz1": true
+      },
+      "fresh_archive_only_inverse": [
+        "gzip_bytes_zlib9",
+        "gzip_bytes_xz1"
+      ]
+    },
+    {
+      "asset": "calgary",
+      "source_sha256": "e109eebdc19c5cee533c58bd6a49a4be3a77cc52f84ba234a089148a4f2093b7",
+      "source_bytes": 1070276,
+      "inflated_bytes": 3265536,
+      "blocks": 33,
+      "block_types": {
+        "0": 0,
+        "1": 0,
+        "2": 33
+      },
+      "bytes": {
+        "original_gzip": 1070276,
+        "gzip_bytes_zlib9": 1069949,
+        "gzip_bytes_xz1": 1070392,
+        "decision_unsplit": 3059869,
+        "decision_zlib9": 1564687,
+        "decision_xz1": 1540924
+      },
+      "inverse_verified": {
+        "original_gzip": true,
+        "gzip_bytes_zlib9": true,
+        "gzip_bytes_xz1": true,
+        "decision_unsplit": true,
+        "decision_zlib9": true,
+        "decision_xz1": true
+      },
+      "fresh_archive_only_inverse": [
+        "gzip_bytes_zlib9"
+      ]
+    }
+  ],
+  "all_exact": true,
+  "note": "zlib/xz ordinary second-pass payloads are not original gzip streams; only decision candidates are self-contained byte-exact reconstructions."
+}

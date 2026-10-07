@@ -1,0 +1,80 @@
+# Temporary evidence checkpoint
+
+The user requests one frozen external evidence baseline, then immediate return
+to discovery. No new CIX changes or data-driven tuning during the baseline.
+CIX frozen implementation: f26d32836c15cb1a5e37ebfddd5826c4b33ff8a6,
+branch research/silesia-competitive, default portfolio25. Qualified Silesia
+25,502,494 bytes; all12 physical outputs independently restored.
+
+Current investigations to preserve and resume:
+- Full reference v215 -12L: Webster encoding; subsequent members queued.
+- Full v215 -9L Mozilla decoding; Webster completed4,423,086bytes.
+- Discounted joint Mozilla decoding.
+- New v215 -9L text: Dickens encoding, Reymont queued.
+- Pointer residual LSTM: three regional tests, first two complete.
+- Function-template subtraction: whole Brotli saves78,275 against matched
+  control; six PAQ regional tests underway. XOR lost1,069bytes.
+- X-ray planes: twelve PAQ regional tests, native segmentation confirmed both
+  planes reach grayscale image models. First region control120,042; split4
+  119,890; split6 122,480; split8 122,779. No projection into score.
+
+Allow these finite atomic trials to finish; freeze long reference queues after
+their current complete file. Do not launch follow-up research during benchmark.
+At resumption: collect all completed artifacts, verify unchanged source/backend
+identities, assess all regional controls, then choose justified full-file trials.
+Qualify any new complete gains only in a successor to25, never mutate25.
+
+External baseline: all8 requested compressors; canonical Silesia; latest complete
+English Wikipedia articles/pages XML; all28 NNLCB datasets and all19 metric
+definitions; deterministic13-class synthetic suite including10GiB and prefixes.
+No filename/hash or known-asset dispatch, hidden external models or test tuning.
+Archive authoritative NNLCB paper/supplement/results.xlsx and source revision.
+Every28x19 status explicit; exact-definition failures transparent. Published
+NNLCB resources/times remain separate from controlled local measurements.
+Run with quiet machine, documented limits, normal I/O, SHA256 reconstruction,
+all repetitions retained, normal3 repetitions/median, expensive exceptions
+explicit. Publish separate immutable Sites evidence artifact, not researchURL.
+Do not resume discovery until evidence is verified, committed, tagged, archived
+and published. An incomplete baseline must never be described as complete.
+
+Original results/ and benchmark-work/ remain preserved in this checkout. Source
+bundle25 excludes corpus and compressed results. Checkpoint archival must retain
+selected physical frames, their evidence, and active-job handover separately.
+No Actions, destructive reset/clean/history rewrite or third-party messages.
+
+## Storage policy at the shared benchmark boundary
+
+Disk capacity is a constrained research resource.  Before any deletion, preserve
+unique selected frames, complete-result JSON, source/backend provenance,
+round-trip evidence, checkpoint archives and currently active job inputs.  Prefer
+removing only decoder-output copies that have been SHA-256 compared with the
+canonical retained input and recorded in a durable deletion receipt.  A historical
+stream may be removed only after its exact frame hash is retained elsewhere with
+the corresponding recovery path and proof; do not treat equal byte length as
+identity.  Do not clean broadly under `/tmp`, corpus sources, reference source,
+the active evidence worktree, or a running/queued job directory.  Coordinate
+hashing and deletion through the shared measurement lock so controlled evidence
+timing never overlaps the I/O.
+
+## Separate Hutter Prize eligibility track
+
+The user requested a parallel qualification track for the Hutter Prize. It is
+kept separate from the frozen external-evidence configuration and must not tune
+or mutate that baseline. The controlled local preflight is
+`benchmarks/hutter_eligibility.py`; its policy and known gaps are in
+`docs/research/2026-09-29-hutter-prize-eligibility.md`. No full enwik9 CIX
+submission measurement, self-contained submission package, public source
+release, or license evidence exists at this checkpoint. The preflight is
+fail-closed and a local pass never means Prize approval.
+
+## Superseding user directive — Hutter only
+
+The user has replaced the previous Silesia/discovery and external-baseline
+mission with Hutter Prize/enwik9 work only. Preserve earlier material as
+historical evidence, but do not restart its queues or present it as active
+research. The active sequence is: construct a strong Hutter-specific profile;
+make package, dependency and option accounting reproducible; then run a
+controlled full canonical enwik9 encode/decode with eligibility receipts. The
+frozen evidence worktree remains untouched. The 27-file 71,104-byte stdlib
+draft and its 2,100-byte smoke restore are neither a Hutter score nor a
+submission package.
