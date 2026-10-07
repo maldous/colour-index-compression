@@ -1,0 +1,7 @@
+Preparation only; no server listening and no public endpoint.
+
+Pinned native source already provides GET /api/v1/state and GET /api/v1/{issue_identifier}. Draft server binding 127.0.0.1:8791 is a proposed local endpoint, not verified live or reserved. Read native JSON for running/retrying/blocked, meaningful issue references and poll/reconciliation health; pair with authoritative Linear receipts for accepted outputs, same-failure counts and confirmed outage evidence. Local curl GET can be run by the existing supported host/task route after launch. Do not create a proxy, monitor or public listener; Morgan must use a supported secure host access route. Do not scrape credential/environment/model logs.
+
+The current unprivileged port inventory could not open its netlink socket; no port-free conclusion was made. Verify loopback bind/actual endpoint before launch acceptance through supported host controls. A static watchdog-checkpoint.json is dated preparation only. The owner's hourly watchdog was not visible in this context's automation lookup; Main owns its authoritative identity/coverage. No duplicate task created.
+
+First outage time belongs in the existing authoritative migration record. Successful model output is not native liveness; missing commentary is not an outage. Failover at one hour additionally requires stopped/fenced prior writer plus exclusive routing and measured lower cloud capacity. These are not proved by endpoint preparation.

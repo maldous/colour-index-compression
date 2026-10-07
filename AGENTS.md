@@ -1,3 +1,31 @@
+# Approved operating-model migration — 2026-10-07
+
+Matthew approved the complete CIX implementation and operating plan, source SHA256
+`d39de86116eac8a9860a77467c38766a92b290c2f2b5b5ecd91320dbfa4b7829`.
+For this migration Morgan manages from cloud and ONE native Symphony scheduler
+on foo uses initially eight issue slots within the existing system aggregate:
+eight CPU quota, 24GB RAM/no swap, including the retained 4GB logical hold.
+Standing specialist chats supply the established eight contracts; issue workers
+bind their ordinary role/context version at START. The technical runtime/merge
+owner is task 01a11634-e38d-73a7-8ee7-1376f1d810a7.
+
+Private main is canonical. Code tickets require own focused PASS, ONE independent
+Quinn review and serialized ordinary PR merge with actual candidate/base/merged
+identity before Done. Non-code work requires accepted usable output. Public
+release checks apply only to manually scheduled pinned-main public releases.
+GitHub Actions remain disabled. Cathy maintains one daily book with intraday updates.
+
+These instructions supersede conflicting historical sole-ROOT manual orchestration,
+two-implementer/trial concurrency, old resource defaults and per-ticket global RC
+or release gates only for the approved migration. Retain source contracts, history,
+dirty/untracked work and specific ticket holds. CIX239 is unresolved; CIX240/241
+are canceled and their denied diagnostics must not be retried or recreated.
+No new dispatcher, credential copying, force reset/push, public release or
+irrecoverable cleanup is authorized. Runtime preparation is not activation or BAU.
+
+The records below remain historical evidence; current operative policy also lives
+in the existing Linear working agreement and persona register's dated migration section.
+
 # Current platform direction — 2026-10-05
 
 The user requires a dependable CLI/SDK, no graphical app, and mandatory PAQ in
