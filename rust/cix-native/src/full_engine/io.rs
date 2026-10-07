@@ -206,10 +206,11 @@ pub fn decode<R: Read, W: Write>(
     limits: &OperationLimits,
 ) -> Result<DecodePath, String> {
     check(limits)?;
-    let (first, first_len) = prefix(&mut source, limits)?;
-    if max_archive_bytes == 0 || first_len > max_archive_bytes {
+    // Every supported archive needs a five-byte signature.
+    if max_archive_bytes < 5 {
         return Err("archive exceeds declared cap".into());
     }
+    let (first, first_len) = prefix(&mut source, limits)?;
     match classify(&first[..first_len])? {
         DecodePath::WindowIncremental => {
             let mut reader = CountingReader {
@@ -377,6 +378,50 @@ mod tests {
         assert!(classify(b"CIXB\xff").is_err());
         assert!(classify(b"CIXB\x0a\x00").is_err());
         assert!(classify(b"CIXG").is_err());
+    }
+    #[test]
+    fn impossible_archive_caps_do_not_read_signature() {
+        struct GuardedSignature {
+            calls: usize,
+            consumed: usize,
+        }
+        impl Read for GuardedSignature {
+            fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+                self.calls += 1;
+                let signature = b"CIXR1";
+                if self.consumed == signature.len() {
+                    return Err(io::Error::other("read after supported signature"));
+                }
+                let count = buffer.len().min(signature.len() - self.consumed);
+                buffer[..count]
+                    .copy_from_slice(&signature[self.consumed..self.consumed + count]);
+                self.consumed += count;
+                Ok(count)
+            }
+        }
+        for cap in 0..5 {
+            let mut source = GuardedSignature {
+                calls: 0,
+                consumed: 0,
+            };
+            let mut output = b"unchanged".to_vec();
+            let error = decode(&engine(), &mut source, &mut output, cap, &limits())
+                .unwrap_err();
+            assert_eq!(error, "archive exceeds declared cap", "cap {cap}");
+            assert_eq!(source.calls, 0, "cap {cap}");
+            assert_eq!(source.consumed, 0, "cap {cap}");
+            assert_eq!(output, b"unchanged", "cap {cap}");
+        }
+        let mut source = GuardedSignature {
+            calls: 0,
+            consumed: 0,
+        };
+        let mut output = b"unchanged".to_vec();
+        let error = decode(&engine(), &mut source, &mut output, 5, &limits()).unwrap_err();
+        assert_eq!(error, "read after supported signature");
+        assert_eq!(source.calls, 6);
+        assert_eq!(source.consumed, 5);
+        assert_eq!(output, b"unchanged");
     }
     #[test]
     fn generic_and_raw_decode() {
