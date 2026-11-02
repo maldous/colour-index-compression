@@ -1,4 +1,16 @@
-# Colour/Index Compression Research
+# Colour / Index Compression
+
+**Research into lossless compression through colour, index and byte-statistical representations.**
+
+An experimental codec research repository exploring reversible transforms, modelling and streaming formats. The emphasis is on reproducible implementation and exact round trips; compression results depend on the input and configuration.
+
+[Matthew Aldous](https://aldous.info/) · [Research and implementation reference](#technical-reference)
+
+## Project status
+
+Research software. The repository contains prototypes and format experiments; it does not claim a production-ready codec or universal performance advantage. Existing experiment and execution controls remain applicable.
+
+## Technical reference
 
 ## Local research checkpoint
 
